@@ -1,0 +1,6 @@
+rootProject.name = 'portal-universe'
+
+include 'services:discovery-service'
+include 'services:api-gateway'
+include 'services:auth-service'
+include 'services:blog-service'
