@@ -1,8 +1,9 @@
+# services/discovery-service/src/main/resources/application.yml
+server:
+  port: 8761
 spring:
   application:
     name: discovery-service
-server:
-  port: 8761
 eureka:
   client:
     register-with-eureka: false
