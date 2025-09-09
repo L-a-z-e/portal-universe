@@ -5,6 +5,17 @@ server:
 spring:
   application:
     name: api-gateway
+  cloud:
+    gateway.server.webflux:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: blog-service-route
+          uri: lb://blog-service
+          predicates:
+            - Path=/api/blogs/**
 eureka:
   client:
     service-url:
