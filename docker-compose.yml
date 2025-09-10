@@ -11,6 +11,7 @@ services:
       - MYSQL_DATABASE=auth_db
       - MYSQL_USER=laze
       - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_HOST=%
     networks:
       - portal-universe-net
 
