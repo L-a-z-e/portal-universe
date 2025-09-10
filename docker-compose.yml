@@ -1,0 +1,20 @@
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=auth_db
+      - MYSQL_USER=laze
+      - MYSQL_PASSWORD=password
+    networks:
+      - portal-universe-net
+
+volumes:
+  mysql-data:
+networks:
+  portal-universe-net:
