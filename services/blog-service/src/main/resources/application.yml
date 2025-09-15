@@ -5,6 +5,12 @@ server:
 spring:
   application:
     name: blog-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8081
+
 
 eureka:
   client:
