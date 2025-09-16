@@ -15,7 +15,21 @@ services:
     networks:
       - portal-universe-net
 
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=laze
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    networks:
+      - portal-universe-net
+
 volumes:
   mysql-data:
+  mongo-data:
 networks:
   portal-universe-net:
