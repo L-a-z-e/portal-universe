@@ -2,6 +2,7 @@ package com.portal.universe.blogservice.controller;
 
 import com.portal.universe.blogservice.dto.PostCreateRequest;
 import com.portal.universe.blogservice.dto.PostResponse;
+import com.portal.universe.blogservice.dto.PostUpdateRequest;
 import com.portal.universe.blogservice.service.BlogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,5 +44,27 @@ public class BlogController {
         PostResponse post = blogService.getPostById(postId);
 
         return ResponseEntity.ok(post);
+    }
+
+    @PutMapping("/{postId}")
+    public ResponseEntity<PostResponse> updatePost(
+            @PathVariable String postId,
+            @RequestBody PostUpdateRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        String userId = jwt.getSubject();
+
+        PostResponse updatedPost = blogService.updatePost(postId, request, userId);
+        return  ResponseEntity.ok(updatedPost);
+    }
+
+    @DeleteMapping("/{postId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePost(
+            @PathVariable String postId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        String userId = jwt.getSubject();
+        blogService.deletePost(postId, userId);
     }
 }

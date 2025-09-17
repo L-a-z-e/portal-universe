@@ -3,9 +3,12 @@ package com.portal.universe.blogservice.service;
 import com.portal.universe.blogservice.domain.Post;
 import com.portal.universe.blogservice.dto.PostCreateRequest;
 import com.portal.universe.blogservice.dto.PostResponse;
+import com.portal.universe.blogservice.dto.PostUpdateRequest;
 import com.portal.universe.blogservice.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -56,5 +59,31 @@ public class BlogServiceImple implements BlogService{
         Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
 
         return convertToResponse(post);
+    }
+
+    @Override
+    public PostResponse updatePost(String postId, PostUpdateRequest request, String userId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        if (!post.getAuthorId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to update this post");
+        }
+
+        post.update(request.title(), request.content());
+
+        Post updatedPost = postRepository.save(post);
+
+        return convertToResponse(updatedPost);
+    }
+
+    @Override
+    public void deletePost(String postId, String userId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        if (!post.getAuthorId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this post");
+        }
+
+        postRepository.delete(post);
     }
 }
