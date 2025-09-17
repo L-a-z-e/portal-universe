@@ -7,6 +7,8 @@ import com.portal.universe.blogservice.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class BlogServiceImple implements BlogService{
@@ -26,13 +28,33 @@ public class BlogServiceImple implements BlogService{
         Post savedPost = postRepository.save(newPost);
 
         // 3. 저장된 Document 객체를 다시 응답용 DTO로 변환하여 반환
+        return convertToResponse(savedPost);
+    }
+
+    @Override
+    public List<PostResponse> getAllPosts() {
+        List<Post> posts = postRepository.findAll();
+
+        return posts.stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
+
+    private PostResponse convertToResponse(Post post) {
         return new PostResponse(
-                savedPost.getId(),
-                savedPost.getTitle(),
-                savedPost.getContent(),
-                savedPost.getAuthorId(),
-                savedPost.getCreatedAt(),
-                savedPost.getUpdatedAt()
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getAuthorId(),
+                post.getCreatedAt(),
+                post.getUpdatedAt()
         );
+    }
+
+    @Override
+    public PostResponse getPostById(String postId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+
+        return convertToResponse(post);
     }
 }

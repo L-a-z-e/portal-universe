@@ -10,6 +10,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/blogs")
 @RequiredArgsConstructor
@@ -29,4 +31,17 @@ public class BlogController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 
+    @GetMapping
+    public ResponseEntity<List<PostResponse>> getAllPosts() {
+        List<PostResponse> posts = blogService.getAllPosts();
+
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostResponse> getPostById(@PathVariable String postId) {
+        PostResponse post = blogService.getPostById(postId);
+
+        return ResponseEntity.ok(post);
+    }
 }
