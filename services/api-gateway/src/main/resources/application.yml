@@ -15,7 +15,11 @@ spring:
         - id: blog-service-route
           uri: lb://blog-service
           predicates:
-            - Path=/api/blogs/**
+            - Path=/api/blog/**
+        - id: shopping-service-route
+          uri: lb://shopping-service
+          predicates:
+            - Path=/api/shopping/**
   security:
     oauth2:
       resourceserver:
@@ -27,3 +31,10 @@ eureka:
       defaultZone: http://localhost:8761/eureka
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+
+logging:
+  level:
+    # Spring Security 전체에 대한 디버그 로그 활성화
+    org.springframework.security: DEBUG
+    # Resource Server의 JWT 처리 과정에 대한 상세 로그
+    org.springframework.security.oauth2.server.resource: TRACE
