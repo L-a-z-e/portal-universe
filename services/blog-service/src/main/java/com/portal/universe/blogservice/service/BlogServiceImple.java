@@ -25,6 +25,7 @@ public class BlogServiceImple implements BlogService{
                 .title(request.title())
                 .content(request.content())
                 .authorId(authorId)
+                .productId(request.productId())
                 .build();
 
         // 2. Repository를 통해 DB에 저장
@@ -50,7 +51,8 @@ public class BlogServiceImple implements BlogService{
                 post.getContent(),
                 post.getAuthorId(),
                 post.getCreatedAt(),
-                post.getUpdatedAt()
+                post.getUpdatedAt(),
+                post.getProductId()
         );
     }
 
@@ -85,5 +87,13 @@ public class BlogServiceImple implements BlogService{
         }
 
         postRepository.delete(post);
+    }
+
+    @Override
+    public List<PostResponse> getPostsByProductId(String productId) {
+        return postRepository.findByProductId(productId)
+                .stream()
+                .map(this::convertToResponse)
+                .toList();
     }
 }

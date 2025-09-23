@@ -44,4 +44,10 @@ public interface BlogService {
      */
     void deletePost(String postId, String userId);
 
+    /**
+     * productId로 특정 게시글을 조회합니다.
+     * @param productId 조회할 상품ID
+     * @return 조회된 게시글 정보
+     */
+    List<PostResponse> getPostsByProductId(String productId);
 }

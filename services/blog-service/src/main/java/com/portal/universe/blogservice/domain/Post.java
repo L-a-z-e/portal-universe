@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post {
 
+    private String productId;
+
     @Id
     private String id;
 
@@ -32,10 +34,11 @@ public class Post {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Post(String title, String content, String authorId) {
+    public Post(String title, String content, String authorId, String productId) {
         this.title = title;
         this.content = content;
         this.authorId = authorId;
+        this.productId = productId;
     }
 
     public void update(String title, String content) {

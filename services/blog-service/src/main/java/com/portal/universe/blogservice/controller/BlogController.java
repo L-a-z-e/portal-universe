@@ -67,4 +67,9 @@ public class BlogController {
         String userId = jwt.getSubject();
         blogService.deletePost(postId, userId);
     }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<List<PostResponse>> getPostByProductId(@RequestParam String productId) {
+        return ResponseEntity.ok(blogService.getPostsByProductId(productId));
+    }
 }

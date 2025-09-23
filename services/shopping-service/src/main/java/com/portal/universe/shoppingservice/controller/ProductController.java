@@ -3,6 +3,7 @@ package com.portal.universe.shoppingservice.controller;
 import com.portal.universe.shoppingservice.dto.ProductCreateRequest;
 import com.portal.universe.shoppingservice.dto.ProductResponse;
 import com.portal.universe.shoppingservice.dto.ProductUpdateRequest;
+import com.portal.universe.shoppingservice.dto.ProductWithReviewsResponse;
 import com.portal.universe.shoppingservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -41,5 +42,11 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
+    }
+
+    @GetMapping("/{productId}/with-reviews")
+    public ResponseEntity<ProductWithReviewsResponse> getProductWithReviews(@PathVariable Long productId) {
+        ProductWithReviewsResponse response = productService.getProductWithReviews(productId);
+        return ResponseEntity.ok(response);
     }
 }

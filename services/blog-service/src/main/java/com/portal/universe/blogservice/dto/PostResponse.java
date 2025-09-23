@@ -8,6 +8,7 @@ public record PostResponse(
         String content,
         String authorId,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String productId
 ) {
 }

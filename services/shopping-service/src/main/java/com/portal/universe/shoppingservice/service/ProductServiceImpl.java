@@ -1,18 +1,20 @@
 package com.portal.universe.shoppingservice.service;
 
 import com.portal.universe.shoppingservice.domain.Product;
-import com.portal.universe.shoppingservice.dto.ProductCreateRequest;
-import com.portal.universe.shoppingservice.dto.ProductResponse;
-import com.portal.universe.shoppingservice.dto.ProductUpdateRequest;
+import com.portal.universe.shoppingservice.dto.*;
+import com.portal.universe.shoppingservice.feign.BlogServiceClient;
 import com.portal.universe.shoppingservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final BlogServiceClient blogServiceClient;
 
     @Override
     public ProductResponse createProduct(ProductCreateRequest request) {
@@ -58,6 +60,23 @@ public class ProductServiceImpl implements ProductService {
         }
 
         productRepository.deleteById(productId);
+    }
+
+    @Override
+    public ProductWithReviewsResponse getProductWithReviews(Long productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        List<BlogResponse> reviews = blogServiceClient.getPostByProductId(String.valueOf(productId));
+
+        return new ProductWithReviewsResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStock(),
+                reviews
+        );
+
     }
 
     private ProductResponse convertToResponse(Product product) {
