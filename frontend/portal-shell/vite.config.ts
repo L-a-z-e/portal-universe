@@ -9,17 +9,28 @@ export default defineConfig({
     federation({
       name: 'portal_shell_host',
       remotes: {
-        'blog_remote': 'http://localhost:5082/assets/remoteEntry.js',
+        blog_remote: "http://localhost:5082/assets/remoteEntry.js",
       },
-      shared: ['vue']
+      shared: ['vue'],
+
     })
   ],
-  base: './',
   server: {
     port: 50000,
-    cors: true
+    cors: true,
+    // 👇 프록시 설정을 추가
+    proxy: {
+      '/blog_remote': {
+        target: 'http://localhost:5082', // 실제 목적지
+        changeOrigin: true, // 출처(Origin) 헤더를 목적지에 맞게 변경
+        rewrite: (path) => {
+          return path.replace(/blog_remote/, '/assets');
+        }
+      }
+    }
   },
   build: {
+    minify:false,
     target: 'esnext'
   }
 })

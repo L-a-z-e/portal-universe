@@ -1,7 +1,6 @@
 <script setup lang="ts">
   import { defineAsyncComponent} from "vue";
-  import BlogApp from 'blog_remote/BlogApp';
-  // const BlogApp = defineAsyncComponent(() => import('blog_remote/BlogApp'));
+  const BlogApp = defineAsyncComponent(() => import('blog_remote/BlogApp'));
 </script>
 
 <template>
