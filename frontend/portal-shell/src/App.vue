@@ -1,19 +1,59 @@
 <script setup lang="ts">
-  import { defineAsyncComponent} from "vue";
-  const BlogApp = defineAsyncComponent(() => import('blog_remote/BlogApp'));
+
 </script>
 
 <template>
-  <div style="border: 2px solid green; padding: 1rem">
-    <h1>This is Portal Shell (Host Application)</h1>
-    <p>Serving from localhost:5000</p>
-    <hr/>
-    <h2>Dynamically Loaded Micro Frontend</h2>
-    <Suspense>
-      <BlogApp />
-      <template #fallback>
-        <div>Loading Micro Frontend...</div>
-      </template>
-    </Suspense>
+  <div id="portal-shell-container">
+    <header>
+      <h1>Portal Universe</h1>
+      <nav>
+        <router-link to="/">Home</router-link> |
+        <router-link to="/blog">Blog</router-link> |
+        <router-link to="/shopping">Shopping</router-link>
+      </nav>
+    </header>
+
+    <main>
+      <router-view v-slot="{ Component }">
+        <Suspense>
+          <component :is="Component" />
+          <template #fallback>
+            Loading Page
+          </template>
+        </Suspense>
+      </router-view>
+    </main>
+
+    <footer>
+      <p>Portal Universe</p>
+    </footer>
   </div>
 </template>
+
+<style scoped>
+#portal-shell-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: sans-serif;
+}
+
+header {
+  padding: 1rem;
+  border-bottom: 1px solid #ccc;
+}
+
+nav a {
+  margin: 0 1rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+nav a.router-link-exact-active {
+  color: #42b983;
+}
+
+main {
+  padding: 1rem;
+}
+
+</style>
