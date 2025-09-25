@@ -12,6 +12,7 @@ export default defineConfig({
       exposes: {
         // 외부에서 BlogApp 이라는 이름으로 import하면, 이 프로젝트의 './src/App.vue' 파일을 노출
         './BlogApp': './src/App.vue',
+        './bootstrap': './src/bootstrap.ts'
       },
       shared: ['vue'] // Vue 라이브러리는 셸과 공유하여 중복 로드를 피함
     })

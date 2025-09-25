@@ -1,19 +1,15 @@
-import { createRouter, createWebHistory } from "vue-router";
-import { defineAsyncComponent } from "vue";
-
-const BlogApp = defineAsyncComponent(() => import('blog_remote/BlogApp'));
+import { createRouter, createWebHistory } from 'vue-router';
+import App from '../App.vue';
+import { remoteRoutes } from './remotes';
 
 const routes = [
-  {
-    path: "/blog",
-    name: "blog",
-    component: BlogApp
-  }
-]
+  { path: '/', name: 'Home', component: App },
+  ...remoteRoutes,
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 });
 
 export default router;

@@ -9,19 +9,21 @@
       <nav>
         <router-link to="/">Home</router-link> |
         <router-link to="/blog">Blog</router-link> |
-        <router-link to="/shopping">Shopping</router-link>
+<!--        <router-link to="/shopping">Shopping</router-link>-->
       </nav>
     </header>
 
     <main>
-      <router-view v-slot="{ Component }">
-        <Suspense>
-          <component :is="Component" />
-          <template #fallback>
-            Loading Page
-          </template>
-        </Suspense>
-      </router-view>
+      <Suspense>
+        <template #default>
+          <router-view v-slot="{ Component }">
+            <component :is="Component" />
+          </router-view>
+        </template>
+        <template #fallback>
+          Loading Page
+        </template>
+      </Suspense>
     </main>
 
     <footer>

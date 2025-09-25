@@ -1,4 +1,3 @@
-declare module 'blog_remote/*' {
-  const content: any;
-  export default content;
+declare module 'blog_remote/bootstrap' {
+  export function mountBlogApp(el: HTMLElement): () => void;
 }
