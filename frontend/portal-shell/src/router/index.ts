@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import App from '../App.vue';
 import { remoteRoutes } from './remotes';
+import HomePage from "../views/HomePage.vue";
 
 const routes = [
-  { path: '/', name: 'Home', component: App },
+  { path: '/', name: 'Home', component: HomePage },
   ...remoteRoutes,
 ];
 
