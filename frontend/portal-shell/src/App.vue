@@ -42,7 +42,7 @@ function fakeLogin() {
     <main>
       <Suspense>
         <template #default>
-          <router-view v-slot="{ Component }">
+          <router-view :key="$route.path" v-slot="{ Component }">
             <component :is="Component" />
           </router-view>
         </template>

@@ -1,10 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { remoteRoutes } from './remotes';
+import RemoteWrapper from '../components/RemoteWrapper.vue';
 import HomePage from "../views/HomePage.vue";
+import {mountBlogApp} from "blog_remote/bootstrap";
 
 const routes = [
   { path: '/', name: 'Home', component: HomePage },
-  ...remoteRoutes,
+  { path: '/blog/:pathMatch(.*)*',
+    name: 'blog',
+    component: RemoteWrapper,
+    props: {
+      mountFn: mountBlogApp,
+      basePath: '/blog'
+    }
+  }
 ];
 
 const router = createRouter({
