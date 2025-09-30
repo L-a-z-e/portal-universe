@@ -1,21 +1,9 @@
 <script setup lang="ts">
 
 import {useAuthStore} from "./store/auth.ts";
-import { base64UrlEncodeFromString } from "./utils/base64.ts";
+import { login, logout } from "./services/authService.ts";
 
 const authStore = useAuthStore();
-
-function fakeLogin() {
-  const header = { alg: "HS256", typ: "JWT" };
-  const payload = {
-    sub: "test@example.com",
-    username: "Laze",
-  };
-
-  const fakeToken = `${base64UrlEncodeFromString(JSON.stringify(header))}.${base64UrlEncodeFromString(JSON.stringify(payload))}.signature`;
-
-  authStore.login(fakeToken);
-}
 
 </script>
 
@@ -31,10 +19,10 @@ function fakeLogin() {
       <div class="auth-status">
         <template v-if="authStore.isAuthenticated">
           <span>Welcome, {{ authStore.user?.name }}!</span>
-          <button @click="authStore.logout">Logout</button>
+          <button @click="logout">Logout</button>
         </template>
         <template v-else>
-          <button @click="fakeLogin">Login</button>
+          <button @click="login">Login</button>
         </template>
       </div>
     </header>

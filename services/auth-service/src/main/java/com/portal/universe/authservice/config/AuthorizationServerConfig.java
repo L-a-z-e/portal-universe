@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,17 +32,43 @@ public class AuthorizationServerConfig {
 
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(clientId)
-                .clientSecret(passwordEncoder.encode(clientSecret))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+//                .clientSecret(passwordEncoder.encode(clientSecret))
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("https://oauth.pstmn.io/v1/browser-callback")
+                .redirectUri("http://localhost:50000/callback")
                 .scope("read")
                 .scope("write")
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
+                .scope("openid")
+                .scope("profile")
+                .clientSettings(ClientSettings.builder()
+                                .requireProofKey(true)
+                                .requireAuthorizationConsent(false)
+                                .build()
+                )
                 .build();
 
         return new InMemoryRegisteredClientRepository(registeredClient);
     }
 
+    @Bean
+    public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
+        return context -> {
+            // Access Token을 생성할 때만 동작하도록 필터링
+            if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
+                Authentication principal = context.getPrincipal();
+                // 사용자의 권한(authorities)과 요청된 스코프(scopes)를 가져옵니다.
+                Set<String> authorities = principal.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toSet());
+                Set<String> scopes = context.getRegisteredClient().getScopes();
+
+                // 'scope' 클레임에 권한과 스코프를 모두 포함시킵니다.
+                context.getClaims().claim("scope", scopes);
+                // 다른 커스텀 클레임 등록 시
+                // context.getClaims().claim("username", principal.getName());
+            }
+        };
+    }
 }

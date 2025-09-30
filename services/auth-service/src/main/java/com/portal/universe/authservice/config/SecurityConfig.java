@@ -14,7 +14,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -39,7 +45,8 @@ public class SecurityConfig {
                                 new LoginUrlAuthenticationEntryPoint("/login"),
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
-                );
+                )
+                .cors(Customizer.withDefaults());
         return http.build();
     }
 
@@ -51,7 +58,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
+                .formLogin(formLogin -> formLogin
+                        .successHandler(new SavedRequestAwareAuthenticationSuccessHandler()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .build();
     }
@@ -59,5 +67,23 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // 허용할 출처(Origin)를 지정
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:50000"));
+        // 허용할 HTTP 메소드를 지정
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // 허용할 헤더를 지정
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        // 자격 증명(쿠키 등)을 허용할지 여부 설정
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // 모든 경로("/**")에 대해 위에서 정의한 CORS 정책을 적용
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

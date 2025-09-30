@@ -9,6 +9,7 @@
     "preview": "vite preview --port 50000 --strictPort"
   },
   "dependencies": {
+    "oidc-client-ts": "^3.3.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.21",
     "vue-router": "^4.5.1"
