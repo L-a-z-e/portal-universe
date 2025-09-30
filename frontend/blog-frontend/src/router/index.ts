@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import {createMemoryHistory, createRouter, type Router} from "vue-router";
 
 import PostListPage from '../views/PostListPage.vue';
 import PostDetailPage from '../views/PostDetailPage.vue';
@@ -6,7 +6,7 @@ import PostWritePage from '../views/PostWritePage.vue';
 
 const routes = [
   {
-    path: '',
+    path: '/',
     name: 'PostList',
     component: PostListPage
   },
@@ -23,9 +23,9 @@ const routes = [
   }
 ];
 
-const router = createRouter({
-  history: createWebHistory(), // base 경로를 /blog로 설정
-  routes
-});
-
-export default router;
+export const createBlogRouter = (): Router => {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes
+  });
+}
