@@ -38,6 +38,7 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:50000/callback")
+                .postLogoutRedirectUri("http://localhost:50000")
                 .scope("read")
                 .scope("write")
                 .scope("openid")
