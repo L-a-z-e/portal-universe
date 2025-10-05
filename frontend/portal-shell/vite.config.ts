@@ -8,10 +8,14 @@ export default defineConfig({
     vue(),
     federation({
       name: 'portal',
+      filename: 'shellEntry.js',
       remotes: {
         blog_remote: "http://localhost:5082/assets/remoteEntry.js",
       },
-      shared: ['vue'],
+      exposes: {
+        './authStore': './src/store/auth.ts'
+      },
+      shared: ['vue', 'pinia'],
     })
   ],
   server: {

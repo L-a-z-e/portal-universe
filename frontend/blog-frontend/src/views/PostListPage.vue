@@ -1,3 +1,8 @@
+<script setup lang="ts">
+  import { useAuthStore } from "portal_shell/authStore";
+
+  const authStore = useAuthStore();
+</script>
 <template>
   <div>
     <h2>Blog Post List</h2>
@@ -5,6 +10,10 @@
     <p><router-link to="/blog/123">View Post 123</router-link></p>
     <p><router-link to="/blog/456">View Post 456</router-link></p>
     <hr/>
-    <router-link to="/blog/write">Write a new Post</router-link>
+    <router-link v-if="authStore.isAuthenticated" to="/blog/write">Write a new Post</router-link>
+    <p v-else>Please login to write a new post.</p>
+    <div v-if="authStore.user">
+      <p>Current User: {{ authStore.user }}</p>
+    </div>
   </div>
 </template>

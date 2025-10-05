@@ -8,11 +8,14 @@ export default defineConfig({
     vue(),
     federation({ //federation plugin add
       name: 'blog_remote',
+      remotes: {
+        portal_shell: "http://localhost:50000/assets/shellEntry.js"
+      },
       filename: 'remoteEntry.js',
       exposes: {
         './bootstrap': './src/bootstrap.ts'
       },
-      shared: ['vue'] // Vue 라이브러리는 셸과 공유하여 중복 로드를 피함
+      shared: ['vue', 'pinia'] // Vue 라이브러리는 셸과 공유하여 중복 로드를 피함
     })
   ],
   // base: '/',
