@@ -9,6 +9,7 @@
     "preview": "vite preview --port 5082 --strictPort"
   },
   "dependencies": {
+    "axios": "^1.12.2",
     "pinia": "^3.0.3",
     "vue": "^3.5.21",
     "vue-router": "^4.5.1"
