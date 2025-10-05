@@ -10,9 +10,11 @@ apiClient.interceptors.request.use(
 
     if (oidcStorage) {
       const user = JSON.parse(oidcStorage);
-      const token = user.accessToken;
+      const token = user.access_token;
+      console.log('Token', token);
 
       if (token) {
+        console.log('Adding Authorization header with token:', token);
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
