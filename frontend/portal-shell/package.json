@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 50000 --strictPort",
+    "dev": "concurrently \"vite build --watch\" \"vite preview --port 50000 --strictPort\"",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview --port 50000 --strictPort"
   },
   "dependencies": {
+    "concurrently": "^9.2.1",
     "oidc-client-ts": "^3.3.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.21",
