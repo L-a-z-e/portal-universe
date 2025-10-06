@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.oidc.web.authentication.OidcLogoutAuthenticationSuccessHandler;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -39,7 +40,10 @@ public class SecurityConfig {
                                 .oidc(oidc -> oidc
                                         .providerConfigurationEndpoint(Customizer.withDefaults())
                                         .logoutEndpoint(logout -> logout
-                                                .logoutResponseHandler(new OidcLogoutAuthenticationSuccessHandler())))
+                                                .logoutResponseHandler((request, response, authentication) -> {
+                                                    new SecurityContextLogoutHandler().logout(request, response, authentication);
+                                                    new OidcLogoutAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);
+                                                })))
                         )
                 .authorizeHttpRequests((authorize) ->
                         authorize.requestMatchers("/.well-known/**").permitAll()
@@ -67,8 +71,11 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(formLogin -> formLogin
-                        .defaultSuccessUrl("http://localhost:50000")
+                .formLogin(Customizer.withDefaults())
+                .logout(logout -> logout
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .build();
