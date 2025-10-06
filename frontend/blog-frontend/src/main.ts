@@ -1,9 +1,12 @@
-import { createApp } from 'vue'
 import './style.css'
-import App from './App.vue'
-import { createBlogRouter } from './router';
+import { mountBlogApp } from './bootstrap';
 
-const app = createApp(App);
-const router = createBlogRouter();
-app.use(router);
-app.mount('#app');
+const appElement = document.querySelector('#app') as HTMLElement | null;
+
+if (appElement) {
+  mountBlogApp(appElement, {
+    onNavigate: (path) => {
+      console.log(`Standalone navigation: ${path}`);
+    }
+  });
+}

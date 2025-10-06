@@ -1,43 +1,54 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from "vue";
-import { useRoute } from "vue-router";
+import { ref, onMounted, onUnmounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import type { Router } from "vue-router";
+import type { MountOptions } from "blog_remote/bootstrap";
+
+type RemoteApp = {
+  router: Router;
+  onParentNavigate: (path: string) => void;
+  unmount: () => void;
+};
 
 const props = defineProps<{
-  mountFn: (el: HTMLElement) => { router: Router, unmount: () => void };
+  mountFn: (el: HTMLElement, options: MountOptions) => RemoteApp;
   basePath: string;
 }>();
 
 const container = ref<HTMLElement | null>(null);
 const shellRoute = useRoute();
+const shellRouter = useRouter();
 
-let remoteApp: { router: Router, unmount: () => void } | null = null;
+let remoteApp: RemoteApp | null = null;
+
+const onRemoteNavigate = (path: string) => {
+  const newPath = `${props.basePath}${path === '/' ? '' : path}`;
+  if (shellRoute.path !== newPath) {
+    shellRouter.push(newPath);
+  }
+};
+
+watch(() => shellRoute.path, (newPath) => {
+  if (remoteApp) {
+    const remotePath = newPath.substring(props.basePath.length) || '/';
+    remoteApp.onParentNavigate(remotePath);
+  }
+}, { immediate: true });
 
 onMounted(() => {
   if (container.value) {
-    remoteApp = props.mountFn(container.value);
-    sycnRoute();
+    const initialPath = shellRoute.path.substring(props.basePath.length) || '/';
+    remoteApp = props.mountFn(container.value, {
+      initialPath,
+      onNavigate: onRemoteNavigate,
+    });
   }
 });
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
   remoteApp?.unmount();
   remoteApp = null;
 });
-
-watch(() => shellRoute.path, sycnRoute, { immediate: true });
-
-function sycnRoute(newPath?: string, oldPath?: string) {
-  if (!remoteApp || newPath === oldPath) {
-    return;
-  }
-
-  const subPath = shellRoute.path.substring(props.basePath.length) || '/';
-
-  if (remoteApp.router.currentRoute.value.path !== subPath) {
-    remoteApp.router.push(subPath);
-  }
-}
 </script>
 
 <template>
@@ -45,5 +56,4 @@ function sycnRoute(newPath?: string, oldPath?: string) {
 </template>
 
 <style scoped>
-
 </style>
