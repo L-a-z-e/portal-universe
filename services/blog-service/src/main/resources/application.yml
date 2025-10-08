@@ -19,5 +19,7 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+    initial-instance-info-replication-interval-seconds: 10
+    registry-fetch-interval-seconds: 5
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
