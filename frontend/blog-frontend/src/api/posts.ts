@@ -3,22 +3,28 @@ import type { PostResponse } from '../dto/PostResponse';
 import type { PostCreateRequest } from '../dto/PostCreateRequest';
 import type { PostUpdateRequest } from "../dto/PostUpdateRequest.ts";
 
-export function fetchAllPosts() {
-    return apiClient.get<PostResponse[]>('/api/blog').then(res => res.data);
+type ApiResponse<T> = {
+    success: boolean;
+    data: T;
+    error: any;
 }
 
-export function createPost(payload: PostCreateRequest) {
-    return apiClient.post<PostResponse>('/api/blog', payload).then(res => res.data);
+export function fetchAllPosts(): Promise<PostResponse[]> {
+    return apiClient.get<ApiResponse<PostResponse[]>>('/api/blog').then(res => res.data.data);
 }
 
-export function updatePost(postId: string, payload: PostUpdateRequest) {
-    return apiClient.put<PostResponse>(`/api/blog/${postId}`, payload).then(res => res.data);
+export function createPost(payload: PostCreateRequest): Promise<PostResponse> {
+    return apiClient.post<ApiResponse<PostResponse>>('/api/blog', payload).then(res => res.data.data);
 }
 
-export function deletePost(postId: string) {
-    return apiClient.delete(`/api/blog/${postId}`);
+export function updatePost(postId: string, payload: PostUpdateRequest): Promise<PostResponse> {
+    return apiClient.put<ApiResponse<PostResponse>>(`/api/blog/${postId}`, payload).then(res => res.data.data);
 }
 
-export function fetchPostById(postId: string) {
-    return apiClient.get<PostResponse>(`/api/blog/${postId}`).then(res => res.data);
+export function deletePost(postId: string): Promise<void> {
+    return apiClient.delete<ApiResponse<void>>(`/api/blog/${postId}`).then(() => {});
+}
+
+export function fetchPostById(postId: string): Promise<PostResponse> {
+    return apiClient.get<ApiResponse<PostResponse>>(`/api/blog/${postId}`).then(res => res.data.data);
 }
