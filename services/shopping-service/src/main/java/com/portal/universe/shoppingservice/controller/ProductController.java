@@ -1,13 +1,12 @@
 package com.portal.universe.shoppingservice.controller;
 
+import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.shoppingservice.dto.ProductCreateRequest;
 import com.portal.universe.shoppingservice.dto.ProductResponse;
 import com.portal.universe.shoppingservice.dto.ProductUpdateRequest;
 import com.portal.universe.shoppingservice.dto.ProductWithReviewsResponse;
 import com.portal.universe.shoppingservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,35 +17,28 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductCreateRequest request) {
-        ProductResponse createdProduct = productService.createProduct(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+    public ApiResponse<ProductResponse> createProduct(@RequestBody ProductCreateRequest request) {
+        return ApiResponse.success(productService.createProduct(request));
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long productId) {
-        ProductResponse product = productService.getProductById(productId);
-
-        return ResponseEntity.ok(product);
+    public ApiResponse<ProductResponse> getProductById(@PathVariable Long productId) {
+        return ApiResponse.success(productService.getProductById(productId));
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long productId, @RequestBody ProductUpdateRequest request) {
-        ProductResponse updatedProduct = productService.updateProduct(productId, request);
-
-        return ResponseEntity.ok(updatedProduct);
+    public ApiResponse<ProductResponse> updateProduct(@PathVariable Long productId, @RequestBody ProductUpdateRequest request) {
+        return ApiResponse.success(productService.updateProduct(productId, request));
     }
 
     @DeleteMapping("/{productId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProduct(@PathVariable Long productId) {
+    public ApiResponse<Void> deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
+        return ApiResponse.success(null);
     }
 
     @GetMapping("/{productId}/with-reviews")
-    public ResponseEntity<ProductWithReviewsResponse> getProductWithReviews(@PathVariable Long productId) {
-        ProductWithReviewsResponse response = productService.getProductWithReviews(productId);
-        return ResponseEntity.ok(response);
+    public ApiResponse<ProductWithReviewsResponse> getProductWithReviews(@PathVariable Long productId) {
+        return ApiResponse.success(productService.getProductWithReviews(productId));
     }
 }
