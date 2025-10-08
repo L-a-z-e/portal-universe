@@ -24,6 +24,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(authorize -> authorize
+                        .pathMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/blog/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/shopping/**").permitAll()
                         .anyExchange().authenticated()
