@@ -1,0 +1,15 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka
+    initial-instance-info-replication-interval-seconds: 10
+    registry-fetch-interval-seconds: 5
+spring:
+  data:
+    mongodb:
+      uri: mongodb://laze:password@mongodb:27017/blog_db?authSource=admin
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth-service:8081

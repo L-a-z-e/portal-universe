@@ -28,6 +28,85 @@ services:
     networks:
       - portal-universe-net
 
+  discovery-service:
+    build:
+      context: .
+      dockerfile: ./services/discovery-service/Dockerfile
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+    networks:
+      - portal-universe-net
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./services/api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://auth-service:8081
+    depends_on:
+      - discovery-service
+    networks:
+      - portal-universe-net
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./services/auth-service/Dockerfile
+    container_name: auth-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/auth_db
+      - SPRING_DATASOURCE_USERNAME=laze
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_JWT_ISSUER=http://auth-service:8081
+    depends_on:
+      - discovery-service
+      - mysql-db
+    networks:
+      - portal-universe-net
+
+  blog-service:
+    build:
+      context: .
+      dockerfile: ./services/blog-service/Dockerfile
+    container_name: blog-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/blog_db
+    depends_on:
+      - discovery-service
+      - mongodb
+    networks:
+      - portal-universe-net
+
+  shopping-service:
+    build:
+      context: .
+      dockerfile: ./services/shopping-service/Dockerfile
+    container_name: shopping-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/shopping_db
+      - SPRING_DATASOURCE_USERNAME=laze
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      - discovery-service
+      - mysql-db
+    networks:
+      - portal-universe-net
+
 volumes:
   mysql-data:
   mongo-data:
