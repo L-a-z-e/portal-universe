@@ -28,9 +28,8 @@ services:
     networks:
       - portal-universe-net
 
-  # --- 👇 Kafka 서비스 추가 (KRaft 모드) ---
   kafka:
-    image: apache/kafka:4.1.0 # Specific version for stability
+    image: apache/kafka:4.1.0
     container_name: kafka
     ports:
       - "9092:9092"       # External access
@@ -129,6 +128,19 @@ services:
     depends_on:
       - discovery-service
       - mysql-db
+    networks:
+      - portal-universe-net
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: ./services/notification-service/Dockerfile
+    container_name: notification-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-service
+      - kafka
     networks:
       - portal-universe-net
 
