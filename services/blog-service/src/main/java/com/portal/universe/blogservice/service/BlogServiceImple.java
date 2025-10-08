@@ -4,11 +4,11 @@ import com.portal.universe.blogservice.domain.Post;
 import com.portal.universe.blogservice.dto.PostCreateRequest;
 import com.portal.universe.blogservice.dto.PostResponse;
 import com.portal.universe.blogservice.dto.PostUpdateRequest;
+import com.portal.universe.blogservice.exception.BlogErrorCode;
 import com.portal.universe.blogservice.repository.PostRepository;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -58,17 +58,17 @@ public class BlogServiceImple implements BlogService{
 
     @Override
     public PostResponse getPostById(String postId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
         return convertToResponse(post);
     }
 
     @Override
     public PostResponse updatePost(String postId, PostUpdateRequest request, String userId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
         if (!post.getAuthorId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to update this post");
+            throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
         }
 
         post.update(request.title(), request.content());
@@ -80,10 +80,10 @@ public class BlogServiceImple implements BlogService{
 
     @Override
     public void deletePost(String postId, String userId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
         if (!post.getAuthorId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this post");
+            throw new CustomBusinessException(BlogErrorCode.POST_DELETE_FORBIDDEN);
         }
 
         postRepository.delete(post);
