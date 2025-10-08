@@ -8,7 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableFeignClients(defaultConfiguration = FeignClientConfig.class)
-@ComponentScan(basePackages = "com.portal.universe")
+@ComponentScan(basePackages = { "com.portal.universe.shoppingservice", "com.portal.universe.commonlibrary" })
 public class ShoppingServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(ShoppingServiceApplication.class, args);

@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages = "com.portal.universe")
+@ComponentScan(basePackages = { "com.portal.universe.authservice", "com.portal.universe.commonlibrary" })
 public class AuthServiceApplication {
 
     public static void main(String[] args) {

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableMongoAuditing
-@ComponentScan(basePackages = "com.portal.universe")
+@ComponentScan(basePackages = { "com.portal.universe.blogservice", "com.portal.universe.commonlibrary" })
 public class BlogServiceApplication {
 
     public static void main(String[] args) {
