@@ -1,43 +1,39 @@
 plugins {
-    id 'java'
     id 'org.springframework.boot' version '3.5.5' apply false
     id 'io.spring.dependency-management' version '1.1.7' apply false
 }
 
 subprojects {
-    apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management'
-
+    // Apply truly universal settings to all subprojects
     group = 'com.portal.universe'
     version = '0.0.1-SNAPSHOT'
-    sourceCompatibility = '17'
 
     repositories {
         mavenCentral()
     }
+}
 
-    dependencyManagement {
-        imports {
-            mavenBom "org.springframework.cloud:spring-cloud-dependencies:2025.0.0"
+// Apply Java-specific configurations only to projects that have the Java plugin
+allprojects { project ->
+    project.plugins.withType(JavaPlugin) { 
+        project.apply plugin: 'io.spring.dependency-management'
+
+        project.sourceCompatibility = '17'
+
+        project.dependencyManagement {
+            imports {
+                mavenBom "org.springframework.cloud:spring-cloud-dependencies:2025.0.0"
+            }
+        }
+
+        project.dependencies {
+            compileOnly 'org.projectlombok:lombok'
+            annotationProcessor 'org.projectlombok:lombok'
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        }
+
+        project.test {
+            useJUnitPlatform()
         }
     }
-
-    dependencies {
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    }
-
-    test {
-        useJUnitPlatform()
-    }
 }
-//
-//bootJar {
-//    enabled = false
-//}
-//
-//jar {
-//    enabled = false
-//}
