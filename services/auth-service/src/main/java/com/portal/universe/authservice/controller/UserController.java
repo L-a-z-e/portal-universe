@@ -1,10 +1,11 @@
 package com.portal.universe.authservice.controller;
 
 import com.portal.universe.authservice.domain.User;
+import com.portal.universe.authservice.exception.AuthErrorCode;
 import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.commonlibrary.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,9 +22,9 @@ public class UserController {
     public record UserSignupRequest(String email, String password, String name) {}
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody UserSignupRequest request) {
+    public ApiResponse<String> signup(@RequestBody UserSignupRequest request) {
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email is already exists"); // 409 Conflict
+            throw new CustomBusinessException(AuthErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         String encodedPassword = passwordEncoder.encode(request.password());
@@ -31,6 +32,6 @@ public class UserController {
         User newUser = new User(request.email(), encodedPassword, request.name());
         userRepository.save(newUser);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully"); // 201 Created
+        return ApiResponse.success("User registered successfully");
     }
 }
