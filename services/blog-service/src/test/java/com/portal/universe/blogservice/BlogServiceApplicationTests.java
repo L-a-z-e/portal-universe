@@ -1,13 +1,11 @@
 package com.portal.universe.blogservice;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class BlogServiceApplicationTests {
+class BlogServiceApplicationTests extends IntegrationTest {
 
-    @Test
-    void contextLoads() {
-    }
+	@Test
+	void contextLoads() {
+	}
 
 }

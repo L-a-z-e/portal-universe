@@ -4,20 +4,5 @@ server:
 spring:
   application:
     name: notification-service
-  kafka:
-    consumer:
-      bootstrap-servers: localhost:9092
-      group-id: notification-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    initial-instance-info-replication-interval-seconds: 10
-    registry-fetch-interval-seconds: 5
-  instance:
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  config:
+    import: optional:configserver:http://config-service:8888

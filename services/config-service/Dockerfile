@@ -2,9 +2,9 @@ FROM openjdk:17-jdk-slim
 
 ARG JAR_FILE=build/libs/*.jar
 
-COPY services/shopping-service/${JAR_FILE} app.jar
-
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+COPY services/config-service/${JAR_FILE} /app.jar
 
 COPY scripts/docker-entrypoint-wait.sh /usr/local/bin/docker-entrypoint-wait.sh
 

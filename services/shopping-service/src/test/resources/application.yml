@@ -1,0 +1,13 @@
+spring:
+  config:
+    import: # 👈 추가: 외부 설정 임포트 비활성화
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+  datasource:
+    url: jdbc:mysql://localhost:3307/shopping_db?useSSL=false&allowPublicKeyRetrieval=true
+    username: laze
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver

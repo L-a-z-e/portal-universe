@@ -1,10 +1,8 @@
 package com.portal.universe.shoppingservice;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class ShoppingServiceApplicationTests {
+class ShoppingServiceApplicationTests extends IntegrationTest {
 
 	@Test
 	void contextLoads() {

@@ -1,0 +1,13 @@
+spring:
+  config:
+    import: # 👈 외부 설정 임포트 비활성화
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://dummy-issuer-for-test # Dummy issuer for test context

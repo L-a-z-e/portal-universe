@@ -1,13 +1,6 @@
-eureka:
-  client:
-    service-url:
-      defaultZone: http://discovery-service:8761/eureka
-    initial-instance-info-replication-interval-seconds: 10
-    registry-fetch-interval-seconds: 5
 spring:
   kafka:
     consumer:
-      bootstrap-servers: kafka:29092
       group-id: notification-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer

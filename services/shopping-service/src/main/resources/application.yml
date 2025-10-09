@@ -4,37 +4,5 @@ server:
 spring:
   application:
     name: shopping-service
-
-  datasource:
-    url: jdbc:mysql://localhost:3307/shopping_db?useSSL=false&allowPublicKeyRetrieval=true
-    username: laze
-    password: password
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8081
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    initial-instance-info-replication-interval-seconds: 10
-    registry-fetch-interval-seconds: 5
-  instance:
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-
-logging:
-  level:
-    org.springframework.security: DEBUG
-    org.springframework.security.oauth2.server.resource: TRACE
+  config:
+    import: optional:configserver:http://config-service:8888

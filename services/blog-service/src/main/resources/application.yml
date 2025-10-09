@@ -1,25 +1,8 @@
-# services/blog-service/src/main/resources/application.yml
 server:
   port: 8082
 
 spring:
   application:
     name: blog-service
-  data:
-    mongodb:
-      uri: mongodb://laze:password@localhost:27017/blog_db?authSource=admin
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8081
-
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    initial-instance-info-replication-interval-seconds: 10
-    registry-fetch-interval-seconds: 5
-  instance:
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  config:
+    import: optional:configserver:http://config-service:8888

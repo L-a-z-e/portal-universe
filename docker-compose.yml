@@ -32,9 +32,9 @@ services:
     image: apache/kafka:4.1.0
     container_name: kafka
     ports:
-      - "9092:9092"       # External access
-      - "29092:29092"     # Internal Docker access
-      - "9093:9093"       # Controller port
+      - "9092:9092"
+      - "29092:29092"
+      - "9093:9093"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_NODE_ID: 1
@@ -61,7 +61,36 @@ services:
       - "8761:8761"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - portal-universe-net
+
+  config-service:
+    build:
+      context: .
+      dockerfile: ./services/config-service/Dockerfile
+    container_name: config-service
+    ports:
+      - "8888:8888"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - CONFIG_REPO_LOCATION=file:/config-repo/
+      - SPRING_PROFILES_ACTIVE=native
+#      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=${CONFIG_REPO_LOCATION}
+    volumes:
+      - ./config-repo:/config-repo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      discovery-service:
+        condition: service_healthy
     networks:
       - portal-universe-net
 
@@ -74,10 +103,11 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://auth-service:8081
     depends_on:
-      - discovery-service
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
     networks:
       - portal-universe-net
 
@@ -88,14 +118,15 @@ services:
     container_name: auth-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/auth_db
-      - SPRING_DATASOURCE_USERNAME=laze
-      - SPRING_DATASOURCE_PASSWORD=password
     depends_on:
-      - discovery-service
-      - mysql-db
-      - kafka
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      mysql-db:
+        condition: service_started
+      kafka:
+        condition: service_started
     networks:
       - portal-universe-net
 
@@ -106,11 +137,13 @@ services:
     container_name: blog-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/blog_db
     depends_on:
-      - discovery-service
-      - mongodb
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
     networks:
       - portal-universe-net
 
@@ -121,13 +154,13 @@ services:
     container_name: shopping-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/shopping_db
-      - SPRING_DATASOURCE_USERNAME=laze
-      - SPRING_DATASOURCE_PASSWORD=password
     depends_on:
-      - discovery-service
-      - mysql-db
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      mysql-db:
+        condition: service_started
     networks:
       - portal-universe-net
 
@@ -139,8 +172,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - discovery-service
-      - kafka
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      kafka:
+        condition: service_started
     networks:
       - portal-universe-net
 
