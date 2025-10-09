@@ -1,5 +1,6 @@
 package com.portal.universe.authservice.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.oidc.web.authentication.OidcLogoutAuthenticationSuccessHandler;
+import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -44,11 +46,10 @@ public class SecurityConfig {
                                                     new SecurityContextLogoutHandler().logout(request, response, authentication);
                                                     new OidcLogoutAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);
                                                 })))
-                        )
+                )
                 .authorizeHttpRequests((authorize) ->
-                        authorize.requestMatchers("/.well-known/**").permitAll()
-                            .requestMatchers("/.well-known/appspecific/**").permitAll()
-                        .anyRequest().authenticated()
+                        authorize
+                                .anyRequest().authenticated()
                 )
                 .exceptionHandling((exceptions) -> exceptions
                         .defaultAuthenticationEntryPointFor(
@@ -56,8 +57,8 @@ public class SecurityConfig {
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
                 )
-                .csrf(csrf -> csrf.ignoringRequestMatchers(authorizationServerConfigurer.getEndpointsMatcher()))
-                .cors(Customizer.withDefaults());
+                .csrf(csrf -> csrf.ignoringRequestMatchers(authorizationServerConfigurer.getEndpointsMatcher()));
+//                .cors(Customizer.withDefaults());
         return http.build();
     }
 
@@ -67,7 +68,6 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
-                        .requestMatchers("/.well-known/appspecific/**").permitAll()
                         .requestMatchers("/login").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -78,6 +78,17 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                 )
                 .csrf(AbstractHttpConfigurer::disable)
+//                .cors(Customizer.withDefaults())
+                .build();
+    }
+
+    @Value("${AUTH_ISSUER_URI:http://localhost:8080/auth-service}")
+    private String issuerUri;
+
+    @Bean
+    public AuthorizationServerSettings authorizationServerSettings() {
+        return AuthorizationServerSettings.builder()
+                .issuer(issuerUri)
                 .build();
     }
 
@@ -86,21 +97,16 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        // 허용할 출처(Origin)를 지정
-        configuration.setAllowedOrigins(List.of("http://localhost:50000"));
-        // 허용할 HTTP 메소드를 지정
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // 허용할 헤더를 지정
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        // 자격 증명(쿠키 등)을 허용할지 여부 설정
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // 모든 경로("/**")에 대해 위에서 정의한 CORS 정책을 적용
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(List.of("http://localhost:50000"));
+//        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+//        configuration.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
 }
