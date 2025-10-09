@@ -1,21 +1,28 @@
 spring:
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      routes:
-        - id: blog-service-route
-          uri: lb://blog-service
-          predicates:
-            - Path=/api/blog/**
-        - id: shopping-service-route
-          uri: lb://shopping-service
-          predicates:
-            - Path=/api/shopping/**
-        - id: auth-service-route
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/users/**
-            - Path=/oauth2/**
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            - id: blog-service-route
+              uri: lb://blog-service
+              predicates:
+                - Path=/api/blog/**
+            - id: shopping-service-route
+              uri: lb://shopping-service
+              predicates:
+                - Path=/api/shopping/**
+            - id: auth-service-oauth-route
+              uri: lb://auth-service
+              predicates:
+                - Path=/auth-service/**
+              filters:
+                - StripPrefix=1
+            - id: auth-service-api-route
+              uri: lb://auth-service
+              predicates:
+                - Path=/api/users/**
