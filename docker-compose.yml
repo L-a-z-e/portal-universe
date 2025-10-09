@@ -78,9 +78,8 @@ services:
       - "8888:8888"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
-      - CONFIG_REPO_LOCATION=file:/config-repo/
       - SPRING_PROFILES_ACTIVE=native
-#      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=${CONFIG_REPO_LOCATION}
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/config-repo/
     volumes:
       - ./config-repo:/config-repo
     healthcheck:
