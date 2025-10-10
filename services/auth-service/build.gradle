@@ -30,6 +30,7 @@ ext {
 
 dependencies {
     implementation project(':services:common-library')
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.security:spring-security-oauth2-authorization-server'

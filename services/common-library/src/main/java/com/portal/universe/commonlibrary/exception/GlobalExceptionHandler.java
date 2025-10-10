@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomBusinessException.class)
     protected ResponseEntity<ApiResponse<Object>> handleCustomBusinessException(CustomBusinessException e) {
-        log.error("handleCustomBusinessException: {}", e.getErrorCode().getMessage());
+        log.error("handleCustomBusinessException: {}", e.getErrorCode().getMessage(), e);
         ErrorCode errorCode = e.getErrorCode();
         ApiResponse<Object> response = ApiResponse.error(errorCode.getCode(), errorCode.getMessage());
         return new ResponseEntity<>(response, errorCode.getStatus());
@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ApiResponse<Object>> handleException(Exception e) {
-        log.error("handleException: {}", e.getMessage());
+        log.error("handleException: {}", e.getMessage(), e);
         ErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;
         ApiResponse<Object> response = ApiResponse.error(errorCode.getCode(), errorCode.getMessage());
         return new ResponseEntity<>(response, errorCode.getStatus());

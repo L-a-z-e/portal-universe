@@ -6,4 +6,4 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://host.docker.internal:8080/auth-service
+          issuer-uri: http://api-gateway:8080/auth-service

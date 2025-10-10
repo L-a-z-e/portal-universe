@@ -7,6 +7,7 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+    fetch-registry: false
 spring:
   kafka:
     bootstrap-servers: localhost:9092
@@ -15,5 +16,4 @@ management:
   endpoints:
     web:
       exposure:
-        # 기존에 health만 있었다면 env를 추가, 없었다면 그대로 추가
         include: "env,health"
