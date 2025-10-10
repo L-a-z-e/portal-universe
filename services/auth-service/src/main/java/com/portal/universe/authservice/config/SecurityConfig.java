@@ -25,6 +25,17 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 public class SecurityConfig {
 
     @Bean
+    @Order(0) // 다른 보안 필터보다 우선순위를 높게 설정
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/actuator/**") // /actuator/** 경로에만 이 규칙을 적용
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().permitAll() // 모든 요청을 허용
+                );
+        return http.build();
+    }
+
+    @Bean
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();

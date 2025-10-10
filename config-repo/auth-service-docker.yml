@@ -11,8 +11,14 @@ spring:
   security:
     oauth2:
       authorizationserver:
-        issuer: http://auth-service:8081
+        issuer: http://host.docker.internal:8080/auth-service
 
 logging:
   level:
     org.springframework.security: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "env,health"
