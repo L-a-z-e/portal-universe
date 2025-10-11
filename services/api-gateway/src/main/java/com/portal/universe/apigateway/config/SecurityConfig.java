@@ -8,15 +8,17 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
 
@@ -54,11 +56,12 @@ public class SecurityConfig {
                         "/auth-service/.well-known/**",
                         "/auth-service/oauth2/**",
                         "/auth-service/login",
+                        "/auth-service/logout",
+                        "/auth-service/connect/**",
                         "/api/users/signup"
                 ))
                 .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .cors(Customizer.withDefaults())
                 .build();
     }
 
@@ -75,22 +78,7 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .cors(Customizer.withDefaults()) // 여기도 필요할 수 있음 (인증된 요청용)
                 .build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:50000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*")); // ✅ 모든 헤더 허용
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // ✅ Preflight 캐싱
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
     // --- 이 Bean을 아래 내용으로 교체합니다 ---
@@ -105,6 +93,25 @@ public class SecurityConfig {
         jwtDecoder.setJwtValidator(issuerValidator);
 
         return jwtDecoder;
+    }
+
+    /**
+     * Spring Cloud Gateway의 전역 CORS 설정을 담당합니다.
+     * SecurityWebFilterChain의 .cors() 설정보다 우선하며, Gateway 단계에서 Preflight 요청을 처리합니다.
+     */
+    @Bean
+    public CorsWebFilter corsWebFilter() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:50000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return new CorsWebFilter(source);
     }
 
 }

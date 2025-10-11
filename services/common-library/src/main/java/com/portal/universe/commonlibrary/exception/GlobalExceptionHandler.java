@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -14,6 +15,14 @@ public class GlobalExceptionHandler {
     protected ResponseEntity<ApiResponse<Object>> handleCustomBusinessException(CustomBusinessException e) {
         log.error("handleCustomBusinessException: {}", e.getErrorCode().getMessage(), e);
         ErrorCode errorCode = e.getErrorCode();
+        ApiResponse<Object> response = ApiResponse.error(errorCode.getCode(), errorCode.getMessage());
+        return new ResponseEntity<>(response, errorCode.getStatus());
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    protected ResponseEntity<ApiResponse<Object>> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.warn("handleNoResourceFoundException: {}", e.getMessage());
+        ErrorCode errorCode = CommonErrorCode.NOT_FOUND;
         ApiResponse<Object> response = ApiResponse.error(errorCode.getCode(), errorCode.getMessage());
         return new ResponseEntity<>(response, errorCode.getStatus());
     }

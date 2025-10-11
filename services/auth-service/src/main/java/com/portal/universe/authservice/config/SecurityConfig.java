@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 @Configuration
@@ -30,7 +31,12 @@ public class SecurityConfig {
 
         http
                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> {
+                    authorize.requestMatchers("/.well-known/**",
+                            "/connect/logout"
+                    ).permitAll();
+                    authorize.anyRequest().authenticated();
+                })
                 .with(authorizationServerConfigurer, configurer -> {
                     configurer.oidc(Customizer.withDefaults());
                 })
@@ -57,7 +63,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         .requestMatchers(
+                                "/.well-known/**", // OIDC Discovery Endpoints
                                 "/login",
+                                "/logout",
                                 "/favicon.ico",
                                 "/actuator/**",
                                 "/ping",
@@ -66,6 +74,12 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(Customizer.withDefaults())
+                .logout(logout -> logout
+                        .logoutSuccessHandler(new SimpleUrlLogoutSuccessHandler())
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                )
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/signup"))
                 .cors(AbstractHttpConfigurer::disable); // ✅ Gateway에서만 처리
         return http.build();
