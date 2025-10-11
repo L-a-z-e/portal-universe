@@ -43,8 +43,34 @@ public class SecurityConfig {
         return (exchange, chain) -> {
             // Spring Security가 보기 직전의 요청 경로를 로그로 출력
             log.info(">>>>> INCOMING REQUEST PATH: {}", exchange.getRequest().getPath().value());
+            String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
+            if (authHeader != null) {
+                log.info(">>>> AUTHORIZATION HEADER: {}", authHeader);
+            } else {
+                log.warn(">>>> AUTHORIZATION HEADER MISSING");
+            }
             return chain.filter(exchange);
         };
+    }
+
+    /**
+     * Spring Cloud Gateway의 전역 CORS 설정을 담당합니다.
+     * SecurityWebFilterChain의 .cors() 설정보다 우선하며, Gateway 단계에서 Preflight 요청을 처리합니다.
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+    public CorsWebFilter corsWebFilter() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:50000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return new CorsWebFilter(source);
     }
 
     // 완전 공개 경로 처리 (JWT 검증 안 함)
@@ -93,25 +119,6 @@ public class SecurityConfig {
         jwtDecoder.setJwtValidator(issuerValidator);
 
         return jwtDecoder;
-    }
-
-    /**
-     * Spring Cloud Gateway의 전역 CORS 설정을 담당합니다.
-     * SecurityWebFilterChain의 .cors() 설정보다 우선하며, Gateway 단계에서 Preflight 요청을 처리합니다.
-     */
-    @Bean
-    public CorsWebFilter corsWebFilter() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:50000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
-        return new CorsWebFilter(source);
     }
 
 }

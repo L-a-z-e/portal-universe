@@ -6,7 +6,7 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const oidcStorage = localStorage.getItem('oidc.user:http://localhost:8081:portal-client');
+    const oidcStorage = localStorage.getItem('oidc.user:http://localhost:8080/auth-service:portal-client');
 
     if (oidcStorage) {
       const user = JSON.parse(oidcStorage);
