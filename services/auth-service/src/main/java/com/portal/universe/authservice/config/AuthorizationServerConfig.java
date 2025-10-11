@@ -33,8 +33,6 @@ public class AuthorizationServerConfig {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(clientId)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-//                .clientSecret(passwordEncoder.encode(clientSecret))
-//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:50000/callback")
@@ -71,5 +69,10 @@ public class AuthorizationServerConfig {
                 // context.getClaims().claim("username", principal.getName());
             }
         };
+    }
+
+    @Bean
+    public AuthorizationServerSettings authorizationServerSettings() {
+        return AuthorizationServerSettings.builder().build();
     }
 }

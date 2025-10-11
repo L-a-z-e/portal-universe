@@ -45,37 +45,15 @@ public class SecurityConfig {
         };
     }
 
-    // --- 두 개의 FilterChain을 하나로 통합 ---
-//    @Bean
-//    public SecurityWebFilterChain securityFilterChain(HttpSecurity http) {
-//        return http
-//                .authorizeExchange(authorize -> authorize
-//                        .pathMatchers("/auth-service/.well-known/**").permitAll()
-//                        .pathMatchers("/auth-service/oauth2/**").permitAll()
-//                        .pathMatchers("/auth-service/login").permitAll()
-//                        .pathMatchers("/api/users/signup").permitAll()
-//                        .pathMatchers("/actuator/**").permitAll()
-//                        .pathMatchers(HttpMethod.GET, "/api/blog/**").permitAll()
-//                        .pathMatchers(HttpMethod.GET, "/api/shopping/**").permitAll()
-//                        .anyExchange().authenticated()
-//                )
-//                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-//                .csrf(ServerHttpSecurity.CsrfSpec::disable)
-//                .cors(Customizer.withDefaults())
-//                .build();
-//    }
-
     // 완전 공개 경로 처리 (JWT 검증 안 함)
     @Bean
     @Order(1)
     public SecurityWebFilterChain publicEndpointsFilterChain(ServerHttpSecurity http) {
         return http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(
-                        // OIDC 인증 흐름에 필수적인 모든 경로
                         "/auth-service/.well-known/**",
                         "/auth-service/oauth2/**",
                         "/auth-service/login",
-                        // 기타 공개 API
                         "/api/users/signup"
                 ))
                 .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
@@ -84,20 +62,20 @@ public class SecurityConfig {
                 .build();
     }
 
-    // JWT 보호 경로 처리 (반드시 JWT 검증)
+    // JWT 보호 경로 처리
     @Bean
     @Order(2)
     public SecurityWebFilterChain privateEndpointsFilterChain(ServerHttpSecurity http) {
         return http
                 .authorizeExchange(authorize -> authorize
-                        .pathMatchers("/actuator/**").permitAll() // healthcheck용
+                        .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/blog/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/shopping/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .cors(Customizer.withDefaults())
+                .cors(Customizer.withDefaults()) // 여기도 필요할 수 있음 (인증된 요청용)
                 .build();
     }
 
@@ -106,8 +84,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:50000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("*")); // ✅ 모든 헤더 허용
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // ✅ Preflight 캐싱
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
