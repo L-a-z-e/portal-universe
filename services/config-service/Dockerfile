@@ -1,15 +1,39 @@
+# ===============================================================
+# 1단계: Builder
+# ===============================================================
+FROM gradle:8.9-jdk17 AS builder
+
+WORKDIR /app
+
+COPY build.gradle settings.gradle ./
+COPY gradlew ./gradlew
+COPY gradle ./gradle
+
+RUN ./gradlew dependencies --no-daemon
+
+COPY . .
+
+RUN ./gradlew :services:config-service:build --no-daemon -x test
+
+# (디버깅) 빌드 후 전체 디렉토리 구조 확인
+RUN ls -R /app
+# ===============================================================
+# 2단계: Runner
+# ===============================================================
 FROM openjdk:17-jdk-slim
 
-ARG JAR_FILE=build/libs/*.jar
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-COPY services/config-service/${JAR_FILE} /app.jar
 
 COPY scripts/docker-entrypoint-wait.sh /usr/local/bin/docker-entrypoint-wait.sh
 
 RUN chmod +x /usr/local/bin/docker-entrypoint-wait.sh
 
+COPY --from=builder /app/services/config-service/build/libs/config-service-0.0.1-SNAPSHOT.jar app.jar
+
+RUN chmod +x app.jar
+
 ENTRYPOINT ["docker-entrypoint-wait.sh"]
 
-CMD ["discovery-service", "8761", "/actuator/health", "30", "--", "java", "-jar", "/app.jar"]
+CMD ["discovery-service", "8761", "/actuator/health", "30", "--", "java", "-jar", "app.jar"]
