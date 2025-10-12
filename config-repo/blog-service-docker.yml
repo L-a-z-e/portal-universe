@@ -7,3 +7,12 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://api-gateway:8080/auth-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: always
