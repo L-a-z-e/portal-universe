@@ -1,13 +1,74 @@
+# ===================================================================
+# Spring Boot Test Configuration for Auth Service
+# ===================================================================
+
+server:
+  port: 0  # 랜덤 포트 사용 (테스트 병렬 실행 지원)
+
 spring:
+  application:
+    name: auth-service
+  
+  # ===================================================================
+  # Config Server 및 Discovery 비활성화
+  # ===================================================================
   config:
-    import: # 👈 추가: 외부 설정 임포트 비활성화
+    import: optional:file:./  # 외부 설정 임포트 비활성화
   cloud:
     config:
       enabled: false
     discovery:
       enabled: false
+  
+  # ===================================================================
+  # DataSource 설정 (Testcontainers에서 동적으로 오버라이드)
+  # ===================================================================
   datasource:
-    url: jdbc:mysql://localhost:3307/auth_db?useSSL=false&allowPublicKeyRetrieval=true
-    username: laze
-    password: password
+    url: jdbc:mysql://localhost:3307/test_db?useSSL=false&allowPublicKeyRetrieval=true
+    username: test
+    password: test
     driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # ===================================================================
+  # JPA/Hibernate 설정
+  # ===================================================================
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # 테스트마다 스키마 재생성
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+  
+  # ===================================================================
+  # OAuth2 Authorization Server 설정
+  # ===================================================================
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: http://localhost:8081  # 테스트용 issuer URI
+
+  # ===================================================================
+  # Kafka 설정 (테스트용 - 실제 연결 없이 동작)
+  # ===================================================================
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
+
+# ===================================================================
+# Logging 설정
+# ===================================================================
+logging:
+  level:
+    com.portal.universe.authservice: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.boot.test: DEBUG
