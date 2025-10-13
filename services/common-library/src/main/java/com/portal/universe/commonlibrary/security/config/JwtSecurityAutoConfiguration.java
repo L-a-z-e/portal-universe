@@ -3,6 +3,7 @@ package com.portal.universe.commonlibrary.security.config;
 import com.portal.universe.commonlibrary.security.converter.JwtAuthenticationConverterAdapter;
 import com.portal.universe.commonlibrary.security.converter.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +22,7 @@ import reactor.core.publisher.Mono;
  * 3. 각 서비스에서 별도 Bean 정의 시 자동 설정 무시 (@ConditionalOnMissingBean)
  */
 @AutoConfiguration
+@ConditionalOnClass(JwtAuthenticationConverter.class)
 public class JwtSecurityAutoConfiguration {
 
     /**

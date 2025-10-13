@@ -55,53 +55,15 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                        //  공개 엔드포인트 (누구나 접근 가능)
-                        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                        // 공개
+                        .requestMatchers(HttpMethod.GET, "/api/blog").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/blog/**").permitAll()
 
-                        // 블로그 글 조회
-                        .requestMatchers(HttpMethod.GET, "/articles").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/articles/**").permitAll()
+                        // ADMIN 전용
+                        .requestMatchers(HttpMethod.POST, "/api/blog").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/blog/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/blog/**").hasRole("ADMIN")
 
-                        // 카테고리 조회
-                        .requestMatchers(HttpMethod.GET, "/categories").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
-
-                        // 태그 조회
-                        .requestMatchers(HttpMethod.GET, "/tags").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/tags/**").permitAll()
-
-                        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                        //  인증 필요 (로그인한 사용자면 누구나)
-                        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-                        // 댓글 작성/수정/삭제
-                        .requestMatchers(HttpMethod.POST, "/comments").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/comments/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/comments/**").authenticated()
-
-                        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                        //  ADMIN 전용
-                        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-                        // 블로그 글 작성/수정/삭제
-                        .requestMatchers(HttpMethod.POST, "/articles").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/articles/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/articles/**").hasRole("ADMIN")
-
-                        // 카테고리 관리
-                        .requestMatchers(HttpMethod.POST, "/categories").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
-
-                        // 태그 관리
-                        .requestMatchers(HttpMethod.POST, "/tags").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/tags/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/tags/**").hasRole("ADMIN")
-
-                        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                        //  기타 모든 요청은 인증 필요
-                        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                         .anyRequest().authenticated()
                 )
                 // OAuth2 리소스 서버로 설정하여 JWT 토큰을 검증

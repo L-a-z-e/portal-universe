@@ -21,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
@@ -107,12 +108,13 @@ public class SecurityConfig {
         return http
                 .authorizeExchange(authorize -> authorize
                         .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/api/blog/**").permitAll()
-                        .pathMatchers("/api/shopping/**").permitAll()
-                        .pathMatchers("/api/admin/**").hasRole("ADMIN")
+                        .pathMatchers("/api/**").permitAll()
                         .anyExchange().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
+                        .authenticationFailureHandler((exchange, ex) -> Mono.empty())  // ← 실패 무시
+                )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .build();
     }
