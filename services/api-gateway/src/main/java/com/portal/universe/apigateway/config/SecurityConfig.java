@@ -6,9 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -23,7 +21,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
-import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
@@ -94,25 +91,30 @@ public class SecurityConfig {
                 .build();
     }
 
-    // JWT 보호 경로 처리
+    /**
+     * JWT 보호 경로 처리 (Gateway 최소 규칙 패턴)
+     *
+     * 전략:
+     * - Gateway는 서비스 레벨 접근만 체크
+     * - 세밀한 권한 제어는 각 Microservice에서 처리
+     *
+     * 예외:
+     * - Admin 전용 서비스는 Gateway에서 ROLE 체크
+     */
     @Bean
     @Order(2)
     public SecurityWebFilterChain privateEndpointsFilterChain(ServerHttpSecurity http) {
         return http
                 .authorizeExchange(authorize -> authorize
                         .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/blog/**").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/shopping/**").permitAll()
+                        .pathMatchers("/api/blog/**").permitAll()
+                        .pathMatchers("/api/shopping/**").permitAll()
+                        .pathMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .build();
-    }
-
-    @Bean
-    public Converter<Jwt, Mono<AbstractAuthenticationToken>> customJwtAuthenticationConverter() {
-        return new CustomJwtAuthenticationConverter();
     }
 
     @Bean

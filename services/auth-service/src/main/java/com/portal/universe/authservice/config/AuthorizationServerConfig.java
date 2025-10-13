@@ -36,7 +36,6 @@ public class AuthorizationServerConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .authorizationGrantType(AuthorizationGrantType.PASSWORD)
                 .redirectUri("http://localhost:50000/callback")
                 .postLogoutRedirectUri("http://localhost:50000")
                 .scope("read")
