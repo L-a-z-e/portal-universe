@@ -17,4 +17,9 @@ public class DebugController {
         // GlobalExceptionHandler가 예외를 제대로 잡고 스택 트레이스를 출력하는지 테스트하기 위한 엔드포인트
         throw new RuntimeException("This is a forced test exception.");
     }
+
+    @GetMapping("/api/admin")
+    public String adminEndpoint() {
+        return "This is an admin endpoint.";
+    }
 }

@@ -23,11 +23,14 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    // TODO: Role 추가
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 
-    public User(String email, String password, String name) {
+    public User(String email, String password, String name, Role role) {
         this.email = email;
         this.password = password;
         this.name = name;
+        this.role = role;
     }
 }

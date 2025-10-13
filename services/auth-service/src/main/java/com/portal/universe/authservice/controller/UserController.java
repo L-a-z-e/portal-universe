@@ -1,5 +1,6 @@
 package com.portal.universe.authservice.controller;
 
+import com.portal.universe.authservice.domain.Role;
 import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.exception.AuthErrorCode;
 import com.portal.universe.authservice.repository.UserRepository;
@@ -32,7 +33,7 @@ public class UserController {
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
-        User newUser = new User(request.email(), encodedPassword, request.name());
+        User newUser = new User(request.email(), encodedPassword, request.name(), Role.USER);
         User savedUser = userRepository.save(newUser);
 
         UserSignedUpEvent event = new UserSignedUpEvent(

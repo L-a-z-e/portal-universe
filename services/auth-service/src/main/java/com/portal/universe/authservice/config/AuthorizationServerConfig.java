@@ -36,6 +36,7 @@ public class AuthorizationServerConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .authorizationGrantType(AuthorizationGrantType.PASSWORD)
                 .redirectUri("http://localhost:50000/callback")
                 .postLogoutRedirectUri("http://localhost:50000")
                 .scope("read")
@@ -66,6 +67,7 @@ public class AuthorizationServerConfig {
 
                 // 'scope' 클레임에 권한과 스코프를 모두 포함시킵니다.
                 context.getClaims().claim("scope", scopes);
+                context.getClaims().claim("roles", authorities);
                 // 다른 커스텀 클레임 등록 시
                 // context.getClaims().claim("username", principal.getName());
             }
