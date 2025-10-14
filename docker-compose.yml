@@ -255,6 +255,16 @@ services:
     depends_on:
       - prometheus
 
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    environment:
+      - STORAGE_TYPE=mem
+    networks:
+      - portal-universe-net
+
 volumes:
   mysql-data:
   mongo-data:
