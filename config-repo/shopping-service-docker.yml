@@ -18,14 +18,16 @@ management:
       exposure:
         include: health,info,prometheus,metrics
       base-path: /actuator
+
   endpoint:
     health:
       show-details: always
-    prometheus:
-      enabled: true
-  metrics:
-    export:
-      prometheus:
+
+  prometheus:
+    metrics:
+      export:
         enabled: true
+
+  metrics:
     tags:
       application: ${spring.application.name}

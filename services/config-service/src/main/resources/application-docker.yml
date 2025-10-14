@@ -7,11 +7,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus, metrics
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+
   endpoint:
-    prometheus:
-      enabled: true
-  metrics:
-    export:
-      prometheus:
+    health:
+      show-details: always
+
+  prometheus:
+    metrics:
+      export:
         enabled: true
+
+  metrics:
+    tags:
+      application: ${spring.application.name}

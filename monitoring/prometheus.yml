@@ -1,14 +1,61 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s  # ✅ 알람 규칙 평가 주기
+  external_labels:
+    cluster: 'portal-universe'  # ✅ 클러스터 라벨
+    environment: 'local'  # ✅ 환경 라벨
 
 scrape_configs:
-  - job_name: 'services'
+  # API Gateway
+  - job_name: 'api-gateway'
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets:
-          - 'host.docker.internal:8080'  # api-gateway
-          - 'host.docker.internal:8081'  # auth-service
-          - 'host.docker.internal:8082'  # blog-service
-          - 'host.docker.internal:8083'  # shopping-service
-          - 'host.docker.internal:8084'  # notification-service
-          - 'host.docker.internal:8888'  # config-service
+      - targets: ['host.docker.internal:8080']
+        labels:
+          service: 'api-gateway'
+          tier: 'gateway'
+
+  # Auth Service
+  - job_name: 'auth-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels:
+          service: 'auth-service'
+          tier: 'backend'
+
+  # Blog Service
+  - job_name: 'blog-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8082']
+        labels:
+          service: 'blog-service'
+          tier: 'backend'
+
+  # Shopping Service
+  - job_name: 'shopping-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8083']
+        labels:
+          service: 'shopping-service'
+          tier: 'backend'
+
+  # Notification Service
+  - job_name: 'notification-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8084']
+        labels:
+          service: 'notification-service'
+          tier: 'backend'
+
+  # Config Service
+  - job_name: 'config-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8888']
+        labels:
+          service: 'config-service'
+          tier: 'config'
