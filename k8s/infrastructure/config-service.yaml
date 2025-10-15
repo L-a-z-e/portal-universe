@@ -20,13 +20,17 @@ spec:
       containers:
         - name: config-service
           image: laze8771/portal-universe-config-service:latest
-          imagePullPolicy: IfNotPresent  # 로컬 이미지 사용
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8888
               name: http
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
+              value: "https://github.com/L-a-z-e/portal-universe-config-repo.git"
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL
+              value: "main"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               value: "http://discovery-service:8761/eureka/"
           livenessProbe:
