@@ -77,10 +77,9 @@ services:
     ports:
       - "8888:8888"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker,native
-      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/config-repo/
-    volumes:
-      - ./config-repo:/config-repo
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/L-a-z-e/portal-universe-config-repo.git
+      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: main
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
       interval: 10s

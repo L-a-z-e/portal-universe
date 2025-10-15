@@ -8,8 +8,9 @@ spring:
   cloud:
     config:
       server:
-        native:
-          search-locations: ${CONFIG_REPO_LOCATION:file:./config-repo/}
+        git:
+          uri: https://github.com/L-a-z-e/portal-universe-config-repo.git
+          default-label: main
 
 eureka:
   client:
