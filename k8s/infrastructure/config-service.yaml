@@ -1,0 +1,62 @@
+---
+# Config Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-service
+  namespace: portal-universe
+  labels:
+    app: config-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-service
+  template:
+    metadata:
+      labels:
+        app: config-service
+    spec:
+      containers:
+        - name: config-service
+          image: laze8771/portal-universe-config-service:latest
+          imagePullPolicy: IfNotPresent  # 로컬 이미지 사용
+          ports:
+            - containerPort: 8888
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://discovery-service:8761/eureka/"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8888
+            initialDelaySeconds: 90
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8888
+            initialDelaySeconds: 60
+            periodSeconds: 5
+
+---
+# Config Service Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-service
+  namespace: portal-universe
+  labels:
+    app: config-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8888
+      targetPort: 8888
+      protocol: TCP
+      name: http
+  selector:
+    app: config-service

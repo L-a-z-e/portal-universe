@@ -1,0 +1,98 @@
+---
+# MySQL PersistentVolumeClaim (데이터 영속화)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: portal-universe
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# MySQL Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: portal-universe
+  labels:
+    app: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+              name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: portal-universe-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_USER
+              value: "laze"
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: portal-universe-secret
+                  key: MYSQL_PASSWORD
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+        - name: init-scripts
+          configMap:
+            name: mysql-init-scripts
+
+---
+# MySQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-db
+  namespace: portal-universe
+  labels:
+    app: mysql
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
+      name: mysql
+  selector:
+    app: mysql
+
+---
+# MySQL 초기화 스크립트 ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-scripts
+  namespace: portal-universe
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS auth_db;
+    CREATE DATABASE IF NOT EXISTS shopping_db;
+    GRANT ALL PRIVILEGES ON auth_db.* TO 'laze'@'%';
+    GRANT ALL PRIVILEGES ON shopping_db.* TO 'laze'@'%';
+    FLUSH PRIVILEGES;
