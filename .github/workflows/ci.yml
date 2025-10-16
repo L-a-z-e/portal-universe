@@ -2,13 +2,14 @@ name: Portal Universe CI
 
 # Workflow를 실행할 조건
 on:
-  push:
-    branches:
-      - main              # main 브랜치에 push 시
-      - develop           # develop 브랜치에 push 시
-  pull_request:
-    branches:
-      - main              # main으로 PR 생성 시
+  workflow_dispatch:  # 수동 실행만
+#  push:
+#    branches:
+#      - main              # main 브랜치에 push 시
+#      - develop           # develop 브랜치에 push 시
+#  pull_request:
+#    branches:
+#      - main              # main으로 PR 생성 시
 
 # 동시 실행 제어
 concurrency:
@@ -111,6 +112,9 @@ jobs:
       - name: Build service
         run: ./gradlew :services:${{ matrix.service }}:build -x test
 
+      - name: Set up QEMU  # 추가: ARM64 에뮬레이션
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -135,6 +139,7 @@ jobs:
           context: .
           file: ./services/${{ matrix.service }}/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64  # ← 추가: Multi-platform
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
