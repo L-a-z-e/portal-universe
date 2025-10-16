@@ -1,5 +1,4 @@
 ---
-# Config Service Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,27 +26,29 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
-            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
-              value: "https://github.com/L-a-z-e/portal-universe-config-repo.git"
-            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL
-              value: "main"
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://discovery-service:8761/eureka/"
-          livenessProbe:
+          startupProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 8888
-            initialDelaySeconds: 90
-            periodSeconds: 10
+            initialDelaySeconds: 30   # 30초 후부터 체크
+            periodSeconds: 10          # 10초마다 체크
+            failureThreshold: 12       # 최대 12번 (총 2분)
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
+              port: 8888
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
               port: 8888
             initialDelaySeconds: 60
-            periodSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
 
 ---
-# Config Service Service
 apiVersion: v1
 kind: Service
 metadata:

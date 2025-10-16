@@ -1,0 +1,66 @@
+---
+# Zipkin Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin
+  namespace: portal-universe
+  labels:
+    app: zipkin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zipkin
+  template:
+    metadata:
+      labels:
+        app: zipkin
+    spec:
+      containers:
+        - name: zipkin
+          image: openzipkin/zipkin:latest
+          ports:
+            - containerPort: 9411
+              name: http
+          env:
+            - name: STORAGE_TYPE
+              value: "mem"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 20
+            periodSeconds: 5
+
+---
+# Zipkin Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+  namespace: portal-universe
+  labels:
+    app: zipkin
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9411
+      targetPort: 9411
+      protocol: TCP
+      name: http
+  selector:
+    app: zipkin

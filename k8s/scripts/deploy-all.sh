@@ -35,32 +35,6 @@ wait_for_pod() {
     return 1
 }
 
-# Config Service 응답 대기 함수
-wait_for_config_service() {
-    local timeout=180
-    local elapsed=0
-
-    echo -e "${YELLOW}⏳ Waiting for Config Service to respond...${NC}"
-
-    while [ $elapsed -lt $timeout ]; do
-        # Config Service Pod 내부에서 health check
-        kubectl exec -n portal-universe deployment/config-service -- \
-            wget -qO- http://localhost:8888/actuator/health &>/dev/null
-
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}✅ Config Service is responding!${NC}"
-            return 0
-        fi
-
-        echo -n "."
-        sleep 5
-        elapsed=$((elapsed + 5))
-    done
-
-    echo -e "${RED}❌ Config Service not responding${NC}"
-    return 1
-}
-
 echo "🚀 Starting Portal Universe Kubernetes Deployment..."
 echo "📂 Project root: $PROJECT_ROOT"
 echo ""
@@ -76,18 +50,22 @@ kubectl apply -f "$PROJECT_ROOT/k8s/secret.yaml"
 # 3. Infrastructure 배포
 echo ""
 echo "🗄️  Deploying infrastructure..."
-kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/mysql.yaml"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/mysql-db.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/mongodb.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/kafka.yaml"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/zipkin.yaml"
 
 # MySQL 대기
-wait_for_pod "app=mysql" 180
+wait_for_pod "app=mysql-db" 180
 
 # MongoDB 대기
 wait_for_pod "app=mongodb" 180
 
 # Kafka 대기
 wait_for_pod "app=kafka" 180
+
+# Kafka 대기
+wait_for_pod "app=zipkin" 180
 
 # 4. Discovery Service 배포
 echo ""
@@ -99,16 +77,21 @@ wait_for_pod "app=discovery-service" 120
 echo ""
 echo "⚙️  Deploying config service..."
 kubectl apply -f "$PROJECT_ROOT/k8s/services/config-service.yaml"
-wait_for_pod "app=config-service" 120
 
-# Config Service 응답 대기
-wait_for_config_service
+# Pod가 Ready 상태 = readinessProbe 통과 = Health 정상
+wait_for_pod "app=config-service" 180
 
-# Config Service 테스트
+echo -e "${GREEN}✅ Config Service ready (readinessProbe passed)!${NC}"
+
+# 추가 안전 대기 (선택)
+echo "⏳ Additional 15 seconds for stabilization..."
+sleep 15
+
+# Config Service 테스트 (결과는 참고용)
 echo ""
 echo "🧪 Testing config service..."
 kubectl run curl-test --image=curlimages/curl:latest --rm -i --restart=Never -n portal-universe -- \
-  curl -s http://config-service:8888/api-gateway/kubernetes 2>/dev/null | head -20
+  curl -s http://config-service:8888/api-gateway/kubernetes 2>/dev/null | head -20 || echo "Test completed"
 
 # 6. Business Services 배포
 echo ""

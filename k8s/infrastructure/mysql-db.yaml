@@ -1,5 +1,5 @@
 ---
-# MySQL PersistentVolumeClaim (데이터 영속화)
+# MySQL PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -20,16 +20,16 @@ metadata:
   name: mysql
   namespace: portal-universe
   labels:
-    app: mysql
+    app: mysql-db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql
+      app: mysql-db
   template:
     metadata:
       labels:
-        app: mysql
+        app: mysql-db
     spec:
       containers:
         - name: mysql
@@ -71,7 +71,7 @@ metadata:
   name: mysql-db
   namespace: portal-universe
   labels:
-    app: mysql
+    app: mysql-db
 spec:
   type: ClusterIP
   ports:
@@ -80,10 +80,10 @@ spec:
       protocol: TCP
       name: mysql
   selector:
-    app: mysql
+    app: mysql-db
 
 ---
-# MySQL 초기화 스크립트 ConfigMap
+# MySQL 초기화 스크립트
 apiVersion: v1
 kind: ConfigMap
 metadata:

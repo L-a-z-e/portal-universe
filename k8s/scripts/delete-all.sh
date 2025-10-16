@@ -27,7 +27,8 @@ kubectl delete -f "$PROJECT_ROOT/k8s/services/discovery-service.yaml" --ignore-n
 echo "🗄️  Deleting infrastructure..."
 kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/kafka.yaml" --ignore-not-found=true --timeout=30s
 kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/mongodb.yaml" --ignore-not-found=true --timeout=30s
-kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/mysql.yaml" --ignore-not-found=true --timeout=30s
+kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/mysql-db.yaml" --ignore-not-found=true --timeout=30s
+kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/zipkin.yaml" --ignore-not-found=true --timeout=30s
 
 # 3. Secret 삭제
 echo "🔐 Deleting secrets..."
