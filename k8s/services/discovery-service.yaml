@@ -20,7 +20,9 @@ spec:
       containers:
         - name: discovery-service
           image: laze8771/portal-universe-discovery-service:latest
-          imagePullPolicy: IfNotPresent
+          command: ["java"]
+          args: ["-jar", "app.jar"]
+          imagePullPolicy: Always
           ports:
             - containerPort: 8761
               name: http

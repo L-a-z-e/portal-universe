@@ -19,7 +19,9 @@ spec:
       containers:
         - name: shopping-service
           image: laze8771/portal-universe-shopping-service:latest
-          imagePullPolicy: IfNotPresent
+          command: ["java"]
+          args: ["-jar", "app.jar"]
+          imagePullPolicy: Always
           ports:
             - containerPort: 8083
               name: http

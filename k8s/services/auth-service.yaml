@@ -19,7 +19,9 @@ spec:
       containers:
         - name: auth-service
           image: laze8771/portal-universe-auth-service:latest
-          imagePullPolicy: IfNotPresent
+          command: ["java"]
+          args: ["-jar", "app.jar"]
+          imagePullPolicy: Always
           ports:
             - containerPort: 8081
               name: http

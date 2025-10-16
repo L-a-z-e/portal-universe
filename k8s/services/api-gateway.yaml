@@ -20,7 +20,9 @@ spec:
       containers:
         - name: api-gateway
           image: laze8771/portal-universe-api-gateway:latest
-          imagePullPolicy: IfNotPresent
+          command: ["java"]
+          args: ["-jar", "app.jar"]
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http
