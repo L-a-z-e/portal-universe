@@ -19,6 +19,8 @@ spec:
       containers:
         - name: config-service
           image: laze8771/portal-universe-config-service:latest
+          command: [ "java" ]
+          args: [ "-jar", "app.jar" ]
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8888
