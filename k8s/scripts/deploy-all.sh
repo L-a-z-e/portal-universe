@@ -7,7 +7,20 @@ PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
+
+# ========== 빌드 & 로드 ==========
+echo -e "${YELLOW}🔨 Building and loading images...${NC}"
+bash "$SCRIPT_DIR/build-and-load.sh"
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Build & Load failed${NC}"
+    exit 1
+fi
+
+echo ""
+echo -e "${GREEN}✅ Images ready, starting deployment...${NC}"
+echo ""
 
 # Pod가 Ready 상태가 될 때까지 대기하는 함수
 wait_for_pod() {
@@ -54,18 +67,15 @@ kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/mysql-db.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/mongodb.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/kafka.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/zipkin.yaml"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/prometheus.yaml"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/grafana.yaml"
 
-# MySQL 대기
 wait_for_pod "app=mysql-db" 180
-
-# MongoDB 대기
 wait_for_pod "app=mongodb" 180
-
-# Kafka 대기
 wait_for_pod "app=kafka" 180
-
-# Kafka 대기
 wait_for_pod "app=zipkin" 180
+wait_for_pod "app=prometheus" 180
+wait_for_pod "app=grafana" 180
 
 # 4. Discovery Service 배포
 echo ""
@@ -77,21 +87,7 @@ wait_for_pod "app=discovery-service" 120
 echo ""
 echo "⚙️  Deploying config service..."
 kubectl apply -f "$PROJECT_ROOT/k8s/services/config-service.yaml"
-
-# Pod가 Ready 상태 = readinessProbe 통과 = Health 정상
 wait_for_pod "app=config-service" 180
-
-echo -e "${GREEN}✅ Config Service ready (readinessProbe passed)!${NC}"
-
-# 추가 안전 대기 (선택)
-echo "⏳ Additional 15 seconds for stabilization..."
-sleep 15
-
-# Config Service 테스트 (결과는 참고용)
-echo ""
-echo "🧪 Testing config service..."
-kubectl run curl-test --image=curlimages/curl:latest --rm -i --restart=Never -n portal-universe -- \
-  curl -s http://config-service:8888/api-gateway/kubernetes 2>/dev/null | head -20 || echo "Test completed"
 
 # 6. Business Services 배포
 echo ""
@@ -118,4 +114,3 @@ echo ""
 echo "📝 Useful commands:"
 echo "  - Watch pods: kubectl get pods -n portal-universe -w"
 echo "  - View logs: kubectl logs -f deployment/<name> -n portal-universe"
-echo "  - Port forward API Gateway: kubectl port-forward svc/api-gateway 8080:8080 -n portal-universe"

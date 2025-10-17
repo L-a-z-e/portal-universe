@@ -19,10 +19,10 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: laze8771/portal-universe-api-gateway:latest
+          image: portal-universe-api-gateway:latest
           command: ["java"]
           args: ["-jar", "app.jar"]
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
               name: http
@@ -56,11 +56,10 @@ metadata:
   labels:
     app: api-gateway
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30080
       protocol: TCP
       name: http
   selector:

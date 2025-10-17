@@ -61,7 +61,7 @@ public class SecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE + 1)
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:50000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
