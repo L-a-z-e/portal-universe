@@ -11,6 +11,7 @@
     "preview": "vite preview --port 5001 --strictPort"
   },
   "dependencies": {
+    "@types/node": "^24.8.1",
     "axios": "^1.12.2",
     "concurrently": "^9.2.1",
     "pinia": "^3.0.3",
@@ -19,7 +20,6 @@
   },
   "devDependencies": {
     "@originjs/vite-plugin-federation": "^1.4.1",
-    "@types/node": "^24.8.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "typescript": "~5.8.3",
