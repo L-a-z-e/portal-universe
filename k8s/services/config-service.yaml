@@ -18,10 +18,10 @@ spec:
     spec:
       containers:
         - name: config-service
-          image: laze8771/portal-universe-config-service:latest
+          image: portal-universe-config-service:latest
           command: ["java"]
           args: ["-jar", "app.jar"]
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 8888
               name: http

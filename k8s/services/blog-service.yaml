@@ -18,10 +18,10 @@ spec:
     spec:
       containers:
         - name: blog-service
-          image: laze8771/portal-universe-blog-service:latest
+          image: portal-universe-blog-service:latest
           command: ["java"]
           args: ["-jar", "app.jar"]
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 8082
               name: http

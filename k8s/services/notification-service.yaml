@@ -18,10 +18,10 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: laze8771/portal-universe-notification-service:latest
+          image: portal-universe-notification-service:latest
           command: ["java"]
           args: ["-jar", "app.jar"]
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 8084
               name: http

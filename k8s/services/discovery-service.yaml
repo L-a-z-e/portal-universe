@@ -19,10 +19,10 @@ spec:
     spec:
       containers:
         - name: discovery-service
-          image: laze8771/portal-universe-discovery-service:latest
+          image: portal-universe-discovery-service:latest
           command: ["java"]
           args: ["-jar", "app.jar"]
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 8761
               name: http
@@ -52,7 +52,7 @@ metadata:
   labels:
     app: discovery-service
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     - port: 8761
       targetPort: 8761
