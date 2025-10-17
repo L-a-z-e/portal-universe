@@ -2,15 +2,12 @@ import { UserManager, WebStorageStateStore } from "oidc-client-ts";
 import { useAuthStore } from "../store/auth.ts";
 
 const settings = {
-  authority: 'http://localhost:8080/auth-service',
-  // authority: 'http://api-gateway:8080/auth-service',
-  client_id: 'portal-client',
-  redirect_uri: 'http://localhost:50000/callback',
-  // redirect_uri: 'http://host.docker.internal:50000/callback',
-  post_logout_redirect_uri: 'http://localhost:50000',
-  // post_logout_redirect_uri: 'http://host.docker.internal:50000',
-  response_type: 'code',
-  scope: 'openid profile read write',
+  authority: import.meta.env.VITE_OIDC_AUTHORITY,
+  client_id: import.meta.env.VITE_OIDC_CLIENT_ID,
+  redirect_uri: import.meta.env.VITE_OIDC_REDIRECT_URI,
+  post_logout_redirect_uri: import.meta.env.VITE_OIDC_POST_LOGOUT_REDIRECT_URI,
+  response_type: import.meta.env.VITE_OIDC_RESPONSE_TYPE,
+  scope: import.meta.env.VITE_OIDC_SCOPE,
   userStore: new WebStorageStateStore({ store: window.localStorage }),
   automaticSilentRenew: true
 };
