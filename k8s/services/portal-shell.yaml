@@ -1,0 +1,74 @@
+# Deployment: Pod를 관리하는 컨트롤러
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-shell  # Deployment 이름
+  namespace: portal-universe  # 속한 Namespace
+  labels:  # 메타데이터 태그
+    app: portal-shell
+    tier: frontend
+spec:
+  replicas: 2  # Pod 2개 실행 (고가용성)
+
+  selector:  # 어떤 Pod를 관리할지 선택
+    matchLabels:
+      app: portal-shell
+
+  template:  # Pod 템플릿 (Pod 생성 시 사용)
+    metadata:
+      labels:
+        app: portal-shell  # selector와 일치해야 함
+
+    spec:  # Pod 상세 설정
+      containers:
+        - name: portal-shell  # 컨테이너 이름
+          image: laze8771/portal-universe-portal-shell:latest  # Docker 이미지
+          imagePullPolicy: Never
+
+          ports:
+            - containerPort: 80  # 컨테이너 포트
+              name: http
+              protocol: TCP
+
+          # 리소스 제한
+          resources:
+            requests:  # 최소 보장
+              memory: "128Mi"
+              cpu: "100m"
+            limits:  # 최대 제한
+              memory: "256Mi"
+              cpu: "200m"
+
+          # Health check
+          livenessProbe:  # Pod가 살아있는지 확인
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 10  # 시작 후 10초 후 체크
+            periodSeconds: 30  # 30초마다 체크
+            failureThreshold: 3  # 3번 실패하면 재시작
+
+          readinessProbe:  # Pod가 트래픽 받을 준비됐는지 확인
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portal-shell
+  namespace: portal-universe
+  labels:
+    app: portal-shell
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: portal-shell
