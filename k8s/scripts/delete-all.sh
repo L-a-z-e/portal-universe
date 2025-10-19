@@ -16,6 +16,7 @@ kubectl delete -f "$PROJECT_ROOT/k8s/services/notification-service.yaml" --ignor
 kubectl delete -f "$PROJECT_ROOT/k8s/services/shopping-service.yaml" --ignore-not-found=true --timeout=30s
 kubectl delete -f "$PROJECT_ROOT/k8s/services/blog-service.yaml" --ignore-not-found=true --timeout=30s
 kubectl delete -f "$PROJECT_ROOT/k8s/services/auth-service.yaml" --ignore-not-found=true --timeout=30s
+kubectl delete -f "$PROJECT_ROOT/k8s/services/portal-shell.yaml" --ignore-not-found=true --timeout=30s
 
 echo "⚙️  Deleting config service..."
 kubectl delete -f "$PROJECT_ROOT/k8s/services/config-service.yaml" --ignore-not-found=true --timeout=30s

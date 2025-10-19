@@ -18,6 +18,11 @@ kubectl rollout restart deployment/notification-service -n portal-universe
 echo "🌐 Restarting API gateway..."
 kubectl rollout restart deployment/api-gateway -n portal-universe
 
+echo "🖥️ Restarting frontend services..."
+kubectl rollout restart deployment/auth-service -n portal-universe
+kubectl rollout restart deployment/blog-service -n portal-universe
+kubectl rollout restart deployment/shopping-service -n portal-universe
+
 # Infrastructure도 재시작 (선택사항)
 echo ""
 read -p "❓ Restart infrastructure (MySQL, MongoDB, Kafka)? (y/N): " -n 1 -r

@@ -3,114 +3,163 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
 
-# 색상 정의
+# 색상
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m'
 
-# ========== 빌드 & 로드 ==========
-echo -e "${YELLOW}🔨 Building and loading images...${NC}"
-bash "$SCRIPT_DIR/build-and-load.sh"
+echo -e "${BLUE}🚀 Portal Universe - Deploy to Kubernetes${NC}"
+echo -e "📂 Project root: $PROJECT_ROOT"
+echo ""
 
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Build & Load failed${NC}"
+# ============================================
+# 1. Namespace 생성
+# ============================================
+echo -e "${YELLOW}📦 Step 1: Create Namespace${NC}"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/namespace.yaml"
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ Namespace created/updated${NC}"
+else
+    echo -e "${RED}❌ Namespace creation failed${NC}"
     exit 1
 fi
 
+# ============================================
+# 2. Secrets 생성
+# ============================================
 echo ""
-echo -e "${GREEN}✅ Images ready, starting deployment...${NC}"
-echo ""
-
-# Pod가 Ready 상태가 될 때까지 대기하는 함수
-wait_for_pod() {
-    local label=$1
-    local timeout=${2:-180}
-    local namespace="portal-universe"
-
-    echo -e "${YELLOW}⏳ Waiting for pod with label ${label} to be ready...${NC}"
-
-    local elapsed=0
-    while [ $elapsed -lt $timeout ]; do
-        local ready=$(kubectl get pods -n $namespace -l $label -o jsonpath='{.items[0].status.containerStatuses[0].ready}' 2>/dev/null)
-
-        if [ "$ready" == "true" ]; then
-            echo -e "${GREEN}✅ Pod ${label} is ready!${NC}"
-            return 0
-        fi
-
-        echo -n "."
-        sleep 5
-        elapsed=$((elapsed + 5))
-    done
-
-    echo -e "${RED}❌ Timeout waiting for ${label}${NC}"
-    return 1
-}
-
-echo "🚀 Starting Portal Universe Kubernetes Deployment..."
-echo "📂 Project root: $PROJECT_ROOT"
-echo ""
-
-# 1. Namespace 생성
-echo "📦 Creating namespace..."
-kubectl create namespace portal-universe --dry-run=client -o yaml | kubectl apply -f -
-
-# 2. Secrets 적용
-echo "🔐 Applying secrets..."
+echo -e "${YELLOW}🔐 Step 2: Create Secrets${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/secret.yaml"
 
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ Secrets created/updated${NC}"
+else
+    echo -e "${RED}❌ Secret creation failed${NC}"
+    exit 1
+fi
+
+# ============================================
 # 3. Infrastructure 배포
+# ============================================
 echo ""
-echo "🗄️  Deploying infrastructure..."
-kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/mysql-db.yaml"
-kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/mongodb.yaml"
-kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/kafka.yaml"
-kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/zipkin.yaml"
-kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/prometheus.yaml"
-kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/grafana.yaml"
+echo -e "${YELLOW}🗄️  Step 3: Deploy Infrastructure${NC}"
 
-wait_for_pod "app=mysql-db" 180
-wait_for_pod "app=mongodb" 180
-wait_for_pod "app=kafka" 180
-wait_for_pod "app=zipkin" 180
-wait_for_pod "app=prometheus" 180
-wait_for_pod "app=grafana" 180
+INFRA_SERVICES=(
+    "mysql-db"
+    "mongodb"
+    "kafka"
+    "zipkin"
+)
 
-# 4. Discovery Service 배포
+for SERVICE in "${INFRA_SERVICES[@]}"; do
+    echo -e "${BLUE}Deploying ${SERVICE}...${NC}"
+    kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/${SERVICE}.yaml"
+
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
+    else
+        echo -e "${RED}❌ ${SERVICE} deployment failed${NC}"
+        exit 1
+    fi
+done
+
+# ============================================
+# 4. Core Services 배포
+# ============================================
 echo ""
-echo "🔍 Deploying discovery service..."
+echo -e "${YELLOW}⚙️  Step 4: Deploy Core Services${NC}"
+
+echo -e "${BLUE}Deploying discovery-service...${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/discovery-service.yaml"
-wait_for_pod "app=discovery-service" 120
+kubectl rollout status deployment/discovery-service -n portal-universe --timeout=300s
 
-# 5. Config Service 배포
-echo ""
-echo "⚙️  Deploying config service..."
+echo -e "${BLUE}Deploying config-service...${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/config-service.yaml"
-wait_for_pod "app=config-service" 180
+kubectl rollout status deployment/config-service -n portal-universe --timeout=300s
 
-# 6. Business Services 배포
+# ============================================
+# 5. Business Services 배포
+# ============================================
 echo ""
-echo "💼 Deploying business services..."
-kubectl apply -f "$PROJECT_ROOT/k8s/services/auth-service.yaml"
-kubectl apply -f "$PROJECT_ROOT/k8s/services/blog-service.yaml"
-kubectl apply -f "$PROJECT_ROOT/k8s/services/shopping-service.yaml"
-kubectl apply -f "$PROJECT_ROOT/k8s/services/notification-service.yaml"
+echo -e "${YELLOW}💼 Step 5: Deploy Business Services${NC}"
 
-# 7. API Gateway 배포
+BUSINESS_SERVICES=(
+    "auth-service"
+    "blog-service"
+    "shopping-service"
+    "notification-service"
+)
+
+for SERVICE in "${BUSINESS_SERVICES[@]}"; do
+    echo -e "${BLUE}Deploying ${SERVICE}...${NC}"
+    kubectl apply -f "$PROJECT_ROOT/k8s/services/${SERVICE}.yaml"
+
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
+    else
+        echo -e "${RED}❌ ${SERVICE} deployment failed${NC}"
+        exit 1
+    fi
+done
+
+# ============================================
+# 6. API Gateway 배포
+# ============================================
 echo ""
-echo "🌐 Deploying API gateway..."
+echo -e "${YELLOW}🌐 Step 6: Deploy API Gateway${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/api-gateway.yaml"
+kubectl rollout status deployment/api-gateway -n portal-universe --timeout=300s
 
+# ============================================
+# 7. Frontend 배포
+# ============================================
 echo ""
-echo "⏳ Waiting 30 seconds for all services to stabilize..."
-sleep 30
+echo -e "${YELLOW}🎨 Step 7: Deploy Frontend${NC}"
+kubectl apply -f "$PROJECT_ROOT/k8s/services/portal-shell.yaml"
+kubectl rollout status deployment/portal-shell -n portal-universe --timeout=300s
 
+# ============================================
+# 8. Ingress 배포
+# ============================================
 echo ""
-echo "✅ Deployment complete! Final status:"
+echo -e "${YELLOW}🚪 Step 8: Deploy Ingress${NC}"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/ingress.yaml"
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ Ingress deployed${NC}"
+else
+    echo -e "${RED}❌ Ingress deployment failed${NC}"
+    exit 1
+fi
+
+# ============================================
+# 9. 배포 확인
+# ============================================
+echo ""
+echo -e "${YELLOW}📊 Step 9: Verify Deployment${NC}"
+echo ""
+echo -e "${BLUE}Pods:${NC}"
 kubectl get pods -n portal-universe
 
 echo ""
-echo "📝 Useful commands:"
-echo "  - Watch pods: kubectl get pods -n portal-universe -w"
-echo "  - View logs: kubectl logs -f deployment/<name> -n portal-universe"
+echo -e "${BLUE}Services:${NC}"
+kubectl get svc -n portal-universe
+
+echo ""
+echo -e "${BLUE}Ingress:${NC}"
+kubectl get ingress -n portal-universe
+
+echo ""
+echo -e "${GREEN}🎉 Deployment completed!${NC}"
+echo ""
+echo -e "${YELLOW}📋 Access your application:${NC}"
+echo "  Frontend:    http://portal-universe"
+echo "  API Gateway: http://portal-universe/api"
+echo "  Auth:        http://portal-universe/auth-service"
+echo ""
+echo -e "${YELLOW}⚠️  Don't forget to add to /etc/hosts:${NC}"
+echo "  127.0.0.1 portal-universe"
+echo ""
