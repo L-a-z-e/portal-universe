@@ -25,31 +25,44 @@ import java.util.stream.Collectors;
 @Configuration
 public class AuthorizationServerConfig {
 
+    @Value("${oauth2.client.redirect-uris:http://localhost:30000/callback}")
+    private String[] redirectUris;
+
+    @Value("${oauth2.client.post-logout-redirect-uris:http://localhost:30000}")
+    private String[] postLogoutRedirectUris;
+
     @Bean
     public RegisteredClientRepository registeredClientRepository(PasswordEncoder passwordEncoder) {
         // 실제 운영환경에서는 외부 설정 파일로 분리
         String clientId = "portal-client";
         String clientSecret = "secret";
 
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient.Builder builder = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(clientId)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://localhost:5000/callback")
-                .postLogoutRedirectUri("http://localhost:5000")
                 .scope("read")
                 .scope("write")
                 .scope("openid")
                 .scope("profile")
                 .clientSettings(ClientSettings.builder()
-                                .requireProofKey(true)
-                                .requireAuthorizationConsent(false)
-                                .build()
-                )
-                .build();
+                        .requireProofKey(true)
+                        .requireAuthorizationConsent(false)
+                        .build()
+                );
 
-        return new InMemoryRegisteredClientRepository(registeredClient);
+        // Redirect URIs 추가
+        for (String uri : redirectUris) {
+            builder.redirectUri(uri.trim());
+        }
+
+        // Post Logout Redirect URIs 추가
+        for (String uri : postLogoutRedirectUris) {
+            builder.postLogoutRedirectUri(uri.trim());
+        }
+
+        return new InMemoryRegisteredClientRepository(builder.build());
     }
 
     @Bean

@@ -34,7 +34,8 @@ public class SecurityConfig {
         http
                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
                 .authorizeHttpRequests(authorize -> {
-                    authorize.requestMatchers("/.well-known/**",
+                    authorize.requestMatchers(
+                            "/.well-known/**",
                             "/connect/logout"
                     ).permitAll();
                     authorize.anyRequest().authenticated();
