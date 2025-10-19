@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+*.log
+.env*
+!.env.docker
+!.env.k8s
+.DS_Store

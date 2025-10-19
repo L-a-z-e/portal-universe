@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => {
         name: 'portal',
         filename: 'shellEntry.js',
         remotes: {
-          blog_remote: env.VITE_BLOG_REMOTE_URL || "http://localhost:5001/assets/remoteEntry.js",
-          shopping_remote: env.VITE_SHOP_REMOTE_URL || "http://localhost:5002/assets/remoteEntry.js",
+          blog_remote: env.VITE_BLOG_REMOTE_URL,
+          // shopping_remote: env.VITE_SHOP_REMOTE_URL,
         },
         exposes: {
           './authStore': './src/store/auth.ts'
@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
       })
     ],
     server: {
-      port: 5000
+      port: 30000
     },
     build: {
       minify: false,
