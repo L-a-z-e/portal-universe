@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => {
       federation({
         name: 'blog_remote',
         remotes: {
-          portal_shell: env.VITE_PORTAL_SHELL_REMOTE_URL || "http://localhost:5000/assets/shellEntry.js",
-          shopping_remote: env.VITE_SHOP_REMOTE_URL || "http://localhost:5002/assets/remoteEntry.js",
+          portal_shell: env.VITE_PORTAL_SHELL_REMOTE_URL,
+          // shopping_remote: env.VITE_SHOP_REMOTE_URL,
         },
         filename: 'remoteEntry.js',
         exposes: {
@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
       })
     ],
     server: {
-      port: 5001,
+      port: 30001,
       cors: true
     },
     build: {

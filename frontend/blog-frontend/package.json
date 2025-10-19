@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite build --watch --mode dev\" \"vite preview --port 5001 --strictPort --mode dev\"",
+    "dev": "concurrently \"vite build --watch --mode dev\" \"vite preview --port 30001 --strictPort --mode dev\"",
     "build:dev": "vue-tsc -b && vite build --mode dev",
     "build:docker": "vue-tsc -b && vite build --mode docker",
     "build:k8s": "vue-tsc -b && vite build --mode k8s",
-    "preview": "vite preview --port 5001 --strictPort"
+    "preview": "vite preview --port 30001 --strictPort"
   },
   "dependencies": {
     "@types/node": "^24.8.1",
