@@ -219,6 +219,36 @@ services:
     networks:
       - portal-universe-net
 
+  portal-shell:
+    build:
+      context: ./frontend/portal-shell
+      dockerfile: Dockerfile
+      args:
+        BUILD_MODE: docker
+    container_name: portal-shell
+    ports:
+      - "30000:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+
+  blog-frontend:
+    build:
+      context: ./frontend/blog-frontend
+      dockerfile: Dockerfile
+      args:
+        BUILD_MODE: docker
+    container_name: blog-frontend
+    ports:
+      - "30001:80"
+    depends_on:
+      portal-shell:
+        condition: service_started
+    networks:
+      - portal-universe-net
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
