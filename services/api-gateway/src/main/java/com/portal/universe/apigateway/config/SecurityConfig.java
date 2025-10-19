@@ -41,14 +41,10 @@ public class SecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE) // 모든 필터 중 가장 먼저 실행되도록 설정
     public WebFilter requestPathLoggingFilter() {
         return (exchange, chain) -> {
-            // Spring Security가 보기 직전의 요청 경로를 로그로 출력
-            log.info(">>>>> INCOMING REQUEST PATH: {}", exchange.getRequest().getPath().value());
-            String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
-            if (authHeader != null) {
-                log.info(">>>> AUTHORIZATION HEADER: {}", authHeader);
-            } else {
-                log.warn(">>>> AUTHORIZATION HEADER MISSING");
-            }
+            String path = exchange.getRequest().getPath().value();
+            String method = exchange.getRequest().getMethod().name();
+            log.debug("Request: {} {}", method, path);
+
             return chain.filter(exchange);
         };
     }
@@ -61,7 +57,8 @@ public class SecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE + 1)
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:30000"));
+        configuration.addAllowedOrigin("null");
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -79,12 +76,8 @@ public class SecurityConfig {
     public SecurityWebFilterChain publicEndpointsFilterChain(ServerHttpSecurity http) {
         return http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(
-                        "/auth-service/.well-known/**",
-                        "/auth-service/oauth2/**",
-                        "/auth-service/login",
-                        "/auth-service/logout",
-                        "/auth-service/connect/**",
-                        "/api/users/signup"
+                    "/auth-service/**",     // ← auth-service는 자체 인증
+                    "/actuator/**"
                 ))
                 .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
