@@ -22,7 +22,7 @@ spec:
     spec:  # Pod 상세 설정
       containers:
         - name: portal-shell  # 컨테이너 이름
-          image: laze8771/portal-universe-portal-shell:latest  # Docker 이미지
+          image: portal-universe-portal-shell:latest  # Docker 이미지
           imagePullPolicy: Never
 
           ports:
