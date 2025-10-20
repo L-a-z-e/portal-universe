@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Backend 서비스 (Gradle)
+# Backend 서비스 (Gradle, services/ 아래)
 BACKEND_SERVICES=(
     "discovery-service"
     "config-service"
@@ -23,9 +23,11 @@ BACKEND_SERVICES=(
     "notification-service"
 )
 
-# Frontend 서비스 (npm)
+# Frontend 서비스 (npm, frontend/ 아래)
 FRONTEND_SERVICES=(
     "portal-shell"
+    # "blog-frontend"      # 추후 추가
+    # "shopping-frontend"  # 추후 추가
 )
 
 CLUSTER_NAME="portal-universe"
@@ -36,7 +38,7 @@ echo ""
 # ============================================
 # 1. Backend: Gradle 빌드
 # ============================================
-echo -e "${YELLOW}📦 Step 1: Gradle Build (Backend)${NC}"
+echo -e "${YELLOW}📦 Step 1: Gradle Build (Backend Services)${NC}"
 cd "$PROJECT_ROOT"
 
 for SERVICE in "${BACKEND_SERVICES[@]}"; do
@@ -55,16 +57,17 @@ done
 # 2. Frontend: npm 빌드
 # ============================================
 echo ""
-echo -e "${YELLOW}📦 Step 2: npm Build (Frontend)${NC}"
+echo -e "${YELLOW}📦 Step 2: npm Build (Frontend Services)${NC}"
 
 for SERVICE in "${FRONTEND_SERVICES[@]}"; do
     echo -e "${BLUE}Building ${SERVICE}...${NC}"
 
-    cd "$PROJECT_ROOT/${SERVICE}"
+    # frontend/${SERVICE} 디렉토리로 이동
+    cd "$PROJECT_ROOT/frontend/${SERVICE}"
 
     # npm 의존성이 없으면 설치
     if [ ! -d "node_modules" ]; then
-        echo -e "${YELLOW}Installing dependencies...${NC}"
+        echo -e "${YELLOW}  Installing npm dependencies...${NC}"
         npm ci
     fi
 
@@ -78,6 +81,7 @@ for SERVICE in "${FRONTEND_SERVICES[@]}"; do
         exit 1
     fi
 
+    # 프로젝트 루트로 돌아가기
     cd "$PROJECT_ROOT"
 done
 
@@ -85,7 +89,7 @@ done
 # 3. Docker 이미지 빌드 (Backend)
 # ============================================
 echo ""
-echo -e "${YELLOW}🐳 Step 3: Docker Build (Backend)${NC}"
+echo -e "${YELLOW}🐳 Step 3: Docker Build (Backend Services)${NC}"
 
 for SERVICE in "${BACKEND_SERVICES[@]}"; do
     echo -e "${BLUE}Building Docker image: ${SERVICE}...${NC}"
@@ -107,16 +111,19 @@ done
 # 4. Docker 이미지 빌드 (Frontend)
 # ============================================
 echo ""
-echo -e "${YELLOW}🐳 Step 4: Docker Build (Frontend)${NC}"
+echo -e "${YELLOW}🐳 Step 4: Docker Build (Frontend Services)${NC}"
 
 for SERVICE in "${FRONTEND_SERVICES[@]}"; do
     echo -e "${BLUE}Building Docker image: ${SERVICE}...${NC}"
 
+    # frontend/${SERVICE} 디렉토리로 이동
+    cd "$PROJECT_ROOT/frontend/${SERVICE}"
+
     docker build \
         --build-arg BUILD_MODE=k8s \
         -t portal-universe-${SERVICE}:latest \
-        -f ${SERVICE}/Dockerfile \
-        ${SERVICE}/
+        -f Dockerfile \
+        .
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ ${SERVICE} image built${NC}"
@@ -124,13 +131,16 @@ for SERVICE in "${FRONTEND_SERVICES[@]}"; do
         echo -e "${RED}❌ ${SERVICE} image build failed${NC}"
         exit 1
     fi
+
+    # 프로젝트 루트로 돌아가기
+    cd "$PROJECT_ROOT"
 done
 
 # ============================================
 # 5. Kind 클러스터에 이미지 로드
 # ============================================
 echo ""
-echo -e "${YELLOW}📥 Step 5: Load images to Kind cluster${NC}"
+echo -e "${YELLOW}📥 Step 5: Load Images to Kind Cluster${NC}"
 
 ALL_SERVICES=("${BACKEND_SERVICES[@]}" "${FRONTEND_SERVICES[@]}")
 
@@ -148,8 +158,11 @@ for SERVICE in "${ALL_SERVICES[@]}"; do
 done
 
 echo ""
-echo -e "${GREEN}🎉 All services built and loaded to Kind!${NC}"
+echo -e "${GREEN}════════════════════════════════════════${NC}"
+echo -e "${GREEN}🎉 All services built and loaded!${NC}"
+echo -e "${GREEN}════════════════════════════════════════${NC}"
 echo ""
 echo -e "${YELLOW}📋 Next steps:${NC}"
-echo "  1. Deploy: ./k8s/scripts/deploy-all.sh"
-echo "  2. Check: kubectl get pods -n portal-universe"
+echo "  1. Deploy: ${BLUE}./k8s/scripts/deploy-all.sh${NC}"
+echo "  2. Check:  ${BLUE}kubectl get pods -n portal-universe${NC}"
+echo ""

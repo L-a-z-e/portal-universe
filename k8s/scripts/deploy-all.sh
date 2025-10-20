@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
 
@@ -15,37 +17,42 @@ echo -e "📂 Project root: $PROJECT_ROOT"
 echo ""
 
 # ============================================
-# 1. Namespace 생성
+# Step 0: Ingress Controller 설치
 # ============================================
-echo -e "${YELLOW}📦 Step 1: Create Namespace${NC}"
-kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/namespace.yaml"
+echo -e "${YELLOW}🌐 Step 0: Install Ingress Controller${NC}"
 
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Namespace created/updated${NC}"
+if kubectl get namespace ingress-nginx &> /dev/null; then
+    echo -e "${GREEN}✅ Ingress Controller already installed${NC}"
 else
-    echo -e "${RED}❌ Namespace creation failed${NC}"
-    exit 1
+    echo "Installing Ingress Controller..."
+    kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/ingress-controller.yaml"
+
+    echo "Waiting for Ingress Controller to be ready..."
+    kubectl wait --namespace ingress-nginx \
+      --for=condition=ready pod \
+      --selector=app.kubernetes.io/component=controller \
+      --timeout=90s
+
+    echo -e "${GREEN}✅ Ingress Controller installed${NC}"
 fi
 
 # ============================================
-# 2. Secrets 생성
+# Step 1: Base 설정
 # ============================================
 echo ""
-echo -e "${YELLOW}🔐 Step 2: Create Secrets${NC}"
-kubectl apply -f "$PROJECT_ROOT/k8s/secret.yaml"
+echo -e "${YELLOW}📦 Step 1: Apply Base Configuration${NC}"
 
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Secrets created/updated${NC}"
-else
-    echo -e "${RED}❌ Secret creation failed${NC}"
-    exit 1
-fi
+kubectl apply -f "$PROJECT_ROOT/k8s/base/namespace.yaml"
+echo -e "${GREEN}✅ Namespace created${NC}"
+
+kubectl apply -f "$PROJECT_ROOT/k8s/base/secret.yaml"
+echo -e "${GREEN}✅ Secrets created${NC}"
 
 # ============================================
-# 3. Infrastructure 배포
+# Step 2: Infrastructure 배포
 # ============================================
 echo ""
-echo -e "${YELLOW}🗄️  Step 3: Deploy Infrastructure${NC}"
+echo -e "${YELLOW}🗄️  Step 2: Deploy Infrastructure${NC}"
 
 INFRA_SERVICES=(
     "mysql-db"
@@ -57,34 +64,28 @@ INFRA_SERVICES=(
 for SERVICE in "${INFRA_SERVICES[@]}"; do
     echo -e "${BLUE}Deploying ${SERVICE}...${NC}"
     kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/${SERVICE}.yaml"
-
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
-    else
-        echo -e "${RED}❌ ${SERVICE} deployment failed${NC}"
-        exit 1
-    fi
+    echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
 done
 
 # ============================================
-# 4. Core Services 배포
+# Step 3: Core Services 배포
 # ============================================
 echo ""
-echo -e "${YELLOW}⚙️  Step 4: Deploy Core Services${NC}"
+echo -e "${YELLOW}⚙️  Step 3: Deploy Core Services${NC}"
 
 echo -e "${BLUE}Deploying discovery-service...${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/discovery-service.yaml"
-kubectl rollout status deployment/discovery-service -n portal-universe --timeout=300s
+kubectl rollout status deployment/discovery-service -n portal-universe
 
 echo -e "${BLUE}Deploying config-service...${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/config-service.yaml"
-kubectl rollout status deployment/config-service -n portal-universe --timeout=300s
+kubectl rollout status deployment/config-service -n portal-universe
 
 # ============================================
-# 5. Business Services 배포
+# Step 4: Business Services 배포
 # ============================================
 echo ""
-echo -e "${YELLOW}💼 Step 5: Deploy Business Services${NC}"
+echo -e "${YELLOW}💼 Step 4: Deploy Business Services${NC}"
 
 BUSINESS_SERVICES=(
     "auth-service"
@@ -96,70 +97,73 @@ BUSINESS_SERVICES=(
 for SERVICE in "${BUSINESS_SERVICES[@]}"; do
     echo -e "${BLUE}Deploying ${SERVICE}...${NC}"
     kubectl apply -f "$PROJECT_ROOT/k8s/services/${SERVICE}.yaml"
-
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
-    else
-        echo -e "${RED}❌ ${SERVICE} deployment failed${NC}"
-        exit 1
-    fi
+    echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
 done
 
 # ============================================
-# 6. API Gateway 배포
+# Step 5: API Gateway 배포
 # ============================================
 echo ""
-echo -e "${YELLOW}🌐 Step 6: Deploy API Gateway${NC}"
+echo -e "${YELLOW}🌐 Step 5: Deploy API Gateway${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/api-gateway.yaml"
-kubectl rollout status deployment/api-gateway -n portal-universe --timeout=300s
+kubectl rollout status deployment/api-gateway -n portal-universe
 
 # ============================================
-# 7. Frontend 배포
+# Step 6: Frontend 배포
 # ============================================
 echo ""
-echo -e "${YELLOW}🎨 Step 7: Deploy Frontend${NC}"
+echo -e "${YELLOW}🎨 Step 6: Deploy Frontend${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/portal-shell.yaml"
-kubectl rollout status deployment/portal-shell -n portal-universe --timeout=300s
+kubectl rollout status deployment/portal-shell -n portal-universe
 
 # ============================================
-# 8. Ingress 배포
+# Step 7: Ingress 배포
 # ============================================
 echo ""
-echo -e "${YELLOW}🚪 Step 8: Deploy Ingress${NC}"
+echo -e "${YELLOW}🚪 Step 7: Deploy Ingress${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/ingress.yaml"
-
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Ingress deployed${NC}"
-else
-    echo -e "${RED}❌ Ingress deployment failed${NC}"
-    exit 1
-fi
+echo -e "${GREEN}✅ Ingress deployed${NC}"
 
 # ============================================
-# 9. 배포 확인
+# Step 8: 배포 확인
 # ============================================
 echo ""
-echo -e "${YELLOW}📊 Step 9: Verify Deployment${NC}"
+echo -e "${YELLOW}📊 Step 8: Verify Deployment${NC}"
 echo ""
-echo -e "${BLUE}Pods:${NC}"
+
+echo "Pods:"
 kubectl get pods -n portal-universe
 
 echo ""
-echo -e "${BLUE}Services:${NC}"
+echo "Services:"
 kubectl get svc -n portal-universe
 
 echo ""
-echo -e "${BLUE}Ingress:${NC}"
+echo "Ingress:"
 kubectl get ingress -n portal-universe
 
 echo ""
+echo "Ingress Controller:"
+kubectl get svc -n ingress-nginx
+
+echo ""
+echo -e "${GREEN}════════════════════════════════════════${NC}"
 echo -e "${GREEN}🎉 Deployment completed!${NC}"
+echo -e "${GREEN}════════════════════════════════════════${NC}"
+
+# ============================================
+# Step 9: 접속 정보
+# ============================================
 echo ""
+NODE_PORT=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null || echo "N/A")
+pkill -f "port-forward.*ingress-nginx"
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80
+
 echo -e "${YELLOW}📋 Access your application:${NC}"
-echo "  Frontend:    http://portal-universe"
-echo "  API Gateway: http://portal-universe/api"
-echo "  Auth:        http://portal-universe/auth-service"
 echo ""
-echo -e "${YELLOW}⚠️  Don't forget to add to /etc/hosts:${NC}"
-echo "  127.0.0.1 portal-universe"
+if [ "$NODE_PORT" != "N/A" ]; then
+    echo -e "  ${BLUE}http://portal-universe:8080${NC}"
+else
+    echo -e "  ${RED}Unable to get NodePort${NC}"
+fi
 echo ""

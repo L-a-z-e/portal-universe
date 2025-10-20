@@ -1,38 +1,40 @@
 #!/bin/bash
 
-echo "🔄 Restarting Portal Universe Kubernetes Deployment..."
+set -e
 
-# Rollout restart (Pod만 재생성, Service/Deployment 유지)
-echo "🔍 Restarting discovery service..."
-kubectl rollout restart deployment/discovery-service -n portal-universe
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
 
-echo "⚙️  Restarting config service..."
-kubectl rollout restart deployment/config-service -n portal-universe
+# 색상
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
 
-echo "💼 Restarting business services..."
-kubectl rollout restart deployment/auth-service -n portal-universe
-kubectl rollout restart deployment/blog-service -n portal-universe
-kubectl rollout restart deployment/shopping-service -n portal-universe
-kubectl rollout restart deployment/notification-service -n portal-universe
-
-echo "🌐 Restarting API gateway..."
-kubectl rollout restart deployment/api-gateway -n portal-universe
-
-echo "🖥️ Restarting frontend services..."
-kubectl rollout restart deployment/auth-service -n portal-universe
-kubectl rollout restart deployment/blog-service -n portal-universe
-kubectl rollout restart deployment/shopping-service -n portal-universe
-
-# Infrastructure도 재시작 (선택사항)
+echo -e "${BLUE}🔄 Portal Universe - Restart All Deployments${NC}"
 echo ""
-read -p "❓ Restart infrastructure (MySQL, MongoDB, Kafka)? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    kubectl rollout restart deployment/mysql-db -n portal-universe
-    kubectl rollout restart deployment/mongodb -n portal-universe
-    kubectl rollout restart deployment/kafka -n portal-universe
-fi
+
+DEPLOYMENTS=(
+    "discovery-service"
+    "config-service"
+    "auth-service"
+    "blog-service"
+    "shopping-service"
+    "notification-service"
+    "api-gateway"
+    "portal-shell"
+)
+
+for DEPLOYMENT in "${DEPLOYMENTS[@]}"; do
+    echo -e "${YELLOW}Restarting ${DEPLOYMENT}...${NC}"
+    kubectl rollout restart deployment/${DEPLOYMENT} -n portal-universe
+    echo -e "${GREEN}✅ ${DEPLOYMENT} restarted${NC}"
+done
 
 echo ""
-echo "✅ Restart initiated!"
-echo "📊 Watch status: kubectl get pods -n portal-universe -w"
+echo -e "${GREEN}════════════════════════════════════════${NC}"
+echo -e "${GREEN}🎉 All deployments restarted!${NC}"
+echo -e "${GREEN}════════════════════════════════════════${NC}"
+echo ""
+echo "Monitoring rollout status..."
+kubectl get pods -n portal-universe -w
