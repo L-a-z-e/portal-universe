@@ -4,51 +4,49 @@ metadata:
   name: portal-universe-ingress
   namespace: portal-universe
   annotations:  # Ingress Controller 설정
-    nginx.ingress.kubernetes.io/rewrite-target: /$2  # ← 중요!
+#    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-redirect-from: "http://portal-universe/"
+    nginx.ingress.kubernetes.io/proxy-redirect-to: "http://portal-universe:8080/"
+#    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
-
   rules:
     - host: portal-universe  # 도메인
       http:
         paths:
+          - path: /auth-service
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080
 
-          # Frontend (portal-shell)
-          - path: /()(.*)  # / 또는 /anything
-            pathType: ImplementationSpecific
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080
+
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: portal-shell
                 port:
                   number: 80
 
-          # API Gateway
-          - path: /api(/|$)(.*)  # /api 또는 /api/...
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: api-gateway
-                port:
-                  number: 8080
-
-          - path: /auth-service(/|$)(.*)  # /auth-service/...
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: api-gateway
-                port:
-                  number: 8080
-
-          # Blog Frontend (Module Federation)
-          - path: /blog(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: blog-frontend
-                port:
-                  number: 80
+#          # Blog Frontend (Module Federation)
+#          - path: /blog(/|$)(.*)
+#            pathType: ImplementationSpecific
+#            backend:
+#              service:
+#                name: blog-frontend
+#                port:
+#                  number: 80
 
 #          # Shopping Frontend (Module Federation)
 #          - path: /shop(/|$)(.*)
