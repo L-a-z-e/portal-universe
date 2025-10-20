@@ -9,7 +9,8 @@ const settings = {
   response_type: import.meta.env.VITE_OIDC_RESPONSE_TYPE,
   scope: import.meta.env.VITE_OIDC_SCOPE,
   userStore: new WebStorageStateStore({ store: window.localStorage }),
-  automaticSilentRenew: true
+  automaticSilentRenew: true,
+  disablePKCE: true,
 };
 
 const userManager = new UserManager(settings);
