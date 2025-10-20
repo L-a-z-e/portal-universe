@@ -29,16 +29,29 @@ public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
                 originalHost += ":" + port;
             }
         }
-
-        // 스키마 (http/https)
         String originalScheme = uri.getScheme();
-
-        // 포트
-        int portNumber = uri.getPort();
-        if (portNumber == -1) {
-            portNumber = originalScheme.equals("https") ? 443 : 80;
+        String originalPort;
+        if (originalHost != null && originalHost.contains(":")) {
+            originalPort = originalHost.split(":")[1];
         }
-        String originalPort = String.valueOf(portNumber);
+        else {
+            // Fallback to original logic if Host header has no port
+            int portNumber = uri.getPort();
+            if (portNumber == -1) {
+                portNumber = originalScheme.equals("https") ? 443 : 80;
+            }
+            originalPort = String.valueOf(portNumber);
+        }
+
+//        // 스키마 (http/https)
+//        String originalScheme = uri.getScheme();
+//
+//        // 포트
+//        int portNumber = uri.getPort();
+//        if (portNumber == -1) {
+//            portNumber = originalScheme.equals("https") ? 443 : 80;
+//        }
+//        String originalPort = String.valueOf(portNumber);
 
         // 경로에서 prefix 추출
         String path = uri.getPath();
