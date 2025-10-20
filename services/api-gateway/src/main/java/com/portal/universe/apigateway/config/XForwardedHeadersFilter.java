@@ -8,15 +8,18 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.springframework.context.annotation.Profile;
 
 import java.net.URI;
 
 @Slf4j
+@Profile("kubernetes")
 @Component
 public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        log.error("!!!!!!!!!! XForwardedHeadersFilter IS RUNNING !!!!!!!!!!");
         ServerHttpRequest request = exchange.getRequest();
         URI uri = request.getURI();
 

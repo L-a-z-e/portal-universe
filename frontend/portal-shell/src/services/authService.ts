@@ -10,7 +10,10 @@ const settings = {
   scope: import.meta.env.VITE_OIDC_SCOPE,
   userStore: new WebStorageStateStore({ store: window.localStorage }),
   automaticSilentRenew: true,
-  disablePKCE: true,
+  disablePKCE: false, // PKCE를 다시 활성화
+  metadata: {
+    requireHttps: false // 개발 환경을 위해 HTTPS 강제 검사 비활성화
+  }
 };
 
 const userManager = new UserManager(settings);
