@@ -40,7 +40,7 @@ const authStore = useAuthStore();
 userManager.getUser()
   .then(user => {
     if (user && user.access_token) {
-      authStore.login(user.access_token);
+      authStore.setUser(user);
     }
   })
   .catch(err => {

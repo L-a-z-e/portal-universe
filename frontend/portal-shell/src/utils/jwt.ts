@@ -1,9 +1,6 @@
 import {base64UrlDecodeToString} from "./base64.ts";
 
-interface JwtPayload {
-  sub: string;
-  username?: string; // optional
-}
+export type JwtPayload = Record<string, any>;
 
 /**
  * JWT 문자열을 파싱하여 페이로드 객체를 반환합니다.
