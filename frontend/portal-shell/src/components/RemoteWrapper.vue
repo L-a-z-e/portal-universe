@@ -1,79 +1,121 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import type { Router } from "vue-router";
-import type { MountOptions } from "blog_remote/bootstrap";
-
-type RemoteApp = {
-  router: Router;
-  onParentNavigate: (path: string) => void;
-  unmount: () => void;
-};
+import type { RemoteConfig } from "../config/remoteRegistry";
+import { remoteLoader } from "../services/remoteLoader";
 
 const props = defineProps<{
-  mountFn: ((el: HTMLElement, options: MountOptions) => RemoteApp) | null; // null 허용
-  basePath: string;
+  config: RemoteConfig;
   initialPath?: string;
-  remoteName?: string;
 }>();
 
 const container = ref<HTMLElement | null>(null);
 const shellRoute = useRoute();
 const shellRouter = useRouter();
-const error = ref<Error | null>(null);
-const loading = ref(true);
 
-let remoteApp: RemoteApp | null = null;
+const loading = ref(true);
+const error = ref<Error | null>(null);
+const isDev = computed(() => import.meta.env.DEV);
+
+let remoteApp: any = null;
 
 const onRemoteNavigate = (path: string) => {
-  const newPath = `${props.basePath}${path === '/' ? '' : path}`;
+  const newPath = `${props.config.basePath}${path === '/' ? '' : path}`;
   if (shellRoute.path !== newPath) {
-    shellRouter.push(newPath);
+    shellRouter.push(newPath).catch(() => {});
   }
 };
 
 watch(() => shellRoute.path, (newPath) => {
-  if (remoteApp) {
+  if (remoteApp?.onParentNavigate) {
     try {
-      const remotePath = newPath.substring(props.basePath.length) || '/';
+      const remotePath = newPath.substring(props.config.basePath.length) || '/';
       remoteApp.onParentNavigate(remotePath);
     } catch (err) {
       console.error('⚠️ Error in onParentNavigate:', err);
     }
   }
-}, { immediate: true });
+});
 
-onMounted(async () => {
-  if (!container.value) return;
+// ✅ Remote 마운트 로직 분리
+async function mountRemote() {
+  // ✅ Container가 준비될 때까지 대기
+  if (!container.value) {
+    console.warn('⚠️ [RemoteWrapper] Container not ready, waiting...');
+    await nextTick();  // DOM 업데이트 대기
+
+    if (!container.value) {
+      console.error('❌ [RemoteWrapper] Container still null after nextTick!');
+      return;
+    }
+  }
+
+  console.log(`📍 [RemoteWrapper] Mounting ${props.config.name}...`);
 
   try {
-    loading.value = true;
-    error.value = null;
+    const result = await remoteLoader.loadRemote(props.config);
 
-    // mountFn이 null이면 에러
-    if (!props.mountFn) {
-      throw new Error('Remote module not available');
+    if (!result.success || !result.mountFn) {
+      throw result.error || new Error('Failed to load remote');
     }
 
-    const initialPath = props.initialPath || shellRoute.path.substring(props.basePath.length) || '/';
+    const initialPath = props.initialPath ||
+        shellRoute.path.substring(props.config.basePath.length) || '/';
 
-    remoteApp = props.mountFn(container.value, {
+    console.log(`🚀 [RemoteWrapper] Calling mount function...`);
+    console.log(`   Container:`, container.value);
+    console.log(`   Initial path: ${initialPath}`);
+
+    remoteApp = result.mountFn(container.value, {
       initialPath,
       onNavigate: onRemoteNavigate,
     });
 
+    console.log(`✅ [RemoteWrapper] ${props.config.name} mounted successfully`);
     loading.value = false;
 
-  } catch (err) {
-    console.error('❌ Failed to mount remote:', err);
-    error.value = err as Error;
+  } catch (err: any) {
+    console.error(`❌ [RemoteWrapper] Mount failed:`, err);
+    error.value = err;
+    loading.value = false;
+  }
+}
+
+// ✅ loading이 false가 되면 (container가 렌더링되면) 마운트
+watch(loading, async (isLoading, wasLoading) => {
+  // loading이 true → false로 변경되고, 에러가 없을 때
+  if (wasLoading && !isLoading && !error.value) {
+    await nextTick();  // DOM 렌더링 완료 대기
+    await mountRemote();
+  }
+});
+
+onMounted(async () => {
+  console.log(`📍 [RemoteWrapper] Component mounted for ${props.config.name}`);
+
+  // ✅ Remote 로딩 시작 (loading = true 유지)
+  try {
+    const result = await remoteLoader.loadRemote(props.config);
+
+    if (!result.success || !result.mountFn) {
+      throw result.error || new Error('Failed to load remote');
+    }
+
+    // ✅ 로딩 성공 → loading을 false로 변경
+    // → watch가 감지하여 mountRemote() 호출
+    loading.value = false;
+
+  } catch (err: any) {
+    console.error(`❌ [RemoteWrapper] Load failed:`, err);
+    error.value = err;
     loading.value = false;
   }
 });
 
 onUnmounted(() => {
-  if (remoteApp) {
+  if (remoteApp?.unmount) {
     try {
+      console.log(`🔄 [RemoteWrapper] Unmounting ${props.config.name}`);
       remoteApp.unmount();
       remoteApp = null;
     } catch (err) {
@@ -81,6 +123,28 @@ onUnmounted(() => {
     }
   }
 });
+
+async function retry() {
+  console.log(`🔄 [RemoteWrapper] Retrying ${props.config.name}...`);
+  remoteLoader.clearCache(props.config.key);
+
+  loading.value = true;
+  error.value = null;
+
+  // onMounted 로직 재실행
+  try {
+    const result = await remoteLoader.loadRemote(props.config);
+    if (result.success && result.mountFn) {
+      loading.value = false;  // watch가 mountRemote() 호출
+    } else {
+      error.value = result.error;
+      loading.value = false;
+    }
+  } catch (err: any) {
+    error.value = err;
+    loading.value = false;
+  }
+}
 </script>
 
 <template>
@@ -88,45 +152,49 @@ onUnmounted(() => {
     <!-- 로딩 -->
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
-      <p>Loading {{ remoteName || 'Module' }}...</p>
+      <p>{{ config.name }} 로딩 중...</p>
     </div>
 
-    <!-- 에러 (Fallback) -->
-    <div v-else-if="error || !mountFn" class="error-fallback">
-      <div class="error-icon">⚠️</div>
-      <h2>{{ remoteName || 'Service' }} 를 사용할 수 없습니다</h2>
+    <!-- 에러 Fallback -->
+    <div v-else-if="error" class="error-fallback">
+      <div class="error-icon">{{ config.icon || '⚠️' }}</div>
+      <h2>{{ config.name }} 서비스를 사용할 수 없습니다</h2>
       <p class="error-message">
-        {{ remoteName || '서비스' }}에 연결할 수 없습니다.
+        {{ config.description }}에 일시적으로 연결할 수 없습니다.
       </p>
-      <p class="error-hint">
-        잠시 후 다시 시도해주세요.
-      </p>
+
       <div class="error-actions">
-        <button @click="$router.push('/')" class="btn-primary">
+        <button @click="retry" class="btn-primary">
+          다시 시도
+        </button>
+        <button @click="$router.push('/')" class="btn-secondary">
           홈으로 돌아가기
         </button>
-        <button @click="$router.go(0)" class="btn-secondary">
-          새로고침
-        </button>
       </div>
-      <details v-if="error" class="error-details">
-        <summary>Error Message</summary>
-        <pre>{{ error.message }}</pre>
+
+      <details v-if="isDev" class="error-details">
+        <summary>개발자 정보</summary>
+        <div>
+          <p><strong>Remote Key:</strong> {{ config.key }}</p>
+          <p><strong>Module Path:</strong> {{ config.module }}</p>
+          <p><strong>Error:</strong></p>
+          <pre>{{ error.message }}</pre>
+        </div>
       </details>
     </div>
 
-    <!-- Remote 컨테이너 (정상) -->
+    <!-- Remote 컨테이너 -->
     <div v-else ref="container" class="remote-container"></div>
   </div>
 </template>
 
 <style scoped>
+/* 기존 스타일 그대로 */
 .remote-wrapper {
   width: 100%;
   min-height: 400px;
 }
 
-/* 로딩 */
 .loading {
   display: flex;
   flex-direction: column;
@@ -151,7 +219,6 @@ onUnmounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-/* 에러 Fallback */
 .error-fallback {
   max-width: 600px;
   margin: 4rem auto;
@@ -175,11 +242,6 @@ onUnmounted(() => {
 .error-message {
   font-size: 1.1rem;
   color: #666;
-  margin-bottom: 0.5rem;
-}
-
-.error-hint {
-  color: #999;
   margin-bottom: 2rem;
 }
 
@@ -222,25 +284,26 @@ onUnmounted(() => {
   text-align: left;
   margin-top: 2rem;
   padding: 1rem;
-  background: #f5f5f5;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
   border-radius: 4px;
   font-size: 0.9rem;
 }
 
 .error-details summary {
   cursor: pointer;
-  color: #666;
+  font-weight: bold;
   margin-bottom: 0.5rem;
 }
 
 .error-details pre {
-  margin: 0;
-  color: #d32f2f;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  background: #f5f5f5;
+  padding: 0.5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.85rem;
 }
 
-/* Remote 컨테이너 */
 .remote-container {
   width: 100%;
 }

@@ -6,6 +6,8 @@ import federation from "@originjs/vite-plugin-federation";
 export default defineConfig(({ mode }) => {
   // .env 파일 로드
   const env = loadEnv(mode, process.cwd(), '')
+  console.log('🔧 [Vite Config] Building for mode:', mode);
+  console.log('🔧 [Vite Config] Blog Remote URL:', env.VITE_BLOG_REMOTE_URL);
 
   return {
     plugins: [
@@ -26,6 +28,10 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 30001,
       cors: true
+    },
+    preview: {
+      port: 30001,
+      cors: true,
     },
     build: {
       minify: false,
