@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAuthStore } from "./store/auth.ts";
 import { login, logout } from "./services/authService.ts";
+import { Button } from '@portal/design-system';
 
 const authStore = useAuthStore();
 </script>
@@ -19,10 +20,14 @@ const authStore = useAuthStore();
             Welcome, <strong>{{ authStore.displayName }}</strong>!
             <span v-if="authStore.isAdmin" class="badge-admin">ADMIN</span>
           </span>
-          <button @click="logout" class="btn-logout">Logout</button>
+          <Button variant="secondary" @click="logout">
+            Logout
+          </Button>
         </template>
         <template v-else>
-          <button @click="login" class="btn-login">Login</button>
+          <Button variant="primary" @click="login">
+            Login
+          </Button>
         </template>
       </div>
     </header>

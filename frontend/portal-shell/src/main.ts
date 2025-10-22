@@ -5,6 +5,7 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from "./store/auth.ts";
 import userManager from "./services/authService.ts";
+import '@portal/design-system/styles';
 
 const app = createApp(App);
 const pinia = createPinia();
