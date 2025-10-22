@@ -6,7 +6,7 @@ const route = useRoute();
 const isEmbedded = computed(() => window.__POWERED_BY_PORTAL_SHELL__ === true);
 
 onMounted(() => {
-  console.log('📍 [App.vue] Mounted');
+  console.log('📍 [App.vue.bak] Mounted');
   console.log('   Mode:', isEmbedded.value ? 'EMBEDDED' : 'STANDALONE');
   console.log('   Current route:', route.path);
   console.log('   Route name:', route.name);
