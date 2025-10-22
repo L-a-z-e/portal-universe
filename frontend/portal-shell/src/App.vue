@@ -1,38 +1,66 @@
 <script setup lang="ts">
 import { useAuthStore } from "./store/auth.ts";
 import { login, logout } from "./services/authService.ts";
-import { Button } from '@portal/design-system';
+import { Button, Badge } from '@portal/design-system';
 
 const authStore = useAuthStore();
 </script>
 
 <template>
-  <div id="portal-shell-container">
-    <header>
-      <h1>Portal Universe</h1>
-      <nav>
-        <router-link to="/">Home</router-link> |
-        <router-link to="/blog">Blog</router-link>
-      </nav>
-      <div class="auth-status">
-        <template v-if="authStore.isAuthenticated">
-          <span class="welcome">
-            Welcome, <strong>{{ authStore.displayName }}</strong>!
-            <span v-if="authStore.isAdmin" class="badge-admin">ADMIN</span>
-          </span>
-          <Button variant="secondary" @click="logout">
-            Logout
-          </Button>
-        </template>
-        <template v-else>
-          <Button variant="primary" @click="login">
-            Login
-          </Button>
-        </template>
+  <div class="min-h-screen flex flex-col bg-white">
+
+    <!-- Header - 개선된 버전 -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+
+          <!-- Logo -->
+          <router-link to="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-600 to-accent-600 flex items-center justify-center shadow-lg">
+              <span class="text-white font-bold text-lg">P</span>
+            </div>
+            <span class="text-xl font-bold text-gray-900 hidden sm:block">Portal Universe</span>
+          </router-link>
+
+          <!-- Navigation -->
+          <nav class="hidden md:flex items-center gap-8">
+            <router-link
+                to="/"
+                class="text-gray-600 hover:text-brand-600 font-medium transition-colors"
+            >
+              Home
+            </router-link>
+            <router-link
+                to="/blog"
+                class="text-gray-600 hover:text-brand-600 font-medium transition-colors"
+            >
+              Blog
+            </router-link>
+          </nav>
+
+          <!-- Auth Section - 명확하게 개선 -->
+          <div class="flex items-center gap-3">
+            <template v-if="authStore.isAuthenticated">
+              <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50">
+                <span class="text-sm font-medium text-gray-900">{{ authStore.displayName }}</span>
+                <Badge v-if="authStore.isAdmin" variant="danger" size="sm">ADMIN</Badge>
+              </div>
+              <Button variant="secondary" size="sm" @click="logout">
+                Logout
+              </Button>
+            </template>
+            <template v-else>
+              <Button variant="primary" size="sm" @click="login">
+                Login
+              </Button>
+            </template>
+          </div>
+        </div>
       </div>
     </header>
 
-    <main>
+    <!-- Main Content -->
+    <main class="flex-1">
       <Suspense>
         <template #default>
           <router-view :key="$route.path" v-slot="{ Component }">
@@ -40,85 +68,22 @@ const authStore = useAuthStore();
           </router-view>
         </template>
         <template #fallback>
-          Loading Page...
+          <div class="flex items-center justify-center min-h-[400px]">
+            <div class="text-center">
+              <div class="w-12 h-12 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p class="mt-4 text-gray-600 font-medium">Loading...</p>
+            </div>
+          </div>
         </template>
       </Suspense>
     </main>
 
-    <footer>
-      <p>Portal Universe</p>
+    <!-- Footer -->
+    <footer class="bg-gray-50 border-t border-gray-200 py-8 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 text-center">
+        <p class="text-sm text-gray-600">© 2025 Portal Universe. All rights reserved.</p>
+      </div>
     </footer>
+
   </div>
 </template>
-
-<style scoped>
-#portal-shell-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: sans-serif;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #ccc;
-}
-
-nav a {
-  margin: 0 1rem;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
-}
-
-.auth-status {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.welcome {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.badge-admin {
-  background: #f44336;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: bold;
-}
-
-.btn-login,
-.btn-logout {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  background: white;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.btn-login:hover,
-.btn-logout:hover {
-  background: #f0f0f0;
-}
-
-main {
-  padding: 1rem;
-  min-height: 400px;
-}
-
-footer {
-  padding: 1rem;
-  text-align: center;
-  border-top: 1px solid #ccc;
-}
-</style>
