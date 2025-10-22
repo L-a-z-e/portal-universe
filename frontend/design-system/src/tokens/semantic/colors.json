@@ -1,0 +1,55 @@
+{
+  "color": {
+    "text": {
+      "primary": {
+        "$value": "{color.neutral.900}",
+        "$type": "color",
+        "$description": "Main text color"
+      },
+      "secondary": {
+        "$value": "{color.neutral.500}",
+        "$type": "color",
+        "$description": "Secondary text color"
+      },
+      "inverse": {
+        "$value": "{color.neutral.white}",
+        "$type": "color",
+        "$description": "Text on dark backgrounds"
+      }
+    },
+    "background": {
+      "primary": {
+        "$value": "{color.neutral.white}",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "{color.neutral.50}",
+        "$type": "color"
+      },
+      "tertiary": {
+        "$value": "{color.neutral.100}",
+        "$type": "color"
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{color.neutral.200}",
+        "$type": "color"
+      },
+      "hover": {
+        "$value": "{color.neutral.300}",
+        "$type": "color"
+      }
+    },
+    "interactive": {
+      "default": {
+        "$value": "{color.neutral.900}",
+        "$type": "color"
+      },
+      "hover": {
+        "$value": "{color.neutral.700}",
+        "$type": "color"
+      }
+    }
+  }
+}
