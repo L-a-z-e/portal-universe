@@ -1,13 +1,14 @@
 import {type ComponentPublicInstance, createApp} from 'vue'
 import { createPinia } from "pinia";
 import './style.css'
-import App from './App.vue'
 import router from './router'
 import { useAuthStore } from "./store/auth.ts";
 import userManager from "./services/authService.ts";
 import '@portal/design-system/style.css';
 import './style.css';
-const app = createApp(App);
+import AppVue from './App.vue';
+
+const app = createApp(AppVue);
 const pinia = createPinia();
 
 // ✅ 전역 에러 핸들러 추가 (portal-shell 보호)
