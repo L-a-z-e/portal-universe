@@ -1,0 +1,19 @@
+{
+  "name": "portal-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "design-system",
+    "portal-shell",
+    "blog-frontend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "dev:design": "npm run dev -w design-system",
+    "build:design": "npm run build -w design-system"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}
