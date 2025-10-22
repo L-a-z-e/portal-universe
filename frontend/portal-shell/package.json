@@ -1,5 +1,5 @@
 {
-  "name": "portal-shell",
+  "name": "@portal/portal-shell",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,6 +11,7 @@
     "preview": "vite preview --port 30000 --strictPort"
   },
   "dependencies": {
+    "@portal/design-system": "*",
     "@types/node": "^24.8.1",
     "concurrently": "^9.2.1",
     "oidc-client-ts": "^3.3.0",
@@ -22,7 +23,7 @@
     "@originjs/vite-plugin-federation": "^1.4.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
-    "typescript": "~5.8.3",
+    "typescript": "~5.9.3",
     "vite": "^7.1.7",
     "vue-tsc": "^3.0.7"
   }
