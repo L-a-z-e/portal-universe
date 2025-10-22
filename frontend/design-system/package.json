@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --declaration --emitDeclarationOnly --outDir dist && vite build && npm run build:tokens",
+    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist && npm run build:tokens",
     "build:tokens": "node scripts/build-tokens.js",
     "preview": "vite preview --port 30003 --strictPort"
   },
