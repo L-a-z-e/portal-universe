@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { Button, Card, Badge } from '@portal/design-system';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../store/auth';
+import LoginModal from '../components/LoginModal.vue';
 
 const router = useRouter();
+const authStore = useAuthStore();
+const showLoginModal = ref(false);
 
 const services = [
   {
@@ -89,25 +94,30 @@ const posts = [
     gradient: 'from-brand-400 to-accent-500'
   }
 ];
+
+function handleStartClick() {
+  if (authStore.isAuthenticated) {
+    router.push('/blog');
+  } else {
+    showLoginModal.value = true;
+  }
+}
 </script>
 
 <template>
   <div class="bg-white">
 
-    <!-- Hero Section - 버튼 명확하게 -->
+    <!-- Hero Section -->
     <section class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-brand-900 to-accent-900">
-      <!-- 배경 패턴 -->
       <div class="absolute inset-0 bg-[url('image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
 
       <div class="relative max-w-7xl mx-auto px-4 py-24 md:py-32">
         <div class="max-w-3xl">
-          <!-- 배지 -->
           <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8">
             <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
             <span class="text-sm text-white/90 font-medium">New: Dark mode is here</span>
           </div>
 
-          <!-- 메인 타이틀 -->
           <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
             Your Digital
             <span class="block bg-gradient-to-r from-brand-400 via-accent-400 to-pink-400 bg-clip-text text-transparent">
@@ -121,15 +131,15 @@ const posts = [
             다양한 서비스를 하나의 포털에서 경험하세요.
           </p>
 
-          <!-- 버튼들 - 명확하게 -->
           <div class="flex flex-wrap gap-4">
-            <!-- Primary 버튼 (흰 배경) -->
-            <button class="px-8 py-4 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl flex items-center gap-2">
-              시작하기
+            <button
+                @click="handleStartClick"
+                class="px-8 py-4 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl flex items-center gap-2"
+            >
+              {{ authStore.isAuthenticated ? '블로그 시작하기' : '시작하기' }}
               <span>→</span>
             </button>
 
-            <!-- Outline 버튼 (투명 배경 + 흰 테두리) -->
             <Button variant="outline" size="lg">
               라이브 데모
             </Button>
@@ -137,7 +147,6 @@ const posts = [
         </div>
       </div>
 
-      <!-- 하단 웨이브 -->
       <div class="absolute bottom-0 left-0 right-0">
         <svg viewBox="0 0 1440 80" class="w-full h-20 md:h-32" preserveAspectRatio="none">
           <path d="M0,32 C240,80 480,80 720,32 C960,-16 1200,-16 1440,32 L1440,80 L0,80 Z" fill="white"/>
@@ -145,7 +154,7 @@ const posts = [
       </div>
     </section>
 
-    <!-- 빠른 액세스 -->
+    <!-- Services -->
     <section class="max-w-7xl mx-auto px-4 -mt-8 relative z-10">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div
@@ -164,8 +173,6 @@ const posts = [
             <h3 class="text-2xl font-bold text-white mb-2">{{ service.title }}</h3>
             <p class="text-white/90 text-sm">{{ service.desc }}</p>
           </div>
-
-          <!-- 호버 효과 -->
           <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         </div>
       </div>
@@ -198,7 +205,7 @@ const posts = [
       </div>
     </section>
 
-    <!-- 최근 포스트 -->
+    <!-- Recent Posts -->
     <section class="max-w-7xl mx-auto px-4 py-24 bg-gradient-to-b from-white to-gray-50">
       <div class="flex items-end justify-between mb-12">
         <div>
@@ -207,7 +214,7 @@ const posts = [
           </div>
           <h2 class="text-4xl font-bold text-gray-900">최근 업데이트</h2>
         </div>
-        <Button variant="secondary">
+        <Button variant="secondary" @click="router.push('/blog')">
           전체 보기 →
         </Button>
       </div>
@@ -218,12 +225,10 @@ const posts = [
             :key="post.id"
             class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
         >
-          <!-- 이미지 영역 -->
           <div :class="['h-48 bg-gradient-to-br flex items-center justify-center text-7xl', post.gradient]">
             📄
           </div>
 
-          <!-- 컨텐츠 -->
           <div class="p-6">
             <div class="flex items-center gap-2 mb-3">
               <Badge
@@ -263,8 +268,11 @@ const posts = [
           무료로 시작하고, 언제든지 업그레이드할 수 있습니다
         </p>
         <div class="flex flex-wrap gap-4 justify-center">
-          <button class="px-8 py-4 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-xl">
-            무료로 시작하기
+          <button
+              @click="handleStartClick"
+              class="px-8 py-4 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-xl"
+          >
+            {{ authStore.isAuthenticated ? '블로그 시작하기' : '무료로 시작하기' }}
           </button>
           <Button variant="outline" size="lg">
             가격 보기
@@ -273,5 +281,7 @@ const posts = [
       </div>
     </section>
 
+    <!-- Login Modal -->
+    <LoginModal v-model="showLoginModal" />
   </div>
 </template>

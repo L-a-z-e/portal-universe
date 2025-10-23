@@ -1,16 +1,23 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useAuthStore } from "./store/auth.ts";
 import { login, logout } from "./services/authService.ts";
 import { Button, Badge } from '@portal/design-system';
+import LoginModal from './components/LoginModal.vue';
 
 const authStore = useAuthStore();
+const showLoginModal = ref(false);
+
+function handleLogin() {
+  showLoginModal.value = true;
+}
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col bg-white">
 
-    <!-- Header - 개선된 버전 -->
-    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+    <!-- Header -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
 
@@ -23,7 +30,7 @@ const authStore = useAuthStore();
           </router-link>
 
           <!-- Navigation -->
-          <nav class="hidden md:flex items-center gap-8">
+          <nav class="flex items-center gap-8">
             <router-link
                 to="/"
                 class="text-gray-600 hover:text-brand-600 font-medium transition-colors"
@@ -38,19 +45,22 @@ const authStore = useAuthStore();
             </router-link>
           </nav>
 
-          <!-- Auth Section - 명확하게 개선 -->
+          <!-- Auth Section -->
           <div class="flex items-center gap-3">
             <template v-if="authStore.isAuthenticated">
+              <!-- User Info -->
               <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-50 border border-brand-100">
                 <span class="text-sm font-semibold text-brand-700">{{ authStore.displayName }}</span>
                 <Badge v-if="authStore.isAdmin" variant="danger" size="sm">ADMIN</Badge>
               </div>
+              <!-- Logout Button -->
               <Button variant="secondary" size="sm" @click="logout">
                 Logout
               </Button>
             </template>
             <template v-else>
-              <Button variant="primary" size="sm" @click="login">
+              <!-- Login Button -->
+              <Button variant="primary" size="sm" @click="handleLogin">
                 Login
               </Button>
             </template>
@@ -85,5 +95,7 @@ const authStore = useAuthStore();
       </div>
     </footer>
 
+    <!-- Login Modal -->
+    <LoginModal v-model="showLoginModal" />
   </div>
 </template>
