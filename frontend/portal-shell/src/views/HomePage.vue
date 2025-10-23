@@ -105,7 +105,7 @@ function handleStartClick() {
 </script>
 
 <template>
-  <div class="bg-white">
+  <div class="bg-white dark:bg-gray-900">
 
     <!-- Hero Section -->
     <section class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-brand-900 to-accent-900">
@@ -149,7 +149,7 @@ function handleStartClick() {
 
       <div class="absolute bottom-0 left-0 right-0">
         <svg viewBox="0 0 1440 80" class="w-full h-20 md:h-32" preserveAspectRatio="none">
-          <path d="M0,32 C240,80 480,80 720,32 C960,-16 1200,-16 1440,32 L1440,80 L0,80 Z" fill="white"/>
+          <path d="M0,32 C240,80 480,80 720,32 C960,-16 1200,-16 1440,32 L1440,80 L0,80 Z" fill="white" class="dark:fill-gray-900"/>
         </svg>
       </div>
     </section>
@@ -181,13 +181,13 @@ function handleStartClick() {
     <!-- Features -->
     <section class="max-w-7xl mx-auto px-4 py-24">
       <div class="text-center mb-16">
-        <div class="inline-block px-4 py-2 rounded-full bg-brand-50 text-brand-600 font-semibold text-sm mb-4">
+        <div class="inline-block px-4 py-2 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 font-semibold text-sm mb-4">
           WHY PORTAL UNIVERSE
         </div>
-        <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           모든 것이 연결됩니다
         </h2>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
           강력한 통합 기능으로 더 효율적인 디지털 라이프를 경험하세요
         </p>
       </div>
@@ -196,23 +196,23 @@ function handleStartClick() {
         <div
             v-for="feature in features"
             :key="feature.id"
-            class="group p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 hover:from-brand-50 hover:to-accent-50 transition-all duration-300 hover:shadow-lg"
+            class="group p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-brand-50 hover:to-accent-50 dark:hover:from-brand-900/50 dark:hover:to-accent-900/50 transition-all duration-300 hover:shadow-lg"
         >
           <div class="text-4xl mb-4">{{ feature.icon }}</div>
-          <h3 class="text-xl font-bold text-gray-900 mb-2">{{ feature.title }}</h3>
-          <p class="text-gray-600">{{ feature.desc }}</p>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ feature.title }}</h3>
+          <p class="text-gray-600 dark:text-gray-400">{{ feature.desc }}</p>
         </div>
       </div>
     </section>
 
     <!-- Recent Posts -->
-    <section class="max-w-7xl mx-auto px-4 py-24 bg-gradient-to-b from-white to-gray-50">
+    <section class="max-w-7xl mx-auto px-4 py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
       <div class="flex items-end justify-between mb-12">
         <div>
-          <div class="inline-block px-4 py-2 rounded-full bg-accent-50 text-accent-600 font-semibold text-sm mb-4">
+          <div class="inline-block px-4 py-2 rounded-full bg-accent-50 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400 font-semibold text-sm mb-4">
             LATEST UPDATES
           </div>
-          <h2 class="text-4xl font-bold text-gray-900">최근 업데이트</h2>
+          <h2 class="text-4xl font-bold text-gray-900 dark:text-gray-100">최근 업데이트</h2>
         </div>
         <Button variant="secondary" @click="router.push('/blog')">
           전체 보기 →
@@ -223,7 +223,7 @@ function handleStartClick() {
         <article
             v-for="post in posts"
             :key="post.id"
-            class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+            class="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
         >
           <div :class="['h-48 bg-gradient-to-br flex items-center justify-center text-7xl', post.gradient]">
             📄
@@ -241,15 +241,15 @@ function handleStartClick() {
               </Badge>
             </div>
 
-            <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-brand-600 transition-colors">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-brand-600 transition-colors">
               {{ post.title }}
             </h3>
 
-            <p class="text-gray-600 mb-4 line-clamp-2">
+            <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
               {{ post.excerpt }}
             </p>
 
-            <div class="flex items-center justify-between text-sm text-gray-500">
+            <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500">
               <span>{{ post.date }}</span>
               <span>{{ post.readTime }} 읽기</span>
             </div>

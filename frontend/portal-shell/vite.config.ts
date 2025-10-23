@@ -23,7 +23,8 @@ export default defineConfig(({ mode }) => {
           // shopping_remote: env.VITE_SHOP_REMOTE_URL,
         },
         exposes: {
-          './authStore': './src/store/auth.ts'
+          './authStore': './src/store/auth.ts',
+          './themeStore': './src/store/theme.ts',
         },
         shared: ['vue', 'pinia'],
       })

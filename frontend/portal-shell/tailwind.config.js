@@ -1,9 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: 'class',
     content: [
         "./index.html",
         "./src/**/*.{vue,js,ts,jsx,tsx}",
-        // ✅ design-system 컴포넌트도 스캔
         "../design-system/src/**/*.{vue,js,ts,jsx,tsx}",
     ],
     theme: {
