@@ -8,9 +8,9 @@ const props = withDefaults(defineProps<CardProps>(), {
 });
 
 const variantClasses = {
-  elevated: 'bg-white shadow-md hover:shadow-lg',
-  outlined: 'bg-white border border-gray-200',
-  flat: 'bg-gray-50'
+  elevated: 'bg-white shadow-md hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900/50',
+  outlined: 'bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700',
+  flat: 'bg-gray-50 dark:bg-gray-900'
 };
 
 const paddingClasses = {

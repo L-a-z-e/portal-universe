@@ -84,23 +84,23 @@ onUnmounted(() => {
           <div
               v-if="isOpen"
               :class="[
-              'bg-white rounded-xl shadow-2xl w-full',
+              'bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full',
               sizeClasses[size]
             ]"
               @click.stop
           >
             <!-- Header -->
-            <div v-if="title || showClose" class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h3 v-if="title" class="text-xl font-bold text-gray-900">
+            <div v-if="title || showClose" class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 v-if="title" class="text-xl font-bold text-gray-900 dark:text-gray-100">
                 {{ title }}
               </h3>
               <button
                   v-if="showClose"
                   @click="close"
-                  class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   aria-label="Close"
               >
-                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -112,7 +112,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Footer (optional) -->
-            <div v-if="$slots.footer" class="px-6 py-4 bg-gray-50 rounded-b-xl border-t border-gray-200">
+            <div v-if="$slots.footer" class="px-6 py-4 bg-gray-50 dark:bg-gray-900 rounded-b-xl border-t border-gray-200 dark:border-gray-700">
               <slot name="footer" />
             </div>
           </div>
