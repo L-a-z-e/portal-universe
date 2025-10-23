@@ -3,11 +3,13 @@ export default {
     content: [
         "./index.html",
         "./src/**/*.{vue,js,ts,jsx,tsx}",
+        // ✅ design-system 컴포넌트도 스캔
+        "../design-system/src/**/*.{vue,js,ts,jsx,tsx}",
     ],
     theme: {
         extend: {
             colors: {
-                // 브랜드 Primary 색상 (Indigo)
+                // ✅ 브랜드 색상 정의 (design-system과 동일)
                 brand: {
                     50: '#EEF2FF',
                     100: '#E0E7FF',
@@ -20,14 +22,13 @@ export default {
                     800: '#3730A3',
                     900: '#312E81',
                 },
-                // 브랜드 Secondary 색상 (Violet)
                 accent: {
                     50: '#FAF5FF',
                     100: '#F3E8FF',
                     200: '#E9D5FF',
                     300: '#D8B4FE',
                     400: '#C084FC',
-                    500: '#A855F7',  // Secondary
+                    500: '#A855F7',
                     600: '#9333EA',
                     700: '#7E22CE',
                     800: '#6B21A8',

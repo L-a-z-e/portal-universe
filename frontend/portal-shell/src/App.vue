@@ -41,8 +41,8 @@ const authStore = useAuthStore();
           <!-- Auth Section - 명확하게 개선 -->
           <div class="flex items-center gap-3">
             <template v-if="authStore.isAuthenticated">
-              <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50">
-                <span class="text-sm font-medium text-gray-900">{{ authStore.displayName }}</span>
+              <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-50 border border-brand-100">
+                <span class="text-sm font-semibold text-brand-700">{{ authStore.displayName }}</span>
                 <Badge v-if="authStore.isAdmin" variant="danger" size="sm">ADMIN</Badge>
               </div>
               <Button variant="secondary" size="sm" @click="logout">

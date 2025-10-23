@@ -30,7 +30,6 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        // @portal/design-system/style.css → 실제 파일 경로로 매핑
         '@portal/design-system/style.css': resolve(__dirname, '../design-system/dist/design-system.css')
       }
     },
