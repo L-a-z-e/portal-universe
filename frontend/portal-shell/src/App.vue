@@ -1,16 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useAuthStore } from "./store/auth.ts";
 import { login, logout } from "./services/authService.ts";
 import { Button, Badge } from '@portal/design-system';
-import LoginModal from './components/LoginModal.vue';
 
 const authStore = useAuthStore();
-const showLoginModal = ref(false);
-
-function handleLogin() {
-  showLoginModal.value = true;
-}
 </script>
 
 <template>
@@ -60,7 +53,7 @@ function handleLogin() {
             </template>
             <template v-else>
               <!-- Login Button -->
-              <Button variant="primary" size="sm" @click="handleLogin">
+              <Button variant="primary" size="sm" @click="login">
                 Login
               </Button>
             </template>
@@ -94,8 +87,5 @@ function handleLogin() {
         <p class="text-sm text-gray-600">© 2025 Portal Universe. All rights reserved.</p>
       </div>
     </footer>
-
-    <!-- Login Modal -->
-    <LoginModal v-model="showLoginModal" />
   </div>
 </template>
