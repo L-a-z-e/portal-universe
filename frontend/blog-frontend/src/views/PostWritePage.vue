@@ -1,100 +1,135 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { createPost } from '../api/posts'; // 👈 API 함수 import
+import { createPost } from '../api/posts';
 import type { PostCreateRequest } from "../dto/PostCreateRequest.ts";
+import { Button, Card, Input, Textarea } from '@portal/design-system';
 
 const router = useRouter();
 
 const title = ref('');
 const content = ref('');
-// 임시로 하드코딩
 const productId = ref('1');
 
 const isSubmitting = ref(false);
 const error = ref<string | null>(null);
+const titleError = ref('');
+const contentError = ref('');
+
+function validate(): boolean {
+  let isValid = true;
+
+  titleError.value = '';
+  contentError.value = '';
+  error.value = null;
+
+  if (!title.value.trim()) {
+    titleError.value = '제목을 입력해주세요.';
+    isValid = false;
+  }
+
+  if (!content.value.trim()) {
+    contentError.value = '내용을 입력해주세요.';
+    isValid = false;
+  }
+
+  return isValid;
+}
 
 async function handleSubmit() {
-  // 이미 제출 중이면 중복 실행 방지
   if (isSubmitting.value) return;
 
-  // 간단한 유효성 검사
-  if (!title.value || !content.value) {
-    error.value = 'Title and content are required.';
-    return;
-  }
+  if (!validate()) return;
 
   isSubmitting.value = true;
   error.value = null;
 
   try {
     const payload: PostCreateRequest = {
-      title: title.value,
-      content: content.value,
+      title: title.value.trim(),
+      content: content.value.trim(),
       productId: productId.value,
     };
 
     const newPost = await createPost(payload);
-
-    alert('Post created successfully!');
+    alert('게시글이 작성되었습니다!');
     await router.push(`/${newPost.id}`);
 
   } catch (err) {
     console.error('Failed to create post:', err);
-    error.value = 'Failed to create post. Please try again.';
+    error.value = '게시글 작성에 실패했습니다. 다시 시도해주세요.';
+  } finally {
     isSubmitting.value = false;
   }
+}
+
+function handleCancel() {
+  if (title.value || content.value) {
+    const confirmed = confirm('작성 중인 내용이 있습니다. 취소하시겠습니까?');
+    if (!confirmed) return;
+  }
+  router.push('/');
 }
 </script>
 
 <template>
-  <div>
-    <h2>Write a New Post</h2>
+  <div class="max-w-4xl mx-auto p-6">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">✍️ 새 글 작성</h1>
+      <p class="text-gray-600">멋진 게시글을 작성해보세요</p>
+    </div>
 
-    <!-- @submit.prevent는 폼 제출 시 페이지가 새로고침되는 기본 동작을 막는다. -->
-    <form @submit.prevent="handleSubmit">
-      <div class="form-group">
-        <label for="title">Title</label>
-        <input id="title" v-model="title" type="text" />
-      </div>
-      <div class="form-group">
-        <label for="content">Content</label>
-        <textarea id="content" v-model="content" rows="10"></textarea>
-      </div>
+    <!-- Form Card -->
+    <Card padding="lg">
+      <form @submit.prevent="handleSubmit" class="space-y-6">
+        <!-- Title Input -->
+        <Input
+            v-model="title"
+            label="제목"
+            placeholder="게시글 제목을 입력하세요"
+            required
+            :error="!!titleError"
+            :error-message="titleError"
+            :disabled="isSubmitting"
+        />
 
-      <!-- 에러 메시지 표시 -->
-      <p v-if="error" class="error-message">{{ error }}</p>
+        <!-- Content Textarea -->
+        <Textarea
+            v-model="content"
+            label="내용"
+            placeholder="게시글 내용을 입력하세요"
+            required
+            :rows="15"
+            :error="!!contentError"
+            :error-message="contentError"
+            :disabled="isSubmitting"
+        />
 
-      <div class="form-actions">
-        <button type="button" @click="router.push('/')" :disabled="isSubmitting">Cancel</button>
-        <button type="submit" :disabled="isSubmitting">
-          {{ isSubmitting ? 'Saving...' : 'Save Post' }}
-        </button>
-      </div>
-    </form>
+        <!-- Error Message -->
+        <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-600">{{ error }}</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+          <Button
+              type="button"
+              variant="outline"
+              @click="handleCancel"
+              :disabled="isSubmitting"
+          >
+            취소
+          </Button>
+          <Button
+              type="submit"
+              variant="primary"
+              :disabled="isSubmitting"
+          >
+            {{ isSubmitting ? '저장 중...' : '📝 게시글 작성' }}
+          </Button>
+        </div>
+      </form>
+    </Card>
   </div>
 </template>
-
-<style scoped>
-.form-group {
-  margin-bottom: 1rem;
-}
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-}
-input, textarea {
-  width: 100%;
-  padding: 0.5rem;
-  font-size: 1rem;
-  box-sizing: border-box; /* padding이 width에 포함되도록 설정 */
-}
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-.error-message {
-  color: red;
-}
-</style>
