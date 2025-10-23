@@ -91,20 +91,20 @@ function handleCancel() {
   <div class="max-w-4xl mx-auto p-6">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">✏️ 게시글 수정</h1>
-      <p class="text-gray-600">게시글을 수정하세요</p>
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">✏️ 게시글 수정</h1>
+      <p class="text-gray-600 dark:text-gray-400">게시글을 수정하세요</p>
     </div>
 
     <!-- Loading -->
     <div v-if="isLoading" class="text-center py-20">
       <div class="inline-block w-12 h-12 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-4 text-gray-600">게시글을 불러오는 중...</p>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">게시글을 불러오는 중...</p>
     </div>
 
     <!-- Error -->
-    <Card v-else-if="error && !title && !content" variant="outlined" class="bg-red-50 border-red-200">
+    <Card v-else-if="error && !title && !content" variant="outlined" class="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
       <div class="text-center py-8">
-        <p class="text-xl text-red-600 mb-4">❌ {{ error }}</p>
+        <p class="text-xl text-red-600 dark:text-red-400 mb-4">❌ {{ error }}</p>
         <Button variant="secondary" @click="router.push('/')">
           목록으로 돌아가기
         </Button>
@@ -138,12 +138,12 @@ function handleCancel() {
         />
 
         <!-- Error Message -->
-        <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p class="text-red-600">{{ error }}</p>
+        <div v-if="error" class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p class="text-red-600 dark:text-red-400">{{ error }}</p>
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button
               type="button"
               variant="outline"

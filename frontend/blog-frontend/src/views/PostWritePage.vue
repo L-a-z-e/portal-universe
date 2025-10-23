@@ -76,8 +76,8 @@ function handleCancel() {
   <div class="max-w-4xl mx-auto p-6">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">✍️ 새 글 작성</h1>
-      <p class="text-gray-600">멋진 게시글을 작성해보세요</p>
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">✍️ 새 글 작성</h1>
+      <p class="text-gray-600 dark:text-gray-400">멋진 게시글을 작성해보세요</p>
     </div>
 
     <!-- Form Card -->
@@ -107,12 +107,12 @@ function handleCancel() {
         />
 
         <!-- Error Message -->
-        <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p class="text-red-600">{{ error }}</p>
+        <div v-if="error" class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p class="text-red-600 dark:text-red-400">{{ error }}</p>
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button
               type="button"
               variant="outline"

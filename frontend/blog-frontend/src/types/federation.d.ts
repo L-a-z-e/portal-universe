@@ -4,3 +4,11 @@ declare module 'portal_shell/authStore' {
     user: import('vue').ComputedRef<{ name: string; email: string } | null>;
   }
 }
+
+declare module 'portal_shell/themeStore' {
+  export const useThemeStore: () => {
+    isDark: import('vue').Ref<boolean>;
+    toggle: () => void;
+    initialize: () => void;
+  }
+}
