@@ -221,8 +221,8 @@ services:
 
   portal-shell:
     build:
-      context: ./frontend/portal-shell
-      dockerfile: Dockerfile
+      context: ./frontend
+      dockerfile: portal-shell/Dockerfile
       args:
         BUILD_MODE: docker
     container_name: portal-shell
@@ -236,8 +236,8 @@ services:
 
   blog-frontend:
     build:
-      context: ./frontend/blog-frontend
-      dockerfile: Dockerfile
+      context: ./frontend
+      dockerfile: blog-frontend/Dockerfile
       args:
         BUILD_MODE: docker
     container_name: blog-frontend
