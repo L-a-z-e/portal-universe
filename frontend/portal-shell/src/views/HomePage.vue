@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Button, Card, Badge } from '@portal/design-system';
+import { Button, Badge } from '@portal/design-system';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import LoginModal from '../components/LoginModal.vue';

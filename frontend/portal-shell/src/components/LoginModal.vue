@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { Modal, Input, Button } from '@portal/design-system';
 import { login } from '../services/authService';
 
-const props = defineProps<{
+defineProps<{
   modelValue: boolean;
 }>();
 
