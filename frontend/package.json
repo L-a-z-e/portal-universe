@@ -11,9 +11,18 @@
     "dev": "npm run dev --workspaces",
     "build": "npm run build --workspaces",
     "dev:design": "npm run dev -w design-system",
-    "build:design": "npm run build -w design-system"
+    "build:design": "npm run build -w design-system",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "devDependencies": {
-    "typescript": "~5.9.3"
+    "@storybook/addon-docs": "^9.1.13",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/browser": "^4.0.2",
+    "@vitest/coverage-v8": "^4.0.2",
+    "playwright": "^1.56.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.12",
+    "vitest": "^4.0.2"
   }
 }
