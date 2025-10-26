@@ -1,3 +1,7 @@
+# ===================================================================
+# Auth Service: Deployment
+# 역할: 인증 및 인가(OAuth2)를 담당하는 Auth Service를 배포합니다.
+# ===================================================================
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -19,8 +23,6 @@ spec:
       containers:
         - name: auth-service
           image: portal-universe-auth-service:latest
-          command: ["java"]
-          args: ["-jar", "app.jar"]
           imagePullPolicy: Never
           ports:
             - containerPort: 8081
@@ -43,6 +45,11 @@ spec:
             initialDelaySeconds: 90
             periodSeconds: 5
 
+# ===================================================================
+# Auth Service: Service
+# 역할: 클러스터 내 다른 서비스들이 Auth Service에 접근할 수 있도록
+#       고정된 주소(auth-service:8081)를 제공합니다.
+# ===================================================================
 ---
 apiVersion: v1
 kind: Service
@@ -52,7 +59,7 @@ metadata:
   labels:
     app: auth-service
 spec:
-  type: ClusterIP
+  type: ClusterIP # 클러스터 내부에서만 접근 가능
   ports:
     - port: 8081
       targetPort: 8081

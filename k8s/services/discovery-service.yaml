@@ -1,5 +1,8 @@
+# ===================================================================
+# Discovery Service: Deployment
+# 역할: 서비스 레지스트리 역할을 하는 Eureka 서버를 배포합니다.
+# ===================================================================
 ---
-# Discovery Service Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,8 +23,6 @@ spec:
       containers:
         - name: discovery-service
           image: portal-universe-discovery-service:latest
-          command: ["java"]
-          args: ["-jar", "app.jar"]
           imagePullPolicy: Never
           ports:
             - containerPort: 8761
@@ -42,8 +43,12 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 5
 
+# ===================================================================
+# Discovery Service: Service
+# 역할: 다른 서비스들이 Eureka 서버에 등록하고, 서비스 목록을 조회할 수 있도록
+#       클러스터 내/외부에서 접근 가능한 주소를 제공합니다.
+# ===================================================================
 ---
-# Discovery Service Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -52,6 +57,7 @@ metadata:
   labels:
     app: discovery-service
 spec:
+  # LoadBalancer 타입으로 설정하여 클러스터 외부에서도 Eureka 대시보드에 접근할 수 있도록 합니다.
   type: LoadBalancer
   ports:
     - port: 8761

@@ -1,3 +1,7 @@
+# ===================================================================
+# Blog Service: Deployment
+# 역할: 블로그 관련 비즈니스 로직을 처리하는 Blog Service를 배포합니다.
+# ===================================================================
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -19,8 +23,6 @@ spec:
       containers:
         - name: blog-service
           image: portal-universe-blog-service:latest
-          command: ["java"]
-          args: ["-jar", "app.jar"]
           imagePullPolicy: Never
           ports:
             - containerPort: 8082
@@ -43,6 +45,11 @@ spec:
             initialDelaySeconds: 90
             periodSeconds: 5
 
+# ===================================================================
+# Blog Service: Service
+# 역할: 클러스터 내 다른 서비스들이 Blog Service에 접근할 수 있도록
+#       고정된 주소(blog-service:8082)를 제공합니다.
+# ===================================================================
 ---
 apiVersion: v1
 kind: Service

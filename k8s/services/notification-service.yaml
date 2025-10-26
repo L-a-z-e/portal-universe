@@ -1,3 +1,7 @@
+# ===================================================================
+# Notification Service: Deployment
+# 역할: Kafka 메시지를 수신하여 알림을 처리하는 Notification Service를 배포합니다.
+# ===================================================================
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -19,8 +23,6 @@ spec:
       containers:
         - name: notification-service
           image: portal-universe-notification-service:latest
-          command: ["java"]
-          args: ["-jar", "app.jar"]
           imagePullPolicy: Never
           ports:
             - containerPort: 8084
@@ -43,6 +45,11 @@ spec:
             initialDelaySeconds: 90
             periodSeconds: 5
 
+# ===================================================================
+# Notification Service: Service
+# 역할: 클러스터 내 다른 서비스들이 Notification Service에 접근할 수 있도록
+#       고정된 주소(notification-service:8084)를 제공합니다.
+# ===================================================================
 ---
 apiVersion: v1
 kind: Service

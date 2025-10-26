@@ -1,5 +1,9 @@
+# ===================================================================
+# API Gateway: Deployment
+# 역할: 전체 마이크로서비스의 단일 진입점(Single Point of Entry) 역할을 하는
+#       API Gateway를 배포합니다.
+# ===================================================================
 ---
-# API Gateway Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,10 +23,9 @@ spec:
     spec:
       containers:
         - name: api-gateway
+          # 로컬 Kind 클러스터에 미리 로드된 이미지를 사용합니다.
           image: portal-universe-api-gateway:latest
-          command: ["java"]
-          args: ["-jar", "app.jar"]
-          imagePullPolicy: Never
+          imagePullPolicy: Never # 원격 레지스트리에서 이미지를 가져오지 않음
           ports:
             - containerPort: 8080
               name: http
@@ -33,21 +36,26 @@ spec:
               value: "http://config-service:8888"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               value: "http://discovery-service:8761/eureka/"
+          # Liveness Probe: Pod가 응답하지 않으면 재시작합니다.
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 120
-            periodSeconds: 10
+            initialDelaySeconds: 120 # 시작 후 120초 후에 첫 검사 시작
+            periodSeconds: 10 # 10초마다 검사
+          # Readiness Probe: Pod가 트래픽을 받을 준비가 되었는지 확인합니다.
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 90
-            periodSeconds: 5
+            initialDelaySeconds: 90 # 시작 후 90초 후에 첫 검사 시작
+            periodSeconds: 5 # 5초마다 검사
 
+# ===================================================================
+# API Gateway: Service
+# 역할: API Gateway Pod에 접근할 수 있는 안정적인 주소를 제공합니다.
+# ===================================================================
 ---
-# API Gateway Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -56,6 +64,8 @@ metadata:
   labels:
     app: api-gateway
 spec:
+  # LoadBalancer 타입으로 설정하여 외부에서 직접 접근할 수 있도록 합니다.
+  # (실제 운영 환경에서는 Ingress를 통해 노출하는 것이 일반적입니다.)
   type: LoadBalancer
   ports:
     - port: 8080

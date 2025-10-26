@@ -1,4 +1,8 @@
-# Deployment: Pod를 관리하는 컨트롤러
+# ===================================================================
+# Portal Shell: Deployment
+# 역할: 마이크로 프론트엔드의 셸 역할을 하는 Portal Shell을 배포합니다.
+# ===================================================================
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,24 +27,24 @@ spec:
       containers:
         - name: portal-shell  # 컨테이너 이름
           image: portal-universe-portal-shell:latest  # Docker 이미지
-          imagePullPolicy: Never
+          imagePullPolicy: Never # 로컬 Kind 클러스터에 미리 로드된 이미지를 사용
 
           ports:
             - containerPort: 80  # 컨테이너 포트
               name: http
               protocol: TCP
 
-          # 리소스 제한
+          # 컨테이너가 사용할 최소/최대 리소스를 설정합니다.
           resources:
-            requests:  # 최소 보장
+            requests:  # 최소 보장 리소스
               memory: "128Mi"
               cpu: "100m"
-            limits:  # 최대 제한
+            limits:  # 최대 제한 리소스
               memory: "256Mi"
               cpu: "200m"
 
-          # Health check
-          livenessProbe:  # Pod가 살아있는지 확인
+          # Liveness Probe: Pod가 살아있는지 확인합니다. (nginx.conf의 /health 경로 사용)
+          livenessProbe:
             httpGet:
               path: /health
               port: 80
@@ -48,7 +52,8 @@ spec:
             periodSeconds: 30  # 30초마다 체크
             failureThreshold: 3  # 3번 실패하면 재시작
 
-          readinessProbe:  # Pod가 트래픽 받을 준비됐는지 확인
+          # Readiness Probe: Pod가 트래픽을 받을 준비가 되었는지 확인합니다.
+          readinessProbe:
             httpGet:
               path: /health
               port: 80
@@ -56,6 +61,11 @@ spec:
             periodSeconds: 10
             failureThreshold: 3
 ---
+# ===================================================================
+# Portal Shell: Service
+# 역할: 클러스터 내 다른 서비스(특히 Ingress)가 Portal Shell Pod에 접근할 수 있도록
+#       고정된 주소(portal-shell:80)를 제공합니다.
+# ===================================================================
 apiVersion: v1
 kind: Service
 metadata:
