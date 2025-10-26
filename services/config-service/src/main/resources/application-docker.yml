@@ -1,24 +1,34 @@
+# ===================================================================
+# Config Service - Docker Profile Configuration
+# ===================================================================
+
 eureka:
   client:
     service-url:
+      # Docker Compose 네트워크 내에서 서비스 이름(discovery-service)으로 Eureka 서버를 찾도록 설정
       defaultZone: http://discovery-service:8761/eureka
 
 management:
   endpoints:
     web:
       exposure:
+        # Prometheus, Health Check 등 모니터링에 필요한 Actuator 엔드포인트를 외부에 노출
         include: health,info,prometheus,metrics
+      # Actuator 엔드포인트의 기본 경로를 /actuator로 설정
       base-path: /actuator
 
   endpoint:
     health:
+      # /actuator/health 호출 시, 상세 정보를 항상 보여주도록 설정
       show-details: always
 
   prometheus:
     metrics:
       export:
+        # Prometheus가 메트릭을 수집할 수 있도록 /actuator/prometheus 엔드포인트를 활성화
         enabled: true
 
   metrics:
     tags:
+      # 모든 메트릭에 애플리케이션 이름을 태그로 추가하여, 모니터링 시스템에서 쉽게 필터링할 수 있도록 함
       application: ${spring.application.name}

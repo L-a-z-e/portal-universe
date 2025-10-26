@@ -1,56 +1,78 @@
+# ===================================================================
+# Config Service - Kubernetes Profile Configuration
+# ===================================================================
+
 spring:
   cloud:
     config:
       server:
         git:
+          # 서비스 시작 시 Git 리포지토리를 로컬에 복제(clone)하도록 강제
           clone-on-start: true
+          # Git 명령어 실행 시 타임아웃을 10초로 설정
           timeout: 10
 
 eureka:
   client:
     service-url:
+      # Kubernetes 클러스터 내에서 DNS를 통해 서비스 이름(discovery-service)으로 Eureka 서버를 찾도록 설정
       defaultZone: http://discovery-service:8761/eureka
   instance:
+    # 서비스 등록 시 호스트 이름 대신 IP 주소를 사용하도록 설정
     prefer-ip-address: true
+    # Eureka에 등록될 인스턴스 ID 형식. Pod IP를 포함하여 각 Pod를 고유하게 식별
     instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
 
 management:
   endpoints:
     web:
       exposure:
+        # Prometheus, Health Check 등 모니터링에 필요한 Actuator 엔드포인트를 외부에 노출
         include: health,info,prometheus,metrics
+      # Actuator 엔드포인트의 기본 경로를 /actuator로 설정
       base-path: /actuator
 
   endpoint:
     health:
+      # /actuator/health 호출 시, 상세 정보를 항상 보여주도록 설정
       show-details: always
+      # Kubernetes의 Liveness/Readiness Probe를 위한 엔드포인트(/actuator/health/liveness, /actuator/health/readiness)를 활성화
       probes:
         enabled: true
 
   health:
+    # Liveness Probe: Pod가 살아있는지 확인. 문제가 생기면 Pod를 재시작.
     livenessState:
       enabled: true
+    # Readiness Probe: Pod가 요청을 처리할 준비가 되었는지 확인. 준비되지 않으면 서비스에서 제외.
     readinessState:
       enabled: true
 
   prometheus:
     metrics:
       export:
+        # Prometheus가 메트릭을 수집할 수 있도록 /actuator/prometheus 엔드포인트를 활성화
         enabled: true
 
+  # --- 분산 추적(Distributed Tracing) 설정 ---
   tracing:
     sampling:
+      # 모든 요청을 추적하도록 샘플링 비율을 100%로 설정 (운영 환경에서는 부하에 따라 조절 필요)
       probability: 1.0
 
   zipkin:
     tracing:
+      # 추적 데이터를 전송할 Zipkin 서버의 주소
       endpoint: http://zipkin:9411/api/v2/spans
 
   metrics:
     tags:
+      # 모든 메트릭에 애플리케이션 이름을 태그로 추가하여, 모니터링 시스템에서 쉽게 필터링할 수 있도록 함
       application: ${spring.application.name}
 
 logging:
   level:
+    # Config Server 관련 로그 레벨 설정
     org.springframework.cloud.config: INFO
+    # Actuator 관련 로그 레벨을 DEBUG로 설정하여 상세 정보 확인
     org.springframework.boot.actuate: DEBUG
