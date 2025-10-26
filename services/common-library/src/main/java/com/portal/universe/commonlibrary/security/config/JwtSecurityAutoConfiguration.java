@@ -14,23 +14,24 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import reactor.core.publisher.Mono;
 
 /**
- * JWT 보안 설정을 자동으로 구성하는 Auto-Configuration
+ * JWT 관련 보안 설정을 자동으로 구성하는 Spring Boot Auto-Configuration 클래스입니다.
+ * 이 클래스는 `resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` 파일에 등록되어
+ * Spring Boot 시작 시 자동으로 로드됩니다.
  *
- * 동작 방식:
- * 1. Servlet 환경 감지 → JwtAuthenticationConverter Bean 자동 등록
- * 2. Reactive 환경 감지 → ReactiveJwtAuthenticationConverter Bean 자동 등록
- * 3. 각 서비스에서 별도 Bean 정의 시 자동 설정 무시 (@ConditionalOnMissingBean)
+ * ### 동작 방식
+ * 1. 애플리케이션의 타입(Servlet 또는 Reactive)을 감지합니다.
+ * 2. 해당 환경에 맞는 JWT 권한 변환기(Converter) Bean을 자동으로 등록합니다.
+ * 3. 만약 각 마이크로서비스에서 동일한 타입의 Bean을 직접 정의한 경우, 이 자동 설정은 동작하지 않습니다. (`@ConditionalOnMissingBean`)
  */
 @AutoConfiguration
-@ConditionalOnClass(JwtAuthenticationConverter.class)
+@ConditionalOnClass(JwtAuthenticationConverter.class) // 클래스패스에 관련 클래스가 있을 때만 동작
 public class JwtSecurityAutoConfiguration {
 
     /**
-     * Servlet(MVC) 환경용 JwtAuthenticationConverter
+     * **Servlet (Spring MVC) 환경**을 위한 {@link JwtAuthenticationConverter} Bean을 생성합니다.
+     * JWT의 `roles` 클레임을 Spring Security의 `GrantedAuthority`로 변환하는 역할을 합니다.
      *
-     * 자동 적용 조건:
-     * - WebApplicationType이 SERVLET일 때
-     * - JwtAuthenticationConverter Bean이 없을 때
+     * @return {@link JwtAuthenticationConverterAdapter}를 통해 생성된 기본 JWT 컨버터
      */
     @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
@@ -40,11 +41,10 @@ public class JwtSecurityAutoConfiguration {
     }
 
     /**
-     * Reactive(WebFlux) 환경용 Converter
+     * **Reactive (Spring WebFlux) 환경**을 위한 JWT 권한 변환기 Bean을 생성합니다.
+     * API Gateway와 같은 Reactive 기반 서비스에서 사용됩니다.
      *
-     * 자동 적용 조건:
-     * - WebApplicationType이 REACTIVE일 때
-     * - reactiveJwtAuthenticationConverter Bean이 없을 때
+     * @return {@link ReactiveJwtAuthenticationConverterAdapter} 인스턴스
      */
     @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
