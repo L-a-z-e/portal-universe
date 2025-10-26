@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * @file App.vue
- * @description 포털 셸의 최상위 루트 컴포넌트입니다.
- * 전체적인 레이아웃(헤더, 푸터), 다크 모드, 인증 상태에 따른 UI 변화를 관리합니다.
- */
 import { useAuthStore } from "./store/auth.ts";
 import { login, logout } from "./services/authService.ts";
 import { Button, Badge } from '@portal/design-system';
@@ -14,12 +9,12 @@ import ThemeToggle from "./components/ThemeToggle.vue";
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
 
-// 컴포넌트가 마운트될 때, 로컬 스토리지에 저장된 테마 설정을 불러와 적용합니다.
+// 페이지 로드 시 로컬 스토리지 값 반영
 onMounted(() => {
   themeStore.initialize();
 });
 
-// isDark 상태가 변경될 때마다 <html> 태그에 'dark' 클래스를 토글합니다.
+// <html> 태그에 dark 클래스 토글 반영
 watch(() => themeStore.isDark, (newVal) => {
   if (newVal) {
     document.documentElement.classList.add('dark');
@@ -31,7 +26,7 @@ watch(() => themeStore.isDark, (newVal) => {
 
 <template>
   <div class="min-h-screen flex flex-col bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
-    <!-- Header: 모든 페이지 상단에 고정되는 헤더 -->
+    <!-- Header -->
     <header class="bg-white/95 dark:bg-gray-800 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
@@ -45,7 +40,7 @@ watch(() => themeStore.isDark, (newVal) => {
             </span>
           </router-link>
 
-          <!-- Navigation Menu -->
+          <!-- Navigation -->
           <nav class="flex items-center gap-8">
             <router-link
                 to="/"
@@ -63,7 +58,7 @@ watch(() => themeStore.isDark, (newVal) => {
             </router-link>
           </nav>
 
-          <!-- Auth Section: 인증 상태에 따라 다른 UI를 표시 -->
+          <!-- Auth Section -->
           <div class="flex items-center gap-3">
             <ThemeToggle />
             <template v-if="authStore.isAuthenticated">
@@ -81,16 +76,14 @@ watch(() => themeStore.isDark, (newVal) => {
       </div>
     </header>
 
-    <!-- Main Content: 라우터 뷰가 렌더링되는 영역 -->
+    <!-- Main Content -->
     <main class="flex-1">
-      <!-- Suspense: 비동기 컴포넌트(Remote 앱 등) 로딩을 처리 -->
       <Suspense>
         <template #default>
           <router-view :key="$route.path" v-slot="{ Component }">
             <component :is="Component" />
           </router-view>
         </template>
-        <!-- Fallback: 비동기 컴포넌트가 로드되는 동안 보여줄 UI -->
         <template #fallback>
           <div class="flex items-center justify-center min-h-[400px]">
             <div class="text-center">
@@ -102,7 +95,7 @@ watch(() => themeStore.isDark, (newVal) => {
       </Suspense>
     </main>
 
-    <!-- Footer: 모든 페이지 하단에 표시되는 푸터 -->
+    <!-- Footer -->
     <footer class="bg-gray-50 dark:bg-gray-800 dark:text-gray-100 border-t border-gray-200 dark:border-gray-700 py-8 mt-auto">
       <div class="max-w-7xl mx-auto px-4 text-center">
         <p class="text-sm">© 2025 Portal Universe. All rights reserved.</p>

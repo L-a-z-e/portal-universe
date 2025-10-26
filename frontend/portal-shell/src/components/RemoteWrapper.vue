@@ -1,38 +1,24 @@
 <script setup lang="ts">
-/**
- * @file RemoteWrapper.vue
- * @description 마이크로 프론트엔드(Remote) 앱을 동적으로 로드하고 마운트하는 래퍼(Wrapper) 컴포넌트입니다.
- * 로딩, 에러 상태에 대한 UI(Fallback)를 제공하며, 셸과 Remote 앱 간의 라우팅을 동기화합니다.
- */
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { RemoteConfig } from "../config/remoteRegistry";
 import { remoteLoader } from "../services/remoteLoader";
 
-/**
- * @property {RemoteConfig} config - 로드할 Remote 앱의 설정 객체. (remoteRegistry.ts 참고)
- * @property {string} [initialPath] - Remote 앱에 전달할 초기 경로.
- */
 const props = defineProps<{
   config: RemoteConfig;
   initialPath?: string;
 }>();
 
-const container = ref<HTMLElement | null>(null); // Remote 앱이 마운트될 DOM 컨테이너
+const container = ref<HTMLElement | null>(null);
 const shellRoute = useRoute();
 const shellRouter = useRouter();
 
-const loading = ref(true); // 로딩 상태
-const error = ref<Error | null>(null); // 에러 상태
-const isDev = computed(() => import.meta.env.DEV); // 개발 모드 여부
+const loading = ref(true);
+const error = ref<Error | null>(null);
+const isDev = computed(() => import.meta.env.DEV);
 
-let remoteApp: any = null; // 마운트된 Remote 앱 인스턴스
+let remoteApp: any = null;
 
-/**
- * Remote 앱 내부에서 라우팅이 변경되었을 때 호출되는 콜백 함수입니다.
- * Remote의 경로 변경을 셸의 경로에 반영합니다.
- * @param path Remote 앱 내부의 새 경로 (예: '/post/123')
- */
 const onRemoteNavigate = (path: string) => {
   const newPath = `${props.config.basePath}${path === '/' ? '' : path}`;
   if (shellRoute.path !== newPath) {
@@ -40,9 +26,6 @@ const onRemoteNavigate = (path: string) => {
   }
 };
 
-/**
- * 셸 라우터의 경로 변경을 감지하여 Remote 앱에 전파합니다.
- */
 watch(() => shellRoute.path, (newPath) => {
   if (remoteApp?.onParentNavigate) {
     try {
@@ -54,70 +37,81 @@ watch(() => shellRoute.path, (newPath) => {
   }
 });
 
-/**
- * Remote 앱을 컨테이너에 마운트하는 핵심 함수입니다.
- */
+// ✅ Remote 마운트 로직 분리
 async function mountRemote() {
+  // ✅ Container가 준비될 때까지 대기
   if (!container.value) {
-    console.error('❌ [RemoteWrapper] Container element is not available to mount.');
-    return;
+    console.warn('⚠️ [RemoteWrapper] Container not ready, waiting...');
+    await nextTick();  // DOM 업데이트 대기
+
+    if (!container.value) {
+      console.error('❌ [RemoteWrapper] Container still null after nextTick!');
+      return;
+    }
   }
 
   console.log(`📍 [RemoteWrapper] Mounting ${props.config.name}...`);
 
   try {
-    // remoteLoader를 통해 마운트 함수를 가져옵니다.
     const result = await remoteLoader.loadRemote(props.config);
 
     if (!result.success || !result.mountFn) {
       throw result.error || new Error('Failed to load remote');
     }
 
-    // Remote 앱에 전달할 초기 경로를 계산합니다.
     const initialPath = props.initialPath ||
         shellRoute.path.substring(props.config.basePath.length) || '/';
 
-    // 마운트 함수를 호출하여 Remote 앱을 DOM에 연결합니다.
+    console.log(`🚀 [RemoteWrapper] Calling mount function...`);
+    console.log(`   Container:`, container.value);
+    console.log(`   Initial path: ${initialPath}`);
+
     remoteApp = result.mountFn(container.value, {
       initialPath,
       onNavigate: onRemoteNavigate,
     });
 
     console.log(`✅ [RemoteWrapper] ${props.config.name} mounted successfully`);
+    loading.value = false;
 
   } catch (err: any) {
     console.error(`❌ [RemoteWrapper] Mount failed:`, err);
     error.value = err;
+    loading.value = false;
   }
 }
 
-// 컴포넌트가 마운트되면 Remote 앱 로딩을 시작합니다.
+// ✅ loading이 false가 되면 (container가 렌더링되면) 마운트
+watch(loading, async (isLoading, wasLoading) => {
+  // loading이 true → false로 변경되고, 에러가 없을 때
+  if (wasLoading && !isLoading && !error.value) {
+    await nextTick();  // DOM 렌더링 완료 대기
+    await mountRemote();
+  }
+});
+
 onMounted(async () => {
   console.log(`📍 [RemoteWrapper] Component mounted for ${props.config.name}`);
+
+  // ✅ Remote 로딩 시작 (loading = true 유지)
   try {
-    // 마운트 함수를 미리 로드만 해둡니다.
     const result = await remoteLoader.loadRemote(props.config);
+
     if (!result.success || !result.mountFn) {
       throw result.error || new Error('Failed to load remote');
     }
-    // 로딩이 성공하면 loading 상태를 false로 변경합니다.
+
+    // ✅ 로딩 성공 → loading을 false로 변경
+    // → watch가 감지하여 mountRemote() 호출
     loading.value = false;
-  } catch (err: any) { 
+
+  } catch (err: any) {
     console.error(`❌ [RemoteWrapper] Load failed:`, err);
     error.value = err;
     loading.value = false;
   }
 });
 
-// loading 상태가 true -> false로 변경되면 (즉, DOM이 준비되면) 마운트를 실행합니다.
-watch(loading, async (isLoading, wasLoading) => {
-  if (wasLoading && !isLoading && !error.value) {
-    await nextTick(); // DOM 렌더링이 완료될 때까지 대기
-    await mountRemote();
-  }
-});
-
-// 컴포넌트가 언마운트될 때 Remote 앱도 함께 언마운트하여 메모리 누수를 방지합니다.
 onUnmounted(() => {
   if (remoteApp?.unmount) {
     try {
@@ -130,30 +124,38 @@ onUnmounted(() => {
   }
 });
 
-/**
- * Remote 앱 로딩 실패 시, 재시도를 위한 함수입니다.
- */
 async function retry() {
   console.log(`🔄 [RemoteWrapper] Retrying ${props.config.name}...`);
   remoteLoader.clearCache(props.config.key);
 
+  loading.value = true;
   error.value = null;
-  loading.value = true; // 로딩 상태로 전환
 
-  // onMounted 로직과 유사하게 재시도
-  await onMounted();
+  // onMounted 로직 재실행
+  try {
+    const result = await remoteLoader.loadRemote(props.config);
+    if (result.success && result.mountFn) {
+      loading.value = false;  // watch가 mountRemote() 호출
+    } else {
+      error.value = result.error;
+      loading.value = false;
+    }
+  } catch (err: any) {
+    error.value = err;
+    loading.value = false;
+  }
 }
 </script>
 
 <template>
   <div class="remote-wrapper">
-    <!-- 로딩 상태 UI -->
+    <!-- 로딩 -->
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
       <p>{{ config.name }} 로딩 중...</p>
     </div>
 
-    <!-- 에러 발생 시 Fallback UI -->
+    <!-- 에러 Fallback -->
     <div v-else-if="error" class="error-fallback">
       <div class="error-icon">{{ config.icon || '⚠️' }}</div>
       <h2>{{ config.name }} 서비스를 사용할 수 없습니다</h2>
@@ -162,11 +164,14 @@ async function retry() {
       </p>
 
       <div class="error-actions">
-        <button @click="retry" class="btn-primary">다시 시도</button>
-        <button @click="$router.push('/')" class="btn-secondary">홈으로 돌아가기</button>
+        <button @click="retry" class="btn-primary">
+          다시 시도
+        </button>
+        <button @click="$router.push('/')" class="btn-secondary">
+          홈으로 돌아가기
+        </button>
       </div>
 
-      <!-- 개발 모드에서만 에러 상세 정보 표시 -->
       <details v-if="isDev" class="error-details">
         <summary>개발자 정보</summary>
         <div>
@@ -178,13 +183,13 @@ async function retry() {
       </details>
     </div>
 
-    <!-- Remote 앱이 마운트될 컨테이너 -->
+    <!-- Remote 컨테이너 -->
     <div v-else ref="container" class="remote-container"></div>
   </div>
 </template>
 
 <style scoped>
-/* ... 스타일은 변경 없음 ... */
+/* 기존 스타일 그대로 */
 .remote-wrapper {
   width: 100%;
   min-height: 400px;

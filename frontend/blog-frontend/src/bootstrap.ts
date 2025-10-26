@@ -4,40 +4,41 @@ import type { Router } from 'vue-router';
 import { createBlogRouter, logRouterInfo } from "./router";
 
 /**
- * @file bootstrap.ts
- * @description 이 파일은 Module Federation을 통해 Portal Shell에 노출되는 진입점입니다.
- * `mountBlogApp` 함수를 내보내어, 셸이 이 Blog 앱을 동적으로 마운트하고 제어할 수 있도록 합니다.
- */
-
-/**
- * `mountBlogApp` 함수에 전달될 옵션 타입입니다.
+ * Mount 옵션
  */
 export type MountOptions = {
-  /** Remote 앱이 시작될 초기 경로 (예: '/write', '/post/123') */
+  /** 초기 경로 (예: '/write', '/123') */
   initialPath?: string;
-  /** Remote 앱 내부에서 경로 변경이 발생했을 때 셸에 알리기 위한 콜백 함수 */
+  /** Parent에게 경로 변경 알림 */
   onNavigate?: (path: string) => void;
 }
 
 /**
- * 마운트된 Blog 앱의 인스턴스 타입입니다.
- * 셸이 마운트된 앱을 제어할 수 있는 핸들러들을 포함합니다.
+ * Mount된 Blog 앱 인스턴스
  */
 export type BlogAppInstance = {
-  /** 마운트된 앱의 Vue Router 인스턴스 */
+  /** Vue Router 인스턴스 */
   router: Router;
-  /** 셸의 경로 변경을 Remote 앱에 전파하기 위한 함수 */
+  /** Parent로부터 경로 변경 수신 */
   onParentNavigate: (path: string) => void;
-  /** 앱을 언마운트하고 리소스를 정리하는 함수 */
+  /** 앱 언마운트 */
   unmount: () => void;
 }
 
 /**
- * Blog 앱을 지정된 DOM 엘리먼트에 마운트합니다. (Embedded 모드 전용)
+ * Blog 앱을 지정된 컨테이너에 마운트 (Embedded 모드)
  *
- * @param el - 앱을 마운트할 HTML 엘리먼트
- * @param options - 마운트 옵션 (초기 경로, 내비게이션 콜백 등)
- * @returns {BlogAppInstance} 셸이 앱을 제어할 수 있는 인스턴스 객체
+ * @param el - 마운트할 HTML 엘리먼트
+ * @param options - 마운트 옵션
+ * @returns Blog 앱 인스턴스 (router, onParentNavigate, unmount)
+ *
+ * @example
+ * ```
+ * const blogApp = mountBlogApp(container, {
+ *   initialPath: '/123',
+ *   onNavigate: (path) => console.log('Navigated to:', path)
+ * });
+ * ```
  */
 export function mountBlogApp(
   el: HTMLElement,
@@ -45,66 +46,82 @@ export function mountBlogApp(
 ): BlogAppInstance {
   console.group('🚀 [Blog] Mounting app in EMBEDDED mode');
 
+  // ✅ 필수 파라미터 검증
   if (!el) {
     console.error('❌ [Blog] Mount element is null!');
     console.groupEnd();
     throw new Error('[Blog] Mount element is required');
   }
 
+  console.log('📍 Mount target:', el.tagName, el.className || '(no class)');
+  console.log('📍 Options:', options);
+
   const { initialPath, onNavigate } = options;
 
-  // 1. Vue 앱 인스턴스 생성
+  // Vue 앱 생성
   const app: VueApp = createApp(App);
 
-  // 2. Embedded 모드에 맞는 Memory History 기반의 라우터 생성
+  // Router 생성 (Memory History)
   const router = createBlogRouter('/');
   app.use(router);
 
-  // 3. 초기 경로로 이동
+  // 디버깅 정보 출력
+  logRouterInfo(router);
+
+  // ✅ 초기 경로 설정
   const targetPath = initialPath || '/';
+  console.log(`🔄 [Blog] Navigating to: ${targetPath}`);
+
   router.push(targetPath).catch(err => {
-    console.error(`❌ [Blog] Initial navigation to '${targetPath}' failed:`, err);
+    console.error('❌ [Blog] Initial navigation failed:', err);
   });
 
-  // 4. 경로 변경 시 onNavigate 콜백을 호출하여 셸에 알림
+  // ✅ Parent에게 경로 변경 알림
   router.afterEach((to, from) => {
     if (to.path !== from.path) {
-      console.log(`📍 [Blog] Route changed: ${from.path} → ${to.path}. Notifying shell.`);
+      console.log(`📍 [Blog] Route changed: ${from.path} → ${to.path}`);
       onNavigate?.(to.path);
     }
   });
 
-  // 5. DOM에 앱 마운트
+  // DOM에 마운트
   app.mount(el);
   console.log('✅ [Blog] App mounted successfully');
   console.groupEnd();
 
-  // 6. 셸이 앱을 제어할 수 있도록 인스턴스 반환
+  // ✅ 앱 인스턴스 반환
   return {
     router,
+
     /**
-     * 셸의 경로 변경을 수신하여 앱의 경로를 업데이트합니다.
+     * Parent(Portal Shell)로부터 경로 변경 수신
      */
     onParentNavigate: (path: string) => {
       console.log(`📥 [Blog] Received navigation from parent: ${path}`);
+
       if (router.currentRoute.value.path !== path) {
         router.push(path).catch(err => {
-          console.error(`❌ [Blog] Parent navigation to '${path}' failed:`, err);
+          console.error('❌ [Blog] Parent navigation failed:', err);
         });
+      } else {
+        console.log('   ℹ️ Already on this path, skipping navigation');
       }
     },
+
     /**
-     * 앱을 언마운트하고 관련 리소스를 정리합니다.
+     * 앱 언마운트 및 클린업
      */
     unmount: () => {
       console.group('🔄 [Blog] Unmounting app');
+
       try {
         app.unmount();
-        el.innerHTML = ''; // 컨테이너 비우기
+        el.innerHTML = '';
         console.log('✅ [Blog] App unmounted successfully');
       } catch (err) {
         console.error('❌ [Blog] Unmount failed:', err);
       }
+
       console.groupEnd();
     }
   };
