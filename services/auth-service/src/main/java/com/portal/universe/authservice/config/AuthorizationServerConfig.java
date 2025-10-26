@@ -5,8 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -22,42 +20,56 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Spring Authorization Server의 핵심 설정을 구성하는 클래스입니다.
+ * OAuth2 클라이언트 정보, 토큰 커스터마이징, 서버 발급자(issuer) 정보 등을 정의합니다.
+ */
 @Configuration
 public class AuthorizationServerConfig {
 
+    // 외부 설정(application.yml)에서 리다이렉트 URI 목록을 주입받습니다.
     @Value("${oauth2.client.redirect-uris:http://localhost:30000/callback}")
     private String[] redirectUris;
 
+    // 외부 설정에서 로그아웃 후 리다이렉트될 URI 목록을 주입받습니다.
     @Value("${oauth2.client.post-logout-redirect-uris:http://localhost:30000}")
     private String[] postLogoutRedirectUris;
 
+    /**
+     * OAuth2 클라이언트의 정보를 등록하고 관리하는 저장소 Bean을 생성합니다.
+     * 본 예제에서는 In-Memory 방식을 사용하지만, 운영 환경에서는 JDBC 방식(JdbcRegisteredClientRepository)을 사용하는 것이 일반적입니다.
+     *
+     * @return RegisteredClientRepository 클라이언트 정보 저장소
+     */
     @Bean
-    public RegisteredClientRepository registeredClientRepository(PasswordEncoder passwordEncoder) {
-        // 실제 운영환경에서는 외부 설정 파일로 분리
+    public RegisteredClientRepository registeredClientRepository() {
+        // 실제 운영환경에서는 외부 설정 파일로 분리하는 것이 안전합니다.
         String clientId = "portal-client";
-        String clientSecret = "secret";
 
         RegisteredClient.Builder builder = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(clientId)
+                // Public Client이므로 Client Secret을 사용하지 않음 (PKCE 사용)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                // 지원할 인가 방식 설정
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                // 클라이언트가 요청할 수 있는 스코프 정의
                 .scope("read")
                 .scope("write")
                 .scope("openid")
                 .scope("profile")
                 .clientSettings(ClientSettings.builder()
-                        .requireProofKey(true)
-                        .requireAuthorizationConsent(false)
+                        .requireProofKey(true) // PKCE(Proof Key for Code Exchange) 강제
+                        .requireAuthorizationConsent(false) // 사용자 동의 화면 생략
                         .build()
                 );
 
-        // Redirect URIs 추가
+        // 설정 파일에서 읽어온 Redirect URIs 추가
         for (String uri : redirectUris) {
             builder.redirectUri(uri.trim());
         }
 
-        // Post Logout Redirect URIs 추가
+        // 설정 파일에서 읽어온 Post Logout Redirect URIs 추가
         for (String uri : postLogoutRedirectUris) {
             builder.postLogoutRedirectUri(uri.trim());
         }
@@ -65,27 +77,36 @@ public class AuthorizationServerConfig {
         return new InMemoryRegisteredClientRepository(builder.build());
     }
 
+    /**
+     * JWT Access Token에 추가적인 정보를 담기 위한 커스터마이저 Bean을 생성합니다.
+     * 예를 들어, 사용자의 권한(roles) 정보를 토큰 내에 포함시켜 리소스 서버에서 활용할 수 있습니다.
+     *
+     * @return OAuth2TokenCustomizer JWT 커스터마이저
+     */
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
         return context -> {
-            // Access Token을 생성할 때만 동작하도록 필터링
+            // Access Token을 생성할 때만 동작하도록 필터링합니다.
             if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
                 Authentication principal = context.getPrincipal();
-                // 사용자의 권한(authorities)과 요청된 스코프(scopes)를 가져옵니다.
+                // 사용자의 권한(authorities) 정보를 Set<String> 형태로 변환합니다.
                 Set<String> authorities = principal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toSet());
-                Set<String> scopes = context.getRegisteredClient().getScopes();
 
-                // 'scope' 클레임에 권한과 스코프를 모두 포함시킵니다.
-                context.getClaims().claim("scope", scopes);
+                // 토큰의 'claims'에 'roles'라는 이름으로 권한 정보를 추가합니다.
                 context.getClaims().claim("roles", authorities);
-                // 다른 커스텀 클레임 등록 시
-                // context.getClaims().claim("username", principal.getName());
             }
         };
     }
 
+    /**
+     * 인증 서버의 발급자(Issuer) URI를 설정합니다.
+     * JWT의 'iss' 클레임 값으로 사용되며, 토큰을 발급한 주체를 식별하는 데 사용됩니다.
+     *
+     * @param issuerUri 외부 설정(application.yml)에서 주입된 issuer URI
+     * @return AuthorizationServerSettings 인증 서버 설정 객체
+     */
     @Bean
     public AuthorizationServerSettings authorizationServerSettings(@Value("${spring.security.oauth2.authorizationserver.issuer}") String issuerUri) {
         return AuthorizationServerSettings.builder()
