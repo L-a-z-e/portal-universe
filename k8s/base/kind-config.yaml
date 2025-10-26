@@ -1,20 +1,34 @@
+# ===================================================================
+# Kind (Kubernetes in Docker) 클러스터 설정 파일
+# ===================================================================
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+# 클러스터의 이름을 지정합니다.
 name: portal-universe
+# 클러스터를 구성할 노드들을 정의합니다.
 nodes:
+  # --- Control Plane 노드 (마스터 노드) ---
   - role: control-plane
+    # kubeadm 설정을 패치하여 추가 구성을 적용합니다.
     kubeadmConfigPatches:
       - |
         kind: InitConfiguration
         nodeRegistration:
           kubeletExtraArgs:
+            # 이 노드에 'ingress-ready=true' 레이블을 추가합니다.
+            # Ingress Controller가 이 레이블이 있는 노드에서 실행되도록 스케줄링할 수 있습니다.
             node-labels: "ingress-ready=true"
+    # 호스트 머신과 컨테이너(노드) 간의 포트 포워딩을 설정합니다.
     extraPortMappings:
+      # 호스트의 80 포트를 컨트롤 플레인 노드의 80 포트로 전달합니다. (HTTP)
       - containerPort: 80
         hostPort: 80
         protocol: TCP
+      # 호스트의 443 포트를 컨트롤 플레인 노드의 443 포트로 전달합니다. (HTTPS)
       - containerPort: 443
         hostPort: 443
         protocol: TCP
+
+  # --- Worker 노드 ---
   - role: worker
   - role: worker
