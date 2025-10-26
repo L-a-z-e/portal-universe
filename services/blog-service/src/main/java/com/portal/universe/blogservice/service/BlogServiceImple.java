@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * BlogService 인터페이스의 구현 클래스입니다.
+ * 게시물 관련 비즈니스 로직을 실제로 처리합니다.
+ */
 @Service
 @RequiredArgsConstructor
 public class BlogServiceImple implements BlogService{
@@ -20,7 +24,7 @@ public class BlogServiceImple implements BlogService{
 
     @Override
     public PostResponse createPost(PostCreateRequest request, String authorId) {
-        // 1. DTO => Document(Entity) 객체로 변환
+        // 1. 요청 DTO를 Post 도큐먼트 객체로 변환합니다.
         Post newPost = Post.builder()
                 .title(request.title())
                 .content(request.content())
@@ -28,10 +32,10 @@ public class BlogServiceImple implements BlogService{
                 .productId(request.productId())
                 .build();
 
-        // 2. Repository를 통해 DB에 저장
+        // 2. 리포지토리를 통해 데이터베이스에 저장합니다.
         Post savedPost = postRepository.save(newPost);
 
-        // 3. 저장된 Document 객체를 다시 응답용 DTO로 변환하여 반환
+        // 3. 저장된 도큐먼트 객체를 응답 DTO로 변환하여 반환합니다.
         return convertToResponse(savedPost);
     }
 
@@ -44,6 +48,61 @@ public class BlogServiceImple implements BlogService{
                 .toList();
     }
 
+    @Override
+    public PostResponse getPostById(String postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
+
+        return convertToResponse(post);
+    }
+
+    @Override
+    public PostResponse updatePost(String postId, PostUpdateRequest request, String userId) {
+        // 1. 수정할 게시물을 ID로 조회합니다.
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
+
+        // 2. 요청한 사용자가 게시물 작성자인지 확인합니다.
+        if (!post.getAuthorId().equals(userId)) {
+            throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
+        }
+
+        // 3. 게시물 내용을 수정합니다.
+        post.update(request.title(), request.content());
+
+        // 4. 수정된 게시물을 저장하고 응답 DTO로 변환하여 반환합니다.
+        Post updatedPost = postRepository.save(post);
+        return convertToResponse(updatedPost);
+    }
+
+    @Override
+    public void deletePost(String postId, String userId) {
+        // 1. 삭제할 게시물을 ID로 조회합니다.
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
+
+        // 2. 요청한 사용자가 게시물 작성자인지 확인합니다.
+        if (!post.getAuthorId().equals(userId)) {
+            throw new CustomBusinessException(BlogErrorCode.POST_DELETE_FORBIDDEN);
+        }
+
+        // 3. 게시물을 삭제합니다.
+        postRepository.delete(post);
+    }
+
+    @Override
+    public List<PostResponse> getPostsByProductId(String productId) {
+        return postRepository.findByProductId(productId)
+                .stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
+
+    /**
+     * Post 도큐먼트 객체를 PostResponse DTO로 변환하는 헬퍼 메서드입니다.
+     * @param post 변환할 Post 객체
+     * @return 변환된 PostResponse 객체
+     */
     private PostResponse convertToResponse(Post post) {
         return new PostResponse(
                 post.getId(),
@@ -54,46 +113,5 @@ public class BlogServiceImple implements BlogService{
                 post.getUpdatedAt(),
                 post.getProductId()
         );
-    }
-
-    @Override
-    public PostResponse getPostById(String postId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
-
-        return convertToResponse(post);
-    }
-
-    @Override
-    public PostResponse updatePost(String postId, PostUpdateRequest request, String userId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
-
-        if (!post.getAuthorId().equals(userId)) {
-            throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
-        }
-
-        post.update(request.title(), request.content());
-
-        Post updatedPost = postRepository.save(post);
-
-        return convertToResponse(updatedPost);
-    }
-
-    @Override
-    public void deletePost(String postId, String userId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
-
-        if (!post.getAuthorId().equals(userId)) {
-            throw new CustomBusinessException(BlogErrorCode.POST_DELETE_FORBIDDEN);
-        }
-
-        postRepository.delete(post);
-    }
-
-    @Override
-    public List<PostResponse> getPostsByProductId(String productId) {
-        return postRepository.findByProductId(productId)
-                .stream()
-                .map(this::convertToResponse)
-                .toList();
     }
 }
