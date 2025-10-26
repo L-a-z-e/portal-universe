@@ -1,19 +1,27 @@
+# ===================================================================
+# MongoDB: PersistentVolumeClaim (PVC)
+# 역할: MongoDB 데이터의 영구 저장을 위한 동적 볼륨을 요청합니다.
+# ===================================================================
 ---
-# MongoDB PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mongodb-pvc
   namespace: portal-universe
 spec:
+  # ReadWriteOnce: 단일 노드에서만 볼륨을 마운트할 수 있도록 설정합니다.
   accessModes:
     - ReadWriteOnce
+  # 5Gi 크기의 저장 공간을 요청합니다.
   resources:
     requests:
       storage: 5Gi
 
+# ===================================================================
+# MongoDB: Deployment
+# 역할: MongoDB 서버를 실행하는 Pod를 정의하고 관리합니다.
+# ===================================================================
 ---
-# MongoDB Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,16 +46,20 @@ spec:
             - containerPort: 27017
               name: mongodb
           env:
+            # MongoDB 초기 루트 사용자 이름을 설정합니다.
             - name: MONGO_INITDB_ROOT_USERNAME
               value: "laze"
+            # Secret 리소스로부터 루트 사용자 비밀번호를 안전하게 주입받습니다.
             - name: MONGO_INITDB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: portal-universe-secret
                   key: MONGO_PASSWORD
+            # 초기 데이터베이스를 생성합니다. (blog-service에서 사용)
             - name: MONGO_INITDB_DATABASE
               value: "blog_db"
           volumeMounts:
+            # 위에서 생성한 PVC를 컨테이너의 /data/db 경로에 마운트하여 데이터를 영구 저장합니다.
             - name: mongodb-storage
               mountPath: /data/db
       volumes:
@@ -55,8 +67,11 @@ spec:
           persistentVolumeClaim:
             claimName: mongodb-pvc
 
+# ===================================================================
+# MongoDB: Service
+# 역할: 클러스터 내 다른 서비스들이 MongoDB Pod에 접근할 수 있도록 고정된 주소를 제공합니다.
+# ===================================================================
 ---
-# MongoDB Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -65,11 +80,11 @@ metadata:
   labels:
     app: mongodb
 spec:
-  type: ClusterIP
+  type: ClusterIP # 클러스터 내부에서만 접근 가능한 IP를 할당합니다.
   ports:
     - port: 27017
       targetPort: 27017
       protocol: TCP
       name: mongodb
   selector:
-    app: mongodb
+    app: mongodb # 'app: mongodb' 레이블을 가진 Pod로 트래픽을 전달합니다.

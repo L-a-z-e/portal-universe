@@ -1,5 +1,8 @@
+# ===================================================================
+# Zipkin: Deployment
+# 역할: 분산 추적(Distributed Tracing) 데이터를 수집하고 시각화하는 Zipkin 서버를 배포합니다.
+# ===================================================================
 ---
-# Zipkin Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,8 +27,11 @@ spec:
             - containerPort: 9411
               name: http
           env:
+            # 추적 데이터의 저장소 타입을 인메모리(in-memory)로 설정합니다.
+            # 운영 환경에서는 Elasticsearch나 Cassandra 등을 사용하는 것이 권장됩니다.
             - name: STORAGE_TYPE
               value: "mem"
+          # 컨테이너가 사용할 최소/최대 리소스를 설정합니다.
           resources:
             requests:
               memory: "256Mi"
@@ -33,12 +39,14 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          # Liveness Probe: Pod가 살아있는지 확인합니다.
           livenessProbe:
             httpGet:
               path: /health
               port: 9411
             initialDelaySeconds: 30
             periodSeconds: 10
+          # Readiness Probe: Pod가 요청을 처리할 준비가 되었는지 확인합니다.
           readinessProbe:
             httpGet:
               path: /health
@@ -46,8 +54,11 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 5
 
+# ===================================================================
+# Zipkin: Service
+# 역할: Zipkin UI에 접근하고, 각 서비스가 추적 데이터를 전송할 수 있도록 주소를 제공합니다.
+# ===================================================================
 ---
-# Zipkin Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -56,7 +67,7 @@ metadata:
   labels:
     app: zipkin
 spec:
-  type: LoadBalancer
+  type: LoadBalancer # 외부에서 Zipkin UI에 접근할 수 있도록 LoadBalancer 타입 사용
   ports:
     - port: 9411
       targetPort: 9411

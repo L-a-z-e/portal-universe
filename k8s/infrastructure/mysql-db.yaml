@@ -1,19 +1,27 @@
+# ===================================================================
+# MySQL: PersistentVolumeClaim (PVC)
+# 역할: MySQL 데이터의 영구 저장을 위한 동적 볼륨을 요청합니다.
+# ===================================================================
 ---
-# MySQL PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
   namespace: portal-universe
 spec:
+  # ReadWriteOnce: 단일 노드에서만 볼륨을 마운트할 수 있도록 설정합니다.
   accessModes:
     - ReadWriteOnce
+  # 5Gi 크기의 저장 공간을 요청합니다.
   resources:
     requests:
       storage: 5Gi
 
+# ===================================================================
+# MySQL: Deployment
+# 역할: MySQL 서버를 실행하는 Pod를 정의하고 관리합니다.
+# ===================================================================
 ---
-# MySQL Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,6 +46,7 @@ spec:
             - containerPort: 3306
               name: mysql
           env:
+            # Secret 리소스로부터 데이터베이스 비밀번호를 안전하게 주입받습니다.
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -51,8 +60,10 @@ spec:
                   name: portal-universe-secret
                   key: MYSQL_PASSWORD
           volumeMounts:
+            # 위에서 생성한 PVC를 컨테이너의 /var/lib/mysql 경로에 마운트하여 데이터를 영구 저장합니다.
             - name: mysql-storage
               mountPath: /var/lib/mysql
+            # 초기화 스크립트가 담긴 ConfigMap을 컨테이너의 초기화 경로에 마운트합니다.
             - name: init-scripts
               mountPath: /docker-entrypoint-initdb.d
       volumes:
@@ -63,8 +74,11 @@ spec:
           configMap:
             name: mysql-init-scripts
 
+# ===================================================================
+# MySQL: Service
+# 역할: 클러스터 내 다른 서비스들이 MySQL Pod에 접근할 수 있도록 고정된 주소를 제공합니다.
+# ===================================================================
 ---
-# MySQL Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -73,17 +87,20 @@ metadata:
   labels:
     app: mysql-db
 spec:
-  type: ClusterIP
+  type: ClusterIP # 클러스터 내부에서만 접근 가능한 IP를 할당합니다.
   ports:
     - port: 3306
       targetPort: 3306
       protocol: TCP
       name: mysql
   selector:
-    app: mysql-db
+    app: mysql-db # 'app: mysql-db' 레이블을 가진 Pod로 트래픽을 전달합니다.
 
+# ===================================================================
+# MySQL: 초기화 스크립트 ConfigMap
+# 역할: MySQL 컨테이너가 처음 시작될 때 실행될 SQL 스크립트를 정의합니다.
+# ===================================================================
 ---
-# MySQL 초기화 스크립트
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -91,8 +108,10 @@ metadata:
   namespace: portal-universe
 data:
   init.sql: |
+    # 필요한 데이터베이스들을 생성합니다.
     CREATE DATABASE IF NOT EXISTS auth_db;
     CREATE DATABASE IF NOT EXISTS shopping_db;
+    # 'laze' 사용자에게 모든 권한을 부여합니다.
     GRANT ALL PRIVILEGES ON auth_db.* TO 'laze'@'%';
     GRANT ALL PRIVILEGES ON shopping_db.* TO 'laze'@'%';
     FLUSH PRIVILEGES;

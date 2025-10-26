@@ -1,5 +1,8 @@
+# ===================================================================
+# Prometheus: Deployment
+# 역할: 메트릭을 수집하고 저장하는 Prometheus 서버를 배포합니다.
+# ===================================================================
 ---
-# Prometheus Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,6 +27,7 @@ spec:
             - containerPort: 9090
               name: http
           volumeMounts:
+            # ConfigMap에 정의된 prometheus.yml 설정을 컨테이너 내부 경로에 마운트합니다.
             - name: prometheus-config
               mountPath: /etc/prometheus
           args:
@@ -34,8 +38,11 @@ spec:
           configMap:
             name: prometheus-config
 
+# ===================================================================
+# Prometheus: Service
+# 역할: Prometheus 대시보드에 접근할 수 있도록 외부 주소를 제공합니다.
+# ===================================================================
 ---
-# Prometheus Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -44,7 +51,7 @@ metadata:
   labels:
     app: prometheus
 spec:
-  type: LoadBalancer  # ← 외부 접근 가능
+  type: LoadBalancer # 외부에서 Prometheus UI에 접근할 수 있도록 LoadBalancer 타입 사용
   ports:
     - port: 9090
       targetPort: 9090
@@ -53,35 +60,45 @@ spec:
   selector:
     app: prometheus
 
+# ===================================================================
+# Prometheus: ConfigMap
+# 역할: Prometheus의 동작 방식을 정의하는 설정 파일(prometheus.yml)을 포함합니다.
+# ===================================================================
 ---
-# Prometheus ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
   namespace: portal-universe
 data:
+  # language=yaml 주석은 IDE에서 YAML 구문 강조를 활성화하는 데 도움을 줍니다.
   # language=yaml
   prometheus.yml: |
     global:
-      scrape_interval: 15s
-      evaluation_interval: 15s
+      scrape_interval: 15s # 15초마다 메트릭을 수집합니다.
+      evaluation_interval: 15s # 15초마다 알림 규칙을 평가합니다.
     
+    # 메트릭 수집 대상(Scrape Target)을 설정합니다.
     scrape_configs:
+      # 'kubernetes-pods' 잡은 쿠버네티스 API를 통해 Pod들을 동적으로 발견합니다.
       - job_name: 'kubernetes-pods'
         kubernetes_sd_configs:
-          - role: pod
+          - role: pod # Pod를 대상으로 서비스 디스커버리 수행
             namespaces:
               names:
-                - portal-universe
+                - portal-universe # portal-universe 네임스페이스의 Pod만 대상으로 함
+        # relabel_configs: 발견된 타겟들의 레이블을 재작성하여 수집 대상을 필터링하고 설정합니다.
         relabel_configs:
+          # 1. 'prometheus.io/scrape: true' 어노테이션이 있는 Pod만 수집 대상으로 유지합니다.
           - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
             action: keep
             regex: true
+          # 2. 'prometheus.io/path' 어노테이션 값을 메트릭 수집 경로(__metrics_path__)로 설정합니다.
           - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
             action: replace
             target_label: __metrics_path__
             regex: (.+)
+          # 3. Pod의 주소와 'prometheus.io/port' 어노테이션 값을 조합하여 최종 수집 주소(__address__)를 만듭니다.
           - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
             action: replace
             regex: ([^:]+)(?::\d+)?;(\d+)

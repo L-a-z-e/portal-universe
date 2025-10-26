@@ -1,5 +1,8 @@
+# ===================================================================
+# Grafana: Deployment
+# 역할: Prometheus가 수집한 메트릭을 시각화하는 Grafana 대시보드를 배포합니다.
+# ===================================================================
 ---
-# Grafana Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,15 +27,21 @@ spec:
             - containerPort: 3000
               name: http
           env:
+            # Grafana 초기 관리자 계정의 비밀번호를 설정합니다.
             - name: GF_SECURITY_ADMIN_PASSWORD
-              value: "admin"  # 초기 비밀번호
+              value: "admin"
+            # Grafana 초기 관리자 계정의 사용자 이름을 설정합니다.
             - name: GF_SECURITY_ADMIN_USER
               value: "admin"
+            # Grafana 시작 시 자동으로 설치할 플러그인을 지정합니다.
             - name: GF_INSTALL_PLUGINS
               value: "grafana-piechart-panel"
 
+# ===================================================================
+# Grafana: Service
+# 역할: Grafana 대시보드에 접근할 수 있도록 외부 주소를 제공합니다.
+# ===================================================================
 ---
-# Grafana Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -41,7 +50,7 @@ metadata:
   labels:
     app: grafana
 spec:
-  type: LoadBalancer
+  type: LoadBalancer # 외부에서 Grafana UI에 접근할 수 있도록 LoadBalancer 타입 사용
   ports:
     - port: 3000
       targetPort: 3000

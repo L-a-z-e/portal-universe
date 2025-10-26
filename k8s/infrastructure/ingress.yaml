@@ -1,20 +1,27 @@
+# ===================================================================
+# Ingress: 외부 트래픽을 내부 서비스로 라우팅
+# ===================================================================
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: portal-universe-ingress
   namespace: portal-universe
-  annotations:  # Ingress Controller 설정
-#    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/proxy-redirect-from: "http://portal-universe/"
-    nginx.ingress.kubernetes.io/proxy-redirect-to: "http://portal-universe:8080/"
-#    nginx.ingress.kubernetes.io/use-regex: "true"
+  annotations:
+    # NGINX Ingress Controller를 사용하기 위한 설정들입니다.
+    nginx.ingress.kubernetes.io/ssl-redirect: "false" # HTTPS로 강제 리다이렉트하지 않음 (로컬 환경)
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2 # 경로 재작성 규칙 (필요 시 사용)
+    # nginx.ingress.kubernetes.io/use-regex: "true" # 정규식 사용 여부
 spec:
+  # 이 Ingress 리소스가 사용할 IngressClass의 이름입니다.
+  # ingress-controller.yaml에 정의된 'nginx' IngressClass를 사용합니다.
   ingressClassName: nginx
   rules:
-    - host: portal-universe  # 도메인
+    # 'portal-universe'라는 호스트 이름으로 들어오는 요청에 대한 규칙입니다.
+    # 로컬에서 /etc/hosts 파일에 '127.0.0.1 portal-universe'를 추가하여 사용할 수 있습니다.
+    - host: portal-universe
       http:
         paths:
+          # /auth-service/** 경로로 들어오는 모든 요청은 api-gateway 서비스의 8080 포트로 전달됩니다.
           - path: /auth-service
             pathType: Prefix
             backend:
@@ -23,6 +30,7 @@ spec:
                 port:
                   number: 8080
 
+          # /api/** 경로로 들어오는 모든 요청은 api-gateway 서비스의 8080 포트로 전달됩니다.
           - path: /api
             pathType: Prefix
             backend:
@@ -31,6 +39,7 @@ spec:
                 port:
                   number: 8080
 
+          # 위 규칙에 해당하지 않는 모든 요청(루트 경로 등)은 portal-shell 서비스의 80 포트로 전달됩니다.
           - path: /
             pathType: Prefix
             backend:
@@ -38,21 +47,3 @@ spec:
                 name: portal-shell
                 port:
                   number: 80
-
-#          # Blog Frontend (Module Federation)
-#          - path: /blog(/|$)(.*)
-#            pathType: ImplementationSpecific
-#            backend:
-#              service:
-#                name: blog-frontend
-#                port:
-#                  number: 80
-
-#          # Shopping Frontend (Module Federation)
-#          - path: /shop(/|$)(.*)
-#            pathType: ImplementationSpecific
-#            backend:
-#              service:
-#                name: shopping-frontend
-#                port:
-#                  number: 80
