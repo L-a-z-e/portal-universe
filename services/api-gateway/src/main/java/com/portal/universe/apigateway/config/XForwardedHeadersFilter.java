@@ -12,18 +12,29 @@ import org.springframework.context.annotation.Profile;
 
 import java.net.URI;
 
+/**
+ * Kubernetes 환경에서 Ingress를 통해 들어온 요청의 원본 정보를 보존하기 위한 글로벌 필터입니다.
+ * Ingress Controller가 추가하는 'X-Forwarded-*' 헤더들을 기반으로, 백엔드 서비스가 클라이언트의 실제 요청 정보를
+ * (Host, Protocol, Port 등) 인식할 수 있도록 새로운 'X-Forwarded-*' 헤더를 추가/수정합니다.
+ * 이 필터는 'kubernetes' 프로파일이 활성화될 때만 동작합니다.
+ */
 @Slf4j
 @Profile("kubernetes")
 @Component
 public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
 
+    /**
+     * 들어오는 모든 요청을 가로채 'X-Forwarded-*' 헤더를 추가하는 필터 로직을 수행합니다.
+     * @param exchange 현재 요청-응답 컨텍스트
+     * @param chain 다음 필터로 요청을 전달하기 위한 체인
+     * @return 필터 체인의 다음 단계로 진행하기 위한 Mono<Void>
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        log.error("!!!!!!!!!! XForwardedHeadersFilter IS RUNNING !!!!!!!!!!");
         ServerHttpRequest request = exchange.getRequest();
         URI uri = request.getURI();
 
-        // Host 헤더에서 원본 호스트:포트 추출
+        // Host 헤더에서 원본 호스트와 포트를 추출합니다.
         String originalHost = request.getHeaders().getFirst("Host");
         if (originalHost == null) {
             originalHost = uri.getHost();
@@ -32,13 +43,12 @@ public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
                 originalHost += ":" + port;
             }
         }
+
         String originalScheme = uri.getScheme();
         String originalPort;
         if (originalHost != null && originalHost.contains(":")) {
             originalPort = originalHost.split(":")[1];
-        }
-        else {
-            // Fallback to original logic if Host header has no port
+        } else {
             int portNumber = uri.getPort();
             if (portNumber == -1) {
                 portNumber = originalScheme.equals("https") ? 443 : 80;
@@ -46,27 +56,17 @@ public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
             originalPort = String.valueOf(portNumber);
         }
 
-//        // 스키마 (http/https)
-//        String originalScheme = uri.getScheme();
-//
-//        // 포트
-//        int portNumber = uri.getPort();
-//        if (portNumber == -1) {
-//            portNumber = originalScheme.equals("https") ? 443 : 80;
-//        }
-//        String originalPort = String.valueOf(portNumber);
-
-        // 경로에서 prefix 추출
+        // 경로에서 prefix 추출 (예: /auth-service)
         String path = uri.getPath();
         String prefix = "";
         if (path.startsWith("/auth-service")) {
             prefix = "/auth-service";
         }
 
-        log.debug("X-Forwarded: Host={}, Proto={}, Port={}, Prefix={}",
+        log.debug("X-Forwarded Headers added: Host={}, Proto={}, Port={}, Prefix={}",
                 originalHost, originalScheme, originalPort, prefix);
 
-        // X-Forwarded-* 헤더 추가
+        // 요청 객체를 변경하여 X-Forwarded-* 헤더를 추가합니다.
         ServerHttpRequest.Builder mutatedRequest = request.mutate()
                 .header("X-Forwarded-Host", originalHost)
                 .header("X-Forwarded-Proto", originalScheme)
@@ -76,7 +76,7 @@ public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
             mutatedRequest.header("X-Forwarded-Prefix", prefix);
         }
 
-        // 클라이언트 IP
+        // 클라이언트의 실제 IP 주소를 X-Forwarded-For 헤더에 추가합니다.
         if (request.getRemoteAddress() != null) {
             String clientIp = request.getRemoteAddress().getAddress().getHostAddress();
             mutatedRequest.header("X-Forwarded-For", clientIp);
@@ -85,8 +85,14 @@ public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
         return chain.filter(exchange.mutate().request(mutatedRequest.build()).build());
     }
 
+    /**
+     * 필터의 실행 순서를 지정합니다.
+     * SecurityConfig에 정의된 다른 필터들 이후에 실행되도록 설정합니다.
+     * @return 필터 순서 값
+     */
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE + 2; // requestPathLoggingFilter -> corsWebFilter -> XForwardedHeadersFilter 순서로 실행
+        // requestPathLoggingFilter -> corsWebFilter -> XForwardedHeadersFilter 순서로 실행
+        return Ordered.HIGHEST_PRECEDENCE + 2;
     }
 }
