@@ -2,35 +2,19 @@
   "name": "portal-frontend",
   "version": "1.0.0",
   "private": true,
-
-  // --- NPM Workspaces 설정 ---
-  // 이 프로젝트가 모노레포(monorepo)이며, 하위 패키지들을 관리함을 명시합니다.
-  // npm install 시, 여기에 명시된 디렉토리들의 의존성을 함께 설치하고 연결합니다.
   "workspaces": [
     "design-system",
     "portal-shell",
     "blog-frontend"
   ],
-
-  // --- 루트 스크립트 ---
-  // 모든 워크스페이스에 대해 동일한 npm 스크립트를 실행합니다.
   "scripts": {
-    // 모든 워크스페이스에서 dev 스크립트를 동시에 실행합니다.
     "dev": "npm run dev --workspaces",
-    // 모든 워크스페이스를 빌드합니다.
     "build": "npm run build --workspaces",
-    // design-system만 개발 모드로 실행합니다.
     "dev:design": "npm run dev -w design-system",
-    // design-system만 빌드합니다.
     "build:design": "npm run build -w design-system",
-    // Storybook을 실행합니다.
     "storybook": "storybook dev -p 6006",
-    // Storybook을 빌드합니다.
     "build-storybook": "storybook build"
   },
-
-  // --- 루트 개발 의존성 ---
-  // 모든 워크스페이스에서 공통으로 사용되는 개발 도구들입니다.
   "devDependencies": {
     "@storybook/addon-docs": "^9.1.13",
     "@vitejs/plugin-vue": "^6.0.1",
