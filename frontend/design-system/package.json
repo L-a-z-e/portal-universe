@@ -3,29 +3,37 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+
+  // --- 라이브러리 진입점 정의 ---
+  "main": "./dist/index.cjs", // CommonJS 환경을 위한 진입점
+  "module": "./dist/index.js",  // ES 모듈 환경을 위한 진입점
+  "types": "./dist/index.d.ts", // TypeScript 타입 정의 파일
   "exports": {
+    // 다른 프로젝트에서 이 라이브러리를 import하는 방식을 정의합니다.
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    // `import '@portal/design-system/style.css'`와 같이 CSS 파일을 직접 임포트할 수 있도록 경로를 노출합니다.
     "./style.css": "./dist/design-system.css"
   },
+  // 패키지로 배포될 파일들을 지정합니다.
   "files": [
     "dist",
     "tailwind.config.js"
   ],
+
+  // --- 스크립트 정의 ---
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist && npm run build:tokens",
-    "build:tokens": "node scripts/build-tokens.js",
-    "preview": "vite preview --port 30003 --strictPort",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "dev": "vite", // 개발 서버 실행
+    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist && npm run build:tokens", // 라이브러리 빌드 (JS, CSS, 타입 정의, 토큰)
+    "build:tokens": "node scripts/build-tokens.js", // 디자인 토큰 빌드 스크립트
+    "preview": "vite preview --port 30003 --strictPort", // 빌드 결과물 미리보기
+    "storybook": "storybook dev -p 6006", // Storybook 개발 서버 실행
+    "build-storybook": "storybook build" // Storybook 정적 파일 빌드
   },
+
   "dependencies": {
     "vue": "^3.5.21"
   },
