@@ -19,7 +19,7 @@ import java.net.URI;
  * 이 필터는 'kubernetes' 프로파일이 활성화될 때만 동작합니다.
  */
 @Slf4j
-@Profile("kubernetes")
+@Profile({"docker", "kubernetes"})
 @Component
 public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
 
