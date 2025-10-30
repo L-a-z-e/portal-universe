@@ -102,7 +102,7 @@ public class AuthorizationServerConfig {
 
     /**
      * 인증 서버의 발급자(Issuer) URI를 설정합니다.
-     * JWT의 'iss' 클레임 값으로 사용되며, 토큰을 발급한 주체를 식별하는 데 사용됩니다.
+     * JWT의 'iss' 클레임 값으로 사용되며, 토큰을 발급한 주체를 식별하는 데 사용애됩니다.
      *
      * @param issuerUri 외부 설정(application.yml)에서 주입된 issuer URI
      * @return AuthorizationServerSettings 인증 서버 설정 객체

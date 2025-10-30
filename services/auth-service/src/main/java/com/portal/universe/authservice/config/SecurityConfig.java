@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 
 /**
  * 애플리케이션의 전반적인 웹 보안 설정을 담당하는 클래스입니다.
@@ -28,6 +29,17 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    /**
+     * ✅ X-Forwarded-* 헤더를 처리하는 필터를 등록합니다.
+     * API Gateway를 통해 들어온 요청의 원본 Host, Proto, Port 정보를 보존합니다.
+     *
+     * @return ForwardedHeaderFilter
+     */
+    @Bean
+    public ForwardedHeaderFilter forwardedHeaderFilter() {
+        return new ForwardedHeaderFilter();
+    }
 
     /**
      * OAuth2 인증 서버 관련 엔드포인트(/oauth2/..., /connect/..., /.well-known/...)에 대한 보안을 설정합니다.
