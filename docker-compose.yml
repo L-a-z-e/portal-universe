@@ -100,6 +100,7 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_TRUSTEDPROXIES=[0.0.0.0/0]
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 10s
