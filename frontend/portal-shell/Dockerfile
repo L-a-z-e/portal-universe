@@ -35,7 +35,8 @@ FROM nginx:stable-alpine
 WORKDIR /usr/share/nginx/html
 
 COPY --from=build /workspace/portal-shell/dist ./
-COPY portal-shell/nginx.conf /etc/nginx/conf.d/default.conf
+COPY portal-shell/nginx.conf /etc/nginx/nginx.conf
+COPY portal-shell/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
