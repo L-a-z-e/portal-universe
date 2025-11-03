@@ -1,5 +1,6 @@
 package com.portal.universe.authservice.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -39,6 +41,24 @@ public class SecurityConfig {
     @Bean
     public ForwardedHeaderFilter forwardedHeaderFilter() {
         return new ForwardedHeaderFilter();
+    }
+
+    @Value("${spring.security.oauth2.authorizationserver.issuer}")
+    private String issuerUri;
+
+    /**
+     * Gateway를 통한 절대 경로 리다이렉트를 생성합니다.
+     * issuer (http://localhost:8080/auth-service) + /login
+     */
+    private AuthenticationEntryPoint createLoginAuthenticationEntryPoint() {
+        // ✅ 추가: issuerUri를 지역 변수로 캡처
+        final String redirectIssuerUri = this.issuerUri;
+
+        return (request, response, authException) -> {
+            // ✅ 변경: this.issuerUri 대신 redirectIssuerUri 사용
+            String loginUrl = redirectIssuerUri + "/login";
+            response.sendRedirect(loginUrl);
+        };
     }
 
     /**
@@ -76,7 +96,7 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         // 브라우저(HTML) 요청 시에는 로그인 페이지로 리다이렉트합니다.
                         .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                createLoginAuthenticationEntryPoint(),
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
                         // API(JSON) 요청 시에는 401 Unauthorized 응답을 반환합니다.
