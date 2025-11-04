@@ -51,11 +51,8 @@ public class SecurityConfig {
      * issuer (http://localhost:8080/auth-service) + /login
      */
     private AuthenticationEntryPoint createLoginAuthenticationEntryPoint() {
-        // ✅ 추가: issuerUri를 지역 변수로 캡처
         final String redirectIssuerUri = this.issuerUri;
-
         return (request, response, authException) -> {
-            // ✅ 변경: this.issuerUri 대신 redirectIssuerUri 사용
             String loginUrl = redirectIssuerUri + "/login";
             response.sendRedirect(loginUrl);
         };
@@ -82,7 +79,7 @@ public class SecurityConfig {
                     // OIDC Provider Configuration, JWK Set 등 공개 엔드포인트는 모두 허용합니다.
                     authorize.requestMatchers(
                             "/.well-known/**",
-                            "/connect/logout"
+                            "/oauth2/jwks"
                     ).permitAll();
                     // 그 외 모든 인증 서버 엔드포인트는 인증이 필요합니다.
                     authorize.anyRequest().authenticated();
@@ -96,7 +93,11 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         // 브라우저(HTML) 요청 시에는 로그인 페이지로 리다이렉트합니다.
                         .defaultAuthenticationEntryPointFor(
-                                createLoginAuthenticationEntryPoint(),
+                                (request, response, authException) -> {
+                                    // ✅ issuerUri 사용해서 절대 경로 리다이렉트
+                                    String loginUrl = issuerUri + "/login";
+                                    response.sendRedirect(loginUrl);
+                                },
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
                         // API(JSON) 요청 시에는 401 Unauthorized 응답을 반환합니다.
@@ -131,10 +132,11 @@ public class SecurityConfig {
                                 "/.well-known/**",
                                 "/login",
                                 "/logout",
+                                "/default-ui.css",
                                 "/favicon.ico",
+                                "/webjars/**",
                                 "/actuator/**",
-                                "/ping",
-                                "/force-error"
+                                "/ping"
                         ).permitAll()
                         // /api/admin 경로는 ADMIN 역할을 가진 사용자만 접근 가능합니다.
                         .requestMatchers("/api/admin").hasRole("ADMIN")
