@@ -67,7 +67,10 @@ public class SecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE + 1)
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:30000"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:30000",
+                "http://localhost:8080"
+                ));
         configuration.addAllowedOrigin("null"); // 로컬 개발 환경 등에서 Origin이 'null'인 경우 허용
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
@@ -91,8 +94,8 @@ public class SecurityConfig {
     public SecurityWebFilterChain publicEndpointsFilterChain(ServerHttpSecurity http) {
         return http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(
-                    "/auth-service/**",     // auth-service는 자체 인증/인가 로직을 가짐
-                    "/actuator/**"          // 모니터링을 위한 Actuator 엔드포인트
+                        "/auth-service/**",
+                        "/actuator/**"
                 ))
                 .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable) // Stateless한 REST API이므로 CSRF 비활성화
