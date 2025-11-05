@@ -54,6 +54,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web (MVC)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // Spring Data JPA
     runtimeOnly 'com.mysql:mysql-connector-j' // MySQL Driver
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
     // =======================================
     // Messaging (Kafka)
