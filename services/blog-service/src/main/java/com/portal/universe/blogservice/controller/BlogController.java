@@ -16,7 +16,7 @@ import java.util.List;
  * 블로그 게시물(Post)에 대한 CRUD API를 제공하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/blog")
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class BlogController {
 
