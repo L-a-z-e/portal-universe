@@ -1,8 +1,10 @@
 package com.portal.universe.authservice.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -33,30 +35,34 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 public class SecurityConfig {
 
     /**
-     * ✅ X-Forwarded-* 헤더를 처리하는 필터를 등록합니다.
+     * X-Forwarded-* 헤더를 처리하는 필터를 등록합니다.
      * API Gateway를 통해 들어온 요청의 원본 Host, Proto, Port 정보를 보존합니다.
      *
      * @return ForwardedHeaderFilter
      */
+
     @Bean
-    public ForwardedHeaderFilter forwardedHeaderFilter() {
-        return new ForwardedHeaderFilter();
+    public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
+        FilterRegistrationBean<ForwardedHeaderFilter> bean = new FilterRegistrationBean<>();
+        bean.setFilter(new ForwardedHeaderFilter());
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return bean;
     }
 
     @Value("${spring.security.oauth2.authorizationserver.issuer}")
     private String issuerUri;
 
-    /**
-     * Gateway를 통한 절대 경로 리다이렉트를 생성합니다.
-     * issuer (http://localhost:8080/auth-service) + /login
-     */
-    private AuthenticationEntryPoint createLoginAuthenticationEntryPoint() {
-        final String redirectIssuerUri = this.issuerUri;
-        return (request, response, authException) -> {
-            String loginUrl = redirectIssuerUri + "/login";
-            response.sendRedirect(loginUrl);
-        };
-    }
+//    /**
+//     * Gateway를 통한 절대 경로 리다이렉트를 생성합니다.
+//     * issuer (http://localhost:8080/auth-service) + /login
+//     */
+//    private AuthenticationEntryPoint createLoginAuthenticationEntryPoint() {
+//        final String redirectIssuerUri = this.issuerUri;
+//        return (request, response, authException) -> {
+//            String loginUrl = redirectIssuerUri + "/login";
+//            response.sendRedirect(loginUrl);
+//        };
+//    }
 
     /**
      * OAuth2 인증 서버 관련 엔드포인트(/oauth2/..., /connect/..., /.well-known/...)에 대한 보안을 설정합니다.
@@ -129,12 +135,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         // OIDC Discovery, 로그인/로그아웃, Actuator 등 인증이 필요 없는 경로들을 지정합니다.
                         .requestMatchers(
+                                "/css/**",           // CSS 파일
+                                "/js/**",            // JavaScript 파일
+                                "/images/**",        // 이미지 파일
+                                "/favicon.ico",   // 파비콘
+                                "/webjars/**"        // WebJars 라이브러리
+                        ).permitAll()
+                        .requestMatchers(
                                 "/.well-known/**",
                                 "/login",
                                 "/logout",
-                                "/default-ui.css",
-                                "/favicon.ico",
-                                "/webjars/**",
+                                "/default-ui.css",   // Spring Security 기본 로그인 페이지 CSS
                                 "/actuator/**",
                                 "/ping"
                         ).permitAll()
@@ -144,7 +155,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 // 기본 폼 로그인 페이지를 사용합니다.
-                .formLogin(Customizer.withDefaults())
+                .formLogin(form -> form
+                        .loginPage("/auth-service/login")
+                        .loginProcessingUrl("/login")
+                )
                 // 로그아웃 설정을 정의합니다.
                 .logout(logout -> logout
                         .logoutSuccessHandler(new SimpleUrlLogoutSuccessHandler()) // 로그아웃 성공 시 기본 핸들러 사용
