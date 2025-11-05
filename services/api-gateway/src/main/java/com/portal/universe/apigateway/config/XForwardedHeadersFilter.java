@@ -33,6 +33,16 @@ public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         URI uri = request.getURI();
+        String path = uri.getPath();
+
+        if (path.startsWith("/auth-service/oauth2/") ||
+                path.startsWith("/auth-service/.well-known/") ||
+                path.startsWith("/auth-service/connect/") ||
+                path.startsWith("/auth-service/login") ||
+                path.startsWith("/auth-service/logout")) {
+            log.debug("Skipping XForwardedHeadersFilter for OIDC path: {}", path);
+            return chain.filter(exchange);
+        }
 
         // Host 헤더에서 원본 호스트와 포트를 추출합니다.
         String originalHost = request.getHeaders().getFirst("Host");
@@ -57,7 +67,6 @@ public class XForwardedHeadersFilter implements GlobalFilter, Ordered {
         }
 
         // 경로에서 prefix 추출 (예: /auth-service)
-        String path = uri.getPath();
         String prefix = "";
         if (path.startsWith("/auth-service")) {
             prefix = "/auth-service";
