@@ -1,9 +1,9 @@
-package com.portal.universe.blogservice.controller;
+package com.portal.universe.blogservice.post.controller;
 
-import com.portal.universe.blogservice.dto.PostCreateRequest;
-import com.portal.universe.blogservice.dto.PostResponse;
-import com.portal.universe.blogservice.dto.PostUpdateRequest;
-import com.portal.universe.blogservice.service.BlogService;
+import com.portal.universe.blogservice.post.dto.PostCreateRequest;
+import com.portal.universe.blogservice.post.dto.PostResponse;
+import com.portal.universe.blogservice.post.dto.PostUpdateRequest;
+import com.portal.universe.blogservice.post.service.PostService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,9 +18,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/")
 @RequiredArgsConstructor
-public class BlogController {
+public class PostController {
 
-    private final BlogService blogService;
+    private final PostService postService;
 
     /**
      * 새로운 게시물을 생성합니다.
@@ -35,7 +35,7 @@ public class BlogController {
             @AuthenticationPrincipal Jwt jwt
             ) {
         String authorId = jwt.getSubject();
-        return ApiResponse.success(blogService.createPost(request, authorId));
+        return ApiResponse.success(postService.createPost(request, authorId));
     }
 
     /**
@@ -45,7 +45,7 @@ public class BlogController {
      */
     @GetMapping
     public ApiResponse<List<PostResponse>> getAllPosts() {
-        return ApiResponse.success(blogService.getAllPosts());
+        return ApiResponse.success(postService.getAllPosts());
     }
 
     /**
@@ -56,7 +56,7 @@ public class BlogController {
      */
     @GetMapping("/{postId}")
     public ApiResponse<PostResponse> getPostById(@PathVariable String postId) {
-        return ApiResponse.success(blogService.getPostById(postId));
+        return ApiResponse.success(postService.getPostById(postId));
     }
 
     /**
@@ -74,7 +74,7 @@ public class BlogController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         String userId = jwt.getSubject();
-        return ApiResponse.success(blogService.updatePost(postId, request, userId));
+        return ApiResponse.success(postService.updatePost(postId, request, userId));
     }
 
     /**
@@ -90,7 +90,7 @@ public class BlogController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         String userId = jwt.getSubject();
-        blogService.deletePost(postId, userId);
+        postService.deletePost(postId, userId);
         return ApiResponse.success(null);
     }
 
@@ -101,6 +101,6 @@ public class BlogController {
      */
     @GetMapping("/reviews")
     public ApiResponse<List<PostResponse>> getPostByProductId(@RequestParam String productId) {
-        return ApiResponse.success(blogService.getPostsByProductId(productId));
+        return ApiResponse.success(postService.getPostsByProductId(productId));
     }
 }
