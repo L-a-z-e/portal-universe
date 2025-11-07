@@ -7,15 +7,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
+import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,23 +30,19 @@ import java.util.stream.Collectors;
 @Configuration
 public class AuthorizationServerConfig {
 
-    // 외부 설정(application.yml)에서 리다이렉트 URI 목록을 주입받습니다.
     @Value("${oauth2.client.redirect-uris:http://localhost:30000/callback}")
     private String[] redirectUris;
 
-    // 외부 설정에서 로그아웃 후 리다이렉트될 URI 목록을 주입받습니다.
     @Value("${oauth2.client.post-logout-redirect-uris:http://localhost:30000}")
     private String[] postLogoutRedirectUris;
 
     /**
      * OAuth2 클라이언트의 정보를 등록하고 관리하는 저장소 Bean을 생성합니다.
-     * 본 예제에서는 In-Memory 방식을 사용하지만, 운영 환경에서는 JDBC 방식(JdbcRegisteredClientRepository)을 사용하는 것이 일반적입니다.
      *
      * @return RegisteredClientRepository 클라이언트 정보 저장소
      */
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        // 실제 운영환경에서는 외부 설정 파일로 분리하는 것이 안전합니다.
         String clientId = "portal-client";
 
         RegisteredClient.Builder builder = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -61,6 +60,13 @@ public class AuthorizationServerConfig {
                 .clientSettings(ClientSettings.builder()
                         .requireProofKey(true) // PKCE(Proof Key for Code Exchange) 강제
                         .requireAuthorizationConsent(false) // 사용자 동의 화면 생략
+                        .build()
+                )
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofMinutes(2))
+                        .refreshTokenTimeToLive(Duration.ofDays(7))
+                        .reuseRefreshTokens(false)
+                        .idTokenSignatureAlgorithm(SignatureAlgorithm.RS256)
                         .build()
                 );
 

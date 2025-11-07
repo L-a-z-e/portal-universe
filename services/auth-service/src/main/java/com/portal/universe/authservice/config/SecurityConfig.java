@@ -15,14 +15,15 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 
@@ -154,12 +155,14 @@ public class SecurityConfig {
                         // 위에서 지정한 경로 외의 모든 요청은 인증이 필요합니다.
                         .anyRequest().authenticated()
                 )
-                // 기본 폼 로그인 페이지를 사용합니다.
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1)
+                        .sessionRegistry(sessionRegistry()))
                 .formLogin(form -> form
                         .loginPage("/auth-service/login")
                         .loginProcessingUrl("/login")
                 )
-                // 로그아웃 설정을 정의합니다.
                 .logout(logout -> logout
                         .logoutSuccessHandler(new SimpleUrlLogoutSuccessHandler()) // 로그아웃 성공 시 기본 핸들러 사용
                         .invalidateHttpSession(true) // 세션 무효화
@@ -192,6 +195,16 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SessionRegistryImpl sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 
 }
