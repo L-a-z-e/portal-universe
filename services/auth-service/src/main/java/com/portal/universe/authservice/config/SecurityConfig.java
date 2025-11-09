@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -97,6 +98,9 @@ public class SecurityConfig {
                 })
                 // 인증 서버 엔드포인트에 대해서는 CSRF 보호를 비활성화합니다.
                 .csrf(csrf -> csrf.ignoringRequestMatchers(authorizationServerConfigurer.getEndpointsMatcher()))
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                )
                 .exceptionHandling(exceptions -> exceptions
                         // 브라우저(HTML) 요청 시에는 로그인 페이지로 리다이렉트합니다.
                         .defaultAuthenticationEntryPointFor(
@@ -171,6 +175,9 @@ public class SecurityConfig {
                 )
                 // 회원가입 API에 대해서는 CSRF 보호를 비활성화합니다.
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/signup"))
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                )
                 .oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()))
                 .cors(AbstractHttpConfigurer::disable);
         return http.build();
