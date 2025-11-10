@@ -1,5 +1,6 @@
 package com.portal.universe.authservice.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,13 +29,16 @@ import java.util.stream.Collectors;
  * OAuth2 클라이언트 정보, 토큰 커스터마이징, 서버 발급자(issuer) 정보 등을 정의합니다.
  */
 @Configuration
+@RequiredArgsConstructor
 public class AuthorizationServerConfig {
 
-    @Value("${oauth2.client.redirect-uris:http://localhost:30000/callback}")
-    private String[] redirectUris;
+    private final OAuth2ClientProperties oAuth2ClientProperties;
 
-    @Value("${oauth2.client.post-logout-redirect-uris:http://localhost:30000}")
-    private String[] postLogoutRedirectUris;
+//    @Value("${oauth2.client.redirect-uris:http://localhost:30000/callback}")
+//    private String[] redirectUris;
+//
+//    @Value("${oauth2.client.post-logout-redirect-uris:http://localhost:30000}")
+//    private String[] postLogoutRedirectUris;
 
     /**
      * OAuth2 클라이언트의 정보를 등록하고 관리하는 저장소 Bean을 생성합니다.
@@ -71,14 +75,18 @@ public class AuthorizationServerConfig {
                 );
 
         // 설정 파일에서 읽어온 Redirect URIs 추가
-        for (String uri : redirectUris) {
+        for (String uri : oAuth2ClientProperties.getRedirectUris()) {
             builder.redirectUri(uri.trim());
         }
 
         // 설정 파일에서 읽어온 Post Logout Redirect URIs 추가
-        for (String uri : postLogoutRedirectUris) {
+        for (String uri : oAuth2ClientProperties.getPostLogoutRedirectUris()) {
             builder.postLogoutRedirectUri(uri.trim());
         }
+
+        RegisteredClient client = builder.build();
+        client.getRedirectUris().forEach(uri -> System.out.println("Redirect URI: " + uri));
+        client.getPostLogoutRedirectUris().forEach(uri -> System.out.println("Post Logout URI: " + uri));
 
         return new InMemoryRegisteredClientRepository(builder.build());
     }
