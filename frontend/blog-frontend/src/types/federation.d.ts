@@ -1,3 +1,5 @@
+// blog-frontend/src/types/federation.d.ts
+
 declare module 'portal_shell/authStore' {
   export const useAuthStore: () => {
     isAuthenticated: import('vue').ComputedRef<boolean>;

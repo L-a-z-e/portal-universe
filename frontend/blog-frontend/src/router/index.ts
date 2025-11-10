@@ -1,3 +1,5 @@
+// blog-frontend/src/router/index.ts
+
 import {createMemoryHistory, createRouter, createWebHistory, type Router, type RouteRecordRaw} from "vue-router";
 
 import PostListPage from '../views/PostListPage.vue';

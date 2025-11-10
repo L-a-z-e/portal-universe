@@ -1,3 +1,5 @@
+// blog_frontend/src/api/posts.ts
+
 import apiClient from "./index.ts";
 import type { PostResponse } from '../dto/PostResponse';
 import type { PostCreateRequest } from '../dto/PostCreateRequest';

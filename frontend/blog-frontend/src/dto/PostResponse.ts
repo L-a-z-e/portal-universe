@@ -1,3 +1,5 @@
+// blog-frontend/src/dto/PostResponse.ts
+
 export interface PostResponse {
   id: string;
   title: string;

@@ -1,3 +1,5 @@
+// blog-frontend/src/api/index.ts
+
 import axios from 'axios';
 
 const apiClient = axios.create({

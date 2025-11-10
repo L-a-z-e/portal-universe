@@ -1,3 +1,4 @@
+// blog-frontend/src/bootstrap.ts
 import { createApp, type App as VueApp } from 'vue';
 import App from './App.vue';
 import type { Router } from 'vue-router';
