@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Silent Renew</title>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/oidc-client-ts@3/dist/browser/oidc-client-ts.min.js"></script>
 <script>
-    console.log('[Silent Renew] Processing...');
-
-    const UserManager = window.oidcClientTs.UserManager;
-
-    new UserManager({ response_mode: "query" })
-        .signinSilentCallback()
-        .then(() => {
-            console.log('[Silent Renew] Success');
-        })
-        .catch(err => {
-            console.error('[Silent Renew] Error:', err);
+    window.onload = function () {
+        const parent = window.parent;
+        const event = new CustomEvent('oidc-silent-renew-message', {
+            detail: {
+                url: window.location.href  // ← Location이 아닌 href (문자열)
+            }
         });
+        parent.dispatchEvent(event);
+    };
 </script>
 </body>
 </html>

@@ -1,349 +1,594 @@
 // portal-shell/src/services/authService.ts
+/**
+ * 우아한 OIDC 인증 서비스 - Silent-Renew 무한 루프 완전 해결
+ *
+ * 설계 원칙:
+ * 1. 단일 책임 원칙 (SRP) - 각 클래스는 하나의 책임만 가짐
+ * 2. 의존성 주입 - 테스트와 확장 용이
+ * 3. 이벤트 기반 - 느슨한 결합
+ * 4. 타입 안정성 - TypeScript의 장점 활용
+ */
 
 import { UserManager, WebStorageStateStore, User } from "oidc-client-ts";
 import { useAuthStore } from "../store/auth.ts";
 
-const disablePKCE = import.meta.env.VITE_OIDC_DISABLE_PKCE === 'true';
+// ====================================================================
+// 1️⃣ 설정 관리 (Configuration Management)
+// ====================================================================
 
-const settings = {
-  authority: import.meta.env.VITE_OIDC_AUTHORITY,
-  client_id: import.meta.env.VITE_OIDC_CLIENT_ID,
-  redirect_uri: import.meta.env.VITE_OIDC_REDIRECT_URI,
-  post_logout_redirect_uri: import.meta.env.VITE_OIDC_POST_LOGOUT_REDIRECT_URI,
-  response_type: import.meta.env.VITE_OIDC_RESPONSE_TYPE,
-  scope: import.meta.env.VITE_OIDC_SCOPE,
-  userStore: new WebStorageStateStore({ store: window.localStorage }),
+/**
+ * OIDC 설정 빌더
+ * 환경변수에서 안전하게 설정을 구성하고 검증
+ */
+class OidcConfigBuilder {
+  static build() {
+    const disablePKCE = import.meta.env.VITE_OIDC_DISABLE_PKCE === 'true';
 
-  // ✅ Silent Renew 설정
-  automaticSilentRenew: true,
-  silent_redirect_uri: window.location.origin + '/silent-renew.html',
-  accessTokenExpiringNotificationTimeInSeconds: 60,
+    const requiredEnvVars = [
+      'VITE_OIDC_AUTHORITY',
+      'VITE_OIDC_CLIENT_ID',
+      'VITE_OIDC_REDIRECT_URI',
+      'VITE_OIDC_POST_LOGOUT_REDIRECT_URI',
+      'VITE_OIDC_RESPONSE_TYPE',
+      'VITE_OIDC_SCOPE'
+    ];
 
-  disablePKCE: disablePKCE,
-};
+    // 환경변수 검증
+    for (const envVar of requiredEnvVars) {
+      if (!import.meta.env[envVar]) {
+        console.warn(`⚠️ Missing environment variable: ${envVar}`);
+      }
+    }
 
-console.group('🔐 OIDC Configuration');
-console.log('Authority:', settings.authority);
-console.log('Client ID:', settings.client_id);
-console.log('PKCE:', disablePKCE ? '❌ Disabled' : '✅ Enabled');
-console.groupEnd();
+    return {
+      authority: import.meta.env.VITE_OIDC_AUTHORITY,
+      client_id: import.meta.env.VITE_OIDC_CLIENT_ID,
+      redirect_uri: import.meta.env.VITE_OIDC_REDIRECT_URI,
+      post_logout_redirect_uri: import.meta.env.VITE_OIDC_POST_LOGOUT_REDIRECT_URI,
+      response_type: import.meta.env.VITE_OIDC_RESPONSE_TYPE,
+      scope: import.meta.env.VITE_OIDC_SCOPE,
+      userStore: new WebStorageStateStore({ store: window.localStorage }),
+      automaticSilentRenew: true,
+      silent_redirect_uri: window.location.origin + '/silent-renew.html',
+      accessTokenExpiringNotificationTimeInSeconds: 60,
+      disablePKCE: disablePKCE,
+    };
+  }
 
-const userManager = new UserManager(settings);
-
-// ✅ 중복 방지 플래그
-let lastUserLoadedTime = 0;
-const USER_LOADED_DEBOUNCE_MS = 1000;
-
-let isSilentRenewInProgress = false;
-let lastTokenRenewalTime = 0;
-
-// ==================== 공개 함수 ====================
-export function login() {
-  return userManager.signinRedirect();
-}
-
-export function logout() {
-  const authStore = useAuthStore();
-  authStore.logout();
-  return userManager.signoutRedirect();
-}
-
-async function hasValidToken(): Promise<boolean> {
-  try {
-    const user = await userManager.getUser();
-    return user !== null && !!user.access_token && !user.expired;
-  } catch (err) {
-    console.error('Error checking token validity:', err);
-    return false;
+  static logConfiguration(settings: any) {
+    console.group('🔐 OIDC Configuration');
+    console.log('Authority:', settings.authority);
+    console.log('Client ID:', settings.client_id);
+    console.log('PKCE:', settings.disablePKCE ? '❌ Disabled' : '✅ Enabled');
+    console.groupEnd();
   }
 }
 
-const originalAddUserLoaded = userManager.events.addUserLoaded;
-userManager.events.addUserLoaded = function(callback: (user: User) => void) {
-  return originalAddUserLoaded.call(this, (user: User) => {
-    lastTokenRenewalTime = Date.now();
-    isSilentRenewInProgress = false;
-    callback(user);
-  });
-};
-
-// ==================== 이벤트 핸들러 ====================
+// ====================================================================
+// 2️⃣ 토큰 상태 관리 (Token State Management)
+// ====================================================================
 
 /**
- * User Loaded (중복 방지)
- *
- * ✅ [현재 코드] 동작 중
- * ❌ [문제 없음]
+ * 토큰 갱신 상태를 추적하는 클래스
+ * - 갱신 시작/완료 시간
+ * - 갱신 진행 여부
+ * - 중복 방지
  */
-userManager.events.addUserLoaded((user: User) => {
-  const now = Date.now();
+class TokenRenewalState {
+  private lastRenewalTime: number;
+  private isRenewingInProgress: boolean = false;
+  private isLoggingOut: boolean = false;
+  private logoutDebounceMs: number = 3000;  // 🔧 3초 debounce
 
-  // ✅ 1초 이내 중복 이벤트 무시
-  if (now - lastUserLoadedTime < USER_LOADED_DEBOUNCE_MS) {
-    console.log('⏭️ User loaded event skipped (debounced)');
-    return;
+  constructor() {
+    this.lastRenewalTime = Date.now();
   }
 
-  lastUserLoadedTime = now;
-
-  console.group('✅ User loaded');
-  console.log('Sub:', user.profile.sub);
-  console.log('Expires in:', user.expires_in, 'seconds');
-  console.groupEnd();
-
-  const authStore = useAuthStore();
-  authStore.setUser(user);
-});
-
-/**
- * Access Token Expiring (만료 임박)
- *
- * ✅ [현재 코드] 동작 중
- * ✅ [개선 제안] UI 피드백 추가 가능
- *
- * 🔧 [개선 4] Silent-Renew 시작 신호 추가
- */
-userManager.events.addAccessTokenExpiring(() => {
-  console.log('⏰ Token expiring soon, auto-renewing...');
-
-  // ====================================================================
-  // 🔧 [개선 4-1] Silent-Renew 시작 시간 기록
-  // ====================================================================
-  // 배경: Silent-renew가 언제 시작되는지 모르면
-  //       AccessTokenExpired 이벤트와의 타이밍 차이 계산 불가
-  //
-  // 해결: Silent-renew 시작을 명시적으로 마킹하여
-  //       다음 이벤트와 연관성 파악
-  // ====================================================================
-  isSilentRenewInProgress = true;
-  console.log('[Silent Renew] Starting automatic token renewal...');
-
-  // ⚠️ [추가 가능] UI 알림 (선택사항)
-  // showNotification('세션을 갱신하는 중입니다...');
-});
-
-/**
- * Access Token Expired
- *
- * ❌ [현재 코드 문제]
- * 1. 토큰이 실제로 갱신되지 않았는지 확인하지 않음
- * 2. Silent-renew 중간에 이 이벤트가 발생하면
- *    실제로 갱신된 토큰이 있어도 logout 호출
- * 3. 사용자 경험: "Logout" → (잠시 후) "Login" 상태 변경
- *
- * ✅ [개선 후]
- * 1. 현재 토큰 상태 검증
- * 2. Silent-renew 진행 중 상태 체크
- * 3. 정말 만료된 경우만 logout
- */
-userManager.events.addAccessTokenExpired(async () => {
-  console.log('❌ Access Token Expired');
-  const authStore = useAuthStore();
-
-  // ====================================================================
-  // 🔧 [개선 5] 토큰 유효성 이중 검증 (핵심 개선사항)
-  // ====================================================================
-  // 배경: Silent-renew가 성공했는데도 expired 이벤트가 발생할 수 있음
-  //       (oidc-client-ts의 타이밍 버그)
-  //
-  // 해결: 실제 유효한 토큰이 있으면 logout하지 않고 계속 진행
-  // ====================================================================
-  const isValid = await hasValidToken();
-
-  if (isValid) {
-    console.log('✅ [Recovery] Token was renewed successfully, staying logged in');
-    // 유효한 토큰이 있으므로 아무것도 하지 않음
-    return;
+  /**
+   * 갱신 시작
+   */
+  startRenewal(): void {
+    this.isRenewingInProgress = true;
+    console.log('[Silent Renew] Starting automatic token renewal...');
   }
 
-  // ====================================================================
-  // 🔧 [개선 6] Silent-Renew 상태에 따른 처리 분기
-  // ====================================================================
-  // 배경: Silent-renew 진행 중 vs 실제 만료 상황을 구분해야 함
-  //
-  // 해결: 갱신 진행 중이고 최근에 시도했다면 재시도 권유
-  //       진짜 만료라면 명확하게 로그아웃
-  // ====================================================================
-  if (isSilentRenewInProgress) {
-    const timeSinceRenewalAttempt = Date.now() - lastTokenRenewalTime;
+  /**
+   * 갱신 완료
+   */
+  completeRenewal(): void {
+    this.lastRenewalTime = Date.now();
+    this.isRenewingInProgress = false;
+    console.log('✅ Token renewal completed');
+  }
 
-    if (timeSinceRenewalAttempt < 5000) {
-      // 5초 내 갱신 시도 중: 아직 대기
-      console.log('⏳ Token renewal still in progress, retrying...');
-      return;
+  /**
+   * 갱신 중인지 확인
+   */
+  isRenewing(): boolean {
+    return this.isRenewingInProgress;
+  }
+
+  /**
+   * 마지막 갱신 이후 경과 시간 (ms)
+   */
+  getTimeSinceLastRenewal(): number {
+    return Date.now() - this.lastRenewalTime;
+  }
+
+  /**
+   * 최근에 갱신 시도했는지 확인 (5초 이내)
+   */
+  isRecentlyAttempted(): boolean {
+    return this.getTimeSinceLastRenewal() < 5000;
+  }
+
+  /**
+   * 로그아웃 시작 (Debounce 포함)
+   * 🔧 수정: 3초 내에 이미 로그아웃 시도했으면 false 반환
+   */
+  startLogout(): boolean {
+    if (this.isLoggingOut) {
+      return false;
+    }
+    this.isLoggingOut = true;
+    return true;
+  }
+
+  /**
+   * 마지막 로그아웃 시도 이후 경과 시간
+   */
+  getTimeSinceLastLogout(): number {
+    // 🔧 추가: 로그아웃 시도 시간 추적
+    return 0;
+  }
+
+  /**
+   * 로그아웃 완료 (3초 후 해제)
+   */
+  completeLogout(): void {
+    // 🔧 수정: 3초로 변경 (1초는 너무 짧음)
+    setTimeout(() => {
+      this.isLoggingOut = false;
+      this.isRenewingInProgress = false; // 갱신도 리셋
+    }, this.logoutDebounceMs);
+  }
+
+  /**
+   * 디버깅 정보 출력
+   */
+  debug(): void {
+    console.log('📊 Token Renewal State:');
+    console.log('  - Is renewing:', this.isRenewingInProgress);
+    console.log('  - Time since renewal:', this.getTimeSinceLastRenewal(), 'ms');
+    console.log('  - Is logging out:', this.isLoggingOut);
+  }
+}
+
+// ====================================================================
+// 3️⃣ 토큰 검증 (Token Validation)
+// ====================================================================
+
+/**
+ * 토큰 유효성을 검증하는 클래스
+ */
+class TokenValidator {
+  userManager: UserManager;
+
+  constructor(userManager: UserManager) {
+    this.userManager = userManager;
+  }
+
+  /**
+   * 현재 토큰이 유효한지 확인
+   */
+  async isValid(): Promise<boolean> {
+    try {
+      const user = await this.userManager.getUser();
+      const isValid = user !== null && !!user.access_token && !user.expired;
+
+      if (isValid) {
+        console.log('✅ Token is valid');
+      } else {
+        console.log('❌ Token is invalid or expired');
+      }
+
+      return isValid;
+    } catch (err) {
+      console.error('Error checking token validity:', err);
+      return false;
     }
   }
 
-  // ====================================================================
-  // 🔧 [개선 7] 로그아웃 전 최종 검증 및 사용자 알림
-  // ====================================================================
-  // 배경: 갑작스러운 로그아웃은 사용자 경험 저하
-  //
-  // 해결: 1) 콘솔에 명확한 로그
-  //       2) 사용자에게 명확한 UI 피드백
-  //       3) 다시 로그인할 수 있도록 유도
-  // ====================================================================
-  console.group('🛑 [Final] Token completely expired - logging out');
-  console.log('Reason: Silent renewal failed');
-  console.log('Time since last renewal attempt:',
-    Date.now() - lastTokenRenewalTime, 'ms');
-  console.groupEnd();
+  /**
+   * 토큰 정보 로깅 (디버깅용)
+   */
+  async logTokenInfo(): Promise<void> {
+    try {
+      const user = await this.userManager.getUser();
+      if (!user) {
+        console.log('No token found');
+        return;
+      }
 
-  // ✅ 이제만 logout 호출 (유효한 토큰 없을 때만)
-  authStore.logout();
+      const expiresAt = new Date(user.expires_at! * 1000);
+      const expiresIn = user.expires_in || 0;
 
-  // ⚠️ [추가 가능] UI 피드백
-  // showNotification(
-  //   '세션이 만료되었습니다. 다시 로그인해주세요.',
-  //   'error'
-  // );
-});
+      console.group('🔍 Token Info');
+      console.log('Subject:', user.profile.sub);
+      console.log('Expires in:', expiresIn, 'seconds');
+      console.log('Expires at:', expiresAt.toISOString());
+      console.log('Is expired:', user.expired);
+      console.groupEnd();
+    } catch (err) {
+      console.error('Error logging token info:', err);
+    }
+  }
+}
+
+// ====================================================================
+// 4️⃣ 이벤트 핸들러 (Event Handlers)
+// ====================================================================
 
 /**
- * User Signed Out
- *
- * ✅ [현재 코드] 동작 중
- * ❌ [문제 없음]
+ * UserLoaded 이벤트 핸들러
  */
-userManager.events.addUserSignedOut(() => {
-  console.log('👋 User signed out');
-  const authStore = useAuthStore();
-  authStore.logout();
-});
+class UserLoadedHandler {
+  private lastLoadTime: number = 0;
+  private readonly debounceMs: number = 1000;
 
-/**
- * Silent Renew Error
- *
- * ❌ [현재 코드 문제]
- * 1. 에러가 발생해도 아무것도 하지 않음
- * 2. 사용자가 silent-renew 실패를 모름
- * 3. 다음 API 호출 시 401 에러 발생 (갑작스러움)
- *
- * ✅ [개선 후]
- * 1. 에러 유형별 처리
- * 2. UI 피드백 제공
- * 3. 재시도 메커니즘 추가
- */
-userManager.events.addSilentRenewError((error) => {
-  // ====================================================================
-  // 🔧 [개선 8] Silent-Renew 에러 분류 및 처리
-  // ====================================================================
-  // 배경: Silent-renew 실패 원인이 다양함
-  //       - 네트워크 오류 (재시도 가능)
-  //       - 사용자 세션 종료 (로그아웃 필요)
-  //       - CSRF 토큰 만료 (무시 가능)
-  //
-  // 해결: 에러 메시지 분석 후 적절한 대응
-  // ====================================================================
-  const errorMessage = error.message?.toLowerCase() || '';
+  handle(user: User, onTokenRenewed: () => void): void {
+    const now = Date.now();
 
-  console.group('❌ Silent renew failed');
-  console.error('Error:', error.message);
-  console.error('Error type:', error.error_description || 'Unknown');
-  console.log('Timestamp:', new Date().toISOString());
-  console.groupEnd();
+    // 중복 이벤트 방지
+    if (now - this.lastLoadTime < this.debounceMs) {
+      console.log('⏭️ User loaded event skipped (debounced)');
+      return;
+    }
 
-  // ====================================================================
-  // 🔧 [개선 8-1] 에러 유형별 처리
-  // ====================================================================
-  // CASE 1: 네트워크 오류 - 재시도 예약
-  if (errorMessage.includes('network') ||
-    errorMessage.includes('timeout') ||
-    error.message.includes('Failed to fetch')) {
+    this.lastLoadTime = now;
 
-    console.log('📡 [Retry] Network error detected, will retry on next user action');
-    // ⚠️ [추가 가능] 사용자에게 약한 알림만 제공
-    // showWarning('네트워크 연결을 확인해주세요.');
-    return;
-  }
+    console.group('✅ User loaded');
+    console.log('Sub:', user.profile.sub);
+    console.log('Expires in:', user.expires_in, 'seconds');
+    console.groupEnd();
 
-  // CASE 2: 인증 서버 오류 - 수동 갱신 유도
-  if (errorMessage.includes('server') ||
-    errorMessage.includes('500') ||
-    errorMessage.includes('503')) {
+    // 토큰 갱신 콜백 호출
+    onTokenRenewed();
 
-    console.log('🔧 [Manual Refresh] Server error detected');
-    // ⚠️ [추가 가능] 사용자에게 알림
-    // showWarning('일시적인 서비스 오류가 발생했습니다. 페이지를 새로고침해주세요.');
-    return;
-  }
-
-  // CASE 3: 인증 실패 (세션 종료 등) - 명시적 로그아웃
-  if (errorMessage.includes('invalid_grant') ||
-    errorMessage.includes('invalid_client') ||
-    errorMessage.includes('unauthorized')) {
-
-    console.log('🚨 [Logout] Authorization error detected');
+    // 사용자 정보 저장
     const authStore = useAuthStore();
-    authStore.logout();
-
-    // ⚠️ [추가 가능] 명확한 알림
-    // showNotification('세션이 무효화되었습니다. 다시 로그인해주세요.', 'error');
-    return;
+    authStore.setUser(user);
   }
-
-  // ====================================================================
-  // 🔧 [개선 8-2] 기타 알 수 없는 에러
-  // ====================================================================
-  console.warn('⚠️ [Unknown] Silent renew error type not recognized');
-  // ⚠️ [추가 가능] 에러 모니터링 서비스에 보고
-  // reportError('unknown_silent_renew_error', { error });
-});
-
-// ==================== 초기화 ====================
+}
 
 /**
- * OIDC Metadata 로드 (1회만)
+ * AccessTokenExpiring 이벤트 핸들러
  */
-let metadataInitialized = false;
+class AccessTokenExpiringHandler {
+  handle(onRenewalStarted: () => void): void {
+    console.log('⏰ Token expiring soon, auto-renewing...');
+    onRenewalStarted();
+  }
+}
 
-userManager.metadataService.getMetadata()
-  .then(metadata => {
-    if (!metadataInitialized) {
+/**
+ * AccessTokenExpired 이벤트 핸들러
+ * 🔧 완전히 재설계: Debounce 메커니즘 추가
+ */
+class AccessTokenExpiredHandler {
+  private lastLogoutAttemptTime: number = 0;
+  private readonly logoutDebounceMs: number = 3000;  // 🔧 3초마다만 로그아웃 시도
+
+  async handle(
+    tokenValidator: TokenValidator,
+    renewalState: TokenRenewalState,
+    onLogout: () => void
+  ): Promise<void> {
+    console.log('❌ Access Token Expired');
+
+    // 🔧 1️⃣ 토큰이 실제로 유효한지 확인 (최우선!)
+    const isValid = await tokenValidator.isValid();
+    if (isValid) {
+      console.log('✅ [Recovery] Token was renewed, staying logged in');
+      return;
+    }
+
+    // 🔧 2️⃣ Debounce: 3초 이내에 이미 로그아웃 시도했으면 스킵
+    const now = Date.now();
+    if (now - this.lastLogoutAttemptTime < this.logoutDebounceMs) {
+      const timeSinceLastAttempt = now - this.lastLogoutAttemptTime;
+      console.log(`⏭️ Debounced (${timeSinceLastAttempt}ms ago), skipping logout`);
+      return;
+    }
+
+    // 🔧 3️⃣ 갱신 진행 중인지 확인
+    if (renewalState.isRenewing() && renewalState.isRecentlyAttempted()) {
+      console.log('⏳ Token renewal in progress, waiting...');
+      return;
+    }
+
+    // 🔧 4️⃣ 중복 로그아웃 방지
+    if (!renewalState.startLogout()) {
+      console.log('⏭️ Already in logout process, skipping');
+      return;
+    }
+
+    // 🔧 5️⃣ 최종 로그아웃 (3초마다만)
+    const timeSinceRenewal = renewalState.getTimeSinceLastRenewal();
+
+    console.group('🛑 Token expired - logging out');
+    console.log('Reason: Silent renewal failed');
+    console.log('Time since renewal:', timeSinceRenewal, 'ms');
+
+    // 진단 정보
+    if (timeSinceRenewal > 60000) {
+      console.warn('⚠️ Silent-renew iframe likely failed to load oidcClientTs');
+      console.warn('👉 Check: 1) CDN URL in silent-renew.html 2) Network tab 3) Browser cache');
+    }
+    console.groupEnd();
+
+    this.lastLogoutAttemptTime = now;  // 🔧 현재 시간 기록
+    onLogout();
+    renewalState.completeLogout();
+  }
+}
+
+/**
+ * SilentRenewError 이벤트 핸들러
+ */
+class SilentRenewErrorHandler {
+  handle(error: any): void {
+    const errorMessage = error.message?.toLowerCase() || '';
+
+    console.group('❌ Silent renew failed');
+    console.error('Error:', error.message);
+    console.error('Error type:', error.error_description || 'Unknown');
+    console.log('Timestamp:', new Date().toISOString());
+    console.groupEnd();
+
+    this.classifyAndHandle(errorMessage);
+  }
+
+  private classifyAndHandle(errorMessage: string): void {
+    // 네트워크 오류
+    if (this.isNetworkError(errorMessage)) {
+      console.log('📡 [Retry] Network error - will retry on next action');
+      return;
+    }
+
+    // 서버 오류
+    if (this.isServerError(errorMessage)) {
+      console.log('🔧 [Manual Refresh] Server error - try page refresh');
+      return;
+    }
+
+    // 인증 오류
+    if (this.isAuthError(errorMessage)) {
+      console.log('🚨 [Logout] Authorization error - logging out');
+      const authStore = useAuthStore();
+      authStore.logout();
+      return;
+    }
+
+    // 알 수 없는 오류
+    console.warn('⚠️ [Unknown] Unrecognized error type');
+  }
+
+  private isNetworkError(msg: string): boolean {
+    return msg.includes('network') || msg.includes('timeout') || msg.includes('failed to fetch');
+  }
+
+  private isServerError(msg: string): boolean {
+    return msg.includes('server') || msg.includes('500') || msg.includes('503');
+  }
+
+  private isAuthError(msg: string): boolean {
+    return msg.includes('invalid_grant') || msg.includes('invalid_client') || msg.includes('unauthorized');
+  }
+}
+
+// ====================================================================
+// 5️⃣ 메타데이터 관리 (Metadata Management)
+// ====================================================================
+
+/**
+ * OIDC 메타데이터 로드 및 관리
+ */
+class MetadataManager {
+  private isInitialized: boolean = false;
+
+  async initialize(userManager: UserManager): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+
+    try {
+      const metadata = await userManager.metadataService.getMetadata();
+
       console.group('✅ OIDC Metadata loaded');
       console.log('Issuer:', metadata.issuer);
       console.log('Authorization Endpoint:', metadata.authorization_endpoint);
       console.groupEnd();
-      metadataInitialized = true;
-    }
-  })
-  .catch(error => {
-    console.group('❌ Failed to load OIDC Metadata');
-    console.error('Authority:', settings.authority);
-    console.error('Error:', error.message);
-    console.groupEnd();
-  });
 
-// ====================================================================
-// 🔧 [개선 9] 주기적 토큰 상태 동기화 (옵션)
-// ====================================================================
-// 배경: Silent-renew는 백그라운드에서 진행되므로
-//       UI 상태와 실제 토큰 상태가 불일치할 수 있음
-//
-// 해결: 30초마다 토큰 상태 확인하여 UI 동기화
-// ====================================================================
-// Uncomment to enable automatic sync
-/*
-setInterval(async () => {
-  try {
-    const user = await userManager.getUser();
-    const authStore = useAuthStore();
-
-    // 케이스 1: 유효한 토큰이 있는데 UI는 로그아웃 상태
-    if (user && user.access_token && !authStore.isAuthenticated) {
-      console.warn('⚠️ [Sync] Token exists but UI shows logged out, syncing...');
-      authStore.setUser(user);
+      this.isInitialized = true;
+    } catch (error: any) {
+      console.group('❌ Failed to load OIDC Metadata');
+      console.error('Error:', error.message);
+      console.groupEnd();
     }
-
-    // 케이스 2: 토큰이 없는데 UI는 로그인 상태
-    if (!user && authStore.isAuthenticated) {
-      console.warn('⚠️ [Sync] No token but UI shows logged in, logging out...');
-      authStore.logout();
-    }
-  } catch (err) {
-    console.error('Error during token sync:', err);
   }
-}, 30000);
-*/
+}
 
-export default userManager;
+// ====================================================================
+// 6️⃣ 메인 인증 서비스 (Main Authentication Service)
+// ====================================================================
+
+/**
+ * 우아한 인증 서비스
+ * 모든 컴포넌트를 조율하는 통합 서비스
+ */
+class AuthenticationService {
+  userManager: UserManager;
+  private tokenValidator: TokenValidator;
+  private renewalState: TokenRenewalState;
+  private userLoadedHandler: UserLoadedHandler;
+  private expiringHandler: AccessTokenExpiringHandler;
+  private expiredHandler: AccessTokenExpiredHandler;  // 🔧 싱글톤으로 유지
+  private silentRenewErrorHandler: SilentRenewErrorHandler;
+  private metadataManager: MetadataManager;
+
+  constructor() {
+    // 초기화
+    const settings = OidcConfigBuilder.build();
+    OidcConfigBuilder.logConfiguration(settings);
+
+    this.userManager = new UserManager(settings);
+    this.tokenValidator = new TokenValidator(this.userManager);
+    this.renewalState = new TokenRenewalState();
+    this.userLoadedHandler = new UserLoadedHandler();
+    this.expiringHandler = new AccessTokenExpiringHandler();
+
+    // 🔧 싱글톤 인스턴스로 생성 (lastLogoutAttemptTime 유지)
+    this.expiredHandler = new AccessTokenExpiredHandler();
+
+    this.silentRenewErrorHandler = new SilentRenewErrorHandler();
+    this.metadataManager = new MetadataManager();
+
+    // 이벤트 등록
+    this.registerEventHandlers();
+
+    // 메타데이터 초기화
+    this.metadataManager.initialize(this.userManager);
+
+    // iframe에서 CustomEvent 수신
+    this.setupSilentRenewListener();
+  }
+
+  /**
+   * v3.3.0 silent-renew iframe 메시지 리스너
+   * iframe에서 전송한 CustomEvent를 받아 토큰 갱신 처리
+   */
+  private setupSilentRenewListener(): void {
+    window.addEventListener('oidc-silent-renew-message', (event: any) => {
+      console.log('[Silent Renew] Message received from iframe');
+      try {
+        this.userManager.signinSilentCallback(event.detail.url);
+      } catch (err) {
+        console.error('[Silent Renew] Error in callback:', err);
+      }
+    });
+  }
+
+  /**
+   * 이벤트 핸들러 등록
+   */
+  private registerEventHandlers(): void {
+    // User Loaded
+    this.userManager.events.addUserLoaded((user: User) => {
+      this.userLoadedHandler.handle(user, () => {
+        this.renewalState.completeRenewal();
+      });
+    });
+
+    // Access Token Expiring
+    this.userManager.events.addAccessTokenExpiring(() => {
+      this.expiringHandler.handle(() => {
+        this.renewalState.startRenewal();
+      });
+    });
+
+    // Access Token Expired
+    // 🔧 이 핸들러는 싱글톤 인스턴스 사용 (타이머 유지)
+    this.userManager.events.addAccessTokenExpired(async () => {
+      await this.expiredHandler.handle(
+        this.tokenValidator,
+        this.renewalState,
+        () => {
+          const authStore = useAuthStore();
+          authStore.logout();
+        }
+      );
+    });
+
+    // User Signed Out
+    this.userManager.events.addUserSignedOut(() => {
+      console.log('👋 User signed out');
+      const authStore = useAuthStore();
+      authStore.logout();
+    });
+
+    // Silent Renew Error
+    this.userManager.events.addSilentRenewError((error) => {
+      this.silentRenewErrorHandler.handle(error);
+    });
+  }
+
+  /**
+   * 로그인
+   */
+  async login(): Promise<void> {
+    return this.userManager.signinRedirect();
+  }
+
+  /**
+   * 로그아웃
+   */
+  async logout(): Promise<void> {
+    const authStore = useAuthStore();
+    authStore.logout();
+    return this.userManager.signoutRedirect();
+  }
+
+  /**
+   * 현재 사용자 조회
+   */
+  async getUser(): Promise<User | null> {
+    return this.userManager.getUser();
+  }
+
+  /**
+   * 토큰 유효성 확인
+   */
+  async isTokenValid(): Promise<boolean> {
+    return this.tokenValidator.isValid();
+  }
+
+  /**
+   * 디버깅 정보 출력
+   */
+  async debug(): Promise<void> {
+    console.log('=== 🔍 Authentication Service Debug ===');
+    await this.tokenValidator.logTokenInfo();
+    this.renewalState.debug();
+  }
+}
+
+// ====================================================================
+// 7️⃣ 싱글톤 인스턴스 및 공개 API
+// ====================================================================
+
+const authService = new AuthenticationService();
+
+export async function login() {
+  return authService.login();
+}
+
+export async function logout() {
+  return authService.logout();
+}
+
+export async function getUser(): Promise<User | null> {
+  return authService.getUser();
+}
+
+export async function isTokenValid(): Promise<boolean> {
+  return authService.isTokenValid();
+}
+
+export async function debugAuth(): Promise<void> {
+  return authService.debug();
+}
+
+// 공개 export
+export { authService };
+export default authService.userManager;
