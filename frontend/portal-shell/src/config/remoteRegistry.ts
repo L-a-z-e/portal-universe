@@ -1,3 +1,5 @@
+// portal_shell/src/config/remoteRegistry.ts
+
 export type RemoteConfig = {
   name: string;              // 표시 이름 (예: 'Blog')
   key: string;               // federation key (예: 'blog_remote')

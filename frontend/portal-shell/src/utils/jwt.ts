@@ -1,3 +1,5 @@
+// portal-shell/src/utils/jwt.ts
+
 import {base64UrlDecodeToString} from "./base64.ts";
 
 export type JwtPayload = Record<string, any>;

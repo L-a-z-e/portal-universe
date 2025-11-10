@@ -1,3 +1,5 @@
+// portal-shell/src/main.ts
+
 import {type ComponentPublicInstance, createApp} from 'vue'
 import { createPinia } from "pinia";
 import './style.css'

@@ -1,3 +1,5 @@
+// portal-shell/src/router/index.ts
+
 import { createRouter, createWebHistory } from 'vue-router';
 import RemoteWrapper from '../components/RemoteWrapper.vue';
 import HomePage from "../views/HomePage.vue";

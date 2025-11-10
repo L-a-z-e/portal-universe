@@ -1,3 +1,5 @@
+// portal-shell/src/services/remoteLoader.ts
+
 import type { RemoteConfig } from '../config/remoteRegistry';
 
 export type RemoteLoadResult = {

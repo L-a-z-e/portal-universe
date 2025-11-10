@@ -1,3 +1,5 @@
+// portal_shell/src/utils/base64.ts
+
 export function base64UrlEncodeFromString(str: string): string {
   // 문자열 -> UTF-8 바이트
   const bytes: Uint8Array = new TextEncoder().encode(str);

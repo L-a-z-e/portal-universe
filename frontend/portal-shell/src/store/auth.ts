@@ -1,3 +1,5 @@
+// portal-shell/src/store/auth.ts
+
 import { defineStore } from 'pinia';
 import { computed, ref } from "vue";
 import type { User } from 'oidc-client-ts';

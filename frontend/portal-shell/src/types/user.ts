@@ -1,3 +1,5 @@
+// portal-shell/src/types/user.ts
+
 /**
  * 사용자 기본 정보
  */

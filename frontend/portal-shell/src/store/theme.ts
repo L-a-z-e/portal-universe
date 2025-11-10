@@ -1,3 +1,5 @@
+// portal-shell/src/store/theme.ts
+
 import { defineStore } from 'pinia';
 
 export const useThemeStore = defineStore('theme', {
