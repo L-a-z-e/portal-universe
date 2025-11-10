@@ -99,7 +99,7 @@ public class SecurityConfig {
                 // 인증 서버 엔드포인트에 대해서는 CSRF 보호를 비활성화합니다.
                 .csrf(csrf -> csrf.ignoringRequestMatchers(authorizationServerConfigurer.getEndpointsMatcher()))
                 .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)  // DENY 대신 DISABLE
                 )
                 .exceptionHandling(exceptions -> exceptions
                         // 브라우저(HTML) 요청 시에는 로그인 페이지로 리다이렉트합니다.
@@ -176,7 +176,7 @@ public class SecurityConfig {
                 // 회원가입 API에 대해서는 CSRF 보호를 비활성화합니다.
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/signup"))
                 .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)  // DENY 대신 DISABLE
                 )
                 .oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()))
                 .cors(AbstractHttpConfigurer::disable);

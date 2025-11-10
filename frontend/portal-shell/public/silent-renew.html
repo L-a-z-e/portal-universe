@@ -5,12 +5,13 @@
     <title>Silent Renew</title>
 </head>
 <body>
-<script src="<https://cdn.jsdelivr.net/npm/oidc-client-ts@3/dist/browser/oidc-client-ts.min.js>"></script>
+<script src="https://cdn.jsdelivr.net/npm/oidc-client-ts@3/dist/browser/oidc-client-ts.min.js"></script>
 <script>
-    import * as oidc from "oidc-client-ts";
-
     console.log('[Silent Renew] Processing...');
-    new oidc.UserManager({ response_mode: "query" })
+
+    const UserManager = window.oidcClientTs.UserManager;
+
+    new UserManager({ response_mode: "query" })
         .signinSilentCallback()
         .then(() => {
             console.log('[Silent Renew] Success');
