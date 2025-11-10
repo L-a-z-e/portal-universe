@@ -12,7 +12,7 @@ export interface ApiResponse<T> {
 }
 
 /**
- * Spring Page 응답 타입
+ * Spring Page 응답 (완전한 정의)
  */
 export interface PageResponse<T> {
   content: T[];
@@ -41,16 +41,6 @@ export interface PageResponse<T> {
   };
   numberOfElements: number;
   empty: boolean;
-}
-
-/**
- * API 공통 응답 래퍼
- */
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-  timestamp?: string;
 }
 
 /**

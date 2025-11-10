@@ -44,10 +44,10 @@ export interface PostUpdateRequest {
 }
 
 /**
- * 게시물 상태 변경 요청
+ * 게시물 상태 변경 요청 (백엔드 DTO와 정확히 일치)
  */
 export interface PostStatusChangeRequest {
-  status: PostStatus;
+  newStatus: PostStatus;  // ← 백엔드와 동일하게 newStatus
 }
 
 /**

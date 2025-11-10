@@ -2,6 +2,7 @@ import {defineConfig, loadEnv} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import federation from "@originjs/vite-plugin-federation";
 import { resolve } from 'path';
+import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -28,7 +29,8 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@portal/design-system/style.css': resolve(__dirname, '../design-system/dist/design-system.css')
+        '@portal/design-system/style.css': resolve(__dirname, '../design-system/dist/design-system.css'),
+        '@': path.resolve(__dirname, './src')
       }
     },
     server: {
