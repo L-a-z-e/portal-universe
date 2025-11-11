@@ -3,3 +3,5 @@ export * from './Card';
 export * from './Badge';
 export * from './Input';
 export * from './Modal';
+export * from './Tag';
+export * from './Avatar';
