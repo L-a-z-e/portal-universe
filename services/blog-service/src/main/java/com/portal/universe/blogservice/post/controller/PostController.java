@@ -18,7 +18,7 @@ import java.util.List;
  * RESTful API 설계 원칙에 따라 구성
  */
 @RestController
-@RequestMapping("/api/posts")
+@RequestMapping("/posts")
 @RequiredArgsConstructor
 public class PostController {
 
@@ -28,7 +28,7 @@ public class PostController {
 
     /**
      * 게시물 생성
-     * POST /api/posts
+     * POST /api/blog/posts
      */
     @PostMapping
     public ApiResponse<PostResponse> createPost(
@@ -42,7 +42,7 @@ public class PostController {
 
     /**
      * 전체 게시물 조회 (관리자용)
-     * GET /api/posts/all
+     * GET /api/blog/posts/all
      */
     @GetMapping("/all")
     public ApiResponse<List<PostResponse>> getAllPosts() {
@@ -52,7 +52,7 @@ public class PostController {
 
     /**
      * 게시물 상세 조회
-     * GET /api/posts/{postId}
+     * GET /api/blog/posts/{postId}
      */
     @GetMapping("/{postId}")
     public ApiResponse<PostResponse> getPostById(@PathVariable String postId) {
@@ -62,7 +62,7 @@ public class PostController {
 
     /**
      * 게시물 상세 조회 (조회수 증가)
-     * GET /api/posts/{postId}/view
+     * GET /api/blog/posts/{postId}/view
      */
     @GetMapping("/{postId}/view")
     public ApiResponse<PostResponse> getPostWithViewIncrement(
@@ -76,7 +76,7 @@ public class PostController {
 
     /**
      * 게시물 수정
-     * PUT /api/posts/{postId}
+     * PUT /api/blog/posts/{postId}
      */
     @PutMapping("/{postId}")
     public ApiResponse<PostResponse> updatePost(
@@ -91,7 +91,7 @@ public class PostController {
 
     /**
      * 게시물 삭제
-     * DELETE /api/posts/{postId}
+     * DELETE /api/blog/posts/{postId}
      */
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> deletePost(
@@ -120,7 +120,7 @@ public class PostController {
 
     /**
      * 작성자별 게시물 조회
-     * GET /api/posts/author/{authorId}?page=0&size=10
+     * GET /api/blog/posts/author/{authorId}?page=0&size=10
      */
     @GetMapping("/author/{authorId}")
     public ApiResponse<Page<PostListResponse>> getPostsByAuthor(
@@ -134,7 +134,7 @@ public class PostController {
 
     /**
      * 내 게시물 조회 (로그인 사용자)
-     * GET /api/posts/my?status=DRAFT&page=0&size=10
+     * GET /api/blog/posts/my?status=DRAFT&page=0&size=10
      */
     @GetMapping("/my")
     public ApiResponse<Page<PostListResponse>> getMyPosts(
@@ -155,7 +155,7 @@ public class PostController {
 
     /**
      * 카테고리별 게시물 조회
-     * GET /api/posts/category/{category}?page=0&size=10
+     * GET /api/blog/posts/category/{category}?page=0&size=10
      */
     @GetMapping("/category/{category}")
     public ApiResponse<Page<PostListResponse>> getPostsByCategory(
@@ -169,7 +169,7 @@ public class PostController {
 
     /**
      * 태그별 게시물 조회
-     * GET /api/posts/tags?tags=vue,spring&page=0&size=10
+     * GET /api/blog/posts/tags?tags=vue,spring&page=0&size=10
      */
     @GetMapping("/tags")
     public ApiResponse<Page<PostListResponse>> getPostsByTags(
@@ -183,7 +183,7 @@ public class PostController {
 
     /**
      * 인기 게시물 조회
-     * GET /api/posts/popular?page=0&size=10
+     * GET /api/blog/posts/popular?page=0&size=10
      */
     @GetMapping("/popular")
     public ApiResponse<Page<PostListResponse>> getPopularPosts(
@@ -196,7 +196,7 @@ public class PostController {
 
     /**
      * 최근 게시물 조회
-     * GET /api/posts/recent?limit=5
+     * GET /api/blog/posts/recent?limit=5
      */
     @GetMapping("/recent")
     public ApiResponse<List<PostListResponse>> getRecentPosts(
@@ -208,7 +208,7 @@ public class PostController {
 
     /**
      * 관련 게시물 조회
-     * GET /api/posts/{postId}/related?limit=5
+     * GET /api/blog/posts/{postId}/related?limit=5
      */
     @GetMapping("/{postId}/related")
     public ApiResponse<List<PostListResponse>> getRelatedPosts(
@@ -223,7 +223,7 @@ public class PostController {
 
     /**
      * 간단 검색
-     * GET /api/posts/search?keyword=spring&page=0&size=10
+     * GET /api/blog/posts/search?keyword=spring&page=0&size=10
      */
     @GetMapping("/search")
     public ApiResponse<Page<PostListResponse>> searchPosts(
@@ -237,7 +237,7 @@ public class PostController {
 
     /**
      * 고급 검색
-     * POST /api/posts/search/advanced
+     * POST /api/blog/posts/search/advanced
      */
     @PostMapping("/search/advanced")
     public ApiResponse<Page<PostListResponse>> searchPostsAdvanced(
@@ -251,7 +251,7 @@ public class PostController {
 
     /**
      * 게시물 상태 변경
-     * PATCH /api/posts/{postId}/status
+     * PATCH /api/blog/posts/{postId}/status
      */
     @PatchMapping("/{postId}/status")
     public ApiResponse<PostResponse> changePostStatus(
@@ -268,7 +268,7 @@ public class PostController {
 
     /**
      * 카테고리 통계
-     * GET /api/posts/stats/categories
+     * GET /api/blog/posts/stats/categories
      */
     @GetMapping("/stats/categories")
     public ApiResponse<List<CategoryStats>> getCategoryStats() {
@@ -278,7 +278,7 @@ public class PostController {
 
     /**
      * 인기 태그
-     * GET /api/posts/stats/tags?limit=10
+     * GET /api/blog/posts/stats/tags?limit=10
      */
     @GetMapping("/stats/tags")
     public ApiResponse<List<TagStats>> getPopularTags(
@@ -290,7 +290,7 @@ public class PostController {
 
     /**
      * 작성자 통계
-     * GET /api/posts/stats/author/{authorId}
+     * GET /api/blog/posts/stats/author/{authorId}
      */
     @GetMapping("/stats/author/{authorId}")
     public ApiResponse<AuthorStats> getAuthorStats(@PathVariable String authorId) {
@@ -300,7 +300,7 @@ public class PostController {
 
     /**
      * 전체 블로그 통계
-     * GET /api/posts/stats/blog
+     * GET /api/blog/posts/stats/blog
      */
     @GetMapping("/stats/blog")
     public ApiResponse<BlogStats> getBlogStats() {
@@ -312,7 +312,7 @@ public class PostController {
 
     /**
      * 상품별 게시물 조회 (기존 API 호환)
-     * GET /api/posts/product/{productId}
+     * GET /api/blog/posts/product/{productId}
      */
     @GetMapping("/product/{productId}")
     public ApiResponse<List<PostResponse>> getPostsByProductId(@PathVariable String productId) {
