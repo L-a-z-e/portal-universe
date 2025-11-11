@@ -2,7 +2,7 @@
 import { useAuthStore } from "portal_shell/authStore";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { fetchAllPosts } from "../api/posts.ts";
+import { getAllPosts } from "../api/posts.ts";
 import type { PostResponse } from "../dto/PostResponse.ts";
 import { Button, Card, Badge } from '@portal/design-system';
 
@@ -16,7 +16,7 @@ onMounted(async () => {
   try {
     isLoading.value = true;
     error.value = null;
-    posts.value = await fetchAllPosts();
+    posts.value = await getAllPosts();
   } catch (err) {
     console.error('Failed to fetch posts:', err);
     error.value = 'Failed to fetch posts. Please try again later.';

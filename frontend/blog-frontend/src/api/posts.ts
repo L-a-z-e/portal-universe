@@ -18,20 +18,13 @@ import type {
 
 // ==================== 경로 상수 ====================
 
-const LEGACY_BASE_PATH = '/api/blog';  // 기존 경로
-const BASE_PATH = '/blog-service/api/posts';  // 새 경로
-
-// ==================== 기존 API (하위 호환) ====================
-
 /**
- * 전체 게시물 조회 (기존 API)
- * @deprecated Use getPublishedPosts instead
+ * API Gateway를 통한 블로그 서비스 경로
+ * Gateway 라우팅: /api/blog/** -> StripPrefix=2 -> blog-service의 /posts/**
  */
-export function fetchAllPosts(): Promise<PostResponse[]> {
-  return apiClient
-    .get<ApiResponse<PostResponse[]>>(LEGACY_BASE_PATH)
-    .then((res) => res.data.data);
-}
+const BASE_PATH = '/api/blog/posts';
+
+// ==================== 기본 CRUD ====================
 
 /**
  * 게시물 생성
@@ -69,7 +62,16 @@ export function fetchPostById(postId: string): Promise<PostResponse> {
     .then((res) => res.data.data);
 }
 
-// ==================== 확장 API ====================
+/**
+ * 전체 게시물 조회 (관리자용)
+ */
+export function getAllPosts(): Promise<PostResponse[]> {
+  return apiClient
+    .get<ApiResponse<PostResponse[]>>(`${BASE_PATH}/all`)
+    .then((res) => res.data.data);
+}
+
+// ==================== 게시물 목록 조회 ====================
 
 /**
  * 발행된 게시물 목록 (페이징)
@@ -153,36 +155,6 @@ export async function getPostsByTags(
 }
 
 /**
- * 간단 검색
- */
-export async function searchPosts(
-  keyword: string,
-  page: number = 0,
-  size: number = 10
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(
-    `${BASE_PATH}/search`,
-    {
-      params: { keyword, page, size },
-    }
-  );
-  return response.data.data;
-}
-
-/**
- * 고급 검색
- */
-export async function searchPostsAdvanced(
-  searchRequest: PostSearchRequest
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.post<ApiResponse<PageResponse<PostListResponse>>>(
-    `${BASE_PATH}/search/advanced`,
-    searchRequest
-  );
-  return response.data.data;
-}
-
-/**
  * 인기 게시물
  */
 export async function getPopularPosts(
@@ -232,12 +204,46 @@ export async function getPostWithViewIncrement(postId: string): Promise<PostResp
   return response.data.data;
 }
 
+// ==================== 검색 ====================
+
 /**
- * 게시물 상태 변경 (백엔드 DTO와 정확히 일치)
+ * 간단 검색
+ */
+export async function searchPosts(
+  keyword: string,
+  page: number = 0,
+  size: number = 10
+): Promise<PageResponse<PostListResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(
+    `${BASE_PATH}/search`,
+    {
+      params: { keyword, page, size },
+    }
+  );
+  return response.data.data;
+}
+
+/**
+ * 고급 검색
+ */
+export async function searchPostsAdvanced(
+  searchRequest: PostSearchRequest
+): Promise<PageResponse<PostListResponse>> {
+  const response = await apiClient.post<ApiResponse<PageResponse<PostListResponse>>>(
+    `${BASE_PATH}/search/advanced`,
+    searchRequest
+  );
+  return response.data.data;
+}
+
+// ==================== 상태 관리 ====================
+
+/**
+ * 게시물 상태 변경
  */
 export async function changePostStatus(
   postId: string,
-  request: PostStatusChangeRequest  // { newStatus: PostStatus }
+  request: PostStatusChangeRequest
 ): Promise<PostResponse> {
   const response = await apiClient.patch<ApiResponse<PostResponse>>(
     `${BASE_PATH}/${postId}/status`,
