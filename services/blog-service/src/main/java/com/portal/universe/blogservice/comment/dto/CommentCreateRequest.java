@@ -1,15 +1,16 @@
 package com.portal.universe.blogservice.comment.dto;
 
-import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 
-@Data
-public class CommentCreateRequest {
-    @NotBlank
-    private String postId;
+/**
+ * 댓글 생성 요청 DTO
+ */
+public record CommentCreateRequest(
+        @NotBlank(message = "게시물 ID는 필수입니다")
+        String postId,
 
-    private String parentCommentId; // null이면 root
+        String parentCommentId, // null이면 루트 댓글
 
-    @NotBlank
-    private String content;
-}
+        @NotBlank(message = "댓글 내용은 필수입니다")
+        String content
+) {}

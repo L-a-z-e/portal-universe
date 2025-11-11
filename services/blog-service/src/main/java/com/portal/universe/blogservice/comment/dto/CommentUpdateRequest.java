@@ -1,10 +1,11 @@
 package com.portal.universe.blogservice.comment.dto;
 
-import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 
-@Data
-public class CommentUpdateRequest {
-    @NotBlank
-    private String content;
-}
+/**
+ * 댓글 수정 요청 DTO
+ */
+public record CommentUpdateRequest(
+        @NotBlank(message = "댓글 내용은 필수입니다")
+        String content
+) {}

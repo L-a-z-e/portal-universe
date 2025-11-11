@@ -1,19 +1,19 @@
 package com.portal.universe.blogservice.comment.dto;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
 
-@Data
-public class CommentResponse {
-    private String id;
-    private String postId;
-    private String authorId;
-    private String authorName;
-    private String content;
-    private String parentCommentId;
-    private Long likeCount;
-    private Boolean isDeleted;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-}
+/**
+ * 댓글 응답 DTO
+ */
+public record CommentResponse(
+        String id,
+        String postId,
+        String authorId,
+        String authorName,
+        String content,
+        String parentCommentId,
+        Long likeCount,
+        Boolean isDeleted,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) {}
