@@ -1,0 +1,42 @@
+{
+  "$description": "blog theme overrides",
+  "color": {
+    "brand": {
+      "primary": {
+        "$value": "{color.green.600}",
+        "$description": "signature green"
+      },
+      "primaryHover": {
+        "$value": "{color.green.700}"
+      },
+      "secondary": {
+        "$value": "{color.green.400}"
+      }
+    },
+    "text": {
+      "body": {
+        "$value": "{color.gray.900}",
+        "$description": "Optimized for long-form reading"
+      }
+    },
+    "bg": {
+      "page": {
+        "$value": "{color.gray.50}"
+      }
+    }
+  },
+  "typography": {
+    "fontSize": {
+      "body": {
+        "$value": "1.125rem",
+        "$description": "18px for better readability"
+      }
+    },
+    "lineHeight": {
+      "body": {
+        "$value": "1.75",
+        "$description": "Loose line height for blog posts"
+      }
+    }
+  }
+}

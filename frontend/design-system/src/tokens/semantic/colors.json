@@ -1,53 +1,132 @@
 {
   "color": {
-    "text": {
+    "brand": {
       "primary": {
-        "$value": "{color.neutral.900}",
+        "$value": "{color.green.600}",
         "$type": "color",
-        "$description": "Main text color"
+        "$description": "Primary brand color - overridden by service themes"
+      },
+      "primaryHover": {
+        "$value": "{color.green.700}",
+        "$type": "color"
       },
       "secondary": {
-        "$value": "{color.neutral.500}",
+        "$value": "{color.green.400}",
+        "$type": "color"
+      }
+    },
+    "text": {
+      "heading": {
+        "$value": "{color.gray.900}",
         "$type": "color",
-        "$description": "Secondary text color"
+        "$description": "Main headings"
+      },
+      "body": {
+        "$value": "{color.gray.900}",
+        "$type": "color",
+        "$description": "Body text - optimized for readability"
+      },
+      "meta": {
+        "$value": "{color.gray.600}",
+        "$type": "color",
+        "$description": "Metadata, timestamps, secondary info"
+      },
+      "muted": {
+        "$value": "{color.gray.500}",
+        "$type": "color",
+        "$description": "Disabled or de-emphasized text"
       },
       "inverse": {
         "$value": "{color.neutral.white}",
         "$type": "color",
         "$description": "Text on dark backgrounds"
+      },
+      "link": {
+        "$value": "{color.blue.600}",
+        "$type": "color",
+        "$description": "Hyperlinks"
+      },
+      "linkHover": {
+        "$value": "{color.blue.700}",
+        "$type": "color"
       }
     },
-    "background": {
-      "primary": {
+    "bg": {
+      "page": {
+        "$value": "{color.gray.50}",
+        "$type": "color",
+        "$description": "Main page background"
+      },
+      "card": {
         "$value": "{color.neutral.white}",
-        "$type": "color"
+        "$type": "color",
+        "$description": "Card/elevated surface"
       },
-      "secondary": {
-        "$value": "{color.neutral.50}",
-        "$type": "color"
+      "elevated": {
+        "$value": "{color.neutral.white}",
+        "$type": "color",
+        "$description": "Modals, dropdowns"
       },
-      "tertiary": {
-        "$value": "{color.neutral.100}",
-        "$type": "color"
+      "muted": {
+        "$value": "{color.gray.100}",
+        "$type": "color",
+        "$description": "Subtle backgrounds"
+      },
+      "hover": {
+        "$value": "{color.gray.50}",
+        "$type": "color",
+        "$description": "Interactive element hover"
       }
     },
     "border": {
       "default": {
-        "$value": "{color.neutral.200}",
+        "$value": "{color.gray.200}",
         "$type": "color"
       },
       "hover": {
-        "$value": "{color.neutral.300}",
+        "$value": "{color.gray.300}",
+        "$type": "color"
+      },
+      "focus": {
+        "$value": "{color.brand.primary}",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.gray.100}",
         "$type": "color"
       }
     },
-    "interactive": {
-      "default": {
-        "$value": "{color.neutral.900}",
+    "status": {
+      "success": {
+        "$value": "{color.green.600}",
         "$type": "color"
       },
-      "hover": {
-        "$value": "{color.neutral.700}",
+      "successBg": {
+        "$value": "{color.green.50}",
+        "$type": "color"
+      },
+      "error": {
+        "$value": "{color.red.600}",
+        "$type": "color"
+      },
+      "errorBg": {
+        "$value": "{color.red.50}",
+        "$type": "color"
+      },
+      "warning": {
+        "$value": "{color.yellow.600}",
+        "$type": "color"
+      },
+      "warningBg": {
+        "$value": "{color.yellow.50}",
+        "$type": "color"
+      },
+      "info": {
+        "$value": "{color.blue.600}",
+        "$type": "color"
+      },
+      "infoBg": {
+        "$value": "{color.blue.50}",
         "$type": "color"
       }
     }

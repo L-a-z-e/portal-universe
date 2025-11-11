@@ -13,6 +13,65 @@
       "800": "#1f2937",
       "900": "#111827",
       "black": "#000000"
+    },
+    "green": {
+      "$description": "Blog signature color - for blog service",
+      "50": "#E6FCF5",
+      "100": "#C3FAE8",
+      "200": "#96F2D7",
+      "300": "#63E6BE",
+      "400": "#38D9A9",
+      "500": "#20C997",
+      "600": "#12B886",
+      "700": "#0CA678",
+      "800": "#099268",
+      "900": "#087F5B"
+    },
+    "orange": {
+      "$description": "Warm accent - for shopping service",
+      "50": "#FFF4E6",
+      "100": "#FFE8CC",
+      "200": "#FFD8A8",
+      "300": "#FFC078",
+      "400": "#FFA94D",
+      "500": "#FF922B",
+      "600": "#FD7E14",
+      "700": "#F76707",
+      "800": "#E8590C",
+      "900": "#D9480F"
+    },
+    "gray": {
+      "$description": "Optimized for text readability",
+      "50": "#F8F9FA",
+      "100": "#F1F3F5",
+      "200": "#E9ECEF",
+      "300": "#DEE2E6",
+      "400": "#CED4DA",
+      "500": "#ADB5BD",
+      "600": "#868E96",
+      "700": "#495057",
+      "800": "#343A40",
+      "900": "#212529"
+    },
+    "red": {
+      "$description": "Error and destructive actions",
+      "50": "#FFE3E3",
+      "500": "#FA5252",
+      "600": "#F03E3E",
+      "900": "#C92A2A"
+    },
+    "blue": {
+      "$description": "Info and links",
+      "50": "#D0EBFF",
+      "500": "#339AF0",
+      "600": "#228BE6",
+      "900": "#1864AB"
+    },
+    "yellow": {
+      "$description": "Warning states",
+      "50": "#FFF9DB",
+      "500": "#FCC419",
+      "600": "#FAB005"
     }
   }
 }

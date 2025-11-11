@@ -1,23 +1,143 @@
 {
-  "font": {
-    "size": {
-      "xs": "0.75rem",
-      "sm": "0.875rem",
-      "base": "1rem",
-      "lg": "1.125rem",
-      "xl": "1.25rem",
-      "2xl": "1.5rem",
-      "3xl": "1.875rem"
+  "typography": {
+    "fontFamily": {
+      "sans": {
+        "$value": "-apple-system, BlinkMacSystemFont, 'Pretendard Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', sans-serif",
+        "$type": "fontFamily",
+        "$description": "System font stack optimized for Korean and English"
+      },
+      "mono": {
+        "$value": "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, 'Courier New', monospace",
+        "$type": "fontFamily",
+        "$description": "Monospace for code blocks"
+      },
+      "serif": {
+        "$value": "'Noto Serif KR', Georgia, 'Times New Roman', serif",
+        "$type": "fontFamily",
+        "$description": "Serif for special headings (optional)"
+      }
     },
-    "weight": {
-      "normal": "400",
-      "medium": "500",
-      "semibold": "600",
-      "bold": "700"
+    "fontSize": {
+      "xs": {
+        "$value": "0.75rem",
+        "$type": "dimension",
+        "$description": "12px - captions, labels"
+      },
+      "sm": {
+        "$value": "0.875rem",
+        "$type": "dimension",
+        "$description": "14px - small text"
+      },
+      "base": {
+        "$value": "1rem",
+        "$type": "dimension",
+        "$description": "16px - default body"
+      },
+      "lg": {
+        "$value": "1.125rem",
+        "$type": "dimension",
+        "$description": "18px - emphasized body (blog posts)"
+      },
+      "xl": {
+        "$value": "1.25rem",
+        "$type": "dimension",
+        "$description": "20px - h4"
+      },
+      "2xl": {
+        "$value": "1.5rem",
+        "$type": "dimension",
+        "$description": "24px - h3"
+      },
+      "3xl": {
+        "$value": "1.875rem",
+        "$type": "dimension",
+        "$description": "30px - h2"
+      },
+      "4xl": {
+        "$value": "2.25rem",
+        "$type": "dimension",
+        "$description": "36px - h1"
+      },
+      "5xl": {
+        "$value": "3rem",
+        "$type": "dimension",
+        "$description": "48px - hero headings"
+      }
     },
-    "family": {
-      "sans": "system-ui, -apple-system, sans-serif",
-      "mono": "ui-monospace, monospace"
+    "lineHeight": {
+      "tight": {
+        "$value": "1.25",
+        "$type": "number",
+        "$description": "Headlines"
+      },
+      "snug": {
+        "$value": "1.375",
+        "$type": "number",
+        "$description": "Subheadings"
+      },
+      "normal": {
+        "$value": "1.5",
+        "$type": "number",
+        "$description": "Default"
+      },
+      "relaxed": {
+        "$value": "1.625",
+        "$type": "number",
+        "$description": "Short paragraphs"
+      },
+      "loose": {
+        "$value": "1.75",
+        "$type": "number",
+        "$description": "Long-form content (blog posts)"
+      }
+    },
+    "fontWeight": {
+      "light": {
+        "$value": "300",
+        "$type": "number"
+      },
+      "normal": {
+        "$value": "400",
+        "$type": "number"
+      },
+      "medium": {
+        "$value": "500",
+        "$type": "number"
+      },
+      "semibold": {
+        "$value": "600",
+        "$type": "number"
+      },
+      "bold": {
+        "$value": "700",
+        "$type": "number"
+      },
+      "extrabold": {
+        "$value": "800",
+        "$type": "number"
+      }
+    },
+    "letterSpacing": {
+      "tighter": {
+        "$value": "-0.05em",
+        "$type": "number"
+      },
+      "tight": {
+        "$value": "-0.025em",
+        "$type": "number"
+      },
+      "normal": {
+        "$value": "0",
+        "$type": "number"
+      },
+      "wide": {
+        "$value": "0.025em",
+        "$type": "number"
+      },
+      "wider": {
+        "$value": "0.05em",
+        "$type": "number"
+      }
     }
   }
 }
