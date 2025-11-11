@@ -2,35 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design Tokens - Light Mode (Default) */
+/* ============================================
+   Foundation CSS Variables (Light Mode)
+   ============================================ */
 :root {
-    /* Colors - Text */
-    --color-text-primary: #111827;
-    --color-text-secondary: #6b7280;
-    --color-text-inverse: #ffffff;
+    /* Brand */
+    --color-brand-primary: #12B886;
+    --color-brand-primary-hover: #0CA678;
+    --color-brand-secondary: #38D9A9;
 
-    /* Colors - Background */
-    --color-bg-primary: #ffffff;
-    --color-bg-secondary: #f9fafb;
-    --color-bg-tertiary: #f3f4f6;
+    /* Text */
+    --color-text-heading: #212529;
+    --color-text-body: #212529;
+    --color-text-meta: #868E96;
+    --color-text-muted: #ADB5BD;
+    --color-text-inverse: #FFFFFF;
+    --color-text-link: #228BE6;
+    --color-text-link-hover: #1864AB;
 
-    /* Colors - Border */
-    --color-border-default: #e5e7eb;
-    --color-border-hover: #d1d5db;
+    /* Background */
+    --color-bg-page: #F8F9FA;
+    --color-bg-card: #FFFFFF;
+    --color-bg-elevated: #FFFFFF;
+    --color-bg-muted: #F1F3F5;
+    --color-bg-hover: #F8F9FA;
 
-    /* Colors - Interactive */
-    --color-interactive-default: #111827;
-    --color-interactive-hover: #374151;
+    /* Border */
+    --color-border-default: #E9ECEF;
+    --color-border-hover: #DEE2E6;
+    --color-border-focus: var(--color-brand-primary);
+    --color-border-muted: #F1F3F5;
 
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-2xl: 3rem;
+    /* Status */
+    --color-status-success: #12B886;
+    --color-status-success-bg: #E6FCF5;
+    --color-status-error: #F03E3E;
+    --color-status-error-bg: #FFE3E3;
+    --color-status-warning: #FAB005;
+    --color-status-warning-bg: #FFF9DB;
+    --color-status-info: #228BE6;
+    --color-status-info-bg: #D0EBFF;
 
     /* Typography */
+    --font-family-sans: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, 'Courier New', monospace;
+
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
@@ -38,49 +54,136 @@
     --font-size-xl: 1.25rem;
     --font-size-2xl: 1.5rem;
     --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-size-5xl: 3rem;
 
+    --line-height-tight: 1.25;
+    --line-height-snug: 1.375;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.625;
+    --line-height-loose: 1.75;
+
+    --font-weight-light: 300;
     --font-weight-normal: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
 
-    --font-family-sans: system-ui, -apple-system, sans-serif;
-    --font-family-mono: ui-monospace, monospace;
+    /* Spacing (from existing spacing.json) */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
 
-    /* Border */
+    /* Border Radius */
     --border-radius-none: 0;
     --border-radius-sm: 0.125rem;
     --border-radius-default: 0.25rem;
     --border-radius-md: 0.375rem;
     --border-radius-lg: 0.5rem;
+    --border-radius-xl: 0.75rem;
+    --border-radius-2xl: 1rem;
     --border-radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-/* Dark Mode */
+/* ============================================
+   Dark Mode
+   ============================================ */
 [data-theme="dark"] {
-    --color-text-primary: #f9fafb;
-    --color-text-secondary: #9ca3af;
+    /* Brand (slightly lighter for dark bg) */
+    --color-brand-primary: #20C997;
+    --color-brand-primary-hover: #38D9A9;
+    --color-brand-secondary: #63E6BE;
+
+    /* Text */
+    --color-text-heading: #ECECEC;
+    --color-text-body: #ECECEC;
+    --color-text-meta: #ACACAC;
+    --color-text-muted: #868E96;
     --color-text-inverse: #111827;
+    --color-text-link: #339AF0;
+    --color-text-link-hover: #74C0FC;
 
-    --color-bg-primary: #111827;
-    --color-bg-secondary: #1f2937;
-    --color-bg-tertiary: #374151;
+    /* Background */
+    --color-bg-page: #121212;
+    --color-bg-card: #1E1E1E;
+    --color-bg-elevated: #2C2C2C;
+    --color-bg-muted: #2C2C2C;
+    --color-bg-hover: #343A40;
 
-    --color-border-default: #374151;
+    /* Border */
+    --color-border-default: #3A3A3A;
     --color-border-hover: #4b5563;
+    --color-border-focus: var(--color-brand-primary);
+    --color-border-muted: #2C2C2C;
 
-    --color-interactive-default: #f9fafb;
-    --color-interactive-hover: #e5e7eb;
+    /* Status */
+    --color-status-success: #20C997;
+    --color-status-success-bg: #0A4034;
+    --color-status-error: #FA5252;
+    --color-status-error-bg: #4A1C1C;
+    --color-status-warning: #FCC419;
+    --color-status-warning-bg: #4A3C0F;
+    --color-status-info: #339AF0;
+    --color-status-info-bg: #1A3A52;
+
+    /* Shadows (subtle in dark mode) */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
 }
 
-/* Base Styles */
+/* ============================================
+   Base Styles
+   ============================================ */
 @layer base {
     * {
         @apply border-border-default;
     }
 
     body {
-        @apply bg-bg-primary text-text-primary;
-        @apply font-sans;
+        @apply bg-bg-page text-text-body;
+        @apply font-sans antialiased;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Improved text rendering */
+    h1, h2, h3, h4, h5, h6 {
+        @apply text-text-heading font-semibold;
+        text-wrap: balance;
+    }
+
+    /* Code blocks */
+    code {
+        @apply font-mono text-sm;
+    }
+
+    /* Links */
+    a {
+        @apply text-text-link hover:text-text-link-hover;
+        @apply transition-colors duration-200;
+    }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    .text-pretty {
+        text-wrap: pretty;
     }
 }

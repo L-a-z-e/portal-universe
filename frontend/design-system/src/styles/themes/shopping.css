@@ -1,0 +1,54 @@
+/* ============================================
+   Shopping Service Theme Overrides
+   ============================================ */
+
+[data-service="shopping"][data-theme="light"] {
+    /* Warm Orange */
+    --color-brand-primary: #FD7E14;
+    --color-brand-primary-hover: #F76707;
+    --color-brand-secondary: #FFA94D;
+
+    /* Clean white for product photos */
+    --color-bg-page: #FFFFFF;
+    --color-bg-card: #FFFFFF;
+
+    /* Borders for product cards */
+    --color-border-default: #E9ECEF;
+}
+
+[data-service="shopping"][data-theme="dark"] {
+    --color-brand-primary: #FF922B;
+    --color-brand-primary-hover: #FFA94D;
+
+    --color-bg-page: #1E1E1E;
+    --color-bg-card: #2C2C2C;
+}
+
+/* Shopping-specific components */
+[data-service="shopping"] {
+    /* Product cards with shadows */
+    .product-card {
+        @apply bg-bg-card border border-border-default;
+        @apply rounded-lg overflow-hidden;
+        box-shadow: var(--shadow-md);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Price display */
+    .price {
+        @apply text-brand-primary font-bold text-xl;
+    }
+
+    /* Add to cart button */
+    .btn-cart {
+        @apply bg-brand-primary hover:bg-brand-primary-hover;
+        @apply text-white font-semibold;
+        @apply rounded-lg px-6 py-3;
+        @apply transition-colors duration-200;
+    }
+}

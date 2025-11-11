@@ -1,0 +1,74 @@
+/* ============================================
+   Blog Service Theme Overrides
+   ============================================ */
+
+/* Apply to blog service root */
+[data-service="blog"] {
+    /* Typography optimized for long-form reading */
+    --font-size-body: 1.125rem;  /* 18px */
+    --line-height-body: 1.75;
+
+    /* Blog-specific spacing */
+    --content-max-width: 768px;
+    --content-padding: 2rem;
+}
+
+[data-service="blog"][data-theme="light"] {
+    /* Signature Green */
+    --color-brand-primary: #12B886;
+    --color-brand-primary-hover: #0CA678;
+
+    /* Optimized text colors */
+    --color-text-body: #212529;
+    --color-text-meta: #868E96;
+
+    /* Clean backgrounds */
+    --color-bg-page: #F8F9FA;
+    --color-bg-card: #FFFFFF;
+}
+
+[data-service="blog"][data-theme="dark"] {
+    --color-brand-primary: #20C997;
+    --color-brand-primary-hover: #38D9A9;
+
+    --color-text-body: #ECECEC;
+    --color-text-meta: #ACACAC;
+
+    --color-bg-page: #121212;
+    --color-bg-card: #1E1E1E;
+}
+
+/* Blog-specific component styles */
+[data-service="blog"] {
+    /* Post content area */
+    .prose {
+        @apply max-w-none;
+        font-size: var(--font-size-body);
+        line-height: var(--line-height-body);
+    }
+
+    /* Code blocks */
+    .prose pre {
+        @apply bg-bg-muted border border-border-default;
+        @apply rounded-lg p-4;
+    }
+
+    /* Blockquotes */
+    .prose blockquote {
+        @apply border-l-4 border-brand-primary;
+        @apply pl-4 italic text-text-meta;
+    }
+
+    /* Tables */
+    .prose table {
+        @apply border-collapse w-full;
+    }
+
+    .prose th {
+        @apply bg-bg-muted font-semibold text-left p-2;
+    }
+
+    .prose td {
+        @apply border-t border-border-default p-2;
+    }
+}
