@@ -4,6 +4,9 @@ import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.post.dto.*;
 import com.portal.universe.blogservice.post.service.PostService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,10 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 
-/**
- * 블로그 게시물(Post) API Controller
- * RESTful API 설계 원칙에 따라 구성
- */
+@Tag(name = "Post", description = "포스트 관리 및 검색 API")
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
@@ -24,12 +24,7 @@ public class PostController {
 
     private final PostService postService;
 
-    // ==================== 기본 CRUD ====================
-
-    /**
-     * 게시물 생성
-     * POST /api/blog/posts
-     */
+    @Operation(summary = "게시물 생성", description = "새 블로그 게시물을 작성한다.")
     @PostMapping
     public ApiResponse<PostResponse> createPost(
             @Valid @RequestBody PostCreateRequest request,
@@ -40,33 +35,26 @@ public class PostController {
         return ApiResponse.success(response);
     }
 
-    /**
-     * 전체 게시물 조회 (관리자용)
-     * GET /api/blog/posts/all
-     */
+    @Operation(summary = "전체 게시물 조회(관리자용)")
     @GetMapping("/all")
     public ApiResponse<List<PostResponse>> getAllPosts() {
         List<PostResponse> posts = postService.getAllPosts();
         return ApiResponse.success(posts);
     }
 
-    /**
-     * 게시물 상세 조회
-     * GET /api/blog/posts/{postId}
-     */
+    @Operation(summary = "게시물 상세 조회")
     @GetMapping("/{postId}")
-    public ApiResponse<PostResponse> getPostById(@PathVariable String postId) {
+    public ApiResponse<PostResponse> getPostById(
+            @Parameter(description = "게시물 ID") @PathVariable String postId
+    ) {
         PostResponse response = postService.getPostById(postId);
         return ApiResponse.success(response);
     }
 
-    /**
-     * 게시물 상세 조회 (조회수 증가)
-     * GET /api/blog/posts/{postId}/view
-     */
+    @Operation(summary = "상세 조회 및 조회수 증가")
     @GetMapping("/{postId}/view")
     public ApiResponse<PostResponse> getPostWithViewIncrement(
-            @PathVariable String postId,
+            @Parameter(description = "게시물 ID") @PathVariable String postId,
             @AuthenticationPrincipal Jwt jwt
     ) {
         String userId = jwt != null ? jwt.getSubject() : null;
@@ -74,13 +62,10 @@ public class PostController {
         return ApiResponse.success(response);
     }
 
-    /**
-     * 게시물 수정
-     * PUT /api/blog/posts/{postId}
-     */
+    @Operation(summary = "게시물 수정")
     @PutMapping("/{postId}")
     public ApiResponse<PostResponse> updatePost(
-            @PathVariable String postId,
+            @Parameter(description = "게시물 ID") @PathVariable String postId,
             @Valid @RequestBody PostUpdateRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
@@ -89,13 +74,10 @@ public class PostController {
         return ApiResponse.success(response);
     }
 
-    /**
-     * 게시물 삭제
-     * DELETE /api/blog/posts/{postId}
-     */
+    @Operation(summary = "게시물 삭제")
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> deletePost(
-            @PathVariable String postId,
+            @Parameter(description = "게시물 ID") @PathVariable String postId,
             @AuthenticationPrincipal Jwt jwt
     ) {
         String userId = jwt.getSubject();
@@ -103,28 +85,20 @@ public class PostController {
         return ApiResponse.success(null);
     }
 
-    // ==================== 게시물 목록 조회 ====================
-
-    /**
-     * 발행된 게시물 목록 (페이징)
-     * GET /api/posts?page=0&size=10
-     */
+    @Operation(summary = "발행 게시물 목록 (페이징)")
     @GetMapping
     public ApiResponse<Page<PostListResponse>> getPublishedPosts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
         Page<PostListResponse> posts = postService.getPublishedPosts(page, size);
         return ApiResponse.success(posts);
     }
 
-    /**
-     * 작성자별 게시물 조회
-     * GET /api/blog/posts/author/{authorId}?page=0&size=10
-     */
+    @Operation(summary = "작성자별 게시물 목록 조회")
     @GetMapping("/author/{authorId}")
     public ApiResponse<Page<PostListResponse>> getPostsByAuthor(
-            @PathVariable String authorId,
+            @Parameter(description = "작성자 ID") @PathVariable String authorId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -132,10 +106,7 @@ public class PostController {
         return ApiResponse.success(posts);
     }
 
-    /**
-     * 내 게시물 조회 (로그인 사용자)
-     * GET /api/blog/posts/my?status=DRAFT&page=0&size=10
-     */
+    @Operation(summary = "내 게시물 목록 (로그인)")
     @GetMapping("/my")
     public ApiResponse<Page<PostListResponse>> getMyPosts(
             @RequestParam(required = false) PostStatus status,
@@ -153,13 +124,10 @@ public class PostController {
         }
     }
 
-    /**
-     * 카테고리별 게시물 조회
-     * GET /api/blog/posts/category/{category}?page=0&size=10
-     */
+    @Operation(summary = "카테고리별 게시물 조회")
     @GetMapping("/category/{category}")
     public ApiResponse<Page<PostListResponse>> getPostsByCategory(
-            @PathVariable String category,
+            @Parameter(description = "카테고리") @PathVariable String category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -167,13 +135,10 @@ public class PostController {
         return ApiResponse.success(posts);
     }
 
-    /**
-     * 태그별 게시물 조회
-     * GET /api/blog/posts/tags?tags=vue,spring&page=0&size=10
-     */
+    @Operation(summary = "태그별 게시물 조회")
     @GetMapping("/tags")
     public ApiResponse<Page<PostListResponse>> getPostsByTags(
-            @RequestParam List<String> tags,
+            @Parameter(description = "태그 목록 (쉼표로 구분)") @RequestParam List<String> tags,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -181,53 +146,39 @@ public class PostController {
         return ApiResponse.success(posts);
     }
 
-    /**
-     * 인기 게시물 조회
-     * GET /api/blog/posts/popular?page=0&size=10
-     */
+    @Operation(summary = "인기 게시물 조회")
     @GetMapping("/popular")
     public ApiResponse<Page<PostListResponse>> getPopularPosts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
         Page<PostListResponse> posts = postService.getPopularPosts(page, size);
         return ApiResponse.success(posts);
     }
 
-    /**
-     * 최근 게시물 조회
-     * GET /api/blog/posts/recent?limit=5
-     */
+    @Operation(summary = "최근 게시물 조회")
     @GetMapping("/recent")
     public ApiResponse<List<PostListResponse>> getRecentPosts(
-            @RequestParam(defaultValue = "5") int limit
+            @Parameter(description = "조회할 개수") @RequestParam(defaultValue = "5") int limit
     ) {
         List<PostListResponse> posts = postService.getRecentPosts(limit);
         return ApiResponse.success(posts);
     }
 
-    /**
-     * 관련 게시물 조회
-     * GET /api/blog/posts/{postId}/related?limit=5
-     */
+    @Operation(summary = "연관 게시물 조회")
     @GetMapping("/{postId}/related")
     public ApiResponse<List<PostListResponse>> getRelatedPosts(
-            @PathVariable String postId,
-            @RequestParam(defaultValue = "5") int limit
+            @Parameter(description = "게시물 ID") @PathVariable String postId,
+            @Parameter(description = "조회할 개수") @RequestParam(defaultValue = "5") int limit
     ) {
         List<PostListResponse> posts = postService.getRelatedPosts(postId, limit);
         return ApiResponse.success(posts);
     }
 
-    // ==================== 검색 ====================
-
-    /**
-     * 간단 검색
-     * GET /api/blog/posts/search?keyword=spring&page=0&size=10
-     */
+    @Operation(summary = "게시물 단순 검색")
     @GetMapping("/search")
     public ApiResponse<Page<PostListResponse>> searchPosts(
-            @RequestParam String keyword,
+            @Parameter(description = "검색 키워드") @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -235,10 +186,7 @@ public class PostController {
         return ApiResponse.success(posts);
     }
 
-    /**
-     * 고급 검색
-     * POST /api/blog/posts/search/advanced
-     */
+    @Operation(summary = "게시물 고급 검색")
     @PostMapping("/search/advanced")
     public ApiResponse<Page<PostListResponse>> searchPostsAdvanced(
             @Valid @RequestBody PostSearchRequest searchRequest
@@ -247,15 +195,10 @@ public class PostController {
         return ApiResponse.success(posts);
     }
 
-    // ==================== 상태 관리 ====================
-
-    /**
-     * 게시물 상태 변경
-     * PATCH /api/blog/posts/{postId}/status
-     */
+    @Operation(summary = "게시물 상태 변경")
     @PatchMapping("/{postId}/status")
     public ApiResponse<PostResponse> changePostStatus(
-            @PathVariable String postId,
+            @Parameter(description = "게시물 ID") @PathVariable String postId,
             @Valid @RequestBody PostStatusChangeRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
@@ -264,58 +207,43 @@ public class PostController {
         return ApiResponse.success(response);
     }
 
-    // ==================== 통계 ====================
-
-    /**
-     * 카테고리 통계
-     * GET /api/blog/posts/stats/categories
-     */
+    @Operation(summary = "카테고리 통계 조회")
     @GetMapping("/stats/categories")
     public ApiResponse<List<CategoryStats>> getCategoryStats() {
         List<CategoryStats> stats = postService.getCategoryStats();
         return ApiResponse.success(stats);
     }
 
-    /**
-     * 인기 태그
-     * GET /api/blog/posts/stats/tags?limit=10
-     */
+    @Operation(summary = "인기 태그 통계 조회")
     @GetMapping("/stats/tags")
     public ApiResponse<List<TagStats>> getPopularTags(
-            @RequestParam(defaultValue = "10") int limit
+            @Parameter(description = "조회할 개수") @RequestParam(defaultValue = "10") int limit
     ) {
         List<TagStats> tags = postService.getPopularTags(limit);
         return ApiResponse.success(tags);
     }
 
-    /**
-     * 작성자 통계
-     * GET /api/blog/posts/stats/author/{authorId}
-     */
+    @Operation(summary = "작성자 통계 조회")
     @GetMapping("/stats/author/{authorId}")
-    public ApiResponse<AuthorStats> getAuthorStats(@PathVariable String authorId) {
+    public ApiResponse<AuthorStats> getAuthorStats(
+            @Parameter(description = "작성자 ID") @PathVariable String authorId
+    ) {
         AuthorStats stats = postService.getAuthorStats(authorId);
         return ApiResponse.success(stats);
     }
 
-    /**
-     * 전체 블로그 통계
-     * GET /api/blog/posts/stats/blog
-     */
+    @Operation(summary = "전체 블로그 통계 조회")
     @GetMapping("/stats/blog")
     public ApiResponse<BlogStats> getBlogStats() {
         BlogStats stats = postService.getBlogStats();
         return ApiResponse.success(stats);
     }
 
-    // ==================== 기존 호환성 ====================
-
-    /**
-     * 상품별 게시물 조회 (기존 API 호환)
-     * GET /api/blog/posts/product/{productId}
-     */
+    @Operation(summary = "상품별 게시물 조회(기존 API 호환성)")
     @GetMapping("/product/{productId}")
-    public ApiResponse<List<PostResponse>> getPostsByProductId(@PathVariable String productId) {
+    public ApiResponse<List<PostResponse>> getPostsByProductId(
+            @Parameter(description = "상품 ID") @PathVariable String productId
+    ) {
         List<PostResponse> posts = postService.getPostsByProductId(productId);
         return ApiResponse.success(posts);
     }
