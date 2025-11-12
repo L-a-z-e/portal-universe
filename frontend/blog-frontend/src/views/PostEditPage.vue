@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { fetchPostById, updatePost } from '../api/posts';
+import { getPostById, updatePost } from '../api/posts';
 import type { PostUpdateRequest } from '../dto/PostUpdateRequest';
 import { Button, Card, Input, Textarea } from '@portal/design-system';
 
@@ -22,7 +22,7 @@ const contentError = ref('');
 
 onMounted(async () => {
   try {
-    const post = await fetchPostById(props.postId);
+    const post = await getPostById(props.postId);
     title.value = post.title;
     content.value = post.content;
   } catch (err) {
