@@ -17,36 +17,25 @@ import type {
 } from '@/types';
 
 // ==================== 경로 상수 ====================
-
-/**
- * API Gateway를 통한 블로그 서비스 경로
- * Gateway 라우팅: /api/blog/** -> StripPrefix=2 -> blog-service의 /posts/**
- */
 const BASE_PATH = '/api/blog/posts';
 
 // ==================== 기본 CRUD ====================
 
-/**
- * 게시물 생성
- */
+/** 게시물 생성 */
 export function createPost(payload: PostCreateRequest): Promise<PostResponse> {
   return apiClient
     .post<ApiResponse<PostResponse>>(BASE_PATH, payload)
     .then((res) => res.data.data);
 }
 
-/**
- * 게시물 수정
- */
+/** 게시물 수정 */
 export function updatePost(postId: string, payload: PostUpdateRequest): Promise<PostResponse> {
   return apiClient
     .put<ApiResponse<PostResponse>>(`${BASE_PATH}/${postId}`, payload)
     .then((res) => res.data.data);
 }
 
-/**
- * 게시물 삭제
- */
+/** 게시물 삭제 */
 export function deletePost(postId: string): Promise<void> {
   return apiClient
     .delete<ApiResponse<void>>(`${BASE_PATH}/${postId}`)
@@ -55,16 +44,15 @@ export function deletePost(postId: string): Promise<void> {
 
 /**
  * 게시물 상세 조회
+ * @see PostController.getPostById
  */
-export function fetchPostById(postId: string): Promise<PostResponse> {
+export function getPostById(postId: string): Promise<PostResponse> {
   return apiClient
     .get<ApiResponse<PostResponse>>(`${BASE_PATH}/${postId}`)
     .then((res) => res.data.data);
 }
 
-/**
- * 전체 게시물 조회 (관리자용)
- */
+/** 전체 게시물 조회 (관리자용) */
 export function getAllPosts(): Promise<PostResponse[]> {
   return apiClient
     .get<ApiResponse<PostResponse[]>>(`${BASE_PATH}/all`)
@@ -73,9 +61,7 @@ export function getAllPosts(): Promise<PostResponse[]> {
 
 // ==================== 게시물 목록 조회 ====================
 
-/**
- * 발행된 게시물 목록 (페이징)
- */
+/** 발행된 게시물 목록 (페이징) */
 export async function getPublishedPosts(
   page: number = 0,
   size: number = 10
@@ -86,9 +72,7 @@ export async function getPublishedPosts(
   return response.data.data;
 }
 
-/**
- * 내 게시물 조회
- */
+/** 내 게시물 조회 */
 export async function getMyPosts(
   status?: string,
   page: number = 0,
@@ -103,9 +87,7 @@ export async function getMyPosts(
   return response.data.data;
 }
 
-/**
- * 작성자별 게시물 조회
- */
+/** 작성자별 게시물 조회 */
 export async function getPostsByAuthor(
   authorId: string,
   page: number = 0,
@@ -120,9 +102,7 @@ export async function getPostsByAuthor(
   return response.data.data;
 }
 
-/**
- * 카테고리별 게시물
- */
+/** 카테고리별 게시물 */
 export async function getPostsByCategory(
   category: string,
   page: number = 0,
@@ -137,9 +117,7 @@ export async function getPostsByCategory(
   return response.data.data;
 }
 
-/**
- * 태그별 게시물
- */
+/** 태그별 게시물 */
 export async function getPostsByTags(
   tags: string[],
   page: number = 0,
@@ -154,9 +132,7 @@ export async function getPostsByTags(
   return response.data.data;
 }
 
-/**
- * 인기 게시물
- */
+/** 인기 게시물 */
 export async function getPopularPosts(
   page: number = 0,
   size: number = 10
@@ -170,9 +146,7 @@ export async function getPopularPosts(
   return response.data.data;
 }
 
-/**
- * 최근 게시물
- */
+/** 최근 게시물 */
 export async function getRecentPosts(limit: number = 5): Promise<PostListResponse[]> {
   const response = await apiClient.get<ApiResponse<PostListResponse[]>>(`${BASE_PATH}/recent`, {
     params: { limit },
@@ -180,9 +154,7 @@ export async function getRecentPosts(limit: number = 5): Promise<PostListRespons
   return response.data.data;
 }
 
-/**
- * 관련 게시물
- */
+/** 관련 게시물 */
 export async function getRelatedPosts(
   postId: string,
   limit: number = 5
@@ -196,9 +168,7 @@ export async function getRelatedPosts(
   return response.data.data;
 }
 
-/**
- * 게시물 조회 (조회수 증가)
- */
+/** 게시물 조회 (조회수 증가) */
 export async function getPostWithViewIncrement(postId: string): Promise<PostResponse> {
   const response = await apiClient.get<ApiResponse<PostResponse>>(`${BASE_PATH}/${postId}/view`);
   return response.data.data;
@@ -206,9 +176,7 @@ export async function getPostWithViewIncrement(postId: string): Promise<PostResp
 
 // ==================== 검색 ====================
 
-/**
- * 간단 검색
- */
+/** 간단 검색 */
 export async function searchPosts(
   keyword: string,
   page: number = 0,
@@ -223,9 +191,7 @@ export async function searchPosts(
   return response.data.data;
 }
 
-/**
- * 고급 검색
- */
+/** 고급 검색 */
 export async function searchPostsAdvanced(
   searchRequest: PostSearchRequest
 ): Promise<PageResponse<PostListResponse>> {
@@ -238,9 +204,7 @@ export async function searchPostsAdvanced(
 
 // ==================== 상태 관리 ====================
 
-/**
- * 게시물 상태 변경
- */
+/** 게시물 상태 변경 */
 export async function changePostStatus(
   postId: string,
   request: PostStatusChangeRequest
@@ -254,9 +218,7 @@ export async function changePostStatus(
 
 // ==================== 통계 ====================
 
-/**
- * 카테고리 통계
- */
+/** 카테고리 통계 */
 export async function getCategoryStats(): Promise<CategoryStats[]> {
   const response = await apiClient.get<ApiResponse<CategoryStats[]>>(
     `${BASE_PATH}/stats/categories`
@@ -264,9 +226,7 @@ export async function getCategoryStats(): Promise<CategoryStats[]> {
   return response.data.data;
 }
 
-/**
- * 인기 태그
- */
+/** 인기 태그 */
 export async function getPopularTags(limit: number = 10): Promise<TagStats[]> {
   const response = await apiClient.get<ApiResponse<TagStats[]>>(`${BASE_PATH}/stats/tags`, {
     params: { limit },
@@ -274,9 +234,7 @@ export async function getPopularTags(limit: number = 10): Promise<TagStats[]> {
   return response.data.data;
 }
 
-/**
- * 작성자 통계
- */
+/** 작성자 통계 */
 export async function getAuthorStats(authorId: string): Promise<AuthorStats> {
   const response = await apiClient.get<ApiResponse<AuthorStats>>(
     `${BASE_PATH}/stats/author/${authorId}`
@@ -284,9 +242,7 @@ export async function getAuthorStats(authorId: string): Promise<AuthorStats> {
   return response.data.data;
 }
 
-/**
- * 블로그 전체 통계
- */
+/** 블로그 전체 통계 */
 export async function getBlogStats(): Promise<BlogStats> {
   const response = await apiClient.get<ApiResponse<BlogStats>>(`${BASE_PATH}/stats/blog`);
   return response.data.data;
@@ -294,9 +250,7 @@ export async function getBlogStats(): Promise<BlogStats> {
 
 // ==================== 기존 호환성 ====================
 
-/**
- * 상품별 게시물 조회
- */
+/** 상품별 게시물 조회 */
 export async function getPostsByProductId(productId: string): Promise<PostResponse[]> {
   const response = await apiClient.get<ApiResponse<PostResponse[]>>(
     `${BASE_PATH}/product/${productId}`
