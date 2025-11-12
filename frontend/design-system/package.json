@@ -41,6 +41,7 @@
     "@vue/tsconfig": "^0.8.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
+    "postcss-import": "^14.1.0",
     "storybook": "^9.1.13",
     "tailwindcss": "^3.4.15",
     "typescript": "~5.9.3",
