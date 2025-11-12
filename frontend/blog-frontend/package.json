@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@portal/design-system": "*",
-    "@types/node": "^24.8.1",
+    "@types/node": "^22.14.0",
     "axios": "^1.12.2",
     "concurrently": "^9.2.1",
     "oidc-client-ts": "^3.3.0",

@@ -333,23 +333,23 @@ onBeforeUnmount(() => {
 <style scoped>
 /* Toast UI Editor 스타일 커스터마이징 */
 :deep(.toastui-editor-defaultUI) {
-  border: 1px solid var(--color-border-default);  /* ← 수정 */
+  border: 1px solid var(--color-border-default);
   border-radius: 0.5rem;
 }
 
 :deep(.toastui-editor-toolbar) {
-  background: var(--color-bg-base);  /* ← 수정 */
-  border-bottom: 1px solid var(--color-border-default);  /* ← 수정 */
+  background: var(--color-bg-page);  /* ← 수정 */
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 /* 다크모드 */
 .dark :deep(.toastui-editor-defaultUI) {
-  background: var(--color-bg-base);  /* ← 수정 */
+  background: var(--color-bg-page);  /* ← 수정 */
 }
 
 .dark :deep(.toastui-editor-md-container),
 .dark :deep(.toastui-editor-md-preview) {
-  background: var(--color-bg-base);  /* ← 수정 */
-  color: var(--color-text-body);  /* ← 그대로 */
+  background: var(--color-bg-page);  /* ← 수정 */
+  color: var(--color-text-body);
 }
 </style>

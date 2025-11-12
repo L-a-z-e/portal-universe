@@ -33,6 +33,9 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src')
       }
     },
+    css: {
+      postcss: './postcss.config.js'
+    },
     server: {
       port: 30001,
       cors: true
