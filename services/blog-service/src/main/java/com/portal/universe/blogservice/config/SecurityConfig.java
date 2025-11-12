@@ -44,6 +44,32 @@ public class SecurityConfig {
     }
 
     /**
+     * Swagger UI 및 OpenAPI 문서 엔드포인트에 대한 보안 필터 체인을 설정합니다.
+     *
+     * @param http HttpSecurity 객체
+     * @return SecurityFilterChain Swagger용 보안 필터 체인
+     * @throws Exception 설정 과정에서 발생할 수 있는 예외
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain swaggerSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/api-docs",
+                        "/api-docs/**",
+                        "/v3/api-docs",
+                        "/v3/api-docs/**"
+                )
+                .authorizeHttpRequests(requests -> requests
+                        .anyRequest().permitAll())
+                .csrf(AbstractHttpConfigurer::disable);
+
+        return http.build();
+    }
+
+    /**
      * 블로그 서비스의 API 엔드포인트에 대한 보안 필터 체인을 설정합니다.
      * Actuator 필터 체인 다음 순서(@Order(1))로 평가됩니다.
      *
@@ -57,7 +83,7 @@ public class SecurityConfig {
      * @throws Exception 설정 과정에서 발생할 수 있는 예외
      */
     @Bean
-    @Order(1)
+    @Order(2)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
