@@ -6,6 +6,7 @@ import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
 import { Button, Input, Card, Tag } from '@portal/design-system';
 import { createPost } from '../api/posts';
+import { uploadFile } from '../api/files';
 import type { PostCreateRequest } from '../types';
 
 // CSS 임포트
@@ -155,13 +156,32 @@ onMounted(() => {
       placeholder: '내용을 입력하세요...',
       hooks: {
         addImageBlobHook: async (blob: Blob, callback: (url: string, alt: string) => void) => {
-          console.log('📷 이미지 업로드 준비 중...', blob);
+          try {
+            console.log('📷 이미지 업로드 시작...', {
+              size: blob.size,
+              type: blob.type
+            });
 
-          // TODO: S3 업로드 API 연동
-          const tempUrl = URL.createObjectURL(blob);
-          callback(tempUrl, 'image');
+            // File 객체로 변환 (uploadFile 함수는 File 타입 요구)
+            const file = blob instanceof File
+                ? blob
+                : new File([blob], 'image.png', { type: blob.type });
 
-          alert('이미지 업로드 기능은 준비 중입니다.');
+            // S3에 파일 업로드
+            const response = await uploadFile(file);
+
+            // 에디터에 이미지 삽입
+            // callback(url, altText) 형식
+            callback(response.url, file.name);
+
+            console.log('✅ 이미지 업로드 성공:', response.url);
+          } catch (error) {
+            console.error('❌ 이미지 업로드 실패:', error);
+
+            // 사용자에게 에러 알림
+            alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
+
+          }
         }
       }
     });
