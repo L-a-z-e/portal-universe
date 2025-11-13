@@ -305,7 +305,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=ap-northeast-2
     volumes:
-      - ./localstack:/tmp/localstack
+      - ./localstack_data:/var/lib/localstack
 
 volumes:
   mysql-data:

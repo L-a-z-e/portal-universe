@@ -156,7 +156,7 @@ public class FileService {
 
     /**
      * S3 URL에서 객체 키(key) 추출
-     * URL 형식: http://localhost:4566/test-bucket/uuid_filename.jpg
+     * URL 형식: http://localhost:4566/blog-bucket/uuid_filename.jpg
      */
     private String extractKeyFromUrl(String url) {
         String[] parts = url.split(bucketName + "/");
