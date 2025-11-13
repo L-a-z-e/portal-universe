@@ -295,6 +295,18 @@ services:
     networks:
       - portal-universe-net
 
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=ap-northeast-2
+    volumes:
+      - ./localstack:/tmp/localstack
+
 volumes:
   mysql-data:
   mongo-data:
