@@ -91,6 +91,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/blog").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/blog/**").permitAll()
 
+                        // --- 파일 업로드 API 권한 설정 ---
+                        .requestMatchers(HttpMethod.POST, "/file/upload").authenticated()  // 인증된 사용자
+                        .requestMatchers(HttpMethod.DELETE, "/file/delete").hasRole("ADMIN")  // 관리자만
+
                         // --- 관리자 전용 엔드포인트 (생성, 수정, 삭제) ---
                         .requestMatchers(HttpMethod.POST, "/api/blog").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/blog/**").hasRole("ADMIN")

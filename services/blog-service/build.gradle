@@ -75,9 +75,16 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
     // =======================================
+    // AWS
+    // =======================================
+    implementation platform('software.amazon.awssdk:bom:2.29.50')
+    implementation 'software.amazon.awssdk:s3'
+
+    // =======================================
     // Testing
     // =======================================
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.testcontainers:junit-jupiter' // Integration tests with Docker containers
     testImplementation 'org.testcontainers:mongodb' // MongoDB container for testing
