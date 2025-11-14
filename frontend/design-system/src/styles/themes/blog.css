@@ -28,14 +28,26 @@
 }
 
 [data-service="blog"][data-theme="dark"] {
+    /* Brand Colors */
     --color-brand-primary: #20C997;
     --color-brand-primary-hover: #38D9A9;
 
-    --color-text-body: #ECECEC;
-    --color-text-meta: #ACACAC;
+    /* Text */
+    --color-text-heading: #F0F6FC;
+    --color-text-body: #C9D1D9;
+    --color-text-meta: #8B949E;
+    --color-text-muted: #6E7681;
 
-    --color-bg-page: #121212;
-    --color-bg-card: #1E1E1E;
+    /* Background */
+    --color-bg-page: #0F1419;
+    --color-bg-card: #1C2128;
+    --color-bg-elevated: #2D333B;
+    --color-bg-muted: #22272E;
+    --color-bg-hover: #2D333B;
+
+    /* Border */
+    --color-border-default: #444C56;
+    --color-border-hover: #6E7681;
 }
 
 /* Blog-specific component styles */
