@@ -21,37 +21,37 @@ public interface PostService {
      * PRD Phase 1: 페이징된 게시물 목록 조회
      * 메인 블로그 페이지용
      */
-    Page<PostListResponse> getPublishedPosts(int page, int size);
+    Page<PostSummaryResponse> getPublishedPosts(int page, int size);
 
     /**
      * 작성자별 게시물 조회 (마이페이지)
      */
-    Page<PostListResponse> getPostsByAuthor(String authorId, int page, int size);
+    Page<PostSummaryResponse> getPostsByAuthor(String authorId, int page, int size);
 
     /**
      * 작성자별 + 상태별 조회 (초안/발행 분리)
      */
-    Page<PostListResponse> getPostsByAuthorAndStatus(String authorId, PostStatus status, int page, int size);
+    Page<PostSummaryResponse> getPostsByAuthorAndStatus(String authorId, PostStatus status, int page, int size);
 
     /**
      * PRD Phase 1: 카테고리별 게시물 조회
      */
-    Page<PostListResponse> getPostsByCategory(String category, int page, int size);
+    Page<PostSummaryResponse> getPostsByCategory(String category, int page, int size);
 
     /**
      * PRD Phase 1: 태그별 게시물 조회
      */
-    Page<PostListResponse> getPostsByTags(List<String> tags, int page, int size);
+    Page<PostSummaryResponse> getPostsByTags(List<String> tags, int page, int size);
 
     /**
      * PRD Phase 1: 검색 기능
      */
-    Page<PostListResponse> searchPosts(String keyword, int page, int size);
+    Page<PostSummaryResponse> searchPosts(String keyword, int page, int size);
 
     /**
      * 고급 검색 및 필터링
      */
-    Page<PostListResponse> searchPostsAdvanced(PostSearchRequest searchRequest);
+    Page<PostSummaryResponse> searchPostsAdvanced(PostSearchRequest searchRequest);
 
     /**
      * PRD Phase 1: 게시물 상세 조회 (조회수 증가 포함)
@@ -66,17 +66,17 @@ public interface PostService {
     /**
      * PRD Phase 1: 인기 게시물 조회
      */
-    Page<PostListResponse> getPopularPosts(int page, int size);
+    Page<PostSummaryResponse> getPopularPosts(int page, int size);
 
     /**
      * PRD Phase 2 대비: 관련 게시물 추천
      */
-    List<PostListResponse> getRelatedPosts(String postId, int limit);
+    List<PostSummaryResponse> getRelatedPosts(String postId, int limit);
 
     /**
      * PRD Phase 1: 최근 게시물 조회
      */
-    List<PostListResponse> getRecentPosts(int limit);
+    List<PostSummaryResponse> getRecentPosts(int limit);
 
     // ===== 통계 및 메타 정보 =====
 

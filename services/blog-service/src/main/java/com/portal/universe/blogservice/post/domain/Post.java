@@ -14,6 +14,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -107,7 +109,13 @@ public class Post {
      */
     private String thumbnailUrl;
 
-    // ===== 기존 호환성 유지 =====
+    /**
+     * 첨부 이미지 URL 목록
+     * - Toast UI Editor 또는 별도 이미지 업로드로 추가된 이미지들
+     * - S3 URL 목록
+     * - 본문 내 이미지와 별도로 관리 가능
+     */
+    private List<String> images = new ArrayList<>();
 
     /**
      * 연관 상품 ID (선택적 기능으로 유지)
@@ -124,7 +132,7 @@ public class Post {
     @Builder
     public Post(String title, String content, String summary, String authorId,
                 String authorName, PostStatus status, Set<String> tags, String category,
-                String metaDescription, String thumbnailUrl, String productId) {
+                String metaDescription, String thumbnailUrl, List<String> images, String productId) {
         this.title = title;
         this.content = content;
         this.summary = summary != null ? summary : generateSummary(content);
@@ -135,6 +143,7 @@ public class Post {
         this.category = category;
         this.metaDescription = metaDescription != null ? metaDescription : generateMetaDescription(content);
         this.thumbnailUrl = thumbnailUrl;
+        this.images = images != null ? new ArrayList<>(images) : new ArrayList<>();
         this.productId = productId; // 선택적 유지
     }
 
@@ -142,7 +151,7 @@ public class Post {
      * 기본 게시물 수정
      */
     public void update (String title, String content, String summary, Set<String> tags,
-                        String category, String metaDescription, String thumbnailUrl) {
+                        String category, String metaDescription, String thumbnailUrl, List<String> images) {
         this.title = title;
         this.content = content;
         this.summary = summary != null ? summary : generateSummary(content);
@@ -150,6 +159,7 @@ public class Post {
         this.category = category;
         this.metaDescription = metaDescription != null ? metaDescription : generateMetaDescription(content);
         this.thumbnailUrl = thumbnailUrl;
+        this.images = images != null ? new ArrayList<>(images) : new ArrayList<>();
     }
 
     /**
@@ -188,6 +198,39 @@ public class Post {
     public void decrementLikeCount() {
         if (this.likeCount > 0) {
             this.likeCount--;
+        }
+    }
+
+    /**
+     * 이미지 추가
+     */
+    public void addImage(String imageUrl) {
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            this.images.add(imageUrl);
+        }
+    }
+
+    /**
+     * 이미지 제거
+     */
+    public void removeImage(String imageUrl) {
+        this.images.remove(imageUrl);
+    }
+
+    /**
+     * 모든 이미지 제거
+     */
+    public void clearImages() {
+        this.images.clear();
+    }
+
+    /**
+     * 썸네일이 없을 경우 첫 번째 이미지를 썸네일로 자동 설정
+     */
+    public void setDefaultThumbnailIfNeeded() {
+        if ((this.thumbnailUrl == null || this.thumbnailUrl.isEmpty())
+                && !this.images.isEmpty()) {
+            this.thumbnailUrl = this.images.get(0);
         }
     }
 

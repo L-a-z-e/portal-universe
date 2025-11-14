@@ -3,6 +3,7 @@ package com.portal.universe.blogservice.post.dto;
 import com.portal.universe.blogservice.post.domain.PostStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public record PostResponse(
@@ -17,6 +18,7 @@ public record PostResponse(
         String category,
         String metaDescription,
         String thumbnailUrl,
+        List<String> images,
         Long viewCount,
         Long likeCount,
         LocalDateTime createdAt,

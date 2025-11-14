@@ -3,6 +3,7 @@ package com.portal.universe.blogservice.post.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
 import java.util.Set;
 
 public record PostCreateRequest(
@@ -32,7 +33,14 @@ public record PostCreateRequest(
         // 즉시 발행 여부 (기본: 초안으로 저장)
         Boolean publishImmediately,
 
-        // 기존 호환성 유지 (선택적)
+        /**
+         * 첨부 이미지 URL 목록
+         * - Toast UI Editor로 업로드한 이미지들
+         * - S3 URL 목록
+         */
+        List<String> images,
+
+        // 상품ID(Optional)
         String productId
 ) {
     /**

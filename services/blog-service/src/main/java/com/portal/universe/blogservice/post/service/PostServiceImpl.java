@@ -103,7 +103,8 @@ public class PostServiceImpl implements PostService {
                 request.tags(),
                 request.category(),
                 request.metaDescription(),
-                request.thumbnailUrl()
+                request.thumbnailUrl(),
+                request.images()
         );
 
         Post updatedPost = postRepository.save(post);
@@ -141,7 +142,7 @@ public class PostServiceImpl implements PostService {
     // ===== 블로그 핵심 기능 확장 =====
 
     @Override
-    public Page<PostListResponse> getPublishedPosts(int page, int size) {
+    public Page<PostSummaryResponse> getPublishedPosts(int page, int size) {
         log.info("Fetching published posts, page: {}, size: {}", page, size);
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> posts = postRepository.findByStatusOrderByPublishedAtDesc(PostStatus.PUBLISHED, pageable);
@@ -149,7 +150,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Page<PostListResponse> getPostsByAuthor(String authorId, int page, int size) {
+    public Page<PostSummaryResponse> getPostsByAuthor(String authorId, int page, int size) {
         log.info("Fetching posts by author: {}", authorId);
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> posts = postRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, pageable);
@@ -157,7 +158,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Page<PostListResponse> getPostsByAuthorAndStatus(String authorId, PostStatus status, int page, int size) {
+    public Page<PostSummaryResponse> getPostsByAuthorAndStatus(String authorId, PostStatus status, int page, int size) {
         log.info("Fetching posts by author: {} and status: {}", authorId, status);
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> posts = postRepository.findByAuthorIdAndStatusOrderByCreatedAtDesc(authorId, status, pageable);
@@ -165,7 +166,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Page<PostListResponse> getPostsByCategory(String category, int page, int size) {
+    public Page<PostSummaryResponse> getPostsByCategory(String category, int page, int size) {
         log.info("Fetching posts by category: {}", category);
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> posts = postRepository.findByCategoryAndStatusOrderByPublishedAtDesc(
@@ -174,7 +175,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Page<PostListResponse> getPostsByTags(List<String> tags, int page, int size) {
+    public Page<PostSummaryResponse> getPostsByTags(List<String> tags, int page, int size) {
         log.info("Fetching posts by tags: {}", tags);
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> posts = postRepository.findByTagsInAndStatusOrderByPublishedAtDesc(
@@ -183,7 +184,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Page<PostListResponse> searchPosts(String keyword, int page, int size) {
+    public Page<PostSummaryResponse> searchPosts(String keyword, int page, int size) {
         log.info("Searching posts with keyword: {}", keyword);
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> posts = postRepository.findByTextSearchAndStatus(keyword, PostStatus.PUBLISHED, pageable);
@@ -191,7 +192,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Page<PostListResponse> searchPostsAdvanced(PostSearchRequest searchRequest) {
+    public Page<PostSummaryResponse> searchPostsAdvanced(PostSearchRequest searchRequest) {
         log.info("Advanced search with request: {}", searchRequest);
 
         // 기본 페이징 설정
@@ -275,7 +276,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Page<PostListResponse> getPopularPosts(int page, int size) {
+    public Page<PostSummaryResponse> getPopularPosts(int page, int size) {
         log.info("Fetching popular posts, page: {}, size: {}", page, size);
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> posts = postRepository.findByStatusOrderByViewCountDescPublishedAtDesc(
@@ -284,7 +285,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostListResponse> getRelatedPosts(String postId, int limit) {
+    public List<PostSummaryResponse> getRelatedPosts(String postId, int limit) {
         log.info("Fetching related posts for postId: {}", postId);
 
         Post post = postRepository.findById(postId)
@@ -304,7 +305,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostListResponse> getRecentPosts(int limit) {
+    public List<PostSummaryResponse> getRecentPosts(int limit) {
         log.info("Fetching recent posts, limit: {}", limit);
         LocalDateTime since = LocalDateTime.now().minusDays(30); // 최근 30일
         Pageable pageable = PageRequest.of(0, limit);
@@ -458,6 +459,7 @@ public class PostServiceImpl implements PostService {
                 post.getCategory(),
                 post.getMetaDescription(),
                 post.getThumbnailUrl(),
+                post.getImages(),
                 post.getViewCount(),
                 post.getLikeCount(),
                 post.getCreatedAt(),
@@ -467,11 +469,11 @@ public class PostServiceImpl implements PostService {
         );
     }
 
-    private PostListResponse convertToPostListResponse(Post post) {
+    private PostSummaryResponse convertToPostListResponse(Post post) {
         // 읽기 시간 계산 (평균 200자/분 기준)
         int estimatedReadTime = calculateReadTime(post.getContent());
 
-        return new PostListResponse(
+        return new PostSummaryResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getSummary(),
@@ -480,6 +482,7 @@ public class PostServiceImpl implements PostService {
                 post.getTags(),
                 post.getCategory(),
                 post.getThumbnailUrl(),
+                post.getImages(),
                 post.getViewCount(),
                 post.getLikeCount(),
                 post.getPublishedAt(),
