@@ -1,4 +1,48 @@
 // blog-frontend/src/types/index.ts
 
 export * from './common';
-export * from './post';
+
+// Post DTOs
+export type {
+  PostResponse,
+  PostCreateRequest,
+  PostUpdateRequest,
+  PostSummaryResponse,
+  PostStatusChangeRequest,
+  PostSearchRequest,
+  PostStatus,
+  AuthorStats,
+  BlogStats,
+  CategoryStats,
+  TagStats,
+} from '../dto/post';
+
+// Comment DTOs
+export type {
+  CommentResponse,
+  CommentCreateRequest,
+  CommentUpdateRequest,
+} from '../dto/comment';
+
+// Series DTOs
+export type {
+  SeriesResponse,
+  SeriesCreateRequest,
+  SeriesUpdateRequest,
+  SeriesListResponse,
+  SeriesPostOrderRequest,
+} from '../dto/series';
+
+// Tag DTOs
+export type {
+  TagResponse,
+  TagCreateRequest,
+  TagStatsResponse,
+} from '../dto/tag';
+
+// File DTOs
+export type {
+  FileUploadResponse,
+  FileDeleteRequest,
+} from '../dto/file';
+
