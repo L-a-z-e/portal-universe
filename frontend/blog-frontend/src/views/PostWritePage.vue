@@ -436,6 +436,7 @@ onBeforeUnmount(() => {
   color: var(--color-text-muted) !important;
 }
 
+/* [중요] 다크모드 편집 영역 배경 및 텍스트 */
 .toastui-editor-dark :deep(.toastui-editor-md-container),
 .toastui-editor-dark :deep(.toastui-editor-ww-container),
 .toastui-editor-dark :deep(.toastui-editor-md-preview) {
@@ -443,9 +444,51 @@ onBeforeUnmount(() => {
   color: var(--color-text-body) !important;
 }
 
+/* [중요] 에디터 본문 텍스트 색상 강제 적용 */
 .toastui-editor-dark :deep(.ProseMirror) {
   color: var(--color-text-body) !important;
   caret-color: var(--color-text-body) !important;
+}
+
+/* 마크다운 편집 영역 텍스트 */
+.toastui-editor-dark :deep(.toastui-editor-md-container .toastui-editor-contents) {
+  color: var(--color-text-body) !important;
+}
+
+/* 마크다운 프리뷰 영역 모든 텍스트 요소 */
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents) {
+  color: var(--color-text-body) !important;
+}
+
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents p),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents h1),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents h2),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents h3),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents h4),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents h5),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents h6),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents li),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents span),
+.toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents div) {
+  color: var(--color-text-body) !important;
+}
+
+/* Wysiwyg 모드의 모든 텍스트 요소 */
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents) {
+  color: var(--color-text-body) !important;
+}
+
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents p),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents h1),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents h2),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents h3),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents h4),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents h5),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents h6),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents li),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents span),
+.toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents div) {
+  color: var(--color-text-body) !important;
 }
 
 /* 코드 블록 다크모드 */
@@ -473,16 +516,22 @@ onBeforeUnmount(() => {
 .toastui-editor-dark :deep(.toastui-editor-contents td) {
   border-color: var(--color-border-default) !important;
   background: var(--color-bg-card) !important;
+  color: var(--color-text-body) !important; /* 테이블 셀 텍스트 */
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents th) {
   background: var(--color-bg-muted) !important;
+  color: var(--color-text-body) !important; /* 테이블 헤더 텍스트 */
 }
 
 /* 인용구 (Blockquote) */
 .toastui-editor-dark :deep(.toastui-editor-contents blockquote) {
   color: var(--color-text-meta) !important;
   border-left-color: var(--color-brand-primary) !important;
+}
+
+.toastui-editor-dark :deep(.toastui-editor-contents blockquote p) {
+  color: var(--color-text-meta) !important; /* 인용구 내부 텍스트 */
 }
 
 /* 링크 */
@@ -507,6 +556,10 @@ onBeforeUnmount(() => {
   color: var(--color-text-body) !important;
 }
 
+.toastui-editor-dark :deep(.toastui-editor-popup label) {
+  color: var(--color-text-body) !important; /* 팝업 라벨 텍스트 */
+}
+
 /* 툴바 구분선 */
 .toastui-editor-dark :deep(.toastui-editor-toolbar-divider) {
   background: var(--color-border-default) !important;
@@ -520,5 +573,28 @@ onBeforeUnmount(() => {
 /* 플레이스홀더 */
 .toastui-editor-dark :deep(.ProseMirror .placeholder) {
   color: var(--color-text-muted) !important;
+}
+
+/* 리스트 마커 색상 */
+.toastui-editor-dark :deep(.toastui-editor-contents ul li::marker),
+.toastui-editor-dark :deep(.toastui-editor-contents ol li::marker) {
+  color: var(--color-text-body) !important;
+}
+
+/* 체크박스 */
+.toastui-editor-dark :deep(.toastui-editor-contents input[type="checkbox"]) {
+  border-color: var(--color-border-default) !important;
+}
+
+/* 강조 텍스트 */
+.toastui-editor-dark :deep(.toastui-editor-contents strong),
+.toastui-editor-dark :deep(.toastui-editor-contents b) {
+  color: var(--color-text-heading) !important;
+}
+
+/* 기울임 텍스트 */
+.toastui-editor-dark :deep(.toastui-editor-contents em),
+.toastui-editor-dark :deep(.toastui-editor-contents i) {
+  color: var(--color-text-body) !important;
 }
 </style>
