@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import {ref, onMounted, onBeforeUnmount, watch, nextTick} from 'vue';
 import { useRouter } from 'vue-router';
 import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
@@ -9,7 +9,7 @@ import Prism from 'prismjs';
 import { Button, Card, Input, Tag } from '@portal/design-system';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
-import type { PostUpdateRequest } from '../dto/PostUpdateRequest';
+import type { PostUpdateRequest } from '@/dto/post';
 
 // CSS 임포트
 import 'prismjs/themes/prism.css';
@@ -21,10 +21,10 @@ const props = defineProps<{
 
 const router = useRouter();
 
-// [추가] 다크모드 감지
+// 다크모드 감지
 const isDarkMode = ref(false);
 
-// [추가] DOM에서 테마 확인하는 함수
+// DOM에서 테마 확인하는 함수
 function detectTheme() {
   const theme = document.documentElement.getAttribute('data-theme');
   isDarkMode.value = theme === 'dark';
@@ -34,7 +34,7 @@ function detectTheme() {
   }
 }
 
-// [추가] Editor 테마 업데이트 함수
+// Editor 테마 업데이트 함수
 function updateEditorTheme() {
   if (!editorInstance) return;
 
@@ -48,22 +48,22 @@ function updateEditorTheme() {
   }
 }
 
-// [변경] Editor 인스턴스로 변경
+// Editor 인스턴스로 변경
 const editorElement = ref<HTMLDivElement | null>(null);
 let editorInstance: Editor | null = null;
 
 // Form State
 const title = ref('');
-const tags = ref<string[]>([]); // [추가] 태그 기능
-const category = ref(''); // [추가] 카테고리
-const tagInput = ref(''); // [추가]
+const tags = ref<string[]>([]);
+const category = ref('');
+const tagInput = ref('');
 
 const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 const isLoading = ref(true);
 const titleError = ref('');
+const postData = ref<any>(null);
 
-// [추가] 태그 관리
 function addTag() {
   const tag = tagInput.value.trim();
   if (tag && !tags.value.includes(tag)) {
@@ -83,15 +83,94 @@ function handleTagKeydown(e: KeyboardEvent) {
   }
 }
 
+// Editor 초기화 함수
+function initEditor(content: string) {
+  console.log('🔍 [DEBUG] initEditor called');
+  console.log('🔍 [DEBUG] editorElement exists:', !!editorElement.value);
+
+  if (!editorElement.value) {
+    console.error('❌ [ERROR] editorElement is null!');
+    return;
+  }
+
+  // 기존 인스턴스가 있으면 제거
+  if (editorInstance) {
+    editorInstance.destroy();
+    editorInstance = null;
+  }
+
+  editorInstance = new Editor({
+    el: editorElement.value,
+    height: '600px',
+    initialEditType: 'markdown',
+    previewStyle: 'vertical',
+    usageStatistics: false,
+    theme: isDarkMode.value ? 'dark' : 'default',
+    plugins: [[codeSyntaxHighlight, { highlighter: Prism }]],
+    toolbarItems: [
+      ['heading', 'bold', 'italic', 'strike'],
+      ['hr', 'quote'],
+      ['ul', 'ol', 'task', 'indent', 'outdent'],
+      ['table', 'link', 'image'],
+      ['code', 'codeblock'],
+      ['scrollSync']
+    ],
+    placeholder: '내용을 입력하세요...',
+    hooks: {
+      addImageBlobHook: async (blob: Blob, callback: (url: string, alt: string) => void) => {
+        try {
+          console.log('📷 이미지 업로드 시작...', {
+            size: blob.size,
+            type: blob.type
+          });
+
+          const file = blob instanceof File
+              ? blob
+              : new File([blob], 'image.png', { type: blob.type });
+
+          const response = await uploadFile(file);
+          callback(response.url, file.name);
+
+          console.log('✅ 이미지 업로드 성공:', response.url);
+        } catch (error) {
+          console.error('❌ 이미지 업로드 실패:', error);
+          alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
+        }
+      }
+    }
+  });
+
+  // content 설정
+  editorInstance.setMarkdown(content);
+  console.log('✅ [SUCCESS] Editor initialized with content');
+
+  // 초기 테마 적용
+  updateEditorTheme();
+}
+
+watch(() => postData.value, async (newPost) => {
+  if (newPost?.content) {
+    console.log('🔍 [WATCH] Post loaded, waiting for DOM...');
+    await nextTick();
+    console.log('🔍 [WATCH] editorElement:', editorElement.value);
+
+    if (editorElement.value) {
+      initEditor(newPost.content);
+    } else {
+      console.error('❌ [WATCH ERROR] editorElement still null after nextTick');
+    }
+  }
+});
+
 onMounted(async () => {
-  // [추가] 초기 테마 감지
+  // 초기 테마 감지
   detectTheme();
 
   try {
     const post = await getPostById(props.postId);
     title.value = post.title;
 
-    // [추가] 태그와 카테고리 로드
+    // 태그와 카테고리 로드
     if (post.tags) {
       tags.value = post.tags;
     }
@@ -99,55 +178,7 @@ onMounted(async () => {
       category.value = post.category;
     }
 
-    // [변경] Editor 인스턴스 생성
-    if (editorElement.value) {
-      editorInstance = new Editor({
-        el: editorElement.value,
-        height: '600px',
-        initialEditType: 'markdown',
-        previewStyle: 'vertical',
-        usageStatistics: false,
-        theme: isDarkMode.value ? 'dark' : 'default', // [추가] 테마 옵션
-        plugins: [[codeSyntaxHighlight, { highlighter: Prism }]],
-        toolbarItems: [
-          ['heading', 'bold', 'italic', 'strike'],
-          ['hr', 'quote'],
-          ['ul', 'ol', 'task', 'indent', 'outdent'],
-          ['table', 'link', 'image'],
-          ['code', 'codeblock'],
-          ['scrollSync']
-        ],
-        placeholder: '내용을 입력하세요...',
-        hooks: {
-          addImageBlobHook: async (blob: Blob, callback: (url: string, alt: string) => void) => {
-            try {
-              console.log('📷 이미지 업로드 시작...', {
-                size: blob.size,
-                type: blob.type
-              });
-
-              const file = blob instanceof File
-                  ? blob
-                  : new File([blob], 'image.png', { type: blob.type });
-
-              const response = await uploadFile(file);
-              callback(response.url, file.name);
-
-              console.log('✅ 이미지 업로드 성공:', response.url);
-            } catch (error) {
-              console.error('❌ 이미지 업로드 실패:', error);
-              alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
-            }
-          }
-        }
-      });
-
-      // [변경] 기존 content를 Editor에 설정
-      editorInstance.setMarkdown(post.content);
-
-      // [추가] 초기 테마 적용
-      updateEditorTheme();
-    }
+    postData.value = post;
 
   } catch (err) {
     console.error('Failed to fetch post for editing:', err);
@@ -156,7 +187,7 @@ onMounted(async () => {
     isLoading.value = false;
   }
 
-  // [추가] 테마 변경 감지 (MutationObserver)
+  // 테마 변경 감지 (MutationObserver)
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
@@ -170,7 +201,7 @@ onMounted(async () => {
     attributeFilter: ['data-theme']
   });
 
-  // [추가] cleanup 시 observer도 정리
+  // cleanup 시 observer도 정리
   onBeforeUnmount(() => {
     observer.disconnect();
   });
@@ -185,7 +216,7 @@ function validate(): boolean {
     return false;
   }
 
-  // [추가] Editor 내용 검증
+  // Editor 내용 검증
   const content = editorInstance?.getMarkdown() || '';
   if (!content.trim()) {
     error.value = '내용을 입력해주세요.';
@@ -204,7 +235,7 @@ async function handleSubmit() {
   error.value = null;
 
   try {
-    // [변경] Editor에서 마크다운 가져오기
+    // Editor에서 마크다운 가져오기
     const content = editorInstance?.getMarkdown() || '';
 
     const payload: PostUpdateRequest = {
@@ -234,7 +265,7 @@ function handleCancel() {
 }
 
 onBeforeUnmount(() => {
-  // [추가] Editor 인스턴스 정리
+  // Editor 인스턴스 정리
   if (editorInstance) {
     editorInstance.destroy();
     editorInstance = null;
