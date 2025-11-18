@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, nextTick } from "vue";
+import {onMounted, onBeforeUnmount, ref, nextTick, watch} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import '@toast-ui/editor/dist/toastui-editor-viewer.css';
@@ -10,7 +10,7 @@ import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById } from "../api/posts";
 import { Button, Tag, Avatar, Card } from "@portal/design-system";
-import type { PostResponse } from "../dto/posts";
+import type { PostResponse } from "@/dto/post.ts";
 
 const route = useRoute();
 const router = useRouter();
@@ -47,6 +47,10 @@ function updateViewerTheme() {
 
 // Viewer 초기화 함수
 function initViewer(content: string) {
+
+  console.log('🔍 [DEBUG] initViewer called with content:', content?.substring(0, 100));
+  console.log('🔍 [DEBUG] viewerElement exists:', !!viewerElement.value);
+
   if (!viewerElement.value) return;
 
   // 기존 인스턴스가 있으면 제거
@@ -82,11 +86,10 @@ onMounted(async () => {
     error.value = null;
     post.value = await getPostById(postId);
 
-    // post 로드 후 Viewer 초기화
-    await nextTick(); // DOM 업데이트 대기
-    if (post.value?.content) {
-      initViewer(post.value.content);
-    }
+    console.log('🔍 [DEBUG] postId:', postId);
+    console.log('🔍 [DEBUG] post loaded:', post.value);
+    console.log('🔍 [DEBUG] post.content:', post.value?.content);
+    console.log('🔍 [DEBUG] viewerElement:', viewerElement.value);
 
   } catch (err) {
     error.value = "게시글을 가져오지 못했습니다.";
@@ -128,6 +131,17 @@ function handleEdit() {
     router.push(`/edit/${post.value.id}`);
   }
 }
+
+watch(() => post.value, async (newPost) => {
+  if (newPost?.content) {
+    await nextTick(); // DOM 업데이트 대기
+    console.log('🔍 [WATCH] post loaded, viewerElement:', viewerElement.value);
+    if (viewerElement.value) {
+      initViewer(newPost.content);
+    }
+  }
+});
+
 </script>
 
 <template>
