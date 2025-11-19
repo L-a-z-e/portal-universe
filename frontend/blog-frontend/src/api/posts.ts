@@ -5,7 +5,7 @@ import type {
   ApiResponse,
   PageResponse,
   PostResponse,
-  PostListResponse,
+  PostSummaryResponse,
   PostCreateRequest,
   PostUpdateRequest,
   PostStatusChangeRequest,
@@ -65,8 +65,8 @@ export function getAllPosts(): Promise<PostResponse[]> {
 export async function getPublishedPosts(
   page: number = 0,
   size: number = 10
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(BASE_PATH, {
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(BASE_PATH, {
     params: { page, size },
   });
   return response.data.data;
@@ -77,8 +77,8 @@ export async function getMyPosts(
   status?: string,
   page: number = 0,
   size: number = 10
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
     `${BASE_PATH}/my`,
     {
       params: { status, page, size },
@@ -92,8 +92,8 @@ export async function getPostsByAuthor(
   authorId: string,
   page: number = 0,
   size: number = 10
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
     `${BASE_PATH}/author/${authorId}`,
     {
       params: { page, size },
@@ -107,8 +107,8 @@ export async function getPostsByCategory(
   category: string,
   page: number = 0,
   size: number = 10
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
     `${BASE_PATH}/category/${category}`,
     {
       params: { page, size },
@@ -122,8 +122,8 @@ export async function getPostsByTags(
   tags: string[],
   page: number = 0,
   size: number = 10
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
     `${BASE_PATH}/tags`,
     {
       params: { tags: tags.join(','), page, size },
@@ -136,8 +136,8 @@ export async function getPostsByTags(
 export async function getPopularPosts(
   page: number = 0,
   size: number = 10
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
     `${BASE_PATH}/popular`,
     {
       params: { page, size },
@@ -147,8 +147,8 @@ export async function getPopularPosts(
 }
 
 /** 최근 게시물 */
-export async function getRecentPosts(limit: number = 5): Promise<PostListResponse[]> {
-  const response = await apiClient.get<ApiResponse<PostListResponse[]>>(`${BASE_PATH}/recent`, {
+export async function getRecentPosts(limit: number = 5): Promise<PostSummaryResponse[]> {
+  const response = await apiClient.get<ApiResponse<PostSummaryResponse[]>>(`${BASE_PATH}/recent`, {
     params: { limit },
   });
   return response.data.data;
@@ -158,8 +158,8 @@ export async function getRecentPosts(limit: number = 5): Promise<PostListRespons
 export async function getRelatedPosts(
   postId: string,
   limit: number = 5
-): Promise<PostListResponse[]> {
-  const response = await apiClient.get<ApiResponse<PostListResponse[]>>(
+): Promise<PostSummaryResponse[]> {
+  const response = await apiClient.get<ApiResponse<PostSummaryResponse[]>>(
     `${BASE_PATH}/${postId}/related`,
     {
       params: { limit },
@@ -181,8 +181,8 @@ export async function searchPosts(
   keyword: string,
   page: number = 0,
   size: number = 10
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.get<ApiResponse<PageResponse<PostListResponse>>>(
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
     `${BASE_PATH}/search`,
     {
       params: { keyword, page, size },
@@ -194,8 +194,8 @@ export async function searchPosts(
 /** 고급 검색 */
 export async function searchPostsAdvanced(
   searchRequest: PostSearchRequest
-): Promise<PageResponse<PostListResponse>> {
-  const response = await apiClient.post<ApiResponse<PageResponse<PostListResponse>>>(
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.post<ApiResponse<PageResponse<PostSummaryResponse>>>(
     `${BASE_PATH}/search/advanced`,
     searchRequest
   );
