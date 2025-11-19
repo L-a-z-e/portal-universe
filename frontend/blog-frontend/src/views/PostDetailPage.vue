@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, onBeforeUnmount, ref, nextTick, watch} from "vue";
+import {onMounted, onBeforeUnmount, ref, nextTick} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import '@toast-ui/editor/dist/toastui-editor-viewer.css';
@@ -99,15 +99,29 @@ onMounted(async () => {
       await loadComments(post.value.id);
     }
 
+  } catch (err) {
+    error.value = "게시글을 가져오지 못했습니다.";
+  } finally {
+    isLoading.value = false;
+
+    // await nextTick();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     console.log('🔍 [DEBUG] postId:', postId);
     console.log('🔍 [DEBUG] post loaded:', post.value);
     console.log('🔍 [DEBUG] post.content:', post.value?.content);
     console.log('🔍 [DEBUG] viewerElement:', viewerElement.value);
 
-  } catch (err) {
-    error.value = "게시글을 가져오지 못했습니다.";
-  } finally {
-    isLoading.value = false;
+    if (post.value?.content && viewerElement.value) {
+      console.log('✅ [VIEWER] Initializing with content...');
+      initViewer(post.value.content);
+    } else {
+      console.error('❌ [ERROR] Cannot initialize viewer:', {
+        hasPost: !!post.value,
+        hasContent: !!post.value?.content,
+        hasElement: !!viewerElement.value
+      });
+    }
   }
 
   // 테마 변경 감지 (MutationObserver)
@@ -144,16 +158,6 @@ function handleEdit() {
     router.push(`/edit/${post.value.id}`);
   }
 }
-
-watch(() => post.value, async (newPost) => {
-  if (newPost?.content) {
-    await nextTick(); // DOM 업데이트 대기
-    console.log('🔍 [WATCH] post loaded, viewerElement:', viewerElement.value);
-    if (viewerElement.value) {
-      initViewer(newPost.content);
-    }
-  }
-});
 
 async function loadComments(postId: string) {
   isCommentsLoading.value = true;

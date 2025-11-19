@@ -17,7 +17,6 @@ const BASE_PATH = '/api/blog/comments';
 export function getCommentsByPostId(postId: string): Promise<CommentResponse[]> {
   return apiClient
     .get<ApiResponse<CommentResponse[]>>(`${BASE_PATH}/post/${postId}`)
-    // ⭐ 수정: /api/blog/comments/post/{postId}
     .then(res => res.data.data);
 }
 
