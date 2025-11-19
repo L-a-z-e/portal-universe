@@ -9,12 +9,20 @@ import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById } from "../api/posts";
-import { Button, Tag, Avatar, Card } from "@portal/design-system";
+import {Button, Tag, Avatar, Card} from "@portal/design-system";
 import type { PostResponse } from "@/dto/post.ts";
+import type { CommentResponse } from "@/dto/comment.ts";
+import { getCommentsByPostId, createComment, updateComment, deleteComment } from "@/api/comments.ts";
 
 const route = useRoute();
 const router = useRouter();
 const post = ref<PostResponse | null>(null);
+const comments = ref<CommentResponse[]>([]);
+const newComment = ref('');
+const isCommentsLoading = ref(false);
+const editingCommentId = ref<string | null>(null);
+const editingContent = ref('');
+
 const isLoading = ref(true);
 const error = ref<string | null>(null);
 
@@ -75,6 +83,7 @@ onMounted(async () => {
   detectTheme();
 
   const postId = route.params.postId as string;
+
   if (!postId) {
     error.value = "존재하지 않는 게시글입니다";
     isLoading.value = false;
@@ -85,6 +94,10 @@ onMounted(async () => {
     isLoading.value = true;
     error.value = null;
     post.value = await getPostById(postId);
+
+    if (post.value) {
+      await loadComments(post.value.id);
+    }
 
     console.log('🔍 [DEBUG] postId:', postId);
     console.log('🔍 [DEBUG] post loaded:', post.value);
@@ -142,6 +155,70 @@ watch(() => post.value, async (newPost) => {
   }
 });
 
+async function loadComments(postId: string) {
+  isCommentsLoading.value = true;
+  try {
+    comments.value = await getCommentsByPostId(postId);
+  } catch (e) {
+    // 에러 처리
+  } finally {
+    isCommentsLoading.value = false;
+  }
+}
+
+async function handleAddComment() {
+  if (!post.value || !newComment.value.trim()) return;
+  const payload = {
+    postId: post.value.id,
+    content: newComment.value.trim(),
+    parentCommentId: null,
+  };
+  const comment = await createComment(payload);
+  comments.value.push(comment);
+  newComment.value = '';
+}
+
+function startEditComment(comment: CommentResponse) {
+  editingCommentId.value = comment.id;
+  editingContent.value = comment.content;
+}
+
+async function handleUpdateComment(commentId: string) {
+  if (!editingContent.value.trim()) return;
+
+  try {
+    const updated = await updateComment(commentId, {
+      content: editingContent.value.trim()
+    });
+
+    // 목록에서 해당 댓글 업데이트
+    const index = comments.value.findIndex(c => c.id === commentId);
+    if (index !== -1) {
+      comments.value[index] = updated;
+    }
+
+    editingCommentId.value = null;
+    editingContent.value = '';
+  } catch (e) {
+    console.error('댓글 수정 실패:', e);
+  }
+}
+
+function cancelEditComment() {
+  editingCommentId.value = null;
+  editingContent.value = '';
+}
+
+async function handleDeleteComment(commentId: string) {
+  if (!confirm('댓글을 삭제하시겠습니까?')) return;
+
+  try {
+    await deleteComment(commentId);
+    comments.value = comments.value.filter(c => c.id !== commentId);
+  } catch (e) {
+    console.error('댓글 삭제 실패:', e);
+  }
+}
 </script>
 
 <template>
@@ -245,12 +322,112 @@ watch(() => post.value, async (newPost) => {
         </div>
       </div>
 
-      <!-- 댓글 영역 Placeholder -->
+      <!-- 댓글 영역 -->
       <div class="mt-12">
         <h2 class="text-2xl font-bold text-text-heading mb-6">💬 댓글</h2>
-        <Card class="bg-bg-muted border-border-muted text-center py-12">
-          <div class="text-3xl mb-2">💬</div>
-          <div class="text-text-meta">댓글 기능 준비중...</div>
+        <Card class="bg-bg-muted border-border-muted py-8">
+          <div v-if="isCommentsLoading" class="text-center py-8">
+            댓글을 불러오는 중...
+          </div>
+
+          <div v-else>
+            <!-- 댓글 없음 -->
+            <div v-if="comments.length === 0" class="text-text-meta pb-6">
+              아직 댓글이 없습니다.
+            </div>
+
+            <!-- 댓글 목록 -->
+            <ul v-else class="space-y-4 mb-6">
+              <li v-for="comment in comments" :key="comment.id" class="p-4 bg-bg-card rounded-lg border border-border-default">
+                <!-- 수정 모드가 아닐 때 (조회) -->
+                <div v-if="editingCommentId !== comment.id">
+                  <div class="flex items-start justify-between mb-2">
+                    <div>
+                      <span class="font-semibold text-text-heading">{{ comment.authorName }}</span>
+                      <span class="text-xs text-text-meta ml-2">
+                    {{ new Date(comment.createdAt).toLocaleString('ko-KR') }}
+                  </span>
+                    </div>
+
+                    <!-- ⭐ 수정/삭제 버튼 -->
+                    <div class="flex gap-2">
+                      <Button
+                          variant="secondary"
+                          size="sm"
+                          @click="startEditComment(comment)"
+                      >
+                        ✏️ 수정
+                      </Button>
+                      <Button
+                          variant="outline"
+                          size="sm"
+                          @click="handleDeleteComment(comment.id)"
+                      >
+                        🗑️ 삭제
+                      </Button>
+                    </div>
+                  </div>
+
+                  <!-- 댓글 내용 -->
+                  <p class="text-text-body whitespace-pre-wrap">{{ comment.content }}</p>
+
+                  <!-- 좋아요 (선택사항) -->
+                  <div class="mt-2 text-xs text-text-meta">
+                    ❤️ {{ comment.likeCount }}
+                  </div>
+                </div>
+
+                <!-- ⭐ 수정 모드 (편집) -->
+                <div v-else class="space-y-2">
+              <textarea
+                  v-model="editingContent"
+                  class="w-full p-2 border border-border-default rounded-lg bg-bg-page text-text-body"
+                  rows="3"
+                  placeholder="댓글 내용을 수정하세요..."
+              ></textarea>
+
+                  <div class="flex gap-2 justify-end">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        @click="cancelEditComment"
+                    >
+                      취소
+                    </Button>
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        :disabled="!editingContent.trim()"
+                        @click="handleUpdateComment(comment.id)"
+                    >
+                      저장
+                    </Button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+
+            <!-- 댓글 입력 -->
+            <div class="border-t border-border-default pt-6 space-y-2">
+              <label class="block text-sm font-medium text-text-heading">
+                댓글 작성
+              </label>
+              <textarea
+                  v-model="newComment"
+                  class="w-full p-3 border border-border-default rounded-lg bg-bg-page text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  rows="2"
+                  placeholder="댓글을 입력하세요..."
+              ></textarea>
+              <div class="flex justify-end">
+                <Button
+                    :disabled="!newComment.trim()"
+                    @click="handleAddComment"
+                >
+                  등록
+                </Button>
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
     </article>
