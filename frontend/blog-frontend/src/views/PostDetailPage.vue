@@ -9,7 +9,7 @@ import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById } from "../api/posts";
-import {Button, Tag, Avatar, Card} from "@portal/design-system";
+import {Button, Tag, Avatar, Card, Textarea} from "@portal/design-system";
 import type { PostResponse } from "@/dto/post.ts";
 import type { CommentResponse } from "@/dto/comment.ts";
 import { getCommentsByPostId, createComment, updateComment, deleteComment } from "@/api/comments.ts";
@@ -383,12 +383,11 @@ async function handleDeleteComment(commentId: string) {
 
                 <!-- ⭐ 수정 모드 (편집) -->
                 <div v-else class="space-y-2">
-              <textarea
-                  v-model="editingContent"
-                  class="w-full p-2 border border-border-default rounded-lg bg-bg-page text-text-body"
-                  rows="3"
-                  placeholder="댓글 내용을 수정하세요..."
-              ></textarea>
+                  <Textarea
+                      v-model="editingContent"
+                      :rows="3"
+                      placeholder="댓글 내용을 수정하세요..."
+                  />
 
                   <div class="flex gap-2 justify-end">
                     <Button
@@ -416,12 +415,11 @@ async function handleDeleteComment(commentId: string) {
               <label class="block text-sm font-medium text-text-heading">
                 댓글 작성
               </label>
-              <textarea
+              <Textarea
                   v-model="newComment"
-                  class="w-full p-3 border border-border-default rounded-lg bg-bg-page text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary"
-                  rows="2"
+                  :rows="2"
                   placeholder="댓글을 입력하세요..."
-              ></textarea>
+              />
               <div class="flex justify-end">
                 <Button
                     :disabled="!newComment.trim()"

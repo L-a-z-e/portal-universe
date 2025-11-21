@@ -324,23 +324,19 @@ onBeforeUnmount(() => {
       <!-- 카테고리 & 태그 -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-text-heading mb-2">
-            카테고리
-          </label>
           <Input
               v-model="category"
+              label="카테고리"
               placeholder="예: Vue.js, Spring Boot"
               :disabled="isSubmitting"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-heading mb-2">
-            태그 추가
-          </label>
           <div class="flex gap-2">
             <Input
                 v-model="tagInput"
+                label="태그 추가"
                 placeholder="태그 입력 후 Enter"
                 :disabled="isSubmitting"
                 @keydown="handleTagKeydown"
@@ -350,6 +346,7 @@ onBeforeUnmount(() => {
                 size="sm"
                 :disabled="isSubmitting"
                 @click="addTag"
+                class="mt-6"
             >
               추가
             </Button>

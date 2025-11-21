@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Input, Card, Tag } from '@portal/design-system';
+import { Button, Input, Card, Tag, Textarea } from '@portal/design-system';
 import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
@@ -278,26 +278,22 @@ onBeforeUnmount(() => {
       <!-- 카테고리 & 태그 -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-text-heading mb-2">
-            카테고리
-          </label>
           <Input
               v-model="form.category"
+              label="카테고리"
               placeholder="예: Vue.js, Spring Boot"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-heading mb-2">
-            태그 추가
-          </label>
           <div class="flex gap-2">
             <Input
                 v-model="tagInput"
+                label="태그 추가"
                 placeholder="태그 입력 후 Enter"
                 @keydown="handleTagKeydown"
             />
-            <Button variant="secondary" size="sm" @click="addTag">
+            <Button variant="secondary" size="sm" @click="addTag" class="mt-6">
               추가
             </Button>
           </div>
@@ -330,35 +326,26 @@ onBeforeUnmount(() => {
         </summary>
         <div class="space-y-4 mt-4">
           <div>
-            <label class="block text-sm font-medium text-text-heading mb-2">
-              요약 (최대 500자)
-            </label>
-            <textarea
+            <Textarea
                 v-model="form.summary"
-                class="w-full px-3 py-2 border border-border-muted rounded-lg resize-none"
-                rows="3"
-                maxlength="500"
+                label="요약 (최대 500자)"
+                :rows="3"
                 placeholder="검색 결과나 목록에 표시될 요약을 입력하세요"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-text-heading mb-2">
-              SEO 메타 설명 (최대 160자)
-            </label>
             <Input
                 v-model="form.metaDescription"
+                label="SEO 메타 설명 (최대 160자)"
                 placeholder="검색 엔진 최적화를 위한 설명"
-                maxlength="160"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-text-heading mb-2">
-              썸네일 URL
-            </label>
             <Input
                 v-model="form.thumbnailUrl"
+                label="썸네일 URL"
                 placeholder="https://example.com/image.jpg"
             />
           </div>
