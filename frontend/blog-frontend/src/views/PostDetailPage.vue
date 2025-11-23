@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, onBeforeUnmount, ref, nextTick} from "vue";
+import {onMounted, onBeforeUnmount, ref, nextTick, watch} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import '@toast-ui/editor/dist/toastui-editor-viewer.css';
@@ -53,35 +53,69 @@ function updateViewerTheme() {
   }
 }
 
-// Viewer 초기화 함수
+// ✅ Viewer 초기화 함수 (안전하게)
 function initViewer(content: string) {
+  console.log('🔍 [VIEWER] initViewer called');
 
-  console.log('🔍 [DEBUG] initViewer called with content:', content?.substring(0, 100));
-  console.log('🔍 [DEBUG] viewerElement exists:', !!viewerElement.value);
+  if (!viewerElement.value) {
+    console.warn('⚠️ [VIEWER] viewerElement is null, skipping');
+    return;
+  }
 
-  if (!viewerElement.value) return;
-
-  // 기존 인스턴스가 있으면 제거
+  // ✅ 기존 인스턴스가 있으면 제거
   if (viewerInstance) {
-    viewerInstance.destroy();
+    console.log('🔄 [VIEWER] Destroying existing instance');
+    try {
+      viewerInstance.destroy();
+    } catch (err) {
+      console.error('⚠️ [VIEWER] Destroy error:', err);
+    }
     viewerInstance = null;
   }
 
-  // 새 Viewer 인스턴스 생성
-  viewerInstance = new Viewer({
-    el: viewerElement.value,
-    initialValue: content,
-    plugins: [[codeSyntaxHighlight, { highlighter: Prism }]],
-  });
+  try {
+    console.log('✅ [VIEWER] Creating new instance');
 
-  // 초기 테마 적용
-  updateViewerTheme();
+    // 새 Viewer 인스턴스 생성
+    viewerInstance = new Viewer({
+      el: viewerElement.value,
+      initialValue: content,
+      plugins: [[codeSyntaxHighlight, { highlighter: Prism }]],
+    });
+
+    // 초기 테마 적용
+    updateViewerTheme();
+
+    console.log('✅ [VIEWER] Initialization complete');
+  } catch (err) {
+    console.error('❌ [VIEWER] Initialization failed:', err);
+  }
 }
 
-onMounted(async () => {
-  // 초기 테마 감지
-  detectTheme();
+// ✅ post와 viewerElement가 모두 준비되었을 때만 초기화
+watch(
+    [() => post.value, viewerElement],
+    async ([newPost, newElement]) => {
+      console.log('👀 [WATCH] Triggered:', {
+        hasPost: !!newPost,
+        hasContent: !!newPost?.content,
+        hasElement: !!newElement
+      });
 
+      if (newPost?.content && newElement) {
+        console.log('✅ [WATCH] Both ready, initializing viewer');
+        await nextTick();
+        initViewer(newPost.content);
+      }
+    },
+    {
+      immediate: false,  // ✅ immediate: false (onMounted 후에만 실행)
+      flush: 'post'      // ✅ DOM 업데이트 후 실행
+    }
+);
+
+// ✅ 데이터 로드
+async function loadPost() {
   const postId = route.params.postId as string;
 
   if (!postId) {
@@ -91,8 +125,10 @@ onMounted(async () => {
   }
 
   try {
+    console.log('📍 [LOAD] Loading post:', postId);
     isLoading.value = true;
     error.value = null;
+
     post.value = await getPostById(postId);
 
     if (post.value) {
@@ -100,29 +136,22 @@ onMounted(async () => {
     }
 
   } catch (err) {
+    console.error('❌ [ERROR] Failed to load post:', err);
     error.value = "게시글을 가져오지 못했습니다.";
   } finally {
     isLoading.value = false;
-
-    // await nextTick();
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    console.log('🔍 [DEBUG] postId:', postId);
-    console.log('🔍 [DEBUG] post loaded:', post.value);
-    console.log('🔍 [DEBUG] post.content:', post.value?.content);
-    console.log('🔍 [DEBUG] viewerElement:', viewerElement.value);
-
-    if (post.value?.content && viewerElement.value) {
-      console.log('✅ [VIEWER] Initializing with content...');
-      initViewer(post.value.content);
-    } else {
-      console.error('❌ [ERROR] Cannot initialize viewer:', {
-        hasPost: !!post.value,
-        hasContent: !!post.value?.content,
-        hasElement: !!viewerElement.value
-      });
-    }
+    console.log('✅ [LOAD] Post loaded, watch will handle viewer init');
   }
+}
+
+onMounted(async () => {
+  console.log('📍 [MOUNTED] PostDetailPage mounted');
+
+  // 초기 테마 감지
+  detectTheme();
+
+  // 데이터 로드 (watch가 viewer 초기화 처리)
+  await loadPost();
 
   // 테마 변경 감지 (MutationObserver)
   const observer = new MutationObserver((mutations) => {
@@ -145,9 +174,15 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  console.log('🔄 [CLEANUP] Destroying viewer instance');
+
   // Viewer 인스턴스 정리
   if (viewerInstance) {
-    viewerInstance.destroy();
+    try {
+      viewerInstance.destroy();
+    } catch (err) {
+      console.error('⚠️ [CLEANUP] Destroy error:', err);
+    }
     viewerInstance = null;
   }
 });
@@ -164,7 +199,7 @@ async function loadComments(postId: string) {
   try {
     comments.value = await getCommentsByPostId(postId);
   } catch (e) {
-    // 에러 처리
+    console.error('댓글 로드 실패:', e);
   } finally {
     isCommentsLoading.value = false;
   }
@@ -172,14 +207,18 @@ async function loadComments(postId: string) {
 
 async function handleAddComment() {
   if (!post.value || !newComment.value.trim()) return;
-  const payload = {
-    postId: post.value.id,
-    content: newComment.value.trim(),
-    parentCommentId: null,
-  };
-  const comment = await createComment(payload);
-  comments.value.push(comment);
-  newComment.value = '';
+  try {
+    const payload = {
+      postId: post.value.id,
+      content: newComment.value.trim(),
+      parentCommentId: null,
+    };
+    const comment = await createComment(payload);
+    comments.value.push(comment);
+    newComment.value = '';
+  } catch (e) {
+    console.error('댓글 추가 실패:', e);
+  }
 }
 
 function startEditComment(comment: CommentResponse) {
@@ -195,7 +234,6 @@ async function handleUpdateComment(commentId: string) {
       content: editingContent.value.trim()
     });
 
-    // 목록에서 해당 댓글 업데이트
     const index = comments.value.findIndex(c => c.id === commentId);
     if (index !== -1) {
       comments.value[index] = updated;
