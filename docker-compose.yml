@@ -304,8 +304,12 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=ap-northeast-2
+      - PERSISTENCE=1
+      - DATA_DIR=/var/lib/localstack
     volumes:
       - ./localstack_data:/var/lib/localstack
+    networks:
+      - portal-universe-net
 
 volumes:
   mysql-data:
