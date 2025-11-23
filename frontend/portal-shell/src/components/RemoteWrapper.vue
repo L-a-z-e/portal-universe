@@ -18,7 +18,11 @@ const error = ref<Error | null>(null);
 const isDev = computed(() => import.meta.env.DEV);
 
 let remoteApp: any = null;
+let mountFn: any = null; // ✅ load 결과 저장 (중복 load 방지)
 
+// -------------------------
+// Remote Navigation Sync
+// -------------------------
 const onRemoteNavigate = (path: string) => {
   const newPath = `${props.config.basePath}${path === '/' ? '' : path}`;
   if (shellRoute.path !== newPath) {
@@ -26,6 +30,9 @@ const onRemoteNavigate = (path: string) => {
   }
 };
 
+// -------------------------
+// Parent → Child route sync
+// -------------------------
 watch(() => shellRoute.path, (newPath) => {
   if (remoteApp?.onParentNavigate) {
     try {
@@ -37,12 +44,14 @@ watch(() => shellRoute.path, (newPath) => {
   }
 });
 
-// ✅ Remote 마운트 로직 분리
+// -------------------------
+// ✅ Mount 로직 (저장된 mountFn 사용)
+// -------------------------
 async function mountRemote() {
-  // ✅ Container가 준비될 때까지 대기
+  // Container 준비 확인
   if (!container.value) {
     console.warn('⚠️ [RemoteWrapper] Container not ready, waiting...');
-    await nextTick();  // DOM 업데이트 대기
+    await nextTick();
 
     if (!container.value) {
       console.error('❌ [RemoteWrapper] Container still null after nextTick!');
@@ -50,15 +59,17 @@ async function mountRemote() {
     }
   }
 
+  // mountFn 확인
+  if (!mountFn) {
+    console.error('❌ [RemoteWrapper] mountFn not available!');
+    error.value = new Error('Mount function not loaded');
+    loading.value = false;
+    return;
+  }
+
   console.log(`📍 [RemoteWrapper] Mounting ${props.config.name}...`);
 
   try {
-    const result = await remoteLoader.loadRemote(props.config);
-
-    if (!result.success || !result.mountFn) {
-      throw result.error || new Error('Failed to load remote');
-    }
-
     const initialPath = props.initialPath ||
         shellRoute.path.substring(props.config.basePath.length) || '/';
 
@@ -66,7 +77,8 @@ async function mountRemote() {
     console.log(`   Container:`, container.value);
     console.log(`   Initial path: ${initialPath}`);
 
-    remoteApp = result.mountFn(container.value, {
+    // ✅ 저장된 mountFn 사용 (중복 load 없음)
+    remoteApp = mountFn(container.value, {
       initialPath,
       onNavigate: onRemoteNavigate,
     });
@@ -81,7 +93,9 @@ async function mountRemote() {
   }
 }
 
-// ✅ loading이 false가 되면 (container가 렌더링되면) 마운트
+// -------------------------
+// ✅ loading이 false가 되면 mount
+// -------------------------
 watch(loading, async (isLoading, wasLoading) => {
   // loading이 true → false로 변경되고, 에러가 없을 때
   if (wasLoading && !isLoading && !error.value) {
@@ -90,19 +104,24 @@ watch(loading, async (isLoading, wasLoading) => {
   }
 });
 
+// -------------------------
+// ✅ 초기 로드 (mountFn만 가져오기)
+// -------------------------
 onMounted(async () => {
   console.log(`📍 [RemoteWrapper] Component mounted for ${props.config.name}`);
 
-  // ✅ Remote 로딩 시작 (loading = true 유지)
   try {
+    // Remote 로드 (mountFn 획득)
     const result = await remoteLoader.loadRemote(props.config);
 
     if (!result.success || !result.mountFn) {
       throw result.error || new Error('Failed to load remote');
     }
 
-    // ✅ 로딩 성공 → loading을 false로 변경
-    // → watch가 감지하여 mountRemote() 호출
+    // ✅ mountFn 저장 (나중에 watch에서 사용)
+    mountFn = result.mountFn;
+
+    // ✅ loading을 false로 변경 → watch가 mountRemote() 호출
     loading.value = false;
 
   } catch (err: any) {
@@ -112,29 +131,59 @@ onMounted(async () => {
   }
 });
 
+// -------------------------
+// ✅ Cleanup
+// -------------------------
 onUnmounted(() => {
   if (remoteApp?.unmount) {
     try {
       console.log(`🔄 [RemoteWrapper] Unmounting ${props.config.name}`);
       remoteApp.unmount();
-      remoteApp = null;
     } catch (err) {
       console.error('⚠️ Error during unmount:', err);
     }
   }
+
+  remoteApp = null;
+  mountFn = null;
+
+  if (container.value) {
+    container.value.innerHTML = '';
+  }
 });
 
+// -------------------------
+// ✅ Retry
+// -------------------------
 async function retry() {
   console.log(`🔄 [RemoteWrapper] Retrying ${props.config.name}...`);
-  remoteLoader.clearCache(props.config.key);
 
+  // 기존 앱 정리
+  if (remoteApp?.unmount) {
+    try {
+      remoteApp.unmount();
+    } catch (err) {
+      console.error('⚠️ Cleanup error:', err);
+    }
+  }
+
+  remoteApp = null;
+  mountFn = null;
+
+  if (container.value) {
+    container.value.innerHTML = '';
+  }
+
+  remoteLoader.clearCache(props.config.key);
   loading.value = true;
   error.value = null;
 
   // onMounted 로직 재실행
   try {
     const result = await remoteLoader.loadRemote(props.config);
+
     if (result.success && result.mountFn) {
+      mountFn = result.mountFn;
       loading.value = false;  // watch가 mountRemote() 호출
     } else {
       error.value = result.error;
