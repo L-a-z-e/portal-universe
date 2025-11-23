@@ -3,7 +3,7 @@ import { useAuthStore } from "./store/auth.ts";
 import { login, logout } from "./services/authService.ts";
 import { Button, Badge } from '@portal/design-system';
 import { useThemeStore } from "./store/theme.ts";
-import { onMounted, watch } from "vue";
+import { onMounted, watch} from "vue";
 import ThemeToggle from "./components/ThemeToggle.vue";
 
 const authStore = useAuthStore();
@@ -22,6 +22,7 @@ watch(() => themeStore.isDark, (newVal) => {
     document.documentElement.classList.remove('dark');
   }
 });
+
 </script>
 
 <template>
@@ -80,8 +81,13 @@ watch(() => themeStore.isDark, (newVal) => {
     <main class="flex-1">
       <Suspense>
         <template #default>
-          <router-view :key="$route.path" v-slot="{ Component }">
-            <component :is="Component" />
+          <router-view v-slot="{ Component, route }">
+            <KeepAlive :max="1">
+              <component
+                  :is="Component"
+                  :key="route.meta.remoteName || route.name"
+              />
+            </KeepAlive>
           </router-view>
         </template>
         <template #fallback>

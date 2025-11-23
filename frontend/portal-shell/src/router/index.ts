@@ -6,7 +6,6 @@ import HomePage from "../views/HomePage.vue";
 import CallbackPage from "../views/CallbackPage.vue";
 import { getRemoteConfigs } from '../config/remoteRegistry';
 
-// ✅ Remote configs로부터 동적으로 라우트 생성
 function createRemoteRoutes() {
   const configs = getRemoteConfigs();
 
@@ -14,14 +13,14 @@ function createRemoteRoutes() {
     path: `${config.basePath}/:pathMatch(.*)*`,
     name: config.key,
     component: RemoteWrapper,
-    // ✅ 핵심 변경: 동기 props (비동기 제거!)
     props: (route: any) => ({
       config,  // RemoteConfig 객체 전달
       initialPath: route.path.substring(config.basePath.length) || '/'
     }),
     meta: {
-      remoteName: config.name,
-      icon: config.icon
+      remoteName: config.key,
+      icon: config.icon,
+      keepAlive: true
     }
   }));
 }

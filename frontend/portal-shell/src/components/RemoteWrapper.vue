@@ -23,13 +23,37 @@ let mountFn: any = null; // ✅ load 결과 저장 (중복 load 방지)
 // -------------------------
 // Remote Navigation Sync
 // -------------------------
+let isNavigating = false;
+
 const onRemoteNavigate = (path: string) => {
   const newPath = `${props.config.basePath}${path === '/' ? '' : path}`;
-  if (shellRoute.path !== newPath) {
-    shellRouter.push(newPath).catch(() => {});
+  if (shellRoute.path !== newPath && !isNavigating) {
+    isNavigating = true;
+    console.log(`📤 [RemoteWrapper] Remote navigated to: ${path}, updating shell to: ${newPath}`);
+    shellRouter.push(newPath)
+        .catch(() => {})
+        .finally(() => {
+          setTimeout(() => { isNavigating = false; }, 100);
+        });
   }
 };
 
+// ✅ 단일 watch (shellRoute만 감지)
+watch(() => shellRoute.path, (newPath, oldPath) => {
+  if (remoteApp?.onParentNavigate && !isNavigating) {
+    const newRemotePath = newPath.substring(props.config.basePath.length) || '/';
+    const oldRemotePath = oldPath ? oldPath.substring(props.config.basePath.length) || '/' : '';
+
+    if (newRemotePath !== oldRemotePath) {
+      console.log(`📥 [RemoteWrapper] Shell route changed: ${oldRemotePath} → ${newRemotePath}`);
+      try {
+        remoteApp.onParentNavigate(newRemotePath);
+      } catch (err) {
+        console.error('⚠️ Error in onParentNavigate:', err);
+      }
+    }
+  }
+});
 // -------------------------
 // Parent → Child route sync
 // -------------------------
