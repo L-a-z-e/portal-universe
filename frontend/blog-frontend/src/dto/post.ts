@@ -66,12 +66,16 @@ export interface PostSummaryResponse {
   id: string;
   title: string;
   summary: string;
+  authorId: string;
   authorName: string;
+  tags: string[];
   category: string;
   thumbnailUrl: string;
+  images: string[];
   viewCount: number;
   likeCount: number;
   publishedAt: string;
+  estimatedReadTime: number;
 }
 
 /**
