@@ -3,6 +3,7 @@ import { createApp, type App as VueApp } from 'vue';
 import App from './App.vue';
 import type { Router } from 'vue-router';
 import { createBlogRouter, logRouterInfo } from "./router";
+import {createPinia} from "pinia";
 
 /**
  * Mount 옵션
@@ -61,6 +62,9 @@ export function mountBlogApp(
 
   // Vue 앱 생성
   const app: VueApp = createApp(App);
+
+  const pinia = createPinia();
+  app.use(pinia);
 
   // Router 생성 (Memory History)
   const router = createBlogRouter('/');

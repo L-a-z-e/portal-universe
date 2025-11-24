@@ -5,6 +5,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 // import { mountBlogApp } from './bootstrap';
 import { createStandaloneBlogRouter } from './router';
+import {createPinia} from "pinia";
 
 /**
  * 앱 모드 감지
@@ -41,8 +42,10 @@ if (isEmbedded) {
   try {
     // ✅ 방법 1: Web History 사용 (권장)
     const app = createApp(App);
+    const pinia = createPinia();
     const router = createStandaloneBlogRouter();
 
+    app.use(pinia);
     app.use(router);
     app.mount(appElement);
 
