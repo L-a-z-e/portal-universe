@@ -5,3 +5,4 @@ export * from './Input';
 export * from './Modal';
 export * from './Tag';
 export * from './Avatar';
+export * from './SearchBar';
