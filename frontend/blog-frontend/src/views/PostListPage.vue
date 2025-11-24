@@ -5,13 +5,15 @@ import { useRouter } from "vue-router";
 import { getPublishedPosts } from "../api/posts";
 import type { PostSummaryResponse } from "../dto/post";
 import type { PageResponse } from "@/types";
-import { Button, Card } from '@portal/design-system';
+import { Button, Card, SearchBar } from '@portal/design-system';
 import PostCard from '../components/PostCard.vue';
+import { useSearchStore } from '../stores/searchStore';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const searchStore = useSearchStore();
 
-// 페이징 상태
+// 일반 목록 상태
 const posts = ref<PostSummaryResponse[]>([]);
 const currentPage = ref(0);
 const pageSize = ref(10);
@@ -31,11 +33,41 @@ const isInitialLoad = ref(true);
 const loadMoreTrigger = ref<HTMLElement | null>(null);
 let observer: IntersectionObserver | null = null;
 
-// 계산된 속성
-const isEmpty = computed(() => !isLoading.value && posts.value.length === 0);
-const canLoadMore = computed(() => hasMore.value && !isLoadingMore.value && !isLoading.value);
+// 검색 모드 여부
+const isSearchMode = computed(() => searchStore.keyword.trim().length > 0);
 
-// 게시글 목록 로드
+// 현재 표시할 게시글 목록
+const displayPosts = computed(() => {
+  return isSearchMode.value ? searchStore.results : posts.value;
+});
+
+// 현재 로딩 상태
+const currentLoading = computed(() => {
+  return isSearchMode.value ? searchStore.isSearching : isLoading.value;
+});
+
+// 현재 에러 상태
+const currentError = computed(() => {
+  return isSearchMode.value ? searchStore.error : error.value;
+});
+
+// 현재 hasMore 상태
+const currentHasMore = computed(() => {
+  return isSearchMode.value ? searchStore.hasMore : hasMore.value;
+});
+
+// 빈 상태 확인
+const isEmpty = computed(() => !currentLoading.value && displayPosts.value.length === 0);
+
+// 더 로드 가능 여부
+const canLoadMore = computed(() => currentHasMore.value && !isLoadingMore.value && !currentLoading.value);
+
+// 총 게시글 수
+const totalCount = computed(() => {
+  return isSearchMode.value ? searchStore.results.length : totalElements.value;
+});
+
+// 일반 게시글 목록 로드
 async function loadPosts(page: number = 0, append: boolean = false) {
   try {
     if (append) {
@@ -49,14 +81,11 @@ async function loadPosts(page: number = 0, append: boolean = false) {
     const response: PageResponse<PostSummaryResponse> = await getPublishedPosts(page, pageSize.value);
 
     if (append) {
-      // 기존 목록에 추가 (무한 스크롤)
       posts.value = [...posts.value, ...response.content];
     } else {
-      // 새로 로드 (초기 or 새로고침)
       posts.value = response.content;
     }
 
-    // 페이징 메타데이터 업데이트
     currentPage.value = response.number;
     totalPages.value = response.totalPages;
     totalElements.value = response.totalElements;
@@ -74,17 +103,39 @@ async function loadPosts(page: number = 0, append: boolean = false) {
 
 // 다음 페이지 로드
 function loadMore() {
-  if (canLoadMore.value) {
+  if (!canLoadMore.value) return;
+
+  if (isSearchMode.value) {
+    searchStore.loadMore();
+  } else {
     loadPosts(currentPage.value + 1, true);
   }
 }
 
 // 새로고침
 function refresh() {
-  currentPage.value = 0;
-  posts.value = [];
-  hasMore.value = true;
-  loadPosts(0, false);
+  if (isSearchMode.value) {
+    searchStore.search(searchStore.keyword);
+  } else {
+    currentPage.value = 0;
+    posts.value = [];
+    hasMore.value = true;
+    loadPosts(0, false);
+  }
+}
+
+// 검색 실행
+function handleSearch(keyword: string) {
+  searchStore.search(keyword);
+}
+
+// 검색 초기화
+function handleClearSearch() {
+  searchStore.clear();
+  // 일반 목록이 비어있으면 다시 로드
+  if (posts.value.length === 0) {
+    loadPosts(0, false);
+  }
 }
 
 // 게시글 클릭
@@ -101,15 +152,14 @@ function setupIntersectionObserver() {
   observer = new IntersectionObserver(
       (entries) => {
         const target = entries[0];
-        // 요소가 화면에 보이고, 더 로드할 수 있으면 자동 로드
         if (target && target.isIntersecting && canLoadMore.value) {
           loadMore();
         }
       },
       {
-        root: null, // viewport 기준
-        rootMargin: '100px', // 100px 전에 미리 로드
-        threshold: 0.1 // 10% 보이면 트리거
+        root: null,
+        rootMargin: '100px',
+        threshold: 0.1
       }
   );
 
@@ -120,10 +170,7 @@ function setupIntersectionObserver() {
 
 // 초기화
 onMounted(async () => {
-  // 초기 데이터 로드
   await loadPosts(0, false);
-
-  // Intersection Observer 설정
   setupIntersectionObserver();
 });
 
@@ -139,13 +186,13 @@ onBeforeUnmount(() => {
 <template>
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
     <!-- Header -->
-    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
+    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
       <div>
         <h1 class="text-3xl sm:text-4xl font-bold text-text-heading mb-2">
           📝 Blog
         </h1>
         <p class="text-text-meta">
-          {{ totalElements > 0 ? `총 ${totalElements}개의 게시글` : '게시글' }}
+          {{ isSearchMode ? `"${searchStore.keyword}" 검색 결과` : `총 ${totalCount}개의 게시글` }}
         </p>
       </div>
       <Button
@@ -158,6 +205,17 @@ onBeforeUnmount(() => {
       </Button>
     </header>
 
+    <!-- SearchBar -->
+    <div class="mb-8">
+      <SearchBar
+          v-model="searchStore.keyword"
+          placeholder="제목, 내용, 태그로 검색..."
+          :loading="searchStore.isSearching"
+          @search="handleSearch"
+          @clear="handleClearSearch"
+      />
+    </div>
+
     <!-- Loading State (초기 로드) -->
     <Card v-if="isInitialLoad && isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none">
       <div class="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-5"></div>
@@ -165,9 +223,9 @@ onBeforeUnmount(() => {
     </Card>
 
     <!-- Error State -->
-    <Card v-else-if="error && isEmpty" class="bg-status-error-bg border-status-error/20 py-16 text-center">
+    <Card v-else-if="currentError && isEmpty" class="bg-status-error-bg border-status-error/20 py-16 text-center">
       <div class="text-4xl text-status-error mb-4">❌</div>
-      <div class="text-status-error font-semibold text-lg mb-2">{{ error }}</div>
+      <div class="text-status-error font-semibold text-lg mb-2">{{ currentError }}</div>
       <Button variant="secondary" class="mt-4" @click="refresh">
         다시 시도
       </Button>
@@ -175,11 +233,15 @@ onBeforeUnmount(() => {
 
     <!-- Empty State -->
     <Card v-else-if="isEmpty" class="text-center py-20">
-      <div class="text-6xl mb-4">📭</div>
-      <h3 class="text-2xl font-bold text-text-heading mb-2">아직 게시글이 없습니다</h3>
-      <p class="text-text-meta mb-6">첫 게시글을 작성해보세요!</p>
+      <div class="text-6xl mb-4">{{ isSearchMode ? '🔍' : '📭' }}</div>
+      <h3 class="text-2xl font-bold text-text-heading mb-2">
+        {{ isSearchMode ? '검색 결과가 없습니다' : '아직 게시글이 없습니다' }}
+      </h3>
+      <p class="text-text-meta mb-6">
+        {{ isSearchMode ? '다른 검색어를 시도해보세요.' : '첫 게시글을 작성해보세요!' }}
+      </p>
       <Button
-          v-if="authStore.isAuthenticated"
+          v-if="!isSearchMode && authStore.isAuthenticated"
           variant="primary"
           @click="router.push('/write')"
       >
@@ -191,21 +253,20 @@ onBeforeUnmount(() => {
     <div v-else>
       <div class="grid gap-6 sm:gap-8 sm:grid-cols-2">
         <PostCard
-            v-for="post in posts"
+            v-for="post in displayPosts"
             :key="post.id"
             :post="post"
             @click="goToPost"
         />
       </div>
 
-      <!-- Infinite Scroll Trigger (보이지 않는 감시 요소) -->
+      <!-- Infinite Scroll Trigger -->
       <div
-          v-if="hasMore"
+          v-if="currentHasMore"
           ref="loadMoreTrigger"
           class="infinite-scroll-trigger"
       >
-        <!-- 로딩 인디케이터 -->
-        <div v-if="isLoadingMore" class="text-center py-8">
+        <div v-if="isLoadingMore || searchStore.isSearching" class="text-center py-8">
           <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p class="text-text-meta text-sm">더 많은 게시글을 불러오는 중...</p>
         </div>
@@ -217,7 +278,9 @@ onBeforeUnmount(() => {
           <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>
-          <span class="text-text-meta text-sm font-medium">모든 게시글을 불러왔습니다</span>
+          <span class="text-text-meta text-sm font-medium">
+            {{ isSearchMode ? '모든 검색 결과를 불러왔습니다' : '모든 게시글을 불러왔습니다' }}
+          </span>
         </div>
       </div>
     </div>
@@ -225,14 +288,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* 반응형 그리드 */
 @media (min-width: 768px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* 무한 스크롤 트리거 영역 */
 .infinite-scroll-trigger {
   min-height: 100px;
   display: flex;
