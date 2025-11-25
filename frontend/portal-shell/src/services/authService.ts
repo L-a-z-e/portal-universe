@@ -273,11 +273,17 @@ class AccessTokenExpiringHandler {
 
 /**
  * AccessTokenExpired 이벤트 핸들러
- * 🔧 완전히 재설계: Debounce 메커니즘 추가
+ * Debounce 메커니즘 추가
+ * localStorage 정리 및 Debounce 로그 조건부 출력
  */
 class AccessTokenExpiredHandler {
   private lastLogoutAttemptTime: number = 0;
   private readonly logoutDebounceMs: number = 3000;  // 🔧 3초마다만 로그아웃 시도
+  userManager: UserManager;
+
+  constructor(userManager: UserManager) {
+    this.userManager = userManager;
+  }
 
   async handle(
     tokenValidator: TokenValidator,
@@ -328,6 +334,14 @@ class AccessTokenExpiredHandler {
     console.groupEnd();
 
     this.lastLogoutAttemptTime = now;  // 🔧 현재 시간 기록
+
+    try {
+      await this.userManager.removeUser();
+      console.log('✅ Expired token removed from storage');
+    } catch (err) {
+      console.error('❌ Failed to remove expired token:', err);
+    }
+
     onLogout();
     renewalState.completeLogout();
   }
@@ -337,6 +351,13 @@ class AccessTokenExpiredHandler {
  * SilentRenewError 이벤트 핸들러
  */
 class SilentRenewErrorHandler {
+
+  private userManager: UserManager;
+
+  constructor(userManager: UserManager) {
+    this.userManager = userManager;
+  }
+
   handle(error: any): void {
     const errorMessage = error.message?.toLowerCase() || '';
 
@@ -349,7 +370,7 @@ class SilentRenewErrorHandler {
     this.classifyAndHandle(errorMessage);
   }
 
-  private classifyAndHandle(errorMessage: string): void {
+  private async classifyAndHandle(errorMessage: string): Promise<void> {
     // 네트워크 오류
     if (this.isNetworkError(errorMessage)) {
       console.log('📡 [Retry] Network error - will retry on next action');
@@ -365,6 +386,14 @@ class SilentRenewErrorHandler {
     // 인증 오류
     if (this.isAuthError(errorMessage)) {
       console.log('🚨 [Logout] Authorization error - logging out');
+
+      try {
+        await this.userManager.removeUser();
+        console.log('✅ Expired token removed after auth error');
+      } catch (err) {
+        console.error('❌ Failed to remove token:', err);
+      }
+
       const authStore = useAuthStore();
       authStore.logout();
       return;
@@ -449,9 +478,8 @@ class AuthenticationService {
     this.expiringHandler = new AccessTokenExpiringHandler();
 
     // 🔧 싱글톤 인스턴스로 생성 (lastLogoutAttemptTime 유지)
-    this.expiredHandler = new AccessTokenExpiredHandler();
-
-    this.silentRenewErrorHandler = new SilentRenewErrorHandler();
+    this.expiredHandler = new AccessTokenExpiredHandler(this.userManager);
+    this.silentRenewErrorHandler = new SilentRenewErrorHandler(this.userManager);
     this.metadataManager = new MetadataManager();
 
     // 이벤트 등록

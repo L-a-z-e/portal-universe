@@ -40,14 +40,41 @@ app.mount('#app');
 
 const authStore = useAuthStore();
 
-// ✅ Auth 초기화 에러 처리
+// Auth 초기화 - 만료된 토큰 검증 및 정리
 userManager.getUser()
-  .then(user => {
+  .then(async user => {
+    // 토큰이 존재하는 경우
     if (user && user.access_token) {
+      // 토큰 만료 여부 확인
+      if (user.expired) {
+        console.warn('⚠️ Token expired on initialization, clearing storage...');
+
+        // localStorage에서 만료된 토큰 제거
+        await userManager.removeUser();
+
+        // authStore 초기화
+        authStore.logout();
+
+        console.log('✅ Expired token cleared successfully');
+        return;
+      }
+
+      // 유효한 토큰인 경우에만 설정
+      console.log('✅ Valid token found, setting user...');
       authStore.setUser(user);
+    } else {
+      console.log('ℹ️ No token found, user not authenticated');
     }
   })
-  .catch(err => {
+  .catch(async err => {
     console.error('⚠️ Auth initialization failed:', err);
-    // portal-shell은 계속 동작
+
+    // 에러 발생 시에도 localStorage 정리
+    try {
+      await userManager.removeUser();
+      authStore.logout();
+      console.log('✅ Storage cleared after initialization error');
+    } catch (cleanupErr) {
+      console.error('❌ Failed to cleanup storage:', cleanupErr);
+    }
   });
