@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { Card, Tag, Avatar } from '@portal/design-system';
 import type { PostSummaryResponse } from '../dto/post';
+import { DEFAULT_THUMBNAILS } from '../config/assets';
 
 interface Props {
   post: PostSummaryResponse;
@@ -14,8 +15,27 @@ const emit = defineEmits<{
 // 썸네일 이미지 에러 핸들링
 const imgError = ref(false);
 const thumbnailSrc = computed(() => {
-  if (imgError.value) return '/default-thumbnail-write.png';
-  return props.post.thumbnailUrl || '/default-thumbnail-write.png';
+  // 에러 발생 시 기본 이미지
+  if (imgError.value) {
+    return DEFAULT_THUMBNAILS.write;
+  }
+
+  // post에 thumbnailUrl이 있으면 사용
+  if (props.post.thumbnailUrl) {
+    return props.post.thumbnailUrl;
+  }
+
+  // 카테고리별 기본 이미지
+  const category = props.post.category?.toLowerCase();
+  switch (category) {
+    case 'travel':
+      return DEFAULT_THUMBNAILS.travel;
+    case 'tech':
+    case 'technology':
+      return DEFAULT_THUMBNAILS.tech;
+    default:
+      return DEFAULT_THUMBNAILS.write;
+  }
 });
 
 const onImgError = () => {
@@ -53,7 +73,8 @@ const summary = computed(() => {
     return props.post.summary.length > 150
         ? props.post.summary.slice(0, 150) + '...'
         : props.post.summary;
-  return '';
+  const clean = (props.post as any).content?.replace(/<[^>]*>/g, '') || '';
+  return clean.length > 150 ? clean.substring(0, 150) + '...' : clean;
 });
 
 const handleClick = () => {
