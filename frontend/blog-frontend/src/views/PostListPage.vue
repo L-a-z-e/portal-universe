@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
 
     <!-- Post Grid -->
     <div v-else>
-      <div class="grid gap-6 sm:gap-8 sm:grid-cols-2">
+      <div class="grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
         <PostCard
             v-for="post in displayPosts"
             :key="post.id"
