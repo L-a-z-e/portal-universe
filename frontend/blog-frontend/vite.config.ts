@@ -38,7 +38,14 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 30001,
-      cors: true
+      cors: true,
+      proxy: mode === 'development' ? {
+        '/remotes/blog': {
+          target: 'http://localhost:30001',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/remotes\/blog/, '')
+        }
+      } : undefined
     },
     preview: {
       port: 30001,
