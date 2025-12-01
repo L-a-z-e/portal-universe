@@ -36,13 +36,6 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 30000,
-      proxy: mode === 'development' ? {
-        '/remotes/blog': {
-          target: 'http://localhost:30001',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/remotes\/blog/, '')
-        }
-      } : undefined
     },
     preview: {
       port: 30000,

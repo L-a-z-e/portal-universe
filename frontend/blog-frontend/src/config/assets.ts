@@ -10,7 +10,7 @@ const getAssetBaseUrl = (): string => {
   const env = import.meta.env.MODE;
 
   switch (env) {
-    case 'development':
+    case 'dev':
       // 로컬 개발: blog-frontend 자체 서버
       return 'http://localhost:30001';
 
