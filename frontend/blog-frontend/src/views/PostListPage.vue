@@ -184,103 +184,115 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full mx-auto px-4 sm:px-6 py-8">
-    <!-- Header -->
-    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-      <div>
-        <h1 class="text-3xl sm:text-4xl font-bold text-text-heading mb-2">
-          📝 Blog
-        </h1>
-        <p class="text-text-meta">
-          {{ isSearchMode ? `"${searchStore.keyword}" 검색 결과` : `총 ${totalCount}개의 게시글` }}
-        </p>
-      </div>
-      <Button
-          v-if="authStore.isAuthenticated"
-          variant="primary"
-          size="md"
-          @click="router.push('/write')"
-      >
-        ✍️ 새 글 작성
-      </Button>
-    </header>
+  <!-- ✅ 수정: max-w 제거, container 스타일 명확화 -->
+  <div class="w-full min-h-screen">
+    <!-- Inner Container: 최대 너비와 패딩 제어 -->
+    <div class="mx-auto px-6 sm:px-8 lg:px-12 py-8">
+      <!-- Header -->
+      <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold text-text-heading mb-2">
+            📝 Blog
+          </h1>
+          <p class="text-text-meta">
+            {{ isSearchMode ? `"${searchStore.keyword}" 검색 결과` : `총 ${totalCount}개의 게시글` }}
+          </p>
+        </div>
+        <Button
+            v-if="authStore.isAuthenticated"
+            variant="primary"
+            size="md"
+            @click="router.push('/write')"
+        >
+          ✍️ 새 글 작성
+        </Button>
+      </header>
 
-    <!-- SearchBar -->
-    <div class="mb-8">
-      <SearchBar
-          v-model="searchStore.keyword"
-          placeholder="제목, 내용, 태그로 검색..."
-          :loading="searchStore.isSearching"
-          @search="handleSearch"
-          @clear="handleClearSearch"
-      />
-    </div>
-
-    <!-- Loading State (초기 로드) -->
-    <Card v-if="isInitialLoad && isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none">
-      <div class="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-5"></div>
-      <p class="text-text-meta text-lg">게시글을 불러오는 중...</p>
-    </Card>
-
-    <!-- Error State -->
-    <Card v-else-if="currentError && isEmpty" class="bg-status-error-bg border-status-error/20 py-16 text-center">
-      <div class="text-4xl text-status-error mb-4">❌</div>
-      <div class="text-status-error font-semibold text-lg mb-2">{{ currentError }}</div>
-      <Button variant="secondary" class="mt-4" @click="refresh">
-        다시 시도
-      </Button>
-    </Card>
-
-    <!-- Empty State -->
-    <Card v-else-if="isEmpty" class="text-center py-20">
-      <div class="text-6xl mb-4">{{ isSearchMode ? '🔍' : '📭' }}</div>
-      <h3 class="text-2xl font-bold text-text-heading mb-2">
-        {{ isSearchMode ? '검색 결과가 없습니다' : '아직 게시글이 없습니다' }}
-      </h3>
-      <p class="text-text-meta mb-6">
-        {{ isSearchMode ? '다른 검색어를 시도해보세요.' : '첫 게시글을 작성해보세요!' }}
-      </p>
-      <Button
-          v-if="!isSearchMode && authStore.isAuthenticated"
-          variant="primary"
-          @click="router.push('/write')"
-      >
-        첫 글 작성하기
-      </Button>
-    </Card>
-
-    <!-- Post Grid -->
-    <div v-else>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 lg:gap-8">
-        <PostCard
-            v-for="post in displayPosts"
-            :key="post.id"
-            :post="post"
-            @click="goToPost"
+      <!-- SearchBar -->
+      <div class="mb-8">
+        <SearchBar
+            v-model="searchStore.keyword"
+            placeholder="제목, 내용, 태그로 검색..."
+            :loading="searchStore.isSearching"
+            @search="handleSearch"
+            @clear="handleClearSearch"
         />
       </div>
 
-      <!-- Infinite Scroll Trigger -->
-      <div
-          v-if="currentHasMore"
-          ref="loadMoreTrigger"
-          class="min-h-[100px] flex items-center justify-center"
-      >
-        <div v-if="isLoadingMore || searchStore.isSearching" class="text-center py-8">
-          <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p class="text-text-meta text-sm">더 많은 게시글을 불러오는 중...</p>
-        </div>
-      </div>
+      <!-- Loading State (초기 로드) -->
+      <Card v-if="isInitialLoad && isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none">
+        <div class="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-5"></div>
+        <p class="text-text-meta text-lg">게시글을 불러오는 중...</p>
+      </Card>
 
-      <!-- 모두 로드 완료 -->
-      <div v-else class="text-center py-8">
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-bg-muted rounded-full">
-          <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          <span class="text-text-meta text-sm font-medium">
-            {{ isSearchMode ? '모든 검색 결과를 불러왔습니다' : '모든 게시글을 불러왔습니다' }}
-          </span>
+      <!-- Error State -->
+      <Card v-else-if="currentError && isEmpty" class="bg-status-error-bg border-status-error/20 py-16 text-center">
+        <div class="text-4xl text-status-error mb-4">❌</div>
+        <div class="text-status-error font-semibold text-lg mb-2">{{ currentError }}</div>
+        <Button variant="secondary" class="mt-4" @click="refresh">
+          다시 시도
+        </Button>
+      </Card>
+
+      <!-- Empty State -->
+      <Card v-else-if="isEmpty" class="text-center py-20">
+        <div class="text-6xl mb-4">{{ isSearchMode ? '🔍' : '📭' }}</div>
+        <h3 class="text-2xl font-bold text-text-heading mb-2">
+          {{ isSearchMode ? '검색 결과가 없습니다' : '아직 게시글이 없습니다' }}
+        </h3>
+        <p class="text-text-meta mb-6">
+          {{ isSearchMode ? '다른 검색어를 시도해보세요.' : '첫 게시글을 작성해보세요!' }}
+        </p>
+        <Button
+            v-if="!isSearchMode && authStore.isAuthenticated"
+            variant="primary"
+            @click="router.push('/write')"
+        >
+          첫 글 작성하기
+        </Button>
+      </Card>
+
+      <!-- Post Grid -->
+      <div v-else>
+        <!-- ✅ 수정: 반응형 그리드 브레이크포인트 명확화 -->
+        <!--
+          sm (640px):  1열
+          md (768px):  2열
+          lg (1024px): 3열
+          xl (1280px): 4열
+          2xl (1536px): 5열
+        -->
+        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+          <PostCard
+              v-for="post in displayPosts"
+              :key="post.id"
+              :post="post"
+              @click="goToPost"
+          />
+        </div>
+
+        <!-- Infinite Scroll Trigger -->
+        <div
+            v-if="currentHasMore"
+            ref="loadMoreTrigger"
+            class="min-h-[100px] flex items-center justify-center mt-8"
+        >
+          <div v-if="isLoadingMore || searchStore.isSearching" class="text-center py-8">
+            <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <p class="text-text-meta text-sm">더 많은 게시글을 불러오는 중...</p>
+          </div>
+        </div>
+
+        <!-- 모두 로드 완료 -->
+        <div v-else class="text-center py-8 mt-8">
+          <div class="inline-flex items-center gap-2 px-4 py-2 bg-bg-muted rounded-full">
+            <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-text-meta text-sm font-medium">
+              {{ isSearchMode ? '모든 검색 결과를 불러왔습니다' : '모든 게시글을 불러왔습니다' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -288,4 +300,13 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* 그리드 디버깅용 (개발 중에만 사용) */
+/*
+.grid {
+  border: 2px solid red;
+}
+.grid > * {
+  border: 1px solid blue;
+}
+*/
 </style>
