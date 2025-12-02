@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+  <div class="w-full mx-auto px-4 sm:px-6 py-8">
     <!-- Header -->
     <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
       <div>
@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
 
     <!-- Post Grid -->
     <div v-else>
-      <div class="grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 lg:gap-8">
         <PostCard
             v-for="post in displayPosts"
             :key="post.id"
@@ -264,7 +264,7 @@ onBeforeUnmount(() => {
       <div
           v-if="currentHasMore"
           ref="loadMoreTrigger"
-          class="infinite-scroll-trigger"
+          class="min-h-[100px] flex items-center justify-center"
       >
         <div v-if="isLoadingMore || searchStore.isSearching" class="text-center py-8">
           <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
@@ -288,16 +288,4 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.infinite-scroll-trigger {
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 </style>
