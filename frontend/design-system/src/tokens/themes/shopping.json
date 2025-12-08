@@ -1,26 +1,31 @@
 {
-  "$description": "E-commerce shopping theme",
+  "$description": "E-commerce shopping theme - warm orange brand color",
   "color": {
     "brand": {
       "primary": {
         "$value": "{color.orange.600}",
+        "$type": "color",
         "$description": "Warm, inviting orange for shopping"
       },
       "primaryHover": {
-        "$value": "{color.orange.700}"
+        "$value": "{color.orange.700}",
+        "$type": "color"
       },
       "secondary": {
-        "$value": "{color.orange.400}"
+        "$value": "{color.orange.400}",
+        "$type": "color"
       }
     },
     "text": {
       "body": {
-        "$value": "{color.gray.900}"
+        "$value": "{color.gray.900}",
+        "$type": "color"
       }
     },
     "bg": {
       "page": {
         "$value": "{color.neutral.white}",
+        "$type": "color",
         "$description": "Clean white for product showcase"
       }
     }
@@ -29,6 +34,7 @@
     "fontSize": {
       "body": {
         "$value": "1rem",
+        "$type": "dimension",
         "$description": "Standard 16px for e-commerce"
       }
     }

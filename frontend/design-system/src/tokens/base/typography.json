@@ -9,134 +9,145 @@
       "mono": {
         "$value": "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, 'Courier New', monospace",
         "$type": "fontFamily",
-        "$description": "Monospace for code blocks"
+        "$description": "Monospace for code blocks and technical content"
       },
       "serif": {
         "$value": "'Noto Serif KR', Georgia, 'Times New Roman', serif",
         "$type": "fontFamily",
-        "$description": "Serif for special headings (optional)"
+        "$description": "Serif for special headings and formal content"
       }
     },
     "fontSize": {
       "xs": {
         "$value": "0.75rem",
         "$type": "dimension",
-        "$description": "12px - captions, labels"
+        "$description": "12px - captions, labels, small UI text"
       },
       "sm": {
         "$value": "0.875rem",
         "$type": "dimension",
-        "$description": "14px - small text"
+        "$description": "14px - small text, helper text, metadata"
       },
       "base": {
         "$value": "1rem",
         "$type": "dimension",
-        "$description": "16px - default body"
+        "$description": "16px - default body text"
       },
       "lg": {
         "$value": "1.125rem",
         "$type": "dimension",
-        "$description": "18px - emphasized body (blog posts)"
+        "$description": "18px - emphasized body (blog posts, large displays)"
       },
       "xl": {
         "$value": "1.25rem",
         "$type": "dimension",
-        "$description": "20px - h4"
+        "$description": "20px - h4 / subheadings"
       },
       "2xl": {
         "$value": "1.5rem",
         "$type": "dimension",
-        "$description": "24px - h3"
+        "$description": "24px - h3 / section headings"
       },
       "3xl": {
         "$value": "1.875rem",
         "$type": "dimension",
-        "$description": "30px - h2"
+        "$description": "30px - h2 / major headings"
       },
       "4xl": {
         "$value": "2.25rem",
         "$type": "dimension",
-        "$description": "36px - h1"
+        "$description": "36px - h1 / page titles"
       },
       "5xl": {
         "$value": "3rem",
         "$type": "dimension",
-        "$description": "48px - hero headings"
+        "$description": "48px - hero headings, large displays"
       }
     },
     "lineHeight": {
       "tight": {
         "$value": "1.25",
         "$type": "number",
-        "$description": "Headlines"
+        "$description": "Headlines and short text - compressed spacing"
       },
       "snug": {
         "$value": "1.375",
         "$type": "number",
-        "$description": "Subheadings"
+        "$description": "Subheadings and labels"
       },
       "normal": {
         "$value": "1.5",
         "$type": "number",
-        "$description": "Default"
+        "$description": "Default line height for body text"
       },
       "relaxed": {
         "$value": "1.625",
         "$type": "number",
-        "$description": "Short paragraphs"
+        "$description": "Short paragraphs and UI text"
       },
       "loose": {
         "$value": "1.75",
         "$type": "number",
-        "$description": "Long-form content (blog posts)"
+        "$description": "Long-form content (blog posts, articles) - enhanced readability"
       }
     },
     "fontWeight": {
       "light": {
         "$value": "300",
-        "$type": "number"
+        "$type": "number",
+        "$description": "Light weight - reduced emphasis"
       },
       "normal": {
         "$value": "400",
-        "$type": "number"
+        "$type": "number",
+        "$description": "Regular weight - default"
       },
       "medium": {
         "$value": "500",
-        "$type": "number"
+        "$type": "number",
+        "$description": "Medium weight - subtle emphasis"
       },
       "semibold": {
         "$value": "600",
-        "$type": "number"
+        "$type": "number",
+        "$description": "Semi-bold - moderate emphasis"
       },
       "bold": {
         "$value": "700",
-        "$type": "number"
+        "$type": "number",
+        "$description": "Bold - strong emphasis"
       },
       "extrabold": {
         "$value": "800",
-        "$type": "number"
+        "$type": "number",
+        "$description": "Extra bold - maximum emphasis"
       }
     },
     "letterSpacing": {
       "tighter": {
         "$value": "-0.05em",
-        "$type": "number"
+        "$type": "dimension",
+        "$description": "Condensed spacing - headlines"
       },
       "tight": {
         "$value": "-0.025em",
-        "$type": "number"
+        "$type": "dimension",
+        "$description": "Slightly condensed - subtitles"
       },
       "normal": {
         "$value": "0",
-        "$type": "number"
+        "$type": "dimension",
+        "$description": "Normal spacing - default"
       },
       "wide": {
         "$value": "0.025em",
-        "$type": "number"
+        "$type": "dimension",
+        "$description": "Slightly expanded - labels, UI"
       },
       "wider": {
         "$value": "0.05em",
-        "$type": "number"
+        "$type": "dimension",
+        "$description": "Expanded spacing - all caps, decorative"
       }
     }
   }

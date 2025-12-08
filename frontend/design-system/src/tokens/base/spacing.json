@@ -1,10 +1,34 @@
 {
   "spacing": {
-    "xs": "0.25rem",
-    "sm": "0.5rem",
-    "md": "1rem",
-    "lg": "1.5rem",
-    "xl": "2rem",
-    "2xl": "3rem"
+    "xs": {
+      "$value": "0.25rem",
+      "$type": "dimension",
+      "$description": "4px - extra small spacing"
+    },
+    "sm": {
+      "$value": "0.5rem",
+      "$type": "dimension",
+      "$description": "8px - small spacing"
+    },
+    "md": {
+      "$value": "1rem",
+      "$type": "dimension",
+      "$description": "16px - medium spacing (default)"
+    },
+    "lg": {
+      "$value": "1.5rem",
+      "$type": "dimension",
+      "$description": "24px - large spacing"
+    },
+    "xl": {
+      "$value": "2rem",
+      "$type": "dimension",
+      "$description": "32px - extra large spacing"
+    },
+    "2xl": {
+      "$value": "3rem",
+      "$type": "dimension",
+      "$description": "48px - 2x large spacing (sections)"
+    }
   }
 }

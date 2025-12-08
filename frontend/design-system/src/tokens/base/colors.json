@@ -1,5 +1,19 @@
 {
   "color": {
+    "brand": {
+      "primary": {
+        "$value": "#20C997",
+        "$description": "Default brand primary - overridden by service themes (blog: green, shopping: orange)"
+      },
+      "primaryHover": {
+        "$value": "#12B886",
+        "$description": "Default brand primary hover state"
+      },
+      "secondary": {
+        "$value": "#38D9A9",
+        "$description": "Default brand secondary color"
+      }
+    },
     "neutral": {
       "white": "#ffffff",
       "50": "#f9fafb",
@@ -65,6 +79,7 @@
       "50": "#D0EBFF",
       "500": "#339AF0",
       "600": "#228BE6",
+      "700": "#1976D2",
       "900": "#1864AB"
     },
     "yellow": {

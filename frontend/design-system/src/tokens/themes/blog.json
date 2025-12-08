@@ -1,27 +1,32 @@
 {
-  "$description": "blog theme overrides",
+  "$description": "Blog theme overrides - signature green brand color",
   "color": {
     "brand": {
       "primary": {
         "$value": "{color.green.600}",
-        "$description": "signature green"
+        "$type": "color",
+        "$description": "Blog signature green"
       },
       "primaryHover": {
-        "$value": "{color.green.700}"
+        "$value": "{color.green.700}",
+        "$type": "color"
       },
       "secondary": {
-        "$value": "{color.green.400}"
+        "$value": "{color.green.400}",
+        "$type": "color"
       }
     },
     "text": {
       "body": {
         "$value": "{color.gray.900}",
+        "$type": "color",
         "$description": "Optimized for long-form reading"
       }
     },
     "bg": {
       "page": {
-        "$value": "{color.gray.50}"
+        "$value": "{color.gray.50}",
+        "$type": "color"
       }
     }
   },
@@ -29,12 +34,14 @@
     "fontSize": {
       "body": {
         "$value": "1.125rem",
+        "$type": "dimension",
         "$description": "18px for better readability"
       }
     },
     "lineHeight": {
       "body": {
         "$value": "1.75",
+        "$type": "number",
         "$description": "Loose line height for blog posts"
       }
     }

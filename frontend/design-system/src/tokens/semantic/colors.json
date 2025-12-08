@@ -2,16 +2,16 @@
   "color": {
     "brand": {
       "primary": {
-        "$value": "{color.green.600}",
+        "$value": "{color.brand.primary}",
         "$type": "color",
         "$description": "Primary brand color - overridden by service themes"
       },
       "primaryHover": {
-        "$value": "{color.green.700}",
+        "$value": "{color.brand.primaryHover}",
         "$type": "color"
       },
       "secondary": {
-        "$value": "{color.green.400}",
+        "$value": "{color.brand.secondary}",
         "$type": "color"
       }
     },
@@ -88,8 +88,9 @@
         "$type": "color"
       },
       "focus": {
-        "$value": "{color.brand.primary}",
-        "$type": "color"
+        "$value": "{color.blue.600}",
+        "$type": "color",
+        "$description": "Focus state border - changed to blue.600 instead of brand.primary"
       },
       "muted": {
         "$value": "{color.gray.100}",

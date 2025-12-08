@@ -1,17 +1,52 @@
 {
   "border": {
     "radius": {
-      "none": "0",
-      "sm": "0.125rem",
-      "default": "0.25rem",
-      "md": "0.375rem",
-      "lg": "0.5rem",
-      "full": "9999px"
+      "none": {
+        "$value": "0",
+        "$type": "dimension"
+      },
+      "sm": {
+        "$value": "0.125rem",
+        "$type": "dimension",
+        "$description": "2px - slightly rounded"
+      },
+      "default": {
+        "$value": "0.25rem",
+        "$type": "dimension",
+        "$description": "4px - default border radius"
+      },
+      "md": {
+        "$value": "0.375rem",
+        "$type": "dimension",
+        "$description": "6px - medium rounded"
+      },
+      "lg": {
+        "$value": "0.5rem",
+        "$type": "dimension",
+        "$description": "8px - large rounded"
+      },
+      "full": {
+        "$value": "9999px",
+        "$type": "dimension",
+        "$description": "Fully rounded (pills, circles)"
+      }
     },
     "width": {
-      "default": "1px",
-      "2": "2px",
-      "4": "4px"
+      "default": {
+        "$value": "1px",
+        "$type": "dimension",
+        "$description": "Standard border width"
+      },
+      "2": {
+        "$value": "2px",
+        "$type": "dimension",
+        "$description": "Medium border width"
+      },
+      "4": {
+        "$value": "4px",
+        "$type": "dimension",
+        "$description": "Thick border width"
+      }
     }
   }
 }
