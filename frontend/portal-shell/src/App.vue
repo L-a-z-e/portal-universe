@@ -9,6 +9,12 @@ import ThemeToggle from "./components/ThemeToggle.vue";
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
 
+function updateDataTheme() {
+  const isDark = document.documentElement.classList.contains('dark');
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  console.log(`[Portal-Shell] Theme updated: ${isDark ? 'dark' : 'light'}`);
+}
+
 // 페이지 로드 시 로컬 스토리지 값 반영
 onMounted(() => {
   themeStore.initialize();
@@ -21,6 +27,7 @@ watch(() => themeStore.isDark, (newVal) => {
   } else {
     document.documentElement.classList.remove('dark');
   }
+  updateDataTheme();
 });
 
 </script>

@@ -16,7 +16,7 @@ const services = [
     desc: '생각을 기록하고 공유하세요',
     icon: '✍️',
     link: '/blog',
-    gradient: 'from-brand-500 to-brand-600'
+    gradient: 'from-brand-primary to-brand-primaryHover'
   },
   {
     id: 2,
@@ -24,7 +24,7 @@ const services = [
     desc: '원하는 상품을 찾아보세요',
     icon: '🛒',
     link: '#',
-    gradient: 'from-accent-500 to-accent-600'
+    gradient: 'from-status-info to-status-info'
   },
   {
     id: 3,
@@ -32,7 +32,7 @@ const services = [
     desc: '메모와 아이디어를 정리하세요',
     icon: '📝',
     link: '#',
-    gradient: 'from-brand-400 to-accent-500'
+    gradient: 'from-brand-primary to-status-info'
   },
   {
     id: 4,
@@ -40,7 +40,7 @@ const services = [
     desc: '소중한 순간을 저장하세요',
     icon: '📸',
     link: '#',
-    gradient: 'from-accent-400 to-pink-500'
+    gradient: 'from-status-info to-brand-primary'
   }
 ];
 
@@ -73,7 +73,7 @@ const posts = [
     date: '2025-10-20',
     readTime: '5분',
     tags: ['Vue', 'Frontend'],
-    gradient: 'from-brand-500 to-brand-600'
+    gradient: 'from-brand-primary to-brand-primaryHover'
   },
   {
     id: 2,
@@ -82,7 +82,7 @@ const posts = [
     date: '2025-10-18',
     readTime: '8분',
     tags: ['Design', 'UI/UX'],
-    gradient: 'from-accent-500 to-accent-600'
+    gradient: 'from-status-info to-status-info'
   },
   {
     id: 3,
@@ -91,7 +91,7 @@ const posts = [
     date: '2025-10-15',
     readTime: '12분',
     tags: ['Architecture'],
-    gradient: 'from-brand-400 to-accent-500'
+    gradient: 'from-brand-primary to-status-info'
   }
 ];
 
@@ -105,36 +105,36 @@ function handleStartClick() {
 </script>
 
 <template>
-  <div class="bg-white dark:bg-gray-900">
+  <div class="bg-bg-page text-text-body">
 
     <!-- Hero Section -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-brand-900 to-accent-900">
+    <section class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-gray-900 dark:via-brand-900 dark:to-accent-900">
       <div class="absolute inset-0 bg-[url('image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
 
       <div class="relative max-w-7xl mx-auto px-4 py-24 md:py-32">
         <div class="max-w-3xl">
           <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8">
-            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-            <span class="text-sm text-white/90 font-medium">New: Dark mode is here</span>
+            <span class="w-2 h-2 bg-brand-primary dark:bg-emerald-400 rounded-full animate-pulse"></span>
+            <span class="text-sm text-text-inverse/90 font-medium">New: Dark mode is here</span>
           </div>
 
-          <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+          <h1 class="text-5xl md:text-7xl font-bold text-text-inverse mb-6 leading-tight">
             Your Digital
-            <span class="block bg-gradient-to-r from-brand-400 via-accent-400 to-pink-400 bg-clip-text text-transparent">
+            <span class="block bg-gradient-to-r from-brand-primary via-status-info to-brand-primary bg-clip-text text-transparent">
               Universe
             </span>
           </h1>
 
-          <p class="text-xl text-slate-300 mb-10 leading-relaxed">
+          <p class="text-xl text-text-inverse/80 mb-10 leading-relaxed">
             모든 것이 연결된 당신만의 공간.
-            <span class="text-white font-semibold">블로그, 쇼핑, 메모</span> 등
+            <span class="text-text-inverse font-semibold">블로그, 쇼핑, 메모</span> 등
             다양한 서비스를 하나의 포털에서 경험하세요.
           </p>
 
           <div class="flex flex-wrap gap-4">
             <button
                 @click="handleStartClick"
-                class="px-8 py-4 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl flex items-center gap-2"
+                class="px-8 py-4 bg-white text-brand-primary font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2"
             >
               {{ authStore.isAuthenticated ? '블로그 시작하기' : '시작하기' }}
               <span>→</span>
@@ -149,7 +149,7 @@ function handleStartClick() {
 
       <div class="absolute bottom-0 left-0 right-0">
         <svg viewBox="0 0 1440 80" class="w-full h-20 md:h-32" preserveAspectRatio="none">
-          <path d="M0,32 C240,80 480,80 720,32 C960,-16 1200,-16 1440,32 L1440,80 L0,80 Z" fill="white" class="dark:fill-gray-900"/>
+          <path d="M0,32 C240,80 480,80 720,32 C960,-16 1200,-16 1440,32 L1440,80 L0,80 Z" fill="white" class="dark:fill-bg-page"/>
         </svg>
       </div>
     </section>
@@ -163,8 +163,9 @@ function handleStartClick() {
             @click="() => service.link !== '#' && router.push(service.link)"
             :class="[
             'group relative overflow-hidden rounded-2xl p-8',
-            'bg-gradient-to-br shadow-lg hover:shadow-2xl',
+            'bg-gradient-to-br shadow-md hover:shadow-lg',
             'transform hover:-translate-y-2 transition-all duration-300 cursor-pointer',
+            'border border-border-default/50',
             service.gradient
           ]"
         >
@@ -179,15 +180,15 @@ function handleStartClick() {
     </section>
 
     <!-- Features -->
-    <section class="max-w-7xl mx-auto px-4 py-24">
+    <section class="max-w-7xl mx-auto px-4 py-24 bg-bg-page">
       <div class="text-center mb-16">
-        <div class="inline-block px-4 py-2 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 font-semibold text-sm mb-4">
+        <div class="inline-block px-4 py-2 rounded-full bg-brand-primary/10 text-brand-primary font-semibold text-sm mb-4">
           WHY PORTAL UNIVERSE
         </div>
-        <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        <h2 class="text-4xl md:text-5xl font-bold text-text-heading mb-4">
           모든 것이 연결됩니다
         </h2>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+        <p class="text-xl text-text-meta max-w-2xl mx-auto">
           강력한 통합 기능으로 더 효율적인 디지털 라이프를 경험하세요
         </p>
       </div>
@@ -196,23 +197,23 @@ function handleStartClick() {
         <div
             v-for="feature in features"
             :key="feature.id"
-            class="group p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-brand-50 hover:to-accent-50 dark:hover:from-brand-900/50 dark:hover:to-accent-900/50 transition-all duration-300 hover:shadow-lg"
+            class="group p-8 rounded-2xl bg-gradient-to-br from-bg-elevated to-bg-card hover:from-brand-primary/5 hover:to-status-info/5 transition-all duration-300 hover:shadow-md border border-border-default"
         >
           <div class="text-4xl mb-4">{{ feature.icon }}</div>
-          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ feature.title }}</h3>
-          <p class="text-gray-600 dark:text-gray-400">{{ feature.desc }}</p>
+          <h3 class="text-xl font-bold text-text-heading mb-2">{{ feature.title }}</h3>
+          <p class="text-text-meta">{{ feature.desc }}</p>
         </div>
       </div>
     </section>
 
     <!-- Recent Posts -->
-    <section class="max-w-7xl mx-auto px-4 py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+    <section class="max-w-7xl mx-auto px-4 py-24 bg-bg-page">
       <div class="flex items-end justify-between mb-12">
         <div>
-          <div class="inline-block px-4 py-2 rounded-full bg-accent-50 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400 font-semibold text-sm mb-4">
+          <div class="inline-block px-4 py-2 rounded-full bg-brand-primary/10 text-brand-primary font-semibold text-sm mb-4">
             LATEST UPDATES
           </div>
-          <h2 class="text-4xl font-bold text-gray-900 dark:text-gray-100">최근 업데이트</h2>
+          <h2 class="text-4xl font-bold text-text-heading">최근 업데이트</h2>
         </div>
         <Button variant="secondary" @click="router.push('/blog')">
           전체 보기 →
@@ -223,7 +224,7 @@ function handleStartClick() {
         <article
             v-for="post in posts"
             :key="post.id"
-            class="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+            class="group bg-bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border border-border-default"
         >
           <div :class="['h-48 bg-gradient-to-br flex items-center justify-center text-7xl', post.gradient]">
             📄
@@ -241,15 +242,15 @@ function handleStartClick() {
               </Badge>
             </div>
 
-            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-brand-600 transition-colors">
+            <h3 class="text-xl font-bold text-text-heading mb-2 group-hover:text-brand-primary transition-colors">
               {{ post.title }}
             </h3>
 
-            <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+            <p class="text-text-meta mb-4 line-clamp-2">
               {{ post.excerpt }}
             </p>
 
-            <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500">
+            <div class="flex items-center justify-between text-sm text-text-muted">
               <span>{{ post.date }}</span>
               <span>{{ post.readTime }} 읽기</span>
             </div>
@@ -259,18 +260,18 @@ function handleStartClick() {
     </section>
 
     <!-- CTA Section -->
-    <section class="bg-gradient-to-br from-brand-600 to-accent-600 text-white py-24">
+    <section class="bg-gradient-to-br from-brand-primary to-brand-primaryHover text-white py-24">
       <div class="max-w-4xl mx-auto px-4 text-center">
         <h2 class="text-4xl md:text-5xl font-bold mb-6">
           지금 바로 시작하세요
         </h2>
-        <p class="text-xl text-brand-100 mb-10">
+        <p class="text-xl text-white/80 mb-10">
           무료로 시작하고, 언제든지 업그레이드할 수 있습니다
         </p>
         <div class="flex flex-wrap gap-4 justify-center">
           <button
               @click="handleStartClick"
-              class="px-8 py-4 bg-white text-brand-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-xl"
+              class="px-8 py-4 bg-white text-brand-primary font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             {{ authStore.isAuthenticated ? '블로그 시작하기' : '무료로 시작하기' }}
           </button>

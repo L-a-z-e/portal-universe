@@ -267,37 +267,44 @@ function buildTokens() {
    Dark Mode Overrides
    ============================================ */
 [data-theme="dark"] {
-    --color-brand-primary: #20C997;
-    --color-brand-primary-hover: #38D9A9;
-    --color-brand-secondary: #63E6BE;
+    /* Brand Colors */
+    --semantic-brand-primary: #20C997;
+    --semantic-brand-primaryHover: #12B886;
+    --semantic-brand-secondary: #63E6BE;
     
-    --color-text-heading: #F0F6FC;
-    --color-text-body: #C9D1D9;
-    --color-text-meta: #8B949E;
-    --color-text-muted: #6E7681;
-    --color-text-inverse: #111827;
-    --color-text-link: #58A6FF;
-    --color-text-link-hover: #A5D6FF;
+    /* Text Colors  */
+    --semantic-text-heading: #F0F6FC;
+    --semantic-text-body: #C9D1D9;
+    --semantic-text-meta: #8B949E;
+    --semantic-text-muted: #6E7681;
+    --semantic-text-inverse: #111827;
+    --semantic-text-link: #58A6FF;
+    --semantic-text-linkHover: #A5D6FF;
     
-    --color-bg-page: #0F1419;
-    --color-bg-card: #1C2128;
-    --color-bg-elevated: #2D333B;
-    --color-bg-muted: #22272E;
-    --color-bg-hover: #2D333B;
+    /* Background Colors  */
+    --semantic-bg-page: #0F1419;
+    --semantic-bg-card: #1C2128;
+    --semantic-bg-elevated: #2D333B;
+    --semantic-bg-muted: #22272E;
+    --semantic-bg-hover: #2D333B;
     
-    --color-border-default: #444C56;
-    --color-border-hover: #6E7681;
-    --color-border-muted: #2C2C2C;
+    /* Border Colors  */
+    --semantic-border-default: #444C56;
+    --semantic-border-hover: #6E7681;
+    --semantic-border-muted: #2C2C2C;
+    --semantic-border-focus: #58A6FF;
     
-    --color-status-success: #20C997;
-    --color-status-success-bg: #0A4034;
-    --color-status-error: #FA5252;
-    --color-status-error-bg: #4A1C1C;
-    --color-status-warning: #FCC419;
-    --color-status-warning-bg: #4A3C0F;
-    --color-status-info: #339AF0;
-    --color-status-info-bg: #1A3A52;
+    /* Status Colors  */
+    --semantic-status-success: #20C997;
+    --semantic-status-successBg: #0A4034;
+    --semantic-status-error: #FA5252;
+    --semantic-status-errorBg: #4A1C1C;
+    --semantic-status-warning: #FCC419;
+    --semantic-status-warningBg: #4A3C0F;
+    --semantic-status-info: #339AF0;
+    --semantic-status-infoBg: #1A3A52;
     
+    /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
