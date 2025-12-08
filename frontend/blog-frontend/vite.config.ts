@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     css: {
-      postcss: './postcss.config.js'
+      // postcss: './postcss.config.js'
     },
     server: {
       port: 30001,
