@@ -26,17 +26,17 @@ watch(() => themeStore.isDark, (newVal) => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+  <div class="min-h-screen flex flex-col bg-bg-page text-text-body dark:bg-bg-page dark:text-text-body transition-colors duration-300">
     <!-- Header -->
-    <header class="bg-white/95 dark:bg-gray-800 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+    <header class="bg-bg-card dark:bg-bg-elevated backdrop-blur-md border-b border-border-default sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
           <!-- Logo -->
           <router-link to="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-600 to-accent-600 flex items-center justify-center shadow-lg">
-              <span class="text-white font-bold text-lg">P</span>
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg">
+              <span class="text-text-inverse font-bold text-lg">P</span>
             </div>
-            <span class="text-xl font-bold hidden sm:block" :class="{'text-gray-900': !themeStore.isDark, 'text-gray-100': themeStore.isDark}">
+            <span class="text-xl font-bold hidden sm:block text-text-heading">
               Portal Universe
             </span>
           </router-link>
@@ -45,15 +45,15 @@ watch(() => themeStore.isDark, (newVal) => {
           <nav class="flex items-center gap-8">
             <router-link
                 to="/"
-                class="text-gray-600 dark:text-gray-300 hover:text-brand-600 font-medium transition-colors"
-                active-class="text-brand-600 font-bold"
+                class="text-text-meta hover:text-brand-primary font-medium transition-colors"
+                active-class="text-brand-primary font-bold"
             >
               Home
             </router-link>
             <router-link
                 to="/blog"
-                class="text-gray-600 dark:text-gray-300 hover:text-brand-600 font-medium transition-colors"
-                active-class="text-brand-600 font-bold"
+                class="text-text-meta hover:text-brand-primary font-medium transition-colors"
+                active-class="text-brand-primary font-bold"
             >
               Blog
             </router-link>
@@ -63,8 +63,8 @@ watch(() => themeStore.isDark, (newVal) => {
           <div class="flex items-center gap-3">
             <ThemeToggle />
             <template v-if="authStore.isAuthenticated">
-              <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-50 dark:bg-brand-700 border border-brand-100 dark:border-brand-700">
-                <span class="text-sm font-semibold text-brand-700 dark:text-brand-300">{{ authStore.displayName }}</span>
+              <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-status-info-bg border border-border-default">
+                <span class="text-sm font-semibold text-status-info">{{ authStore.displayName }}</span>
                 <Badge v-if="authStore.isAdmin" variant="danger" size="sm">ADMIN</Badge>
               </div>
               <Button variant="secondary" size="sm" @click="logout">Logout</Button>
@@ -93,8 +93,8 @@ watch(() => themeStore.isDark, (newVal) => {
         <template #fallback>
           <div class="flex items-center justify-center min-h-[400px]">
             <div class="text-center">
-              <div class="w-12 h-12 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p class="mt-4 text-gray-600 font-medium">Loading...</p>
+              <div class="w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p class="mt-4 text-text-meta font-medium">Loading...</p>
             </div>
           </div>
         </template>
@@ -102,9 +102,9 @@ watch(() => themeStore.isDark, (newVal) => {
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-50 dark:bg-gray-800 dark:text-gray-100 border-t border-gray-200 dark:border-gray-700 py-8 mt-auto">
+    <footer class="bg-bg-muted border-t border-border-default py-8 mt-auto">
       <div class="max-w-7xl mx-auto px-4 text-center">
-        <p class="text-sm">© 2025 Portal Universe. All rights reserved.</p>
+        <p class="text-sm text-text-meta">© 2025 Portal Universe. All rights reserved.</p>
       </div>
     </footer>
   </div>
