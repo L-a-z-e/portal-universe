@@ -1,53 +1,18 @@
 /* ============================================
-   Blog Service Theme Overrides
+   Blog Service Theme Component Styles
+   ============================================
+   NOTE: Color definitions are now auto-generated
+   by build-tokens.js from themes/blog.json
    ============================================ */
 
-/* Apply to blog service root */
+/* Blog-specific typography and spacing */
 [data-service="blog"] {
     /* Typography optimized for long-form reading */
     --font-size-body: 1.125rem;  /* 18px */
     --line-height-body: 1.75;
 
     /* Blog-specific spacing */
-    /*--content-max-width: 1920px;*/
     --content-padding: 2rem;
-}
-
-[data-service="blog"][data-theme="light"] {
-    /* Signature Green */
-    --color-brand-primary: #12B886;
-    --color-brand-primary-hover: #0CA678;
-
-    /* Optimized text colors */
-    --color-text-body: #212529;
-    --color-text-meta: #868E96;
-
-    /* Clean backgrounds */
-    --color-bg-page: #F8F9FA;
-    --color-bg-card: #FFFFFF;
-}
-
-[data-service="blog"][data-theme="dark"] {
-    /* Brand Colors */
-    --color-brand-primary: #20C997;
-    --color-brand-primary-hover: #38D9A9;
-
-    /* Text */
-    --color-text-heading: #F0F6FC;
-    --color-text-body: #C9D1D9;
-    --color-text-meta: #8B949E;
-    --color-text-muted: #6E7681;
-
-    /* Background */
-    --color-bg-page: #0F1419;
-    --color-bg-card: #1C2128;
-    --color-bg-elevated: #2D333B;
-    --color-bg-muted: #22272E;
-    --color-bg-hover: #2D333B;
-
-    /* Border */
-    --color-border-default: #444C56;
-    --color-border-hover: #6E7681;
 }
 
 /* Blog-specific component styles */
@@ -82,5 +47,62 @@
 
     .prose td {
         @apply border-t border-border-default p-2;
+    }
+
+    /* Links with brand color */
+    .prose a {
+        @apply text-text-link hover:text-text-linkHover;
+    }
+
+    /* Emphasis and strong */
+    .prose em {
+        @apply italic text-text-body;
+    }
+
+    .prose strong {
+        @apply font-semibold text-text-heading;
+    }
+
+    /* Lists */
+    .prose ul, .prose ol {
+        @apply my-4 pl-6;
+    }
+
+    .prose li {
+        @apply my-2;
+    }
+
+    /* Headings in content */
+    .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+        @apply font-semibold text-text-heading;
+        @apply mt-6 mb-4;
+    }
+
+    .prose h1 {
+        @apply text-3xl;
+    }
+
+    .prose h2 {
+        @apply text-2xl;
+    }
+
+    .prose h3 {
+        @apply text-xl;
+    }
+
+    /* Horizontal rule */
+    .prose hr {
+        @apply border-t border-border-default my-8;
+    }
+
+    /* Inline code */
+    .prose code {
+        @apply bg-bg-muted text-text-body;
+        @apply px-2 py-1 rounded text-sm;
+    }
+
+    /* Images */
+    .prose img {
+        @apply rounded-lg max-w-full h-auto;
     }
 }
