@@ -90,7 +90,8 @@ watch(() => themeStore.isDark, (newVal) => {
       <Suspense>
         <template #default>
           <router-view v-slot="{ Component, route }">
-            <KeepAlive :max="1">
+            <!-- 🔧 FIX: KeepAlive :max="1" → :max="3" (다중 페이지 캐싱으로 CSS 충돌 방지) -->
+            <KeepAlive :max="3">
               <component
                   :is="Component"
                   :key="route.meta.remoteName || route.name"
