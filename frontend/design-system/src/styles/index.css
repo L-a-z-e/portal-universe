@@ -138,7 +138,7 @@
 }
 
 /* ============================================
-   Dark Mode Overrides
+   Dark Mode Overrides (Global Default)
    ============================================ */
 [data-theme="dark"] {
     /* Brand Colors */
@@ -186,8 +186,131 @@
 }
 
 /* ============================================
-   Theme Overrides (Service-specific)
+   Theme Overrides (Service-specific - Light Mode)
    ============================================ */
+[data-service="blog"] {
+    --semantic-bg-card: #ffffff;
+    --semantic-bg-elevated: #ffffff;
+    --semantic-bg-hover: #F1F3F5;
+    --semantic-bg-muted: #E6FCF5;
+    --semantic-bg-page: #F8F9FA;
+    --semantic-border-default: #E9ECEF;
+    --semantic-border-focus: #12B886;
+    --semantic-border-hover: #DEE2E6;
+    --semantic-border-muted: #F1F3F5;
+    --semantic-brand-primary: #12B886;
+    --semantic-brand-primaryHover: #0CA678;
+    --semantic-brand-secondary: #38D9A9;
+    --semantic-status-error: #F03E3E;
+    --semantic-status-errorBg: #FFE3E3;
+    --semantic-status-info: #228BE6;
+    --semantic-status-infoBg: #D0EBFF;
+    --semantic-status-success: #12B886;
+    --semantic-status-successBg: #E6FCF5;
+    --semantic-status-warning: #FAB005;
+    --semantic-status-warningBg: #FFF9DB;
+    --semantic-text-body: #212529;
+    --semantic-text-heading: #212529;
+    --semantic-text-inverse: #ffffff;
+    --semantic-text-link: #228BE6;
+    --semantic-text-linkHover: #1976D2;
+    --semantic-text-meta: #868E96;
+    --semantic-text-muted: #ADB5BD;
+}
+
+[data-service="shopping"] {
+    --semantic-bg-card: #ffffff;
+    --semantic-bg-elevated: #ffffff;
+    --semantic-bg-hover: #FFF4E6;
+    --semantic-bg-muted: #FFF4E6;
+    --semantic-bg-page: #ffffff;
+    --semantic-border-default: #E9ECEF;
+    --semantic-border-focus: #FD7E14;
+    --semantic-border-hover: #FFC078;
+    --semantic-border-muted: #F1F3F5;
+    --semantic-brand-primary: #FD7E14;
+    --semantic-brand-primaryHover: #F76707;
+    --semantic-brand-secondary: #FFA94D;
+    --semantic-status-error: #F03E3E;
+    --semantic-status-errorBg: #FFE3E3;
+    --semantic-status-info: #228BE6;
+    --semantic-status-infoBg: #D0EBFF;
+    --semantic-status-success: #12B886;
+    --semantic-status-successBg: #E6FCF5;
+    --semantic-status-warning: #FAB005;
+    --semantic-status-warningBg: #FFF9DB;
+    --semantic-text-body: #212529;
+    --semantic-text-heading: #212529;
+    --semantic-text-inverse: #ffffff;
+    --semantic-text-link: #228BE6;
+    --semantic-text-linkHover: #1976D2;
+    --semantic-text-meta: #868E96;
+    --semantic-text-muted: #ADB5BD;
+}
+
+/* ============================================
+   Theme Overrides (Service-specific - Dark Mode)
+   ============================================ */
+[data-service="blog"][data-theme="dark"] {
+    --semantic-bg-card: #0F4C47;
+    --semantic-bg-elevated: #135249;
+    --semantic-bg-hover: #0F4C47;
+    --semantic-bg-muted: #195C52;
+    --semantic-bg-page: #0B3D35;
+    --semantic-border-default: #0CA678;
+    --semantic-border-focus: #63E6BE;
+    --semantic-border-hover: #12B886;
+    --semantic-border-muted: #099268;
+    --semantic-brand-primary: #20C997;
+    --semantic-brand-primaryHover: #38D9A9;
+    --semantic-brand-secondary: #63E6BE;
+    --semantic-status-error: #FA5252;
+    --semantic-status-errorBg: #3D1E1E;
+    --semantic-status-info: #339AF0;
+    --semantic-status-infoBg: #1A2E3D;
+    --semantic-status-success: #63E6BE;
+    --semantic-status-successBg: #0A4034;
+    --semantic-status-warning: #FCC419;
+    --semantic-status-warningBg: #3D3820;
+    --semantic-text-body: #C3FAE8;
+    --semantic-text-heading: #E6FCF5;
+    --semantic-text-inverse: #087F5B;
+    --semantic-text-link: #339AF0;
+    --semantic-text-linkHover: #228BE6;
+    --semantic-text-meta: #96F2D7;
+    --semantic-text-muted: #63E6BE;
+}
+
+[data-service="shopping"][data-theme="dark"] {
+    --semantic-bg-card: #8B3A00;
+    --semantic-bg-elevated: #A85A3D;
+    --semantic-bg-hover: #8B3A00;
+    --semantic-bg-muted: #7A4A2F;
+    --semantic-bg-page: #662200;
+    --semantic-border-default: #F76707;
+    --semantic-border-focus: #FFC078;
+    --semantic-border-hover: #FD7E14;
+    --semantic-border-muted: #E8590C;
+    --semantic-brand-primary: #FF922B;
+    --semantic-brand-primaryHover: #FFA94D;
+    --semantic-brand-secondary: #FFC078;
+    --semantic-status-error: #FA5252;
+    --semantic-status-errorBg: #4A1C1C;
+    --semantic-status-info: #339AF0;
+    --semantic-status-infoBg: #1A3A52;
+    --semantic-status-success: #63E6BE;
+    --semantic-status-successBg: #0A4034;
+    --semantic-status-warning: #FCC419;
+    --semantic-status-warningBg: #4A3C0F;
+    --semantic-text-body: #FFD8A8;
+    --semantic-text-heading: #FFE8CC;
+    --semantic-text-inverse: #D9480F;
+    --semantic-text-link: #339AF0;
+    --semantic-text-linkHover: #228BE6;
+    --semantic-text-meta: #FFC078;
+    --semantic-text-muted: #FFA94D;
+}
+
 /* ============================================
    Base Styles
    ============================================ */
