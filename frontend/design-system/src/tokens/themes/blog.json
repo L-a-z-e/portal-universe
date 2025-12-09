@@ -48,6 +48,11 @@
         "$value": "{color.blue.600}",
         "$description": "Blog light mode link text",
         "$type": "color"
+      },
+      "linkHover": {
+        "$value": "{color.blue.700}",
+        "$description": "Blog light mode link hover text",
+        "$type": "color"
       }
     },
     "bg": {
@@ -147,12 +152,12 @@
     "color": {
       "brand": {
         "primary": {
-          "$value": "{color.green.700}",
+          "$value": "{color.green.500}",
           "$description": "Blog dark mode brand primary",
           "$type": "color"
         },
         "primaryHover": {
-          "$value": "{color.green.600}",
+          "$value": "{color.green.400}",
           "$description": "Blog dark mode brand primary hover",
           "$type": "color"
         },
@@ -189,8 +194,13 @@
           "$type": "color"
         },
         "link": {
-          "$value": "{color.blue.300}",
+          "$value": "{color.blue.500}",
           "$description": "Blog dark mode link text",
+          "$type": "color"
+        },
+        "linkHover": {
+          "$value": "{color.blue.600}",
+          "$description": "Blog dark mode link hover text",
           "$type": "color"
         }
       },
@@ -255,7 +265,7 @@
           "$type": "color"
         },
         "error": {
-          "$value": "{color.red.400}",
+          "$value": "{color.red.500}",
           "$description": "Blog dark mode error status",
           "$type": "color"
         },
@@ -275,7 +285,7 @@
           "$type": "color"
         },
         "info": {
-          "$value": "{color.blue.400}",
+          "$value": "{color.blue.500}",
           "$description": "Blog dark mode info status",
           "$type": "color"
         },
