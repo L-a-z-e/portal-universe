@@ -13,15 +13,20 @@ let themeStore: any = null;
  * data-theme 속성 동기화
  * - <html class="dark"> → <html data-theme="dark">
  * - [data-theme="dark"] CSS 선택자 활성화
+ * - [data-service="blog"][data-theme="dark"] 서비스별 다크 테마 활성화
  */
 function updateDataTheme() {
   const isDark = document.documentElement.classList.contains('dark');
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  console.log(`[Blog] Theme updated: ${isDark ? 'dark' : 'light'}`);
+  console.log(`[Blog] Theme synced: data-theme="${isDark ? 'dark' : 'light'}"`);
 }
 
 onMounted(() => {
-  // 초기 data-theme 설정
+  // 🟢 Step 1: data-service="blog" 속성 설정 (CSS 선택자 활성화)
+  document.documentElement.setAttribute('data-service', 'blog');
+  console.log('[Blog] Set data-service="blog"');
+
+  // 🟢 Step 2: 초기 data-theme 설정
   updateDataTheme();
 
   if (isEmbedded.value) {
@@ -32,22 +37,23 @@ onMounted(() => {
       import('portal_shell/themeStore').then(({ useThemeStore }) => {
         themeStore = useThemeStore();
 
-        // 초기 다크모드 적용
+        // 🟢 Step 3: 초기 다크모드 적용
         if (themeStore.isDark) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
         }
-        updateDataTheme();
+        updateDataTheme();  // ← data-theme 속성도 함께 업데이트
 
-        // 다크모드 변경 감지
+        // 🟢 Step 4: 다크모드 변경 감지 및 동기화
         watch(() => themeStore.isDark, (newVal) => {
           if (newVal) {
             document.documentElement.classList.add('dark');
           } else {
             document.documentElement.classList.remove('dark');
           }
-          updateDataTheme();
+          updateDataTheme();  // ← data-theme 속성도 함께 업데이트
+          console.log(`[Blog] Theme toggled: isDark=${newVal}`);
         });
 
         console.log('[Blog] Portal Shell themeStore connected');
@@ -64,7 +70,7 @@ onMounted(() => {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.attributeName === 'class') {
-          updateDataTheme();
+          updateDataTheme();  // ← 클래스 변경 시 data-theme도 함께 업데이트
         }
       });
     });
@@ -80,9 +86,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- ✅ data-service="blog" 추가 -->
+  <!-- ✅ data-service="blog" 자동으로 설정됨 (JS에서) -->
   <!-- ✅ Semantic Classes 사용 (bg-bg-page) -->
-  <div data-service="blog" class="min-h-screen bg-bg-page">
+  <div class="min-h-screen bg-bg-page">
 
     <!-- Header (Standalone 모드에서만 표시) -->
     <header
