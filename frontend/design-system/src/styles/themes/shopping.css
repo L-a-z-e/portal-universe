@@ -1,28 +1,9 @@
 /* ============================================
-   Shopping Service Theme Overrides
+   Shopping Service Theme Component Styles
+   ============================================
+   NOTE: Color definitions are now auto-generated
+   by build-tokens.js from themes/shopping.json
    ============================================ */
-
-[data-service="shopping"][data-theme="light"] {
-    /* Warm Orange */
-    --color-brand-primary: #FD7E14;
-    --color-brand-primary-hover: #F76707;
-    --color-brand-secondary: #FFA94D;
-
-    /* Clean white for product photos */
-    --color-bg-page: #FFFFFF;
-    --color-bg-card: #FFFFFF;
-
-    /* Borders for product cards */
-    --color-border-default: #E9ECEF;
-}
-
-[data-service="shopping"][data-theme="dark"] {
-    --color-brand-primary: #FF922B;
-    --color-brand-primary-hover: #FFA94D;
-
-    --color-bg-page: #1E1E1E;
-    --color-bg-card: #2C2C2C;
-}
 
 /* Shopping-specific components */
 [data-service="shopping"] {
@@ -39,16 +20,133 @@
         box-shadow: var(--shadow-lg);
     }
 
+    /* Product card image */
+    .product-card img {
+        @apply w-full h-auto object-cover;
+        aspect-ratio: 1;
+    }
+
+    /* Product card content */
+    .product-card-content {
+        @apply p-4;
+    }
+
+    /* Product title */
+    .product-title {
+        @apply text-text-heading font-semibold;
+        @apply text-lg line-clamp-2;
+    }
+
+    /* Product description */
+    .product-description {
+        @apply text-text-meta text-sm;
+        @apply line-clamp-2 mt-1;
+    }
+
     /* Price display */
     .price {
         @apply text-brand-primary font-bold text-xl;
+        @apply mt-2;
+    }
+
+    /* Original price (strikethrough) */
+    .price-original {
+        @apply text-text-meta line-through text-sm;
+        @apply mr-2;
+    }
+
+    /* Discount badge */
+    .discount-badge {
+        @apply bg-status-error text-white;
+        @apply px-2 py-1 rounded text-xs font-semibold;
+    }
+
+    /* Rating display */
+    .rating {
+        @apply flex items-center gap-1;
+        @apply text-yellow-500;
+    }
+
+    /* Stock status */
+    .stock-info {
+        @apply text-text-meta text-sm;
+        @apply mt-2;
+    }
+
+    .in-stock {
+        @apply text-status-success;
+    }
+
+    .out-of-stock {
+        @apply text-status-error;
     }
 
     /* Add to cart button */
     .btn-cart {
-        @apply bg-brand-primary hover:bg-brand-primary-hover;
+        @apply bg-brand-primary hover:bg-brand-primaryHover;
         @apply text-white font-semibold;
         @apply rounded-lg px-6 py-3;
         @apply transition-colors duration-200;
+        @apply w-full mt-4;
+    }
+
+    .btn-cart:active {
+        @apply bg-brand-primaryHover;
+    }
+
+    .btn-cart:disabled {
+        @apply bg-border-default text-text-muted;
+        @apply cursor-not-allowed;
+    }
+
+    /* Wishlist button */
+    .btn-wishlist {
+        @apply border-2 border-brand-primary text-brand-primary;
+        @apply rounded-lg px-4 py-2;
+        @apply transition-colors duration-200;
+    }
+
+    .btn-wishlist:hover {
+        @apply bg-bg-muted;
+    }
+
+    /* Product grid */
+    .product-grid {
+        @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+        @apply gap-4;
+    }
+
+    /* Filter sidebar */
+    .filter-sidebar {
+        @apply border border-border-default rounded-lg p-4;
+    }
+
+    .filter-title {
+        @apply font-semibold text-text-heading text-lg;
+        @apply border-b border-border-default pb-3 mb-3;
+    }
+
+    .filter-group {
+        @apply mb-4;
+    }
+
+    .filter-option {
+        @apply flex items-center gap-2 py-2;
+    }
+
+    .filter-option input {
+        @apply accent-brand-primary;
+    }
+
+    /* Search bar */
+    .search-bar {
+        @apply flex items-center gap-2;
+        @apply bg-bg-card border border-border-default;
+        @apply rounded-lg px-4 py-2;
+    }
+
+    .search-bar input {
+        @apply flex-1 bg-transparent text-text-body;
+        @apply outline-none;
     }
 }
