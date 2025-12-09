@@ -83,31 +83,38 @@
 
     /* Add to cart button */
     .btn-cart {
-        @apply bg-brand-primary hover:bg-brand-primaryHover;
-        @apply text-white font-semibold;
+        background-color: var(--semantic-brand-primary);
+        color: var(--semantic-text-inverse);
+        @apply font-semibold;
         @apply rounded-lg px-6 py-3;
         @apply transition-colors duration-200;
         @apply w-full mt-4;
     }
 
+    .btn-cart:hover {
+        background-color: var(--semantic-brand-primaryHover);
+    }
+
     .btn-cart:active {
-        @apply bg-brand-primaryHover;
+        background-color: var(--semantic-brand-primaryHover);
     }
 
     .btn-cart:disabled {
-        @apply bg-border-default text-text-muted;
+        background-color: var(--semantic-border-default);
+        color: var(--semantic-text-muted);
         @apply cursor-not-allowed;
     }
 
     /* Wishlist button */
     .btn-wishlist {
-        @apply border-2 border-brand-primary text-brand-primary;
+        border: 2px solid var(--semantic-brand-primary);
+        color: var(--semantic-brand-primary);
         @apply rounded-lg px-4 py-2;
         @apply transition-colors duration-200;
     }
 
     .btn-wishlist:hover {
-        @apply bg-bg-muted;
+        background-color: var(--semantic-bg-muted);
     }
 
     /* Product grid */
@@ -135,13 +142,14 @@
     }
 
     .filter-option input {
-        @apply accent-brand-primary;
+        accent-color: var(--semantic-brand-primary);
     }
 
     /* Search bar */
     .search-bar {
         @apply flex items-center gap-2;
-        @apply bg-bg-card border border-border-default;
+        background-color: var(--semantic-bg-card);
+        border: 1px solid var(--semantic-border-default);
         @apply rounded-lg px-4 py-2;
     }
 
