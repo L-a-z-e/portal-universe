@@ -48,11 +48,39 @@ function resolveColorReference(value, colorReferences) {
 }
 
 /**
+ * 테마 색상 객체를 CSS 변수로 변환 (darkMode 지원)
+ * @param {Object} obj - 색상 객체
+ * @param {Map} targetMap - 대상 CSS 변수 맵
+ * @param {Object} colorReferences - 색상 참조 맵
+ * @param {string} prefix - CSS 변수 접두사
+ * @param {string} parentKey - 부모 키
+ */
+function processThemeColors(obj, targetMap, colorReferences, prefix = '--semantic', parentKey = '') {
+    for (const [key, value] of Object.entries(obj)) {
+        if (key.startsWith('$') || key === 'darkMode') continue;
+
+        const fullKey = parentKey ? `${parentKey}-${key}` : key;
+        const varName = `${prefix}-${fullKey}`;
+
+        if (typeof value === 'object' && value !== null && !('$value' in value)) {
+            processThemeColors(value, targetMap, colorReferences, prefix, fullKey);
+        } else if (value && typeof value === 'object' && '$value' in value) {
+            const resolved = resolveColorReference(value.$value, colorReferences);
+            targetMap.set(varName, resolved);
+        } else if (typeof value === 'string') {
+            const resolved = resolveColorReference(value, colorReferences);
+            targetMap.set(varName, resolved);
+        }
+    }
+}
+
+/**
  * 토큰 파일들을 읽고 CSS 변수로 변환
  */
 function buildTokens() {
     const cssVariables = new Map();
     const themes = new Map();
+    const themeDarkModes = new Map();
     const colorReferences = {};
     const unresolvedReferences = new Set();
 
@@ -176,7 +204,7 @@ function buildTokens() {
             console.log(`  ⚠️  semantic/colors.json not found or invalid: ${err.message}`);
         }
 
-        console.log('📖 Step 4: Reading theme tokens...');
+        console.log('📖 Step 4: Reading theme tokens (with darkMode support)...');
         const themeFiles = ['blog', 'shopping'];
 
         themeFiles.forEach(themeName => {
@@ -185,39 +213,33 @@ function buildTokens() {
                 const content = readFileSync(filePath, 'utf-8');
                 const themeTokens = JSON.parse(content);
 
-                const themeVars = new Map();
+                const themeLightVars = new Map();
+                const themeDarkVars = new Map();
 
-                let themeContent = themeTokens;
-                if (themeTokens.themes?.[themeName]) {
-                    themeContent = themeTokens.themes[themeName];
-                } else if (themeTokens[themeName]) {
-                    themeContent = themeTokens[themeName];
+                // 라이트 모드 처리
+                processThemeColors(
+                    themeTokens.color || themeTokens,
+                    themeLightVars,
+                    colorReferences,
+                    '--semantic'
+                );
+
+                // 다크 모드 처리 (darkMode 섹션이 있으면)
+                if (themeTokens.darkMode) {
+                    processThemeColors(
+                        themeTokens.darkMode.color || themeTokens.darkMode,
+                        themeDarkVars,
+                        colorReferences,
+                        '--semantic'
+                    );
                 }
 
-                function processTheme(obj, prefix = '--color') {
-                    for (const [key, value] of Object.entries(obj)) {
-                        if (key.startsWith('$')) continue;
-
-                        const varName = `${prefix}-${key}`;
-
-                        if (typeof value === 'object' && value !== null && !('$value' in value)) {
-                            processTheme(value, `${prefix}-${key}`);
-                        } else if (typeof value === 'string') {
-                            const resolved = resolveColorReference(value, colorReferences);
-
-                            if (resolved.startsWith('{')) {
-                                const refPath = resolved.match(/^\{([^}]+)\}$/)?.[1];
-                                if (refPath) unresolvedReferences.add(refPath);
-                            }
-
-                            themeVars.set(varName, resolved);
-                        }
-                    }
+                themes.set(themeName, themeLightVars);
+                if (themeDarkVars.size > 0) {
+                    themeDarkModes.set(themeName, themeDarkVars);
                 }
 
-                processTheme(themeContent);
-                themes.set(themeName, themeVars);
-                console.log(`  ✅ themes/${themeName}.json loaded`);
+                console.log(`  ✅ themes/${themeName}.json loaded (light + dark)`);
             } catch (err) {
                 console.log(`  ⚠️  themes/${themeName}.json not found or invalid`);
             }
@@ -242,7 +264,7 @@ function buildTokens() {
             console.log('\n✅ All color references resolved successfully!');
         }
 
-        console.log('\n🎨 Step 5: Generating CSS...');
+        console.log('\n🎨 Step 5: Generating CSS with darkMode support...');
 
         let cssContent = `@tailwind base;
 @tailwind components;
@@ -264,7 +286,7 @@ function buildTokens() {
         cssContent += `}
 
 /* ============================================
-   Dark Mode Overrides
+   Dark Mode Overrides (Global Default)
    ============================================ */
 [data-theme="dark"] {
     /* Brand Colors */
@@ -312,7 +334,7 @@ function buildTokens() {
 }
 
 /* ============================================
-   Theme Overrides (Service-specific)
+   Theme Overrides (Service-specific - Light Mode)
    ============================================ */
 `;
 
@@ -321,6 +343,22 @@ function buildTokens() {
                 cssContent += `[data-service="${themeName}"] {\n`;
                 const sortedThemeVars = Array.from(themeVars.entries()).sort();
                 for (const [key, value] of sortedThemeVars) {
+                    cssContent += `    ${key}: ${value};\n`;
+                }
+                cssContent += `}\n\n`;
+            }
+        }
+
+        cssContent += `/* ============================================
+   Theme Overrides (Service-specific - Dark Mode)
+   ============================================ */
+`;
+
+        for (const [themeName, themeDarkVars] of themeDarkModes) {
+            if (themeDarkVars.size > 0) {
+                cssContent += `[data-service="${themeName}"][data-theme="dark"] {\n`;
+                const sortedDarkVars = Array.from(themeDarkVars.entries()).sort();
+                for (const [key, value] of sortedDarkVars) {
                     cssContent += `    ${key}: ${value};\n`;
                 }
                 cssContent += `}\n\n`;
@@ -368,9 +406,10 @@ function buildTokens() {
 
         writeFileSync(outputFile, cssContent, 'utf-8');
         console.log(`✅ CSS variables written to: ${outputFile}`);
-        console.log(`📊 Total variables generated: ${cssVariables.size}`);
-        console.log(`🎨 Themes generated: ${themes.size}`);
-        console.log('\n✨ Design tokens built successfully!');
+        console.log(`📊 Total base variables: ${cssVariables.size}`);
+        console.log(`🎨 Light mode themes generated: ${themes.size}`);
+        console.log(`🌙 Dark mode themes generated: ${themeDarkModes.size}`);
+        console.log('\n✨ Design tokens built successfully with darkMode support!');
 
     } catch (error) {
         console.error('❌ Fatal error:', error.message);
