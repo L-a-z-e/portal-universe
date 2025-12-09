@@ -18,6 +18,13 @@ function updateDataTheme() {
 // 페이지 로드 시 로컬 스토리지 값 반영
 onMounted(() => {
   themeStore.initialize();
+  
+  // 🟢 추가: <html> 태그에 data-service 설정 (Blog와 동일하게)
+  // 이렇게 하면 CSS 선택자 [data-service="portal"][data-theme="dark"] 매칭됨
+  document.documentElement.setAttribute('data-service', 'portal');
+  console.log('[Portal-Shell] Set data-service="portal"');
+  
+  updateDataTheme();
 });
 
 // <html> 태그에 dark 클래스 토글 반영
@@ -33,8 +40,8 @@ watch(() => themeStore.isDark, (newVal) => {
 </script>
 
 <template>
-  <!-- ✅ data-service="portal" 추가 (Option 3 적용) -->
-  <div data-service="portal" class="min-h-screen flex flex-col bg-bg-page text-text-body dark:bg-bg-page dark:text-text-body transition-colors duration-300">
+  <!-- ✅ Template의 <div>에서 data-service 제거 (이미 <html>에 설정되어 있음) -->
+  <div class="min-h-screen flex flex-col bg-bg-page text-text-body dark:bg-bg-page dark:text-text-body transition-colors duration-300">
     <!-- Header -->
     <header class="bg-bg-card dark:bg-bg-elevated backdrop-blur-md border-b border-border-default sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 py-4">
