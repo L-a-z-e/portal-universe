@@ -26,14 +26,16 @@
 
     /* Code blocks */
     .prose pre {
-        @apply bg-bg-muted border border-border-default;
+        background-color: var(--semantic-bg-muted);
+        border: 1px solid var(--semantic-border-default);
         @apply rounded-lg p-4;
     }
 
     /* Blockquotes */
     .prose blockquote {
-        @apply border-l-4 border-brand-primary;
-        @apply pl-4 italic text-text-meta;
+        border-left: 4px solid var(--semantic-brand-primary);
+        color: var(--semantic-text-meta);
+        @apply pl-4 italic;
     }
 
     /* Tables */
@@ -42,16 +44,23 @@
     }
 
     .prose th {
-        @apply bg-bg-muted font-semibold text-left p-2;
+        background-color: var(--semantic-bg-muted);
+        @apply font-semibold text-left p-2;
     }
 
     .prose td {
-        @apply border-t border-border-default p-2;
+        border-top: 1px solid var(--semantic-border-default);
+        @apply p-2;
     }
 
     /* Links with brand color */
     .prose a {
-        @apply text-text-link hover:text-text-linkHover;
+        color: var(--semantic-text-link);
+        transition: color 0.2s;
+    }
+
+    .prose a:hover {
+        color: var(--semantic-text-linkHover);
     }
 
     /* Emphasis and strong */
@@ -74,7 +83,8 @@
 
     /* Headings in content */
     .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
-        @apply font-semibold text-text-heading;
+        @apply font-semibold;
+        color: var(--semantic-text-heading);
         @apply mt-6 mb-4;
     }
 
@@ -92,12 +102,14 @@
 
     /* Horizontal rule */
     .prose hr {
-        @apply border-t border-border-default my-8;
+        border-top: 1px solid var(--semantic-border-default);
+        @apply my-8;
     }
 
     /* Inline code */
     .prose code {
-        @apply bg-bg-muted text-text-body;
+        background-color: var(--semantic-bg-muted);
+        color: var(--semantic-text-body);
         @apply px-2 py-1 rounded text-sm;
     }
 
