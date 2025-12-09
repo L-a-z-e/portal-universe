@@ -33,7 +33,8 @@ watch(() => themeStore.isDark, (newVal) => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-bg-page text-text-body dark:bg-bg-page dark:text-text-body transition-colors duration-300">
+  <!-- ✅ data-service="portal" 추가 (Option 3 적용) -->
+  <div data-service="portal" class="min-h-screen flex flex-col bg-bg-page text-text-body dark:bg-bg-page dark:text-text-body transition-colors duration-300">
     <!-- Header -->
     <header class="bg-bg-card dark:bg-bg-elevated backdrop-blur-md border-b border-border-default sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 py-4">
@@ -70,7 +71,7 @@ watch(() => themeStore.isDark, (newVal) => {
           <div class="flex items-center gap-3">
             <ThemeToggle />
             <template v-if="authStore.isAuthenticated">
-              <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-status-info-bg border border-border-default">
+              <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-status-infoBg border border-border-default">
                 <span class="text-sm font-semibold text-status-info">{{ authStore.displayName }}</span>
                 <Badge v-if="authStore.isAdmin" variant="danger" size="sm">ADMIN</Badge>
               </div>
