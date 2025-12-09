@@ -48,6 +48,11 @@
         "$value": "{color.blue.600}",
         "$description": "Shopping light mode link text",
         "$type": "color"
+      },
+      "linkHover": {
+        "$value": "{color.blue.700}",
+        "$description": "Shopping light mode link hover text",
+        "$type": "color"
       }
     },
     "bg": {
@@ -189,8 +194,13 @@
           "$type": "color"
         },
         "link": {
-          "$value": "{color.blue.300}",
+          "$value": "{color.blue.500}",
           "$description": "Shopping dark mode link text",
+          "$type": "color"
+        },
+        "linkHover": {
+          "$value": "{color.blue.600}",
+          "$description": "Shopping dark mode link hover text",
           "$type": "color"
         }
       },
@@ -255,7 +265,7 @@
           "$type": "color"
         },
         "error": {
-          "$value": "{color.red.400}",
+          "$value": "{color.red.500}",
           "$description": "Shopping dark mode error status",
           "$type": "color"
         },
@@ -275,7 +285,7 @@
           "$type": "color"
         },
         "info": {
-          "$value": "{color.blue.400}",
+          "$value": "{color.blue.500}",
           "$description": "Shopping dark mode info status",
           "$type": "color"
         },
