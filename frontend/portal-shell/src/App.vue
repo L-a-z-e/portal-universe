@@ -15,14 +15,30 @@ function updateDataTheme() {
   console.log(`[Portal-Shell] Theme updated: ${isDark ? 'dark' : 'light'}`);
 }
 
+/**
+ * 🟢 CSS 변수 강제 재계산
+ * KeepAlive로 인해 Blog CSS가 <head>에 남아있을 때,
+ * data-service 변경 후 CSS 변수를 다시 계산하도록 강제함
+ */
+function forceReflowToApplyCSSChanges() {
+  // 트릭: DOM 재배치 강제 (reflow trigger)
+  // 이렇게 하면 브라우저가 CSS 변수 재계산 → Tailwind 클래스 다시 적용
+  const html = document.documentElement;
+  const trigger = html.offsetHeight;
+  void trigger; // 변수 사용 (no-op)
+  console.log('[Portal-Shell] Forced CSS recalculation');
+}
+
 // 페이지 로드 시 로컬 스토리지 값 반영
 onMounted(() => {
   themeStore.initialize();
   
-  // 🟢 추가: <html> 태그에 data-service 설정 (Blog와 동일하게)
-  // 이렇게 하면 CSS 선택자 [data-service="portal"][data-theme="dark"] 매칭됨
+  // 🟢 추가: <html> 태그에 data-service 설정
   document.documentElement.setAttribute('data-service', 'portal');
   console.log('[Portal-Shell] Set data-service="portal"');
+  
+  // 🟢 강제 reflow: CSS 변수 재계산 (KeepAlive CSS 캐시 문제 해결)
+  forceReflowToApplyCSSChanges();
   
   updateDataTheme();
 });
@@ -35,12 +51,14 @@ watch(() => themeStore.isDark, (newVal) => {
     document.documentElement.classList.remove('dark');
   }
   updateDataTheme();
+  
+  // 🟢 강제 reflow: CSS 변수 재계산
+  forceReflowToApplyCSSChanges();
 });
 
 </script>
 
 <template>
-  <!-- ✅ Template의 <div>에서 data-service 제거 (이미 <html>에 설정되어 있음) -->
   <div class="min-h-screen flex flex-col bg-bg-page text-text-body dark:bg-bg-page dark:text-text-body transition-colors duration-300">
     <!-- Header -->
     <header class="bg-bg-card dark:bg-bg-elevated backdrop-blur-md border-b border-border-default sticky top-0 z-50">
