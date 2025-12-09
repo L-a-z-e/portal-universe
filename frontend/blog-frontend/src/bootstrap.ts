@@ -116,6 +116,10 @@ export function mountBlogApp(
 
     /**
      * 앱 언마운트 및 클린업
+     * 
+     * 🔴 핵심: <head>의 Blog CSS 스타일 태그 제거!
+     * KeepAlive로 인해 언마운트 시에도 CSS가 남아있기 때문에
+     * 수동으로 <head>에서 Blog CSS를 찾아서 제거해야 함
      */
     unmount: () => {
       console.group('🔄 [Blog] Unmounting app');
@@ -124,6 +128,43 @@ export function mountBlogApp(
         app.unmount();
         el.innerHTML = '';
         console.log('✅ [Blog] App unmounted successfully');
+
+        // 🟢 Step 1: <head>의 모든 <style> 태그 중 Blog CSS 제거
+        // CSS 번들된 파일명: blog-frontend.css 또는 style.css
+        const styleTags = document.querySelectorAll('style');
+        console.log(`🔍 [Blog] Found ${styleTags.length} <style> tags, searching for Blog CSS...`);
+        
+        styleTags.forEach((styleTag, index) => {
+          const content = styleTag.textContent || '';
+          
+          // Blog 관련 CSS 마커 확인
+          // [data-service="blog"] 또는 기타 Blog 특정 스타일이 있으면 제거
+          if (content.includes('[data-service="blog"]') ||
+              content.includes('blog-') ||
+              content.includes('@import') && content.includes('blog')) {
+            console.log(`   📍 [Blog] Found Blog CSS at index ${index}, removing...`);
+            styleTag.remove();
+          }
+        });
+        
+        // 🟢 Step 2: <link> 태그 중 Blog CSS 제거 (있는 경우)
+        const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
+        linkTags.forEach((linkTag) => {
+          const href = linkTag.getAttribute('href') || '';
+          if (href.includes('blog') || href.includes('style')) {
+            console.log(`   📍 [Blog] Found Blog CSS link: ${href}, removing...`);
+            linkTag.remove();
+          }
+        });
+        
+        // 🟢 Step 3: data-service 속성 정리
+        if (document.documentElement.getAttribute('data-service') === 'blog') {
+          console.log('   📍 [Blog] Resetting data-service attribute...');
+          // Portal로 복귀 시 Portal App.vue에서 다시 설정되므로 여기선 비우기만 함
+          document.documentElement.removeAttribute('data-service');
+        }
+        
+        console.log('✅ [Blog] Cleanup completed - CSS removed from <head>');
       } catch (err) {
         console.error('❌ [Blog] Unmount failed:', err);
       }
