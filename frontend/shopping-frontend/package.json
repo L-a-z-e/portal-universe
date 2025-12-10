@@ -1,0 +1,38 @@
+{
+  "name": "@portal/shopping-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Shopping microapp for Portal Universe",
+
+  "scripts": {
+    "dev": "concurrently \"vite build --watch --mode dev\" \"vite preview --port 30002 --strictPort --mode dev\"",
+    "build": "tsc --noEmit && vite build",
+    "build:dev": "tsc -b && vite build --mode dev",
+    "build:docker": "tsc -b && vite build --mode docker",
+    "build:k8s": "tsc -b && vite build --mode k8s",
+    "preview": "vite preview --port 30002 --strictPort"
+  },
+
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@portal/design-system": "*",
+    "axios": "^1.12.2"
+  },
+
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^5.1.2",
+    "@originjs/vite-plugin-federation": "^1.4.1",
+    "concurrently": "^9.2.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.12",
+    "sass": "^1.69.0",
+    "postcss": "^8.4.49",
+    "autoprefixer": "^10.4.20",
+    "tailwindcss": "^3.4.15"
+  }
+}
