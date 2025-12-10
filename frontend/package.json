@@ -2,19 +2,44 @@
   "name": "portal-frontend",
   "version": "1.0.0",
   "private": true,
+  "description": "Portal Universe - Micro Frontend Architecture",
+
   "workspaces": [
     "design-system",
     "portal-shell",
-    "blog-frontend"
+    "blog-frontend",
+    "shopping-frontend"
   ],
+
   "scripts": {
     "dev": "npm run dev --workspaces",
     "build": "npm run build --workspaces",
+
     "dev:design": "npm run dev -w design-system",
     "build:design": "npm run build -w design-system",
+
+    "dev:portal": "npm run dev -w portal-shell",
+    "build:portal": "npm run build -w portal-shell",
+
+    "dev:blog": "npm run dev -w blog-frontend",
+    "build:blog": "npm run build -w blog-frontend",
+    "build:blog:dev": "npm run build:dev -w blog-frontend",
+    "build:blog:docker": "npm run build:docker -w blog-frontend",
+    "build:blog:k8s": "npm run build:k8s -w blog-frontend",
+
+    "dev:shopping": "npm run dev -w shopping-frontend",
+    "build:shopping": "npm run build -w shopping-frontend",
+    "build:shopping:dev": "npm run build:dev -w shopping-frontend",
+    "build:shopping:docker": "npm run build:docker -w shopping-frontend",
+    "build:shopping:k8s": "npm run build:k8s -w shopping-frontend",
+
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+
+    "type-check": "npm run type-check --workspaces",
+    "lint": "npm run lint --workspaces 2>/dev/null || true"
   },
+
   "devDependencies": {
     "@storybook/addon-docs": "^9.1.13",
     "@vitejs/plugin-vue": "^6.0.1",
