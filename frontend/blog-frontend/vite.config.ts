@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   console.log('🔧 [Vite Config] Building for mode:', mode);
   console.log('🔧 [Vite Config] Portal Remote URL:', env.VITE_PORTAL_SHELL_REMOTE_URL);
+  console.log('🔧 [Vite Config] Shopping Remote URL:', env.VITE_SHOPPING_REMOTE_URL);
 
   return {
     plugins: [
@@ -18,7 +19,7 @@ export default defineConfig(({ mode }) => {
         name: 'blog_remote',
         remotes: {
           portal_shell: env.VITE_PORTAL_SHELL_REMOTE_URL,
-          // shopping_remote: env.VITE_SHOP_REMOTE_URL,
+          shopping_remote: env.VITE_SHOPPING_REMOTE_URL,
         },
         filename: 'remoteEntry.js',
         exposes: {

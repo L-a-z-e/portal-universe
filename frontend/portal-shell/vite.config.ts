@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
 
   console.log('🔧 [Vite Config] Building for mode:', mode);
   console.log('🔧 [Vite Config] Blog Remote URL:', env.VITE_BLOG_REMOTE_URL);
+  console.log('🔧 [Vite Config] Shopping Remote URL:', env.VITE_SHOPPING_REMOTE_URL)
 
   return {
     plugins: [
@@ -20,7 +21,7 @@ export default defineConfig(({ mode }) => {
         remotes: {
           // blog_remote: 'http://localhost:30001/assets/remoteEntry.js'
           blog_remote: env.VITE_BLOG_REMOTE_URL,
-          // shopping_remote: env.VITE_SHOP_REMOTE_URL,
+          shopping_remote: env.VITE_SHOPPING_REMOTE_URL,
         },
         exposes: {
           './authStore': './src/store/auth.ts',
