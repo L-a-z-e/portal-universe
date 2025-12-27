@@ -43,7 +43,8 @@ public class GlobalLoggingFilter implements GlobalFilter {
     private String getClientIp(ServerHttpRequest request, ServerWebExchange exchange) {
         XForwardedRemoteAddressResolver resolver = XForwardedRemoteAddressResolver.maxTrustedIndex(1);
         InetSocketAddress remoteAddress = resolver.resolve(exchange);
-        if (remoteAddress != null) {
+
+        if (remoteAddress != null && remoteAddress.getAddress() != null) {
             return remoteAddress.getAddress().getHostAddress();
         }
         return "Unknown";

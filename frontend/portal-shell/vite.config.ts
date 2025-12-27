@@ -19,7 +19,6 @@ export default defineConfig(({ mode }) => {
         name: 'portal',
         filename: 'shellEntry.js',
         remotes: {
-          // blog_remote: 'http://localhost:30001/assets/remoteEntry.js'
           blog_remote: env.VITE_BLOG_REMOTE_URL,
           shopping_remote: env.VITE_SHOPPING_REMOTE_URL,
         },
