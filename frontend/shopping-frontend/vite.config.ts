@@ -22,15 +22,9 @@ export default defineConfig(({ mode }) => {
       federation({
         name: 'shopping-frontend',
         filename: 'remoteEntry.js',
-
-        // ✅ Bootstrap만 expose
-        // mount 함수가 Host와의 통신 채널 역할
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
         },
-
-        // ✅ Host와 공유할 라이브러리만
-        // 상태관리는 각 앱이 독립적으로 관리
         shared: ['react', 'react-dom'],
       }),
     ],
@@ -56,8 +50,8 @@ export default defineConfig(({ mode }) => {
 
     server: {
       port: 30002,
-      host: '0.0.0.0',    // Docker 환경 호환
-      cors: true,          // Host 통신 허용
+      host: '0.0.0.0',
+      cors: true,
       open: false,
     },
 
@@ -70,7 +64,7 @@ export default defineConfig(({ mode }) => {
 
     build: {
       target: 'esnext',
-      minify: false,       // 디버깅 용이
+      minify: false,
       cssCodeSplit: true,
       sourcemap: false,
       outDir: 'dist',
