@@ -34,12 +34,6 @@ public class AuthorizationServerConfig {
 
     private final OAuth2ClientProperties oAuth2ClientProperties;
 
-//    @Value("${oauth2.client.redirect-uris:http://localhost:30000/callback}")
-//    private String[] redirectUris;
-//
-//    @Value("${oauth2.client.post-logout-redirect-uris:http://localhost:30000}")
-//    private String[] postLogoutRedirectUris;
-
     /**
      * OAuth2 클라이언트의 정보를 등록하고 관리하는 저장소 Bean을 생성합니다.
      *
