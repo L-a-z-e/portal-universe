@@ -233,7 +233,9 @@ services:
         BUILD_MODE: docker
     container_name: portal-shell
     ports:
-      - "30000:80"
+      - "30000:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       api-gateway:
         condition: service_healthy
