@@ -164,7 +164,7 @@ public class SecurityConfig {
                         .maximumSessions(1)
                         .sessionRegistry(sessionRegistry()))
                 .formLogin(form -> form
-                        .loginPage("/auth-service/login")
+                        .loginPage("/login")
                         .loginProcessingUrl("/login")
                 )
                 .logout(logout -> logout
