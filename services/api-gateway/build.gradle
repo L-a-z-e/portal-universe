@@ -58,6 +58,7 @@ dependencies {
     // =======================================
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    runtimeOnly 'com.h2database:h2'
 }
 
 // Spring Cloud 종속성 버전 관리를 위한 BOM(Bill of Materials)
