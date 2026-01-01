@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: api-gateway-test
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  config:
+    import: ''
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          x-forwarded:
+            for-enabled: true
+            port-enabled: true
+            host-enabled: true
+            proto-enabled: true
+            enabled: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.portal.universe: DEBUG
+    org.springframework.cloud.gateway: DEBUG
