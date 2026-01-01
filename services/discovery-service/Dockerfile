@@ -22,7 +22,7 @@ RUN ./gradlew :services:discovery-service:build --no-daemon -x test
 # Stage 2: Runtime Stage
 # 역할: 빌드된 JAR 파일을 최소한의 환경에서 실행합니다.
 # =================================================================
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 

@@ -45,3 +45,6 @@ bin/
 
 *storybook.log
 storybook-static
+
+# Local TLS certificates
+certs/

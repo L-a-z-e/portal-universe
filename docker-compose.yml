@@ -127,7 +127,7 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_ISSUER=http://api-gateway:8080/auth-service
+      - SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_ISSUER=https://portal-universe:30000/auth-service
       - SERVER_FORWARD_HEADERS_STRATEGY=framework
       - SERVER_USE_FORWARD_HEADERS=true
     healthcheck:
@@ -233,7 +233,9 @@ services:
         BUILD_MODE: docker
     container_name: portal-shell
     ports:
-      - "30000:80"
+      - "30000:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       api-gateway:
         condition: service_healthy
