@@ -1,3 +1,8 @@
+server:
+  netty:
+    connection-timeout: 2s
+  port: 8080
+
 spring:
   application:
     name: api-gateway-test
@@ -21,14 +26,14 @@ spring:
       server:
         webflux:
           x-forwarded:
-            for-enabled: true
-            port-enabled: true
-            host-enabled: true
-            proto-enabled: true
-            enabled: true
+            enabled: false
+          discovery:
+            locator:
+              enabled: false
 
-server:
-  port: 8080
+app:
+  frontend:
+    base-url: https://portal-universe:30000
 
 logging:
   level:
