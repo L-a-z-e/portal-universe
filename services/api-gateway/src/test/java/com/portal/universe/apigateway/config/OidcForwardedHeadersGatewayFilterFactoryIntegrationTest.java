@@ -107,9 +107,83 @@ public class OidcForwardedHeadersGatewayFilterFactoryIntegrationTest {
         // Then
         RecordedRequest recorded = mockWebServer.takeRequest();
 
-        assertThat(recorded.getHeader("X-Forwarded-Host")).isEqualTo("portal-test.com:443");
+        assertThat(recorded.getHeader("X-Forwarded-Host")).isEqualTo("portal-universe:30000");
         assertThat(recorded.getHeader("X-Forwarded-Proto")).isEqualTo("https");
-        assertThat(recorded.getHeader("X-Forwarded-Port")).isEqualTo("443");
+        assertThat(recorded.getHeader("X-Forwarded-Port")).isEqualTo("30000");
         assertThat(recorded.getHeader("X-Forwarded-Prefix")).isEqualTo("/auth-service");
+    }
+
+    @Test
+    @DisplayName("OIDC Authorization 요청 시 헤더 추가")
+    void shouldAddHeadersForOidcAuthorizationRequest() throws InterruptedException {
+        // Given
+        mockWebServer.enqueue(new MockResponse()
+                .setBody("redirect to login page")
+                .setResponseCode(302)
+                .addHeader("Location", "http://auth-service/login"));
+
+        // When: OAuth2 Authorization 엔드포인트 요청
+        // (실제: 브라우저가 signinRedirect() 후 이동하는 경로)
+        webTestClient.get()
+                .uri("/test/oauth2/authorize?client_id=portal&response_type=code&redirect_uri=...")
+                .exchange()
+                .expectStatus().isFound();  // 302 Redirect
+
+        // Then: Auth Service가 받은 헤더 확인
+        RecordedRequest recorded = mockWebServer.takeRequest();
+
+        // Auth Service는 이 헤더로 redirect_uri를 구성함
+        assertThat(recorded.getHeader("X-Forwarded-Host"))
+                .isEqualTo("portal-universe:30000");
+        assertThat(recorded.getHeader("X-Forwarded-Prefix"))
+                .isEqualTo("/auth-service");
+    }
+
+    @Test
+    @DisplayName("토큰 엔드포인트 요청 시 헤더 추가")
+    void shouldAddHeadersForTokenRequest() throws InterruptedException {
+        // Given
+        mockWebServer.enqueue(new MockResponse()
+                .setBody("{\"access_token\":\"test_token\"}")
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json"));
+
+        // When: Token 엔드포인트 요청 (Authorization Code 교환)
+        webTestClient.post()
+                .uri("/test/oauth2/token")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .bodyValue("grant_type=authorization_code&code=test_code")
+                .exchange()
+                .expectStatus().isOk();
+
+        // Then
+        RecordedRequest recorded = mockWebServer.takeRequest();
+
+        assertThat(recorded.getMethod()).isEqualTo("POST");
+        assertThat(recorded.getHeader("X-Forwarded-Host"))
+                .isEqualTo("portal-universe:30000");
+    }
+
+    @Test
+    @DisplayName("로그아웃 요청 시 헤더 추가")
+    void shouldAddHeadersForLogoutRequest() throws InterruptedException {
+        // Given
+        mockWebServer.enqueue(new MockResponse()
+                .setBody("Logged out")
+                .setResponseCode(200));
+
+        // When: Logout 요청 (authService.logout())
+        webTestClient.post()
+                .uri("/test/logout")
+                .exchange()
+                .expectStatus().isOk();
+
+        // Then
+        RecordedRequest recorded = mockWebServer.takeRequest();
+
+        assertThat(recorded.getHeader("X-Forwarded-Host"))
+                .isEqualTo("portal-universe:30000");
+        assertThat(recorded.getHeader("X-Forwarded-Prefix"))
+                .isEqualTo("/auth-service");
     }
 }
