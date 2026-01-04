@@ -32,7 +32,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
     {
       name: 'Blog',
       key: 'blog_remote',
-      url: 'http://blog-frontend:30001/assets/remoteEntry.js',
+      url: import.meta.env.VITE_BLOG_REMOTE_URL,
       module: 'blog_remote/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
@@ -44,7 +44,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
     {
       name: 'Blog',
       key: 'blog_remote',
-      url: 'http://portal-universe:8080/blog-frontend/assets/remoteEntry.js',
+      url: import.meta.env.VITE_BLOG_REMOTE_URL,
       module: 'blog_remote/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
