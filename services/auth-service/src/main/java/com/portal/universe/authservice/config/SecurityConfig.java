@@ -87,7 +87,8 @@ public class SecurityConfig {
                     // OIDC Provider Configuration, JWK Set 등 공개 엔드포인트는 모두 허용합니다.
                     authorize.requestMatchers(
                             "/.well-known/**",
-                            "/oauth2/jwks"
+                            "/oauth2/jwks",
+                            "/oauth2/token"
                     ).permitAll();
                     // 그 외 모든 인증 서버 엔드포인트는 인증이 필요합니다.
                     authorize.anyRequest().authenticated();
@@ -164,7 +165,7 @@ public class SecurityConfig {
                         .maximumSessions(1)
                         .sessionRegistry(sessionRegistry()))
                 .formLogin(form -> form
-                        .loginPage("/auth-service/login")
+                        .loginPage("/login")
                         .loginProcessingUrl("/login")
                 )
                 .logout(logout -> logout

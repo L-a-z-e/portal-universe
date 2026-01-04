@@ -1,0 +1,41 @@
+server:
+  netty:
+    connection-timeout: 2s
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway-test
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  config:
+    import: ''
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          x-forwarded:
+            enabled: false
+          discovery:
+            locator:
+              enabled: false
+
+app:
+  frontend:
+    base-url: https://portal-universe:30000
+
+logging:
+  level:
+    com.portal.universe: DEBUG
+    org.springframework.cloud.gateway: DEBUG

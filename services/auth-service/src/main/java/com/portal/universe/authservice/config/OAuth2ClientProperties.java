@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "oauth2.client")
+@ConfigurationProperties(prefix = "spring.security.oauth2.authorizationserver.client.portal-client")
 public class OAuth2ClientProperties {
 
     private List<String> redirectUris = new ArrayList<>();

@@ -101,6 +101,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_TRUSTEDPROXIES=[0.0.0.0/0]
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://portal-universe:30000/auth-service
+      - APP_FRONTEND_BASE_URL=http://portal-universe:30000
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 10s
@@ -125,6 +127,9 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_ISSUER=https://portal-universe:30000/auth-service
+      - SERVER_FORWARD_HEADERS_STRATEGY=framework
+      - SERVER_USE_FORWARD_HEADERS=true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 10s
@@ -228,7 +233,9 @@ services:
         BUILD_MODE: docker
     container_name: portal-shell
     ports:
-      - "30000:80"
+      - "30000:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       api-gateway:
         condition: service_healthy
