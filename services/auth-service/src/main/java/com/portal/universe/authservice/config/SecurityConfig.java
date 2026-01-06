@@ -54,18 +54,6 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.authorizationserver.issuer}")
     private String issuerUri;
 
-//    /**
-//     * Gateway를 통한 절대 경로 리다이렉트를 생성합니다.
-//     * issuer (http://localhost:8080/auth-service) + /login
-//     */
-//    private AuthenticationEntryPoint createLoginAuthenticationEntryPoint() {
-//        final String redirectIssuerUri = this.issuerUri;
-//        return (request, response, authException) -> {
-//            String loginUrl = redirectIssuerUri + "/login";
-//            response.sendRedirect(loginUrl);
-//        };
-//    }
-
     /**
      * OAuth2 인증 서버 관련 엔드포인트(/oauth2/..., /connect/..., /.well-known/...)에 대한 보안을 설정합니다.
      * 이 필터 체인은 가장 높은 우선순위(@Order(1))를 가지므로, 다른 필터 체인보다 먼저 실행됩니다.
