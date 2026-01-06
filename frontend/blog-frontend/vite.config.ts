@@ -16,16 +16,16 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       federation({
-        name: 'blog_remote',
+        name: 'blog',
         remotes: {
-          portal_shell: env.VITE_PORTAL_SHELL_REMOTE_URL,
-          shopping_remote: env.VITE_SHOPPING_REMOTE_URL,
+          portal: env.VITE_PORTAL_SHELL_REMOTE_URL,
+          shopping: env.VITE_SHOPPING_REMOTE_URL,
         },
         filename: 'remoteEntry.js',
         exposes: {
           './bootstrap': './src/bootstrap.ts'
         },
-        shared: ['vue', 'pinia']
+        shared: ['vue', 'pinia', 'axios']
       })
     ],
     resolve: {
