@@ -1,12 +1,12 @@
 // portal_shell/src/config/remoteRegistry.ts
 
 export type RemoteConfig = {
-  name: string;              // 표시 이름 (예: 'Blog')
-  key: string;               // federation key (예: 'blog_remote')
+  name: string;              // 표시 이름
+  key: string;               // federation key
   url: string;               // remoteEntry.js URL
-  module: string;            // 로드할 모듈 경로 (예: 'blog_remote/bootstrap')
-  mountFn: string;           // mount 함수 이름 (예: 'mountBlogApp')
-  basePath: string;          // 라우팅 base path (예: '/blog')
+  module: string;            // 로드할 모듈 경로
+  mountFn: string;           // mount 함수 이름
+  basePath: string;          // 라우팅 base path
   icon?: string;             // 아이콘 (선택)
   description?: string;      // 설명 (선택)
 };
@@ -19,9 +19,9 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
   dev: [
     {
       name: 'Blog',
-      key: 'blog_remote',
+      key: 'blog',
       url: 'http://localhost:30001/assets/remoteEntry.js',
-      module: 'blog_remote/bootstrap',
+      module: 'blog/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
       icon: '📝',
@@ -31,9 +31,9 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
   docker: [
     {
       name: 'Blog',
-      key: 'blog_remote',
+      key: 'blog',
       url: import.meta.env.VITE_BLOG_REMOTE_URL,
-      module: 'blog_remote/bootstrap',
+      module: 'blog/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
       icon: '📝',
@@ -43,9 +43,9 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
   k8s: [
     {
       name: 'Blog',
-      key: 'blog_remote',
+      key: 'blog',
       url: import.meta.env.VITE_BLOG_REMOTE_URL,
-      module: 'blog_remote/bootstrap',
+      module: 'blog/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
       icon: '📝',
