@@ -34,7 +34,7 @@ onMounted(() => {
     // Embedded 모드: Portal Shell의 themeStore 연동
     // ============================================
     try {
-      import('portal_shell/themeStore').then(({ useThemeStore }) => {
+      import('portal/themeStore').then(({ useThemeStore }) => {
         themeStore = useThemeStore();
 
         // 🟢 Step 3: 초기 다크모드 적용
@@ -58,7 +58,7 @@ onMounted(() => {
 
         console.log('[Blog] Portal Shell themeStore connected');
       }).catch((err) => {
-        console.warn('[Blog] Failed to load portal_shell themeStore:', err);
+        console.warn('[Blog] Failed to load portal themeStore:', err);
       });
     } catch (err) {
       console.warn('[Blog] themeStore import failed:', err);

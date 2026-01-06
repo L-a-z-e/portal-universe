@@ -19,14 +19,15 @@ export default defineConfig(({ mode }) => {
         name: 'portal',
         filename: 'shellEntry.js',
         remotes: {
-          blog_remote: env.VITE_BLOG_REMOTE_URL,
-          shopping_remote: env.VITE_SHOPPING_REMOTE_URL,
+          blog: env.VITE_BLOG_REMOTE_URL,
+          shopping: env.VITE_SHOPPING_REMOTE_URL,
         },
         exposes: {
+          './apiClient': './src/services/apiClient.ts',
           './authStore': './src/store/auth.ts',
           './themeStore': './src/store/theme.ts',
         },
-        shared: ['vue', 'pinia'],
+        shared: ['vue', 'pinia', 'axios'],
       })
     ],
     resolve: {

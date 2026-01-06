@@ -63,7 +63,7 @@ function App({ theme = 'light', locale = 'ko', userRole = 'guest', ...otherProps
              * Portal Shell의 themeStore 동적 import
              * Blog의 import('portal_shell/themeStore') 패턴 적용
              */
-            import('portal_shell/themeStore')
+            import('portal/themeStore')
                 .then(({ useThemeStore }) => {
                 try {
                     const store = useThemeStore();
@@ -84,7 +84,7 @@ function App({ theme = 'light', locale = 'ko', userRole = 'guest', ...otherProps
                 }
             })
                 .catch((err) => {
-                console.warn('[Shopping] Failed to load portal_shell/themeStore:', err);
+                console.warn('[Shopping] Failed to load portal/themeStore:', err);
                 console.warn('[Shopping] Fallback: Using local theme prop');
             });
         }

@@ -101,7 +101,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_TRUSTEDPROXIES=[0.0.0.0/0]
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://portal-universe:30000/auth-service
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://portal-universe:30000/auth-service
       - APP_FRONTEND_BASE_URL=http://portal-universe:30000
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]

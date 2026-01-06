@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from "portal_shell/authStore";
+import { useAuthStore } from "portal/authStore";
 import { onMounted, onBeforeUnmount, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { getPublishedPosts } from "../api/posts";

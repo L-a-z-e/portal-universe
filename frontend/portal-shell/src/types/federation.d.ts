@@ -1,6 +1,6 @@
 // portal_shell/src/types/federation.d.ts
 
-declare module "blog_remote/bootstrap" {
+declare module "blog/bootstrap" {
   export type MountOptions = {
     initialPath?: string;
     onNavigate?: (path: string) => void;
