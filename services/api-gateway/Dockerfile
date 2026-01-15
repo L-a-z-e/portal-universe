@@ -44,9 +44,9 @@ RUN chmod +x app.jar
 ENTRYPOINT ["docker-entrypoint-wait.sh"]
 
 # 대기 스크립트에 전달될 인자들:
-# 1. 대기할 서비스 호스트: discovery-service
-# 2. 대기할 서비스 포트: 8761
+# 1. 대기할 서비스 호스트: config-service
+# 2. 대기할 서비스 포트: 8888
 # 3. 헬스체크 경로: /actuator/health
 # 4. 타임아웃(초): 30
 # 5. (--) 이후: 실제 실행할 명령어 (java -jar app.jar)
-CMD ["discovery-service", "8761", "/actuator/health", "30", "--", "java", "-jar", "app.jar"]
+CMD ["config-service", "8888", "/actuator/health", "30", "--", "java", "-jar", "app.jar"]

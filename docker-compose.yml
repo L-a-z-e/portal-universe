@@ -52,23 +52,6 @@ services:
     networks:
       - portal-universe-net
 
-  discovery-service:
-    build:
-      context: .
-      dockerfile: ./services/discovery-service/Dockerfile
-    container_name: discovery-service
-    ports:
-      - "8761:8761"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - portal-universe-net
-
   config-service:
     build:
       context: .
@@ -85,9 +68,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    depends_on:
-      discovery-service:
-        condition: service_healthy
     networks:
       - portal-universe-net
 
@@ -109,8 +89,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      discovery-service:
-        condition: service_healthy
       config-service:
         condition: service_healthy
       auth-service:
@@ -136,8 +114,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      discovery-service:
-        condition: service_healthy
       config-service:
         condition: service_healthy
       mysql-db:
@@ -162,8 +138,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      discovery-service:
-        condition: service_healthy
       config-service:
         condition: service_healthy
       api-gateway:
@@ -188,8 +162,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      discovery-service:
-        condition: service_healthy
       config-service:
         condition: service_healthy
       api-gateway:
@@ -214,8 +186,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      discovery-service:
-        condition: service_healthy
       config-service:
         condition: service_healthy
       api-gateway:
@@ -315,6 +285,15 @@ services:
       - DATA_DIR=/var/lib/localstack
     volumes:
       - ./localstack_data:/var/lib/localstack
+    networks:
+      - portal-universe-net
+
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9999:8080"
     networks:
       - portal-universe-net
 

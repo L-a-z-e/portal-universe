@@ -14,7 +14,7 @@ import java.util.List;
  * name: 호출할 마이크로서비스의 Eureka 등록 이름
  * path: 이 클라이언트의 모든 요청 URL에 공통으로 적용될 접두사 경로
  */
-@FeignClient(name = "blog-service", path = "/api/blog")
+@FeignClient(name = "blog-service", url = "${feign.blog-service.url}", path = "/api/blog")
 public interface BlogServiceClient {
 
     /**
