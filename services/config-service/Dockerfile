@@ -27,12 +27,8 @@ FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
-# docker-entrypoint-wait.sh 스크립트가 의존하는 'curl'을 설치합니다.
+# 컨테이너 실행에 필요한 최소 패키지 설치
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# 다른 서비스가 준비될 때까지 대기하는 스크립트를 복사하고 실행 권한을 부여합니다.
-COPY scripts/docker-entrypoint-wait.sh /usr/local/bin/docker-entrypoint-wait.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint-wait.sh
 
 # Build Stage에서 생성된 JAR 파일을 Runtime Stage로 복사합니다.
 COPY --from=builder /app/services/config-service/build/libs/config-service-0.0.1-SNAPSHOT.jar app.jar
@@ -40,13 +36,5 @@ COPY --from=builder /app/services/config-service/build/libs/config-service-0.0.1
 # JAR 파일에 실행 권한을 부여합니다.
 RUN chmod +x app.jar
 
-# 컨테이너 시작 시 대기 스크립트를 실행합니다.
-ENTRYPOINT ["docker-entrypoint-wait.sh"]
-
-# 대기 스크립트에 전달될 인자들:
-# 1. 대기할 서비스 호스트: discovery-service
-# 2. 대기할 서비스 포트: 8761
-# 3. 헬스체크 경로: /actuator/health
-# 4. 타임아웃(초): 30
-# 5. (--) 이후: 실제 실행할 명령어 (java -jar app.jar)
-CMD ["discovery-service", "8761", "/actuator/health", "30", "--", "java", "-jar", "app.jar"]
+# config-service는 가장 먼저 실행되어야 하므로 대기 스크립트를 사용하지 않고 직접 실행합니다.
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -51,7 +51,7 @@ public class SecurityConfig {
         return bean;
     }
 
-    @Value("${spring.security.oauth2.authorizationserver.issuer}")
+    @Value("${spring.security.oauth2.authorizationserver.issuer:}")
     private String issuerUri;
 
     /**
@@ -94,8 +94,8 @@ public class SecurityConfig {
                         // 브라우저(HTML) 요청 시에는 로그인 페이지로 리다이렉트합니다.
                         .defaultAuthenticationEntryPointFor(
                                 (request, response, authException) -> {
-                                    // ✅ issuerUri 사용해서 절대 경로 리다이렉트
-                                    String loginUrl = issuerUri + "/login";
+                                    // ✅ issuerUri가 설정되어 있으면 사용, 없으면 상대 경로 사용
+                                    String loginUrl = (issuerUri != null && !issuerUri.isEmpty()) ? issuerUri + "/login" : "/login";
                                     response.sendRedirect(loginUrl);
                                 },
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)

@@ -116,9 +116,11 @@ public class AuthorizationServerConfig {
      * @return AuthorizationServerSettings 인증 서버 설정 객체
      */
     @Bean
-    public AuthorizationServerSettings authorizationServerSettings(@Value("${spring.security.oauth2.authorizationserver.issuer}") String issuerUri) {
-        return AuthorizationServerSettings.builder()
-                .issuer(issuerUri)
-                .build();
+    public AuthorizationServerSettings authorizationServerSettings(@Value("${spring.security.oauth2.authorizationserver.issuer:}") String issuerUri) {
+        AuthorizationServerSettings.Builder builder = AuthorizationServerSettings.builder();
+        if (issuerUri != null && !issuerUri.isEmpty()) {
+            builder.issuer(issuerUri);
+        }
+        return builder.build();
     }
 }
