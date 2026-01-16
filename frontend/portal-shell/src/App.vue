@@ -119,7 +119,12 @@ watch(() => themeStore.isDark, (newVal) => {
               <Button variant="secondary" size="sm" @click="logout">Logout</Button>
             </template>
             <template v-else>
-              <Button variant="primary" size="sm" @click="login">Login</Button>
+              <div class="flex items-center gap-2">
+                <router-link to="/signup">
+                  <Button variant="secondary" size="sm">Sign Up</Button>
+                </router-link>
+                <Button variant="primary" size="sm" @click="login">Login</Button>
+              </div>
             </template>
           </div>
         </div>
