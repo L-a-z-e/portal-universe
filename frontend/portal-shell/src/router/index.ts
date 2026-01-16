@@ -3,6 +3,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import RemoteWrapper from '../components/RemoteWrapper.vue';
 import HomePage from "../views/HomePage.vue";
+import SignupPage from "../views/SignupPage.vue";
 import CallbackPage from "../views/CallbackPage.vue";
 import { getRemoteConfigs } from '../config/remoteRegistry';
 
@@ -31,6 +32,12 @@ const routes = [
     name: 'Home',
     component: HomePage,
     meta: { title: '홈' }
+  },
+  {
+    path: '/signup',
+    name: 'Signup',
+    component: SignupPage,
+    meta: { title: '회원가입' }
   },
   {
     path: '/callback',

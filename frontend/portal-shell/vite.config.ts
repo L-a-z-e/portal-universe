@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
           shopping: env.VITE_SHOPPING_REMOTE_URL,
         },
         exposes: {
-          './apiClient': './src/services/apiClient.ts',
+          './apiClient': './src/api/apiClient.ts',
           './authStore': './src/store/auth.ts',
           './themeStore': './src/store/theme.ts',
         },
@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
+        '@': resolve(__dirname, 'src'),
         '@portal/design-system/style.css': resolve(__dirname, '../design-system/dist/design-system.css')
       }
     },

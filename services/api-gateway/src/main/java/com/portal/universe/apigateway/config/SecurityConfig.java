@@ -98,6 +98,7 @@ public class SecurityConfig {
         return http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(
                         "/auth-service/**",
+                        "/api/users/**",
                         "/actuator/**"
                 ))
                 .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
