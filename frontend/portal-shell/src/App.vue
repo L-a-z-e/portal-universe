@@ -5,14 +5,29 @@ import { Button, Badge } from '@portal/design-system';
 import { useThemeStore } from "./store/theme.ts";
 import { onMounted, watch} from "vue";
 import ThemeToggle from "./components/ThemeToggle.vue";
+import { useRoute } from "vue-router";
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
+const route = useRoute();
 
 function updateDataTheme() {
   const isDark = document.documentElement.classList.contains('dark');
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   console.log(`[Portal-Shell] Theme updated: ${isDark ? 'dark' : 'light'}`);
+}
+
+/**
+ * 🟢 data-service 초기화
+ * 호스트 앱 경로로 이동할 때 data-service="portal"로 리셋
+ */
+function resetDataService() {
+  // 현재 라우트가 Remote가 아닐 때만 리셋
+  if (!route.meta.remoteName) {
+    document.documentElement.setAttribute('data-service', 'portal');
+    console.log('[Portal-Shell] Route change: Reset data-service="portal"');
+    forceReflowToApplyCSSChanges();
+  }
 }
 
 /**
@@ -33,14 +48,15 @@ function forceReflowToApplyCSSChanges() {
 onMounted(() => {
   themeStore.initialize();
   
-  // 🟢 추가: <html> 태그에 data-service 설정
-  document.documentElement.setAttribute('data-service', 'portal');
-  console.log('[Portal-Shell] Set data-service="portal"');
-  
-  // 🟢 강제 reflow: CSS 변수 재계산 (KeepAlive CSS 캐시 문제 해결)
-  forceReflowToApplyCSSChanges();
+  // 🟢 초기 data-service 설정
+  resetDataService();
   
   updateDataTheme();
+});
+
+// 라우트 변경 감지: data-service 리셋
+watch(() => route.path, () => {
+  resetDataService();
 });
 
 // <html> 태그에 dark 클래스 토글 반영
