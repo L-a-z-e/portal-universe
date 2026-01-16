@@ -123,14 +123,20 @@ export function mount(
       unmount: () => {
         console.group('🔄 [Shopping] Unmounting app');
 
+        // 1. React Root Unmount
         try {
           if (root) {
             root.unmount();
             root = null;
           }
-
-          container.innerHTML = '';
           console.log('✅ [Shopping] App unmounted successfully');
+        } catch (err) {
+          console.error('❌ [Shopping] App unmount failed:', err);
+        }
+
+        // 2. DOM & Style Cleanup (Always execute)
+        try {
+          container.innerHTML = '';
 
           // 🟢 Step 1: <head>의 모든 <style> 태그 중 Shopping CSS 제거
           const styleTags = document.querySelectorAll('style');
@@ -142,7 +148,7 @@ export function mount(
             // Shopping 관련 CSS 마커 확인
             if (content.includes('[data-service="shopping"]') ||
               content.includes('shopping-') ||
-              content.includes('@import') && content.includes('shopping')) {
+              (content.includes('@import') && content.includes('shopping'))) {
               console.log(`   📍 [Shopping] Found Shopping CSS at index ${index}, removing...`);
               styleTag.remove();
             }
@@ -168,7 +174,7 @@ export function mount(
           currentProps = {};
           console.log('✅ [Shopping] Cleanup completed - CSS removed from <head>');
         } catch (err) {
-          console.error('❌ [Shopping] Unmount failed:', err);
+          console.error('❌ [Shopping] Cleanup failed:', err);
         }
 
         console.groupEnd();

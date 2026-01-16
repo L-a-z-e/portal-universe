@@ -124,10 +124,17 @@ export function mountBlogApp(
     unmount: () => {
       console.group('🔄 [Blog] Unmounting app');
 
+      // 1. Vue App Unmount
       try {
         app.unmount();
-        el.innerHTML = '';
         console.log('✅ [Blog] App unmounted successfully');
+      } catch (err) {
+        console.error('❌ [Blog] App unmount failed:', err);
+      }
+
+      // 2. DOM & Style Cleanup (Always execute)
+      try {
+        el.innerHTML = '';
 
         // 🟢 Step 1: <head>의 모든 <style> 태그 중 Blog CSS 제거
         // CSS 번들된 파일명: blog-frontend.css 또는 style.css
@@ -141,7 +148,7 @@ export function mountBlogApp(
           // [data-service="blog"] 또는 기타 Blog 특정 스타일이 있으면 제거
           if (content.includes('[data-service="blog"]') ||
               content.includes('blog-') ||
-              content.includes('@import') && content.includes('blog')) {
+              (content.includes('@import') && content.includes('blog'))) {
             console.log(`   📍 [Blog] Found Blog CSS at index ${index}, removing...`);
             styleTag.remove();
           }
@@ -166,7 +173,7 @@ export function mountBlogApp(
         
         console.log('✅ [Blog] Cleanup completed - CSS removed from <head>');
       } catch (err) {
-        console.error('❌ [Blog] Unmount failed:', err);
+        console.error('❌ [Blog] Cleanup failed:', err);
       }
 
       console.groupEnd();
