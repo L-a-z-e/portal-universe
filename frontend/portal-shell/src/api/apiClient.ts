@@ -1,4 +1,4 @@
-// portal-shell/src/services/apiClient.ts
+// portal-shell/src/api/apiClient.ts
 import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/auth.ts'
