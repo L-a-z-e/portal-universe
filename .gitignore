@@ -60,3 +60,19 @@ coverage/
 .env
 .env.local
 .env.*.local
+
+# Local Development Data (Docker Compose)
+localstack_data/
+logs/
+test-results/
+
+# Monitoring Data (Prometheus, Grafana)
+monitoring/grafana-data/
+monitoring/prometheus-data/
+
+# Editor & IDE Backups
+.$*.bkp
+*.drawio
+
+# MCP Configuration (환경별 다름)
+.mcp.json
