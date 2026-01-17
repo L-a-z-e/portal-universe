@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import './App.scss'
+import { ShoppingRouter } from '@/router'
+import './styles/index.scss'
 
 /**
  * App Props 인터페이스
@@ -12,6 +13,10 @@ interface AppProps {
   locale?: string
   /** 사용자 역할 */
   userRole?: 'guest' | 'user' | 'admin'
+  /** 초기 라우트 경로 */
+  initialPath?: string
+  /** 라우트 변경 콜백 (Parent에게 알림) */
+  onNavigate?: (path: string) => void
   /** 기타 Props */
   [key: string]: any
 }
@@ -29,6 +34,8 @@ function App({
                theme = 'light',
                locale = 'ko',
                userRole = 'guest',
+               initialPath = '/',
+               onNavigate,
                ...otherProps
              }: AppProps) {
   // ============================================
@@ -236,69 +243,11 @@ function App({
         {/* Main Content */}
         <main className={isEmbedded ? 'py-4' : 'py-8'}>
           <div className="max-w-7xl mx-auto px-6">
-            {/* 현재 Props 표시 (개발 모드) */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mb-8 p-4 bg-bg-card border border-border-default rounded-lg">
-                <h2 className="text-lg font-bold text-text-heading mb-4">
-                  📊 Current Props
-                </h2>
-                <div className="space-y-2 text-sm text-text-body font-mono">
-                  <div>
-                    <span className="text-text-meta">theme:</span>{' '}
-                    <span className="text-status-info">{theme}</span>
-                  </div>
-                  <div>
-                    <span className="text-text-meta">locale:</span>{' '}
-                    <span className="text-status-info">{locale}</span>
-                  </div>
-                  <div>
-                    <span className="text-text-meta">userRole:</span>{' '}
-                    <span className="text-status-info">{userRole}</span>
-                  </div>
-                  <div>
-                    <span className="text-text-meta">isEmbedded:</span>{' '}
-                    <span className="text-status-info">{isEmbedded ? 'true' : 'false'}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Shopping 콘텐츠 */}
-            <div className="bg-bg-card border border-border-default rounded-lg p-8">
-              <h1 className="text-3xl font-bold text-text-heading mb-4">
-                🛍️ Shopping Frontend
-              </h1>
-
-              <div className="space-y-4 text-text-body">
-                <p>
-                  Welcome to the Shopping Frontend! This is a React-based micro frontend that communicates with Portal Shell using Props.
-                </p>
-
-                <div className="bg-bg-subtle p-4 rounded-lg border border-border-default">
-                  <h2 className="font-bold text-text-heading mb-2">Current Configuration:</h2>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>
-                      <strong>Theme:</strong> {theme}
-                    </li>
-                    <li>
-                      <strong>Locale:</strong> {locale}
-                    </li>
-                    <li>
-                      <strong>User Role:</strong> {userRole}
-                    </li>
-                    <li>
-                      <strong>Mode:</strong> {isEmbedded ? '🔗 Embedded' : '📦 Standalone'}
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="bg-status-info-bg border border-status-info/20 p-4 rounded-lg">
-                  <p className="text-status-info text-sm">
-                    💡 <strong>Tip:</strong> Props are updated automatically when Portal Shell's state changes. The theme, locale, and user role above will update in real-time.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <ShoppingRouter
+              isEmbedded={isEmbedded}
+              initialPath={initialPath}
+              onNavigate={onNavigate}
+            />
           </div>
         </main>
 
