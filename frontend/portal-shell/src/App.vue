@@ -106,6 +106,13 @@ watch(() => themeStore.isDark, (newVal) => {
             >
               Blog
             </router-link>
+            <router-link
+                to="/shopping"
+                class="text-text-meta hover:text-brand-primary font-medium transition-colors"
+                active-class="text-brand-primary font-bold"
+            >
+              Shopping
+            </router-link>
           </nav>
 
           <!-- Auth Section -->
