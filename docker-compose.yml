@@ -170,6 +170,8 @@ services:
         condition: service_healthy
       mysql-db:
         condition: service_started
+      kafka:
+        condition: service_started
     networks:
       - portal-universe-net
 
