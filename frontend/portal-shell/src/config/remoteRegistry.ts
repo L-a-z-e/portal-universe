@@ -27,6 +27,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       icon: '📝',
       description: '블로그 서비스'
     },
+    {
+      name: 'Shopping',
+      key: 'shopping',
+      url: 'http://localhost:30002/assets/remoteEntry.js',
+      module: 'shopping/bootstrap',
+      mountFn: 'mountShoppingApp',
+      basePath: '/shopping',
+      icon: '🛒',
+      description: '쇼핑 서비스'
+    },
   ],
   docker: [
     {
@@ -39,6 +49,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       icon: '📝',
       description: '블로그 서비스'
     },
+    {
+      name: 'Shopping',
+      key: 'shopping',
+      url: import.meta.env.VITE_SHOPPING_REMOTE_URL,
+      module: 'shopping/bootstrap',
+      mountFn: 'mountShoppingApp',
+      basePath: '/shopping',
+      icon: '🛒',
+      description: '쇼핑 서비스'
+    },
   ],
   k8s: [
     {
@@ -50,6 +70,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       basePath: '/blog',
       icon: '📝',
       description: '블로그 서비스'
+    },
+    {
+      name: 'Shopping',
+      key: 'shopping',
+      url: import.meta.env.VITE_SHOPPING_REMOTE_URL,
+      module: 'shopping/bootstrap',
+      mountFn: 'mountShoppingApp',
+      basePath: '/shopping',
+      icon: '🛒',
+      description: '쇼핑 서비스'
     },
   ]
 };

@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
     },
 
     css: {
-      // postcss: './postcss.config.js'
+      postcss: './postcss.config.js'
     },
 
     server: {
@@ -68,6 +68,10 @@ export default defineConfig(({ mode }) => {
       cssCodeSplit: true,
       sourcemap: false,
       outDir: 'dist',
+      rollupOptions: {
+        // Portal Shell 모듈은 런타임에 Module Federation으로 제공됨
+        external: ['portal/themeStore', 'portal/authStore', 'portal/apiClient'],
+      },
     },
   }
 })
