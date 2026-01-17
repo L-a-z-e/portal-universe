@@ -48,3 +48,11 @@ storybook-static
 
 # Local TLS certificates
 certs/
+
+# Claude Code
+.claude/
+
+# Node
+node_modules/
+dist/
+coverage/
