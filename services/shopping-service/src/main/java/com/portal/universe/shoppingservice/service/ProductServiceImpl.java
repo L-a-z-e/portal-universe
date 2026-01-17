@@ -3,7 +3,7 @@ package com.portal.universe.shoppingservice.service;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.domain.Product;
 import com.portal.universe.shoppingservice.dto.*;
-import com.portal.universe.shoppingservice.exception.ShoppingErrorCode;
+import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.feign.BlogServiceClient;
 import com.portal.universe.shoppingservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
