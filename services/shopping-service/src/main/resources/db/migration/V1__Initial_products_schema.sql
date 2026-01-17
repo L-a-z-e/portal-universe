@@ -1,5 +1,5 @@
 -- V1__Initial_products_schema.sql
--- 기존 products 테이블 스키마 (이미 존재할 경우 무시)
+-- products 테이블 스키마
 
 CREATE TABLE IF NOT EXISTS products (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -8,8 +8,6 @@ CREATE TABLE IF NOT EXISTS products (
     price DOUBLE NOT NULL,
     stock INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_products_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- 인덱스
-CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
