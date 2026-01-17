@@ -17,8 +17,10 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^7.1.5",
     "@portal/design-system": "*",
-    "axios": "^1.12.2"
+    "axios": "^1.12.2",
+    "zustand": "^5.0.3"
   },
 
   "devDependencies": {

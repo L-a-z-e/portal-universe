@@ -1,0 +1,159 @@
+/**
+ * Shopping Frontend Styles
+ *
+ * Design System 스타일 import 및 Shopping 전용 스타일
+ */
+
+/* Design System 스타일 import */
+@import '@portal/design-system/style.css';
+
+/* Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar for dark mode */
+[data-theme="dark"] {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-subtle);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-default);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border-strong);
+  }
+}
+
+/* Shopping-specific overrides */
+[data-service="shopping"] {
+  /* Product cards */
+  .product-card {
+    @apply bg-bg-card border border-border-default rounded-lg overflow-hidden;
+    @apply hover:shadow-lg transition-all;
+    &:hover {
+      border-color: color-mix(in srgb, var(--color-brand-primary) 30%, transparent);
+    }
+  }
+
+  /* Form inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  textarea,
+  select {
+    @apply bg-bg-input border border-border-default rounded-lg;
+    @apply focus:outline-none focus:ring-2 focus:border-brand-primary;
+    @apply placeholder:text-text-placeholder;
+    &:focus {
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-primary) 20%, transparent);
+    }
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-brand-primary text-white px-4 py-2 rounded-lg;
+    @apply transition-colors;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--color-brand-primary) 90%, black);
+    }
+  }
+
+  .btn-secondary {
+    @apply bg-bg-subtle text-text-body px-4 py-2 rounded-lg;
+    @apply hover:bg-bg-hover transition-colors;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    @apply w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin;
+  }
+
+  /* Price formatting */
+  .price {
+    @apply text-brand-primary font-bold;
+  }
+
+  /* Status badges */
+  .status-badge {
+    @apply px-2 py-0.5 rounded text-xs font-medium;
+
+    &.pending {
+      @apply bg-status-warning-bg text-status-warning;
+    }
+
+    &.success {
+      @apply bg-status-success-bg text-status-success;
+    }
+
+    &.error {
+      @apply bg-status-error-bg text-status-error;
+    }
+
+    &.info {
+      @apply bg-status-info-bg text-status-info;
+    }
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
