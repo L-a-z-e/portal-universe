@@ -56,3 +56,7 @@ certs/
 node_modules/
 dist/
 coverage/
+# Environment variables (보안 정보 포함)
+.env
+.env.local
+.env.*.local

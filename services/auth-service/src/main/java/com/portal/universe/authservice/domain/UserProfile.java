@@ -44,4 +44,11 @@ public class UserProfile {
         this.realName = realName;
         this.marketingAgree = marketingAgree;
     }
+
+    public UserProfile(User user, String nickname, String profileImageUrl) {
+        this.user = user;
+        this.nickname = nickname;
+        this.profileImageUrl = profileImageUrl;
+        this.marketingAgree = false;
+    }
 }

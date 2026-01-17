@@ -1,5 +1,9 @@
 package com.portal.universe.authservice.config;
 
+import com.portal.universe.authservice.oauth2.CustomOAuth2UserService;
+import com.portal.universe.authservice.oauth2.OAuth2AuthenticationFailureHandler;
+import com.portal.universe.authservice.oauth2.OAuth2AuthenticationSuccessHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +38,12 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     /**
      * X-Forwarded-* 헤더를 처리하는 필터를 등록합니다.
@@ -141,7 +150,9 @@ public class SecurityConfig {
                                 "/logout",
                                 "/default-ui.css",   // Spring Security 기본 로그인 페이지 CSS
                                 "/actuator/**",
-                                "/ping"
+                                "/ping",
+                                "/oauth2/**",        // OAuth2 소셜 로그인 엔드포인트
+                                "/login/oauth2/**"   // OAuth2 콜백 엔드포인트
                         ).permitAll()
                         // /api/admin 경로는 ADMIN 역할을 가진 사용자만 접근 가능합니다.
                         .requestMatchers("/api/admin").hasRole("ADMIN")
@@ -155,6 +166,13 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
                 .logout(logout -> logout
                         .logoutSuccessHandler(new SimpleUrlLogoutSuccessHandler()) // 로그아웃 성공 시 기본 핸들러 사용
