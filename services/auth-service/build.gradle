@@ -42,11 +42,12 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client' // Service Discovery
 
     // =======================================
-    // Security (OAuth2 Authorization Server)
+    // Security (OAuth2 Authorization Server + Client)
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.security:spring-security-oauth2-authorization-server' // OAuth2 인증 서버 구현
     implementation 'org.springframework.security:spring-security-oauth2-jose' // JOSE (Javascript Object Signing and Encryption)
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // OAuth2 소셜 로그인 클라이언트
 
     // =======================================
     // Web & Data

@@ -48,3 +48,15 @@ storybook-static
 
 # Local TLS certificates
 certs/
+
+# Claude Code
+.claude/
+
+# Node
+node_modules/
+dist/
+coverage/
+# Environment variables (보안 정보 포함)
+.env
+.env.local
+.env.*.local
