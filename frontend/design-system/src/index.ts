@@ -13,6 +13,8 @@ export * from './components';
 
 // Export composables
 export { useTheme } from './composables/useTheme';
+export { useToast } from './composables/useToast';
+export type { UseToast } from './composables/useToast';
 
 // Export types
 export type { ServiceType, ThemeMode, ThemeConfig } from './types/theme';
