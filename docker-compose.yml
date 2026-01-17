@@ -108,6 +108,8 @@ services:
       - SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_ISSUER=https://portal-universe:30000/auth-service
       - SERVER_FORWARD_HEADERS_STRATEGY=framework
       - SERVER_USE_FORWARD_HEADERS=true
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 10s

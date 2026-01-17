@@ -48,3 +48,8 @@ storybook-static
 
 # Local TLS certificates
 certs/
+
+# Environment variables (보안 정보 포함)
+.env
+.env.local
+.env.*.local
