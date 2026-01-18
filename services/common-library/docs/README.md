@@ -1,3 +1,14 @@
+---
+id: DOC-INDEX-COMMON-LIBRARY
+title: Common Library 문서 인덱스
+type: index
+status: current
+created: 2026-01-18
+updated: 2026-01-18
+author: Portal Universe Team
+tags: [common-library, index, documentation]
+---
+
 # Common Library - Portal Universe 공유 라이브러리
 
 ## 개요
@@ -27,6 +38,14 @@
 - **CustomBusinessException**: 서비스 로직의 예측 가능한 예외
 - **GlobalExceptionHandler**: 모든 예외를 ApiResponse로 일괄 변환
 - **CommonErrorCode**: 전체 서비스가 공유하는 기본 에러 코드
+
+**서비스별 에러코드 접두사:**
+| 서비스 | 접두사 | 예시 |
+|--------|--------|------|
+| Common | C | C001, C002, C003 |
+| Auth | A | A001 |
+| Blog | B | B001, B002, B003 |
+| Shopping | S | S001 |
 
 ### 3. JWT 보안 자동 설정 (Spring Security)
 - **자동 설정 (Auto-Configuration)**: 의존성만 추가하면 자동 적용
@@ -75,22 +94,44 @@ common-library/
 └── build.gradle
 ```
 
-## 의존성 관리 전략
+## 문서 목록
 
-common-library는 **최소 의존성 원칙**을 따릅니다:
+### 📐 아키텍처 문서
+| ID | 문서명 | 설명 | 링크 |
+|----|--------|------|------|
+| ARCH-001 | Common Library Overview | 전체 아키텍처 설계 및 주요 결정 사항 | [ARCH-001](architecture/ARCH-001-common-library-overview.md) |
 
-### Implementation (필수)
-- `spring-boot-starter-web` - ApiResponse, ExceptionHandler 기본 기능
+**주요 내용:**
+- 아키텍처 원칙 (최소 의존성, 자동 설정, 계약 기반 설계)
+- 응답 계층, 예외 처리 계층, 보안 계층 구조
+- ADR (Architecture Decision Records)
+- 도메인 이벤트 상세 명세
 
-### CompileOnly (선택적)
-- `spring-boot-starter-security` - JWT 보안 설정
-- `spring-security-oauth2-resource-server` - OAuth2 리소스 서버
-- `spring-security-oauth2-jose` - JWT 처리
-- `spring-boot-starter-webflux` - Reactive 환경 지원
+### 📚 API 문서
+| ID | 문서명 | 설명 | 링크 |
+|----|--------|------|------|
+| API-001 | Common Library API Reference | 공개 API 및 클래스 상세 명세 | [API-001](api/API-001-common-library.md) |
 
-> **이유**: 라이브러리를 사용하는 각 서비스가 필요한 의존성만 선택적으로 포함하도록, compileOnly로 설정하여 버전 충돌을 방지합니다.
+**주요 내용:**
+- ApiResponse<T>, ErrorResponse API
+- ErrorCode, CustomBusinessException, GlobalExceptionHandler
+- JWT 보안 자동 설정 (JwtSecurityAutoConfiguration)
+- 도메인 이벤트 Record 클래스 명세
 
-## 시작하기
+### 📖 개발 가이드
+| ID | 문서명 | 설명 | 링크 |
+|----|--------|------|------|
+| GUIDE-001 | Common Library Usage Guide | 각 서비스별 사용 방법 및 예제 | [GUIDE-001](guides/GUIDE-001-common-library-usage.md) |
+
+**주요 내용:**
+- 설정 방법 (build.gradle, application.yml)
+- API 응답 작성 패턴
+- 예외 처리 사용법 (ErrorCode 정의, 예외 발생)
+- JWT 보안 설정 및 권한 제어
+- 이벤트 발행/구독 패턴
+- 서비스별 구체적 가이드 (Auth, Shopping, Blog, Notification, API Gateway)
+
+## 빠른 시작
 
 ### 1. build.gradle에 의존성 추가
 
@@ -100,9 +141,7 @@ dependencies {
 }
 ```
 
-### 2. 기본 설정 확인
-
-common-library의 자동 설정이 적용되려면, 서비스의 `application.yml`에 JWT 설정을 추가해야 합니다:
+### 2. application.yml 설정 (JWT 사용 시)
 
 ```yaml
 spring:
@@ -132,6 +171,16 @@ public class ProductController {
 
 ### 4. 예외 처리 활용
 
+**ErrorCode Enum 정의:**
+```java
+public enum ShoppingErrorCode implements ErrorCode {
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "Product not found"),
+    INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "S002", "Invalid quantity"),
+    INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "S003", "Insufficient stock");
+    // ...
+}
+```
+
 **Service 예시:**
 ```java
 @Service
@@ -150,6 +199,62 @@ public class ProductService {
 
 > **주의**: 서비스에서 발생한 모든 CustomBusinessException은 GlobalExceptionHandler에 의해 자동으로 ApiResponse.error()로 변환됩니다.
 
+### 5. 이벤트 발행/구독
+
+**이벤트 발행 (Publisher):**
+```java
+@Service
+public class OrderService {
+
+    private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
+
+    @Transactional
+    public OrderResponse createOrder(OrderRequest request) {
+        // 주문 생성 로직...
+
+        OrderCreatedEvent event = new OrderCreatedEvent(
+            saved.getOrderNumber(),
+            saved.getUserId(),
+            saved.getTotalAmount(),
+            saved.getItemCount(),
+            items,
+            saved.getCreatedAt()
+        );
+
+        kafkaTemplate.send("order-created-events", event);
+
+        return new OrderResponse(saved);
+    }
+}
+```
+
+**이벤트 구독 (Subscriber):**
+```java
+@Service
+public class NotificationService {
+
+    @KafkaListener(topics = "order-created-events")
+    public void handleOrderCreated(OrderCreatedEvent event) {
+        // 주문 확인 이메일 발송 로직...
+    }
+}
+```
+
+## 의존성 관리 전략
+
+common-library는 **최소 의존성 원칙**을 따릅니다:
+
+### Implementation (필수)
+- `spring-boot-starter-web` - ApiResponse, ExceptionHandler 기본 기능
+
+### CompileOnly (선택적)
+- `spring-boot-starter-security` - JWT 보안 설정
+- `spring-security-oauth2-resource-server` - OAuth2 리소스 서버
+- `spring-security-oauth2-jose` - JWT 처리
+- `spring-boot-starter-webflux` - Reactive 환경 지원
+
+> **이유**: 라이브러리를 사용하는 각 서비스가 필요한 의존성만 선택적으로 포함하도록, compileOnly로 설정하여 버전 충돌을 방지합니다.
+
 ## 주요 개념
 
 ### ErrorCode 인터페이스 계약
@@ -162,16 +267,7 @@ public interface ErrorCode {
 }
 ```
 
-각 마이크로서비스는 이 인터페이스를 구현한 **ErrorCode Enum**을 정의합니다:
-
-```java
-public enum ShoppingErrorCode implements ErrorCode {
-    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "Product not found"),
-    INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "S002", "Invalid quantity"),
-    INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "S003", "Insufficient stock");
-    // ...
-}
-```
+각 마이크로서비스는 이 인터페이스를 구현한 **ErrorCode Enum**을 정의합니다.
 
 ### 응답 흐름
 
@@ -192,59 +288,6 @@ ApiResponse.error(code, message) + HttpStatus
 클라이언트 응답
 ```
 
-## 이벤트 기반 아키텍처
-
-### UserSignedUpEvent
-
-사용자 가입 시 Auth Service에서 발행하는 이벤트입니다.
-
-```java
-record UserSignedUpEvent(
-    String userId,
-    String email,
-    String name
-) {}
-```
-
-**구독하는 서비스:**
-- Shopping Service: 사용자 정보 동기화
-
-### 주문 관련 이벤트 (Shopping)
-
-#### OrderCreatedEvent
-```java
-record OrderCreatedEvent(
-    String orderNumber,
-    String userId,
-    BigDecimal totalAmount,
-    int itemCount,
-    List<OrderItemInfo> items,
-    LocalDateTime createdAt
-) {}
-```
-
-#### PaymentCompletedEvent
-```java
-record PaymentCompletedEvent(
-    String paymentNumber,
-    String orderNumber,
-    String userId,
-    BigDecimal amount,
-    String paymentMethod,
-    String pgTransactionId,
-    LocalDateTime paidAt
-) {}
-```
-
-자세한 이벤트 목록은 [ARCHITECTURE.md](ARCHITECTURE.md#도메인-이벤트)를 참조하세요.
-
-## 문서 구조
-
-- **[README.md](README.md)** (현재 문서) - 모듈 개요 및 시작 가이드
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - 아키텍처 설계 및 결정 사항
-- **[API.md](API.md)** - 공개 API 및 클래스 문서
-- **[GUIDE.md](GUIDE.md)** - 각 서비스별 사용 방법 및 예제
-
 ## 개발자 가이드
 
 ### 새로운 ErrorCode 추가
@@ -261,22 +304,73 @@ record PaymentCompletedEvent(
 1. `common-library`의 `com.portal.universe.common.event` 패키지에 추가
 2. Record 클래스로 정의 (불변성 보장)
 3. 모든 필드는 직렬화 가능한 타입 사용
-4. 문서에 발행 조건과 구독 서비스 명시
+4. 아키텍처 문서에 발행 조건과 구독 서비스 명시
 
-## 의존성 설치
+## 빌드 및 설치
 
 ```bash
 cd /Users/laze/Laze/Project/portal-universe
 ./gradlew :services:common-library:build
 ```
 
+## 문제 해결
+
+### JWT 토큰이 인식되지 않음
+
+**증상:** 401 Unauthorized
+
+**해결:**
+1. application.yml에 JWT 설정 확인
+2. issuer-uri와 jwk-set-uri 확인
+3. Token의 "iss" (issuer) 클레임 확인
+
+### CustomBusinessException이 처리되지 않음
+
+**증상:** 500 error with stack trace
+
+**해결:**
+1. common-library 의존성 확인
+2. GlobalExceptionHandler가 등록되었는지 로그 확인
+3. 패키지 경로 확인: `com.portal.universe.commonlibrary.exception`
+
+### Kafka 이벤트가 역직렬화되지 않음
+
+**증상:** JsonMappingException
+
+**해결:**
+```yaml
+spring:
+  kafka:
+    consumer:
+      properties:
+        spring.json.type.mapping: |
+          orderCreatedEvent:com.portal.universe.common.event.shopping.OrderCreatedEvent,
+          paymentCompletedEvent:com.portal.universe.common.event.shopping.PaymentCompletedEvent
+```
+
+자세한 내용은 [사용 가이드](guides/GUIDE-001-common-library-usage.md#문제-해결)를 참조하세요.
+
+## 체크리스트
+
+새 마이크로서비스를 생성할 때 다음을 확인하세요:
+
+- [ ] build.gradle에 common-library 의존성 추가
+- [ ] application.yml에 JWT 설정 추가 (필요 시)
+- [ ] [Service]ErrorCode Enum 정의
+- [ ] 모든 Controller가 ApiResponse<T>로 응답 래핑
+- [ ] Service에서 CustomBusinessException 사용
+- [ ] Kafka 이벤트 발행/구독 설정 (필요 시)
+- [ ] 테스트에서 예외 처리 검증
+
 ## 참고 자료
 
-- Spring Boot Auto-Configuration: https://spring.io/guides/gs/spring-boot-auto-configuration/
-- Spring Security OAuth2: https://spring.io/projects/spring-security-oauth2-resource-server
-- Error Handling Patterns: https://martinfowler.com/bliki/ErrorHandling.html
+- [Spring Boot Auto-Configuration](https://spring.io/guides/gs/spring-boot-auto-configuration/)
+- [Spring Security OAuth2 Resource Server](https://spring.io/projects/spring-security-oauth2-resource-server)
+- [Error Handling Patterns by Martin Fowler](https://martinfowler.com/bliki/ErrorHandling.html)
+- [Kafka Documentation](https://kafka.apache.org/documentation/)
 
 ---
 
 **최종 수정**: 2026-01-18
-**유지보수자**: Portal Universe 팀
+**버전**: 0.0.1-SNAPSHOT
+**유지보수자**: Portal Universe Team

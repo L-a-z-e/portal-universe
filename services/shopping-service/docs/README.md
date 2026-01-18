@@ -1,95 +1,106 @@
-# Shopping Service
+# Shopping Service Documentation
 
-MySQL 기반 이커머스 서비스입니다.
+> Shopping Service의 모든 문서를 한 곳에서 확인할 수 있습니다.
 
-## 개요
+---
 
-상품, 장바구니, 주문, 결제, 배송, 재고 관리 기능을 제공합니다.
+## 📋 개요
 
-## 포트
+Shopping Service는 Portal Universe 프로젝트의 이커머스 마이크로서비스입니다. 상품, 장바구니, 주문, 결제, 배송 기능을 제공합니다.
 
-- 서비스: `8083`
-- Swagger: `http://localhost:8083/swagger-ui.html`
+| 항목 | 내용 |
+|------|------|
+| **포트** | 8083 |
+| **데이터베이스** | MySQL |
+| **메시지 브로커** | Kafka |
+| **인증** | OAuth2 Resource Server (JWT) |
 
-## 주요 도메인
+---
 
-| 도메인 | 기능 |
-|--------|------|
-| Product | 상품 관리 (CRUD, 검색) |
-| Cart | 장바구니 (아이템 추가/수정/삭제) |
-| Order | 주문 (생성, 취소) |
-| Payment | 결제 (PG 연동) |
-| Delivery | 배송 추적 |
-| Inventory | 재고 관리 |
+## 📚 문서 카테고리
 
-## 기술 스택
+### 📐 Architecture
+시스템 구조, 컴포넌트 설계, 데이터 흐름
 
-- **Database**: MySQL
-- **Message Broker**: Kafka
-- **Security**: OAuth2 Resource Server (JWT)
-- **Service Communication**: Feign Client
+| 문서 | 설명 |
+|------|------|
+| [Architecture Overview](./architecture/README.md) | 아키텍처 문서 인덱스 |
+| [System Overview](./architecture/system-overview.md) | 전체 시스템 구조 및 컴포넌트 |
+| [Data Flow](./architecture/data-flow.md) | 주문, 결제, Saga 패턴 데이터 흐름 |
 
-## API 엔드포인트
+---
 
-### Product API
+### 📡 API
+REST API 명세서
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| GET | `/products` | 상품 목록 |
-| GET | `/products/{id}` | 상품 상세 |
-| POST | `/admin/products` | 상품 등록 (Admin) |
-| PUT | `/admin/products/{id}` | 상품 수정 (Admin) |
-| DELETE | `/admin/products/{id}` | 상품 삭제 (Admin) |
+| 문서 | 설명 |
+|------|------|
+| [API Overview](./api/README.md) | API 문서 인덱스 |
+| [Product API](./api/product-api.md) | 상품 CRUD, 리뷰 조회 |
+| [Cart API](./api/cart-api.md) | 장바구니 조회, 아이템 추가/수정/삭제, 체크아웃 |
+| [Order API](./api/order-api.md) | 주문 생성, 조회, 취소 |
+| [Payment API](./api/payment-api.md) | 결제 처리, 조회, 취소, 환불 |
+| [Delivery API](./api/delivery-api.md) | 배송 조회, 상태 변경 |
 
-### Cart API
+---
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| GET | `/api/shopping/cart` | 장바구니 조회 |
-| POST | `/api/shopping/cart/items` | 아이템 추가 |
-| PUT | `/api/shopping/cart/items/{id}` | 수량 변경 |
-| DELETE | `/api/shopping/cart/items/{id}` | 아이템 삭제 |
-| POST | `/api/shopping/cart/checkout` | 체크아웃 |
+### 📖 Guides
+개발자 가이드 및 사용 가이드
 
-### Order API
+| 문서 | 설명 |
+|------|------|
+| [Guides Overview](./guides/README.md) | 가이드 문서 인덱스 |
+| [Getting Started](./guides/getting-started.md) | 로컬 개발 환경 설정 |
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| POST | `/api/shopping/orders` | 주문 생성 |
-| GET | `/api/shopping/orders` | 주문 목록 |
-| GET | `/api/shopping/orders/{orderNumber}` | 주문 상세 |
-| POST | `/api/shopping/orders/{orderNumber}/cancel` | 주문 취소 |
+---
 
-### Payment API
+### 🔧 Runbooks
+운영 절차서
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| POST | `/api/shopping/payments` | 결제 처리 |
-| GET | `/api/shopping/payments/{id}` | 결제 상세 |
+| 문서 | 설명 |
+|------|------|
+| [Runbooks Overview](./runbooks/README.md) | 운영 절차서 인덱스 |
+| [Deployment](./runbooks/deployment.md) | 배포 절차 (로컬/Docker/K8s) |
+| [Rollback](./runbooks/rollback.md) | 롤백 절차 및 비상 대응 |
 
-### Delivery API
+---
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| GET | `/api/shopping/deliveries/{orderNumber}` | 배송 조회 |
-| PUT | `/api/shopping/deliveries/{id}/status` | 상태 변경 (Admin) |
+## 🔗 관련 서비스
 
-## 환경 변수
+- [API Gateway](../../api-gateway/docs/README.md)
+- [Auth Service](../../auth-service/docs/README.md)
+- [Blog Service](../../blog-service/docs/README.md)
 
-| 변수 | 설명 | 기본값 |
-|------|------|--------|
-| `MYSQL_HOST` | MySQL 호스트 | localhost |
-| `MYSQL_PORT` | MySQL 포트 | 3306 |
-| `MYSQL_DATABASE` | 데이터베이스 | shopping_db |
-| `KAFKA_BOOTSTRAP_SERVERS` | Kafka 서버 | localhost:9092 |
+---
 
-## 실행
+## 🚀 빠른 시작
+
+### 로컬 실행
 
 ```bash
+# Gradle 빌드
+./gradlew :services:shopping-service:build
+
+# 실행
 ./gradlew :services:shopping-service:bootRun
 ```
 
-## 관련 문서
+### Docker Compose
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - 아키텍처 상세
-- [API.md](./API.md) - API 명세
+```bash
+# 전체 스택 실행
+docker-compose up -d shopping-service
+
+# 로그 확인
+docker-compose logs -f shopping-service
+```
+
+---
+
+## 📞 문의
+
+이슈가 발생하거나 문의사항이 있으면 GitHub Issues를 통해 문의해 주세요.
+
+---
+
+**최종 업데이트**: 2026-01-18
