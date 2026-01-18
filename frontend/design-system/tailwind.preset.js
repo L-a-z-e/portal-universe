@@ -1,4 +1,5 @@
 // packages/design-system/tailwind.preset.js
+// Linear-inspired design system preset
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -6,7 +7,7 @@ export default {
 
     theme: {
         extend: {
-            // 1. Colors - Semantic tokens (CHANGED: --color- → --semantic-)
+            // 1. Colors - Semantic tokens
             colors: {
                 'brand': {
                     'primary': 'var(--semantic-brand-primary)',
@@ -34,6 +35,7 @@ export default {
                     'hover': 'var(--semantic-border-hover)',
                     'focus': 'var(--semantic-border-focus)',
                     'muted': 'var(--semantic-border-muted)',
+                    'subtle': 'var(--semantic-border-subtle)',
                 },
                 'status': {
                     'success': 'var(--semantic-status-success)',
@@ -45,40 +47,67 @@ export default {
                     'info': 'var(--semantic-status-info)',
                     'infoBg': 'var(--semantic-status-infoBg)',
                 },
+                // Linear color palette direct access
+                'linear': {
+                    '50': '#f7f8f8',
+                    '100': '#ebeced',
+                    '200': '#d0d6e0',
+                    '300': '#8a8f98',
+                    '400': '#6c717a',
+                    '500': '#5c6169',
+                    '600': '#3e3e44',
+                    '700': '#26282b',
+                    '800': '#1b1c1e',
+                    '850': '#141516',
+                    '900': '#0e0f10',
+                    '950': '#08090a',
+                },
+                'indigo': {
+                    '400': '#5e6ad2',
+                    '500': '#4754c9',
+                    '600': '#3f4ab8',
+                },
             },
 
-            // 2. Typography (폰트, 사이즈, 두께, 행간)
+            // 2. Typography (Inter Variable optimized)
             fontFamily: {
-                'sans': 'var(--font-family-sans)',
-                'mono': 'var(--font-family-mono)',
+                'sans': ['Inter Variable', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Pretendard Variable', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans KR', 'sans-serif'],
+                'mono': ['JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', 'Courier New', 'monospace'],
             },
             fontSize: {
-                'xs': 'var(--font-size-xs)',
-                'sm': 'var(--font-size-sm)',
-                'base': 'var(--font-size-base)',
-                'lg': 'var(--font-size-lg)',
-                'xl': 'var(--font-size-xl)',
-                '2xl': 'var(--font-size-2xl)',
-                '3xl': 'var(--font-size-3xl)',
-                '4xl': 'var(--font-size-4xl)',
-                '5xl': 'var(--font-size-5xl)',
+                'micro': ['0.625rem', { lineHeight: '1' }],
+                'xs': ['0.6875rem', { lineHeight: '1.2' }],
+                'sm': ['0.8125rem', { lineHeight: '1.4' }],
+                'base': ['0.875rem', { lineHeight: '1.5' }],
+                'lg': ['1rem', { lineHeight: '1.5' }],
+                'xl': ['1.125rem', { lineHeight: '1.4' }],
+                '2xl': ['1.25rem', { lineHeight: '1.3' }],
+                '3xl': ['1.5rem', { lineHeight: '1.3' }],
+                '4xl': ['1.875rem', { lineHeight: '1.2' }],
+                '5xl': ['2.25rem', { lineHeight: '1.2' }],
+                '6xl': ['3rem', { lineHeight: '1.1' }],
+                '7xl': ['3.75rem', { lineHeight: '1.1' }],
+                '8xl': ['4.5rem', { lineHeight: '1' }],
+                '9xl': ['6rem', { lineHeight: '1' }],
             },
             lineHeight: {
-                'tight': 'var(--line-height-tight)',
-                'snug': 'var(--line-height-snug)',
-                'normal': 'var(--line-height-normal)',
-                'relaxed': 'var(--line-height-relaxed)',
-                'loose': 'var(--line-height-loose)',
+                'none': '1',
+                'tight': '1.2',
+                'snug': '1.375',
+                'normal': '1.5',
+                'relaxed': '1.625',
+                'loose': '1.75',
             },
             fontWeight: {
-                'light': 'var(--font-weight-light)',
-                'normal': 'var(--font-weight-normal)',
-                'medium': 'var(--font-weight-medium)',
-                'semibold': 'var(--font-weight-semibold)',
-                'bold': 'var(--font-weight-bold)',
+                'light': '300',
+                'normal': '400',
+                'medium': '510',
+                'semibold': '590',
+                'bold': '680',
+                'extrabold': '800',
             },
 
-            // 3. Layout & Effects (간격, 둥글기, 그림자)
+            // 3. Layout & Effects
             spacing: {
                 'xs': 'var(--spacing-xs)',
                 'sm': 'var(--spacing-sm)',
@@ -88,25 +117,84 @@ export default {
                 '2xl': 'var(--spacing-2xl)',
             },
             borderRadius: {
-                'none': 'var(--border-radius-none)',
-                'sm': 'var(--border-radius-sm)',
-                'DEFAULT': 'var(--border-radius-default)',
-                'md': 'var(--border-radius-md)',
-                'lg': 'var(--border-radius-lg)',
-                'xl': 'var(--border-radius-xl)',
-                '2xl': 'var(--border-radius-2xl)',
-                'full': 'var(--border-radius-full)',
+                'none': '0',
+                'sm': '0.25rem',
+                'DEFAULT': '0.375rem',
+                'md': '0.5rem',
+                'lg': '0.75rem',
+                'xl': '1rem',
+                '2xl': '1.5rem',
+                'full': '9999px',
             },
             boxShadow: {
-                'sm': 'var(--shadow-sm)',
-                'DEFAULT': 'var(--shadow-md)',
-                'md': 'var(--shadow-md)',
-                'lg': 'var(--shadow-lg)',
-                'xl': 'var(--shadow-xl)',
+                'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                'DEFAULT': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+                'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+                'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+                'glow': '0 0 20px rgba(94, 106, 210, 0.3)',
+                'glow-lg': '0 0 40px rgba(94, 106, 210, 0.4)',
             },
             maxWidth: {
                 'content': '768px',
                 'container': '1280px',
+            },
+
+            // 4. Animation & Transitions (Linear-style)
+            transitionDuration: {
+                'fast': '100ms',
+                'normal': '160ms',
+                'slow': '250ms',
+                'slower': '400ms',
+            },
+            transitionTimingFunction: {
+                'linear-ease': 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+                'out-quart': 'cubic-bezier(0.165, 0.84, 0.44, 1)',
+                'spring': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+            },
+
+            // 5. Backdrop blur (glassmorphism)
+            backdropBlur: {
+                'xs': '2px',
+                'sm': '4px',
+                'DEFAULT': '12px',
+                'md': '16px',
+                'lg': '24px',
+                'xl': '40px',
+                'glass': '12px',
+            },
+
+            // 6. Animation keyframes
+            keyframes: {
+                'fade-in': {
+                    '0%': { opacity: '0' },
+                    '100%': { opacity: '1' },
+                },
+                'fade-out': {
+                    '0%': { opacity: '1' },
+                    '100%': { opacity: '0' },
+                },
+                'slide-up': {
+                    '0%': { transform: 'translateY(10px)', opacity: '0' },
+                    '100%': { transform: 'translateY(0)', opacity: '1' },
+                },
+                'slide-down': {
+                    '0%': { transform: 'translateY(-10px)', opacity: '0' },
+                    '100%': { transform: 'translateY(0)', opacity: '1' },
+                },
+                'scale-in': {
+                    '0%': { transform: 'scale(0.95)', opacity: '0' },
+                    '100%': { transform: 'scale(1)', opacity: '1' },
+                },
+            },
+            animation: {
+                'fade-in': 'fade-in 160ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+                'fade-out': 'fade-out 100ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+                'slide-up': 'slide-up 160ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+                'slide-down': 'slide-down 160ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+                'scale-in': 'scale-in 160ms cubic-bezier(0.25, 0.1, 0.25, 1)',
             },
         }
     },

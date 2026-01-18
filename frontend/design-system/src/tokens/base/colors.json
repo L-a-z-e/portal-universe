@@ -2,15 +2,15 @@
   "color": {
     "brand": {
       "primary": {
-        "$value": "#20C997",
-        "$description": "Default brand primary - overridden by service themes (blog: green, shopping: orange)"
+        "$value": "#5e6ad2",
+        "$description": "Default brand primary - Linear indigo"
       },
       "primaryHover": {
-        "$value": "#12B886",
+        "$value": "#6e7ae2",
         "$description": "Default brand primary hover state"
       },
       "secondary": {
-        "$value": "#38D9A9",
+        "$value": "#8f9df8",
         "$description": "Default brand secondary color"
       }
     },
@@ -27,6 +27,34 @@
       "800": "#1f2937",
       "900": "#111827",
       "black": "#000000"
+    },
+    "linear": {
+      "$description": "Linear.app gray scale - optimized for dark UI",
+      "50": "#f7f8f8",
+      "100": "#ebeced",
+      "200": "#d0d6e0",
+      "300": "#8a8f98",
+      "400": "#6c717a",
+      "500": "#5c6169",
+      "600": "#3e3e44",
+      "700": "#26282b",
+      "800": "#1b1c1e",
+      "850": "#141516",
+      "900": "#0e0f10",
+      "950": "#08090a"
+    },
+    "indigo": {
+      "$description": "Linear primary accent - indigo",
+      "50": "#e8eaf8",
+      "100": "#c2c7ef",
+      "200": "#9ba3e5",
+      "300": "#747fdb",
+      "400": "#5e6ad2",
+      "500": "#4754c9",
+      "600": "#3f4ab8",
+      "700": "#363fa3",
+      "800": "#2e348f",
+      "900": "#1e2266"
     },
     "green": {
       "$description": "Blog signature color - for blog service",
@@ -70,23 +98,54 @@
     "red": {
       "$description": "Error and destructive actions",
       "50": "#FFE3E3",
+      "100": "#ffccd5",
+      "200": "#ffb3c1",
+      "300": "#ff8fa3",
+      "400": "#ff758f",
       "500": "#FA5252",
       "600": "#F03E3E",
+      "700": "#d62828",
+      "800": "#a4161a",
       "900": "#C92A2A"
     },
     "blue": {
       "$description": "Info and links",
       "50": "#D0EBFF",
+      "100": "#bbd9f8",
+      "200": "#96c4f0",
+      "300": "#70afe8",
+      "400": "#4a9ae0",
       "500": "#339AF0",
       "600": "#228BE6",
       "700": "#1976D2",
+      "800": "#145eaa",
       "900": "#1864AB"
     },
     "yellow": {
       "$description": "Warning states",
       "50": "#FFF9DB",
+      "100": "#fff3bf",
+      "200": "#ffec99",
+      "300": "#ffe066",
+      "400": "#ffd43b",
       "500": "#FCC419",
-      "600": "#FAB005"
+      "600": "#FAB005",
+      "700": "#f59f00",
+      "800": "#e67700",
+      "900": "#d9480f"
+    },
+    "cyan": {
+      "$description": "Linear accent cyan",
+      "50": "#e6fcf5",
+      "100": "#c3fae8",
+      "200": "#96f2d7",
+      "300": "#63e6be",
+      "400": "#38d9a9",
+      "500": "#20c997",
+      "600": "#12b886",
+      "700": "#0ca678",
+      "800": "#099268",
+      "900": "#087f5b"
     }
   }
 }

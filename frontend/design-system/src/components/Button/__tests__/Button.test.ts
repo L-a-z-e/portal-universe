@@ -14,8 +14,9 @@ describe('Button', () => {
 
   it('applies default variant and size classes', () => {
     const wrapper = mount(Button);
-    expect(wrapper.classes()).toContain('bg-brand-600');
-    expect(wrapper.classes()).toContain('px-6');
+    // Linear-style primary button: light bg on dark
+    expect(wrapper.classes()).toContain('bg-[#e6e6e6]');
+    expect(wrapper.classes()).toContain('px-4');
   });
 
   describe('variants', () => {
@@ -23,16 +24,17 @@ describe('Button', () => {
       const wrapper = mount(Button, {
         props: { variant: 'primary' },
       });
-      expect(wrapper.classes()).toContain('bg-brand-600');
-      expect(wrapper.classes()).toContain('text-white');
+      // Linear-style: light button bg, dark text
+      expect(wrapper.classes()).toContain('bg-[#e6e6e6]');
+      expect(wrapper.classes()).toContain('text-[#08090a]');
     });
 
     it('applies secondary variant classes', () => {
       const wrapper = mount(Button, {
         props: { variant: 'secondary' },
       });
-      expect(wrapper.classes()).toContain('bg-gray-100');
-      expect(wrapper.classes()).toContain('text-gray-900');
+      expect(wrapper.classes()).toContain('bg-transparent');
+      expect(wrapper.classes()).toContain('text-text-meta');
     });
 
     it('applies outline variant classes', () => {
@@ -40,17 +42,42 @@ describe('Button', () => {
         props: { variant: 'outline' },
       });
       expect(wrapper.classes()).toContain('bg-transparent');
-      expect(wrapper.classes()).toContain('border-white');
+      expect(wrapper.classes()).toContain('border-border-default');
+    });
+
+    it('applies ghost variant classes', () => {
+      const wrapper = mount(Button, {
+        props: { variant: 'ghost' },
+      });
+      expect(wrapper.classes()).toContain('bg-transparent');
+      expect(wrapper.classes()).toContain('border-transparent');
+    });
+
+    it('applies danger variant classes', () => {
+      const wrapper = mount(Button, {
+        props: { variant: 'danger' },
+      });
+      expect(wrapper.classes()).toContain('bg-status-error');
+      expect(wrapper.classes()).toContain('text-white');
     });
   });
 
   describe('sizes', () => {
+    it('applies xs size classes', () => {
+      const wrapper = mount(Button, {
+        props: { size: 'xs' },
+      });
+      expect(wrapper.classes()).toContain('px-2');
+      expect(wrapper.classes()).toContain('py-1');
+      expect(wrapper.classes()).toContain('text-xs');
+    });
+
     it('applies sm size classes', () => {
       const wrapper = mount(Button, {
         props: { size: 'sm' },
       });
-      expect(wrapper.classes()).toContain('px-4');
-      expect(wrapper.classes()).toContain('py-2');
+      expect(wrapper.classes()).toContain('px-3');
+      expect(wrapper.classes()).toContain('py-1.5');
       expect(wrapper.classes()).toContain('text-sm');
     });
 
@@ -58,18 +85,18 @@ describe('Button', () => {
       const wrapper = mount(Button, {
         props: { size: 'md' },
       });
-      expect(wrapper.classes()).toContain('px-6');
-      expect(wrapper.classes()).toContain('py-3');
-      expect(wrapper.classes()).toContain('text-base');
+      expect(wrapper.classes()).toContain('px-4');
+      expect(wrapper.classes()).toContain('py-2');
+      expect(wrapper.classes()).toContain('text-sm');
     });
 
     it('applies lg size classes', () => {
       const wrapper = mount(Button, {
         props: { size: 'lg' },
       });
-      expect(wrapper.classes()).toContain('px-8');
-      expect(wrapper.classes()).toContain('py-4');
-      expect(wrapper.classes()).toContain('text-lg');
+      expect(wrapper.classes()).toContain('px-5');
+      expect(wrapper.classes()).toContain('py-2.5');
+      expect(wrapper.classes()).toContain('text-base');
     });
   });
 
@@ -105,7 +132,7 @@ describe('Button', () => {
     it('has focus ring classes', () => {
       const wrapper = mount(Button);
       expect(wrapper.classes()).toContain('focus:outline-none');
-      expect(wrapper.classes()).toContain('focus:ring-2');
+      expect(wrapper.classes()).toContain('focus-visible:ring-2');
     });
   });
 });

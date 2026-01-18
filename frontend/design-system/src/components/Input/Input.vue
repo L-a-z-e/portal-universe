@@ -9,7 +9,8 @@ const props = withDefaults(defineProps<InputProps>(), {
   error: false,
   errorMessage: '',
   label: '',
-  required: false
+  required: false,
+  size: 'md'
 });
 
 const emit = defineEmits<{
@@ -20,36 +21,52 @@ function handleInput(event: Event) {
   const target = event.target as HTMLInputElement;
   emit('update:modelValue', target.value);
 }
+
+const sizeClasses = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-3 py-2 text-sm',
+  lg: 'px-4 py-2.5 text-base'
+};
 </script>
 
 <template>
   <div class="input-wrapper">
     <!-- Label -->
-    <label v-if="label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+    <label
+      v-if="label"
+      class="block text-sm font-medium text-text-body mb-1.5"
+    >
       {{ label }}
-      <span v-if="required" class="text-red-500">*</span>
+      <span v-if="required" class="text-status-error ml-0.5">*</span>
     </label>
 
     <!-- Input -->
     <input
-        :type="type"
-        :value="modelValue"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        @input="handleInput"
-        :class="[
-        'w-full px-4 py-2 border rounded-lg transition-all duration-200',
-        'focus:outline-none focus:ring-2',
-        'dark:bg-gray-800 dark:text-gray-100',
+      :type="type"
+      :value="modelValue"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      @input="handleInput"
+      :class="[
+        'w-full rounded-md',
+        'bg-transparent',
+        'border',
+        'text-text-body placeholder:text-text-muted',
+        'transition-all duration-[160ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]',
+        'focus:outline-none focus:ring-2 focus:ring-brand-primary/20',
+        sizeClasses[size],
         error
-          ? 'border-red-500 focus:ring-red-500/20'
-          : 'border-gray-300 focus:ring-brand-500/20 focus:border-brand-500 dark:border-gray-600 dark:focus:border-brand-500',
-        disabled && 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-60'
+          ? 'border-status-error focus:border-status-error'
+          : 'border-border-default focus:border-brand-primary hover:border-border-hover',
+        disabled && 'bg-bg-muted cursor-not-allowed opacity-50'
       ]"
     />
 
     <!-- Error Message -->
-    <p v-if="error && errorMessage" class="mt-1 text-sm text-red-600 dark:text-red-400">
+    <p
+      v-if="error && errorMessage"
+      class="mt-1.5 text-sm text-status-error"
+    >
       {{ errorMessage }}
     </p>
   </div>

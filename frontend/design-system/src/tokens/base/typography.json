@@ -2,9 +2,9 @@
   "typography": {
     "fontFamily": {
       "sans": {
-        "$value": "-apple-system, BlinkMacSystemFont, 'Pretendard Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', sans-serif",
+        "$value": "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Pretendard Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', sans-serif",
         "$type": "fontFamily",
-        "$description": "System font stack optimized for Korean and English"
+        "$description": "Inter Variable as primary font, with system fallbacks"
       },
       "mono": {
         "$value": "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, 'Courier New', monospace",
@@ -18,57 +18,87 @@
       }
     },
     "fontSize": {
-      "xs": {
-        "$value": "0.75rem",
+      "micro": {
+        "$value": "0.625rem",
         "$type": "dimension",
-        "$description": "12px - captions, labels, small UI text"
+        "$description": "10px - badges, status indicators"
+      },
+      "xs": {
+        "$value": "0.6875rem",
+        "$type": "dimension",
+        "$description": "11px - captions, small labels"
       },
       "sm": {
-        "$value": "0.875rem",
+        "$value": "0.8125rem",
         "$type": "dimension",
-        "$description": "14px - small text, helper text, metadata"
+        "$description": "13px - helper text, metadata"
       },
       "base": {
-        "$value": "1rem",
+        "$value": "0.875rem",
         "$type": "dimension",
-        "$description": "16px - default body text"
+        "$description": "14px - default body text (Linear default)"
       },
       "lg": {
-        "$value": "1.125rem",
+        "$value": "1rem",
         "$type": "dimension",
-        "$description": "18px - emphasized body (blog posts, large displays)"
+        "$description": "16px - emphasized body"
       },
       "xl": {
-        "$value": "1.25rem",
+        "$value": "1.125rem",
         "$type": "dimension",
-        "$description": "20px - h4 / subheadings"
+        "$description": "18px - h4 / subheadings"
       },
       "2xl": {
-        "$value": "1.5rem",
+        "$value": "1.25rem",
         "$type": "dimension",
-        "$description": "24px - h3 / section headings"
+        "$description": "20px - h3 / section headings"
       },
       "3xl": {
-        "$value": "1.875rem",
+        "$value": "1.5rem",
         "$type": "dimension",
-        "$description": "30px - h2 / major headings"
+        "$description": "24px - h2 / major headings"
       },
       "4xl": {
-        "$value": "2.25rem",
+        "$value": "1.875rem",
         "$type": "dimension",
-        "$description": "36px - h1 / page titles"
+        "$description": "30px - h1 / page titles"
       },
       "5xl": {
+        "$value": "2.25rem",
+        "$type": "dimension",
+        "$description": "36px - hero headings"
+      },
+      "6xl": {
         "$value": "3rem",
         "$type": "dimension",
-        "$description": "48px - hero headings, large displays"
+        "$description": "48px - large displays"
+      },
+      "7xl": {
+        "$value": "3.75rem",
+        "$type": "dimension",
+        "$description": "60px - extra large displays"
+      },
+      "8xl": {
+        "$value": "4.5rem",
+        "$type": "dimension",
+        "$description": "72px - landing page headlines"
+      },
+      "9xl": {
+        "$value": "6rem",
+        "$type": "dimension",
+        "$description": "96px - maximum display size"
       }
     },
     "lineHeight": {
-      "tight": {
-        "$value": "1.25",
+      "none": {
+        "$value": "1",
         "$type": "number",
-        "$description": "Headlines and short text - compressed spacing"
+        "$description": "No line height - icons, single chars"
+      },
+      "tight": {
+        "$value": "1.2",
+        "$type": "number",
+        "$description": "Headlines and compact text"
       },
       "snug": {
         "$value": "1.375",
@@ -88,7 +118,7 @@
       "loose": {
         "$value": "1.75",
         "$type": "number",
-        "$description": "Long-form content (blog posts, articles) - enhanced readability"
+        "$description": "Long-form content - enhanced readability"
       }
     },
     "fontWeight": {
@@ -100,22 +130,22 @@
       "normal": {
         "$value": "400",
         "$type": "number",
-        "$description": "Regular weight - default"
+        "$description": "Regular weight - default body text"
       },
       "medium": {
-        "$value": "500",
+        "$value": "510",
         "$type": "number",
-        "$description": "Medium weight - subtle emphasis"
+        "$description": "Linear medium weight - subtle emphasis"
       },
       "semibold": {
-        "$value": "600",
+        "$value": "590",
         "$type": "number",
-        "$description": "Semi-bold - moderate emphasis"
+        "$description": "Linear semibold - moderate emphasis"
       },
       "bold": {
-        "$value": "700",
+        "$value": "680",
         "$type": "number",
-        "$description": "Bold - strong emphasis"
+        "$description": "Linear bold - strong emphasis"
       },
       "extrabold": {
         "$value": "800",
@@ -147,7 +177,12 @@
       "wider": {
         "$value": "0.05em",
         "$type": "dimension",
-        "$description": "Expanded spacing - all caps, decorative"
+        "$description": "Expanded spacing - all caps"
+      },
+      "widest": {
+        "$value": "0.1em",
+        "$type": "dimension",
+        "$description": "Maximum spacing - decorative"
       }
     }
   }

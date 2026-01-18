@@ -1,7 +1,5 @@
 import type { Preview } from '@storybook/vue3';
 import '../src/styles/index.css';
-import '../src/styles/themes/blog.css';
-import '../src/styles/themes/shopping.css';
 
 const preview: Preview = {
   parameters: {
@@ -13,25 +11,27 @@ const preview: Preview = {
       },
     },
     backgrounds: {
-      default: 'light',
-      values: [
-        { name: 'light', value: '#F8F9FA' },
-        { name: 'dark', value: '#0F1419' },
-      ],
+      disable: true, // Let the theme handle backgrounds
+    },
+    docs: {
+      theme: {
+        base: 'dark',
+      },
     },
   },
   globalTypes: {
     theme: {
       name: 'Theme',
       description: 'Global theme for components',
-      defaultValue: 'light',
+      defaultValue: 'dark', // Linear-inspired: dark is default
       toolbar: {
         icon: 'circlehollow',
         items: [
+          { value: 'dark', title: 'Dark (Default)' },
           { value: 'light', title: 'Light' },
-          { value: 'dark', title: 'Dark' },
         ],
         showName: true,
+        dynamicTitle: true,
       },
     },
     service: {
@@ -41,17 +41,18 @@ const preview: Preview = {
       toolbar: {
         icon: 'globe',
         items: [
-          { value: 'portal', title: 'Portal' },
-          { value: 'blog', title: 'Blog' },
-          { value: 'shopping', title: 'Shopping' },
+          { value: 'portal', title: 'Portal (Linear)' },
+          { value: 'blog', title: 'Blog (Green)' },
+          { value: 'shopping', title: 'Shopping (Orange)' },
         ],
         showName: true,
+        dynamicTitle: true,
       },
     },
   },
   decorators: [
     (story, context) => {
-      const theme = context.globals.theme || 'light';
+      const theme = context.globals.theme || 'dark';
       const service = context.globals.service || 'portal';
 
       return {
@@ -69,7 +70,7 @@ const preview: Preview = {
           return {};
         },
         template: `
-          <div class="p-4 min-h-screen bg-bg-page text-text-body transition-colors duration-200">
+          <div class="p-6 min-h-screen bg-bg-page text-text-body transition-all duration-normal ease-linear-ease">
             <story />
           </div>
         `,

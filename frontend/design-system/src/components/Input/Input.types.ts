@@ -38,6 +38,11 @@ export interface InputProps {
    * Required
    */
   required?: boolean;
+
+  /**
+   * Input size
+   */
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export interface TextareaProps extends Omit<InputProps, 'type'> {
