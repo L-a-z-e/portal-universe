@@ -2,10 +2,10 @@ export interface BadgeProps {
   /**
    * 색상 변형
    */
-  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'outline';
 
   /**
    * 크기
    */
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }
