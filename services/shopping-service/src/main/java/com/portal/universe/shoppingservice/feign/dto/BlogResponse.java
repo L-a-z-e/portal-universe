@@ -1,4 +1,4 @@
-package com.portal.universe.shoppingservice.dto;
+package com.portal.universe.shoppingservice.feign.dto;
 
 /**
  * Blog 서비스로부터 Feign을 통해 받아온 게시물(리뷰) 정보를 담는 DTO입니다.

@@ -1,6 +1,6 @@
 package com.portal.universe.shoppingservice.feign;
 
-import com.portal.universe.shoppingservice.dto.BlogResponse;
+import com.portal.universe.shoppingservice.feign.dto.BlogResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

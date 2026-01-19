@@ -1,4 +1,6 @@
-package com.portal.universe.shoppingservice.dto;
+package com.portal.universe.shoppingservice.product.dto;
+
+import com.portal.universe.shoppingservice.feign.dto.BlogResponse;
 
 import java.util.List;
 

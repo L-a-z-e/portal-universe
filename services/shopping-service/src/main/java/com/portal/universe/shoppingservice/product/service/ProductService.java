@@ -1,6 +1,6 @@
-package com.portal.universe.shoppingservice.service;
+package com.portal.universe.shoppingservice.product.service;
 
-import com.portal.universe.shoppingservice.dto.*;
+import com.portal.universe.shoppingservice.product.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

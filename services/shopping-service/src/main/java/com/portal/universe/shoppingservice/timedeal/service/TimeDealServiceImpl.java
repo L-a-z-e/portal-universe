@@ -2,8 +2,8 @@ package com.portal.universe.shoppingservice.timedeal.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
-import com.portal.universe.shoppingservice.domain.Product;
-import com.portal.universe.shoppingservice.repository.ProductRepository;
+import com.portal.universe.shoppingservice.product.domain.Product;
+import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDeal;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealProduct;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealPurchase;

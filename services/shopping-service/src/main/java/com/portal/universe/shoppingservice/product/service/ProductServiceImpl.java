@@ -1,11 +1,12 @@
-package com.portal.universe.shoppingservice.service;
+package com.portal.universe.shoppingservice.product.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
-import com.portal.universe.shoppingservice.domain.Product;
-import com.portal.universe.shoppingservice.dto.*;
+import com.portal.universe.shoppingservice.product.domain.Product;
+import com.portal.universe.shoppingservice.product.dto.*;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.feign.BlogServiceClient;
-import com.portal.universe.shoppingservice.repository.ProductRepository;
+import com.portal.universe.shoppingservice.feign.dto.BlogResponse;
+import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

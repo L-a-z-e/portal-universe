@@ -1,6 +1,6 @@
 package com.portal.universe.shoppingservice.queue.service;
 
-import com.portal.universe.shoppingservice.common.exception.CustomBusinessException;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.queue.domain.QueueEntry;
 import com.portal.universe.shoppingservice.queue.domain.QueueStatus;
