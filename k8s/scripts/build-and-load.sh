@@ -71,14 +71,28 @@ done
 echo ""
 echo -e "${YELLOW}📦 Step 2: npm Build (Frontend Services)${NC}"
 
+# 먼저 frontend 루트에서 의존성 설치
+cd "$PROJECT_ROOT/frontend"
+if [ ! -d "node_modules" ]; then
+    echo -e "${YELLOW}  Installing npm dependencies (root)...${NC}"
+    npm ci
+fi
+
+# design-system을 먼저 빌드 (다른 프론트엔드 서비스의 의존성)
+echo -e "${BLUE}Building design-system...${NC}"
+npm run build:design
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ design-system built${NC}"
+else
+    echo -e "${RED}❌ design-system build failed${NC}"
+    exit 1
+fi
+
+# 프론트엔드 서비스 빌드
 for SERVICE in "${FRONTEND_SERVICES[@]}"; do
     echo -e "${BLUE}Building ${SERVICE}...${NC}"
     cd "$PROJECT_ROOT/frontend/${SERVICE}"
-
-    if [ ! -d "node_modules" ]; then
-        echo -e "${YELLOW}  Installing npm dependencies...${NC}"
-        npm ci
-    fi
 
     npm run build:k8s
 
