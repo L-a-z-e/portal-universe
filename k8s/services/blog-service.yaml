@@ -19,7 +19,17 @@ spec:
     metadata:
       labels:
         app: blog-service
+      annotations:
+        # Prometheus 메트릭 수집을 위한 어노테이션
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8082"
     spec:
+      # Init Container: Config Service가 준비될 때까지 대기
+      initContainers:
+        - name: wait-for-config
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config-service; sleep 2; done']
       containers:
         - name: blog-service
           image: portal-universe-blog-service:latest
@@ -27,23 +37,54 @@ spec:
           ports:
             - containerPort: 8082
               name: http
+          # ConfigMap에서 공통 환경변수를 로드합니다.
+          envFrom:
+            - configMapRef:
+                name: portal-universe-config
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
-            - name: CONFIG_SERVER_URL
-              value: "http://config-service:8888"
+            # MongoDB 비밀번호 (URI 구성에 사용)
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: portal-universe-secret
+                  key: MONGO_PASSWORD
+            # Config Server의 하드코딩된 mongodb.uri 오버라이드
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb://laze:$(MONGO_PASSWORD)@mongodb:27017/blog_db?authSource=admin"
+          # 리소스 제한 설정
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          # Startup Probe: 컨테이너가 시작될 때, 애플리케이션이 완전히 구동될 때까지 기다립니다.
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 18  # 최대 3분
+          # Liveness Probe: Pod가 응답하지 않으면 재시작합니다.
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: 8082
-            initialDelaySeconds: 120
+            initialDelaySeconds: 10
             periodSeconds: 10
+            failureThreshold: 3
+          # Readiness Probe: Pod가 트래픽을 받을 준비가 되었는지 확인합니다.
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 8082
-            initialDelaySeconds: 90
+            initialDelaySeconds: 5
             periodSeconds: 5
+            failureThreshold: 3
 
 # ===================================================================
 # Blog Service: Service
