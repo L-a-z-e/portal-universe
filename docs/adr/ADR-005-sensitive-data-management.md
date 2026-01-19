@@ -70,8 +70,8 @@ Portal Universe 프로젝트에서 민감한 데이터(DB 비밀번호, API 키,
 
 **구조**:
 ```
-.env                   # 실제 민감 데이터 (gitignored)
-.env.example           # 템플릿 (Git에 커밋)
+.env.local             # 실제 민감 데이터 (gitignored)
+.env.local.example     # 템플릿 (Git에 커밋)
 .env.docker            # Docker 환경 실제 데이터 (gitignored)
 .env.docker.example    # Docker 템플릿 (Git에 커밋)
 ```
@@ -79,8 +79,8 @@ Portal Universe 프로젝트에서 민감한 데이터(DB 비밀번호, API 키,
 **적용 방법**:
 ```bash
 # 로컬 개발
-cp .env.example .env
-# .env 파일 수정 (실제 비밀번호 입력)
+cp .env.local.example .env.local
+# .env.local 파일 수정 (실제 비밀번호 입력)
 
 # Docker 환경
 cp .env.docker.example .env.docker
@@ -254,7 +254,6 @@ git-crypt add-gpg-user USER_ID
 
 ```gitignore
 # Environment variables (보안 정보 포함)
-.env
 .env.local
 .env.*.local
 .env.docker
@@ -274,15 +273,15 @@ monitoring/prometheus-data/
 
 #### 2. 템플릿 파일 제공
 
-**`.env.example`** (로컬 개발용):
+**`.env.local.example`** (로컬 개발용):
 ```bash
 # ===================================================================
 # Environment Template - Local Development
 # ===================================================================
-# Copy this file to .env and fill in the values
-# cp .env.example .env
+# Copy this file to .env.local and fill in the values
+# cp .env.local.example .env.local
 #
-# WARNING: .env should NEVER be committed to Git!
+# WARNING: .env.local should NEVER be committed to Git!
 # ===================================================================
 
 # --- Database Credentials ---
@@ -401,7 +400,7 @@ env:
    - ✅ 템플릿 파일에 명확한 경고 메시지
 
 2. **개발자 경험 향상**
-   - ✅ 로컬 환경 설정 간단 (`cp .env.example .env`)
+   - ✅ 로컬 환경 설정 간단 (`cp .env.local.example .env.local`)
    - ✅ 템플릿 파일로 필요한 변수 명확히 제시
    - ✅ 환경별(Local, Docker, K8s) 일관된 방식
 
