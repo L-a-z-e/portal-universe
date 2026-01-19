@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@portal/design-system/style.css': resolve(__dirname, '../design-system/dist/design-system.css'),
+        '@portal/design-system-vue/style.css': resolve(__dirname, '../design-system-vue/dist/design-system.css'),
         '@': path.resolve(__dirname, './src')
       }
     },
