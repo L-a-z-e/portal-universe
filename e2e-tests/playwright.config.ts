@@ -1,77 +1,88 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Read environment variables from file. 
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
-
-/**
- * See https://playwright.dev/docs/test-configuration.
+ * Portal Universe E2E Test Configuration
+ *
+ * Shopping frontend E2E tests for Phase 1 e-commerce features:
+ * - Product browsing
+ * - Cart management
+ * - Checkout flow
+ * - Order tracking
  */
 export default defineConfig({
-  testDir: './auth-service',
-  /* Run tests in files in the order they appear in the folder. */
-  // fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the code. */
-  // forbidOnly: !!process.env.CI,
-  /* Retry on CI only. */
-  // retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  // workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://127.0.0.1:3000',
+  testDir: './tests',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-  },
+  // Run tests in files in parallel
+  fullyParallel: true,
 
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
+  // Fail the build on CI if you accidentally left test.only in the code
+  forbidOnly: !!process.env.CI,
 
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
+  // Retry on CI only
+  retries: process.env.CI ? 2 : 1,
 
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+  // Opt out of parallel tests on CI
+  workers: process.env.CI ? 1 : undefined,
 
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
+  // Reporter to use
+  reporter: [
+    ['html', { outputFolder: 'playwright-report' }],
+    ['list']
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://127.0.0.1:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
-});
+  // Shared settings for all projects
+  use: {
+    // Base URL for portal-shell (Module Federation host)
+    baseURL: 'http://localhost:30000',
+
+    // Collect trace when retrying the failed test
+    trace: 'on-first-retry',
+
+    // Screenshot on failure
+    screenshot: 'only-on-failure',
+
+    // Video on failure
+    video: 'retain-on-failure',
+
+    // Default timeout for actions
+    actionTimeout: 10000,
+
+    // Default navigation timeout
+    navigationTimeout: 30000,
+  },
+
+  // Global timeout for each test
+  timeout: 60000,
+
+  // Expect timeout
+  expect: {
+    timeout: 10000,
+  },
+
+  // Configure projects for browsers
+  projects: [
+    // Setup project for authentication
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+
+    // Main test project with authentication state
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Use authenticated state from setup
+        storageState: './tests/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+
+    // Tests that don't require authentication
+    {
+      name: 'chromium-no-auth',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: /.*\.noauth\.spec\.ts/,
+    },
+  ],
+})

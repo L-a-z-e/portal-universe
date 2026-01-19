@@ -9,6 +9,10 @@
 6. [일반 사용자 상품 조회 API](#일반-사용자-상품-조회-api)
 7. [API 테스트 가이드](#api-테스트-가이드)
 
+### 관련 문서
+- [Coupon API](./coupon-api.md) - 선착순 쿠폰 발급 API
+- [TimeDeal API](./timedeal-api.md) - 타임딜 구매 API
+
 ---
 
 ## 개요
@@ -30,8 +34,26 @@
 │   ├── DELETE /{productId}  - 상품 삭제
 │   └── PATCH /{productId}/stock  - 재고 수정
 ├── /products
+│   ├── GET                  - 상품 목록 조회
 │   ├── GET /{productId}     - 상품 상세 조회
 │   └── GET /{productId}/with-reviews  - 상품+리뷰 조회
+├── /coupons                 → coupon-api.md 참조
+│   ├── GET                  - 발급 가능 쿠폰 목록
+│   ├── GET /{couponId}      - 쿠폰 상세
+│   ├── POST /{couponId}/issue - 선착순 발급
+│   ├── GET /my              - 내 쿠폰 목록
+│   └── GET /my/available    - 사용 가능한 내 쿠폰
+├── /admin/coupons           (ADMIN only)
+│   ├── POST                 - 쿠폰 생성
+│   └── DELETE /{couponId}   - 쿠폰 비활성화
+├── /time-deals              → timedeal-api.md 참조
+│   ├── GET                  - 진행중 타임딜 목록
+│   ├── GET /{timeDealId}    - 타임딜 상세
+│   ├── POST /purchase       - 타임딜 구매
+│   └── GET /my/purchases    - 내 구매 내역
+└── /admin/time-deals        (ADMIN only)
+    ├── POST                 - 타임딜 생성
+    └── DELETE /{timeDealId} - 타임딜 취소
 ```
 
 ---

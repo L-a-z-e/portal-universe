@@ -1,0 +1,30 @@
+#!/bin/bash
+# Git Worktree 생성 및 공유 폴더 symlink 설정
+# Usage: ./scripts/setup-worktree.sh <worktree-path> <branch>
+#
+# Example:
+#   ./scripts/setup-worktree.sh ../portal-universe-docs dev
+
+set -e
+
+WORKTREE_PATH=$1
+BRANCH=$2
+MAIN_REPO=$(cd "$(dirname "$0")/.." && pwd)
+
+if [ -z "$WORKTREE_PATH" ] || [ -z "$BRANCH" ]; then
+    echo "Usage: $0 <worktree-path> <branch>"
+    exit 1
+fi
+
+echo "Creating worktree at $WORKTREE_PATH for branch $BRANCH..."
+git worktree add "$WORKTREE_PATH" "$BRANCH"
+
+cd "$WORKTREE_PATH"
+
+# Symlink gitignored folders
+[ -d "$MAIN_REPO/.claude" ] && ln -s "$MAIN_REPO/.claude" .claude
+[ -d "$MAIN_REPO/docs_template" ] && ln -s "$MAIN_REPO/docs_template" docs_template
+
+echo "✓ Worktree 설정 완료: $WORKTREE_PATH ($BRANCH)"
+echo "  - .claude → $MAIN_REPO/.claude"
+echo "  - docs_template → $MAIN_REPO/docs_template"

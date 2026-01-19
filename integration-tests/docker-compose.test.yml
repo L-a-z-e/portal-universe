@@ -1,0 +1,134 @@
+version: '3.8'
+
+# Integration Test Infrastructure
+# Usage: docker-compose -f docker-compose.test.yml up -d
+
+services:
+  # =======================================
+  # MySQL Database
+  # =======================================
+  mysql-test:
+    image: mysql:8.0
+    container_name: portal-mysql-test
+    environment:
+      MYSQL_ROOT_PASSWORD: testroot
+      MYSQL_DATABASE: portal_test
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpass
+    ports:
+      - "33060:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ptestroot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mysql-test-data:/var/lib/mysql
+    networks:
+      - test-network
+
+  # =======================================
+  # Redis Cache
+  # =======================================
+  redis-test:
+    image: redis:7.2-alpine
+    container_name: portal-redis-test
+    ports:
+      - "63790:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis-test-data:/data
+    networks:
+      - test-network
+
+  # =======================================
+  # Kafka (KRaft mode - no Zookeeper)
+  # =======================================
+  kafka-test:
+    image: apache/kafka:3.8.0
+    container_name: portal-kafka-test
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-test:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-test:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CLUSTER_ID: "test-cluster-id-1234"
+    ports:
+      - "29092:29092"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-cluster.sh cluster-id --bootstrap-server localhost:9092 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - kafka-test-data:/var/lib/kafka/data
+    networks:
+      - test-network
+
+  # =======================================
+  # Elasticsearch
+  # =======================================
+  elasticsearch-test:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: portal-elasticsearch-test
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.name=portal-test-cluster
+    ports:
+      - "9201:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'status.*green\\|status.*yellow'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - elasticsearch-test-data:/usr/share/elasticsearch/data
+    networks:
+      - test-network
+
+  # =======================================
+  # Wait for all services to be ready
+  # =======================================
+  test-readiness:
+    image: alpine:latest
+    container_name: portal-test-readiness
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+      elasticsearch-test:
+        condition: service_healthy
+    command: ["echo", "All test services are ready!"]
+    networks:
+      - test-network
+
+volumes:
+  mysql-test-data:
+  redis-test-data:
+  kafka-test-data:
+  elasticsearch-test-data:
+
+networks:
+  test-network:
+    driver: bridge
