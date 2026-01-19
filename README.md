@@ -19,7 +19,7 @@
 ```bash
 git clone https://github.com/L-a-z-e/portal-universe.git
 cd portal-universe
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Services
