@@ -69,10 +69,9 @@ dependencies {
     implementation 'org.redisson:redisson-spring-boot-starter:3.27.0' // Distributed lock
 
     // =======================================
-    // Elasticsearch
+    // Elasticsearch (Spring Boot 관리 버전 사용)
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch' // Elasticsearch client
-    implementation 'co.elastic.clients:elasticsearch-java:8.11.0' // Elasticsearch Java client
 
     // =======================================
     // SSE (Server-Sent Events)
