@@ -62,6 +62,18 @@ const PageLoader: React.FC = () => (
 // Navigation listener context
 let navigationCallback: ((path: string) => void) | null = null
 
+// App active state for keep-alive support
+let isAppActive = true
+
+/**
+ * Set app active state (for keep-alive activated/deactivated)
+ * When deactivated, NavigationSync will skip callback invocation
+ */
+export const setAppActive = (active: boolean) => {
+  console.log(`🔄 [Shopping Router] setAppActive: ${active}`)
+  isAppActive = active
+}
+
 /**
  * Set navigation callback for parent communication
  */
@@ -78,6 +90,13 @@ const NavigationSync: React.FC = () => {
   const prevPathRef = useRef(location.pathname)
 
   useEffect(() => {
+    // Skip callback if app is not active (deactivated by keep-alive)
+    if (!isAppActive) {
+      console.log(`⏸️ [Shopping Router] Skipping navigation sync (inactive): ${location.pathname}`)
+      prevPathRef.current = location.pathname // Sync state only
+      return
+    }
+
     if (prevPathRef.current !== location.pathname) {
       console.log(`📍 [Shopping Router] Path changed: ${prevPathRef.current} → ${location.pathname}`)
       prevPathRef.current = location.pathname
@@ -335,6 +354,16 @@ export const navigateTo = (path: string) => {
   } else {
     console.error('❌ [Shopping Router] Router not initialized')
   }
+}
+
+/**
+ * 🆕 Reset router instance (for cleanup on unmount)
+ * 다음 마운트 시 새로운 라우터가 생성되도록 인스턴스 초기화
+ */
+export const resetRouter = () => {
+  console.log('🔄 [Shopping Router] Resetting router instance')
+  routerInstance = null
+  setNavigationCallback(null)
 }
 
 // Router Provider component

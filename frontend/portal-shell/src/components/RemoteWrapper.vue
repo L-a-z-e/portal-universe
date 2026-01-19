@@ -1,8 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted, onActivated, onDeactivated, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { RemoteConfig } from "../config/remoteRegistry";
 import { remoteLoader } from "../services/remoteLoader";
+
+// 🆕 간단한 debounce 유틸리티 (외부 의존성 없음)
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  return ((...args: any[]) => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  }) as T;
+}
 
 const props = defineProps<{
   config: RemoteConfig;
@@ -24,11 +33,14 @@ let mountFn: any = null; // ✅ load 결과 저장 (중복 load 방지)
 // Remote Navigation Sync
 // -------------------------
 let isNavigating = false;
+let lastNavigatedPath = ''; // 🆕 마지막 네비게이션 경로 추적
+let isComponentActive = true; // 🆕 keep-alive 활성화 상태 추적
 
 const onRemoteNavigate = (path: string) => {
   const newPath = `${props.config.basePath}${path === '/' ? '' : path}`;
   if (shellRoute.path !== newPath && !isNavigating) {
     isNavigating = true;
+    lastNavigatedPath = newPath;
     console.log(`📤 [RemoteWrapper] Remote navigated to: ${path}, updating shell to: ${newPath}`);
     shellRouter.push(newPath)
         .catch(() => {})
@@ -38,34 +50,47 @@ const onRemoteNavigate = (path: string) => {
   }
 };
 
-// ✅ 단일 watch (shellRoute만 감지)
-watch(() => shellRoute.path, (newPath, oldPath) => {
-  if (remoteApp?.onParentNavigate && !isNavigating) {
-    const newRemotePath = newPath.substring(props.config.basePath.length) || '/';
-    const oldRemotePath = oldPath ? oldPath.substring(props.config.basePath.length) || '/' : '';
-
-    if (newRemotePath !== oldRemotePath) {
-      console.log(`📥 [RemoteWrapper] Shell route changed: ${oldRemotePath} → ${newRemotePath}`);
-      try {
-        remoteApp.onParentNavigate(newRemotePath);
-      } catch (err) {
-        console.error('⚠️ Error in onParentNavigate:', err);
-      }
-    }
-  }
-});
-// -------------------------
-// Parent → Child route sync
-// -------------------------
-watch(() => shellRoute.path, (newPath) => {
+// 🆕 debounce 적용 - 빠른 연속 네비게이션 방지
+const debouncedParentNavigate = debounce((remotePath: string) => {
   if (remoteApp?.onParentNavigate) {
     try {
-      const remotePath = newPath.substring(props.config.basePath.length) || '/';
+      console.log(`📥 [RemoteWrapper] Shell route changed → ${remotePath}`);
       remoteApp.onParentNavigate(remotePath);
     } catch (err) {
       console.error('⚠️ Error in onParentNavigate:', err);
     }
   }
+}, 50);
+
+// ✅ 단일 watch (중복 watch 제거!)
+watch(() => shellRoute.path, (newPath, oldPath) => {
+  // 🆕 비활성화 상태이거나 현재 경로가 자신의 basePath로 시작하지 않으면 스킵
+  if (!isComponentActive || !newPath.startsWith(props.config.basePath)) {
+    return;
+  }
+
+  if (!isNavigating && newPath !== oldPath) {
+    const newRemotePath = newPath.substring(props.config.basePath.length) || '/';
+    const oldRemotePath = oldPath ? oldPath.substring(props.config.basePath.length) || '/' : '';
+
+    // 🆕 중복 호출 방지: 이미 같은 경로면 스킵
+    if (newRemotePath !== oldRemotePath && newPath !== lastNavigatedPath) {
+      debouncedParentNavigate(newRemotePath);
+    }
+  }
+});
+
+// 🆕 keep-alive 훅 연동
+onActivated(() => {
+  isComponentActive = true; // 🆕 활성화 상태로 변경
+  console.log(`🔄 [RemoteWrapper] ${props.config.name} activated (keep-alive)`);
+  remoteApp?.onActivated?.();
+});
+
+onDeactivated(() => {
+  isComponentActive = false; // 🆕 비활성화 상태로 변경
+  console.log(`🔄 [RemoteWrapper] ${props.config.name} deactivated (keep-alive)`);
+  remoteApp?.onDeactivated?.();
 });
 
 // -------------------------
