@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * 재고 관리 API를 제공하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/shopping/inventory")
+@RequestMapping("/inventory")
 @RequiredArgsConstructor
 public class InventoryController {
 
