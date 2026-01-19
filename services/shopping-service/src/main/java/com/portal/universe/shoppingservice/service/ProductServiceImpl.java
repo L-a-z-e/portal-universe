@@ -7,7 +7,10 @@ import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.feign.BlogServiceClient;
 import com.portal.universe.shoppingservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +24,12 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final BlogServiceClient blogServiceClient;
+
+    @Override
+    public Page<ProductResponse> getAllProducts(Pageable pageable) {
+        Page<Product> productPage = productRepository.findAll(pageable);
+        return productPage.map(this::convertToResponse);
+    }
 
     @Override
     public ProductResponse createProduct(ProductCreateRequest request) {
@@ -96,13 +105,82 @@ public class ProductServiceImpl implements ProductService {
         );
     }
 
+    // ========================================
+    // Admin 전용 메서드
+    // ========================================
+
+    @Override
+    @Transactional
+    public ProductResponse createProductAdmin(AdminProductRequest request) {
+        // 중복된 상품명 체크 (비즈니스 규칙 - DTO validation과 별개)
+        if (productRepository.existsByName(request.name())) {
+            throw new CustomBusinessException(ShoppingErrorCode.PRODUCT_NAME_ALREADY_EXISTS);
+        }
+
+        // DTO의 Jakarta Validation(@Positive, @Min)이 가격/재고 검증을 처리함
+
+        Product newProduct = Product.builder()
+                .name(request.name())
+                .description(request.description())
+                .price(request.price())
+                .stock(request.stock())
+                .build();
+
+        Product savedProduct = productRepository.save(newProduct);
+        return convertToResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse updateProductAdmin(Long productId, AdminProductRequest request) {
+        // 1. 수정할 상품 조회
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
+
+        // 2. 상품명 변경된 경우에만 중복 체크 (N+1 방지)
+        if (!product.getName().equals(request.name())) {
+            if (productRepository.existsByName(request.name())) {
+                throw new CustomBusinessException(ShoppingErrorCode.PRODUCT_NAME_ALREADY_EXISTS);
+            }
+        }
+
+        // 3. 상품 정보 수정
+        product.update(
+                request.name(),
+                request.description(),
+                request.price(),
+                request.stock()
+        );
+
+        // Dirty Checking으로 자동 저장 (save 호출 생략 가능하나 명시적으로 호출)
+        return convertToResponse(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse updateProductStock(Long productId, StockUpdateRequest request) {
+        // 1. 상품 조회
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
+
+        // 2. 재고만 업데이트 (Dirty Checking)
+        product.update(
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                request.stock()
+        );
+
+        return convertToResponse(product);
+    }
+
     /**
      * Product 엔티티 객체를 ProductResponse DTO로 변환하는 헬퍼 메서드입니다.
      * @param product 변환할 Product 엔티티
      * @return 변환된 ProductResponse DTO
      */
     private ProductResponse convertToResponse(Product product) {
-        return new ProductResponse(product.getId(), product.getDescription(), product.getPrice(), product.getStock());
+        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(), product.getStock());
     }
 
 }

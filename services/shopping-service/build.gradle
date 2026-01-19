@@ -63,6 +63,23 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka' // Kafka producer/consumer
 
     // =======================================
+    // Redis & Distributed Lock
+    // =======================================
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis client
+    implementation 'org.redisson:redisson-spring-boot-starter:3.27.0' // Distributed lock
+
+    // =======================================
+    // Elasticsearch
+    // =======================================
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch' // Elasticsearch client
+    implementation 'co.elastic.clients:elasticsearch-java:8.11.0' // Elasticsearch Java client
+
+    // =======================================
+    // SSE (Server-Sent Events)
+    // =======================================
+    implementation 'org.springframework.boot:spring-boot-starter-webflux' // For Flux/SSE support
+
+    // =======================================
     // Security (OAuth2 Resource Server)
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -92,6 +109,8 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter' // Integration tests with Docker containers
     testImplementation 'org.testcontainers:mysql' // MySQL container for testing
     testImplementation 'org.testcontainers:kafka' // Kafka container for testing
+    testImplementation 'com.redis:testcontainers-redis:2.2.2' // Redis container for testing
+    testImplementation 'org.testcontainers:elasticsearch' // Elasticsearch container for testing
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
