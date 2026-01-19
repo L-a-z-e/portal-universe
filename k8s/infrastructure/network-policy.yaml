@@ -1,0 +1,94 @@
+# ===================================================================
+# NetworkPolicy: 네트워크 보안 정책
+# 역할: portal-universe 네임스페이스 내 Pod 간 통신과 외부 접근을 제어합니다.
+# ===================================================================
+---
+# 1. 기본 거부 정책: 모든 인바운드 트래픽을 기본적으로 거부합니다.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: portal-universe
+spec:
+  podSelector: {} # 모든 Pod에 적용
+  policyTypes:
+    - Ingress
+
+---
+# 2. 네임스페이스 내부 통신 허용: portal-universe 네임스페이스 내 모든 Pod 간 통신을 허용합니다.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-same-namespace
+  namespace: portal-universe
+spec:
+  podSelector: {} # 모든 Pod에 적용
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: portal-universe
+
+---
+# 3. Ingress Controller 허용: API Gateway와 Portal Shell이 Ingress Controller로부터 트래픽을 받을 수 있도록 합니다.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: portal-universe
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - api-gateway
+          - portal-shell
+          - grafana
+          - prometheus
+          - zipkin
+          - discovery-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+
+---
+# 4. DNS 허용: 모든 Pod가 kube-system의 DNS 서비스에 접근할 수 있도록 합니다.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: portal-universe
+spec:
+  podSelector: {} # 모든 Pod에 적용
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # 네임스페이스 내부 통신 허용
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: portal-universe
+    # 외부 인터넷 접근 허용 (Config Service의 Git 클론 등)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
