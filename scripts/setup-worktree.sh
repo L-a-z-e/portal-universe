@@ -25,6 +25,7 @@ cd "$WORKTREE_PATH"
 [ -d "$MAIN_REPO/.claude" ] && ln -s "$MAIN_REPO/.claude" .claude
 [ -d "$MAIN_REPO/certs" ] && ln -s "$MAIN_REPO/certs" certs
 [ -f "$MAIN_REPO/.env" ] && ln -s "$MAIN_REPO/.env" .env
+[ -f "$MAIN_REPO/.env.local" ] && ln -s "$MAIN_REPO/.env.local" .env.local
 [ -f "$MAIN_REPO/.env.docker" ] && ln -s "$MAIN_REPO/.env.docker" .env.docker
 [ -f "$MAIN_REPO/.mcp.json" ] && ln -s "$MAIN_REPO/.mcp.json" .mcp.json
 
@@ -33,5 +34,6 @@ echo "  Symlinks:"
 [ -d "$MAIN_REPO/.claude" ] && echo "  - .claude → $MAIN_REPO/.claude"
 [ -d "$MAIN_REPO/certs" ] && echo "  - certs → $MAIN_REPO/certs"
 [ -f "$MAIN_REPO/.env" ] && echo "  - .env → $MAIN_REPO/.env"
+[ -f "$MAIN_REPO/.env.local" ] && echo "  - .env.local → $MAIN_REPO/.env.local"
 [ -f "$MAIN_REPO/.env.docker" ] && echo "  - .env.docker → $MAIN_REPO/.env.docker"
 [ -f "$MAIN_REPO/.mcp.json" ] && echo "  - .mcp.json → $MAIN_REPO/.mcp.json"
