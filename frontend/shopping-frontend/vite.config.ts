@@ -16,7 +16,17 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   console.log('🔧 [Shopping] Building for mode:', mode)
 
+  // 환경별 base 설정 - Module Federation chunk 파일 로드 경로
+  // vite-plugin-federation은 Vite의 base 옵션을 사용하여 remoteEntry.js 내 chunk 경로를 결정함
+  const basePaths: Record<string, string> = {
+    dev: 'http://localhost:30002/',
+    docker: 'http://shopping-frontend/',
+    k8s: 'http://shopping-frontend.portal-universe.svc.cluster.local/',
+  }
+
   return {
+    base: basePaths[mode] || 'http://localhost:30002/',
+
     plugins: [
       react(),
       federation({
@@ -31,9 +41,9 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
-        '@portal/design-system-vue/style.css': resolve(
+        '@portal/design-system-react/styles': resolve(
           __dirname,
-          '../design-system-vue/dist/design-system.css'
+          '../design-system-react/src/styles/index.css'
         ),
         '@': path.resolve(__dirname, './src'),
         '@components': path.resolve(__dirname, './src/components'),
@@ -45,7 +55,7 @@ export default defineConfig(({ mode }) => {
     },
 
     css: {
-      postcss: './postcss.config.js'
+      postcss: './postcss.config.js',
     },
 
     server: {
