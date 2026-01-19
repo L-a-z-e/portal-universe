@@ -113,6 +113,7 @@ public enum ShoppingErrorCode implements ErrorCode {
     USER_COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "S608", "User coupon not found"),
     USER_COUPON_ALREADY_USED(HttpStatus.BAD_REQUEST, "S609", "User coupon has already been used"),
     USER_COUPON_EXPIRED(HttpStatus.BAD_REQUEST, "S610", "User coupon has expired"),
+    COUPON_MINIMUM_ORDER_NOT_MET(HttpStatus.BAD_REQUEST, "S611", "Minimum order amount not met for this coupon"),
 
     // ========================================
     // TimeDeal Errors (S7XX)
@@ -127,12 +128,14 @@ public enum ShoppingErrorCode implements ErrorCode {
     TIMEDEAL_INVALID_PERIOD(HttpStatus.BAD_REQUEST, "S708", "Invalid time deal period"),
 
     // ========================================
-    // Queue Errors (S8XX) - Reserved for future use
+    // Queue Errors (S8XX)
     // ========================================
+    QUEUE_NOT_FOUND(HttpStatus.NOT_FOUND, "S801", "Waiting queue not found"),
     QUEUE_ALREADY_ENTERED(HttpStatus.CONFLICT, "S802", "Already entered in the queue"),
-    QUEUE_NOT_FOUND(HttpStatus.NOT_FOUND, "S803", "Queue entry not found"),
+    QUEUE_ENTRY_NOT_FOUND(HttpStatus.NOT_FOUND, "S803", "Queue entry not found"),
     QUEUE_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "S804", "Queue token has expired"),
     QUEUE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "S805", "Not allowed to enter yet"),
+    QUEUE_ENTRY_REQUIRED(HttpStatus.FORBIDDEN, "S806", "Queue entry is required for this event"),
 
     // ========================================
     // Saga/System Errors (S9XX)

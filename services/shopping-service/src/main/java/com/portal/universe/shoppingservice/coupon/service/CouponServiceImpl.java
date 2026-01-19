@@ -182,4 +182,38 @@ public class CouponServiceImpl implements CouponService {
 
         log.info("Deactivated coupon: id={}", couponId);
     }
+
+    @Override
+    public java.math.BigDecimal calculateDiscount(Long userCouponId, java.math.BigDecimal orderAmount) {
+        UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
+                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.USER_COUPON_NOT_FOUND));
+
+        return userCoupon.getCoupon().calculateDiscount(orderAmount);
+    }
+
+    @Override
+    public void validateCouponForOrder(Long userCouponId, Long userId, java.math.BigDecimal orderAmount) {
+        UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
+                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.USER_COUPON_NOT_FOUND));
+
+        // 소유자 확인
+        if (!userCoupon.getUserId().equals(userId)) {
+            throw new CustomBusinessException(ShoppingErrorCode.USER_COUPON_NOT_FOUND);
+        }
+
+        // 사용 가능 여부 확인
+        if (!userCoupon.isUsable()) {
+            if (userCoupon.getStatus() == UserCouponStatus.USED) {
+                throw new CustomBusinessException(ShoppingErrorCode.USER_COUPON_ALREADY_USED);
+            }
+            throw new CustomBusinessException(ShoppingErrorCode.USER_COUPON_EXPIRED);
+        }
+
+        // 최소 주문 금액 확인
+        Coupon coupon = userCoupon.getCoupon();
+        if (coupon.getMinimumOrderAmount() != null
+                && orderAmount.compareTo(coupon.getMinimumOrderAmount()) < 0) {
+            throw new CustomBusinessException(ShoppingErrorCode.COUPON_MINIMUM_ORDER_NOT_MET);
+        }
+    }
 }

@@ -60,10 +60,28 @@ public class Order {
     private OrderStatus status;
 
     /**
-     * 총 주문 금액
+     * 총 주문 금액 (할인 전)
      */
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
+
+    /**
+     * 할인 금액
+     */
+    @Column(name = "discount_amount", precision = 12, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    /**
+     * 최종 결제 금액 (totalAmount - discountAmount)
+     */
+    @Column(name = "final_amount", precision = 12, scale = 2)
+    private BigDecimal finalAmount;
+
+    /**
+     * 적용된 사용자 쿠폰 ID
+     */
+    @Column(name = "applied_user_coupon_id")
+    private Long appliedUserCouponId;
 
     /**
      * 배송 주소
@@ -192,6 +210,27 @@ public class Order {
         this.totalAmount = items.stream()
                 .map(OrderItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        calculateFinalAmount();
+    }
+
+    /**
+     * 쿠폰 할인을 적용합니다.
+     */
+    public void applyCoupon(Long userCouponId, BigDecimal discountAmount) {
+        this.appliedUserCouponId = userCouponId;
+        this.discountAmount = discountAmount;
+        calculateFinalAmount();
+    }
+
+    /**
+     * 최종 결제 금액을 계산합니다.
+     */
+    private void calculateFinalAmount() {
+        BigDecimal discount = this.discountAmount != null ? this.discountAmount : BigDecimal.ZERO;
+        this.finalAmount = this.totalAmount.subtract(discount);
+        if (this.finalAmount.compareTo(BigDecimal.ZERO) < 0) {
+            this.finalAmount = BigDecimal.ZERO;
+        }
     }
 
     /**

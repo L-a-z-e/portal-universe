@@ -6,6 +6,7 @@ import com.portal.universe.shoppingservice.cart.domain.CartItem;
 import com.portal.universe.shoppingservice.cart.domain.CartStatus;
 import com.portal.universe.shoppingservice.cart.repository.CartRepository;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
+import com.portal.universe.shoppingservice.coupon.service.CouponService;
 import com.portal.universe.shoppingservice.inventory.service.InventoryService;
 import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderItem;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public class OrderServiceImpl implements OrderService {
     private final SagaStateRepository sagaStateRepository;
     private final OrderSagaOrchestrator orderSagaOrchestrator;
     private final InventoryService inventoryService;
+    private final CouponService couponService;
 
     @Override
     @Transactional
@@ -68,10 +71,31 @@ public class OrderServiceImpl implements OrderService {
             );
         }
 
+        // 3. 쿠폰 적용 (선택 사항)
+        if (request.userCouponId() != null) {
+            // 쿠폰 검증 (userId는 String이므로 Long으로 파싱)
+            Long userIdLong = Long.parseLong(userId);
+            couponService.validateCouponForOrder(request.userCouponId(), userIdLong, order.getTotalAmount());
+
+            // 할인 금액 계산
+            BigDecimal discountAmount = couponService.calculateDiscount(request.userCouponId(), order.getTotalAmount());
+
+            // 주문에 쿠폰 적용
+            order.applyCoupon(request.userCouponId(), discountAmount);
+
+            log.info("Coupon applied to order: userCouponId={}, discount={}",
+                    request.userCouponId(), discountAmount);
+        }
+
         order.confirm(); // 주문 확정 (PENDING -> CONFIRMED)
         Order savedOrder = orderRepository.save(order);
 
-        // 3. Saga 시작 (재고 예약)
+        // 4. 쿠폰 사용 처리
+        if (request.userCouponId() != null) {
+            couponService.useCoupon(request.userCouponId(), savedOrder.getId());
+        }
+
+        // 5. Saga 시작 (재고 예약)
         try {
             orderSagaOrchestrator.startSaga(savedOrder);
         } catch (Exception e) {
@@ -79,8 +103,9 @@ public class OrderServiceImpl implements OrderService {
             throw e;
         }
 
-        log.info("Order created successfully: {} (user: {}, items: {}, total: {})",
-                savedOrder.getOrderNumber(), userId, savedOrder.getItems().size(), savedOrder.getTotalAmount());
+        log.info("Order created successfully: {} (user: {}, items: {}, total: {}, discount: {}, final: {})",
+                savedOrder.getOrderNumber(), userId, savedOrder.getItems().size(),
+                savedOrder.getTotalAmount(), savedOrder.getDiscountAmount(), savedOrder.getFinalAmount());
 
         return OrderResponse.from(savedOrder);
     }
