@@ -1,0 +1,295 @@
+groups:
+  # ========================================
+  # Service Health Alerts
+  # ========================================
+  - name: service-alerts
+    rules:
+      # Service Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute."
+          runbook_url: "https://wiki.portal-universe.com/runbooks/service-down"
+
+      # High Error Rate (5xx)
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}."
+
+      # Critical Error Rate
+      - alert: CriticalErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          > 0.10
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}. Immediate action required."
+
+      # High Latency (p95 > 500ms)
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on {{ $labels.job }}"
+          description: "p95 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}."
+
+      # Very High Latency (p99 > 1s)
+      - alert: VeryHighLatency
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          > 1.0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Very high latency on {{ $labels.job }}"
+          description: "p99 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}."
+
+  # ========================================
+  # JVM Alerts
+  # ========================================
+  - name: jvm-alerts
+    rules:
+      # High Heap Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          jvm_memory_used_bytes{area="heap"}
+          /
+          jvm_memory_max_bytes{area="heap"}
+          > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High heap memory usage on {{ $labels.job }}"
+          description: "Heap memory usage is {{ $value | humanizePercentage }} on {{ $labels.job }}."
+
+      # Critical Heap Memory Usage
+      - alert: CriticalMemoryUsage
+        expr: |
+          jvm_memory_used_bytes{area="heap"}
+          /
+          jvm_memory_max_bytes{area="heap"}
+          > 0.95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical heap memory usage on {{ $labels.job }}"
+          description: "Heap memory usage is {{ $value | humanizePercentage }}. OOM risk!"
+
+      # High GC Pause Time
+      - alert: HighGCPauseTime
+        expr: |
+          rate(jvm_gc_pause_seconds_sum[5m])
+          /
+          rate(jvm_gc_pause_seconds_count[5m])
+          > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High GC pause time on {{ $labels.job }}"
+          description: "Average GC pause time is {{ $value | humanizeDuration }}."
+
+      # Many Threads
+      - alert: HighThreadCount
+        expr: jvm_threads_live_threads > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High thread count on {{ $labels.job }}"
+          description: "Thread count is {{ $value }}."
+
+  # ========================================
+  # Database Alerts
+  # ========================================
+  - name: database-alerts
+    rules:
+      # MySQL Connection Pool High
+      - alert: MySQLConnectionsHigh
+        expr: |
+          mysql_global_status_threads_connected
+          /
+          mysql_global_variables_max_connections
+          > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MySQL connections running high"
+          description: "Connection usage is {{ $value | humanizePercentage }}."
+
+      # MySQL Slow Queries
+      - alert: MySQLSlowQueries
+        expr: rate(mysql_global_status_slow_queries[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MySQL slow queries detected"
+          description: "Slow query rate is {{ $value }} per second."
+
+      # Redis Memory High
+      - alert: RedisMemoryHigh
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}."
+
+      # Redis Connection Count
+      - alert: RedisConnectionsHigh
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis connection count is high"
+          description: "Redis has {{ $value }} connected clients."
+
+  # ========================================
+  # Infrastructure Alerts
+  # ========================================
+  - name: infrastructure-alerts
+    rules:
+      # Low Disk Space
+      - alert: LowDiskSpace
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+          < 0.15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is below 15%."
+
+      # Critical Disk Space
+      - alert: CriticalDiskSpace
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+          < 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical disk space"
+          description: "Disk space is below 5%. Immediate action required."
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 85%."
+
+  # ========================================
+  # Kafka Alerts
+  # ========================================
+  - name: kafka-alerts
+    rules:
+      # Consumer Lag
+      - alert: KafkaConsumerLag
+        expr: kafka_consumergroup_lag > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer lag detected"
+          description: "Consumer group {{ $labels.consumergroup }} has lag of {{ $value }} for topic {{ $labels.topic }}."
+
+      # High Consumer Lag
+      - alert: HighKafkaConsumerLag
+        expr: kafka_consumergroup_lag > 10000
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Kafka consumer lag"
+          description: "Consumer group {{ $labels.consumergroup }} has lag of {{ $value }}. Messages are not being processed!"
+
+  # ========================================
+  # Business Metrics Alerts
+  # ========================================
+  - name: business-alerts
+    rules:
+      # High Order Failure Rate
+      - alert: HighOrderFailureRate
+        expr: |
+          sum(rate(order_created_total{status="failed"}[5m]))
+          /
+          sum(rate(order_created_total[5m]))
+          > 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High order failure rate"
+          description: "Order failure rate is {{ $value | humanizePercentage }}."
+
+      # High Payment Failure Rate
+      - alert: HighPaymentFailureRate
+        expr: |
+          sum(rate(payment_processed_total{status="failed"}[5m]))
+          /
+          sum(rate(payment_processed_total[5m]))
+          > 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High payment failure rate"
+          description: "Payment failure rate is {{ $value | humanizePercentage }}. Revenue impact!"
+
+      # Coupon Issue Errors
+      - alert: CouponIssueErrors
+        expr: rate(coupon_issue_errors_total[5m]) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Coupon issue errors detected"
+          description: "Coupon issue error rate is {{ $value }} per second."
+
+      # Low Search Performance
+      - alert: LowSearchPerformance
+        expr: |
+          histogram_quantile(0.95, sum(rate(elasticsearch_search_duration_bucket[5m])) by (le))
+          > 0.3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low search performance"
+          description: "Search p95 latency is {{ $value | humanizeDuration }}."
