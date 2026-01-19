@@ -87,43 +87,40 @@ public class SecurityConfig {
     }
 
     /**
-     * 인증이 필요 없는 공개 경로(Public Endpoints)에 대한 보안 설정을 담당합니다.
-     * 해당 경로들은 JWT 토큰 검증 없이 접근이 허용됩니다.
+     * 전체 API에 대한 통합 보안 설정을 담당합니다.
      * @param http ServerHttpSecurity 객체
-     * @return SecurityWebFilterChain 공개 경로용 보안 필터 체인
+     * @return SecurityWebFilterChain 보안 필터 체인
      */
     @Bean
     @Order(1)
-    public SecurityWebFilterChain publicEndpointsFilterChain(ServerHttpSecurity http) {
-        return http
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(
-                        "/auth-service/**",
-                        "/api/users/**",
-                        "/actuator/**"
-                ))
-                .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
-                .csrf(ServerHttpSecurity.CsrfSpec::disable) // Stateless한 REST API이므로 CSRF 비활성화
-                .build();
-    }
-
-    /**
-     * JWT 토큰으로 보호되는 비공개 경로(Private Endpoints)에 대한 보안 설정을 담당합니다.
-     * Gateway에서는 인증된 사용자인지만 확인하고, 세부적인 권한 제어는 각 마이크로서비스에 위임하는 것을 기본 전략으로 합니다.
-     * @param http ServerHttpSecurity 객체
-     * @return SecurityWebFilterChain 비공개 경로용 보안 필터 체인
-     */
-    @Bean
-    @Order(2)
-    public SecurityWebFilterChain privateEndpointsFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain apiSecurityFilterChain(ServerHttpSecurity http) {
         return http
                 .authorizeExchange(authorize -> authorize
-                        .anyExchange().authenticated() // 위에서 정의한 공개 경로 외 모든 경로는 인증 필요
+                        // ========================================
+                        // [공개] 인증 없이 접근 가능
+                        // ========================================
+                        .pathMatchers("/auth-service/**").permitAll()
+                        .pathMatchers("/api/users/**").permitAll()
+                        // Shopping Service - 상품/카테고리 조회는 공개
+                        .pathMatchers("/api/shopping/products", "/api/shopping/products/**").permitAll()
+                        .pathMatchers("/api/shopping/categories", "/api/shopping/categories/**").permitAll()
+                        // 쿠폰/타임딜 목록 조회도 공개
+                        .pathMatchers("/api/shopping/coupons", "/api/shopping/time-deals").permitAll()
+                        .pathMatchers("/api/shopping/time-deals/**").permitAll()
+                        .pathMatchers("/actuator/**").permitAll()
+
+                        // ========================================
+                        // [관리자] ADMIN 권한 필요
+                        // ========================================
+                        .pathMatchers("/api/shopping/admin/**").hasRole("ADMIN")
+
+                        // ========================================
+                        // [비공개] 인증 필요
+                        // ========================================
+                        .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())
-                        // 인증 실패 시 401 Unauthorized 응답 대신, 후속 필터 체인으로 넘어갈 수 있도록 함
-                        // 이는 여러 SecurityWebFilterChain을 연쇄적으로 처리하기 위함
-                        .authenticationFailureHandler((exchange, ex) -> Mono.empty())
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .build();

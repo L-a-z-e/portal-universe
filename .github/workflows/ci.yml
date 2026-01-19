@@ -1,77 +1,257 @@
 name: Portal Universe CI
 
-# Workflow를 실행할 조건
 on:
-  workflow_dispatch:  # 수동 실행만
-#  push:
-#    branches:
-#      - main              # main 브랜치에 push 시
-#      - develop           # develop 브랜치에 push 시
-#  pull_request:
-#    branches:
-#      - main              # main으로 PR 생성 시
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
 
-# 동시 실행 제어
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '20'
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true  # 이전 빌드 취소
+  cancel-in-progress: true
 
-# 실행할 작업들
 jobs:
-  # Job 1: 빌드 및 테스트
-  build-and-test:
-    name: Build and Test
-    runs-on: ubuntu-latest  # GitHub 제공 Ubuntu 환경
+  # ========================================
+  # Backend Build & Test
+  # ========================================
+  backend:
+    name: Backend Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
 
     steps:
-      # Step 1: 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Java 설정
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
+          cache: 'gradle'
 
-      # Step 3: Gradle 캐싱
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      # Step 4: Gradle 실행 권한 부여
-      - name: Grant execute permission for gradlew
+      - name: Grant execute permission
         run: chmod +x gradlew
 
-      # Step 5: 빌드 (테스트 제외)
-      - name: Build with Gradle
+      - name: Build
         run: ./gradlew build -x test
 
-      # Step 6: 테스트 실행
-      - name: Run tests
+      - name: Run Tests
         run: ./gradlew test
+        env:
+          SPRING_PROFILES_ACTIVE: test
 
-      # Step 7: 테스트 결과 업로드 (실패 시에도 실행)
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Generate Coverage Report
+        run: ./gradlew jacocoTestReport
+        continue-on-error: true
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v4
         with:
-          name: test-results
-          path: |
-            **/build/test-results/test/*.xml
-            **/build/reports/tests/test/
+          files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
+          fail_ci_if_error: false
 
-  # Job 2: Docker 이미지 빌드 및 푸시
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: '**/build/test-results/test/*.xml'
+
+  # ========================================
+  # Frontend Build & Test
+  # ========================================
+  frontend:
+    name: Frontend Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Type Check
+        run: npm run type-check
+        continue-on-error: true
+
+      - name: Unit Tests
+        run: npm run test -- --coverage
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: frontend/coverage/lcov.info
+          fail_ci_if_error: false
+        continue-on-error: true
+
+  # ========================================
+  # E2E Tests (PR only)
+  # ========================================
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: docker-compose -f docker-compose.yml up -d mysql mongodb redis kafka zookeeper
+        continue-on-error: true
+
+      - name: Wait for services
+        run: |
+          timeout 120 bash -c 'until docker-compose ps | grep -q "healthy"; do sleep 5; done' || true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Playwright
+        run: |
+          cd e2e-tests
+          npm ci
+          npx playwright install --with-deps
+        continue-on-error: true
+
+      - name: Run E2E Tests
+        run: |
+          cd e2e-tests
+          npm run test
+        continue-on-error: true
+
+      - name: Upload E2E Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results
+          path: e2e-tests/test-results/
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down -v
+        continue-on-error: true
+
+  # ========================================
+  # Integration Tests (PR only)
+  # ========================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [backend]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Start Test Infrastructure
+        run: |
+          docker-compose -f integration-tests/docker-compose.test.yml up -d
+          timeout 180 bash -c 'until docker-compose -f integration-tests/docker-compose.test.yml ps | grep -q "healthy"; do sleep 10; done' || true
+
+      - name: Wait for Services
+        run: sleep 30
+
+      - name: Run Flow Tests
+        run: ./gradlew :integration-tests:flowTests
+        continue-on-error: true
+        env:
+          TESTCONTAINERS_REUSE_ENABLE: 'true'
+
+      - name: Run Concurrency Tests
+        run: ./gradlew :integration-tests:concurrencyTests
+        continue-on-error: true
+        env:
+          TESTCONTAINERS_REUSE_ENABLE: 'true'
+
+      - name: Run Messaging Tests
+        run: ./gradlew :integration-tests:messagingTests
+        continue-on-error: true
+        env:
+          TESTCONTAINERS_REUSE_ENABLE: 'true'
+
+      - name: Upload Integration Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            integration-tests/build/test-results/
+            integration-tests/build/reports/tests/
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose -f integration-tests/docker-compose.test.yml down -v
+        continue-on-error: true
+
+  # ========================================
+  # Docker Build & Push (main branch only)
+  # ========================================
   build-and-push-docker:
     name: Build and Push Docker Images
-    needs: build-and-test  # 테스트 통과 후에만 실행
+    needs: [backend, frontend]  # 테스트 통과 후에만 실행
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # main 브랜치 push 시만
 

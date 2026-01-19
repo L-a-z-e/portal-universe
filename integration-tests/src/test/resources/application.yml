@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: integration-tests
+
+  # JPA Configuration (overridden by Testcontainers)
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  # Kafka Configuration (overridden by Testcontainers)
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  # Disable Flyway for tests
+  flyway:
+    enabled: false
+
+# Test Configuration
+test:
+  gateway:
+    url: ${TEST_GATEWAY_URL:http://localhost:8080}
+  auth-service:
+    url: ${TEST_AUTH_SERVICE_URL:http://localhost:8081}
+  shopping-service:
+    url: ${TEST_SHOPPING_SERVICE_URL:http://localhost:8083}
+  notification-service:
+    url: ${TEST_NOTIFICATION_SERVICE_URL:http://localhost:8084}
+
+# Logging
+logging:
+  level:
+    root: WARN
+    com.portal.universe.integration: INFO
+    org.testcontainers: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN

@@ -28,6 +28,49 @@ services:
     networks:
       - portal-universe-net
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - portal-universe-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - portal-universe-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'green\\|yellow'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+
   kafka:
     image: apache/kafka:4.1.0
     container_name: kafka
@@ -172,6 +215,10 @@ services:
         condition: service_started
       kafka:
         condition: service_started
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     networks:
       - portal-universe-net
 
@@ -195,6 +242,10 @@ services:
       api-gateway:
         condition: service_healthy
       kafka:
+        condition: service_started
+      mysql-db:
+        condition: service_started
+      redis:
         condition: service_started
     networks:
       - portal-universe-net
@@ -231,12 +282,16 @@ services:
     networks:
       - portal-universe-net
 
+  # ========================================
+  # Monitoring Stack
+  # ========================================
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./monitoring/prometheus-data:/prometheus
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules
+      - prometheus-data:/prometheus
     ports:
       - "9090:9090"
     networks:
@@ -246,6 +301,23 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./monitoring/alertmanager/templates:/etc/alertmanager/templates
+      - alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - portal-universe-net
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana-oss:latest
@@ -257,7 +329,7 @@ services:
       - GF_SERVER_ROOT_URL=http://localhost:3000
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
-      - ./monitoring/grafana-data:/var/lib/grafana
+      - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     ports:
       - "3000:3000"
@@ -265,6 +337,34 @@ services:
       - portal-universe-net
     depends_on:
       - prometheus
+      - loki
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - portal-universe-net
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - portal-universe-net
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    restart: unless-stopped
 
   zipkin:
     image: openzipkin/zipkin:latest
@@ -304,5 +404,12 @@ services:
 volumes:
   mysql-data:
   mongo-data:
+  redis-data:
+  es-data:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:
+  loki-data:
+
 networks:
   portal-universe-net:

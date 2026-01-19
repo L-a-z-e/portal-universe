@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { ShoppingRouter } from '@/router'
+import { useAuthStore } from '@/stores/authStore'
 import './styles/index.scss'
 
 /**
@@ -29,6 +30,9 @@ interface AppProps {
  * - data-service="shopping" CSS 활성화
  * - data-theme 속성으로 테마 동기화
  * - Portal Shell의 themeStore와 연동 (Embedded 모드)
+ *
+ * Note: React Query는 Module Federation 호환성 문제로 제거됨
+ * - useState + useEffect 패턴으로 API 호출 처리
  */
 function App({
                theme = 'light',
@@ -92,9 +96,17 @@ function App({
 
     if (isEmbedded) {
       // ============================================
-      // Embedded 모드: Portal Shell의 themeStore 연동
+      // Embedded 모드: Portal Shell의 themeStore & authStore 연동
       // ============================================
       console.log('[Shopping] Embedded mode detected - connecting to Portal Shell...')
+
+      // ✅ Step 3: Portal Shell의 authStore 동기화 (중요!)
+      const authStore = useAuthStore.getState()
+      authStore.syncFromPortal().then(() => {
+        console.log('[Shopping] Portal Shell authStore synced')
+      }).catch((err) => {
+        console.warn('[Shopping] Failed to sync authStore:', err)
+      })
 
       /**
        * Portal Shell의 themeStore 동적 import
@@ -106,7 +118,7 @@ function App({
             const store = useThemeStore()
             setThemeStore(store)
 
-            // ✅ Step 3: 초기 다크모드 적용
+            // ✅ Step 4: 초기 다크모드 적용
             if (store.isDark) {
               document.documentElement.classList.add('dark')
             } else {
@@ -180,89 +192,84 @@ function App({
   // ============================================
 
   return (
-    <>
-      {/* ✅ data-service="shopping" 자동으로 설정됨 (JS에서) */}
-      {/* ✅ data-theme 속성도 JS에서 자동 설정됨 */}
-
-      <div className="min-h-screen bg-bg-page">
-        {/* Header (Standalone 모드에서만 표시) */}
-        {!isEmbedded && (
-          <header className="bg-bg-card border-b border-border-default sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                {/* Logo */}
-                <div className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg">
-                    <span className="text-white font-bold text-lg">S</span>
-                  </div>
-                  <span className="text-xl font-bold text-text-heading">Shopping</span>
+    <div className="min-h-screen bg-bg-page">
+      {/* Header (Standalone 모드에서만 표시) */}
+      {!isEmbedded && (
+        <header className="bg-bg-card border-b border-border-default sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              {/* Logo */}
+              <div className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-lg">S</span>
                 </div>
+                <span className="text-xl font-bold text-text-heading">Shopping</span>
+              </div>
 
-                {/* Nav */}
-                <nav className="flex items-center gap-6">
-                  <a
-                    href="/"
-                    className="text-text-body hover:text-brand-primary font-medium transition-colors"
-                  >
-                    🛍️ Products
-                  </a>
-                  <a
-                    href="/cart"
-                    className="text-text-body hover:text-brand-primary font-medium transition-colors"
-                  >
-                    🛒 Cart
-                  </a>
-                  <a
-                    href="/orders"
-                    className="text-text-body hover:text-brand-primary font-medium transition-colors"
-                  >
-                    📦 Orders
-                  </a>
-                </nav>
+              {/* Nav */}
+              <nav className="flex items-center gap-6">
+                <a
+                  href="/"
+                  className="text-text-body hover:text-brand-primary font-medium transition-colors"
+                >
+                  🛍️ Products
+                </a>
+                <a
+                  href="/cart"
+                  className="text-text-body hover:text-brand-primary font-medium transition-colors"
+                >
+                  🛒 Cart
+                </a>
+                <a
+                  href="/orders"
+                  className="text-text-body hover:text-brand-primary font-medium transition-colors"
+                >
+                  📦 Orders
+                </a>
+              </nav>
 
-                {/* Mode Badge (Standalone) */}
-                <div className="px-3 py-1 bg-status-success-bg text-status-success text-sm font-medium rounded-full border border-status-success/20">
-                  📦 Standalone
-                </div>
+              {/* Mode Badge (Standalone) */}
+              <div className="px-3 py-1 bg-status-success-bg text-status-success text-sm font-medium rounded-full border border-status-success/20">
+                📦 Standalone
               </div>
             </div>
-          </header>
-        )}
-
-        {/* Embedded Mode Badge */}
-        {isEmbedded && (
-          <div className="bg-status-warning-bg border-b border-status-warning/20">
-            <div className="max-w-7xl mx-auto px-4 py-2">
-              <p className="text-xs text-status-warning font-medium">
-                🔗 Embedded Mode (Portal Shell)
-              </p>
-            </div>
           </div>
-        )}
+        </header>
+      )}
 
-        {/* Main Content */}
-        <main className={isEmbedded ? 'py-4' : 'py-8'}>
-          <div className="max-w-7xl mx-auto px-6">
-            <ShoppingRouter
-              isEmbedded={isEmbedded}
-              initialPath={initialPath}
-              onNavigate={onNavigate}
-            />
+      {/* Embedded Mode Badge */}
+      {isEmbedded && (
+        <div className="bg-status-warning-bg border-b border-status-warning/20">
+          <div className="max-w-7xl mx-auto px-4 py-2">
+            <p className="text-xs text-status-warning font-medium">
+              🔗 Embedded Mode (Portal Shell)
+            </p>
           </div>
-        </main>
+        </div>
+      )}
 
-        {/* Footer (Standalone 모드에서만) */}
-        {!isEmbedded && (
-          <footer className="bg-bg-card border-t border-border-default mt-auto">
-            <div className="max-w-7xl mx-auto px-4 py-6 text-center">
-              <p className="text-sm text-text-meta">
-                © 2025 Portal Universe Shopping. All rights reserved.
-              </p>
-            </div>
-          </footer>
-        )}
-      </div>
-    </>
+      {/* Main Content */}
+      <main className={isEmbedded ? 'py-4' : 'py-8'}>
+        <div className="max-w-7xl mx-auto px-6">
+          <ShoppingRouter
+            isEmbedded={isEmbedded}
+            initialPath={initialPath}
+            onNavigate={onNavigate}
+          />
+        </div>
+      </main>
+
+      {/* Footer (Standalone 모드에서만) */}
+      {!isEmbedded && (
+        <footer className="bg-bg-card border-t border-border-default mt-auto">
+          <div className="max-w-7xl mx-auto px-4 py-6 text-center">
+            <p className="text-sm text-text-meta">
+              © 2025 Portal Universe Shopping. All rights reserved.
+            </p>
+          </div>
+        </footer>
+      )}
+    </div>
   )
 }
 

@@ -1,14 +1,20 @@
 {
   "name": "e2e-tests",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "E2E tests for Portal Universe using Playwright",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:shopping": "playwright test tests/shopping/",
+    "test:auth": "playwright test tests/auth.setup.ts",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen http://localhost:30000"
   },
-  "keywords": [],
+  "keywords": ["e2e", "playwright", "testing"],
   "author": "",
   "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@playwright/test": "^1.56.0",
     "playwright": "^1.56.0"

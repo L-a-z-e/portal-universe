@@ -1,0 +1,40 @@
+package com.portal.universe.notificationservice.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.notificationservice.dto.NotificationResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class NotificationRedisSubscriber {
+
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper redisObjectMapper;
+
+    public void onMessage(String message, String pattern) {
+        try {
+            // Extract userId from channel (notification:{userId})
+            String channel = pattern;
+            if (channel.startsWith("notification:")) {
+                String userId = channel.substring("notification:".length());
+
+                NotificationResponse notification = redisObjectMapper.readValue(message, NotificationResponse.class);
+
+                // Send to user-specific WebSocket queue
+                messagingTemplate.convertAndSendToUser(
+                        userId,
+                        "/queue/notifications",
+                        notification
+                );
+
+                log.debug("Pushed notification to user {} via WebSocket", userId);
+            }
+        } catch (Exception e) {
+            log.error("Failed to process Redis notification message", e);
+        }
+    }
+}

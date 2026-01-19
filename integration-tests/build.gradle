@@ -1,0 +1,165 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.portal.universe'
+version = '0.0.1-SNAPSHOT'
+description = 'Portal Universe Integration Tests'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    set('springCloudVersion', "2025.0.0")
+    set('testcontainersVersion', "1.19.8")
+}
+
+// Disable bootJar task since this is a test-only module
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+dependencies {
+    // =======================================
+    // Spring Boot Core (for test context)
+    // =======================================
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient for API calls
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // =======================================
+    // Messaging
+    // =======================================
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket' // STOMP WebSocket
+
+    // =======================================
+    // Database
+    // =======================================
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // =======================================
+    // Development Tools
+    // =======================================
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // =======================================
+    // Testing Core
+    // =======================================
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'io.projectreactor:reactor-test' // WebClient testing
+
+    // =======================================
+    // Testcontainers
+    // =======================================
+    testImplementation platform("org.testcontainers:testcontainers-bom:${testcontainersVersion}")
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+    testImplementation 'org.testcontainers:kafka'
+    testImplementation 'org.testcontainers:elasticsearch'
+    testImplementation 'com.redis:testcontainers-redis:2.2.2'
+
+    // =======================================
+    // Assertions & Utilities
+    // =======================================
+    testImplementation 'org.awaitility:awaitility:4.2.1' // Async testing
+    testImplementation 'io.rest-assured:rest-assured:5.4.0' // REST API testing
+    testImplementation 'com.jayway.jsonpath:json-path:2.9.0' // JSON assertions
+
+    // =======================================
+    // JWT for auth testing
+    // =======================================
+    testImplementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    testRuntimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    testRuntimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+test {
+    useJUnitPlatform()
+
+    // Increase test timeout for integration tests
+    systemProperty 'junit.jupiter.execution.timeout.default', '5m'
+
+    // Configure parallel test execution
+    systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
+    systemProperty 'junit.jupiter.execution.parallel.mode.default', 'same_thread'
+    systemProperty 'junit.jupiter.execution.parallel.mode.classes.default', 'concurrent'
+
+    // Test logging
+    testLogging {
+        events "passed", "skipped", "failed"
+        showExceptions true
+        showCauses true
+        showStackTraces true
+        exceptionFormat "full"
+    }
+
+    // JVM args for containers
+    jvmArgs '-Xmx1g'
+
+    // Environment variables for tests
+    environment 'TESTCONTAINERS_REUSE_ENABLE', 'true'
+}
+
+// Create a task for running only flow tests
+tasks.register('flowTests', Test) {
+    group = 'verification'
+    description = 'Run business flow integration tests'
+    useJUnitPlatform {
+        includeTags 'flow'
+    }
+}
+
+// Create a task for running only concurrency tests
+tasks.register('concurrencyTests', Test) {
+    group = 'verification'
+    description = 'Run concurrency stress tests'
+    useJUnitPlatform {
+        includeTags 'concurrency'
+    }
+    // Sequential execution for concurrency tests
+    maxParallelForks = 1
+}
+
+// Create a task for running messaging tests
+tasks.register('messagingTests', Test) {
+    group = 'verification'
+    description = 'Run Kafka messaging tests'
+    useJUnitPlatform {
+        includeTags 'messaging'
+    }
+}
