@@ -10,8 +10,8 @@
 
 ```bash
 # 1. 로컬 개발용 환경 변수 설정
-cp .env.example .env
-vi .env  # 또는 원하는 에디터로 편집
+cp .env.local.example .env.local
+vi .env.local  # 또는 원하는 에디터로 편집
 
 # 2. Docker Compose용 환경 변수 설정
 cp .env.docker.example .env.docker
@@ -22,19 +22,19 @@ cp k8s/base/secret.yaml.example k8s/base/secret.yaml
 vi k8s/base/secret.yaml
 ```
 
-> **⚠️ 중요**: 생성한 `.env`, `.env.docker`, `secret.yaml` 파일은 Git에 커밋되지 않습니다. 이미 `.gitignore`에 등록되어 있습니다.
+> **⚠️ 중요**: 생성한 `.env.local`, `.env.docker`, `secret.yaml` 파일은 Git에 커밋되지 않습니다. 이미 `.gitignore`에 등록되어 있습니다.
 
 ## 환경별 설정
 
 ### 1. 로컬 개발 (IDE/로컬 실행)
 
-**파일**: `.env`
+**파일**: `.env.local`
 
 **용도**: IDE에서 직접 서비스를 실행하거나 로컬 테스트 시 사용
 
 ```bash
-# .env.example을 복사하여 생성
-cp .env.example .env
+# .env.local.example을 복사하여 생성
+cp .env.local.example .env.local
 ```
 
 **Spring Boot 프로필**: `local` (기본값)
@@ -144,7 +144,7 @@ kubectl apply -f k8s/base/secret.yaml
 1. **템플릿 파일 사용**
    ```bash
    # 항상 .example 파일을 복사해서 사용
-   cp .env.example .env
+   cp .env.local.example .env.local
    ```
 
 2. **민감 정보 별도 관리**
@@ -167,7 +167,7 @@ kubectl apply -f k8s/base/secret.yaml
 ### ❌ DON'T
 
 1. **절대 커밋하지 마세요**
-   - `.env`
+   - `.env.local`
    - `.env.docker`
    - `k8s/base/secret.yaml`
    - 민감 정보가 포함된 모든 파일
@@ -201,7 +201,7 @@ chmod +x .git/hooks/pre-commit
 
 ## 설정 예시
 
-### .env (로컬 개발)
+### .env.local (로컬 개발)
 
 ```bash
 # OAuth2 (선택 사항)
@@ -286,12 +286,12 @@ bash: .env: Permission denied
 
 ```bash
 # 읽기 권한 부여
-chmod 600 .env
+chmod 600 .env.local
 chmod 600 .env.docker
 chmod 600 k8s/base/secret.yaml
 
 # 소유권 확인
-ls -l .env
+ls -l .env.local
 ```
 
 ### 3. 템플릿 파일을 찾을 수 없음

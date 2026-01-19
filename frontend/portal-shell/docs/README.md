@@ -92,7 +92,7 @@ npm install
 ### 2. 환경 변수 설정
 
 ```bash
-cp portal-shell/.env.example portal-shell/.env.dev
+cp portal-shell/.env.dev.example portal-shell/.env.dev
 ```
 
 ### 3. 개발 서버 실행

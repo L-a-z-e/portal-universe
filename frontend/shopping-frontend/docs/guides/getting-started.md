@@ -76,10 +76,10 @@ npm install
 
 ```bash
 cd shopping-frontend
-cp .env.example .env.local
+cp .env.dev.example .env.dev
 ```
 
-`.env.local` 파일 내용 확인:
+`.env.dev` 파일 내용 확인:
 ```bash
 # API 엔드포인트
 VITE_API_BASE_URL=http://localhost:8080
@@ -204,8 +204,8 @@ shopping-frontend/
 │   ├── App.tsx           # 앱 루트
 │   ├── bootstrap.tsx     # Module Federation Entry
 │   └── main.tsx          # 앱 진입점
-├── .env.example          # 환경 변수 템플릿
-├── .env.local            # 로컬 환경 변수 (git ignore)
+├── .env.local.example    # 환경 변수 템플릿
+├── .env.dev              # 로컬 환경 변수 (git ignore)
 ├── index.html            # HTML 템플릿
 ├── package.json          # 패키지 매니페스트
 ├── tailwind.config.js    # TailwindCSS 설정
@@ -404,11 +404,11 @@ npm run dev
 
 **해결 방법**:
 ```bash
-# .env.local 파일 존재 확인
-ls -la .env.local
+# .env.dev 파일 존재 확인
+ls -la .env.dev
 
 # VITE_ 접두사 확인
-cat .env.local | grep VITE_
+cat .env.dev | grep VITE_
 
 # 개발 서버 재시작 (환경 변수는 빌드 시 주입됨)
 npm run dev
