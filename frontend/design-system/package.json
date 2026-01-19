@@ -32,6 +32,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.1.1",
     "vue": "^3.5.21"
   },
   "devDependencies": {
@@ -43,7 +44,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^24.8.1",
     "@vitejs/plugin-vue": "^6.0.1",
-    "@vitest/coverage-v8": "^4.0.2",
+    "@vitest/coverage-v8": "^4.0.17",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
     "autoprefixer": "^10.4.20",

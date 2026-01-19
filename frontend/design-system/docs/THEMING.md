@@ -1,1 +1,498 @@
-# 테마 시스템 가이드\n\n## 개요\n\n테마 시스템은 다중 명암 모드와 서비스별 뽀나르게 디자인을 제공합니다.\n\n- **명암 모드**: Light (밝음) / Dark (어두움)\n- **서비스 스타일**: Blog (초록) / Shopping (주황색)\n\n## 아키텍처\n\n### CSS Variables 계층\n\n```\n[data-service=\"blog|shopping\"]     <!-- 서비스 카테고리스 -->\n    ↓\n[data-theme=\"light|dark\"]          <!-- Light/Dark 모드 -->\n    ↓\n:root { --semantic-brand-primary: ... }\n    ↓\nTailwind CSS 클래스: bg-brand-primary, text-heading\n```\n\n## useTheme Composable\n\n### 베스트 API\n\n```typescript\nimport { useTheme } from '@portal/design-system'\nimport type { ServiceType, ThemeMode } from '@portal/design-system'\n\nconst {\n  currentService,      // ref<ServiceType> (...)\n  currentTheme,        // ref<ThemeMode> (...)\n  setService,          // (service: ServiceType) => void\n  setTheme,            // (mode: ThemeMode) => void\n  toggleTheme,         // () => void\n  initTheme            // () => void\n} = useTheme()\n```\n\n### 엘 초기화\n\n```typescript\n// 1. localStorage\n엘서 로완 효과\n// 2. 냉담 시스템 설정 반영 (prefers-color-scheme)\n// 3. 시스템 설정 변경 감지\n엘노 리스너\n\nonMounted(() => {\n  initTheme()\n})\n```\n\n## 명암 모드 구현\n\n### HTML 날림 속성 보내박\n\n```html\n<!-- Light 모드 (기본) -->\n<html data-theme=\"light\">\n  <body>\n    <!-- 쨌 냉각진 영비나 -->\n  </body>\n</html>\n\n<!-- Dark 모드 -->\n<html data-theme=\"dark\" class=\"dark\">\n  <body>\n    <!-- 넣냈 쨌 냉각진 까마단 내비게이션 -->\n  </body>\n</html>\n```\n\n### CSS 변수 오버라이드\n\n```css\n/* Dark 모드 CSS */\n[data-theme=\"dark\"],\n.dark {\n  --semantic-text-heading: var(--base-color-gray-100);  /* #f3f4f6 */\n  --semantic-text-body: var(--base-color-gray-200);     /* #e5e7eb */\n  --semantic-text-meta: var(--base-color-gray-400);     /* #9ca3af */\n  --semantic-bg-page: var(--base-color-gray-900);       /* #111827 */\n  --semantic-bg-card: var(--base-color-gray-800);       /* #1f2937 */\n  --semantic-bg-muted: var(--base-color-gray-700);      /* #374151 */\n  --semantic-border-default: var(--base-color-gray-700);/* #374151 */\n}\n```\n\n### Toggle 예시\n\n```vue\n<script setup>\nimport { useTheme } from '@portal/design-system'\n\nconst { currentTheme, toggleTheme } = useTheme()\n</script>\n\n<template>\n  <button @click=\"toggleTheme\">\n    {{ currentTheme === 'light' ? '🌙 Dark' : '☀️ Light' }}\n  </button>\n</template>\n```\n\n## 서비스별 뽀나르게 디자인 (서비스 스타일)\n\n### Blog 서비스 (초록 강조)\n\n**위치**: `src/styles/themes/blog.css`\n\n```css\n[data-service=\"blog\"] {\n  /* 브랜드 색: 초록 */\n  --semantic-brand-primary: #20C997;\n  --semantic-brand-primaryHover: #12B886;\n  \n  /* Typography 최적화 - 공동 읽기를 위한 넓은 닛 */\n  --font-size-body: 1.125rem;   /* 18px */\n  --line-height-body: 1.75;     /* 넓은 링크 나절 */\n  \n  /* 기본 쌀드 */\n  --content-padding: 2rem;\n}\n\n/* Blog 닭닭 스타일 */\n[data-service=\"blog\"] .prose {\n  @apply max-w-none;\n  font-size: var(--font-size-body);\n  line-height: var(--line-height-body);\n}\n\n[data-service=\"blog\"] .prose h1 {\n  @apply text-3xl font-semibold mt-6 mb-4;\n}\n\n[data-service=\"blog\"] .prose h2 {\n  @apply text-2xl font-semibold mt-6 mb-4;\n}\n\n[data-service=\"blog\"] .prose blockquote {\n  border-left: 4px solid var(--semantic-brand-primary);\n  @apply pl-4 italic text-text-meta;\n}\n```\n\n**다른 디자인**:\n- 브랜드 색: 초록 (#20C997)\n- 더 닮은 닳 닱을 위한 닳 삼춘\n- 코드 블록 닳닳\n\n### Shopping 서비스 (주황색 강조)\n\n**위치**: `src/styles/themes/shopping.css`\n\n```css\n[data-service=\"shopping\"] {\n  /* 브랜드 색: 주황색 */\n  --semantic-brand-primary: #FF922B;\n  --semantic-brand-primaryHover: #FD7E14;\n  \n  /* 더 배근한 구나쿠닦 파동*/\n  --spacing-card: 1.5rem;\n  --shadow-card: 0 4px 12px rgba(255, 146, 43, 0.15);\n}\n\n/* Shopping 닭닭 스타일 */\n[data-service=\"shopping\"] .product-card {\n  box-shadow: var(--shadow-card);\n  @apply rounded-lg overflow-hidden;\n}\n\n[data-service=\"shopping\"] .product-price {\n  color: var(--semantic-brand-primary);\n  @apply text-xl font-bold;\n}\n```\n\n**다른 디자인**:\n- 브랜드 색: 주황색 (#FF922B)\n- 빠른 금액 중으로 역동\n- 곡 곡그린\n\n### Portal 디그닭 (중보록)\n\n**위치**: 닛눈넣\n\n```css\n:root {\n  /* 기본 Mantine Green */\n  --semantic-brand-primary: #20C997;\n  --semantic-brand-primaryHover: #12B886;\n}\n```\n\n## 서비스별 뽀나르게 디자인 달닭 도구몬마른 윤기\n\n### Portal Shell에서 서비스 유효 내 비처\n\n```vue\n<!-- portal-shell/src/App.vue -->\n<script setup>\nimport { useTheme } from '@portal/design-system'\n\nconst { setService } = useTheme()\n\n// 라우트 변경 요청 때 서비스 설정\nwatch(\n  () => route.path,\n  (newPath) => {\n    if (newPath.includes('blog')) {\n      setService('blog')\n    } else if (newPath.includes('shopping')) {\n      setService('shopping')\n    } else {\n      setService('portal')\n    }\n  },\n  { immediate: true }\n)\n</script>\n\n<template>\n  <!-- Blog Module -->\n  <div v-if=\"isOnBlogRoute\" @mounted=\"setService('blog')\">\n    <RemoteBlogApp />\n  </div>\n  \n  <!-- Shopping Module -->\n  <div v-else-if=\"isOnShoppingRoute\" @mounted=\"setService('shopping')\">\n    <RemoteShoppingApp />\n  </div>\n</template>\n```\n\n### Remote Module에서 서비스 뽀나르게 디자인 속법\n\n```vue\n<!-- blog-frontend/src/App.vue -->\n<script setup>\nimport { useTheme } from '@portal/design-system'\n\nonMounted(() => {\n  // Portal Shell에서 서비스를 설정한 경우\n  // 이미 HTML에 data-service 속성이 설정되어 있음\n  // 자동으로 Blog 테마가 적용됨\n  \n  // 하지만 standalone 모드에서는 수동 설정 필요\n  if (import.meta.env.MODE === 'standalone') {\n    const { setService } = useTheme()\n    setService('blog')\n  }\n})\n</script>\n```\n\n## Dark 모드 터원\n\n### 냉담 모드 감지\n\n```bash\n# 냉담 모드 감지\n@media (prefers-color-scheme: dark) {\n  # 냉각진 영비나 용딩나\n}\n```\n\n### Tailwind CSS dark Mode\n\n```javascript\n// tailwind.config.js\ndarkMode: ['class', '[data-theme=\"dark\"]']\n```\n\n**쨌근 삼래**:\n\n```vue\n<div class=\"bg-white dark:bg-gray-900 text-gray-900 dark:text-white\">\n  <!-- Light는 쨌다 냉, Dark는 까마단 달 -->\n</div>\n```\n\n## 모바일 필새 꼮네\n\n- **Responsive**: 모든 디자인은 모바일 척스웨녀\n- **서비스 달닭**: Portal Shell에서 서비스 전황시 디자인도 다른 도\n- **모드 동기화**: 명암 모드 동기화는 localStorage에서 물어간\n\n---\n\n**다음**: [USAGE.md](./USAGE.md)에서 실제 심링 가이드를 들어보세요.\n"}
+# Theming Guide
+
+Design System의 테마 시스템을 이용한 서비스별 커스터마이징 및 다크 모드 관리 가이드입니다.
+
+## 개요
+
+Design System은 다음 테마 기능을 제공합니다:
+
+- **서비스별 테마**: Blog (Green), Shopping (Orange) 등 브랜드 색상 분리
+- **다크 모드 지원**: Light/Dark 테마 자동 전환
+- **동적 테마 전환**: 런타임에 테마 변경 가능
+- **localStorage 지속성**: 사용자 설정 저장 및 복원
+
+## 서비스별 테마
+
+### 기본 개념
+
+동일한 컴포넌트와 토큰 이름을 사용하면서 `data-service` 속성으로 테마를 구분합니다:
+
+```html
+<!-- Blog 서비스 -->
+<div data-service="blog">
+  <button class="bg-brand-primary">버튼</button>
+  <!-- brand-primary → Green (#12B886) -->
+</div>
+
+<!-- Shopping 서비스 -->
+<div data-service="shopping">
+  <button class="bg-brand-primary">버튼</button>
+  <!-- brand-primary → Orange (#FD7E14) -->
+</div>
+```
+
+### Blog 서비스 (Green Theme)
+
+**주색상**: Green-600 (`#12B886`)
+
+```json
+{
+  "brand": {
+    "primary": "#12B886",
+    "primaryHover": "#039D6E",
+    "primaryLight": "#66BB6A",
+    "secondary": "#4CAF50"
+  }
+}
+```
+
+**사용 범위:**
+- 메인 액션 버튼 (발행, 저장)
+- 성공 상태 표시
+- 하이라이트 텍스트
+
+### Shopping 서비스 (Orange Theme)
+
+**주색상**: Orange-600 (`#FD7E14`)
+
+```json
+{
+  "brand": {
+    "primary": "#FD7E14",
+    "primaryHover": "#F76707",
+    "primaryLight": "#FFA726",
+    "secondary": "#FF9800"
+  }
+}
+```
+
+**사용 범위:**
+- 구매 버튼
+- 가격 하이라이트
+- 특가 배지
+
+### Portal 서비스 (Blue Theme)
+
+**주색상**: Blue-600 (`#1976D2`)
+
+```json
+{
+  "brand": {
+    "primary": "#1976D2",
+    "primaryHover": "#1565C0",
+    "primaryLight": "#42A5F5",
+    "secondary": "#2196F3"
+  }
+}
+```
+
+## 다크 모드
+
+### Light/Dark 모드 토큰
+
+모든 Semantic 토큰은 Light/Dark 모드를 지원합니다:
+
+```css
+/* Light Mode (기본) */
+:root {
+  --color-text-body: #212121;
+  --color-bg-page: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+  --color-border-default: #BDBDBD;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --color-text-body: #ECECEC;
+  --color-bg-page: #0F0F0F;
+  --color-bg-card: #1A1A1A;
+  --color-border-default: #424242;
+}
+```
+
+### 자동 감지 및 전환
+
+사용자 시스템 설정에 따른 자동 다크 모드:
+
+```typescript
+import { useTheme } from '@portal/design-system'
+
+const { currentTheme, setTheme, initTheme } = useTheme()
+
+// 컴포넌트 마운트 시
+onMounted(() => {
+  initTheme() // localStorage 또는 시스템 설정에서 복원
+})
+
+// 시스템 다크 모드 변경 감지
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+setTheme(prefersDark ? 'dark' : 'light')
+```
+
+### 다크 모드 토글 구현
+
+```vue
+<template>
+  <button @click="toggleTheme" class="flex items-center gap-2">
+    <span v-if="currentTheme === 'light'">
+      🌙 다크 모드
+    </span>
+    <span v-else>
+      ☀️ 라이트 모드
+    </span>
+  </button>
+</template>
+
+<script setup lang="ts">
+import { useTheme } from '@portal/design-system'
+
+const { currentTheme, toggleTheme } = useTheme()
+</script>
+```
+
+## useTheme Composable
+
+`useTheme` 훅을 통해 테마를 관리합니다.
+
+### API 메서드
+
+| 메서드 | 설명 | 예제 |
+|--------|------|------|
+| `setService(service)` | 서비스 컨텍스트 변경 | `setService('shopping')` |
+| `setTheme(mode)` | Light/Dark 모드 설정 | `setTheme('dark')` |
+| `toggleTheme()` | Light ↔ Dark 전환 | `toggleTheme()` |
+| `initTheme()` | 테마 초기화 (저장된 설정 복원) | `initTheme()` |
+
+### 반응형 상태
+
+| 속성 | 타입 | 설명 |
+|------|------|------|
+| `currentService` | Ref<ServiceType> | 현재 서비스 |
+| `currentTheme` | Ref<ThemeMode> | 현재 테마 모드 |
+
+### 사용 예제
+
+```vue
+<script setup lang="ts">
+import { useTheme } from '@portal/design-system'
+
+const { currentService, currentTheme, setService, setTheme, toggleTheme, initTheme } = useTheme()
+
+// 초기화
+onMounted(() => {
+  initTheme()
+})
+
+// 서비스 변경
+const switchToShopping = () => {
+  setService('shopping')
+}
+
+// 테마 변경
+const switchToDarkMode = () => {
+  setTheme('dark')
+}
+
+// 테마 토글
+const handleThemeToggle = () => {
+  toggleTheme()
+}
+</script>
+
+<template>
+  <div>
+    <p>현재 서비스: {{ currentService }}</p>
+    <p>현재 테마: {{ currentTheme }}</p>
+    
+    <select @change="(e) => setService(e.target.value as any)">
+      <option value="portal">Portal</option>
+      <option value="blog">Blog</option>
+      <option value="shopping">Shopping</option>
+    </select>
+
+    <button @click="toggleTheme">
+      테마 전환
+    </button>
+  </div>
+</template>
+```
+
+## 글로벌 설정
+
+### App.vue에서 테마 초기화
+
+```vue
+<template>
+  <div :data-service="currentService" :data-theme="currentTheme">
+    <RouterView />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useTheme } from '@portal/design-system'
+import { onMounted } from 'vue'
+import { RouterView } from 'vue-router'
+
+const { currentService, currentTheme, initTheme } = useTheme()
+
+onMounted(() => {
+  initTheme()
+})
+</script>
+```
+
+### Tailwind CSS 다크 모드 설정
+
+```javascript
+// tailwind.config.js
+export default {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'brand-primary': 'var(--color-brand-primary)',
+        'text-body': 'var(--color-text-body)',
+        'bg-card': 'var(--color-bg-card)'
+      }
+    }
+  }
+}
+```
+
+## 서비스별 테마 커스터마이징
+
+### Blog 서비스 커스터마이징
+
+```vue
+<template>
+  <!-- Blog 레이아웃 -->
+  <div data-service="blog" :data-theme="currentTheme">
+    <BlogHeader />
+    <!-- 자동으로 Green 테마 적용 -->
+    <Button class="bg-brand-primary">발행하기</Button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useTheme } from '@portal/design-system'
+
+const { currentTheme, setService } = useTheme()
+
+onMounted(() => {
+  setService('blog')
+})
+</script>
+```
+
+### Shopping 서비스 커스터마이징
+
+```vue
+<template>
+  <!-- Shopping 레이아웃 -->
+  <div data-service="shopping" :data-theme="currentTheme">
+    <ShoppingHeader />
+    <!-- 자동으로 Orange 테마 적용 -->
+    <Button class="bg-brand-primary">구매하기</Button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useTheme } from '@portal/design-system'
+
+const { currentTheme, setService } = useTheme()
+
+onMounted(() => {
+  setService('shopping')
+})
+</script>
+```
+
+## 다크 모드 반응형 스타일
+
+### CSS-in-JS
+
+```vue
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useTheme } from '@portal/design-system'
+
+const { currentTheme } = useTheme()
+
+const cardStyle = computed(() => ({
+  backgroundColor: currentTheme.value === 'dark' ? '#1A1A1A' : '#FFFFFF',
+  borderColor: currentTheme.value === 'dark' ? '#424242' : '#BDBDBD'
+}))
+</script>
+
+<template>
+  <div :style="cardStyle">
+    다크 모드 반응형 카드
+  </div>
+</template>
+```
+
+### Tailwind CSS Dark Mode
+
+```vue
+<template>
+  <div class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50">
+    <h2 class="text-2xl font-bold text-text-body">
+      다크 모드 지원 제목
+    </h2>
+    <p class="text-text-body dark:text-slate-300">
+      자동으로 다크 모드 적용됩니다.
+    </p>
+  </div>
+</template>
+```
+
+## 서비스 간 테마 전환
+
+여러 서비스를 동시에 표시할 때 테마 분리:
+
+```vue
+<template>
+  <div class="grid grid-cols-2 gap-4">
+    <!-- Blog 섹션 -->
+    <div data-service="blog" :data-theme="currentTheme">
+      <BlogModule />
+      <!-- Green 테마 자동 적용 -->
+    </div>
+
+    <!-- Shopping 섹션 -->
+    <div data-service="shopping" :data-theme="currentTheme">
+      <ShoppingModule />
+      <!-- Orange 테마 자동 적용 -->
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useTheme } from '@portal/design-system'
+
+const { currentTheme } = useTheme()
+</script>
+```
+
+## 테마 저장소 (localStorage)
+
+### 자동 저장
+
+사용자가 테마를 변경하면 자동으로 localStorage에 저장됩니다:
+
+```typescript
+// setTheme 호출 시 자동 저장
+localStorage.setItem('portal-theme', 'dark')
+localStorage.setItem('portal-service', 'shopping')
+```
+
+### 수동 로드
+
+```typescript
+const { setTheme, setService } = useTheme()
+
+// 저장된 설정 로드
+const savedTheme = localStorage.getItem('portal-theme')
+const savedService = localStorage.getItem('portal-service')
+
+if (savedTheme) setTheme(savedTheme as ThemeMode)
+if (savedService) setService(savedService as ServiceType)
+```
+
+## 테마 시스템 플로우
+
+```mermaid
+flowchart TD
+    A["App 마운트"] --> B["initTheme() 호출"]
+    B --> C{"localStorage 저장됨?"}
+    C -->|Yes| D["저장된 테마 복원"]
+    C -->|No| E["시스템 설정 확인"]
+    E --> F["prefers-color-scheme 감지"]
+    F --> G["data-theme 속성 설정"]
+    D --> G
+    G --> H["CSS 변수 업데이트"]
+    H --> I["컴포넌트 렌더링"]
+    
+    J["사용자가 테마 변경"] --> K["toggleTheme() 호출"]
+    K --> L["currentTheme 업데이트"]
+    L --> M["document.documentElement 속성 변경"]
+    M --> N["localStorage 저장"]
+    N --> O["CSS 변수 재적용"]
+    O --> I
+```
+
+## 테마 최적화
+
+### CSS 변수 성능
+
+```css
+/* Good: 변수 사용 (성능 최적) */
+.button {
+  background-color: var(--color-brand-primary);
+}
+
+/* Avoid: 직접 색상 지정 (변경 불가능) */
+.button {
+  background-color: #12B886;
+}
+```
+
+### 다크 모드 토글 애니메이션
+
+```css
+/* 전환 애니메이션 */
+:root {
+  transition: background-color 200ms ease-in-out, color 200ms ease-in-out;
+}
+```
+
+## 브라우저 호환성
+
+| 브라우저 | Light Mode | Dark Mode | CSS Variables |
+|----------|-----------|-----------|----------------|
+| Chrome | ✓ | ✓ | ✓ |
+| Firefox | ✓ | ✓ | ✓ |
+| Safari | ✓ | ✓ | ✓ |
+| Edge | ✓ | ✓ | ✓ |
+| IE 11 | ✗ | ✗ | ✗ |
+
+## 타입 정의
+
+```typescript
+export type ServiceType = 'portal' | 'blog' | 'shopping'
+export type ThemeMode = 'light' | 'dark'
+
+export interface ThemeConfig {
+  service: ServiceType
+  mode: ThemeMode
+}
+```
+
+## 문제 해결
+
+### 테마가 적용되지 않음
+
+1. `data-service` 속성 확인
+2. `data-theme` 속성 확인
+3. CSS 로드 여부 확인
+
+```vue
+<!-- 확인: HTML에 올바른 속성이 있는지 -->
+<div data-service="shopping" data-theme="dark">
+  <!-- 콘텐츠 -->
+</div>
+```
+
+### 다크 모드에서 텍스트가 보이지 않음
+
+```css
+/* 다크 모드 텍스트 색상 설정 */
+[data-theme="dark"] {
+  --color-text-body: #ECECEC; /* 밝은 색상 */
+}
+```
+
+## 다음 단계
+
+- [USAGE.md](./USAGE.md) - 통합 가이드
+- [TOKENS.md](./TOKENS.md) - 토큰 상세 정보

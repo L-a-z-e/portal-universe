@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { signup, type SignupRequest } from '@/api/users';
 import { Button, Card, Input } from '@portal/design-system';

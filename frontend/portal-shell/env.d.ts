@@ -18,3 +18,11 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+// Remote 앱과 공유하는 전역 변수
+declare global {
+  interface Window {
+    __PORTAL_ACCESS_TOKEN__?: string
+    __POWERED_BY_PORTAL_SHELL__?: boolean
+  }
+}

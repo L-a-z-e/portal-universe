@@ -1,0 +1,37 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "analysis": {
+      "analyzer": {
+        "korean": {
+          "type": "custom",
+          "tokenizer": "nori_tokenizer",
+          "filter": ["lowercase", "nori_readingform"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": { "type": "long" },
+      "name": {
+        "type": "text",
+        "analyzer": "korean",
+        "fields": {
+          "keyword": { "type": "keyword" },
+          "suggest": {
+            "type": "completion",
+            "analyzer": "korean"
+          }
+        }
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "korean"
+      },
+      "price": { "type": "double" },
+      "stock": { "type": "integer" }
+    }
+  }
+}

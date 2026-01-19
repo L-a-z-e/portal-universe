@@ -27,34 +27,53 @@ public class DataInitializer {
     @Profile({"default", "dev", "docker"}) // 특정 프로필에서만 작동하도록 설정
     public CommandLineRunner initData() {
         return args -> {
-            String testEmail = "test@example.com";
+            // 일반 테스트 유저 생성
+            createTestUser(
+                    "test@example.com",
+                    "password123",
+                    Role.USER,
+                    "테스트유저",
+                    "홍길동"
+            );
 
-            if (userRepository.findByEmail(testEmail).isEmpty()) {
-                log.info("Initializing test data...");
-
-                // 1. 테스트 유저 생성
-                User testUser = new User(
-                        testEmail,
-                        passwordEncoder.encode("password123"),
-                        Role.USER
-                );
-
-                // 2. 프로필 연결
-                UserProfile profile = new UserProfile(
-                        testUser,
-                        "테스트유저",
-                        "홍길동",
-                        true
-                );
-                testUser.setProfile(profile);
-
-                // 3. 저장
-                userRepository.save(testUser);
-
-                log.info("Test user created: email={}, password={}", testEmail, "password123");
-            } else {
-                log.info("Test data already exists. Skipping initialization.");
-            }
+            // Admin 테스트 유저 생성
+            createTestUser(
+                    "admin@example.com",
+                    "admin123",
+                    Role.ADMIN,
+                    "관리자",
+                    "김관리"
+            );
         };
+    }
+
+    /**
+     * 테스트 유저를 생성하는 헬퍼 메서드입니다.
+     * 이미 존재하는 이메일이면 스킵합니다.
+     */
+    private void createTestUser(String email, String password, Role role, String nickname, String realName) {
+        if (userRepository.findByEmail(email).isEmpty()) {
+            log.info("Creating test user: email={}, role={}", email, role);
+
+            User user = new User(
+                    email,
+                    passwordEncoder.encode(password),
+                    role
+            );
+
+            UserProfile profile = new UserProfile(
+                    user,
+                    nickname,
+                    realName,
+                    true
+            );
+            user.setProfile(profile);
+
+            userRepository.save(user);
+
+            log.info("Test user created: email={}, password={}, role={}", email, password, role);
+        } else {
+            log.info("Test user already exists: email={}", email);
+        }
     }
 }

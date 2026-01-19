@@ -1,5 +1,7 @@
 package com.portal.universe.shoppingservice.inventory.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.inventory.domain.Inventory;
@@ -9,12 +11,16 @@ import com.portal.universe.shoppingservice.inventory.dto.InventoryResponse;
 import com.portal.universe.shoppingservice.inventory.dto.StockMovementResponse;
 import com.portal.universe.shoppingservice.inventory.repository.InventoryRepository;
 import com.portal.universe.shoppingservice.inventory.repository.StockMovementRepository;
+import com.portal.universe.shoppingservice.inventory.stream.InventoryUpdate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +40,8 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     public InventoryResponse getInventory(Long productId) {
@@ -83,6 +91,8 @@ public class InventoryServiceImpl implements InventoryService {
                 previousReserved, savedInventory.getReservedQuantity(),
                 referenceType, referenceId, "Stock reserved for order", userId);
 
+        publishInventoryUpdate(savedInventory);
+
         log.info("Reserved {} units for product {} (ref: {})", quantity, productId, referenceId);
         return InventoryResponse.from(savedInventory);
     }
@@ -121,6 +131,9 @@ public class InventoryServiceImpl implements InventoryService {
 
         inventoryRepository.saveAll(inventories);
 
+        // Publish updates for all inventories
+        inventories.forEach(this::publishInventoryUpdate);
+
         log.info("Batch reserved stock for {} products (ref: {})", productIds.size(), referenceId);
         return responses;
     }
@@ -142,6 +155,8 @@ public class InventoryServiceImpl implements InventoryService {
                 previousAvailable, savedInventory.getAvailableQuantity(),
                 previousReserved, savedInventory.getReservedQuantity(),
                 referenceType, referenceId, "Stock deducted after payment", userId);
+
+        publishInventoryUpdate(savedInventory);
 
         log.info("Deducted {} units from product {} (ref: {})", quantity, productId, referenceId);
         return InventoryResponse.from(savedInventory);
@@ -178,6 +193,9 @@ public class InventoryServiceImpl implements InventoryService {
 
         inventoryRepository.saveAll(inventories);
 
+        // Publish updates for all inventories
+        inventories.forEach(this::publishInventoryUpdate);
+
         log.info("Batch deducted stock for {} products (ref: {})", productIds.size(), referenceId);
         return responses;
     }
@@ -199,6 +217,8 @@ public class InventoryServiceImpl implements InventoryService {
                 previousAvailable, savedInventory.getAvailableQuantity(),
                 previousReserved, savedInventory.getReservedQuantity(),
                 referenceType, referenceId, "Stock released due to cancellation", userId);
+
+        publishInventoryUpdate(savedInventory);
 
         log.info("Released {} units for product {} (ref: {})", quantity, productId, referenceId);
         return InventoryResponse.from(savedInventory);
@@ -235,6 +255,9 @@ public class InventoryServiceImpl implements InventoryService {
 
         inventoryRepository.saveAll(inventories);
 
+        // Publish updates for all inventories
+        inventories.forEach(this::publishInventoryUpdate);
+
         log.info("Batch released stock for {} products (ref: {})", productIds.size(), referenceId);
         return responses;
     }
@@ -256,6 +279,8 @@ public class InventoryServiceImpl implements InventoryService {
                 previousAvailable, savedInventory.getAvailableQuantity(),
                 previousReserved, savedInventory.getReservedQuantity(),
                 "ADMIN", userId, reason, userId);
+
+        publishInventoryUpdate(savedInventory);
 
         log.info("Added {} units to product {} by admin {}", quantity, productId, userId);
         return InventoryResponse.from(savedInventory);
@@ -290,5 +315,27 @@ public class InventoryServiceImpl implements InventoryService {
                 .build();
 
         stockMovementRepository.save(movement);
+    }
+
+    /**
+     * 재고 변동을 Redis Pub/Sub으로 발행합니다.
+     */
+    private void publishInventoryUpdate(Inventory inventory) {
+        InventoryUpdate update = InventoryUpdate.builder()
+                .productId(inventory.getProductId())
+                .available(inventory.getAvailableQuantity())
+                .reserved(inventory.getReservedQuantity())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        String channel = "inventory:" + inventory.getProductId();
+        try {
+            String jsonPayload = objectMapper.writeValueAsString(update);
+            redisTemplate.convertAndSend(channel, jsonPayload);
+            log.debug("Published inventory update for product {}: available={}, reserved={}",
+                    inventory.getProductId(), update.getAvailable(), update.getReserved());
+        } catch (JsonProcessingException e) {
+            log.error("Failed to publish inventory update for product {}", inventory.getProductId(), e);
+        }
     }
 }

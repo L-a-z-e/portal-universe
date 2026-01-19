@@ -65,54 +65,61 @@ onUnmounted(() => {
 <template>
   <Teleport to="body">
     <Transition
-        enter-active-class="transition-opacity duration-200"
-        leave-active-class="transition-opacity duration-200"
-        enter-from-class="opacity-0"
-        leave-to-class="opacity-0"
+      enter-active-class="transition-opacity duration-[160ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+      leave-active-class="transition-opacity duration-[100ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
     >
       <div
-          v-if="isOpen"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          @click.self="handleBackdropClick"
+        v-if="isOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        @click.self="handleBackdropClick"
       >
         <Transition
-            enter-active-class="transition-all duration-200"
-            leave-active-class="transition-all duration-200"
-            enter-from-class="opacity-0 scale-95"
-            leave-to-class="opacity-0 scale-95"
+          enter-active-class="transition-all duration-[160ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+          leave-active-class="transition-all duration-[100ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+          enter-from-class="opacity-0 scale-95 translate-y-2"
+          leave-to-class="opacity-0 scale-95 translate-y-2"
         >
           <div
-              v-if="isOpen"
-              :class="[
-              'bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full',
+            v-if="isOpen"
+            :class="[
+              'bg-bg-elevated rounded-xl shadow-2xl w-full',
+              'border border-border-default',
               sizeClasses[size]
             ]"
-              @click.stop
+            @click.stop
           >
             <!-- Header -->
-            <div v-if="title || showClose" class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 v-if="title" class="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <div
+              v-if="title || showClose"
+              class="flex items-center justify-between px-5 py-4 border-b border-border-muted"
+            >
+              <h3 v-if="title" class="text-lg font-semibold text-text-heading">
                 {{ title }}
               </h3>
               <button
-                  v-if="showClose"
-                  @click="close"
-                  class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                  aria-label="Close"
+                v-if="showClose"
+                @click="close"
+                class="p-1.5 hover:bg-bg-hover rounded-md transition-colors duration-[100ms] text-text-muted hover:text-text-body"
+                aria-label="Close"
               >
-                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
             <!-- Body -->
-            <div class="px-6 py-6">
+            <div class="px-5 py-5">
               <slot />
             </div>
 
             <!-- Footer (optional) -->
-            <div v-if="$slots.footer" class="px-6 py-4 bg-gray-50 dark:bg-gray-900 rounded-b-xl border-t border-gray-200 dark:border-gray-700">
+            <div
+              v-if="$slots.footer"
+              class="px-5 py-4 bg-bg-muted rounded-b-xl border-t border-border-muted"
+            >
               <slot name="footer" />
             </div>
           </div>

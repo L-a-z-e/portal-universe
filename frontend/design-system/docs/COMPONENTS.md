@@ -1,1 +1,732 @@
-# 컴포넌트 카탈로그\n\n## 개요\n\nPortal Universe Design System은 **21개의 재사용 가능한 Vue 3 컴포넌트**를 제공합니다. 모든 컴포넌트는 TypeScript 지원, Storybook 문서, 단위 테스트를 동반합니다.\n\n## 빠른 사용\n\n```typescript\n// import\nimport { Button, Input, Modal } from '@portal/design-system'\nimport type { ButtonProps } from '@portal/design-system'\n\n// 사용\n<Button variant=\"primary\" size=\"md\" @click=\"handleClick\">\n  Click me\n</Button>\n```\n\n## 컴포넌트 분류\n\n### 1. 입력 컴포넌트 (8개)\n\n#### Button\n\n쨌만한 단추 버튼\n\n```typescript\ninterface ButtonProps {\n  variant?: 'primary' | 'secondary' | 'outline'  // 빅인 스타일\n  size?: 'sm' | 'md' | 'lg'                      // 크기\n  disabled?: boolean                             // 비활성 상태\n}\n```\n\n**사용 예시**:\n\n```vue\n<Button variant=\"primary\" size=\"md\" @click=\"submit\">\n  사용자 추가\n</Button>\n\n<Button variant=\"secondary\" disabled>\n  비활성 버튼\n</Button>\n\n<Button variant=\"outline\">\n  외곽 버튼\n</Button>\n```\n\n#### Input\n\n단일 중 텍스트 입력\n\n```typescript\ninterface InputProps {\n  modelValue?: string           // v-model\n  type?: 'text' | 'password' | 'email' | 'number'  // 입력 타입\n  placeholder?: string           // 짐닉 텍스트\n  disabled?: boolean             // 비활성\n  readonly?: boolean             // 읽기 전용\n  required?: boolean             // 필수 입력\n  error?: boolean                # 오류 상태\n}\n```\n\n**사용 예시**:\n\n```vue\n<script setup>\nimport { ref } from 'vue'\nconst email = ref('')\n</script>\n\n<template>\n  <Input\n    v-model=\"email\"\n    type=\"email\"\n    placeholder=\"your@email.com\"\n    required\n  />\n</template>\n```\n\n#### Textarea\n\n여러 줄 텍스트 입력\n\n```vue\n<Textarea\n  v-model=\"message\"\n  placeholder=\"비담을 적어주세요\"\n  rows=\"5\"\n/>\n```\n\n#### Select\n\n드롭다운 선택\n\n```vue\n<Select\n  v-model=\"selectedOption\"\n  :options=\"[\n    { label: '선택지 1', value: '1' },\n    { label: '선택지 2', value: '2' }\n  ]\"\n/>\n```\n\n#### Checkbox\n\n단중 첵박스\n\n```vue\n<Checkbox\n  v-model=\"agree\"\n  label=\"서비스 이용약관에 동의합니다\"\n/>\n```\n\n#### Radio\n\n단일 선택 라디오 버튼\n\n```vue\n<Radio\n  v-model=\"selectedRole\"\n  :options=\"[\n    { label: '사용자', value: 'user' },\n    { label: '관리자', value: 'admin' }\n  ]\"\n/>\n```\n\n#### Switch\n\n토글 스위치\n\n```vue\n<Switch\n  v-model=\"isDarkMode\"\n  @update:modelValue=\"toggleTheme\"\n/>\n```\n\n#### SearchBar\n\n검색 입력 이래가\n\n```vue\n<SearchBar\n  v-model=\"query\"\n  placeholder=\"검색을 검색...\"\n  @search=\"handleSearch\"\n  @clear=\"handleClear\"\n/>\n```\n\n### 2. 피드백 컴포넌트 (7개)\n\n#### Modal\n\n모달 대화상자\n\n```vue\n<script setup>\nimport { ref } from 'vue'\nconst isOpen = ref(false)\n</script>\n\n<template>\n  <Modal v-model:open=\"isOpen\" title=\"닫기\">\n    <p>모달 내용입니다</p>\n    \n    <template #footer>\n      <Button variant=\"secondary\" @click=\"isOpen = false\">\n        취소\n      </Button>\n      <Button @click=\"handleConfirm\">\n        확인\n      </Button>\n    </template>\n  </Modal>\n  \n  <Button @click=\"isOpen = true\">\n    모달 열기\n  </Button>\n</template>\n```\n\n#### Toast\n\n알림 메시지 똥\n\n```typescript\n// composable 사용\nimport { useToast } from '@portal/design-system'\n\nconst { add } = useToast()\n\nadd({\n  type: 'success',\n  message: '저장되었습니다!',\n  duration: 3000\n})\n```\n\n#### Badge\n\n라벨 배지\n\n```vue\n<Badge variant=\"success\">✓ 완료</Badge>\n<Badge variant=\"error\">✕ 오류</Badge>\n<Badge variant=\"warning\">⚠ 경고</Badge>\n<Badge variant=\"info\">ℹ 정보</Badge>\n```\n\n#### Tag\n\n태그 라벨\n\n```vue\n<Tag closeable @close=\"removeTag\">\n  #디자인시스템\n</Tag>\n```\n\n#### Alert\n\n알림 메시지 뛰거\n\n```vue\n<Alert type=\"info\">\n  중요한 정보: 먼저 처럼 닣 읽어주세요.\n</Alert>\n\n<Alert type=\"error\" closeable>\n  오류가 발생했습니다. 다시 시도해주세요.\n</Alert>\n```\n\n#### Spinner\n\n로드 스피너\n\n```vue\n<Spinner size=\"md\" />\n<Spinner size=\"lg\" color=\"brand-primary\" />\n```\n\n#### Skeleton\n\n스켈레톤 로드\n\n```vue\n<!-- 단일 줄 스켈레톤 -->\n<Skeleton width=\"200px\" height=\"20px\" />\n\n<!-- 문단 스켈레톤 -->\n<Skeleton count=\"3\" height=\"16px\" />\n```\n\n### 3. 레이아웃 컴포넌트 (6개)\n\n#### Card\n\n카드 덮\n\n```vue\n<Card>\n  <div class=\"p-6\">\n    <h3 class=\"text-heading font-semibold mb-2\">카드 제목</h3>\n    <p class=\"text-body\">카드 내용이 들어갑니다.</p>\n  </div>\n</Card>\n```\n\n#### Container\n\n페이지 카모\n\n```vue\n<Container>\n  <div class=\"py-8\">\n    <h1>닦닦상을 페이지</h1>\n    <p>카모 내 내용</p>\n  </div>\n</Container>\n```\n\n#### Stack\n\n남떨놈 레이아웃\n\n```vue\n<!-- 세로 빈 렬 차기 -->\n<Stack direction=\"vertical\" gap=\"md\">\n  <div>중단 1</div>\n  <div>중단 2</div>\n  <div>중단 3</div>\n</Stack>\n\n<!-- 가로 배멤 -->\n<Stack direction=\"horizontal\" gap=\"lg\">\n  <div>머리 1</div>\n  <div>머리 2</div>\n</Stack>\n```\n\n#### Divider\n\n구분선\n\n```vue\n<div>제목</div>\n<Divider />\n<div>내용</div>\n```\n\n#### FormField\n\n펀킴 링크\n\n```vue\n<FormField label=\"닮니지\" required>\n  <Input v-model=\"email\" type=\"email\" />\n</FormField>\n```\n\n#### Breadcrumb\n\n빮뺨이뽕\n\n```vue\n<Breadcrumb\n  :items=\"[\n    { label: '실질단', href: '/' },\n    { label: '룬공심', href: '/rooms' },\n    { label: '룬공심 1' }\n  ]\"\n/>\n```\n\n### 4. 기타 컴포넌트 (4개)\n\n#### Avatar\n\n프로아컬 여미니니\n\n```vue\n<Avatar\n  src=\"https://example.com/avatar.jpg\"\n  alt=\"사용자명\"\n  size=\"lg\"\n/>\n\n<!-- 단제 닫닷닫닷답 -->\n<Avatar name=\"John Doe\" size=\"md\" />\n```\n\n#### Link\n\n히퍼림크\n\n```vue\n<Link href=\"/about\" external>\n  닭닭사 씨이씨\n</Link>\n```\n\n#### Tabs\n\n탭 내비게이션\n\n```vue\n<Tabs :tabs=\"[\n  { label: '결린', content: 'Tab 1 content' },\n  { label: '대기', content: 'Tab 2 content' },\n  { label: '대기 3', content: 'Tab 3 content' }\n]\" />\n```\n\n#### Dropdown\n\n드롭다운 메뉴\n\n```vue\n<Dropdown :items=\"[\n  { label: '수정', onClick: handleEdit },\n  { label: '삭제', onClick: handleDelete, variant: 'danger' }\n]\">\n  <Button>+ 메뉴\n</Dropdown>\n```\n\n## 컴포넌트 Props 가이드\n\n### 대단 Props\n\n**size** (Button, Badge, Avatar, Spinner 등)\n\n```typescript\ntype Size = 'sm' | 'md' | 'lg' | 'xl'\n```\n\n**variant** (Button, Badge, Alert, Tag 등)\n\n```typescript\ntype Variant = 'primary' | 'secondary' | 'outline' | 'danger' | ...\n```\n\n**disabled** (대부분의 입력 컴포넌트)\n\n```typescript\ntype Disabled = boolean\n```\n\n### v-model 지원\n\n대부분의 입력 컴포넌트는 v-model 주중앗 모도 마크를 지원합니다.\n\n```vue\n<Input v-model=\"value\" />       <!-- value 양방 바닝 -->\n<Checkbox v-model=\"isChecked\" /> <!-- 첵급 여부 -->\n<Modal v-model:open=\"isOpen\" />  <!-- 불 여부 -->\n```\n\n## Storybook 차니\n\n모든 컴포넌트는 Storybook에서 대상작용으로 테스트 가능합니다.\n\n```bash\nnpm run storybook   # http://localhost:6006\n```\n\nStorybook에서 다음을 확인할 수 있습니다:\n- 컴포넌트의 모든 Props 문도\n- 다양한 state 문도 (등)\n- 놀기를 두룬 상호작용 시나리오\n\n## 단위 테스트\n\n대부분의 컴포넌트는 단위 테스트를 동반합니다.\n\n```bash\nnpm test              # Vitest 단위 테스트\nnpm run test:watch    # 감도 모드\nnpm run test:coverage # 커버리지\n```\n\n## 모바일 고려사항\n\n비단, 닫닫 가능한 UI가 싸있습니다.\n\n- **닻브한 스너떻**: 모바일 디바이스에서 연 수 두룬 남양\n- **터치 타결**: 모든 인터랙티브 요소는 옆동을 계다룬 대싸전\n- **키보드 내비게이션**: 내 중심 내리가기 등 디바이스 내 내 사용가능\n\n---\n\n**다음**: [USAGE.md](./USAGE.md)에서 실제 사용 가이드를 일어보세요.\n"}
+# Component Catalog
+
+Design System에서 제공하는 모든 Vue 3 컴포넌트의 카탈로그 및 사용 가이드입니다.
+
+## 목차
+
+- [기본 컴포넌트](#기본-컴포넌트)
+- [입력 컴포넌트](#입력-컴포넌트)
+- [레이아웃 컴포넌트](#레이아웃-컴포넌트)
+- [피드백 컴포넌트](#피드백-컴포넌트)
+- [네비게이션 컴포넌트](#네비게이션-컴포넌트)
+- [Storybook 보기](#storybook-보기)
+
+## 기본 컴포넌트
+
+### Button (버튼)
+
+클릭 가능한 버튼 요소입니다. 다양한 크기, 변형, 상태를 지원합니다.
+
+**Props:**
+- `variant`: 'primary' | 'secondary' | 'danger' | 'ghost' (기본: 'primary')
+- `size`: 'sm' | 'md' | 'lg' (기본: 'md')
+- `disabled`: boolean (기본: false)
+- `loading`: boolean (기본: false)
+- `type`: 'button' | 'submit' | 'reset' (기본: 'button')
+
+**사용 예제:**
+
+```vue
+<template>
+  <!-- Primary 버튼 -->
+  <Button @click="handleClick">
+    클릭하기
+  </Button>
+
+  <!-- Secondary 버튼 -->
+  <Button variant="secondary" size="lg">
+    보조 버튼
+  </Button>
+
+  <!-- 로딩 상태 -->
+  <Button :loading="isLoading">
+    처리 중...
+  </Button>
+
+  <!-- Disabled 상태 -->
+  <Button disabled>
+    비활성화됨
+  </Button>
+
+  <!-- Danger 버튼 -->
+  <Button variant="danger" @click="handleDelete">
+    삭제하기
+  </Button>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Button } from '@portal/design-system'
+
+const isLoading = ref(false)
+
+const handleClick = () => {
+  console.log('Button clicked')
+}
+
+const handleDelete = () => {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    // Delete logic
+  }
+}
+</script>
+```
+
+### Card (카드)
+
+정보를 담는 기본 컨테이너 컴포넌트입니다.
+
+**Slots:**
+- `default`: 카드 본문
+- `header`: 카드 헤더
+- `footer`: 카드 푸터
+
+**사용 예제:**
+
+```vue
+<template>
+  <Card>
+    <CardHeader>
+      <CardTitle>카드 제목</CardTitle>
+      <CardDescription>부제목 또는 설명</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <p>카드 본문 내용입니다.</p>
+    </CardContent>
+    <CardFooter>
+      <Button>확인</Button>
+    </CardFooter>
+  </Card>
+</template>
+
+<script setup lang="ts">
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Button } from '@portal/design-system'
+</script>
+```
+
+### Badge (배지)
+
+라벨, 상태, 카운트 등을 표시하는 작은 요소입니다.
+
+**Props:**
+- `variant`: 'default' | 'primary' | 'secondary' | 'success' | 'destructive' | 'outline' (기본: 'default')
+
+**사용 예제:**
+
+```vue
+<template>
+  <div class="flex gap-2">
+    <Badge>기본</Badge>
+    <Badge variant="primary">Primary</Badge>
+    <Badge variant="success">성공</Badge>
+    <Badge variant="destructive">오류</Badge>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { Badge } from '@portal/design-system'
+</script>
+```
+
+## 입력 컴포넌트
+
+### Input (텍스트 입력)
+
+텍스트 입력 필드입니다.
+
+**Props:**
+- `modelValue`: string
+- `type`: 'text' | 'email' | 'password' | 'number' | 'search' (기본: 'text')
+- `placeholder`: string
+- `disabled`: boolean
+- `readonly`: boolean
+- `error`: boolean
+- `helperText`: string
+
+**이벤트:**
+- `update:modelValue`: 입력값 변경 시 발생
+
+**사용 예제:**
+
+```vue
+<template>
+  <div class="space-y-4">
+    <!-- 기본 입력 -->
+    <Input
+      v-model="email"
+      type="email"
+      placeholder="이메일을 입력하세요"
+    />
+
+    <!-- 에러 상태 -->
+    <Input
+      v-model="username"
+      :error="usernameError"
+      :helper-text="usernameError ? '사용자명은 3자 이상이어야 합니다' : ''"
+    />
+
+    <!-- 비활성화 -->
+    <Input
+      type="text"
+      placeholder="비활성화된 입력"
+      disabled
+    />
+
+    <!-- 읽기 전용 -->
+    <Input
+      :model-value="userId"
+      readonly
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { Input } from '@portal/design-system'
+
+const email = ref('')
+const username = ref('')
+const userId = ref('USER-12345')
+
+const usernameError = computed(() => username.value.length > 0 && username.value.length < 3)
+</script>
+```
+
+### Textarea (여러 줄 입력)
+
+여러 줄 텍스트 입력 필드입니다.
+
+**Props:**
+- `modelValue`: string
+- `placeholder`: string
+- `rows`: number (기본: 4)
+- `disabled`: boolean
+- `readonly`: boolean
+- `error`: boolean
+
+**사용 예제:**
+
+```vue
+<template>
+  <Textarea
+    v-model="description"
+    placeholder="설명을 입력하세요 (최대 500자)"
+    :rows="5"
+  />
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Textarea } from '@portal/design-system'
+
+const description = ref('')
+</script>
+```
+
+### Select (선택 드롭다운)
+
+드롭다운 선택 요소입니다.
+
+**Props:**
+- `modelValue`: string | number
+- `options`: Array<{ label: string; value: string | number }>
+- `placeholder`: string
+- `disabled`: boolean
+- `multiple`: boolean
+
+**사용 예제:**
+
+```vue
+<template>
+  <Select
+    v-model="category"
+    :options="categories"
+    placeholder="카테고리 선택"
+  />
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Select } from '@portal/design-system'
+
+const category = ref('')
+const categories = [
+  { label: '기술', value: 'tech' },
+  { label: '라이프스타일', value: 'lifestyle' },
+  { label: '뉴스', value: 'news' }
+]
+</script>
+```
+
+### Checkbox (체크박스)
+
+선택 가능한 체크박스입니다.
+
+**Props:**
+- `modelValue`: boolean
+- `label`: string
+- `disabled`: boolean
+- `indeterminate`: boolean
+
+**사용 예제:**
+
+```vue
+<template>
+  <div class="space-y-3">
+    <Checkbox
+      v-model="agreeTerms"
+      label="약관에 동의합니다"
+    />
+    <Checkbox
+      v-model="agreeNewsletter"
+      label="뉴스레터 수신에 동의합니다"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Checkbox } from '@portal/design-system'
+
+const agreeTerms = ref(false)
+const agreeNewsletter = ref(false)
+</script>
+```
+
+### Radio (라디오 버튼)
+
+단일 선택 라디오 버튼입니다.
+
+**Props:**
+- `modelValue`: string | number
+- `value`: string | number
+- `label`: string
+- `disabled`: boolean
+
+**사용 예제:**
+
+```vue
+<template>
+  <div class="space-y-3">
+    <Radio
+      v-model="paymentMethod"
+      value="credit_card"
+      label="신용카드"
+    />
+    <Radio
+      v-model="paymentMethod"
+      value="bank_transfer"
+      label="계좌 이체"
+    />
+    <Radio
+      v-model="paymentMethod"
+      value="digital_wallet"
+      label="디지털 지갑"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Radio } from '@portal/design-system'
+
+const paymentMethod = ref('credit_card')
+</script>
+```
+
+### Switch (토글 스위치)
+
+토글 가능한 스위치 컴포넌트입니다.
+
+**Props:**
+- `modelValue`: boolean
+- `label`: string
+- `disabled`: boolean
+
+**사용 예제:**
+
+```vue
+<template>
+  <div class="space-y-3">
+    <Switch
+      v-model="darkMode"
+      label="다크 모드"
+    />
+    <Switch
+      v-model="notifications"
+      label="알림 활성화"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Switch, useTheme } from '@portal/design-system'
+
+const { toggleTheme } = useTheme()
+const darkMode = ref(false)
+const notifications = ref(true)
+
+const toggleDarkMode = (value: boolean) => {
+  darkMode.value = value
+  toggleTheme()
+}
+</script>
+```
+
+## 레이아웃 컴포넌트
+
+### Container (컨테이너)
+
+반응형 콘텐츠 컨테이너입니다.
+
+**Props:**
+- `maxWidth`: 'sm' | 'md' | 'lg' | 'xl' | 'full' (기본: 'lg')
+- `padding`: 'sm' | 'md' | 'lg' (기본: 'md')
+
+**사용 예제:**
+
+```vue
+<template>
+  <Container max-width="lg" padding="md">
+    <h1>페이지 제목</h1>
+    <p>콘텐츠가 최대 너비로 제한됩니다.</p>
+  </Container>
+</template>
+
+<script setup lang="ts">
+import { Container } from '@portal/design-system'
+</script>
+```
+
+### Stack (스택 레이아웃)
+
+유연한 Flexbox 레이아웃 컴포넌트입니다.
+
+**Props:**
+- `direction`: 'row' | 'column' (기본: 'column')
+- `gap`: number | 'sm' | 'md' | 'lg' (기본: 'md')
+- `align`: 'start' | 'center' | 'end' | 'stretch' (기본: 'stretch')
+- `justify`: 'start' | 'center' | 'end' | 'between' | 'around' (기본: 'start')
+
+**사용 예제:**
+
+```vue
+<template>
+  <Stack direction="row" gap="md" justify="between" align="center">
+    <h2>제목</h2>
+    <Button>액션</Button>
+  </Stack>
+
+  <Stack direction="column" gap="lg">
+    <div>첫 번째 아이템</div>
+    <div>두 번째 아이템</div>
+    <div>세 번째 아이템</div>
+  </Stack>
+</template>
+
+<script setup lang="ts">
+import { Stack, Button } from '@portal/design-system'
+</script>
+```
+
+## 피드백 컴포넌트
+
+### Alert (알림)
+
+메시지, 경고, 오류 등을 표시하는 알림 박스입니다.
+
+**Props:**
+- `type`: 'info' | 'success' | 'warning' | 'error' (기본: 'info')
+- `title`: string
+- `closable`: boolean (기본: false)
+
+**Slots:**
+- `default`: 알림 메시지
+
+**사용 예제:**
+
+```vue
+<template>
+  <div class="space-y-4">
+    <Alert type="info" title="정보">
+      이것은 정보 알림입니다.
+    </Alert>
+
+    <Alert type="success" title="성공!" closable>
+      작업이 성공적으로 완료되었습니다.
+    </Alert>
+
+    <Alert type="warning" title="주의" closable>
+      주의해야 할 내용이 있습니다.
+    </Alert>
+
+    <Alert type="error" title="오류 발생" closable>
+      오류가 발생했습니다. 다시 시도해주세요.
+    </Alert>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { Alert } from '@portal/design-system'
+</script>
+```
+
+### Modal (모달)
+
+모달 다이얼로그 컴포넌트입니다.
+
+**Props:**
+- `modelValue`: boolean (v-model)
+- `title`: string
+- `size`: 'sm' | 'md' | 'lg' (기본: 'md')
+- `closable`: boolean (기본: true)
+
+**Slots:**
+- `default`: 모달 본문
+- `footer`: 모달 하단 (버튼 등)
+
+**이벤트:**
+- `update:modelValue`: 모달 상태 변경
+
+**사용 예제:**
+
+```vue
+<template>
+  <div>
+    <Button @click="isModalOpen = true">모달 열기</Button>
+
+    <Modal
+      v-model="isModalOpen"
+      title="확인 다이얼로그"
+      size="md"
+    >
+      <p>정말 진행하시겠습니까?</p>
+
+      <template #footer>
+        <Button variant="secondary" @click="isModalOpen = false">
+          취소
+        </Button>
+        <Button @click="handleConfirm">
+          확인
+        </Button>
+      </template>
+    </Modal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Modal, Button } from '@portal/design-system'
+
+const isModalOpen = ref(false)
+
+const handleConfirm = () => {
+  console.log('Confirmed!')
+  isModalOpen.value = false
+}
+</script>
+```
+
+### Spinner (로딩 표시기)
+
+로딩 상태를 표시하는 회전 스피너입니다.
+
+**Props:**
+- `size`: 'sm' | 'md' | 'lg' (기본: 'md')
+- `color`: 'primary' | 'secondary' | 'white' (기본: 'primary')
+
+**사용 예제:**
+
+```vue
+<template>
+  <div v-if="isLoading" class="flex justify-center items-center h-40">
+    <Spinner size="lg" />
+  </div>
+  <div v-else>
+    <p>콘텐츠가 로드되었습니다.</p>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { Spinner } from '@portal/design-system'
+
+const isLoading = ref(true)
+
+onMounted(() => {
+  setTimeout(() => {
+    isLoading.value = false
+  }, 2000)
+})
+</script>
+```
+
+### Skeleton (스켈레톤)
+
+콘텐츠 로딩 중 표시할 스켈레톤 로더입니다.
+
+**Props:**
+- `width`: string | number (기본: '100%')
+- `height`: string | number
+- `variant`: 'text' | 'rect' | 'circle' (기본: 'text')
+- `count`: number (기본: 1)
+
+**사용 예제:**
+
+```vue
+<template>
+  <div class="space-y-4">
+    <Skeleton height="20" count="3" />
+    <Skeleton variant="rect" height="200" />
+    <Skeleton variant="circle" width="64" height="64" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { Skeleton } from '@portal/design-system'
+</script>
+```
+
+## 네비게이션 컴포넌트
+
+### Breadcrumb (경로 표시)
+
+현재 위치의 계층 구조를 표시합니다.
+
+**Props:**
+- `items`: Array<{ label: string; to?: string; onClick?: () => void }>
+
+**사용 예제:**
+
+```vue
+<template>
+  <Breadcrumb :items="breadcrumbs" />
+</template>
+
+<script setup lang="ts">
+import { Breadcrumb } from '@portal/design-system'
+
+const breadcrumbs = [
+  { label: '홈', to: '/' },
+  { label: '카테고리', to: '/category' },
+  { label: '상품', to: '/category/product/123' }
+]
+</script>
+```
+
+### Tabs (탭)
+
+여러 콘텐츠 섹션을 탭으로 나누어 표시합니다.
+
+**Props:**
+- `modelValue`: string (활성 탭)
+- `tabs`: Array<{ label: string; value: string }>
+
+**이벤트:**
+- `update:modelValue`: 활성 탭 변경
+
+**Slots:**
+- 각 탭 콘텐츠는 slot name으로 지정
+
+**사용 예제:**
+
+```vue
+<template>
+  <Tabs v-model="activeTab" :tabs="tabs">
+    <template #profile>
+      <p>프로필 정보</p>
+    </template>
+    <template #settings>
+      <p>설정</p>
+    </template>
+    <template #notifications>
+      <p>알림</p>
+    </template>
+  </Tabs>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Tabs } from '@portal/design-system'
+
+const activeTab = ref('profile')
+const tabs = [
+  { label: '프로필', value: 'profile' },
+  { label: '설정', value: 'settings' },
+  { label: '알림', value: 'notifications' }
+]
+</script>
+```
+
+### Dropdown (드롭다운 메뉴)
+
+클릭 시 메뉴를 표시하는 드롭다운 컴포넌트입니다.
+
+**Props:**
+- `items`: Array<{ label: string; action?: () => void; divider?: boolean }>
+- `placement`: 'top' | 'bottom' | 'left' | 'right' (기본: 'bottom')
+
+**Slots:**
+- `trigger`: 드롭다운을 열 요소
+
+**사용 예제:**
+
+```vue
+<template>
+  <Dropdown :items="menuItems">
+    <template #trigger="{ toggle }">
+      <Button @click="toggle">메뉴</Button>
+    </template>
+  </Dropdown>
+</template>
+
+<script setup lang="ts">
+import { Dropdown, Button } from '@portal/design-system'
+
+const menuItems = [
+  { label: '편집', action: () => console.log('Edit') },
+  { label: '복사', action: () => console.log('Copy') },
+  { divider: true },
+  { label: '삭제', action: () => console.log('Delete') }
+]
+</script>
+```
+
+## Storybook 보기
+
+모든 컴포넌트를 Storybook에서 시각적으로 확인할 수 있습니다:
+
+```bash
+npm run storybook
+```
+
+Storybook은 `http://localhost:6006`에서 실행됩니다.
+
+각 컴포넌트의:
+- 다양한 상태와 props 조합
+- 상호작용 가능한 컨트롤
+- 코드 예제 및 주석
+- 접근성(Accessibility) 검사
+
+를 확인할 수 있습니다.
+
+## 컴포넌트 import 패턴
+
+### 개별 import
+
+```typescript
+import { Button, Card, Modal } from '@portal/design-system'
+```
+
+### 타입 import
+
+```typescript
+import type { ButtonProps, CardProps } from '@portal/design-system'
+```
+
+## 다음 단계
+
+- [TOKENS.md](./TOKENS.md) - 디자인 토큰 시스템 이해하기
+- [THEMING.md](./THEMING.md) - 테마 커스터마이징
+- [USAGE.md](./USAGE.md) - 통합 가이드

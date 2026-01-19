@@ -25,7 +25,7 @@ import type {
   StockMovement
 } from '@/types'
 
-const API_PREFIX = '/api/v1/shopping'
+const API_PREFIX = '/api/shopping'
 
 // ============================================
 // Product API
@@ -349,6 +349,91 @@ export const stockMovementApi = {
   }
 }
 
+// ============================================
+// Admin Product API
+// ============================================
+
+export const adminProductApi = {
+  /**
+   * Admin 상품 목록 조회 (페이징, 정렬, 필터링)
+   * 공개 API를 재사용 (목록 조회는 권한 불필요)
+   */
+  getProducts: async (params: {
+    page?: number
+    size?: number
+    keyword?: string
+    category?: string
+    status?: string
+    sortBy?: string
+    sortOrder?: 'asc' | 'desc'
+  }) => {
+    const searchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        searchParams.append(key, String(value))
+      }
+    })
+
+    const response = await getApiClient().get<ApiResponse<PagedResponse<Product>>>(
+      `${API_PREFIX}/products?${searchParams}`
+    )
+    return response.data
+  },
+
+  /**
+   * 상품 생성 (ADMIN)
+   */
+  createProduct: async (data: ProductCreateRequest) => {
+    const response = await getApiClient().post<ApiResponse<Product>>(
+      `${API_PREFIX}/admin/products`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 상품 수정 (ADMIN)
+   */
+  updateProduct: async (id: number, data: ProductUpdateRequest) => {
+    const response = await getApiClient().put<ApiResponse<Product>>(
+      `${API_PREFIX}/admin/products/${id}`,
+      data
+    )
+    return response.data
+  },
+
+  /**
+   * 상품 삭제 (ADMIN)
+   */
+  deleteProduct: async (id: number) => {
+    const response = await getApiClient().delete<ApiResponse<void>>(
+      `${API_PREFIX}/admin/products/${id}`
+    )
+    return response.data
+  },
+
+  /**
+   * 상품 상세 조회 (공개 API 재사용)
+   */
+  getProduct: async (id: number) => {
+    const response = await getApiClient().get<ApiResponse<Product>>(
+      `${API_PREFIX}/products/${id}`
+    )
+    return response.data
+  },
+
+  /**
+   * 재고 수정 (ADMIN)
+   */
+  updateStock: async (id: number, stock: number) => {
+    const response = await getApiClient().patch<ApiResponse<Product>>(
+      `${API_PREFIX}/admin/products/${id}/stock`,
+      { stock }
+    )
+    return response.data
+  }
+}
+
 // 통합 export
 export const shoppingApi = {
   product: productApi,
@@ -357,7 +442,8 @@ export const shoppingApi = {
   order: orderApi,
   payment: paymentApi,
   delivery: deliveryApi,
-  stockMovement: stockMovementApi
+  stockMovement: stockMovementApi,
+  admin: adminProductApi
 }
 
 export default shoppingApi

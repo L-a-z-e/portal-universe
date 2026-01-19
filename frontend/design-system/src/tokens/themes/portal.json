@@ -1,0 +1,300 @@
+{
+  "$description": "Portal service theme - Linear-inspired dark-first design with light mode support",
+  "color": {
+    "brand": {
+      "primary": {
+        "$value": "{color.indigo.400}",
+        "$description": "Portal brand primary - Linear indigo",
+        "$type": "color"
+      },
+      "primaryHover": {
+        "$value": "{color.indigo.300}",
+        "$description": "Portal brand primary hover",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "{color.indigo.200}",
+        "$description": "Portal brand secondary",
+        "$type": "color"
+      }
+    },
+    "text": {
+      "heading": {
+        "$value": "{color.linear.50}",
+        "$description": "Portal dark mode heading text",
+        "$type": "color"
+      },
+      "body": {
+        "$value": "{color.linear.300}",
+        "$description": "Portal dark mode body text",
+        "$type": "color"
+      },
+      "meta": {
+        "$value": "{color.linear.400}",
+        "$description": "Portal dark mode meta text",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.linear.500}",
+        "$description": "Portal dark mode muted text",
+        "$type": "color"
+      },
+      "inverse": {
+        "$value": "{color.linear.950}",
+        "$description": "Portal dark mode inverse text",
+        "$type": "color"
+      },
+      "link": {
+        "$value": "{color.indigo.400}",
+        "$description": "Portal dark mode link text",
+        "$type": "color"
+      },
+      "linkHover": {
+        "$value": "{color.indigo.300}",
+        "$description": "Portal dark mode link hover text",
+        "$type": "color"
+      }
+    },
+    "bg": {
+      "page": {
+        "$value": "{color.linear.950}",
+        "$description": "Portal dark mode page background",
+        "$type": "color"
+      },
+      "card": {
+        "$value": "{color.linear.850}",
+        "$description": "Portal dark mode card background",
+        "$type": "color"
+      },
+      "elevated": {
+        "$value": "{color.linear.800}",
+        "$description": "Portal dark mode elevated background",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.linear.900}",
+        "$description": "Portal dark mode muted background",
+        "$type": "color"
+      },
+      "hover": {
+        "$value": "{color.linear.700}",
+        "$description": "Portal dark mode hover background",
+        "$type": "color"
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{color.linear.700}",
+        "$description": "Portal dark mode default border",
+        "$type": "color"
+      },
+      "hover": {
+        "$value": "{color.linear.600}",
+        "$description": "Portal dark mode hover border",
+        "$type": "color"
+      },
+      "focus": {
+        "$value": "{color.indigo.400}",
+        "$description": "Portal dark mode focus border",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.linear.800}",
+        "$description": "Portal dark mode muted border",
+        "$type": "color"
+      }
+    },
+    "status": {
+      "success": {
+        "$value": "{color.green.500}",
+        "$description": "Portal success status",
+        "$type": "color"
+      },
+      "successBg": {
+        "$value": "#0a4034",
+        "$description": "Portal success background",
+        "$type": "color"
+      },
+      "error": {
+        "$value": "{color.red.500}",
+        "$description": "Portal error status",
+        "$type": "color"
+      },
+      "errorBg": {
+        "$value": "#4a1c1c",
+        "$description": "Portal error background",
+        "$type": "color"
+      },
+      "warning": {
+        "$value": "{color.yellow.500}",
+        "$description": "Portal warning status",
+        "$type": "color"
+      },
+      "warningBg": {
+        "$value": "#4a3c0f",
+        "$description": "Portal warning background",
+        "$type": "color"
+      },
+      "info": {
+        "$value": "{color.blue.500}",
+        "$description": "Portal info status",
+        "$type": "color"
+      },
+      "infoBg": {
+        "$value": "#1a3a52",
+        "$description": "Portal info background",
+        "$type": "color"
+      }
+    }
+  },
+  "lightMode": {
+    "$description": "Portal light mode - inverted Linear palette",
+    "color": {
+      "brand": {
+        "primary": {
+          "$value": "{color.indigo.500}",
+          "$description": "Portal light mode brand primary",
+          "$type": "color"
+        },
+        "primaryHover": {
+          "$value": "{color.indigo.600}",
+          "$description": "Portal light mode brand primary hover",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "{color.indigo.400}",
+          "$description": "Portal light mode brand secondary",
+          "$type": "color"
+        }
+      },
+      "text": {
+        "heading": {
+          "$value": "{color.linear.950}",
+          "$description": "Portal light mode heading text",
+          "$type": "color"
+        },
+        "body": {
+          "$value": "{color.linear.600}",
+          "$description": "Portal light mode body text",
+          "$type": "color"
+        },
+        "meta": {
+          "$value": "{color.linear.400}",
+          "$description": "Portal light mode meta text",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "{color.linear.300}",
+          "$description": "Portal light mode muted text",
+          "$type": "color"
+        },
+        "inverse": {
+          "$value": "{color.linear.50}",
+          "$description": "Portal light mode inverse text",
+          "$type": "color"
+        },
+        "link": {
+          "$value": "{color.indigo.500}",
+          "$description": "Portal light mode link text",
+          "$type": "color"
+        },
+        "linkHover": {
+          "$value": "{color.indigo.600}",
+          "$description": "Portal light mode link hover text",
+          "$type": "color"
+        }
+      },
+      "bg": {
+        "page": {
+          "$value": "{color.linear.50}",
+          "$description": "Portal light mode page background",
+          "$type": "color"
+        },
+        "card": {
+          "$value": "{color.neutral.white}",
+          "$description": "Portal light mode card background",
+          "$type": "color"
+        },
+        "elevated": {
+          "$value": "{color.neutral.white}",
+          "$description": "Portal light mode elevated background",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "{color.linear.100}",
+          "$description": "Portal light mode muted background",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{color.linear.100}",
+          "$description": "Portal light mode hover background",
+          "$type": "color"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "{color.linear.200}",
+          "$description": "Portal light mode default border",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{color.linear.300}",
+          "$description": "Portal light mode hover border",
+          "$type": "color"
+        },
+        "focus": {
+          "$value": "{color.indigo.500}",
+          "$description": "Portal light mode focus border",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "{color.linear.100}",
+          "$description": "Portal light mode muted border",
+          "$type": "color"
+        }
+      },
+      "status": {
+        "success": {
+          "$value": "{color.green.600}",
+          "$description": "Portal light mode success status",
+          "$type": "color"
+        },
+        "successBg": {
+          "$value": "{color.green.50}",
+          "$description": "Portal light mode success background",
+          "$type": "color"
+        },
+        "error": {
+          "$value": "{color.red.600}",
+          "$description": "Portal light mode error status",
+          "$type": "color"
+        },
+        "errorBg": {
+          "$value": "{color.red.50}",
+          "$description": "Portal light mode error background",
+          "$type": "color"
+        },
+        "warning": {
+          "$value": "{color.yellow.600}",
+          "$description": "Portal light mode warning status",
+          "$type": "color"
+        },
+        "warningBg": {
+          "$value": "{color.yellow.50}",
+          "$description": "Portal light mode warning background",
+          "$type": "color"
+        },
+        "info": {
+          "$value": "{color.blue.600}",
+          "$description": "Portal light mode info status",
+          "$type": "color"
+        },
+        "infoBg": {
+          "$value": "{color.blue.50}",
+          "$description": "Portal light mode info background",
+          "$type": "color"
+        }
+      }
+    }
+  }
+}

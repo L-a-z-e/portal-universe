@@ -7,27 +7,56 @@ const props = withDefaults(defineProps<CardProps>(), {
   padding: 'md'
 });
 
+// Linear-inspired card styles
 const variantClasses = {
-  elevated: 'bg-white shadow-md hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900/50',
-  outlined: 'bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700',
-  flat: 'bg-gray-50 dark:bg-gray-900'
+  // Elevated: Default card with subtle shadow
+  elevated: [
+    'bg-bg-card',
+    'border border-border-default',
+    'shadow-sm'
+  ].join(' '),
+  // Outlined: Border emphasis
+  outlined: [
+    'bg-transparent',
+    'border border-border-default'
+  ].join(' '),
+  // Flat: No border, subtle background
+  flat: [
+    'bg-bg-muted',
+    'border border-transparent'
+  ].join(' '),
+  // Glass: Glassmorphism effect
+  glass: [
+    'bg-bg-card/50',
+    'backdrop-blur-md',
+    'border border-white/10'
+  ].join(' '),
+  // Interactive: For clickable cards
+  interactive: [
+    'bg-bg-card',
+    'border border-border-default',
+    'hover:border-border-hover hover:bg-bg-hover',
+    'cursor-pointer'
+  ].join(' ')
 };
 
 const paddingClasses = {
   none: '',
-  sm: 'p-4',
-  md: 'p-6',
-  lg: 'p-8'
+  sm: 'p-3',
+  md: 'p-4',
+  lg: 'p-6',
+  xl: 'p-8'
 };
 </script>
 
 <template>
   <div
-      :class="[
-      'rounded-lg transition-all duration-200',
+    :class="[
+      'rounded-xl',
+      'transition-all duration-[160ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]',
       variantClasses[variant],
       paddingClasses[padding],
-      { 'hover:scale-[1.02] cursor-pointer': hoverable }
+      { 'hover:scale-[1.01] hover:shadow-md cursor-pointer': hoverable && variant !== 'interactive' }
     ]"
   >
     <slot />

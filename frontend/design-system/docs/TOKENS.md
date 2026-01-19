@@ -1,481 +1,511 @@
-# Design Tokens 상세 가이드
+# Design Tokens
+
+Portal Universe 디자인 시스템의 토큰 체계를 상세히 설명합니다.
 
 ## 개요
 
-Design Tokens는 디자인 결정을 변수화한 값입니다. Portal Universe Design System은 **3-계층 토큰 구조**를 사용하여 확장 가능하고 유지보수하기 쉬운 디자인 시스템을 구축합니다.
+Design Tokens는 **3-Layer Architecture**로 구성되어 있습니다:
 
-## Base 토큰 (원시 값)
+1. **Base Tokens**: 절대값 (색상, 간격, 타이포그래피 등)
+2. **Semantic Tokens**: 역할 기반 의미 (브랜드 색상, 텍스트 역할 등)
+3. **Component Tokens**: 컴포넌트별 세부 스타일
 
-### 컬러 토큰
+이 계층 구조는 **유지보수성**과 **확장성**을 극대화합니다.
 
-**위치**: `src/tokens/base/colors.json`
+## Layer 1: Base Tokens
 
-#### Brand Colors
+절대값 정의로 모든 디자인의 기초를 이룹니다. 불변입니다.
 
-기본 브랜드 색상 (서비스별 테마에서 오버라이드됨)
+### 색상 (Colors)
 
 ```json
-"color": {
-  "brand": {
-    "primary": "#20C997",        // 기본: Mantine 그린
-    "primaryHover": "#12B886",   // 호버 상태
-    "secondary": "#38D9A9"       // 보조 색상
+{
+  "colors": {
+    "neutral": {
+      "50": "#FAFAFA",
+      "100": "#F5F5F5",
+      "200": "#EEEEEE",
+      "300": "#E0E0E0",
+      "400": "#BDBDBD",
+      "500": "#9E9E9E",
+      "600": "#757575",
+      "700": "#616161",
+      "800": "#424242",
+      "900": "#212121"
+    },
+    "green": {
+      "400": "#66BB6A",
+      "500": "#4CAF50",
+      "600": "#12B886",
+      "700": "#039D6E"
+    },
+    "orange": {
+      "400": "#FFA726",
+      "500": "#FF9800",
+      "600": "#FD7E14",
+      "700": "#F76707"
+    },
+    "red": {
+      "400": "#EF5350",
+      "500": "#F44336",
+      "600": "#E53935",
+      "700": "#C62828"
+    },
+    "blue": {
+      "400": "#42A5F5",
+      "500": "#2196F3",
+      "600": "#1976D2",
+      "700": "#1565C0"
+    }
   }
 }
 ```
 
-#### Neutral Colors
-
-회색 톤의 중립적 색상들 (모든 서비스에서 공통 사용)
+### 간격 (Spacing)
 
 ```json
-"neutral": {
-  "white": "#ffffff",    // 순백
-  "50": "#f9fafb",
-  "100": "#f3f4f6",
-  "200": "#e5e7eb",
-  "300": "#d1d5db",
-  "400": "#9ca3af",
-  "500": "#6b7280",
-  "600": "#4b5563",
-  "700": "#374151",
-  "800": "#1f2937",
-  "900": "#111827",
-  "black": "#000000"     // 순검
+{
+  "spacing": {
+    "0": "0",
+    "1": "0.25rem",
+    "2": "0.5rem",
+    "3": "0.75rem",
+    "4": "1rem",
+    "6": "1.5rem",
+    "8": "2rem",
+    "12": "3rem",
+    "16": "4rem",
+    "20": "5rem",
+    "24": "6rem",
+    "32": "8rem"
+  }
 }
 ```
 
-#### Service-Specific Colors
+### 타이포그래피 (Typography)
 
-각 서비스의 특정 색상 팔레트
+#### 폰트 크기
 
 ```json
-"green": {
-  "$description": "Blog 서비스 시그니처 컬러",
-  "50": "#E6FCF5",
-  "100": "#C3FAE8",
-  "200": "#96F2D7",
-  "300": "#63E6BE",
-  "400": "#38D9A9",
-  "500": "#20C997",     // Blog primary
-  "600": "#12B886",
-  "700": "#0CA678",
-  "800": "#099268",
-  "900": "#087F5B"
-},
-"orange": {
-  "$description": "Shopping 서비스용 따뜻한 색상",
-  "50": "#FFF4E6",
-  "100": "#FFE8CC",
-  "200": "#FFD8A8",
-  "300": "#FFC078",
-  "400": "#FFA94D",
-  "500": "#FF922B",     // Shopping primary
-  "600": "#FD7E14",
-  "700": "#F76707",
-  "800": "#E8590C",
-  "900": "#D9480F"
+{
+  "fontSize": {
+    "xs": "0.75rem",
+    "sm": "0.875rem",
+    "base": "1rem",
+    "lg": "1.125rem",
+    "xl": "1.25rem",
+    "2xl": "1.5rem",
+    "3xl": "1.875rem",
+    "4xl": "2.25rem"
+  }
 }
 ```
 
-#### Status Colors
-
-상태를 나타내는 색상들
+#### 라인 높이
 
 ```json
-"red": {
-  "$description": "오류 및 파괴적 액션",
-  "50": "#FFE3E3",
-  "500": "#FA5252",
-  "600": "#F03E3E",
-  "900": "#C92A2A"
-},
-"blue": {
-  "$description": "정보 및 링크",
-  "50": "#D0EBFF",
-  "500": "#339AF0",
-  "600": "#228BE6",
-  "700": "#1976D2",
-  "900": "#1864AB"
-},
-"yellow": {
-  "$description": "경고 상태",
-  "50": "#FFF9DB",
-  "500": "#FCC419",
-  "600": "#FAB005"
-}
-```
-
-### Typography 토큰
-
-**위치**: `src/tokens/base/typography.json`
-
-```json
-"font": {
-  "family": {
-    "sans": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    "mono": "'Fira Code', 'Courier New', monospace"
-  },
-  "size": {
-    "xs": "0.75rem",   // 12px
-    "sm": "0.875rem",  // 14px
-    "base": "1rem",    // 16px
-    "lg": "1.125rem",  // 18px
-    "xl": "1.25rem",   // 20px
-    "2xl": "1.5rem",   // 24px
-    "3xl": "1.875rem", // 30px
-    "4xl": "2.25rem",  // 36px
-    "5xl": "3rem"      // 48px
-  },
-  "weight": {
-    "light": "300",
-    "normal": "400",
-    "medium": "500",
-    "semibold": "600",
-    "bold": "700"
-  },
+{
   "lineHeight": {
-    "tight": "1.25",      // 제목용
-    "snug": "1.375",
-    "normal": "1.5",      // 기본
+    "tight": "1.25",
+    "normal": "1.5",
     "relaxed": "1.625",
-    "loose": "2"          // 긴 텍스트
+    "loose": "2"
   }
 }
 ```
 
-### Spacing 토큰
-
-**위치**: `src/tokens/base/spacing.json`
+#### 폰트 가중치
 
 ```json
-"spacing": {
-  "xs": "0.5rem",   // 8px
-  "sm": "1rem",     // 16px
-  "md": "1.5rem",   // 24px
-  "lg": "2rem",     // 32px
-  "xl": "3rem",     // 48px
-  "2xl": "4rem"     // 64px
+{
+  "fontWeight": {
+    "light": 300,
+    "normal": 400,
+    "medium": 500,
+    "semibold": 600,
+    "bold": 700
+  }
 }
 ```
 
-**사용 사례**:
-- 마진, 패딩
-- 간격
-- 너비, 높이
-
-### Border 토큰
-
-**위치**: `src/tokens/base/border.json`
+### 그림자 (Shadows)
 
 ```json
-"border": {
-  "radius": {
-    "none": "0",
-    "sm": "0.25rem",    // 4px
-    "default": "0.375rem", // 6px
-    "md": "0.5rem",     // 8px
-    "lg": "0.75rem",    // 12px
-    "xl": "1rem",       // 16px
-    "2xl": "1.5rem",    // 24px
-    "full": "9999px"    // 원형
-  },
-  "width": {
-    "hairline": "0.5px",
-    "thin": "1px",
-    "medium": "2px",
-    "thick": "4px"
-  },
+{
   "shadow": {
-    "sm": "0 1px 2px rgba(0, 0, 0, 0.05)",
-    "md": "0 4px 6px rgba(0, 0, 0, 0.1)",
-    "lg": "0 10px 15px rgba(0, 0, 0, 0.1)",
-    "xl": "0 20px 25px rgba(0, 0, 0, 0.1)"
+    "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    "base": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+    "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
   }
 }
 ```
 
-## Semantic 토큰 (의미 기반)
-
-**위치**: `src/tokens/semantic/colors.json`
-
-Base 토큰을 참조하여 UI 역할 기반 색상을 정의합니다.
-
-### Brand
+### 반지름 (Border Radius)
 
 ```json
-"brand": {
-  "primary": "{color.brand.primary}",
-  "primaryHover": "{color.brand.primaryHover}",
-  "secondary": "{color.brand.secondary}"
-}
-```
-
-**용도**: 브랜드 강조, CTA 버튼, 주요 액센트
-
-### Text Colors
-
-```json
-"text": {
-  "heading": "{color.gray.900}",        // h1-h6
-  "body": "{color.gray.900}",          // p, 본문
-  "meta": "{color.gray.600}",          // 날짜, 태그, 카테고리
-  "muted": "{color.gray.500}",         // 비활성, 비고
-  "inverse": "{color.neutral.white}",  // 다크 배경 위
-  "link": "{color.blue.600}",          // a 요소
-  "linkHover": "{color.blue.700}"      // a:hover
-}
-```
-
-**용도**: 텍스트 색상 일관성
-
-### Background Colors
-
-```json
-"bg": {
-  "page": "{color.gray.50}",       // 전체 페이지 배경
-  "card": "{color.neutral.white}", // 카드, 섹션
-  "elevated": "{color.neutral.white}", // 모달, 드롭다운
-  "muted": "{color.gray.100}",     // 테이블 행, 약한 배경
-  "hover": "{color.gray.50}"       // 인터랙티브 요소 호버
-}
-```
-
-**용도**: 배경색 일관성, 레이어 구분
-
-### Border Colors
-
-```json
-"border": {
-  "default": "{color.gray.200}",
-  "hover": "{color.gray.300}",
-  "focus": "{color.blue.600}",     // 포커스 상태 (brand 대신 blue)
-  "muted": "{color.gray.100}"      // 약한 테두리
-}
-```
-
-**용도**: 경계선, 분할선, 포커스 표시
-
-### Status Colors
-
-```json
-"status": {
-  "success": "{color.green.600}",   // ✓ 성공
-  "successBg": "{color.green.50}",
-  "error": "{color.red.600}",       // ✕ 오류
-  "errorBg": "{color.red.50}",
-  "warning": "{color.yellow.600}",  // ⚠ 경고
-  "warningBg": "{color.yellow.50}",
-  "info": "{color.blue.600}",       // ℹ 정보
-  "infoBg": "{color.blue.50}"
-}
-```
-
-**용도**: 상태 표시, 알림 메시지
-
-## Theme 토큰 (서비스 특정)
-
-**위치**: `src/tokens/themes/`
-
-서비스별 브랜드 컬러를 오버라이드합니다.
-
-### Blog Theme
-
-```json
-// src/tokens/themes/blog.json
 {
-  "color": {
-    "brand": {
-      "primary": "#20C997",        // Mantine Green
-      "primaryHover": "#12B886"
+  "borderRadius": {
+    "sm": "0.25rem",
+    "base": "0.375rem",
+    "md": "0.5rem",
+    "lg": "0.75rem",
+    "xl": "1rem",
+    "full": "9999px"
+  }
+}
+```
+
+## Layer 2: Semantic Tokens
+
+역할 기반 의미를 가진 토큰으로, Base Tokens를 참조합니다.
+
+### 브랜드 (Brand)
+
+```json
+{
+  "brand": {
+    "primary": "var(--color-green-600)",
+    "primaryHover": "var(--color-green-700)",
+    "primaryLight": "var(--color-green-400)",
+    "secondary": "var(--color-orange-600)",
+    "secondaryHover": "var(--color-orange-700)",
+    "accent": "var(--color-blue-600)"
+  }
+}
+```
+
+### 텍스트 (Text)
+
+```json
+{
+  "text": {
+    "heading": "var(--color-neutral-900)",
+    "body": "var(--color-neutral-800)",
+    "meta": "var(--color-neutral-600)",
+    "muted": "var(--color-neutral-500)",
+    "inverse": "var(--color-neutral-50)",
+    "link": "var(--color-blue-600)",
+    "linkHover": "var(--color-blue-700)",
+    "error": "var(--color-red-600)",
+    "success": "var(--color-green-600)",
+    "warning": "var(--color-orange-600)"
+  }
+}
+```
+
+### 배경 (Background)
+
+```json
+{
+  "bg": {
+    "page": "var(--color-neutral-50)",
+    "card": "var(--color-neutral-0)",
+    "elevated": "var(--color-neutral-0)",
+    "muted": "var(--color-neutral-100)",
+    "hover": "var(--color-neutral-200)",
+    "overlay": "rgba(0, 0, 0, 0.5)"
+  }
+}
+```
+
+### 테두리 (Border)
+
+```json
+{
+  "border": {
+    "default": "var(--color-neutral-200)",
+    "hover": "var(--color-neutral-300)",
+    "focus": "var(--color-brand-primary)",
+    "muted": "var(--color-neutral-100)",
+    "error": "var(--color-red-600)"
+  }
+}
+```
+
+### 상태 (Status)
+
+```json
+{
+  "status": {
+    "success": "var(--color-green-600)",
+    "successBg": "var(--color-green-50)",
+    "error": "var(--color-red-600)",
+    "errorBg": "var(--color-red-50)",
+    "warning": "var(--color-orange-600)",
+    "warningBg": "var(--color-orange-50)",
+    "info": "var(--color-blue-600)",
+    "infoBg": "var(--color-blue-50)"
+  }
+}
+```
+
+## Layer 3: Component Tokens
+
+컴포넌트별 세부 스타일을 정의합니다.
+
+### Button Component
+
+```json
+{
+  "button": {
+    "primary": {
+      "bg": "var(--color-brand-primary)",
+      "text": "white",
+      "border": "transparent",
+      "hover": {
+        "bg": "var(--color-brand-primaryHover)"
+      },
+      "focus": {
+        "shadow": "var(--shadow-md)"
+      },
+      "disabled": {
+        "bg": "var(--color-neutral-300)",
+        "text": "var(--color-neutral-600)"
+      }
+    },
+    "secondary": {
+      "bg": "var(--color-neutral-100)",
+      "text": "var(--color-text-body)",
+      "border": "var(--color-border-default)",
+      "hover": {
+        "bg": "var(--color-neutral-200)"
+      }
     }
   }
 }
 ```
 
-### Shopping Theme
+### Card Component
 
 ```json
-// src/tokens/themes/shopping.json
 {
-  "color": {
-    "brand": {
-      "primary": "#FF922B",        // Mantine Orange
-      "primaryHover": "#FD7E14"
+  "card": {
+    "bg": "var(--color-bg-card)",
+    "border": "var(--color-border-default)",
+    "shadow": "var(--shadow-md)",
+    "borderRadius": "var(--borderRadius-lg)",
+    "padding": "var(--spacing-6)"
+  }
+}
+```
+
+### Input Component
+
+```json
+{
+  "input": {
+    "bg": "var(--color-neutral-0)",
+    "text": "var(--color-text-body)",
+    "border": "var(--color-border-default)",
+    "borderRadius": "var(--borderRadius-md)",
+    "padding": "var(--spacing-3) var(--spacing-4)",
+    "focus": {
+      "border": "var(--color-border-focus)",
+      "shadow": "0 0 0 3px var(--color-brand-primary)"
+    },
+    "error": {
+      "border": "var(--color-border-error)"
     }
   }
 }
 ```
 
-## CSS 변수 생성
+## CSS 변수 구현
 
-빌드 시 `scripts/build-tokens.js`가 JSON 토큰을 CSS 변수로 변환합니다.
-
-### 생성된 CSS 변수
+토큰은 CSS 변수로 구현되어 런타임에 변경 가능합니다:
 
 ```css
-/* Base 토큰 (--base- 접두사) */
 :root {
-  --base-color-brand-primary: #20C997;
-  --base-color-brand-primaryHover: #12B886;
-  --base-color-gray-900: #212529;
-  --base-font-family-sans: -apple-system, BlinkMacSystemFont, ...
-  --base-spacing-xs: 0.5rem;
-  --base-spacing-sm: 1rem;
-  --base-border-radius-md: 0.5rem;
+  /* Base Colors */
+  --color-neutral-50: #FAFAFA;
+  --color-neutral-900: #212121;
+  --color-green-600: #12B886;
+  --color-orange-600: #FD7E14;
+  
+  /* Semantic */
+  --color-brand-primary: var(--color-green-600);
+  --color-text-body: var(--color-neutral-800);
+  --color-bg-card: #FFFFFF;
+  
+  /* Spacing */
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  
+  /* Typography */
+  --font-size-base: 1rem;
+  --line-height-normal: 1.5;
+  --font-weight-semibold: 600;
 }
 
-/* Semantic 토큰 (--semantic- 접두사) */
-:root {
-  --semantic-brand-primary: var(--base-color-brand-primary);
-  --semantic-text-heading: var(--base-color-gray-900);
-  --semantic-bg-page: var(--base-color-gray-50);
-  --semantic-border-default: var(--base-color-gray-200);
-  --semantic-status-success: var(--base-color-green-600);
-}
-```
-
-### 테마 오버라이드
-
-```css
-/* Blog 테마 */
-[data-service="blog"] {
-  --semantic-brand-primary: #20C997;
+/* Dark Mode */
+[data-theme="dark"] {
+  --color-text-body: var(--color-neutral-100);
+  --color-bg-card: #1A1A1A;
+  --color-bg-page: #0F0F0F;
 }
 
-/* Shopping 테마 */
+/* Service Override: Shopping (Orange) */
 [data-service="shopping"] {
-  --semantic-brand-primary: #FF922B;
-}
-
-/* Dark 모드 */
-[data-theme="dark"],
-.dark {
-  --semantic-text-heading: var(--base-color-gray-100);
-  --semantic-bg-page: var(--base-color-gray-900);
-  --semantic-bg-card: var(--base-color-gray-800);
+  --color-brand-primary: var(--color-orange-600);
+  --color-brand-primaryHover: var(--color-orange-700);
 }
 ```
 
-## Tailwind CSS 통합
+## 토큰 명명 규칙
 
-### tailwind.preset.js
+### 포맷
 
-Tailwind가 CSS 변수를 인식하도록 매핑합니다.
-
-```javascript
-colors: {
-  'brand': {
-    'primary': 'var(--semantic-brand-primary)',
-    'primaryHover': 'var(--semantic-brand-primaryHover)',
-  },
-  'text': {
-    'heading': 'var(--semantic-text-heading)',
-    'body': 'var(--semantic-text-body)',
-  },
-  'bg': {
-    'page': 'var(--semantic-bg-page)',
-    'card': 'var(--semantic-bg-card)',
-  }
-}
+```
+{category}-{property}-{variant?}-{state?}
 ```
 
-### 컴포넌트에서 사용
+### 예시
 
-```vue
-<!-- Button.vue -->
-<button class="bg-brand-primary text-white hover:bg-brand-primaryHover">
-  Click me
-</button>
+| 토큰 | 설명 |
+|------|------|
+| `color-neutral-50` | 중립색 Base Token |
+| `color-brand-primary` | 브랜드 주요색 Semantic Token |
+| `text-body` | 본문 텍스트 색상 Semantic Token |
+| `button-primary-bg` | Primary 버튼 배경 Component Token |
+| `input-focus-shadow` | Input Focus 상태 그림자 Component Token |
 
-<!-- 생성된 CSS -->
-<button style="background-color: var(--semantic-brand-primary);">
-```
+## 토큰 사용 방법
 
-## 토큰 참조 형식
-
-### JSON 참조
-
-```json
-{
-  "color": {
-    "text": {
-      "heading": "{color.gray.900}"    // color 그룹의 gray.900 참조
-    }
-  }
-}
-```
-
-### CSS 변수
+### CSS 변수 직접 사용
 
 ```css
-color: var(--semantic-text-heading);  /* Semantic 변수 사용 */
-color: var(--base-color-gray-900);    /* Base 변수 직접 사용 */
+.button-primary {
+  background-color: var(--color-brand-primary);
+  padding: var(--spacing-4);
+  border-radius: var(--borderRadius-md);
+  color: white;
+}
+
+.button-primary:hover {
+  background-color: var(--color-brand-primaryHover);
+}
 ```
 
-### Tailwind
+### Tailwind CSS를 통한 사용
+
+Design System은 Tailwind CSS를 지원하며, 토큰이 자동으로 Tailwind 클래스로 변환됩니다:
 
 ```vue
-<div class="text-heading bg-brand-primary">
-  <!-- Tailwind 유틸리티 클래스 -->
-</div>
+<template>
+  <button class="bg-brand-primary hover:bg-brand-primary-hover text-white px-4 py-2 rounded-md">
+    클릭하기
+  </button>
+</template>
 ```
 
-## 토큰 업데이트 워크플로우
+### Vue 컴포넌트에서 동적 사용
 
-### 시나리오 1: Base 토큰 변경
+```vue
+<script setup lang="ts">
+import { ref, computed } from 'vue'
 
-```bash
-# 1. src/tokens/base/colors.json 수정
-"green.600": "#10b981"  # 기존: #12B886
+const isDarkMode = ref(false)
 
-# 2. 빌드
-npm run build
+const buttonStyle = computed(() => ({
+  backgroundColor: 'var(--color-brand-primary)',
+  padding: 'var(--spacing-4)',
+  borderRadius: 'var(--borderRadius-md)'
+}))
+</script>
 
-# 3. 자동으로 반영
-# Semantic 토큰 → {color.green.600} 참조
-# CSS 변수 → --semantic-* 변수
-# 컴포넌트 → Tailwind 클래스
+<template>
+  <button :style="buttonStyle">
+    클릭하기
+  </button>
+</template>
 ```
 
-### 시나리오 2: 서비스 테마 추가
+## 다크 모드 토큰
+
+모든 Semantic 토큰은 Light/Dark 모드를 지원합니다:
+
+```css
+/* Light Mode (기본) */
+:root {
+  --color-text-body: #333333;
+  --color-bg-page: #FFFFFF;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --color-text-body: #ECECEC;
+  --color-bg-page: #1A1A1A;
+}
+```
+
+## 서비스별 토큰 오버라이드
+
+Blog와 Shopping 서비스는 각자의 브랜드 토큰을 유지합니다:
+
+```css
+/* Blog Service (Green) */
+[data-service="blog"] {
+  --color-brand-primary: #12B886;
+  --color-brand-secondary: #4CAF50;
+}
+
+/* Shopping Service (Orange) */
+[data-service="shopping"] {
+  --color-brand-primary: #FD7E14;
+  --color-brand-secondary: #FF9800;
+}
+```
+
+## 토큰 빌드 프로세스
+
+토큰 JSON 파일은 빌드 시간에 CSS 변수로 변환됩니다:
 
 ```bash
-# 1. src/tokens/themes/newservice.json 생성
+npm run build:tokens
+```
+
+프로세스:
+
+1. `tokens/base/*.json` 읽음
+2. `tokens/semantic/*.json` 참조 병합
+3. `tokens/themes/*.json` 오버라이드 적용
+4. CSS 변수 생성
+5. `dist/design-system.css` 출력
+
+## 토큰 확장
+
+새로운 토큰을 추가하려면:
+
+1. 해당 Base 또는 Semantic 토큰 파일에 추가
+2. 타입 정의 업데이트 (`src/types/theme.ts`)
+3. Storybook 예제 추가
+4. 빌드 실행: `npm run build`
+
+예: 새로운 색상 추가
+
+```json
+// tokens/base/colors.json
 {
-  "color": {
-    "brand": {
-      "primary": "#NEW_COLOR"
-    }
+  "purple": {
+    "600": "#7C3AED"
   }
 }
 
-# 2. src/styles/themes/newservice.css 생성
-[data-service="newservice"] {
-  --semantic-brand-primary: #NEW_COLOR;
+// tokens/semantic/brand.json
+{
+  "tertiary": "var(--color-purple-600)"
 }
-
-# 3. src/index.ts에 import 추가
-import './styles/themes/newservice.css'
-
-# 4. 타입 수정
-export type ServiceType = 'portal' | 'blog' | 'shopping' | 'newservice'
 ```
 
-## 모범 사례
+## 토큰 참고 자료
 
-### ✓ 해야 할 것
+- **Figma Variables API**: 디자이너와 동기화
+- **Token Studio**: Figma에서 토큰 관리
+- **Design Tokens Format**: W3C 표준 포맷
 
-- Semantic 토큰 참조: `--semantic-text-heading`, `text-heading` 클래스
-- 의미 기반 토큰 이름: `text-muted`, `bg-elevated`
-- 서비스별 오버라이드: `data-service` 속성
+## 다음 단계
 
-### ✗ 하지 말아야 할 것
-
-- Base 색상 직접 사용: `--base-color-gray-900` (대신 Semantic 사용)
-- 하드코딩 색상값: `#212529` (대신 토큰 변수 사용)
-- 서비스별 조건부 스타일: CSS 선택자로 처리
-
----
-
-**다음**: [THEMING.md](./THEMING.md)에서 테마 시스템 구현을 확인하세요.
+- [THEMING.md](./THEMING.md) - 테마 커스터마이징
+- [USAGE.md](./USAGE.md) - 토큰을 활용한 컴포넌트 개발

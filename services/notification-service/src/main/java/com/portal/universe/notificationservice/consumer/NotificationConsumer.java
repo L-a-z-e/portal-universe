@@ -1,31 +1,74 @@
 package com.portal.universe.notificationservice.consumer;
 
 import com.portal.universe.common.event.UserSignedUpEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.portal.universe.notificationservice.domain.Notification;
+import com.portal.universe.notificationservice.domain.NotificationType;
+import com.portal.universe.notificationservice.dto.NotificationEvent;
+import com.portal.universe.notificationservice.service.NotificationPushService;
+import com.portal.universe.notificationservice.service.NotificationService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-/**
- * Kafka로부터 메시지를 수신(consume)하는 컨슈머 클래스입니다.
- */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class NotificationConsumer {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationConsumer.class);
+    private final NotificationService notificationService;
+    private final NotificationPushService pushService;
 
-    /**
-     * 'user-signup' 토픽을 구독하고, 새로운 메시지가 들어오면 처리하는 리스너 메서드입니다.
-     * groupId는 컨슈머 그룹을 식별하는 데 사용됩니다.
-     *
-     * @param event Kafka로부터 수신한 UserSignedUpEvent 메시지 객체
-     */
     @KafkaListener(topics = "user-signup", groupId = "notification-group")
     public void handleUserSignup(UserSignedUpEvent event) {
         log.info("Received user signup event: {}", event);
-
-        // 실제 프로덕션 환경에서는 이 부분에 이메일 발송, SMS 발송 등의 로직이 구현됩니다.
-        // 현재는 로그를 남기는 것으로 대체합니다.
         log.info("Sending welcome email to: {} ({})", event.name(), event.email());
+    }
+
+    @KafkaListener(topics = "shopping.order.created", groupId = "notification-group")
+    public void handleOrderCreated(NotificationEvent event) {
+        log.info("Received order created event: userId={}", event.getUserId());
+        createAndPush(event);
+    }
+
+    @KafkaListener(topics = "shopping.delivery.shipped", groupId = "notification-group")
+    public void handleDeliveryShipped(NotificationEvent event) {
+        log.info("Received delivery shipped event: userId={}", event.getUserId());
+        createAndPush(event);
+    }
+
+    @KafkaListener(topics = "shopping.payment.completed", groupId = "notification-group")
+    public void handlePaymentCompleted(NotificationEvent event) {
+        log.info("Received payment completed event: userId={}", event.getUserId());
+        createAndPush(event);
+    }
+
+    @KafkaListener(topics = "shopping.coupon.issued", groupId = "notification-group")
+    public void handleCouponIssued(NotificationEvent event) {
+        log.info("Received coupon issued event: userId={}", event.getUserId());
+        createAndPush(event);
+    }
+
+    @KafkaListener(topics = "shopping.timedeal.started", groupId = "notification-group")
+    public void handleTimeDealStarted(NotificationEvent event) {
+        log.info("Received timedeal started event: userId={}", event.getUserId());
+        createAndPush(event);
+    }
+
+    private void createAndPush(NotificationEvent event) {
+        try {
+            Notification notification = notificationService.create(
+                    event.getUserId(),
+                    event.getType(),
+                    event.getTitle(),
+                    event.getMessage(),
+                    event.getLink(),
+                    event.getReferenceId(),
+                    event.getReferenceType()
+            );
+            pushService.push(notification);
+        } catch (Exception e) {
+            log.error("Failed to create and push notification for user: {}", event.getUserId(), e);
+        }
     }
 }

@@ -122,7 +122,7 @@ function buildTokens() {
 
         console.log('📖 Step 2: Reading base tokens...');
 
-        ['colors', 'typography', 'spacing', 'border'].forEach(tokenType => {
+        ['colors', 'typography', 'spacing', 'border', 'effects'].forEach(tokenType => {
             const filePath = join(tokensDir, 'base', `${tokenType}.json`);
             try {
                 const content = readFileSync(filePath, 'utf-8');
@@ -143,6 +143,9 @@ function buildTokens() {
                 } else if (tokenType === 'border') {
                     prefix = '--border';
                     tokenContent = tokens.border || tokens;
+                } else if (tokenType === 'effects') {
+                    prefix = '--effects';
+                    tokenContent = tokens.effects || tokens;
                 }
 
                 flattenTokens(tokenContent, prefix, cssVariables);
@@ -204,8 +207,9 @@ function buildTokens() {
             console.log(`  ⚠️  semantic/colors.json not found or invalid: ${err.message}`);
         }
 
-        console.log('📖 Step 4: Reading theme tokens (with darkMode support)...');
-        const themeFiles = ['blog', 'shopping'];
+        console.log('📖 Step 4: Reading theme tokens (with darkMode/lightMode support)...');
+        const themeFiles = ['portal', 'blog', 'shopping'];
+        const themeLightModes = new Map(); // For dark-first themes like portal
 
         themeFiles.forEach(themeName => {
             const filePath = join(tokensDir, 'themes', `${themeName}.json`);
@@ -216,32 +220,60 @@ function buildTokens() {
                 const themeLightVars = new Map();
                 const themeDarkVars = new Map();
 
-                // 라이트 모드 처리
-                processThemeColors(
-                    themeTokens.color || themeTokens,
-                    themeLightVars,
-                    colorReferences,
-                    '--semantic'
-                );
-
-                // 다크 모드 처리 (darkMode 섹션이 있으면)
-                if (themeTokens.darkMode) {
+                // Portal uses dark-first approach (lightMode section)
+                if (themeName === 'portal') {
+                    // Default (dark mode) processing
                     processThemeColors(
-                        themeTokens.darkMode.color || themeTokens.darkMode,
+                        themeTokens.color || themeTokens,
                         themeDarkVars,
                         colorReferences,
                         '--semantic'
                     );
+
+                    // Light mode processing (lightMode section)
+                    if (themeTokens.lightMode) {
+                        processThemeColors(
+                            themeTokens.lightMode.color || themeTokens.lightMode,
+                            themeLightVars,
+                            colorReferences,
+                            '--semantic'
+                        );
+                    }
+
+                    // Store portal theme (dark as default)
+                    themes.set(themeName, themeDarkVars);
+                    if (themeLightVars.size > 0) {
+                        themeLightModes.set(themeName, themeLightVars);
+                    }
+                } else {
+                    // Other themes use light-first approach (darkMode section)
+                    // Light mode processing (default)
+                    processThemeColors(
+                        themeTokens.color || themeTokens,
+                        themeLightVars,
+                        colorReferences,
+                        '--semantic'
+                    );
+
+                    // Dark mode processing (darkMode section)
+                    if (themeTokens.darkMode) {
+                        processThemeColors(
+                            themeTokens.darkMode.color || themeTokens.darkMode,
+                            themeDarkVars,
+                            colorReferences,
+                            '--semantic'
+                        );
+                    }
+
+                    themes.set(themeName, themeLightVars);
+                    if (themeDarkVars.size > 0) {
+                        themeDarkModes.set(themeName, themeDarkVars);
+                    }
                 }
 
-                themes.set(themeName, themeLightVars);
-                if (themeDarkVars.size > 0) {
-                    themeDarkModes.set(themeName, themeDarkVars);
-                }
-
-                console.log(`  ✅ themes/${themeName}.json loaded (light + dark)`);
+                console.log(`  ✅ themes/${themeName}.json loaded (${themeName === 'portal' ? 'dark-first' : 'light-first'})`);
             } catch (err) {
-                console.log(`  ⚠️  themes/${themeName}.json not found or invalid`);
+                console.log(`  ⚠️  themes/${themeName}.json not found or invalid: ${err.message}`);
             }
         });
 
@@ -264,15 +296,19 @@ function buildTokens() {
             console.log('\n✅ All color references resolved successfully!');
         }
 
-        console.log('\n🎨 Step 5: Generating CSS with darkMode support...');
+        console.log('\n🎨 Step 5: Generating CSS with Linear theme support...');
 
-        let cssContent = `@tailwind base;
+        let cssContent = `/* Inter Variable Font */
+@import '@fontsource-variable/inter';
+
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================
    Auto-generated Design System CSS Variables
-   DO NOT EDIT MANUALLY - Generated by build-tokens.js
+   Linear-inspired theme - DO NOT EDIT MANUALLY
+   Generated by build-tokens.js
    ============================================ */
 
 :root {
@@ -366,6 +402,23 @@ function buildTokens() {
         }
 
         cssContent += `/* ============================================
+   Theme Overrides (Dark-first themes - Light Mode)
+   Portal uses dark as default, light as override
+   ============================================ */
+`;
+
+        for (const [themeName, themeLightVars] of themeLightModes) {
+            if (themeLightVars.size > 0) {
+                cssContent += `[data-service="${themeName}"][data-theme="light"] {\n`;
+                const sortedLightVars = Array.from(themeLightVars.entries()).sort();
+                for (const [key, value] of sortedLightVars) {
+                    cssContent += `    ${key}: ${value};\n`;
+                }
+                cssContent += `}\n\n`;
+            }
+        }
+
+        cssContent += `/* ============================================
    Base Styles
    ============================================ */
 @layer base {
@@ -407,9 +460,10 @@ function buildTokens() {
         writeFileSync(outputFile, cssContent, 'utf-8');
         console.log(`✅ CSS variables written to: ${outputFile}`);
         console.log(`📊 Total base variables: ${cssVariables.size}`);
-        console.log(`🎨 Light mode themes generated: ${themes.size}`);
-        console.log(`🌙 Dark mode themes generated: ${themeDarkModes.size}`);
-        console.log('\n✨ Design tokens built successfully with darkMode support!');
+        console.log(`🎨 Service themes generated: ${themes.size}`);
+        console.log(`🌙 Dark mode overrides: ${themeDarkModes.size}`);
+        console.log(`☀️  Light mode overrides: ${themeLightModes.size}`);
+        console.log('\n✨ Design tokens built successfully with Linear theme support!');
 
     } catch (error) {
         console.error('❌ Fatal error:', error.message);

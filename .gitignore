@@ -51,6 +51,7 @@ certs/
 
 # Claude Code
 .claude/
+.claude
 
 # Node
 node_modules/
@@ -76,3 +77,4 @@ monitoring/prometheus-data/
 
 # MCP Configuration (환경별 다름)
 .mcp.json
+CLAUDE.md
