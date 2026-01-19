@@ -51,7 +51,8 @@ metadata:
   labels:
     app: prometheus
 spec:
-  type: LoadBalancer # 외부에서 Prometheus UI에 접근할 수 있도록 LoadBalancer 타입 사용
+  # ClusterIP 타입으로 변경 - Ingress를 통해 외부에 노출
+  type: ClusterIP
   ports:
     - port: 9090
       targetPort: 9090

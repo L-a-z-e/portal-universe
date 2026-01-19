@@ -9,8 +9,6 @@ metadata:
   annotations:
     # NGINX Ingress Controller를 사용하기 위한 설정들입니다.
     nginx.ingress.kubernetes.io/ssl-redirect: "false" # HTTPS로 강제 리다이렉트하지 않음 (로컬 환경)
-    # nginx.ingress.kubernetes.io/rewrite-target: /$2 # 경로 재작성 규칙 (필요 시 사용)
-    # nginx.ingress.kubernetes.io/use-regex: "true" # 정규식 사용 여부
 spec:
   # 이 Ingress 리소스가 사용할 IngressClass의 이름입니다.
   # ingress-controller.yaml에 정의된 'nginx' IngressClass를 사용합니다.
@@ -21,6 +19,44 @@ spec:
     - host: portal-universe
       http:
         paths:
+          # --- 모니터링 서비스 라우팅 ---
+          # /grafana 경로로 들어오는 모든 요청은 grafana 서비스의 3000 포트로 전달됩니다.
+          - path: /grafana
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000
+
+          # /prometheus 경로로 들어오는 모든 요청은 prometheus 서비스의 9090 포트로 전달됩니다.
+          - path: /prometheus
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus
+                port:
+                  number: 9090
+
+          # /zipkin 경로로 들어오는 모든 요청은 zipkin 서비스의 9411 포트로 전달됩니다.
+          - path: /zipkin
+            pathType: Prefix
+            backend:
+              service:
+                name: zipkin
+                port:
+                  number: 9411
+
+          # /eureka 경로로 들어오는 모든 요청은 discovery-service 서비스의 8761 포트로 전달됩니다.
+          - path: /eureka
+            pathType: Prefix
+            backend:
+              service:
+                name: discovery-service
+                port:
+                  number: 8761
+
+          # --- API 서비스 라우팅 ---
           # /auth-service/** 경로로 들어오는 모든 요청은 api-gateway 서비스의 8080 포트로 전달됩니다.
           - path: /auth-service
             pathType: Prefix
@@ -39,6 +75,7 @@ spec:
                 port:
                   number: 8080
 
+          # --- 기본 라우팅 ---
           # 위 규칙에 해당하지 않는 모든 요청(루트 경로 등)은 portal-shell 서비스의 80 포트로 전달됩니다.
           - path: /
             pathType: Prefix

@@ -74,7 +74,8 @@ metadata:
   labels:
     app: kafka
 spec:
-  type: LoadBalancer # 외부 접근을 위해 LoadBalancer 타입 사용
+  # ClusterIP 타입으로 변경 - Kind 클러스터에서 LoadBalancer 미지원
+  type: ClusterIP
   ports:
     - port: 9092
       targetPort: 9092
