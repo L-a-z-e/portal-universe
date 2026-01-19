@@ -112,4 +112,36 @@ public class Coupon {
     public int getRemainingQuantity() {
         return this.totalQuantity - this.issuedQuantity;
     }
+
+    /**
+     * 주문 금액에 대한 할인 금액을 계산합니다.
+     * @param orderAmount 주문 총 금액
+     * @return 할인 금액
+     */
+    public BigDecimal calculateDiscount(BigDecimal orderAmount) {
+        // 최소 주문 금액 검증
+        if (minimumOrderAmount != null && orderAmount.compareTo(minimumOrderAmount) < 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal discount;
+        if (discountType == DiscountType.FIXED) {
+            discount = discountValue;
+        } else { // PERCENTAGE
+            discount = orderAmount.multiply(discountValue)
+                    .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+        }
+
+        // 최대 할인 금액 제한
+        if (maximumDiscountAmount != null && discount.compareTo(maximumDiscountAmount) > 0) {
+            discount = maximumDiscountAmount;
+        }
+
+        // 할인 금액이 주문 금액을 초과하지 않도록
+        if (discount.compareTo(orderAmount) > 0) {
+            discount = orderAmount;
+        }
+
+        return discount;
+    }
 }

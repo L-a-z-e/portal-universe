@@ -25,10 +25,24 @@ const CheckoutPage = lazy(() => import('@/pages/CheckoutPage'))
 const OrderListPage = lazy(() => import('@/pages/OrderListPage'))
 const OrderDetailPage = lazy(() => import('@/pages/OrderDetailPage'))
 
+// Coupon pages
+const CouponListPage = lazy(() => import('@/pages/coupon/CouponListPage'))
+
+// TimeDeal pages
+const TimeDealListPage = lazy(() => import('@/pages/timedeal/TimeDealListPage'))
+const TimeDealDetailPage = lazy(() => import('@/pages/timedeal/TimeDealDetailPage'))
+
+// Queue pages
+const QueueWaitingPage = lazy(() => import('@/pages/queue/QueueWaitingPage'))
+
 // Admin pages
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
 const AdminProductListPage = lazy(() => import('@/pages/admin/AdminProductListPage'))
 const AdminProductFormPage = lazy(() => import('@/pages/admin/AdminProductFormPage'))
+const AdminCouponListPage = lazy(() => import('@/pages/admin/AdminCouponListPage'))
+const AdminCouponFormPage = lazy(() => import('@/pages/admin/AdminCouponFormPage'))
+const AdminTimeDealListPage = lazy(() => import('@/pages/admin/AdminTimeDealListPage'))
+const AdminTimeDealFormPage = lazy(() => import('@/pages/admin/AdminTimeDealFormPage'))
 const ForbiddenPage = lazy(() => import('@/pages/error/ForbiddenPage'))
 
 // Guards
@@ -158,6 +172,38 @@ const routes = [
         )
       },
       {
+        path: 'coupons',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CouponListPage />
+          </Suspense>
+        )
+      },
+      {
+        path: 'time-deals',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <TimeDealListPage />
+          </Suspense>
+        )
+      },
+      {
+        path: 'time-deals/:id',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <TimeDealDetailPage />
+          </Suspense>
+        )
+      },
+      {
+        path: 'queue/:eventType/:eventId',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <QueueWaitingPage />
+          </Suspense>
+        )
+      },
+      {
         path: '403',
         element: (
           <Suspense fallback={<PageLoader />}>
@@ -197,6 +243,38 @@ const routes = [
             element: (
               <Suspense fallback={<PageLoader />}>
                 <AdminProductFormPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'coupons',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminCouponListPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'coupons/new',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminCouponFormPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'time-deals',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminTimeDealListPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'time-deals/new',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminTimeDealFormPage />
               </Suspense>
             )
           }

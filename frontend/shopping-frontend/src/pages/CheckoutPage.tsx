@@ -7,8 +7,10 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCartStore } from '@/stores/cartStore'
 import { orderApi, paymentApi } from '@/api/endpoints'
-import type { AddressRequest, PaymentMethod, Order } from '@/types'
+import type { AddressRequest, PaymentMethod, Order, UserCoupon } from '@/types'
 import { PAYMENT_METHOD_LABELS } from '@/types'
+import { CouponSelector } from '@/components/coupon/CouponSelector'
+import { calculateDiscount } from '@/hooks/useCoupons'
 
 type CheckoutStep = 'address' | 'payment' | 'confirm' | 'complete'
 
@@ -32,6 +34,7 @@ const CheckoutPage: React.FC = () => {
   })
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CREDIT_CARD')
+  const [selectedCoupon, setSelectedCoupon] = useState<UserCoupon | null>(null)
 
   // Fetch cart on mount
   useEffect(() => {
@@ -51,6 +54,13 @@ const CheckoutPage: React.FC = () => {
       currency: 'KRW'
     }).format(price)
   }
+
+  // Calculate discount and final amount
+  const orderAmount = cart?.totalAmount || 0
+  const discountAmount = selectedCoupon
+    ? calculateDiscount(selectedCoupon.coupon, orderAmount)
+    : 0
+  const finalAmount = orderAmount - discountAmount
 
   // Handle address form change
   const handleAddressChange = (field: keyof AddressRequest, value: string) => {
@@ -79,7 +89,8 @@ const CheckoutPage: React.FC = () => {
 
     try {
       const response = await orderApi.createOrder({
-        shippingAddress: address
+        shippingAddress: address,
+        userCouponId: selectedCoupon?.id
       })
 
       if (response.success) {
@@ -245,6 +256,38 @@ const CheckoutPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Coupon Selection */}
+      <div className="mt-6">
+        <CouponSelector
+          orderAmount={orderAmount}
+          selectedCoupon={selectedCoupon}
+          onSelectCoupon={setSelectedCoupon}
+        />
+      </div>
+
+      {/* Order Summary */}
+      {cart && (
+        <div className="mt-6 bg-bg-subtle rounded-lg p-4">
+          <h3 className="font-medium text-text-heading mb-3">Order Summary</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-text-meta">Subtotal ({cart.itemCount} items)</span>
+              <span className="text-text-body">{formatPrice(orderAmount)}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Coupon Discount</span>
+                <span>-{formatPrice(discountAmount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between pt-2 border-t border-border-default">
+              <span className="font-medium text-text-heading">Total</span>
+              <span className="font-bold text-brand-primary">{formatPrice(finalAmount)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between pt-4">
         <Link
           to="/cart"
@@ -304,9 +347,21 @@ const CheckoutPage: React.FC = () => {
               <span className="text-text-meta">Items</span>
               <span className="text-text-body">{order.items.length} items</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-text-meta">Subtotal</span>
+              <span className="text-text-body">{formatPrice(order.totalAmount)}</span>
+            </div>
+            {order.discountAmount && order.discountAmount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Coupon Discount</span>
+                <span>-{formatPrice(order.discountAmount)}</span>
+              </div>
+            )}
             <div className="flex justify-between pt-2 border-t border-border-default">
               <span className="font-medium text-text-heading">Total</span>
-              <span className="font-bold text-brand-primary">{formatPrice(order.totalAmount)}</span>
+              <span className="font-bold text-brand-primary">
+                {formatPrice(order.finalAmount || order.totalAmount)}
+              </span>
             </div>
           </div>
         </div>
@@ -324,7 +379,7 @@ const CheckoutPage: React.FC = () => {
           disabled={loading}
           className="px-8 py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? 'Processing...' : `Pay ${formatPrice(order?.totalAmount || 0)}`}
+          {loading ? 'Processing...' : `Pay ${formatPrice(order?.finalAmount || order?.totalAmount || 0)}`}
         </button>
       </div>
     </div>

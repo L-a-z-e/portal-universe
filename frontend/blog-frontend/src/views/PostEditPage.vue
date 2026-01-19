@@ -6,7 +6,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
-import { Button, Card, Input, Tag } from '@portal/design-system';
+import { Button, Card, Input, Tag } from '@portal/design-system-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import type { PostUpdateRequest } from '@/dto/post';

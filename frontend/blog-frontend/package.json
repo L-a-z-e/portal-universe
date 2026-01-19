@@ -11,7 +11,8 @@
     "preview": "vite preview --port 30001 --strictPort"
   },
   "dependencies": {
-    "@portal/design-system": "*",
+    "@portal/design-system-vue": "*",
+    "@portal/design-tokens": "*",
     "@types/node": "^22.14.0",
     "axios": "^1.12.2",
     "concurrently": "^9.2.1",

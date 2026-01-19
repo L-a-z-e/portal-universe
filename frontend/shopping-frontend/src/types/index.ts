@@ -60,6 +60,7 @@ export interface Product {
   name: string
   description: string
   price: number
+  stockQuantity?: number
   imageUrl?: string
   category?: string
   createdAt: string
@@ -165,6 +166,9 @@ export interface Order {
   userId: string
   status: OrderStatus
   totalAmount: number
+  discountAmount?: number
+  finalAmount?: number
+  appliedUserCouponId?: number
   shippingAddress: Address
   items: OrderItem[]
   cancelReason?: string
@@ -175,6 +179,7 @@ export interface Order {
 
 export interface CreateOrderRequest {
   shippingAddress: AddressRequest
+  userCouponId?: number
 }
 
 export interface CancelOrderRequest {
@@ -342,4 +347,138 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   KAKAO_PAY: '카카오페이',
   NAVER_PAY: '네이버페이',
   TOSS_PAY: '토스페이'
+}
+
+// ============================================
+// Coupon
+// ============================================
+
+export type DiscountType = 'FIXED' | 'PERCENTAGE'
+export type CouponStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'EXHAUSTED'
+export type UserCouponStatus = 'AVAILABLE' | 'USED' | 'EXPIRED'
+
+export interface Coupon {
+  id: number
+  code: string
+  name: string
+  description?: string
+  discountType: DiscountType
+  discountValue: number
+  minimumOrderAmount?: number
+  maximumDiscountAmount?: number
+  totalQuantity: number
+  issuedQuantity: number
+  remainingQuantity: number
+  status: CouponStatus
+  startsAt: string
+  expiresAt: string
+  createdAt: string
+}
+
+export interface UserCoupon {
+  id: number
+  userId: number
+  coupon: Coupon
+  status: UserCouponStatus
+  usedOrderId?: number
+  issuedAt: string
+  usedAt?: string
+  expiresAt: string
+}
+
+export interface CouponCreateRequest {
+  code: string
+  name: string
+  description?: string
+  discountType: DiscountType
+  discountValue: number
+  minimumOrderAmount?: number
+  maximumDiscountAmount?: number
+  totalQuantity: number
+  startsAt: string
+  expiresAt: string
+}
+
+export const DISCOUNT_TYPE_LABELS: Record<DiscountType, string> = {
+  FIXED: '정액 할인',
+  PERCENTAGE: '정률 할인'
+}
+
+export const COUPON_STATUS_LABELS: Record<CouponStatus, string> = {
+  ACTIVE: '활성',
+  INACTIVE: '비활성',
+  EXPIRED: '만료',
+  EXHAUSTED: '소진'
+}
+
+export const USER_COUPON_STATUS_LABELS: Record<UserCouponStatus, string> = {
+  AVAILABLE: '사용 가능',
+  USED: '사용 완료',
+  EXPIRED: '기한 만료'
+}
+
+// ============================================
+// TimeDeal
+// ============================================
+
+export type TimeDealStatus = 'SCHEDULED' | 'ACTIVE' | 'ENDED' | 'SOLD_OUT' | 'CANCELLED'
+
+export interface TimeDeal {
+  id: number
+  product: Product
+  dealPrice: number
+  discountRate: number
+  totalStock: number
+  remainingStock: number
+  soldCount: number
+  purchaseLimit: number
+  status: TimeDealStatus
+  startsAt: string
+  endsAt: string
+  createdAt: string
+}
+
+export interface TimeDealCreateRequest {
+  productId: number
+  dealPrice: number
+  totalStock: number
+  purchaseLimit: number
+  startsAt: string
+  endsAt: string
+}
+
+export const TIMEDEAL_STATUS_LABELS: Record<TimeDealStatus, string> = {
+  SCHEDULED: '예정',
+  ACTIVE: '진행 중',
+  ENDED: '종료',
+  SOLD_OUT: '품절',
+  CANCELLED: '취소'
+}
+
+// ========================================
+// Queue Types
+// ========================================
+
+export type QueueStatus = 'WAITING' | 'ENTERED' | 'EXPIRED' | 'LEFT'
+
+export interface QueueStatusResponse {
+  entryToken: string
+  status: QueueStatus
+  position: number
+  estimatedWaitSeconds: number
+  totalWaiting: number
+  message: string
+}
+
+export interface QueueActivateRequest {
+  maxCapacity: number
+  entryBatchSize: number
+  entryIntervalSeconds: number
+}
+
+export const QUEUE_STATUS_LABELS: Record<QueueStatus, string> = {
+  WAITING: '대기 중',
+  ENTERED: '입장 완료',
+  EXPIRED: '만료됨',
+  LEFT: '이탈'
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Modal, Input, Button } from '@portal/design-system';
+import { Modal, Input, Button } from '@portal/design-system-vue';
 import { login } from '../services/authService';
 
 defineProps<{

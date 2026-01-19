@@ -3,21 +3,10 @@
  * 관리자 기능에 필요한 타입들
  */
 
-import type { Product } from './index'
+import type { Product, PagedResponse } from './index'
 
-// ============================================
-// Paged Response Types
-// ============================================
-
-export interface PagedResponse<T> {
-  content: T[]
-  totalElements: number
-  totalPages: number
-  size: number
-  number: number
-  first: boolean
-  last: boolean
-}
+// Re-export PagedResponse for convenience
+export type { PagedResponse }
 
 // ============================================
 // Product Admin Types

@@ -4,6 +4,7 @@ import com.portal.universe.shoppingservice.coupon.dto.CouponCreateRequest;
 import com.portal.universe.shoppingservice.coupon.dto.CouponResponse;
 import com.portal.universe.shoppingservice.coupon.dto.UserCouponResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface CouponService {
@@ -47,4 +48,20 @@ public interface CouponService {
      * 쿠폰을 비활성화합니다. (관리자)
      */
     void deactivateCoupon(Long couponId);
+
+    /**
+     * 사용자 쿠폰의 할인 금액을 계산합니다.
+     * @param userCouponId 사용자 쿠폰 ID
+     * @param orderAmount 주문 총 금액
+     * @return 할인 금액
+     */
+    BigDecimal calculateDiscount(Long userCouponId, BigDecimal orderAmount);
+
+    /**
+     * 주문에 적용 가능한 사용자 쿠폰인지 검증합니다.
+     * @param userCouponId 사용자 쿠폰 ID
+     * @param userId 사용자 ID
+     * @param orderAmount 주문 총 금액
+     */
+    void validateCouponForOrder(Long userCouponId, Long userId, BigDecimal orderAmount);
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { Button } from '@portal/design-system';
+import { Button } from '@portal/design-system-vue';
 
 const route = useRoute();
 const isEmbedded = computed(() => window.__POWERED_BY_PORTAL_SHELL__ === true);

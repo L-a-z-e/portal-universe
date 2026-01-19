@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotNull;
 public record CreateOrderRequest(
         @NotNull(message = "Shipping address is required")
         @Valid
-        AddressRequest shippingAddress
+        AddressRequest shippingAddress,
+
+        Long userCouponId
 ) {
 }

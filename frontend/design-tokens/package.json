@@ -1,0 +1,32 @@
+{
+  "name": "@portal/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/tokens.js",
+  "types": "./dist/tokens.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/tokens.d.ts",
+      "import": "./dist/tokens.js",
+      "require": "./dist/tokens.cjs"
+    },
+    "./css": "./dist/tokens.css",
+    "./json": "./dist/tokens.json",
+    "./tailwind": "./tailwind.preset.js"
+  },
+  "files": [
+    "dist",
+    "tailwind.preset.js"
+  ],
+  "scripts": {
+    "build": "node scripts/build-tokens.js",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
