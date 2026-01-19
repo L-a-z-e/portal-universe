@@ -6,7 +6,6 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.json.JsonData;
 import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.search.document.ProductDocument;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
@@ -125,19 +124,21 @@ public class ProductSearchService {
                 );
             }
 
-            // Price range filter
+            // Price range filter (ES 8.18.x API)
             if (request.getMinPrice() != null || request.getMaxPrice() != null) {
                 b.filter(f -> f
-                        .range(r -> {
-                            r.field("price");
-                            if (request.getMinPrice() != null) {
-                                r.gte(JsonData.of(request.getMinPrice()));
-                            }
-                            if (request.getMaxPrice() != null) {
-                                r.lte(JsonData.of(request.getMaxPrice()));
-                            }
-                            return r;
-                        })
+                        .range(r -> r
+                                .number(n -> {
+                                    n.field("price");
+                                    if (request.getMinPrice() != null) {
+                                        n.gte(request.getMinPrice().doubleValue());
+                                    }
+                                    if (request.getMaxPrice() != null) {
+                                        n.lte(request.getMaxPrice().doubleValue());
+                                    }
+                                    return n;
+                                })
+                        )
                 );
             }
 

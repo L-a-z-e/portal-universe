@@ -24,6 +24,13 @@ data:
   # Kafka 브로커의 주소입니다.
   KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
 
+  # --- Elasticsearch ---
+  ELASTICSEARCH_URIS: "http://elasticsearch:9200"
+
+  # --- Redis ---
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+
   # --- 데이터베이스 ---
   # MySQL 호스트 주소입니다.
   MYSQL_HOST: "mysql-db"
