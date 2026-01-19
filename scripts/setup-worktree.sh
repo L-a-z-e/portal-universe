@@ -17,7 +17,14 @@ if [ -z "$WORKTREE_PATH" ] || [ -z "$BRANCH" ]; then
 fi
 
 echo "Creating worktree at $WORKTREE_PATH for branch $BRANCH..."
-git worktree add "$WORKTREE_PATH" "$BRANCH"
+
+# 브랜치 존재 여부 확인
+if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+    git worktree add "$WORKTREE_PATH" "$BRANCH"
+else
+    echo "Branch '$BRANCH' not found. Creating from current branch..."
+    git worktree add -b "$BRANCH" "$WORKTREE_PATH"
+fi
 
 cd "$WORKTREE_PATH"
 
