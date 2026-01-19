@@ -143,13 +143,18 @@ watch(() => themeStore.isDark, (newVal) => {
       <Suspense>
         <template #default>
           <router-view v-slot="{ Component, route }">
-            <!-- 🔧 FIX: KeepAlive :max="1" → :max="3" (다중 페이지 캐싱으로 CSS 충돌 방지) -->
-            <KeepAlive :max="3">
+            <!-- 🔧 FIX: keep-alive를 route.meta.keepAlive 기반으로 선택적 적용 -->
+            <KeepAlive v-if="route.meta.keepAlive" :max="3">
               <component
                   :is="Component"
                   :key="route.meta.remoteName || route.name"
               />
             </KeepAlive>
+            <component
+                v-else
+                :is="Component"
+                :key="route.name"
+            />
           </router-view>
         </template>
         <template #fallback>
