@@ -23,6 +23,12 @@ Portal Universe 운영 절차서 모음입니다.
 |--------|------|----------|
 | [scale-out.md](./scale-out.md) | 스케일아웃 절차 | 15분 |
 
+### 보안
+
+| 파일명 | 설명 | 소요시간 |
+|--------|------|----------|
+| [secret-rotation.md](./secret-rotation.md) | Secret 로테이션 절차 (DB, JWT) | DB: 15분, JWT: 20분 |
+
 ## 작성 가이드
 
 - [Runbook 작성 가이드](../../docs_template/guide/runbooks/how-to-write.md) 참조

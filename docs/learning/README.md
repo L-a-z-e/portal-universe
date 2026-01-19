@@ -27,14 +27,15 @@ learning/
 
 ### 학습 노트
 
-| 번호 | 파일명 | 주제 | 핵심 기술 |
-|------|--------|------|-----------|
-| 01 | [01-domain-model.md](./notes/01-domain-model.md) | 도메인 모델 설계 | DDD, Entity 설계 |
-| 02 | [02-saga-pattern.md](./notes/02-saga-pattern.md) | Saga 패턴 | Orchestration, 분산 트랜잭션 |
-| 03 | [03-concurrency-control.md](./notes/03-concurrency-control.md) | 동시성 제어 | Pessimistic Lock, Optimistic Lock |
-| 04 | [04-snapshot-pattern.md](./notes/04-snapshot-pattern.md) | 스냅샷 패턴 | 가격 스냅샷, 이력 관리 |
-| 05 | [05-react-fundamentals.md](./notes/05-react-fundamentals.md) | React 기초 | Hooks, Context API |
+| 번호 | 파일명                                                                                      | 주제 | 핵심 기술 |
+|----|------------------------------------------------------------------------------------------|------|-----------|
+| 01 | [01-domain-model.md](./notes/01-domain-model.md)                                         | 도메인 모델 설계 | DDD, Entity 설계 |
+| 02 | [02-saga-pattern.md](./notes/02-saga-pattern.md)                                         | Saga 패턴 | Orchestration, 분산 트랜잭션 |
+| 03 | [03-concurrency-control.md](./notes/03-concurrency-control.md)                           | 동시성 제어 | Pessimistic Lock, Optimistic Lock |
+| 04 | [04-snapshot-pattern.md](./notes/04-snapshot-pattern.md)                                 | 스냅샷 패턴 | 가격 스냅샷, 이력 관리 |
+| 05 | [05-react-fundamentals.md](./notes/05-react-fundamentals.md)                             | React 기초 | Hooks, Context API |
 | 06 | [06-shopping-frontend-implementation.md](./notes/06-shopping-frontend-implementation.md) | Shopping Frontend 구현 | Module Federation, React Router |
+| 07 | [07-security-cryptography.md](./notes/07-security-cryptography.md)                       | 암호화 개념 | AES, RSA, BCrypt, JWT, PKCE, OAuth2 |
 
 ## 주제별 인덱스
 
@@ -47,6 +48,9 @@ learning/
 ### Frontend
 - React: [05-react-fundamentals.md](./notes/05-react-fundamentals.md)
 - Module Federation: [06-shopping-frontend-implementation.md](./notes/06-shopping-frontend-implementation.md)
+
+### Security
+- Cryptography: [07-security-cryptography.md](notes/07-security-cryptography.md)
 
 ### Admin
 - Implementation Patterns: [admin-implementation-patterns.md](./admin-implementation-patterns.md)
