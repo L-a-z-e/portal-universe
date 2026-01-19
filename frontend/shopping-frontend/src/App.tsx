@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { ShoppingRouter } from '@/router'
 import { useAuthStore } from '@/stores/authStore'
-import './styles/index.scss'
+import './styles/index.css'
 
 /**
  * App Props 인터페이스
