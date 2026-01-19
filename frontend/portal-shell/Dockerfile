@@ -17,7 +17,7 @@ COPY portal-shell/package.json ./portal-shell/
 COPY portal-shell/ ./portal-shell/
 
 # 4. 의존성 설치
-RUN npm ci
+RUN npm install
 
 # 5. design-system 먼저 빌드 (타입 정의 생성)
 WORKDIR /workspace/design-system
