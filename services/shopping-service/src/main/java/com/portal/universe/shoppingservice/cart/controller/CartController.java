@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * 장바구니 API를 제공하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/shopping/cart")
+@RequestMapping("/cart")
 @RequiredArgsConstructor
 public class CartController {
 

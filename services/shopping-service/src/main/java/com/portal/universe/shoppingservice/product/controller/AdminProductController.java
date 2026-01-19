@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * 모든 엔드포인트는 ADMIN 권한이 필요합니다.
  */
 @RestController
-@RequestMapping("/api/shopping/admin/products")
+@RequestMapping("/admin/products")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminProductController {

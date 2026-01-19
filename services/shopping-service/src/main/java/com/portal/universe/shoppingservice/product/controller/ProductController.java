@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
  * 주의: Admin 전용 API는 AdminProductController에서 처리합니다.
  */
 @RestController
-@RequestMapping("/api/shopping")
+@RequestMapping("/products")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -35,7 +35,7 @@ public class ProductController {
      * @param size 페이지 크기 (기본값: 12)
      * @return 페이징된 상품 목록을 담은 ApiResponse
      */
-    @GetMapping("/products")
+    @GetMapping
     public ApiResponse<Page<ProductResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
@@ -62,7 +62,7 @@ public class ProductController {
      * @param productId 조회할 상품의 ID
      * @return 조회된 상품 정보를 담은 ApiResponse
      */
-    @GetMapping("/products/{productId}")
+    @GetMapping("/{productId}")
     public ApiResponse<ProductResponse> getProductById(@PathVariable Long productId) {
         return ApiResponse.success(productService.getProductById(productId));
     }
@@ -103,7 +103,7 @@ public class ProductController {
      * @param productId 조회할 상품의 ID
      * @return 상품 정보와 리뷰 목록을 포함한 ApiResponse
      */
-    @GetMapping("/products/{productId}/with-reviews")
+    @GetMapping("/{productId}/with-reviews")
     public ApiResponse<ProductWithReviewsResponse> getProductWithReviews(@PathVariable Long productId) {
         return ApiResponse.success(productService.getProductWithReviews(productId));
     }

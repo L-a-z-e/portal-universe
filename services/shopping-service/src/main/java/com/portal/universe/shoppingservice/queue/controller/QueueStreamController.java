@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * SSE 기반 실시간 대기열 상태 업데이트
  */
 @RestController
-@RequestMapping("/api/shopping/queue")
+@RequestMapping("/queue")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Queue Stream", description = "대기열 실시간 스트림 API")
