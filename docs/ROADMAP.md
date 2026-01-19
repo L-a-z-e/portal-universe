@@ -139,18 +139,70 @@ Portal Universe를 **풀 이커머스 플랫폼**으로 확장하는 로드맵�
 ```
 docs/
 ├── ROADMAP.md                       # 이 문서 (마스터 로드맵)
-├── architecture/
-│   ├── auth-system-design.md        # 인증 시스템 설계
-│   └── signup-flow.md               # 회원가입 플로우
-├── prd/
-│   ├── PRD-001-ecommerce-core.md    # Phase 1 PRD (완료)
-│   ├── PRD-002-concurrency.md       # Phase 2 PRD
-│   ├── PRD-003-realtime-search.md   # Phase 3 PRD
-│   └── PRD-004-devops.md            # Phase 4 PRD
-└── adr/                             # Architecture Decision Records (예정)
-    ├── ADR-001-saga-pattern.md
-    ├── ADR-002-redis-distributed-lock.md
-    └── ...
+├── adr/                             # Architecture Decision Records
+│   ├── README.md
+│   ├── ADR-001-admin-component-structure.md
+│   ├── ADR-002-api-endpoint-design.md
+│   └── ADR-003-authorization-strategy.md
+├── api/                             # API 문서
+│   ├── admin-products-api.md
+│   ├── coupon-api.md
+│   ├── shopping-api-reference.md
+│   └── timedeal-api.md
+├── architecture/                    # 아키텍처 설계
+│   ├── admin-authorization-strategy.md
+│   ├── admin-product-management.md
+│   ├── admin-tradeoff-analysis.md
+│   ├── auth-system-design.md
+│   └── signup-flow.md
+├── design/                          # UI/UX 설계
+│   └── admin-product-ui-spec.md
+├── diagrams/                        # 시스템 다이어그램
+│   ├── README.md
+│   ├── source/                      # Mermaid/PlantUML 원본
+│   │   ├── admin-flow.md
+│   │   ├── auth-erd.md
+│   │   ├── service-communication.md
+│   │   └── system-overview.md
+│   └── exported/                    # 이미지 (PNG/SVG)
+├── guides/                          # 가이드 문서
+│   └── admin-product-guide.md
+├── learning/                        # 학습 자료
+│   ├── README.md
+│   ├── admin-implementation-patterns.md
+│   └── notes/                       # 학습 노트
+│       ├── 01-domain-model.md
+│       ├── 02-saga-pattern.md
+│       ├── 03-concurrency-control.md
+│       ├── 04-snapshot-pattern.md
+│       ├── 05-react-fundamentals.md
+│       └── 06-shopping-frontend-implementation.md
+├── prd/                             # Product Requirements Documents
+│   ├── PRD-001-ecommerce-core.md
+│   ├── PRD-002-concurrency.md
+│   ├── PRD-003-realtime-search.md
+│   └── PRD-004-devops.md
+├── runbooks/                        # 운영 절차서
+│   ├── README.md
+│   ├── deploy-production.md
+│   ├── incident-response.md
+│   ├── rollback-procedure.md
+│   └── scale-out.md
+├── testing/                         # 테스트 문서
+│   ├── README.md
+│   ├── test-strategy.md
+│   ├── test-plan/
+│   │   ├── TP-001-01-shopping-api.md
+│   │   └── TP-002-01-auth-flow.md
+│   ├── test-cases/
+│   └── coverage/
+│       └── README.md
+└── troubleshooting/                 # 트러블슈팅
+    ├── README.md
+    ├── templates/
+    │   └── template.md
+    └── 2026/01/                     # 연/월별 구조
+        └── TS-20260117-001-react-module-federation.md
 ```
 
 ---
