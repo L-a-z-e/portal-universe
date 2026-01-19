@@ -9,7 +9,7 @@ import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById } from "../api/posts";
-import {Button, Tag, Avatar, Card, Textarea} from "@portal/design-system";
+import {Button, Tag, Avatar, Card, Textarea} from "@portal/design-system-vue";
 import type { PostResponse } from "@/dto/post.ts";
 import type { CommentResponse } from "@/dto/comment.ts";
 import { getCommentsByPostId, createComment, updateComment, deleteComment } from "@/api/comments.ts";

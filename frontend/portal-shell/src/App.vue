@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useAuthStore } from "./store/auth.ts";
 import { login, logout } from "./services/authService.ts";
-import { Button, Badge } from '@portal/design-system';
+import { Button, Badge } from '@portal/design-system-vue';
 import { useThemeStore } from "./store/theme.ts";
 import { onMounted, watch} from "vue";
 import ThemeToggle from "./components/ThemeToggle.vue";

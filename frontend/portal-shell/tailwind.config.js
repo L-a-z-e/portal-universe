@@ -1,5 +1,5 @@
 // frontend/portal-shell/tailwind.config.js
-import designSystemPreset from '@portal/design-system/tailwind.preset.js';
+import designSystemPreset from '@portal/design-tokens/tailwind';
 
 console.log('🔥🔥🔥 [DEBUG] Portal Shell Tailwind Config Loaded! 🔥🔥🔥');
 

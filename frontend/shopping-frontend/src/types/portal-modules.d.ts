@@ -19,24 +19,47 @@ declare module 'portal/themeStore' {
 }
 
 declare module 'portal/authStore' {
-  interface User {
-    id: string
+  // Portal Shell의 실제 PortalUser 구조
+  interface UserProfile {
+    sub: string
     email: string
-    name: string
-    role: 'guest' | 'user' | 'admin'
-    avatar?: string
+    username?: string
+    name?: string
+    nickname?: string
+    picture?: string
+    emailVerified?: boolean
+    locale?: string
+    timezone?: string
+  }
+
+  interface UserAuthority {
+    roles: string[]
+    scopes: string[]
+  }
+
+  interface PortalUser {
+    profile: UserProfile
+    authority: UserAuthority
+    preferences: {
+      theme: string
+      language: string
+      notifications: boolean
+    }
+    _accessToken: string
+    _refreshToken?: string
+    _expiresAt?: number
+    _issuedAt?: number
   }
 
   interface AuthState {
-    user: User | null
+    user: PortalUser | null
     isAuthenticated: boolean
-    accessToken: string | null
   }
 
   interface AuthStore {
     (): AuthState
-    getState: () => AuthState
-    subscribe: (listener: (state: AuthState) => void) => () => void
+    getState?: () => AuthState
+    subscribe?: (listener: (state: AuthState) => void) => () => void
   }
 
   export const useAuthStore: AuthStore
