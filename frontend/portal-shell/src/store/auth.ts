@@ -95,6 +95,10 @@ export const useAuthStore = defineStore('auth', () => {
         _issuedAt: Math.floor(Date.now() / 1000),
       };
 
+      // ✅ Remote 앱(Shopping, Blog 등)에서 사용할 전역 토큰 설정
+      window.__PORTAL_ACCESS_TOKEN__ = oidcUser.access_token;
+      console.log('✅ window.__PORTAL_ACCESS_TOKEN__ set for remote apps');
+
       console.log('✅ User set successfully');
       console.log('   Display name:', displayName.value);
       console.log('   Roles:', authority.roles);
@@ -114,6 +118,10 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     console.log('👋 [Auth Store] Logging out');
     user.value = null;
+
+    // ✅ 전역 토큰 제거
+    delete window.__PORTAL_ACCESS_TOKEN__;
+    console.log('✅ window.__PORTAL_ACCESS_TOKEN__ cleared');
   }
 
   // ==================== Return ====================
