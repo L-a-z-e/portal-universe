@@ -13,7 +13,10 @@
 # 저장소 클론
 git clone https://github.com/L-a-z-e/portal-universe.git
 cd portal-universe
+# /.env.local.example, /.env.docker.example 확인후 작성
+```
 
+```bash
 # 모든 서비스 시작
 docker compose up -d
 
@@ -121,7 +124,7 @@ docker volume rm portal-universe_mysql-data
 
 ## 환경 변수
 
-`.env` 파일을 생성하여 환경 변수를 설정합니다:
+`.env.local` 또는 `.env.docker` 파일을 생성하여 환경 변수를 설정합니다:
 
 ```bash
 # OAuth2 (선택)
@@ -155,7 +158,7 @@ docker compose stop kibana alertmanager dozzle
 
 ### 포트 충돌
 
-기존에 사용 중인 포트가 있으면 `docker compose.yml`에서 포트 매핑을 수정하세요.
+기존에 사용 중인 포트가 있으면 `docker-compose.yml`에서 포트 매핑을 수정하세요.
 
 ## 참고
 
