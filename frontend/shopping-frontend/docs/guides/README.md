@@ -10,6 +10,8 @@
 |----|------|------|------|--------|
 | guide-getting-started | [Getting Started](./getting-started.md) | 개발 환경 설정 가이드 | ✅ Current | 2026-01-18 |
 | guide-federation-integration | [Module Federation 통합](./federation-integration.md) | Portal Shell과의 통합 가이드 | ✅ Current | 2026-01-18 |
+| guide-admin-ui | [Admin UI Guide](./admin-ui-guide.md) | Admin 페이지 사용 및 개발 가이드 | ✅ Current | 2026-01-19 |
+| guide-coupon-timedeal-queue | [쿠폰, 타임딜, 대기열](./coupon-timedeal-guide.md) | 쿠폰/타임딜/대기열 기능 사용 및 개발 가이드 | ✅ Current | 2026-01-19 |
 
 ---
 
@@ -18,6 +20,8 @@
 ### 개발 가이드
 - **Getting Started** - 개발 환경 설정 및 첫 실행
 - Module Federation 통합
+- **Admin UI** - 관리자 페이지 사용 및 개발
+- **쿠폰, 타임딜, 대기열** - 쿠폰/타임딜/대기열 기능 사용 및 개발
 - 컴포넌트 개발
 - 스타일링 및 테마
 - API 클라이언트 사용
@@ -29,4 +33,4 @@
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-19
