@@ -37,7 +37,7 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipComponentProps>(
     ref
   ) => {
     const [isVisible, setIsVisible] = useState(false);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const showTooltip = () => {
       if (disabled) return;
