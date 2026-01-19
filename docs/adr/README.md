@@ -71,6 +71,65 @@ Admin API 엔드포인트 설계 방식을 결정합니다.
 
 ---
 
+### ADR-004: JWT RBAC 자동 설정 전략
+**상태**: Accepted | **작성일**: 2026-01-19
+
+각 마이크로서비스의 JWT RBAC 설정 중복을 해결하기 위한 자동 설정 전략을 수립합니다.
+
+**결정 요약**:
+- Common Library에 `JwtSecurityAutoConfiguration` 추가
+- Servlet/Reactive 환경별로 자동으로 JWT 권한 변환기 Bean 등록
+- `@ConditionalOnMissingBean`으로 서비스별 커스터마이징 허용
+
+**파일**: [ADR-004-jwt-rbac-auto-configuration.md](./ADR-004-jwt-rbac-auto-configuration.md)
+
+**영향 범위**:
+- `services/common-library/.../security/config/JwtSecurityAutoConfiguration.java`
+- 모든 마이크로서비스의 SecurityConfig 간소화
+- 코드 중복 제거 및 일관된 보안 설정
+
+**대안 검토**:
+- ❌ 각 서비스마다 개별 구현: 코드 중복, 유지보수 비용 증가
+- ⚠️ 유틸리티 클래스 제공: 부분적 개선
+- ✅ Auto-Configuration: Zero Configuration, 환경별 자동 감지
+
+**결과**:
+- **긍정적**: 코드 중복 제거, 일관된 보안 설정, 신규 서비스 개발 속도 향상
+- **부정적**: Common Library 결합도 증가 (완화 방안 포함)
+
+---
+
+### ADR-005: 민감 데이터 관리 전략
+**상태**: Accepted | **작성일**: 2026-01-19
+
+민감한 정보(DB 비밀번호, API 키 등)를 Git에 커밋하지 않기 위한 보안 전략을 수립합니다.
+
+**결정 요약**:
+- .env 파일 + .gitignore 방식 채택
+- 템플릿 파일 제공 (.env.example, .env.docker.example, secret.yaml.example)
+- 환경별(Local, Docker, K8s) 일관된 환경 변수 관리
+
+**파일**: [ADR-005-sensitive-data-management.md](./ADR-005-sensitive-data-management.md)
+
+**영향 범위**:
+- `.gitignore` - 민감 파일 제외
+- `.env.example`, `.env.docker.example` - 환경 변수 템플릿
+- `k8s/base/secret.yaml.example` - Kubernetes Secret 템플릿
+- `docker-compose.yml` - 환경 변수 사용
+
+**대안 검토**:
+- ✅ .env + .gitignore: 간단, 비용 없음 (채택)
+- ❌ HashiCorp Vault: 인프라 운영 부담
+- 🟡 AWS Secrets Manager: 프로덕션 환경 향후 검토
+- ❌ Git-crypt: 관리 복잡도 높음
+
+**다음 단계**:
+- Pre-commit hook 추가
+- 온보딩 문서 작성
+- 프로덕션 환경에서 AWS Secrets Manager 검토
+
+---
+
 ## ADR 관리 규칙
 
 ### 상태 정의
@@ -164,8 +223,10 @@ YYYY-MM-DD
 | ADR-001 | 1.0 | 2026-01-17 | 초기 작성 |
 | ADR-002 | 1.0 | 2026-01-17 | 초기 작성 |
 | ADR-003 | 1.0 | 2026-01-17 | 초기 작성 |
+| ADR-004 | 1.0 | 2026-01-19 | 초기 작성 |
+| ADR-005 | 1.0 | 2026-01-19 | 초기 작성 |
 
 ---
 
-**최종 업데이트**: 2026-01-17
+**최종 업데이트**: 2026-01-19
 **관리자**: Documenter Agent
