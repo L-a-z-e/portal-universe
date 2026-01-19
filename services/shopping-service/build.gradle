@@ -117,6 +117,12 @@ dependencies {
     testImplementation 'com.redis:testcontainers-redis:2.2.2' // Redis container for testing
     testImplementation 'org.testcontainers:elasticsearch' // Elasticsearch container for testing
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // =======================================
+    // Etc.
+    // =======================================
+    // macOS aarch64 환경에서 Netty DNS 문제 해결을 위한 네이티브 의존성
+    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.94.Final:osx-aarch_64'
 }
 
 // Spring Cloud 종속성 버전 관리를 위한 BOM(Bill of Materials)
