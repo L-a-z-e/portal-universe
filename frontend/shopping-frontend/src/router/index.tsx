@@ -11,10 +11,11 @@ import {
   RouterProvider,
   Outlet,
   Navigate,
-  useLocation,
-  useNavigate,
-  type Router
+  useLocation
 } from 'react-router-dom'
+
+// React Router v7 Router 타입
+type RouterInstance = ReturnType<typeof createBrowserRouter>
 
 // Lazy load pages for code splitting
 const ProductListPage = lazy(() => import('@/pages/ProductListPage'))
@@ -24,26 +25,22 @@ const CheckoutPage = lazy(() => import('@/pages/CheckoutPage'))
 const OrderListPage = lazy(() => import('@/pages/OrderListPage'))
 const OrderDetailPage = lazy(() => import('@/pages/OrderDetailPage'))
 
+// Admin pages
+const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
+const AdminProductListPage = lazy(() => import('@/pages/admin/AdminProductListPage'))
+const AdminProductFormPage = lazy(() => import('@/pages/admin/AdminProductFormPage'))
+const ForbiddenPage = lazy(() => import('@/pages/error/ForbiddenPage'))
+
+// Guards
+const RequireAuth = lazy(() => import('@/components/guards/RequireAuth'))
+const RequireRole = lazy(() => import('@/components/guards/RequireRole'))
+
 // Loading fallback component
 const PageLoader: React.FC = () => (
   <div className="min-h-[400px] flex items-center justify-center">
     <div className="flex flex-col items-center gap-4">
       <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
       <p className="text-text-meta text-sm">Loading...</p>
-    </div>
-  </div>
-)
-
-// Error boundary component
-const ErrorFallback: React.FC<{ error?: Error }> = ({ error }) => (
-  <div className="min-h-[400px] flex items-center justify-center">
-    <div className="text-center">
-      <h2 className="text-xl font-bold text-status-error mb-2">
-        Something went wrong
-      </h2>
-      <p className="text-text-meta text-sm">
-        {error?.message || 'Failed to load page'}
-      </p>
     </div>
   </div>
 )
@@ -87,7 +84,18 @@ const Layout: React.FC = () => (
   </>
 )
 
-// Route definitions
+// Admin Wrapper - Guards를 렌더링 시점에 처리
+const AdminWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>
+    <RequireAuth>
+      <RequireRole roles={['admin']}>
+        {children}
+      </RequireRole>
+    </RequireAuth>
+  </Suspense>
+)
+
+// Route definitions - element에 JSX 사용
 const routes = [
   {
     path: '/',
@@ -95,31 +103,104 @@ const routes = [
     children: [
       {
         index: true,
-        element: <ProductListPage />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProductListPage />
+          </Suspense>
+        )
       },
       {
         path: 'products',
-        element: <ProductListPage />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProductListPage />
+          </Suspense>
+        )
       },
       {
         path: 'products/:productId',
-        element: <ProductDetailPage />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProductDetailPage />
+          </Suspense>
+        )
       },
       {
         path: 'cart',
-        element: <CartPage />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CartPage />
+          </Suspense>
+        )
       },
       {
         path: 'checkout',
-        element: <CheckoutPage />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CheckoutPage />
+          </Suspense>
+        )
       },
       {
         path: 'orders',
-        element: <OrderListPage />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <OrderListPage />
+          </Suspense>
+        )
       },
       {
         path: 'orders/:orderNumber',
-        element: <OrderDetailPage />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <OrderDetailPage />
+          </Suspense>
+        )
+      },
+      {
+        path: '403',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ForbiddenPage />
+          </Suspense>
+        )
+      },
+      {
+        // Admin routes
+        path: 'admin',
+        element: (
+          <AdminWrapper>
+            <Suspense fallback={<PageLoader />}>
+              <AdminLayout />
+            </Suspense>
+          </AdminWrapper>
+        ),
+        children: [
+          {
+            path: 'products',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminProductListPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'products/new',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminProductFormPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'products/:id',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminProductFormPage />
+              </Suspense>
+            )
+          }
+        ]
       },
       {
         // Fallback for unknown routes
@@ -159,7 +240,7 @@ export const createRouter = (options: {
 }
 
 // Router instance cache for navigation control
-let routerInstance: Router | null = null
+let routerInstance: RouterInstance | null = null
 
 /**
  * Get current router instance
@@ -193,7 +274,7 @@ export const ShoppingRouter: React.FC<ShoppingRouterProps> = ({
   onNavigate
 }) => {
   // Create router (only once)
-  const routerRef = useRef<Router | null>(null)
+  const routerRef = useRef<RouterInstance | null>(null)
 
   if (!routerRef.current) {
     routerRef.current = createRouter({ isEmbedded, basePath, initialPath })
