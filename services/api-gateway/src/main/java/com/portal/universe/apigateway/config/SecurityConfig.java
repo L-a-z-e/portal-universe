@@ -74,7 +74,6 @@ public class SecurityConfig {
                 "http://localhost:8080",
                 "https://portal-universe:30000"
                 ));
-        configuration.addAllowedOrigin("null"); // 로컬 개발 환경 등에서 Origin이 'null'인 경우 허용
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

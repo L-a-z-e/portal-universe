@@ -21,10 +21,17 @@ git worktree add "$WORKTREE_PATH" "$BRANCH"
 
 cd "$WORKTREE_PATH"
 
-# Symlink gitignored folders
+# Symlink gitignored files/folders
 [ -d "$MAIN_REPO/.claude" ] && ln -s "$MAIN_REPO/.claude" .claude
-[ -d "$MAIN_REPO/docs_template" ] && ln -s "$MAIN_REPO/docs_template" docs_template
+[ -d "$MAIN_REPO/certs" ] && ln -s "$MAIN_REPO/certs" certs
+[ -f "$MAIN_REPO/.env" ] && ln -s "$MAIN_REPO/.env" .env
+[ -f "$MAIN_REPO/.env.docker" ] && ln -s "$MAIN_REPO/.env.docker" .env.docker
+[ -f "$MAIN_REPO/.mcp.json" ] && ln -s "$MAIN_REPO/.mcp.json" .mcp.json
 
 echo "✓ Worktree 설정 완료: $WORKTREE_PATH ($BRANCH)"
-echo "  - .claude → $MAIN_REPO/.claude"
-echo "  - docs_template → $MAIN_REPO/docs_template"
+echo "  Symlinks:"
+[ -d "$MAIN_REPO/.claude" ] && echo "  - .claude → $MAIN_REPO/.claude"
+[ -d "$MAIN_REPO/certs" ] && echo "  - certs → $MAIN_REPO/certs"
+[ -f "$MAIN_REPO/.env" ] && echo "  - .env → $MAIN_REPO/.env"
+[ -f "$MAIN_REPO/.env.docker" ] && echo "  - .env.docker → $MAIN_REPO/.env.docker"
+[ -f "$MAIN_REPO/.mcp.json" ] && echo "  - .mcp.json → $MAIN_REPO/.mcp.json"

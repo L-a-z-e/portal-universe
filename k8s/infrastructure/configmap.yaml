@@ -33,19 +33,19 @@ data:
 # ===================================================================
 # ConfigMap: MySQL 초기 설정
 # ===================================================================
+# NOTE: Password fields moved to Secret (k8s/base/secret.yaml)
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mysql-config
   namespace: portal-universe
 data:
-  MYSQL_ROOT_PASSWORD: "root"
   MYSQL_USER: "laze"
-  MYSQL_PASSWORD: "password"
 ---
 # ===================================================================
 # ConfigMap: MongoDB 초기 설정
 # ===================================================================
+# NOTE: Password fields moved to Secret (k8s/base/secret.yaml)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -53,4 +53,3 @@ metadata:
   namespace: portal-universe
 data:
   MONGO_INITDB_ROOT_USERNAME: "laze"
-  MONGO_INITDB_ROOT_PASSWORD: "password"
