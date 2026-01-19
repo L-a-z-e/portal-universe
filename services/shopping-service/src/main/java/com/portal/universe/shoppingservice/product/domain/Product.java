@@ -1,4 +1,4 @@
-package com.portal.universe.shoppingservice.domain;
+package com.portal.universe.shoppingservice.product.domain;
 
 import jakarta.persistence.*;
 import lombok.Builder;

@@ -1,10 +1,10 @@
-package com.portal.universe.shoppingservice.controller;
+package com.portal.universe.shoppingservice.product.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
-import com.portal.universe.shoppingservice.dto.AdminProductRequest;
-import com.portal.universe.shoppingservice.dto.ProductResponse;
-import com.portal.universe.shoppingservice.dto.StockUpdateRequest;
-import com.portal.universe.shoppingservice.service.ProductService;
+import com.portal.universe.shoppingservice.product.dto.AdminProductRequest;
+import com.portal.universe.shoppingservice.product.dto.ProductResponse;
+import com.portal.universe.shoppingservice.product.dto.StockUpdateRequest;
+import com.portal.universe.shoppingservice.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

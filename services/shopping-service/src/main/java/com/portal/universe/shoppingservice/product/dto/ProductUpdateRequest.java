@@ -1,4 +1,4 @@
-package com.portal.universe.shoppingservice.dto;
+package com.portal.universe.shoppingservice.product.dto;
 
 /**
  * 상품 정보 수정을 요청할 때 사용하는 DTO입니다.

@@ -1,6 +1,6 @@
 package com.portal.universe.shoppingservice.search.document;
 
-import com.portal.universe.shoppingservice.domain.Product;
+import com.portal.universe.shoppingservice.product.domain.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

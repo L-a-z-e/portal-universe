@@ -1,4 +1,4 @@
-package com.portal.universe.shoppingservice.controller;
+package com.portal.universe.shoppingservice.common.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
