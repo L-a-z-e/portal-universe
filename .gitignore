@@ -61,6 +61,10 @@ coverage/
 .env
 .env.local
 .env.*.local
+.env.docker
+
+# Kubernetes Secrets (민감 정보 포함)
+k8s/base/secret.yaml
 
 # Local Development Data (Docker Compose)
 localstack_data/

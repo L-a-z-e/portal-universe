@@ -71,7 +71,7 @@ public class DataInitializer {
 
             userRepository.save(user);
 
-            log.info("Test user created: email={}, password={}, role={}", email, password, role);
+            log.info("Test user created: email={}, role={}", email, role);
         } else {
             log.info("Test user already exists: email={}", email);
         }

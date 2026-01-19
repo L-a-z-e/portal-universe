@@ -6,11 +6,10 @@ services:
       - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    env_file:
+      - .env.docker
     environment:
-      - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=auth_db, shopping_db
-      - MYSQL_USER=laze
-      - MYSQL_PASSWORD=password
       - MYSQL_ROOT_HOST=%
     networks:
       - portal-universe-net
@@ -22,9 +21,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=laze
-      - MONGO_INITDB_ROOT_PASSWORD=password
+    env_file:
+      - .env.docker
     networks:
       - portal-universe-net
 
@@ -146,13 +144,13 @@ services:
     container_name: auth-service
     ports:
       - "8081:8081"
+    env_file:
+      - .env.docker
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_ISSUER=https://portal-universe:30000/auth-service
       - SERVER_FORWARD_HEADERS_STRATEGY=framework
       - SERVER_USE_FORWARD_HEADERS=true
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 10s
@@ -322,9 +320,9 @@ services:
   grafana:
     image: grafana/grafana-oss:latest
     container_name: grafana
+    env_file:
+      - .env.docker
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=password
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_ROOT_URL=http://localhost:3000
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
