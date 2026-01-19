@@ -1,11 +1,11 @@
-package com.portal.universe.shoppingservice.controller;
+package com.portal.universe.shoppingservice.product.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
-import com.portal.universe.shoppingservice.dto.ProductCreateRequest;
-import com.portal.universe.shoppingservice.dto.ProductResponse;
-import com.portal.universe.shoppingservice.dto.ProductUpdateRequest;
-import com.portal.universe.shoppingservice.dto.ProductWithReviewsResponse;
-import com.portal.universe.shoppingservice.service.ProductService;
+import com.portal.universe.shoppingservice.product.dto.ProductCreateRequest;
+import com.portal.universe.shoppingservice.product.dto.ProductResponse;
+import com.portal.universe.shoppingservice.product.dto.ProductUpdateRequest;
+import com.portal.universe.shoppingservice.product.dto.ProductWithReviewsResponse;
+import com.portal.universe.shoppingservice.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

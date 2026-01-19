@@ -1,6 +1,6 @@
 package com.portal.universe.shoppingservice.timedeal.domain;
 
-import com.portal.universe.shoppingservice.domain.Product;
+import com.portal.universe.shoppingservice.product.domain.Product;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,6 +1,6 @@
-package com.portal.universe.shoppingservice.repository;
+package com.portal.universe.shoppingservice.product.repository;
 
-import com.portal.universe.shoppingservice.domain.Product;
+import com.portal.universe.shoppingservice.product.domain.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

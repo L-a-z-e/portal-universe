@@ -1,4 +1,4 @@
-package com.portal.universe.shoppingservice.dto;
+package com.portal.universe.shoppingservice.product.dto;
 
 import jakarta.validation.constraints.*;
 
