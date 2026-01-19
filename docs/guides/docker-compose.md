@@ -15,10 +15,10 @@ git clone https://github.com/L-a-z-e/portal-universe.git
 cd portal-universe
 
 # 모든 서비스 시작
-docker-compose up -d
+docker compose up -d
 
 # 서비스 상태 확인
-docker-compose ps
+docker compose ps
 ```
 
 ## 서비스별 시작
@@ -26,19 +26,19 @@ docker-compose ps
 ### 인프라만 시작
 
 ```bash
-docker-compose up -d mysql-db mongodb redis kafka elasticsearch
+docker compose up -d mysql-db mongodb redis kafka elasticsearch
 ```
 
 ### 모니터링 스택만 시작
 
 ```bash
-docker-compose up -d prometheus grafana zipkin loki promtail alertmanager
+docker compose up -d prometheus grafana zipkin loki promtail alertmanager
 ```
 
 ### 백엔드 서비스만 시작
 
 ```bash
-docker-compose up -d config-service api-gateway auth-service blog-service shopping-service notification-service
+docker compose up -d config-service api-gateway auth-service blog-service shopping-service notification-service
 ```
 
 ## 서비스 포트 매핑
@@ -87,10 +87,10 @@ docker-compose up -d config-service api-gateway auth-service blog-service shoppi
 
 ```bash
 # 특정 서비스 로그
-docker-compose logs -f api-gateway
+docker compose logs -f api-gateway
 
 # 모든 서비스 로그 (최근 100줄)
-docker-compose logs --tail=100
+docker compose logs --tail=100
 
 # Dozzle UI로 로그 확인
 open http://localhost:9999
@@ -100,20 +100,20 @@ open http://localhost:9999
 
 ```bash
 # 모든 서비스 재빌드
-docker-compose build
+docker compose build
 
 # 특정 서비스 재빌드 및 재시작
-docker-compose up -d --build auth-service
+docker compose up -d --build auth-service
 
 # 전체 재시작
-docker-compose down && docker-compose up -d
+docker compose down && docker compose up -d
 ```
 
 ## 데이터 초기화
 
 ```bash
 # 볼륨 포함 전체 삭제
-docker-compose down -v
+docker compose down -v
 
 # 특정 볼륨만 삭제
 docker volume rm portal-universe_mysql-data
@@ -135,7 +135,7 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 
 ```bash
 # 의존성 서비스 상태 확인
-docker-compose ps
+docker compose ps
 
 # 헬스체크 상태 확인
 docker inspect --format='{{json .State.Health}}' config-service
@@ -150,12 +150,12 @@ docker inspect --format='{{json .State.Health}}' config-service
 docker stats
 
 # 불필요한 서비스 중지
-docker-compose stop kibana alertmanager dozzle
+docker compose stop kibana alertmanager dozzle
 ```
 
 ### 포트 충돌
 
-기존에 사용 중인 포트가 있으면 `docker-compose.yml`에서 포트 매핑을 수정하세요.
+기존에 사용 중인 포트가 있으면 `docker compose.yml`에서 포트 매핑을 수정하세요.
 
 ## 참고
 
