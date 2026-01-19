@@ -2,7 +2,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
-import { navigateTo } from './router'
+import { navigateTo, resetRouter, setAppActive } from './router'
 import './styles/index.css'
 
 /**
@@ -16,19 +16,26 @@ export type MountOptions = {
 }
 
 /**
- * Mount된 Shopping 앱 인스턴스 (Blog와 동일한 인터페이스)
+ * Mount된 Shopping 앱 인스턴스 (확장된 인터페이스)
  */
 export type ShoppingAppInstance = {
   /** Parent로부터 경로 변경 수신 */
   onParentNavigate: (path: string) => void
   /** 앱 언마운트 */
   unmount: () => void
+  /** 🆕 keep-alive activated 콜백 */
+  onActivated?: () => void
+  /** 🆕 keep-alive deactivated 콜백 */
+  onDeactivated?: () => void
 }
 
-// 앱 인스턴스 관리
-let root: ReactDOM.Root | null = null
-let currentProps: Record<string, any> = {}
-let navigateCallback: ((path: string) => void) | null = null
+// 🆕 WeakMap으로 인스턴스별 상태 관리 (전역 상태 제거)
+const instanceRegistry = new WeakMap<HTMLElement, {
+  root: ReactDOM.Root
+  navigateCallback: ((path: string) => void) | null
+  styleObserver: MutationObserver | null
+  isActive: boolean
+}>()
 
 /**
  * Shopping 앱을 지정된 컨테이너에 마운트 (Embedded 모드)
@@ -36,7 +43,7 @@ let navigateCallback: ((path: string) => void) | null = null
  *
  * @param el - 마운트할 HTML 엘리먼트
  * @param options - 마운트 옵션
- * @returns Shopping 앱 인스턴스 (onParentNavigate, unmount)
+ * @returns Shopping 앱 인스턴스 (onParentNavigate, unmount, onActivated, onDeactivated)
  *
  * @example
  * ```
@@ -52,11 +59,27 @@ export function mountShoppingApp(
 ): ShoppingAppInstance {
   console.group('🚀 [Shopping] Mounting app in EMBEDDED mode');
 
+  // ✅ Portal Shell에서 마운트됨을 표시 (isEmbedded 플래그 활성화)
+  (window as any).__POWERED_BY_PORTAL_SHELL__ = true;
+
   // ✅ 필수 파라미터 검증 (Blog의 패턴 따름)
   if (!el) {
     console.error('❌ [Shopping] Mount element is null!');
     console.groupEnd();
     throw new Error('[Shopping] Mount element is required');
+  }
+
+  // 🆕 기존 인스턴스가 있으면 정리
+  const existingInstance = instanceRegistry.get(el);
+  if (existingInstance) {
+    console.log('⚠️ [Shopping] Cleaning up existing instance...');
+    try {
+      existingInstance.styleObserver?.disconnect();
+      existingInstance.root.unmount();
+    } catch (err) {
+      console.warn('⚠️ [Shopping] Existing instance cleanup warning:', err);
+    }
+    instanceRegistry.delete(el);
   }
 
   console.log('📍 Mount target:', el.tagName, el.className || '(no class)');
@@ -65,17 +88,41 @@ export function mountShoppingApp(
   console.log('📍 Initial path:', initialPath);
   console.log('📍 Options:', { onNavigate: !!onNavigate });
 
-  // 내비게이션 콜백 저장 (App에서 사용)
-  navigateCallback = onNavigate || null;
-
   try {
-    // ✅ Step 1: React 루트 생성
-    root = ReactDOM.createRoot(el);
-    currentProps = {
+    // ✅ Step 1: React 루트 생성 (함수 스코프 내 관리)
+    const root = ReactDOM.createRoot(el);
+    let navigateCallback = onNavigate || null;
+
+    // 🆕 스타일 태그 마킹을 위한 MutationObserver
+    const styleObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeName === 'STYLE' && !(node as HTMLStyleElement).hasAttribute('data-mf-app')) {
+            (node as HTMLStyleElement).setAttribute('data-mf-app', 'shopping');
+          }
+        });
+      });
+    });
+
+    // <head>에 추가되는 스타일 태그 감시
+    styleObserver.observe(document.head, { childList: true });
+
+    // 🆕 WeakMap에 인스턴스 등록
+    instanceRegistry.set(el, {
+      root,
+      navigateCallback,
+      styleObserver,
+      isActive: true
+    });
+
+    const currentProps = {
       initialPath,
       onNavigate: (path: string) => {
-        console.log(`📍 [Shopping] Route changed to: ${path}`);
-        navigateCallback?.(path);
+        const instance = instanceRegistry.get(el);
+        if (instance?.isActive) {
+          console.log(`📍 [Shopping] Route changed to: ${path}`);
+          instance.navigateCallback?.(path);
+        }
       }
     };
 
@@ -92,16 +139,53 @@ export function mountShoppingApp(
     console.log('✅ [Shopping] App mounted successfully');
     console.groupEnd();
 
-    // ✅ Step 4: 앱 인스턴스 반환 (Blog와 동일한 인터페이스)
+    // ✅ Step 4: 앱 인스턴스 반환 (확장된 인터페이스)
     return {
       /**
        * Parent(Portal Shell)로부터 경로 변경 수신
        * Blog의 onParentNavigate와 동일한 역할
        */
       onParentNavigate: (path: string) => {
+        const instance = instanceRegistry.get(el);
+        if (!instance?.isActive) {
+          console.log(`⏸️ [Shopping] Skipping navigation (inactive): ${path}`);
+          return;
+        }
         console.log(`📥 [Shopping] Received navigation from parent: ${path}`);
-        // Router의 navigate 함수를 직접 호출하여 경로 변경
         navigateTo(path);
+      },
+
+      /**
+       * 🆕 keep-alive activated 콜백
+       * Vue의 onActivated 훅에서 호출됨
+       */
+      onActivated: () => {
+        console.log('🔄 [Shopping] App activated (keep-alive)');
+        const instance = instanceRegistry.get(el);
+        if (instance) {
+          instance.isActive = true;
+          // data-service 복원
+          document.documentElement.setAttribute('data-service', 'shopping');
+
+          // NavigationSync 활성화 (약간의 지연으로 초기 sync 방지)
+          setTimeout(() => {
+            setAppActive(true);
+          }, 100);
+        }
+      },
+
+      /**
+       * 🆕 keep-alive deactivated 콜백
+       * Vue의 onDeactivated 훅에서 호출됨
+       */
+      onDeactivated: () => {
+        console.log('⏸️ [Shopping] App deactivated (keep-alive)');
+        const instance = instanceRegistry.get(el);
+        if (instance) {
+          instance.isActive = false;
+          // NavigationSync 비활성화 (즉시)
+          setAppActive(false);
+        }
       },
 
       /**
@@ -113,29 +197,37 @@ export function mountShoppingApp(
       unmount: () => {
         console.group('🔄 [Shopping] Unmounting app');
 
-        // 1. React Root Unmount
+        const instance = instanceRegistry.get(el);
+
+        // 1. MutationObserver 정리
+        if (instance?.styleObserver) {
+          instance.styleObserver.disconnect();
+        }
+
+        // 2. React Root Unmount
         try {
-          if (root) {
-            root.unmount();
-            root = null;
+          if (instance?.root) {
+            instance.root.unmount();
           }
           console.log('✅ [Shopping] App unmounted successfully');
         } catch (err) {
           console.error('❌ [Shopping] App unmount failed:', err);
         }
 
-        // 2. DOM & Style Cleanup (Always execute)
+        // 3. DOM & Style Cleanup
         try {
           el.innerHTML = '';
 
-          // 🟢 Step 1: <head>의 모든 <style> 태그 중 Shopping CSS 제거
-          const styleTags = document.querySelectorAll('style');
-          console.log(`🔍 [Shopping] Found ${styleTags.length} <style> tags, searching for Shopping CSS...`);
+          // 🆕 마커 기반 스타일 태그 제거 (더 정확함)
+          document.querySelectorAll('style[data-mf-app="shopping"]').forEach(el => {
+            console.log('   📍 [Shopping] Removing marked style tag');
+            el.remove();
+          });
 
+          // 기존 방식도 유지 (fallback)
+          const styleTags = document.querySelectorAll('style:not([data-mf-app])');
           styleTags.forEach((styleTag, index) => {
             const content = styleTag.textContent || '';
-
-            // Shopping 관련 CSS 마커 확인
             if (content.includes('[data-service="shopping"]') ||
               content.includes('shopping-') ||
               (content.includes('@import') && content.includes('shopping'))) {
@@ -144,7 +236,7 @@ export function mountShoppingApp(
             }
           });
 
-          // 🟢 Step 2: <link> 태그 중 Shopping CSS 제거 (있는 경우)
+          // <link> 태그 중 Shopping CSS 제거
           const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
           linkTags.forEach((linkTag) => {
             const href = linkTag.getAttribute('href') || '';
@@ -154,19 +246,26 @@ export function mountShoppingApp(
             }
           });
 
-          // 🟢 Step 3: data-service 속성 정리
+          // data-service 속성 정리
           if (document.documentElement.getAttribute('data-service') === 'shopping') {
             console.log('   📍 [Shopping] Resetting data-service attribute...');
             document.documentElement.removeAttribute('data-service');
           }
 
-          // Props 초기화
-          currentProps = {};
-          navigateCallback = null;
-          console.log('✅ [Shopping] Cleanup completed - CSS removed from <head>');
+          // 🆕 Router 상태 리셋
+          resetRouter();
+
+          // Portal Shell 플래그 리셋 (다른 앱 영향 방지)
+          // Note: 다른 remote 앱이 아직 마운트되어 있을 수 있으므로 주석 처리
+          // delete (window as any).__POWERED_BY_PORTAL_SHELL__;
+
+          console.log('✅ [Shopping] Cleanup completed');
         } catch (err) {
           console.error('❌ [Shopping] Cleanup failed:', err);
         }
+
+        // 4. WeakMap에서 제거
+        instanceRegistry.delete(el);
 
         console.groupEnd();
       }
