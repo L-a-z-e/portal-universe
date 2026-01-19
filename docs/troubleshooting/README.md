@@ -20,6 +20,7 @@ troubleshooting/
 
 | ID | 제목 | 심각도 | 상태 | 영향 서비스 |
 |----|------|--------|------|-------------|
+| [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md) | Design System CSS Import 오류 | 🟠 High | 해결됨 | portal-shell, blog-frontend, shopping-frontend |
 | [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md) | React Error #31 Module Federation 호환성 | 🟠 High | 해결됨 | shopping-frontend |
 
 ## 심각도 기준
@@ -46,9 +47,14 @@ troubleshooting/
 
 ### 서비스별
 
-- **shopping-frontend**: [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
+- **portal-shell**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **blog-frontend**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **shopping-frontend**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
 
 ### 태그별
 
-- **Module Federation**: [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
+- **Vite**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **Design System**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **CSS**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **Module Federation**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
 - **React**: [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
