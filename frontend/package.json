@@ -5,18 +5,25 @@
   "description": "Portal Universe - Micro Frontend Architecture",
 
   "workspaces": [
-    "design-system",
+    "design-tokens",
+    "design-types",
+    "design-system-vue",
+    "design-system-react",
     "portal-shell",
     "blog-frontend",
     "shopping-frontend"
   ],
 
   "scripts": {
-    "dev": "npm run dev --workspaces",
-    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "build:tokens": "npm run build -w design-tokens",
 
-    "dev:design": "npm run dev -w design-system",
-    "build:design": "npm run build -w design-system",
+    "dev:design": "npm run dev -w design-system-vue",
+    "build:design": "npm run build -w design-system-vue",
+
+    "dev:design-react": "npm run dev -w design-system-react",
+    "build:design-react": "npm run build -w design-system-react",
 
     "dev:portal": "npm run dev -w portal-shell",
     "build:portal": "npm run build -w portal-shell",
@@ -33,10 +40,11 @@
     "build:shopping:docker": "npm run build:docker -w shopping-frontend",
     "build:shopping:k8s": "npm run build:k8s -w shopping-frontend",
 
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "storybook": "npm run storybook -w design-system-vue",
+    "storybook:react": "npm run storybook -w design-system-react",
+    "build-storybook": "npm run build-storybook -w design-system-vue",
 
-    "type-check": "npm run type-check --workspaces",
+    "type-check": "npm run type-check --workspaces --if-present",
     "lint": "npm run lint --workspaces 2>/dev/null || true"
   },
 

@@ -6,7 +6,7 @@ import './style.css'
 import router from './router'
 import { useAuthStore } from "./store/auth.ts";
 import userManager from "./services/authService.ts";
-import '@portal/design-system/style.css';
+import '@portal/design-system-vue/style.css';
 import './style.css';
 import AppVue from './App.vue';
 

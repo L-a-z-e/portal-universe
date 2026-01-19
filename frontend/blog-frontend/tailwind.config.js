@@ -1,5 +1,5 @@
 // frontend/blog-frontend/tailwind.config.js
-import designSystemPreset from '@portal/design-system/tailwind.preset.js';
+import designSystemPreset from '@portal/design-tokens/tailwind';
 
 console.log('🔥🔥🔥 [DEBUG] Blog Tailwind Config Loaded! 🔥🔥🔥');
 

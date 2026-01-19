@@ -5,7 +5,7 @@ import { useRouter } from "vue-router";
 import { getPublishedPosts } from "../api/posts";
 import type { PostSummaryResponse } from "../dto/post";
 import type { PageResponse } from "@/types";
-import { Button, Card, SearchBar } from '@portal/design-system';
+import { Button, Card, SearchBar } from '@portal/design-system-vue';
 import PostCard from '../components/PostCard.vue';
 import { useSearchStore } from '../stores/searchStore';
 

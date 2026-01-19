@@ -1,5 +1,5 @@
 /* design-system CSS import */
-@import '@portal/design-system/style.css';
+@import '@portal/design-system-vue/style.css';
 
 /* Tailwind CSS */
 @tailwind base;
