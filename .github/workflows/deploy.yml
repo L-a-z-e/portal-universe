@@ -65,7 +65,7 @@ jobs:
         continue-on-error: true
 
       - name: Notify Slack
-        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        if: always()
         uses: slackapi/slack-github-action@v1
         with:
           payload: |
@@ -150,7 +150,7 @@ jobs:
         continue-on-error: true
 
       - name: Notify
-        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        if: always()
         uses: slackapi/slack-github-action@v1
         with:
           payload: |

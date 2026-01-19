@@ -157,7 +157,6 @@ jobs:
 
     steps:
       - name: Notify Slack
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v1
         with:
           payload: |
