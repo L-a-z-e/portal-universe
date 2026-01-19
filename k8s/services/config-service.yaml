@@ -19,6 +19,11 @@ spec:
     metadata:
       labels:
         app: config-service
+      annotations:
+        # Prometheus 메트릭 수집을 위한 어노테이션
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8888"
     spec:
       containers:
         - name: config-service
@@ -30,6 +35,14 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
+          # 리소스 제한 설정
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
           # Startup Probe: 컨테이너가 시작될 때, 애플리케이션이 완전히 구동될 때까지 기다립니다.
           # Git 리포지토리 클론 등 초기 구동 시간이 길 수 있어 다른 Probe보다 길게 설정합니다.
           startupProbe:
@@ -52,7 +65,7 @@ spec:
             httpGet:
               path: /actuator/health/liveness
               port: 8888
-            initialDelaySeconds: 60
+            initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
 

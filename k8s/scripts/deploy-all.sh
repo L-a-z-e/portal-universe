@@ -55,6 +55,7 @@ echo -e "${YELLOW}📦 Step 1: Apply Base Configuration${NC}"
 
 kubectl apply -f "$PROJECT_ROOT/k8s/base/namespace.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/base/secret.yaml"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/configmap.yaml"
 echo -e "${GREEN}✅ Base configuration applied${NC}"
 
 # --- 2. Infrastructure 배포 ---
@@ -73,6 +74,24 @@ for SERVICE in "${INFRA_SERVICES[@]}"; do
     kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/${SERVICE}.yaml"
     echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
 done
+
+# --- 2.5 Infrastructure Ready 대기 ---
+echo ""
+echo -e "${YELLOW}⏳ Step 2.5: Wait for Infrastructure to be Ready${NC}"
+
+echo "Waiting for MySQL..."
+kubectl wait --for=condition=ready pod -l app=mysql-db -n portal-universe --timeout=120s
+
+echo "Waiting for MongoDB..."
+kubectl wait --for=condition=ready pod -l app=mongodb -n portal-universe --timeout=120s
+
+echo "Waiting for Kafka..."
+kubectl wait --for=condition=ready pod -l app=kafka -n portal-universe --timeout=120s
+
+echo "Waiting for Zipkin..."
+kubectl wait --for=condition=ready pod -l app=zipkin -n portal-universe --timeout=120s
+
+echo -e "${GREEN}✅ All infrastructure services are ready${NC}"
 
 # --- 3. Core Services 배포 (순차적, 상태 확인) ---
 echo ""
@@ -115,15 +134,33 @@ echo -e "${YELLOW}🎨 Step 6: Deploy Frontend${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/portal-shell.yaml"
 kubectl rollout status deployment/portal-shell -n portal-universe
 
-# --- 7. Ingress 배포 ---
+# --- 7. Monitoring Services 배포 ---
 echo ""
-echo -e "${YELLOW}🚪 Step 7: Deploy Ingress${NC}"
+echo -e "${YELLOW}📈 Step 7: Deploy Monitoring Services${NC}"
+
+echo -e "${BLUE}Deploying Prometheus...${NC}"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/prometheus.yaml"
+echo -e "${GREEN}✅ Prometheus deployed${NC}"
+
+echo -e "${BLUE}Deploying Grafana...${NC}"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/grafana.yaml"
+echo -e "${GREEN}✅ Grafana deployed${NC}"
+
+# --- 8. Network Policy 배포 ---
+echo ""
+echo -e "${YELLOW}🔒 Step 8: Deploy Network Policy${NC}"
+kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/network-policy.yaml"
+echo -e "${GREEN}✅ Network Policy deployed${NC}"
+
+# --- 9. Ingress 배포 ---
+echo ""
+echo -e "${YELLOW}🚪 Step 9: Deploy Ingress${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/ingress.yaml"
 echo -e "${GREEN}✅ Ingress deployed${NC}"
 
-# --- 8. 배포 결과 확인 ---
+# --- 10. 배포 결과 확인 ---
 echo ""
-echo -e "${YELLOW}📊 Step 8: Verify Deployment${NC}"
+echo -e "${YELLOW}📊 Step 10: Verify Deployment${NC}"
 echo ""
 
 kubectl get pods -n portal-universe
@@ -133,7 +170,7 @@ echo -e "${GREEN}═════════════════════
 echo -e "${GREEN}🎉 Deployment completed!${NC}"
 echo -e "${GREEN}════════════════════════════════════════${NC}"
 
-# --- 9. 접속 정보 및 Port Forwarding ---
+# --- 11. 접속 정보 및 Port Forwarding ---
 echo ""
 # 기존 port-forward 프로세스를 종료합니다.
 pkill -f "port-forward.*ingress-nginx" 2>/dev/null || true
@@ -142,5 +179,9 @@ kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80 > /de
 
 echo -e "${YELLOW}📋 Access your application:${NC}"
 echo ""
-echo -e "  ${BLUE}http://portal-universe:8080${NC}"
+echo -e "  ${BLUE}Main Application:${NC}  http://portal-universe:8080"
+echo -e "  ${BLUE}Eureka Dashboard:${NC}  http://portal-universe:8080/eureka"
+echo -e "  ${BLUE}Grafana:${NC}           http://portal-universe:8080/grafana"
+echo -e "  ${BLUE}Prometheus:${NC}        http://portal-universe:8080/prometheus"
+echo -e "  ${BLUE}Zipkin:${NC}            http://portal-universe:8080/zipkin"
 echo ""

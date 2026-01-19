@@ -20,7 +20,17 @@ spec:
     metadata:
       labels:
         app: api-gateway
+      annotations:
+        # Prometheus 메트릭 수집을 위한 어노테이션
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"
     spec:
+      # Init Container: Config Service가 준비될 때까지 대기
+      initContainers:
+        - name: wait-for-config
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config-service; sleep 2; done']
       containers:
         - name: api-gateway
           # 로컬 Kind 클러스터에 미리 로드된 이미지를 사용합니다.
@@ -29,27 +39,45 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+          # ConfigMap에서 공통 환경변수를 로드합니다.
+          envFrom:
+            - configMapRef:
+                name: portal-universe-config
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
-            - name: CONFIG_SERVER_URL
-              value: "http://config-service:8888"
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://discovery-service:8761/eureka/"
+          # 리소스 제한 설정
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1024Mi"
+          # Startup Probe: 컨테이너가 시작될 때, 애플리케이션이 완전히 구동될 때까지 기다립니다.
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 18  # 최대 3분
           # Liveness Probe: Pod가 응답하지 않으면 재시작합니다.
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: 8080
-            initialDelaySeconds: 120 # 시작 후 120초 후에 첫 검사 시작
-            periodSeconds: 10 # 10초마다 검사
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
           # Readiness Probe: Pod가 트래픽을 받을 준비가 되었는지 확인합니다.
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 8080
-            initialDelaySeconds: 90 # 시작 후 90초 후에 첫 검사 시작
-            periodSeconds: 5 # 5초마다 검사
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
 
 # ===================================================================
 # API Gateway: Service
@@ -64,9 +92,8 @@ metadata:
   labels:
     app: api-gateway
 spec:
-  # LoadBalancer 타입으로 설정하여 외부에서 직접 접근할 수 있도록 합니다.
-  # (실제 운영 환경에서는 Ingress를 통해 노출하는 것이 일반적입니다.)
-  type: LoadBalancer
+  # ClusterIP 타입으로 변경 - Ingress를 통해 외부에 노출
+  type: ClusterIP
   ports:
     - port: 8080
       targetPort: 8080
