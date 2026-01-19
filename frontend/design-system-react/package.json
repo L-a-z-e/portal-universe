@@ -28,6 +28,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.0.0",
     "@portal/design-tokens": "*",
     "@portal/design-types": "*",
     "clsx": "^2.1.1",

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * 타임딜(TimeDeal) 관련 관리자 API를 제공하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/shopping/admin/time-deals")
+@RequestMapping("/admin/time-deals")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminTimeDealController {

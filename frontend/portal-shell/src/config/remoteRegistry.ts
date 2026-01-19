@@ -42,7 +42,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
     {
       name: 'Blog',
       key: 'blog',
-      url: import.meta.env.VITE_BLOG_REMOTE_URL,
+      url: import.meta.env.VITE_BLOG_REMOTE_URL || 'http://localhost:30001/assets/remoteEntry.js',
       module: 'blog/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
@@ -52,7 +52,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
     {
       name: 'Shopping',
       key: 'shopping',
-      url: import.meta.env.VITE_SHOPPING_REMOTE_URL,
+      url: import.meta.env.VITE_SHOPPING_REMOTE_URL || 'http://localhost:30002/assets/remoteEntry.js',
       module: 'shopping/bootstrap',
       mountFn: 'mountShoppingApp',
       basePath: '/shopping',

@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/shopping/inventory")
+@RequestMapping("/inventory")
 @RequiredArgsConstructor
 public class InventoryStreamController {
 

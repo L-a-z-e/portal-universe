@@ -3,7 +3,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { navigateTo } from './router'
-import './styles/index.scss'
+import './styles/index.css'
 
 /**
  * Mount 옵션 (Blog와 동일한 인터페이스)

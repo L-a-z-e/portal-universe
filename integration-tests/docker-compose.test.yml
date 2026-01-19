@@ -84,7 +84,9 @@ services:
   # Elasticsearch
   # =======================================
   elasticsearch-test:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    build:
+      context: ../infrastructure/elasticsearch
+      dockerfile: Dockerfile
     container_name: portal-elasticsearch-test
     environment:
       - discovery.type=single-node

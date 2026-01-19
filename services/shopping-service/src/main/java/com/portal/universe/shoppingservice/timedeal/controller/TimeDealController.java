@@ -17,7 +17,7 @@ import java.util.List;
  * 타임딜(TimeDeal) 관련 사용자 API를 제공하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/shopping/time-deals")
+@RequestMapping("/time-deals")
 @RequiredArgsConstructor
 public class TimeDealController {
 

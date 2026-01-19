@@ -15,7 +15,7 @@ import java.util.List;
  * 쿠폰(Coupon) 관련 사용자 API를 제공하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/shopping/coupons")
+@RequestMapping("/coupons")
 @RequiredArgsConstructor
 public class CouponController {
 

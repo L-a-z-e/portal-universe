@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * 대기열 API 컨트롤러
  */
 @RestController
-@RequestMapping("/api/shopping/queue")
+@RequestMapping("/queue")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Queue", description = "대기열 관리 API")

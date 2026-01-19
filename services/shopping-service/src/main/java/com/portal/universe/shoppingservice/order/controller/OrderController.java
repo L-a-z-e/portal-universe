@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * 주문 API를 제공하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/shopping/orders")
+@RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderController {
 

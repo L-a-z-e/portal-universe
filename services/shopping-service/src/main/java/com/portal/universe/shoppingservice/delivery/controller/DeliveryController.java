@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
  * 배송 API를 제공하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/shopping/deliveries")
+@RequestMapping("/deliveries")
 @RequiredArgsConstructor
 public class DeliveryController {
 
