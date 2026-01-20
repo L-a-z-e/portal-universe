@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAdminCoupons, useDeactivateCoupon } from '@/hooks/useAdminCoupons'
 import { COUPON_STATUS_LABELS, DISCOUNT_TYPE_LABELS } from '@/types'
+import { Button, Card, Badge, Spinner } from '@portal/design-system-react'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -42,12 +43,12 @@ export function AdminCouponListPage() {
       {/* 헤더 */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">쿠폰 관리</h1>
-          <p className="text-gray-600 mt-1">쿠폰을 생성하고 관리합니다</p>
+          <h1 className="text-2xl font-bold text-text-heading">쿠폰 관리</h1>
+          <p className="text-text-meta mt-1">쿠폰을 생성하고 관리합니다</p>
         </div>
         <Link
           to="/admin/coupons/new"
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-md bg-white/90 text-[#08090a] hover:bg-white active:bg-white/80 light:bg-brand-primary light:text-white light:hover:bg-brand-primaryHover border border-transparent shadow-sm transition-all"
         >
           새 쿠폰 생성
         </Link>
@@ -56,70 +57,71 @@ export function AdminCouponListPage() {
       {/* 로딩 */}
       {isLoading && (
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <Spinner size="lg" />
         </div>
       )}
 
       {/* 에러 */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-600">{error.message}</p>
-        </div>
+        <Card variant="elevated" padding="md" className="mb-6 border-status-error bg-[#E03131]/10 light:bg-red-50">
+          <p className="text-status-error">{error.message}</p>
+        </Card>
       )}
 
       {/* 테이블 */}
       {!isLoading && data && (
         <>
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <Card variant="elevated" padding="none" className="overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-bg-hover light:bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">코드</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">이름</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">할인</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">발급/총수량</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">상태</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">유효기간</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">관리</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">코드</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">이름</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">할인</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-text-meta">발급/총수량</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-text-meta">상태</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">유효기간</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-text-meta">관리</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border-default">
                 {data.content.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-4 py-8 text-center text-text-muted">
                       등록된 쿠폰이 없습니다
                     </td>
                   </tr>
                 ) : (
                   data.content.map((coupon) => (
-                    <tr key={coupon.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm font-mono text-gray-900">{coupon.code}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{coupon.name}</td>
+                    <tr key={coupon.id} className="hover:bg-bg-hover transition-colors">
+                      <td className="px-4 py-3 text-sm font-mono text-text-heading">{coupon.code}</td>
+                      <td className="px-4 py-3 text-sm text-text-body">{coupon.name}</td>
                       <td className="px-4 py-3 text-sm">
-                        <span className="text-indigo-600 font-medium">
+                        <span className="text-brand-primary font-medium">
                           {coupon.discountType === 'FIXED'
                             ? `${formatPrice(coupon.discountValue)}원`
                             : `${coupon.discountValue}%`}
                         </span>
-                        <span className="text-gray-400 ml-1">
+                        <span className="text-text-muted ml-1">
                           ({DISCOUNT_TYPE_LABELS[coupon.discountType]})
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-center text-gray-600">
+                      <td className="px-4 py-3 text-sm text-center text-text-meta">
                         {coupon.issuedQuantity} / {coupon.totalQuantity}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`
-                          inline-block px-2 py-1 rounded text-xs font-medium
-                          ${coupon.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : ''}
-                          ${coupon.status === 'INACTIVE' ? 'bg-gray-100 text-gray-700' : ''}
-                          ${coupon.status === 'EXPIRED' ? 'bg-red-100 text-red-700' : ''}
-                          ${coupon.status === 'EXHAUSTED' ? 'bg-orange-100 text-orange-700' : ''}
-                        `}>
+                        <Badge
+                          variant={
+                            coupon.status === 'ACTIVE' ? 'success' :
+                            coupon.status === 'INACTIVE' ? 'neutral' :
+                            coupon.status === 'EXPIRED' ? 'error' :
+                            'warning'
+                          }
+                        >
                           {COUPON_STATUS_LABELS[coupon.status]}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-4 py-3 text-sm text-text-meta">
                         {formatDate(coupon.startsAt)} ~ {formatDate(coupon.expiresAt)}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -127,7 +129,7 @@ export function AdminCouponListPage() {
                           <button
                             onClick={() => handleDeactivate(coupon.id, coupon.name)}
                             disabled={isDeactivating}
-                            className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+                            className="text-sm text-status-error hover:text-[#C92A2A] disabled:opacity-50 transition-colors"
                           >
                             비활성화
                           </button>
@@ -138,28 +140,30 @@ export function AdminCouponListPage() {
                 )}
               </tbody>
             </table>
-          </div>
+          </Card>
 
           {/* 페이지네이션 */}
           {data.totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-6">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={data.first}
-                className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50"
               >
                 이전
-              </button>
-              <span className="text-sm text-gray-600">
+              </Button>
+              <span className="text-sm text-text-meta">
                 {page + 1} / {data.totalPages}
               </span>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setPage((p) => Math.min(data.totalPages - 1, p + 1))}
                 disabled={data.last}
-                className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50"
               >
                 다음
-              </button>
+              </Button>
             </div>
           )}
         </>
