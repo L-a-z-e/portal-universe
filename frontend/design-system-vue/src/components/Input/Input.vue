@@ -35,13 +35,13 @@ const sizeClasses = {
     <!-- Label -->
     <label
       v-if="label"
-      class="block text-sm font-medium text-[#b4b4b4] mb-1.5 light:text-gray-700"
+      class="block text-sm font-medium text-text-body mb-1.5"
     >
       {{ label }}
-      <span v-if="required" class="text-[#E03131] ml-0.5">*</span>
+      <span v-if="required" class="text-status-error ml-0.5">*</span>
     </label>
 
-    <!-- Input - Linear style -->
+    <!-- Input - Using design tokens -->
     <input
       :type="type"
       :value="modelValue"
@@ -50,32 +50,31 @@ const sizeClasses = {
       @input="handleInput"
       :class="[
         'w-full rounded-md',
-        // Dark mode (default) - Linear style
-        'bg-[#0f1011]',
-        'text-[#b4b4b4] placeholder:text-[#6b6b6b]',
-        'border',
-        // Light mode
-        'light:bg-white light:text-gray-900 light:placeholder:text-gray-400',
+        // Use semantic design tokens (responds to theme automatically)
+        'bg-bg-card',
+        'text-text-body placeholder:text-text-muted',
+        'border border-border-default',
         // Transitions
         'transition-all duration-150 ease-out',
         // Focus state
-        'focus:outline-none focus:ring-2 focus:ring-[#5e6ad2]/30 focus:border-[#5e6ad2]',
-        'light:focus:ring-[#5e6ad2]/20',
+        'focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary',
+        // Hover state
+        'hover:border-border-hover',
         // Sizing
         sizeClasses[size],
         // Error state
         error
-          ? 'border-[#E03131] focus:border-[#E03131] focus:ring-[#E03131]/30'
-          : 'border-[#2a2a2a] hover:border-[#3a3a3a] light:border-gray-200 light:hover:border-gray-300',
+          ? 'border-status-error focus:border-status-error focus:ring-status-error/30'
+          : '',
         // Disabled state
-        disabled && 'bg-[#18191b] cursor-not-allowed opacity-50 light:bg-gray-100'
+        disabled && 'bg-bg-elevated cursor-not-allowed opacity-50'
       ]"
     />
 
     <!-- Error Message -->
     <p
       v-if="error && errorMessage"
-      class="mt-1.5 text-sm text-[#E03131]"
+      class="mt-1.5 text-sm text-status-error"
     >
       {{ errorMessage }}
     </p>
