@@ -15,7 +15,7 @@ export function CountdownTimer({ endsAt, size = 'md', showLabels = true }: Count
 
   if (isExpired) {
     return (
-      <span className="text-red-600 font-medium">
+      <span className="text-status-error font-medium">
         종료됨
       </span>
     )
@@ -37,12 +37,12 @@ export function CountdownTimer({ endsAt, size = 'md', showLabels = true }: Count
     <div className="flex flex-col items-center">
       <div className={`
         ${boxSizeClasses[size]}
-        bg-red-600 text-white rounded-lg flex items-center justify-center font-bold
+        bg-status-error text-white rounded-lg flex items-center justify-center font-bold
       `}>
         {String(value).padStart(2, '0')}
       </div>
       {showLabels && (
-        <span className="text-xs text-gray-500 mt-1">{label}</span>
+        <span className="text-xs text-text-meta mt-1">{label}</span>
       )}
     </div>
   )
@@ -50,9 +50,9 @@ export function CountdownTimer({ endsAt, size = 'md', showLabels = true }: Count
   return (
     <div className={`flex items-center gap-1 ${sizeClasses[size]}`}>
       <TimeBox value={hours} label="시간" />
-      <span className="text-gray-400 font-bold">:</span>
+      <span className="text-text-meta font-bold">:</span>
       <TimeBox value={minutes} label="분" />
-      <span className="text-gray-400 font-bold">:</span>
+      <span className="text-text-meta font-bold">:</span>
       <TimeBox value={seconds} label="초" />
     </div>
   )
