@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, onMounted } from 'vue';
+import { computed, watch, onMounted, onActivated } from 'vue';
 import { useRoute } from 'vue-router';
 import { Button } from '@portal/design-system-vue';
 
@@ -82,6 +82,16 @@ onMounted(() => {
 
     console.log('[Blog] Standalone mode: MutationObserver registered');
   }
+});
+
+/**
+ * 🟢 KeepAlive 재활성화 시 data-service 복원
+ * Shopping → Blog 전환 시 data-service="shopping"이 유지되는 문제 해결
+ */
+onActivated(() => {
+  document.documentElement.setAttribute('data-service', 'blog');
+  console.log('[Blog] KeepAlive activated: Restored data-service="blog"');
+  updateDataTheme();
 });
 </script>
 
