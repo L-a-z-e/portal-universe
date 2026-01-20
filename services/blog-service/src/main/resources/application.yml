@@ -1,16 +1,49 @@
+# ===================================================================
+# Blog Service - Default Configuration
+# ===================================================================
+
 server:
-  # 애플리케이션이 실행될 포트
   port: 8082
 
 spring:
   application:
-    # Spring Cloud에서 서비스를 식별하기 위한 이름
     name: blog-service
-  config:
-    # 외부 설정 서버(Config Server)에서 설정을 가져오도록 지정합니다.
-    # CONFIG_SERVER_URL 환경 변수가 없으면 기본값으로 'http://config-service:8888'를 사용합니다.
-    import: "configserver:${CONFIG_SERVER_URL:http://config-service:8888}"
-  cloud:
-    config:
-      # 애플리케이션 시작 시 Config Server 연결에 실패하면 즉시 시작을 중단합니다.
-      fail-fast: true
+
+  # JPA 공통 설정
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Kafka Producer 공통 설정
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+
+# Swagger/OpenAPI 설정
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+# 분산 추적용 로그 포맷
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

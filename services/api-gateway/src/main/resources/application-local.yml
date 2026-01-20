@@ -1,0 +1,91 @@
+# ===================================================================
+# API Gateway - Local Development Profile
+# ===================================================================
+
+server:
+  forward-headers-strategy: framework
+
+app:
+  frontend:
+    base-url: http://localhost:30000
+    host: localhost:30000
+    scheme: http
+    port: 30000
+
+# 서비스 URL 정의 (IntelliJ 개발용 - localhost)
+services:
+  gateway:
+    url: "http://localhost:8080"
+  auth:
+    url: "http://localhost:8081"
+  blog:
+    url: "http://localhost:8082"
+  shopping:
+    url: "http://localhost:8083"
+  notification:
+    url: "http://localhost:8084"
+
+# Feign Client 설정
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+  auth-service:
+    url: "${services.auth.url}"
+  blog-service:
+    url: "${services.blog.url}"
+  shopping-service:
+    url: "${services.shopping.url}"
+  notification-service:
+    url: "${services.notification.url}"
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth-service
+          jwk-set-uri: http://localhost:8080/auth-service/oauth2/jwks
+
+# Local Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,env,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+
+# 로컬 디버깅용 로그
+logging:
+  level:
+    root: INFO
+
+    # Gateway 핵심 로깅
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.route: INFO
+    org.springframework.cloud.gateway.filter: INFO
+    org.springframework.cloud.reactor.netty.http.server: DEBUG
+
+    # 보안 관련 로깅
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: INFO
+
+    # Circuit Breaker 로깅
+    io.github.resilience4j: INFO
+
+    # 커스텀 필터 로깅
+    com.portal.universe.apigateway: INFO
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [${spring.application.name:},%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [${spring.application.name:},%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+
+  file:
+    name: logs/api-gateway.log
