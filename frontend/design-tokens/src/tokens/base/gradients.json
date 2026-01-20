@@ -1,0 +1,75 @@
+{
+  "$description": "Linear-style gradients for backgrounds and effects",
+  "gradient": {
+    "dark": {
+      "page": {
+        "$value": "linear-gradient(180deg, #08090a 0%, #0e0f10 100%)",
+        "$type": "gradient",
+        "$description": "Subtle page background gradient"
+      },
+      "card": {
+        "$value": "linear-gradient(180deg, #0f1011 0%, #18191b 100%)",
+        "$type": "gradient",
+        "$description": "Card surface gradient"
+      },
+      "glow": {
+        "$value": "radial-gradient(circle at 50% 0%, rgba(94, 106, 210, 0.15) 0%, transparent 50%)",
+        "$type": "gradient",
+        "$description": "Subtle indigo glow effect from top"
+      },
+      "spotlight": {
+        "$value": "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(94, 106, 210, 0.3) 0%, transparent 100%)",
+        "$type": "gradient",
+        "$description": "Hero spotlight effect"
+      }
+    },
+    "brand": {
+      "indigo": {
+        "$value": "linear-gradient(135deg, #5e6ad2 0%, #4f5bc0 100%)",
+        "$type": "gradient",
+        "$description": "Indigo brand gradient"
+      },
+      "indigoSubtle": {
+        "$value": "linear-gradient(135deg, rgba(94, 106, 210, 0.2) 0%, rgba(79, 91, 192, 0.1) 100%)",
+        "$type": "gradient",
+        "$description": "Subtle indigo for backgrounds"
+      },
+      "teal": {
+        "$value": "linear-gradient(135deg, #12B886 0%, #0CA678 100%)",
+        "$type": "gradient",
+        "$description": "Teal brand gradient (Blog)"
+      },
+      "orange": {
+        "$value": "linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)",
+        "$type": "gradient",
+        "$description": "Orange brand gradient (Shopping)"
+      }
+    },
+    "button": {
+      "primary": {
+        "$value": "linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)",
+        "$type": "gradient",
+        "$description": "Linear-style primary button gradient (dark mode)"
+      },
+      "primaryHover": {
+        "$value": "linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.95) 100%)",
+        "$type": "gradient",
+        "$description": "Primary button hover gradient"
+      }
+    },
+    "border": {
+      "subtle": {
+        "$value": "linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
+        "$type": "gradient",
+        "$description": "Subtle border gradient for glassmorphism"
+      }
+    },
+    "text": {
+      "shine": {
+        "$value": "linear-gradient(90deg, #ffffff 0%, #b4b4b4 50%, #ffffff 100%)",
+        "$type": "gradient",
+        "$description": "Text shine effect"
+      }
+    }
+  }
+}

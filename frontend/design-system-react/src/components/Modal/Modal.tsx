@@ -72,16 +72,22 @@ export const Modal = forwardRef<HTMLDivElement, ModalComponentProps>(
       >
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={closeOnBackdrop ? onClose : undefined}
           aria-hidden="true"
         />
 
-        {/* Modal */}
+        {/* Modal - Linear dark mode first */}
         <div
           ref={ref}
           className={cn(
-            'relative w-full bg-bg-card rounded-lg shadow-xl',
+            'relative w-full rounded-xl',
+            // Dark mode (default)
+            'bg-[#18191b]',
+            'border border-[#2a2a2a]',
+            'shadow-[0_16px_48px_rgba(0,0,0,0.6)]',
+            // Light mode
+            'light:bg-white light:border-gray-200 light:shadow-2xl',
             'animate-scale-in',
             sizeClasses[size],
             className
@@ -90,9 +96,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalComponentProps>(
         >
           {/* Header */}
           {(title || showClose) && (
-            <div className="flex items-center justify-between p-4 border-b border-border-default">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#2a2a2a] light:border-gray-200">
               {title && (
-                <h2 id="modal-title" className="text-lg font-semibold text-text-heading">
+                <h2 id="modal-title" className="text-lg font-semibold text-white light:text-gray-900">
                   {title}
                 </h2>
               )}
@@ -101,9 +107,11 @@ export const Modal = forwardRef<HTMLDivElement, ModalComponentProps>(
                   type="button"
                   onClick={onClose}
                   className={cn(
-                    'p-1 rounded-md text-text-muted hover:text-text-body hover:bg-bg-hover',
-                    'transition-colors duration-fast',
-                    'focus:outline-none focus:ring-2 focus:ring-brand-primary',
+                    'p-1.5 rounded-md',
+                    'text-[#6b6b6b] hover:text-[#b4b4b4] hover:bg-white/5',
+                    'light:text-gray-400 light:hover:text-gray-600 light:hover:bg-gray-100',
+                    'transition-colors duration-100',
+                    'focus:outline-none focus:ring-2 focus:ring-[#5e6ad2]',
                     !title && 'ml-auto'
                   )}
                   aria-label="Close"
@@ -122,7 +130,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalComponentProps>(
           )}
 
           {/* Content */}
-          <div className="p-4">{children}</div>
+          <div className="px-5 py-5 text-[#b4b4b4] light:text-gray-600">{children}</div>
         </div>
       </div>
     );

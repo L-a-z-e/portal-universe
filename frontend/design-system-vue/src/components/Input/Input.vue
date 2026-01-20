@@ -22,25 +22,26 @@ function handleInput(event: Event) {
   emit('update:modelValue', target.value);
 }
 
+// Linear-inspired sizing
 const sizeClasses = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-3 py-2 text-sm',
-  lg: 'px-4 py-2.5 text-base'
+  sm: 'h-8 px-3 text-sm',
+  md: 'h-9 px-3 text-sm',
+  lg: 'h-11 px-4 text-base'
 };
 </script>
 
 <template>
-  <div class="input-wrapper">
+  <div class="input-wrapper w-full">
     <!-- Label -->
     <label
       v-if="label"
-      class="block text-sm font-medium text-text-body mb-1.5"
+      class="block text-sm font-medium text-[#b4b4b4] mb-1.5 light:text-gray-700"
     >
       {{ label }}
-      <span v-if="required" class="text-status-error ml-0.5">*</span>
+      <span v-if="required" class="text-[#E03131] ml-0.5">*</span>
     </label>
 
-    <!-- Input -->
+    <!-- Input - Linear style -->
     <input
       :type="type"
       :value="modelValue"
@@ -49,23 +50,32 @@ const sizeClasses = {
       @input="handleInput"
       :class="[
         'w-full rounded-md',
-        'bg-transparent',
+        // Dark mode (default) - Linear style
+        'bg-[#0f1011]',
+        'text-[#b4b4b4] placeholder:text-[#6b6b6b]',
         'border',
-        'text-text-body placeholder:text-text-muted',
-        'transition-all duration-[160ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]',
-        'focus:outline-none focus:ring-2 focus:ring-brand-primary/20',
+        // Light mode
+        'light:bg-white light:text-gray-900 light:placeholder:text-gray-400',
+        // Transitions
+        'transition-all duration-150 ease-out',
+        // Focus state
+        'focus:outline-none focus:ring-2 focus:ring-[#5e6ad2]/30 focus:border-[#5e6ad2]',
+        'light:focus:ring-[#5e6ad2]/20',
+        // Sizing
         sizeClasses[size],
+        // Error state
         error
-          ? 'border-status-error focus:border-status-error'
-          : 'border-border-default focus:border-brand-primary hover:border-border-hover',
-        disabled && 'bg-bg-muted cursor-not-allowed opacity-50'
+          ? 'border-[#E03131] focus:border-[#E03131] focus:ring-[#E03131]/30'
+          : 'border-[#2a2a2a] hover:border-[#3a3a3a] light:border-gray-200 light:hover:border-gray-300',
+        // Disabled state
+        disabled && 'bg-[#18191b] cursor-not-allowed opacity-50 light:bg-gray-100'
       ]"
     />
 
     <!-- Error Message -->
     <p
       v-if="error && errorMessage"
-      class="mt-1.5 text-sm text-status-error"
+      class="mt-1.5 text-sm text-[#E03131]"
     >
       {{ errorMessage }}
     </p>

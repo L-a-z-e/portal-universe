@@ -1,9 +1,12 @@
+import plugin from 'tailwindcss/plugin';
+
 /**
  * @portal/design-tokens - Tailwind CSS Preset
- * Linear-inspired design system preset
+ * Linear-inspired dark-first design system preset
  * @type {import('tailwindcss').Config}
  */
 export default {
+    // Dark mode first - use 'dark' class for dark (default), 'light' class for light
     darkMode: ['class', '[data-theme="dark"]'],
 
     theme: {
@@ -212,5 +215,10 @@ export default {
 
     plugins: [
         require('@tailwindcss/typography'),
+        // Dark-first design: 'light:' variant for light mode overrides
+        plugin(function({ addVariant }) {
+            addVariant('light', '.light &');
+            addVariant('light', '[data-theme="light"] &');
+        }),
     ]
 };

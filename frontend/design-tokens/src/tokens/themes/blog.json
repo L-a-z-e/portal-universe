@@ -1,14 +1,14 @@
 {
-  "$description": "Blog service theme - complete green branding with custom light/dark modes",
+  "$description": "Blog service theme - Teal/Mint branding (Velog style) with unified dark mode",
   "color": {
     "brand": {
       "primary": {
-        "$value": "{color.green.600}",
-        "$description": "Blog brand primary - green",
+        "$value": "#12B886",
+        "$description": "Blog brand primary - Teal (Velog style)",
         "$type": "color"
       },
       "primaryHover": {
-        "$value": "{color.green.700}",
+        "$value": "#0CA678",
         "$description": "Blog brand primary hover",
         "$type": "color"
       },
@@ -148,119 +148,119 @@
     }
   },
   "darkMode": {
-    "$description": "Blog dark mode - complete green palette override",
+    "$description": "Blog dark mode - Unified Linear-style dark theme with Indigo accent",
     "color": {
       "brand": {
         "primary": {
-          "$value": "{color.green.500}",
-          "$description": "Blog dark mode brand primary",
+          "$value": "{color.indigo.400}",
+          "$description": "Blog dark mode brand primary - Unified Indigo accent",
           "$type": "color"
         },
         "primaryHover": {
-          "$value": "{color.green.400}",
+          "$value": "{color.indigo.300}",
           "$description": "Blog dark mode brand primary hover",
           "$type": "color"
         },
         "secondary": {
-          "$value": "{color.green.300}",
+          "$value": "{color.indigo.200}",
           "$description": "Blog dark mode brand secondary",
           "$type": "color"
         }
       },
       "text": {
         "heading": {
-          "$value": "{color.green.50}",
-          "$description": "Blog dark mode heading text - light green",
+          "$value": "#ffffff",
+          "$description": "Blog dark mode heading text - Pure white",
           "$type": "color"
         },
         "body": {
-          "$value": "{color.green.100}",
-          "$description": "Blog dark mode body text - light green",
+          "$value": "#b4b4b4",
+          "$description": "Blog dark mode body text - Unified gray",
           "$type": "color"
         },
         "meta": {
-          "$value": "{color.green.200}",
+          "$value": "#6b6b6b",
           "$description": "Blog dark mode meta text",
           "$type": "color"
         },
         "muted": {
-          "$value": "{color.green.300}",
+          "$value": "#6b6b6b",
           "$description": "Blog dark mode muted text",
           "$type": "color"
         },
         "inverse": {
-          "$value": "{color.green.900}",
+          "$value": "#08090a",
           "$description": "Blog dark mode inverse text",
           "$type": "color"
         },
         "link": {
-          "$value": "{color.blue.500}",
-          "$description": "Blog dark mode link text",
+          "$value": "{color.indigo.400}",
+          "$description": "Blog dark mode link text - Indigo accent",
           "$type": "color"
         },
         "linkHover": {
-          "$value": "{color.blue.600}",
+          "$value": "{color.indigo.300}",
           "$description": "Blog dark mode link hover text",
           "$type": "color"
         }
       },
       "bg": {
         "page": {
-          "$value": "#0B3D35",
-          "$description": "Blog dark mode page background - dark green custom",
+          "$value": "#08090a",
+          "$description": "Blog dark mode page background - Unified near black",
           "$type": "color"
         },
         "card": {
-          "$value": "#0F4C47",
-          "$description": "Blog dark mode card background - dark green custom",
+          "$value": "#0f1011",
+          "$description": "Blog dark mode card background - Unified dark gray",
           "$type": "color"
         },
         "elevated": {
-          "$value": "#135249",
-          "$description": "Blog dark mode elevated background - dark green custom",
+          "$value": "#18191b",
+          "$description": "Blog dark mode elevated background - Unified",
           "$type": "color"
         },
         "muted": {
-          "$value": "#195C52",
-          "$description": "Blog dark mode muted background - dark green custom",
+          "$value": "{color.linear.900}",
+          "$description": "Blog dark mode muted background",
           "$type": "color"
         },
         "hover": {
-          "$value": "#0F4C47",
+          "$value": "{color.linear.700}",
           "$description": "Blog dark mode hover background",
           "$type": "color"
         }
       },
       "border": {
         "default": {
-          "$value": "{color.green.700}",
-          "$description": "Blog dark mode default border",
+          "$value": "#2a2a2a",
+          "$description": "Blog dark mode default border - Unified",
           "$type": "color"
         },
         "hover": {
-          "$value": "{color.green.600}",
+          "$value": "{color.linear.600}",
           "$description": "Blog dark mode hover border",
           "$type": "color"
         },
         "focus": {
-          "$value": "{color.green.300}",
-          "$description": "Blog dark mode focus border",
+          "$value": "{color.indigo.400}",
+          "$description": "Blog dark mode focus border - Indigo accent",
           "$type": "color"
         },
         "muted": {
-          "$value": "{color.green.800}",
+          "$value": "{color.linear.800}",
           "$description": "Blog dark mode muted border",
           "$type": "color"
         }
       },
       "status": {
         "success": {
-          "$value": "{color.green.300}",
+          "$value": "{color.green.500}",
           "$description": "Blog dark mode success status",
           "$type": "color"
         },
         "successBg": {
-          "$value": "#0A4034",
+          "$value": "#0a4034",
           "$description": "Blog dark mode success background",
           "$type": "color"
         },
@@ -270,7 +270,7 @@
           "$type": "color"
         },
         "errorBg": {
-          "$value": "#3D1E1E",
+          "$value": "#4a1c1c",
           "$description": "Blog dark mode error background",
           "$type": "color"
         },
@@ -280,7 +280,7 @@
           "$type": "color"
         },
         "warningBg": {
-          "$value": "#3D3820",
+          "$value": "#4a3c0f",
           "$description": "Blog dark mode warning background",
           "$type": "color"
         },
@@ -290,7 +290,7 @@
           "$type": "color"
         },
         "infoBg": {
-          "$value": "#1A2E3D",
+          "$value": "#1a3a52",
           "$description": "Blog dark mode info background",
           "$type": "color"
         }

@@ -76,16 +76,20 @@ onUnmounted(() => {
         @click.self="handleBackdropClick"
       >
         <Transition
-          enter-active-class="transition-all duration-[160ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-          leave-active-class="transition-all duration-[100ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+          enter-active-class="transition-all duration-150 ease-out"
+          leave-active-class="transition-all duration-100 ease-out"
           enter-from-class="opacity-0 scale-95 translate-y-2"
           leave-to-class="opacity-0 scale-95 translate-y-2"
         >
           <div
             v-if="isOpen"
             :class="[
-              'bg-bg-elevated rounded-xl shadow-2xl w-full',
-              'border border-border-default',
+              // Linear dark mode first
+              'bg-[#18191b] rounded-xl w-full',
+              'border border-[#2a2a2a]',
+              'shadow-[0_16px_48px_rgba(0,0,0,0.6)]',
+              // Light mode
+              'light:bg-white light:border-gray-200 light:shadow-2xl',
               sizeClasses[size]
             ]"
             @click.stop
@@ -93,15 +97,15 @@ onUnmounted(() => {
             <!-- Header -->
             <div
               v-if="title || showClose"
-              class="flex items-center justify-between px-5 py-4 border-b border-border-muted"
+              class="flex items-center justify-between px-5 py-4 border-b border-[#2a2a2a] light:border-gray-200"
             >
-              <h3 v-if="title" class="text-lg font-semibold text-text-heading">
+              <h3 v-if="title" class="text-lg font-semibold text-white light:text-gray-900">
                 {{ title }}
               </h3>
               <button
                 v-if="showClose"
                 @click="close"
-                class="p-1.5 hover:bg-bg-hover rounded-md transition-colors duration-[100ms] text-text-muted hover:text-text-body"
+                class="p-1.5 hover:bg-white/5 rounded-md transition-colors duration-100 text-[#6b6b6b] hover:text-[#b4b4b4] light:hover:bg-gray-100 light:text-gray-400 light:hover:text-gray-600"
                 aria-label="Close"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,14 +115,14 @@ onUnmounted(() => {
             </div>
 
             <!-- Body -->
-            <div class="px-5 py-5">
+            <div class="px-5 py-5 text-[#b4b4b4] light:text-gray-600">
               <slot />
             </div>
 
             <!-- Footer (optional) -->
             <div
               v-if="$slots.footer"
-              class="px-5 py-4 bg-bg-muted rounded-b-xl border-t border-border-muted"
+              class="px-5 py-4 bg-[#0f1011] rounded-b-xl border-t border-[#2a2a2a] light:bg-gray-50 light:border-gray-200"
             >
               <slot name="footer" />
             </div>
