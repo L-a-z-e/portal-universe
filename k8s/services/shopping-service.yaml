@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: shopping-service
-          image: portal-universe-shopping-service:latest
+          image: portal-universe-shopping-service:v1.0.1
           imagePullPolicy: Never
           ports:
             - containerPort: 8083
