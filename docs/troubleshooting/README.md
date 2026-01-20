@@ -20,6 +20,7 @@ troubleshooting/
 
 | ID | 제목 | 심각도 | 상태 | 영향 서비스 |
 |----|------|--------|------|-------------|
+| [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md) | Kubernetes 배포 중 발생한 복합 인프라 이슈 | 🟠 High | 진행 중 | notification-service, auth-service, all-services |
 | [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md) | Design System CSS Import 오류 | 🟠 High | 해결됨 | portal-shell, blog-frontend, shopping-frontend |
 | [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md) | React Error #31 Module Federation 호환성 | 🟠 High | 해결됨 | shopping-frontend |
 
@@ -47,12 +48,21 @@ troubleshooting/
 
 ### 서비스별
 
+- **auth-service**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **notification-service**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **portal-shell**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **blog-frontend**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **shopping-frontend**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
 
 ### 태그별
 
+- **Kubernetes**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Redis**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Kind**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Docker**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Image Pull**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **OAuth2**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Spring Security**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **Vite**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **Design System**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **CSS**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
