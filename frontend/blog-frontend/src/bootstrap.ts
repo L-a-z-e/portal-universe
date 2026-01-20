@@ -53,6 +53,9 @@ export function mountBlogApp(
 ): BlogAppInstance {
   console.group('🚀 [Blog] Mounting app in EMBEDDED mode');
 
+  // ✅ Portal Shell에서 마운트됨을 표시 (isEmbedded 플래그 활성화)
+  (window as any).__POWERED_BY_PORTAL_SHELL__ = true;
+
   // ✅ 필수 파라미터 검증
   if (!el) {
     console.error('❌ [Blog] Mount element is null!');

@@ -183,17 +183,6 @@ function App({
         </header>
       )}
 
-      {/* Embedded Mode Badge */}
-      {isEmbedded && (
-        <div className="bg-status-warning-bg border-b border-status-warning/20">
-          <div className="max-w-7xl mx-auto px-4 py-2">
-            <p className="text-xs text-status-warning font-medium">
-              🔗 Embedded Mode (Portal Shell)
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <main className={isEmbedded ? 'py-4' : 'py-8'}>
         <div className="max-w-7xl mx-auto px-6">
