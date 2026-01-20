@@ -69,3 +69,45 @@ declare module 'portal/apiClient' {
   import type { AxiosInstance } from 'axios'
   export const apiClient: AxiosInstance
 }
+
+declare module 'portal/storeAdapter' {
+  // Theme Store Adapter Types
+  interface ThemeState {
+    isDark: boolean
+  }
+
+  interface ThemeAdapter {
+    getState: () => ThemeState
+    subscribe: (callback: (state: ThemeState) => void) => () => void
+    toggle: () => void
+    initialize: () => void
+  }
+
+  // Auth Store Adapter Types
+  interface AuthState {
+    isAuthenticated: boolean
+    displayName: string
+    isAdmin: boolean
+    user: {
+      email?: string
+      username?: string
+      name?: string
+      nickname?: string
+      picture?: string
+    } | null
+  }
+
+  interface AuthAdapter {
+    getState: () => AuthState
+    subscribe: (callback: (state: AuthState) => void) => () => void
+    hasRole: (role: string) => boolean
+    logout: () => void
+  }
+
+  export const themeAdapter: ThemeAdapter
+  export const authAdapter: AuthAdapter
+  export const portalStoreAdapter: {
+    theme: ThemeAdapter
+    auth: AuthAdapter
+  }
+}

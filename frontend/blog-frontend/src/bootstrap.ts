@@ -155,10 +155,15 @@ export function mountBlogApp(
         });
         
         // 🟢 Step 2: <link> 태그 중 Blog CSS 제거 (있는 경우)
+        // Vite dev mode에서는 CSS가 localhost:30001에서 로드됨
         const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
         linkTags.forEach((linkTag) => {
           const href = linkTag.getAttribute('href') || '';
-          if (href.includes('blog') || href.includes('style')) {
+          // Blog CSS 식별: origin이 30001 포트이거나 data-mf-app="blog" 마커가 있는 경우
+          const isBlogCss = href.includes('localhost:30001') ||
+                           href.includes(':30001/') ||
+                           linkTag.hasAttribute('data-mf-app') && linkTag.getAttribute('data-mf-app') === 'blog';
+          if (isBlogCss) {
             console.log(`   📍 [Blog] Found Blog CSS link: ${href}, removing...`);
             linkTag.remove();
           }
