@@ -8,6 +8,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { productApi, inventoryApi } from '@/api/endpoints'
 import { useCartStore } from '@/stores/cartStore'
 import type { Product, Inventory } from '@/types'
+import { Button, Spinner, Alert, Badge } from '@portal/design-system-react'
 
 const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>()
@@ -99,7 +100,7 @@ const ProductDetailPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          <Spinner size="lg" />
           <p className="text-text-meta">Loading product...</p>
         </div>
       </div>
@@ -110,25 +111,23 @@ const ProductDetailPage: React.FC = () => {
   if (error) {
     return (
       <div className="space-y-6">
-        <button
+        <Button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-text-meta hover:text-text-body transition-colors"
+          variant="ghost"
+          className="gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back
-        </button>
+        </Button>
 
-        <div className="bg-status-error-bg border border-status-error/20 rounded-lg p-8 text-center">
-          <p className="text-status-error text-lg mb-4">{error}</p>
-          <Link
-            to="/"
-            className="inline-block px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
-          >
-            Browse Products
-          </Link>
-        </div>
+        <Alert variant="error" className="text-center">
+          <p className="text-lg mb-4">{error}</p>
+          <Button asChild variant="primary">
+            <Link to="/">Browse Products</Link>
+          </Button>
+        </Alert>
       </div>
     )
   }
@@ -190,9 +189,7 @@ const ProductDetailPage: React.FC = () => {
         <div className="space-y-6">
           {/* Category */}
           {product.category && (
-            <span className="inline-block px-3 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-sm">
-              {product.category}
-            </span>
+            <Badge variant="info">{product.category}</Badge>
           )}
 
           {/* Name */}
@@ -279,33 +276,16 @@ const ProductDetailPage: React.FC = () => {
 
           {/* Add to Cart */}
           <div className="space-y-4">
-            <button
+            <Button
               onClick={handleAddToCart}
               disabled={!isInStock || adding}
-              className={`w-full py-4 rounded-lg font-medium text-lg transition-all ${
-                isInStock && !adding
-                  ? 'bg-brand-primary text-white hover:bg-brand-primary/90'
-                  : 'bg-bg-disabled text-text-disabled cursor-not-allowed'
-              }`}
+              variant={isInStock && !adding ? 'primary' : 'secondary'}
+              size="lg"
+              className="w-full"
             >
               {adding ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
+                  <Spinner size="sm" />
                   Adding to Cart...
                 </span>
               ) : isInStock ? (
@@ -313,21 +293,16 @@ const ProductDetailPage: React.FC = () => {
               ) : (
                 'Out of Stock'
               )}
-            </button>
+            </Button>
 
             {/* Success message */}
             {addSuccess && (
-              <div className="bg-status-success-bg border border-status-success/20 rounded-lg p-4 flex items-center justify-between">
-                <span className="text-status-success text-sm">
-                  Added to cart successfully!
-                </span>
-                <Link
-                  to="/cart"
-                  className="text-brand-primary text-sm font-medium hover:underline"
-                >
-                  View Cart
-                </Link>
-              </div>
+              <Alert variant="success" className="flex items-center justify-between">
+                <span className="text-sm">Added to cart successfully!</span>
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/cart">View Cart</Link>
+                </Button>
+              </Alert>
             )}
           </div>
 

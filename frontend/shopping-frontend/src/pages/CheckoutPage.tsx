@@ -11,6 +11,7 @@ import type { AddressRequest, PaymentMethod, Order, UserCoupon } from '@/types'
 import { PAYMENT_METHOD_LABELS } from '@/types'
 import { CouponSelector } from '@/components/coupon/CouponSelector'
 import { calculateDiscount } from '@/hooks/useCoupons'
+import { Button, Alert, Input } from '@portal/design-system-react'
 
 type CheckoutStep = 'address' | 'payment' | 'confirm' | 'complete'
 
@@ -275,7 +276,7 @@ const CheckoutPage: React.FC = () => {
               <span className="text-text-body">{formatPrice(orderAmount)}</span>
             </div>
             {discountAmount > 0 && (
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-status-success">
                 <span>Coupon Discount</span>
                 <span>-{formatPrice(discountAmount)}</span>
               </div>
@@ -289,19 +290,17 @@ const CheckoutPage: React.FC = () => {
       )}
 
       <div className="flex justify-between pt-4">
-        <Link
-          to="/cart"
-          className="px-6 py-3 text-text-body hover:text-text-heading transition-colors"
-        >
-          Back to Cart
-        </Link>
-        <button
+        <Button asChild variant="ghost">
+          <Link to="/cart">Back to Cart</Link>
+        </Button>
+        <Button
           onClick={handleCreateOrder}
           disabled={!isAddressValid() || loading}
-          className="px-8 py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          variant="primary"
+          size="lg"
         >
           {loading ? 'Creating Order...' : 'Continue to Payment'}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -352,7 +351,7 @@ const CheckoutPage: React.FC = () => {
               <span className="text-text-body">{formatPrice(order.totalAmount)}</span>
             </div>
             {order.discountAmount && order.discountAmount > 0 && (
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-status-success">
                 <span>Coupon Discount</span>
                 <span>-{formatPrice(order.discountAmount)}</span>
               </div>
@@ -368,19 +367,20 @@ const CheckoutPage: React.FC = () => {
       )}
 
       <div className="flex justify-between pt-4">
-        <button
+        <Button
           onClick={() => setStep('address')}
-          className="px-6 py-3 text-text-body hover:text-text-heading transition-colors"
+          variant="ghost"
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleProcessPayment}
           disabled={loading}
-          className="px-8 py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          variant="primary"
+          size="lg"
         >
           {loading ? 'Processing...' : `Pay ${formatPrice(order?.finalAmount || order?.totalAmount || 0)}`}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -407,18 +407,14 @@ const CheckoutPage: React.FC = () => {
       )}
 
       <div className="flex items-center justify-center gap-4">
-        <Link
-          to={order ? `/orders/${order.orderNumber}` : '/orders'}
-          className="px-6 py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 transition-colors"
-        >
-          View Order
-        </Link>
-        <Link
-          to="/"
-          className="px-6 py-3 bg-bg-subtle text-text-body rounded-lg font-medium hover:bg-bg-hover transition-colors"
-        >
-          Continue Shopping
-        </Link>
+        <Button asChild variant="primary">
+          <Link to={order ? `/orders/${order.orderNumber}` : '/orders'}>
+            View Order
+          </Link>
+        </Button>
+        <Button asChild variant="secondary">
+          <Link to="/">Continue Shopping</Link>
+        </Button>
       </div>
     </div>
   )
@@ -431,9 +427,9 @@ const CheckoutPage: React.FC = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 bg-status-error-bg border border-status-error/20 rounded-lg p-4">
-          <p className="text-status-error text-sm">{error}</p>
-        </div>
+        <Alert variant="error" className="mb-6">
+          {error}
+        </Alert>
       )}
 
       {/* Content */}
