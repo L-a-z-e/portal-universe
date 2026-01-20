@@ -6,10 +6,11 @@ export interface InputComponentProps
   extends Omit<InputProps, 'value'>,
     Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {}
 
+// Linear-inspired sizing
 const sizeClasses: Record<NonNullable<InputProps['size']>, string> = {
   sm: 'h-8 px-3 text-sm',
-  md: 'h-9 px-3 text-base',
-  lg: 'h-11 px-4 text-lg',
+  md: 'h-9 px-3 text-sm',
+  lg: 'h-11 px-4 text-base',
 };
 
 export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
@@ -38,12 +39,13 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
           <label
             htmlFor={id}
             className={cn(
-              'block mb-1.5 text-sm font-medium text-text-body',
+              'block mb-1.5 text-sm font-medium text-[#b4b4b4]',
+              'light:text-gray-700',
               disabled && 'opacity-50'
             )}
           >
             {label}
-            {required && <span className="text-status-error ml-0.5">*</span>}
+            {required && <span className="text-[#E03131] ml-0.5">*</span>}
           </label>
         )}
         <input
@@ -55,24 +57,31 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
           aria-invalid={error}
           aria-describedby={error && errorMessage ? `${id}-error` : undefined}
           className={cn(
-            // Base styles
-            'w-full rounded-md border bg-bg-card text-text-body placeholder:text-text-muted',
-            'transition-all duration-normal ease-linear-ease',
-            'focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent',
+            // Base styles - Linear dark mode first
+            'w-full rounded-md border',
+            'bg-[#0f1011]',
+            'text-[#b4b4b4] placeholder:text-[#6b6b6b]',
+            // Light mode
+            'light:bg-white light:text-gray-900 light:placeholder:text-gray-400',
+            // Transitions
+            'transition-all duration-150 ease-out',
+            // Focus state
+            'focus:outline-none focus:ring-2 focus:ring-[#5e6ad2]/30 focus:border-[#5e6ad2]',
+            'light:focus:ring-[#5e6ad2]/20',
             // Size
             sizeClasses[size],
             // Error state
             error
-              ? 'border-status-error focus:ring-status-error'
-              : 'border-border-default hover:border-border-hover',
+              ? 'border-[#E03131] focus:border-[#E03131] focus:ring-[#E03131]/30'
+              : 'border-[#2a2a2a] hover:border-[#3a3a3a] light:border-gray-200 light:hover:border-gray-300',
             // Disabled state
-            disabled && 'opacity-50 cursor-not-allowed bg-bg-muted',
+            disabled && 'bg-[#18191b] cursor-not-allowed opacity-50 light:bg-gray-100',
             className
           )}
           {...props}
         />
         {error && errorMessage && (
-          <p id={`${id}-error`} className="mt-1.5 text-sm text-status-error">
+          <p id={`${id}-error`} className="mt-1.5 text-sm text-[#E03131]">
             {errorMessage}
           </p>
         )}
