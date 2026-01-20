@@ -36,12 +36,6 @@ dependencies {
     implementation project(':services:common-library') // 공통 예외 처리, 응답 형식 등
 
     // =======================================
-    // Spring Cloud & Microservice Core
-    // =======================================
-    implementation 'org.springframework.cloud:spring-cloud-starter-config' // Externalized Configuration
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client' // Service Discovery
-
-    // =======================================
     // Web & Data
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web (MVC)

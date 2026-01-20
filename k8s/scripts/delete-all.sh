@@ -63,17 +63,9 @@ for SERVICE in "${BUSINESS_SERVICES[@]}"; do
     echo -e "${GREEN}✅ ${SERVICE} deleted${NC}"
 done
 
-# --- 5. Core Services 삭제 ---
+# --- 5. Infrastructure 삭제 ---
 echo ""
-echo -e "${YELLOW}⚙️  Step 5: Delete Core Services${NC}"
-
-kubectl delete -f "$PROJECT_ROOT/k8s/services/config-service.yaml" --ignore-not-found=true --timeout=30s
-kubectl delete -f "$PROJECT_ROOT/k8s/services/discovery-service.yaml" --ignore-not-found=true --timeout=30s
-echo -e "${GREEN}✅ Core services deleted${NC}"
-
-# --- 6. Infrastructure 삭제 ---
-echo ""
-echo -e "${YELLOW}🗄️  Step 6: Delete Infrastructure${NC}"
+echo -e "${YELLOW}🗄️  Step 5: Delete Infrastructure${NC}"
 
 INFRA_SERVICES=(
     "kafka"
@@ -88,16 +80,16 @@ for SERVICE in "${INFRA_SERVICES[@]}"; do
     echo -e "${GREEN}✅ ${SERVICE} deleted${NC}"
 done
 
-# --- 7. Base 설정 삭제 ---
+# --- 6. Base 설정 삭제 ---
 echo ""
-echo -e "${YELLOW}🔐 Step 7: Delete Base Configuration${NC}"
+echo -e "${YELLOW}🔐 Step 6: Delete Base Configuration${NC}"
 
 kubectl delete -f "$PROJECT_ROOT/k8s/base/secret.yaml" --ignore-not-found=true --timeout=10s
 echo -e "${GREEN}✅ Secrets deleted${NC}"
 
-# --- 8. Namespace 삭제 (선택사항) ---
+# --- 7. Namespace 삭제 (선택사항) ---
 echo ""
-echo -e "${YELLOW}📦 Step 8: Delete Namespace (Optional)${NC}"
+echo -e "${YELLOW}📦 Step 7: Delete Namespace (Optional)${NC}"
 read -p "❓ Delete namespace 'portal-universe'? (y/N): " -n 1 -r
 echo
 
@@ -112,9 +104,9 @@ else
     echo -e "${BLUE}ℹ️  Namespace kept${NC}"
 fi
 
-# --- 9. Ingress Controller 삭제 (선택사항) ---
+# --- 8. Ingress Controller 삭제 (선택사항) ---
 echo ""
-echo -e "${YELLOW}🌐 Step 9: Delete Ingress Controller (Optional)${NC}"
+echo -e "${YELLOW}🌐 Step 8: Delete Ingress Controller (Optional)${NC}"
 read -p "❓ Delete Ingress Controller? (y/N): " -n 1 -r
 echo
 

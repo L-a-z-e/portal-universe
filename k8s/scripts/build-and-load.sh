@@ -31,8 +31,6 @@ NC='\033[0m'
 
 # --- 빌드 대상 서비스 목록 ---
 BACKEND_SERVICES=(
-    "discovery-service"
-    "config-service"
     "api-gateway"
     "auth-service"
     "blog-service"
