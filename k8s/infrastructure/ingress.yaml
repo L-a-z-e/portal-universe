@@ -47,15 +47,6 @@ spec:
                 port:
                   number: 9411
 
-          # /eureka 경로로 들어오는 모든 요청은 discovery-service 서비스의 8761 포트로 전달됩니다.
-          - path: /eureka
-            pathType: Prefix
-            backend:
-              service:
-                name: discovery-service
-                port:
-                  number: 8761
-
           # --- API 서비스 라우팅 ---
           # /auth-service/** 경로로 들어오는 모든 요청은 api-gateway 서비스의 8080 포트로 전달됩니다.
           - path: /auth-service

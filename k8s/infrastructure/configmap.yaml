@@ -10,16 +10,6 @@ data:
   # 모든 Spring Boot 애플리케이션에 'kubernetes' 프로파일을 활성화합니다.
   SPRING_PROFILES_ACTIVE: "kubernetes"
 
-  # --- Config Server ---
-  # 중앙 설정 서버의 주소입니다.
-  CONFIG_SERVER_URL: "http://config-service:8888"
-
-  # --- 서비스 디스커버리 ---
-  # 모든 서비스가 등록하고 찾을 Eureka 서버의 주소입니다.
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-service:8761/eureka/"
-  # Eureka에 서비스 등록 시, 호스트 이름 대신 IP 주소를 사용하도록 합니다.
-  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
-
   # --- 메시지 브로커 ---
   # Kafka 브로커의 주소입니다.
   KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
