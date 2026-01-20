@@ -81,7 +81,6 @@ k8s/
 │   ├── redis/
 │   └── monitoring/
 ├── services/                # 마이크로서비스
-│   ├── config-service/
 │   ├── api-gateway/
 │   ├── auth-service/
 │   ├── blog-service/

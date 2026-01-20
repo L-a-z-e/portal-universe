@@ -1,0 +1,101 @@
+# ===================================================================
+# Blog Service - Kubernetes Profile
+# ===================================================================
+
+server:
+  forward-headers-strategy: framework
+
+# 서비스 URL 정의 (K8s DNS)
+services:
+  gateway:
+    url: "http://api-gateway"
+  auth:
+    url: "http://auth-service"
+  blog:
+    url: "http://blog-service"
+  shopping:
+    url: "http://shopping-service"
+  notification:
+    url: "http://notification-service"
+
+# Feign Client 설정
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+  auth-service:
+    url: "${services.auth.url}"
+  blog-service:
+    url: "${services.blog.url}"
+  shopping-service:
+    url: "${services.shopping.url}"
+  notification-service:
+    url: "${services.notification.url}"
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://laze:password@mongodb:27017/blog_db?authSource=admin
+
+  kafka:
+    bootstrap-servers: kafka:29092
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://portal-universe:8080/auth-service
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+      location: ${java.io.tmpdir}
+
+# Kubernetes 환경 모니터링 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+      liveness:
+        enabled: true
+      readiness:
+        enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: kubernetes
+
+logging:
+  level:
+    root: INFO
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+aws:
+  s3:
+    access-key: test
+    secret-key: test
+    bucket-name: blog-bucket
+    region: ap-northeast-2
+    endpoint: http://localstack:4566

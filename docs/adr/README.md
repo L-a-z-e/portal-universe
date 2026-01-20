@@ -130,6 +130,30 @@ Admin API 엔드포인트 설계 방식을 결정합니다.
 
 ---
 
+### ADR-006: Config Service 및 Discovery Service 제거
+**상태**: Accepted | **작성일**: 2026-01-20
+
+Spring Cloud Config Service와 Discovery Service(Eureka)를 제거하고 로컬 설정 파일 및 Kubernetes DNS로 전환합니다.
+
+**결정 요약**:
+- 각 서비스에 프로필별 설정 파일 직접 포함 (application-{profile}.yml)
+- Kubernetes DNS를 사용하여 서비스 간 통신
+- ConfigMap + Secret으로 환경 변수 관리
+
+**파일**: [ADR-006-remove-config-service.md](./ADR-006-remove-config-service.md)
+
+**영향 범위**:
+- 모든 마이크로서비스의 설정 파일 구조
+- Docker Compose 및 Kubernetes 배포
+- CI/CD 파이프라인
+
+**대안 검토**:
+- ❌ Config Service 유지: 테스트 복잡성, K8s 중복
+- ❌ Eureka 유지: K8s DNS와 중복
+- ✅ 로컬 설정 + K8s DNS: 독립적 실행, K8s 네이티브
+
+---
+
 ## ADR 관리 규칙
 
 ### 상태 정의
@@ -225,8 +249,9 @@ YYYY-MM-DD
 | ADR-003 | 1.0 | 2026-01-17 | 초기 작성 |
 | ADR-004 | 1.0 | 2026-01-19 | 초기 작성 |
 | ADR-005 | 1.0 | 2026-01-19 | 초기 작성 |
+| ADR-006 | 1.0 | 2026-01-20 | 초기 작성 |
 
 ---
 
-**최종 업데이트**: 2026-01-19
+**최종 업데이트**: 2026-01-20
 **관리자**: Documenter Agent

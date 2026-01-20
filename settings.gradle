@@ -1,11 +1,9 @@
 rootProject.name = 'portal-universe'
 
-include 'services:discovery-service'
 include 'services:api-gateway'
 include 'services:auth-service'
 include 'services:blog-service'
 include 'services:shopping-service'
 include 'services:common-library'
 include 'services:notification-service'
-include 'services:config-service'
 include 'integration-tests'

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 실제 이미지 이름에서 태그 및 Kind 로드
-for service in discovery-service config-service api-gateway auth-service blog-service shopping-service notification-service; do
+for service in api-gateway auth-service blog-service shopping-service notification-service; do
   echo "Processing $service..."
 
   # 실제 이미지 이름 (하이픈)

@@ -93,21 +93,9 @@ kubectl wait --for=condition=ready pod -l app=zipkin -n portal-universe --timeou
 
 echo -e "${GREEN}✅ All infrastructure services are ready${NC}"
 
-# --- 3. Core Services 배포 (순차적, 상태 확인) ---
+# --- 3. Business Services 배포 ---
 echo ""
-echo -e "${YELLOW}⚙️  Step 3: Deploy Core Services${NC}"
-
-echo -e "${BLUE}Deploying discovery-service...${NC}"
-kubectl apply -f "$PROJECT_ROOT/k8s/services/discovery-service.yaml"
-kubectl rollout status deployment/discovery-service -n portal-universe
-
-echo -e "${BLUE}Deploying config-service...${NC}"
-kubectl apply -f "$PROJECT_ROOT/k8s/services/config-service.yaml"
-kubectl rollout status deployment/config-service -n portal-universe
-
-# --- 4. Business Services 배포 ---
-echo ""
-echo -e "${YELLOW}💼 Step 4: Deploy Business Services${NC}"
+echo -e "${YELLOW}💼 Step 3: Deploy Business Services${NC}"
 
 BUSINESS_SERVICES=(
     "auth-service"
@@ -122,21 +110,21 @@ for SERVICE in "${BUSINESS_SERVICES[@]}"; do
     echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
 done
 
-# --- 5. API Gateway 배포 (상태 확인) ---
+# --- 4. API Gateway 배포 (상태 확인) ---
 echo ""
-echo -e "${YELLOW}🌐 Step 5: Deploy API Gateway${NC}"
+echo -e "${YELLOW}🌐 Step 4: Deploy API Gateway${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/api-gateway.yaml"
 kubectl rollout status deployment/api-gateway -n portal-universe
 
-# --- 6. Frontend 배포 (상태 확인) ---
+# --- 5. Frontend 배포 (상태 확인) ---
 echo ""
-echo -e "${YELLOW}🎨 Step 6: Deploy Frontend${NC}"
+echo -e "${YELLOW}🎨 Step 5: Deploy Frontend${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/portal-shell.yaml"
 kubectl rollout status deployment/portal-shell -n portal-universe
 
-# --- 7. Monitoring Services 배포 ---
+# --- 6. Monitoring Services 배포 ---
 echo ""
-echo -e "${YELLOW}📈 Step 7: Deploy Monitoring Services${NC}"
+echo -e "${YELLOW}📈 Step 6: Deploy Monitoring Services${NC}"
 
 echo -e "${BLUE}Deploying Prometheus...${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/prometheus.yaml"
@@ -146,21 +134,21 @@ echo -e "${BLUE}Deploying Grafana...${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/grafana.yaml"
 echo -e "${GREEN}✅ Grafana deployed${NC}"
 
-# --- 8. Network Policy 배포 ---
+# --- 7. Network Policy 배포 ---
 echo ""
-echo -e "${YELLOW}🔒 Step 8: Deploy Network Policy${NC}"
+echo -e "${YELLOW}🔒 Step 7: Deploy Network Policy${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/network-policy.yaml"
 echo -e "${GREEN}✅ Network Policy deployed${NC}"
 
-# --- 9. Ingress 배포 ---
+# --- 8. Ingress 배포 ---
 echo ""
-echo -e "${YELLOW}🚪 Step 9: Deploy Ingress${NC}"
+echo -e "${YELLOW}🚪 Step 8: Deploy Ingress${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/ingress.yaml"
 echo -e "${GREEN}✅ Ingress deployed${NC}"
 
-# --- 10. 배포 결과 확인 ---
+# --- 9. 배포 결과 확인 ---
 echo ""
-echo -e "${YELLOW}📊 Step 10: Verify Deployment${NC}"
+echo -e "${YELLOW}📊 Step 9: Verify Deployment${NC}"
 echo ""
 
 kubectl get pods -n portal-universe
@@ -180,7 +168,6 @@ kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80 > /de
 echo -e "${YELLOW}📋 Access your application:${NC}"
 echo ""
 echo -e "  ${BLUE}Main Application:${NC}  http://portal-universe:8080"
-echo -e "  ${BLUE}Eureka Dashboard:${NC}  http://portal-universe:8080/eureka"
 echo -e "  ${BLUE}Grafana:${NC}           http://portal-universe:8080/grafana"
 echo -e "  ${BLUE}Prometheus:${NC}        http://portal-universe:8080/prometheus"
 echo -e "  ${BLUE}Zipkin:${NC}            http://portal-universe:8080/zipkin"

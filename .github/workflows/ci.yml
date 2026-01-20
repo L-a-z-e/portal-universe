@@ -263,8 +263,6 @@ jobs:
           - blog-service
           - shopping-service
           - notification-service
-          - config-service
-          - discovery-service
 
     steps:
       - name: Checkout code

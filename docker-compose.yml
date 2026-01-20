@@ -95,25 +95,6 @@ services:
     networks:
       - portal-universe-net
 
-  config-service:
-    build:
-      context: .
-      dockerfile: ./services/config-service/Dockerfile
-    container_name: config-service
-    ports:
-      - "8888:8888"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/L-a-z-e/portal-universe-config-repo.git
-      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: main
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - portal-universe-net
-
   api-gateway:
     build:
       context: .
@@ -132,8 +113,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      config-service:
-        condition: service_healthy
       auth-service:
         condition: service_healthy
     networks:
@@ -159,8 +138,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      config-service:
-        condition: service_healthy
       mysql-db:
         condition: service_started
       kafka:
@@ -183,8 +160,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      config-service:
-        condition: service_healthy
       api-gateway:
         condition: service_healthy
       mongodb:
@@ -207,8 +182,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      config-service:
-        condition: service_healthy
       api-gateway:
         condition: service_healthy
       mysql-db:
@@ -237,8 +210,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      config-service:
-        condition: service_healthy
       api-gateway:
         condition: service_healthy
       kafka:

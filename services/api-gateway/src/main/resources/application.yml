@@ -1,15 +1,235 @@
+# ===================================================================
+# API Gateway - Default Configuration
+# ===================================================================
+
 server:
   port: 8080
+  netty:
+    connection-timeout: 2s
 
 spring:
   application:
-    # Spring Cloud에서 서비스를 식별하기 위한 이름
     name: api-gateway
-  config:
-    # 외부 설정 서버(Config Server)에서 설정을 가져오도록 지정합니다.
-    # CONFIG_SERVER_URL 환경 변수가 없으면 기본값으로 'http://config-service:8888'를 사용합니다.
-    import: "configserver:${CONFIG_SERVER_URL:http://config-service:8888}"
+
+  # JPA 공통 설정
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Kafka Producer 공통 설정
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+
   cloud:
-    config:
-      # 애플리케이션 시작 시 Config Server 연결에 실패하면 즉시 시작을 중단합니다.
-      fail-fast: true
+    gateway:
+      # 전역 필터
+      default-filters:
+        - name: PreserveHostHeader
+
+      # X-Forwarded 헤더
+      x-forwarded:
+        enabled: true
+
+      # Discovery 설정 (Eureka 비활성화)
+      discovery:
+        locator:
+          enabled: false
+
+      # 라우팅 규칙 (환경별 URL은 application-*.yml의 services.*.url 참조)
+      routes:
+        # ========== Auth Service ==========
+        # OIDC Discovery
+        - id: auth-service-oidc-discovery
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/.well-known/**
+          filters:
+            - StripPrefix=1
+            - name: OidcPrefix
+              args:
+                enabled: true
+          order: 0
+
+        # OAuth2 Protocol
+        - id: auth-service-oauth2-protocol
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/oauth2/**
+          filters:
+            - StripPrefix=1
+            - name: OidcPrefix
+              args:
+                enabled: true
+          order: 1
+
+        # OIDC Endpoints
+        - id: auth-service-oidc-endpoints
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/connect/**
+          filters:
+            - StripPrefix=1
+            - name: OidcPrefix
+              args:
+                enabled: true
+          order: 2
+
+        # Login/Logout Pages
+        - id: auth-service-login-logout
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/login,/auth-service/logout
+            - Method=GET,POST
+          filters:
+            - StripPrefix=1
+            - name: OidcPrefix
+              args:
+                enabled: true
+          order: 3
+
+        # OAuth2 Social Login - Authorization
+        - id: auth-service-oauth2-authorization
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/oauth2/authorization/**
+          filters:
+            - StripPrefix=1
+            - name: OidcPrefix
+              args:
+                enabled: true
+          order: 3
+
+        # OAuth2 Social Login - Callback
+        - id: auth-service-oauth2-callback
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/login/oauth2/code/**
+          filters:
+            - StripPrefix=1
+            - name: OidcPrefix
+              args:
+                enabled: true
+          order: 3
+
+        # Static assets (로그인 UI 리소스)
+        - id: auth-service-static
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/default-ui.css,/auth-service/favicon.ico,/auth-service/webjars/**
+          filters:
+            - StripPrefix=1
+            - name: OidcPrefix
+              args:
+                enabled: true
+          order: 4
+
+        # Auth REST API (OIDC 아님: 필터 미적용)
+        # Auth User API (Signup, Profile, etc.)
+        - id: auth-service-users
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+          order: 5
+
+        - id: auth-service-api
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+          order: 5
+
+        # ========== Blog Service ==========
+        - id: blog-service-file-route
+          uri: ${services.blog.url}
+          predicates:
+            - Path=/api/blog/file/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: blogCircuitBreaker
+                fallbackUri: forward:/fallback/blog
+            - name: RequestSize
+              args:
+                max-request-size: 100MB
+          order: 1
+
+        - id: blog-service-route
+          uri: ${services.blog.url}
+          predicates:
+            - Path=/api/blog/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: blogCircuitBreaker
+                fallbackUri: forward:/fallback/blog
+          order: 2
+
+        # ========== Shopping Service ==========
+        - id: shopping-service-route
+          uri: ${services.shopping.url}
+          predicates:
+            - Path=/api/shopping/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: shoppingCircuitBreaker
+                fallbackUri: forward:/fallback/shopping
+
+# Resilience4j Circuit Breaker 설정
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: count_based
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+
+    instances:
+      authCircuitBreaker:
+        base-config: default
+      blogCircuitBreaker:
+        base-config: default
+      shoppingCircuitBreaker:
+        base-config: default
+
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+    instances:
+      authCircuitBreaker:
+        base-config: default
+      blogCircuitBreaker:
+        base-config: default
+      shoppingCircuitBreaker:
+        base-config: default
+
+# 분산 추적용 로그 포맷 (모든 환경 동일)
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
