@@ -3,6 +3,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import RemoteWrapper from '../components/RemoteWrapper.vue';
 import HomePage from "../views/HomePage.vue";
+import DashboardPage from "../views/DashboardPage.vue";
 import SignupPage from "../views/SignupPage.vue";
 import CallbackPage from "../views/CallbackPage.vue";
 import { getRemoteConfigs } from '../config/remoteRegistry';
@@ -32,6 +33,12 @@ const routes = [
     name: 'Home',
     component: HomePage,
     meta: { title: '홈' }
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: DashboardPage,
+    meta: { title: '대시보드', requiresAuth: true }
   },
   {
     path: '/signup',

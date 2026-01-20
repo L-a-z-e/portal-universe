@@ -4,6 +4,7 @@ import { Button, Badge } from '@portal/design-system-vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import LoginModal from '../components/LoginModal.vue';
+import DashboardPage from './DashboardPage.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -23,7 +24,7 @@ const services = [
     title: 'Shopping',
     desc: '원하는 상품을 찾아보세요',
     icon: '🛒',
-    link: '#',
+    link: '/shopping',
     gradient: 'from-status-info to-status-info'
   },
   {
@@ -105,7 +106,11 @@ function handleStartClick() {
 </script>
 
 <template>
-  <div class="bg-bg-page text-text-body">
+  <!-- Show Dashboard for authenticated users -->
+  <DashboardPage v-if="authStore.isAuthenticated" />
+
+  <!-- Marketing page for guests -->
+  <div v-else class="bg-bg-page text-text-body">
 
     <!-- Hero Section - Linear style dark gradient -->
     <section class="relative overflow-hidden bg-gradient-to-b from-bg-page via-bg-card to-bg-page">
