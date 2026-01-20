@@ -26,6 +26,10 @@ export type BlogAppInstance = {
   onParentNavigate: (path: string) => void;
   /** 앱 언마운트 */
   unmount: () => void;
+  /** 🆕 keep-alive activated 콜백 */
+  onActivated?: () => void;
+  /** 🆕 keep-alive deactivated 콜백 */
+  onDeactivated?: () => void;
 }
 
 /**
@@ -112,6 +116,25 @@ export function mountBlogApp(
       } else {
         console.log('   ℹ️ Already on this path, skipping navigation');
       }
+    },
+
+    /**
+     * 🆕 keep-alive activated 콜백
+     * RemoteWrapper의 onActivated에서 호출됨
+     * Shopping → Blog 전환 시 data-service="shopping"이 유지되는 문제 해결
+     */
+    onActivated: () => {
+      console.log('🔄 [Blog] App activated (keep-alive)');
+      document.documentElement.setAttribute('data-service', 'blog');
+      console.log('[Blog] KeepAlive activated: Restored data-service="blog"');
+    },
+
+    /**
+     * 🆕 keep-alive deactivated 콜백
+     * RemoteWrapper의 onDeactivated에서 호출됨
+     */
+    onDeactivated: () => {
+      console.log('⏸️ [Blog] App deactivated (keep-alive)');
     },
 
     /**
