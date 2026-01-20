@@ -3,9 +3,13 @@ import { useThemeStore } from "./store/theme.ts";
 import { onMounted, watch, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
+import QuickActions from "./components/QuickActions.vue";
 
 const themeStore = useThemeStore();
 const route = useRoute();
+
+// Quick Actions modal state
+const showQuickActions = ref(false);
 
 // Sidebar collapsed state (synced with Sidebar component via localStorage)
 const sidebarCollapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true');
@@ -81,6 +85,9 @@ watch(() => themeStore.isDark, (newVal) => {
   <div class="min-h-screen bg-bg-page text-text-body transition-colors duration-normal">
     <!-- Sidebar -->
     <Sidebar />
+
+    <!-- Quick Actions Modal (Cmd+K) -->
+    <QuickActions v-model="showQuickActions" />
 
     <!-- Main Content Area -->
     <div
