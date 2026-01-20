@@ -141,18 +141,6 @@ onActivated(() => {
       </div>
     </header>
 
-    <!-- Embedded Mode Badge -->
-    <div
-        v-else
-        class="bg-status-warning-bg border-b border-status-warning/20"
-    >
-      <div class="max-w-7xl mx-auto px-4 py-2">
-        <p class="text-xs text-status-warning font-medium">
-          🔗 Embedded Mode (Portal Shell)
-        </p>
-      </div>
-    </div>
-
     <!-- Main Content -->
     <main :class="isEmbedded ? 'py-4' : 'py-8'">
       <router-view v-slot="{ Component }">
