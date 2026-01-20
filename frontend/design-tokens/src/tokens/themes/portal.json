@@ -20,22 +20,22 @@
     },
     "text": {
       "heading": {
-        "$value": "{color.linear.50}",
-        "$description": "Portal dark mode heading text",
+        "$value": "#ffffff",
+        "$description": "Portal dark mode heading text - Pure white",
         "$type": "color"
       },
       "body": {
-        "$value": "{color.linear.300}",
-        "$description": "Portal dark mode body text",
+        "$value": "#b4b4b4",
+        "$description": "Portal dark mode body text - Optimized for readability",
         "$type": "color"
       },
       "meta": {
-        "$value": "{color.linear.400}",
+        "$value": "#6b6b6b",
         "$description": "Portal dark mode meta text",
         "$type": "color"
       },
       "muted": {
-        "$value": "{color.linear.500}",
+        "$value": "#6b6b6b",
         "$description": "Portal dark mode muted text",
         "$type": "color"
       },
@@ -57,17 +57,17 @@
     },
     "bg": {
       "page": {
-        "$value": "{color.linear.950}",
-        "$description": "Portal dark mode page background",
+        "$value": "#08090a",
+        "$description": "Portal dark mode page background - Near black",
         "$type": "color"
       },
       "card": {
-        "$value": "{color.linear.850}",
-        "$description": "Portal dark mode card background",
+        "$value": "#0f1011",
+        "$description": "Portal dark mode card background - Dark gray",
         "$type": "color"
       },
       "elevated": {
-        "$value": "{color.linear.800}",
+        "$value": "#18191b",
         "$description": "Portal dark mode elevated background",
         "$type": "color"
       },
@@ -84,8 +84,8 @@
     },
     "border": {
       "default": {
-        "$value": "{color.linear.700}",
-        "$description": "Portal dark mode default border",
+        "$value": "#2a2a2a",
+        "$description": "Portal dark mode default border - Linear style",
         "$type": "color"
       },
       "hover": {

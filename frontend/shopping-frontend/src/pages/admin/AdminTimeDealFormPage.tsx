@@ -7,6 +7,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useCreateTimeDeal } from '@/hooks/useAdminTimeDeals'
 import { adminProductApi } from '@/api/endpoints'
 import type { TimeDealCreateRequest, Product } from '@/types'
+import { Button, Card, Input, Select, Spinner } from '@portal/design-system-react'
+import type { SelectOption } from '@portal/design-types'
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('ko-KR').format(price)
@@ -69,6 +71,14 @@ export function AdminTimeDealFormPage() {
     ? Math.round(((selectedProduct.price - formData.dealPrice) / selectedProduct.price) * 100)
     : 0
 
+  const productOptions: SelectOption[] = [
+    { value: 0, label: '상품을 선택하세요' },
+    ...products.map((product) => ({
+      value: product.id,
+      label: `${product.name} - ${formatPrice(product.price)}원`,
+    })),
+  ]
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
 
@@ -129,54 +139,41 @@ export function AdminTimeDealFormPage() {
       <div className="mb-6">
         <Link
           to="/admin/time-deals"
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
+          className="inline-flex items-center text-text-meta hover:text-text-heading mb-4"
         >
           <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           타임딜 목록
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">새 타임딜 생성</h1>
+        <h1 className="text-2xl font-bold text-text-heading">새 타임딜 생성</h1>
       </div>
 
       {/* 폼 */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 상품 선택 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">상품 선택</h2>
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-lg font-medium text-text-heading mb-4">상품 선택</h2>
 
           {isLoadingProducts ? (
             <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+              <Spinner size="md" />
             </div>
           ) : (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                타임딜 상품 *
-              </label>
-              <select
-                value={formData.productId}
-                onChange={(e) => handleProductChange(parseInt(e.target.value))}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.productId ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value={0}>상품을 선택하세요</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} - {formatPrice(product.price)}원
-                  </option>
-                ))}
-              </select>
-              {errors.productId && (
-                <p className="text-red-500 text-sm mt-1">{errors.productId}</p>
-              )}
-            </div>
+            <Select
+              label="타임딜 상품"
+              required
+              value={formData.productId}
+              options={productOptions}
+              onChange={(value) => handleProductChange(Number(value))}
+              error={!!errors.productId}
+              errorMessage={errors.productId}
+            />
           )}
 
           {/* 선택된 상품 정보 */}
           {selectedProduct && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <div className="mt-4 p-4 bg-bg-hover light:bg-gray-50 rounded-lg">
               <div className="flex items-center gap-4">
                 {selectedProduct.imageUrl ? (
                   <img
@@ -185,53 +182,46 @@ export function AdminTimeDealFormPage() {
                     className="w-20 h-20 object-cover rounded"
                   />
                 ) : (
-                  <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 bg-bg-muted light:bg-gray-200 rounded flex items-center justify-center">
+                    <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
                 )}
                 <div>
-                  <h3 className="font-medium text-gray-900">{selectedProduct.name}</h3>
-                  <p className="text-gray-600">정가: {formatPrice(selectedProduct.price)}원</p>
-                  <p className="text-gray-500 text-sm">재고: {selectedProduct.stockQuantity}개</p>
+                  <h3 className="font-medium text-text-heading">{selectedProduct.name}</h3>
+                  <p className="text-text-meta">정가: {formatPrice(selectedProduct.price)}원</p>
+                  <p className="text-text-muted text-sm">재고: {selectedProduct.stockQuantity}개</p>
                 </div>
               </div>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* 가격 설정 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">가격 설정</h2>
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-lg font-medium text-text-heading mb-4">가격 설정</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                딜 가격 (원) *
-              </label>
-              <input
-                type="number"
-                value={formData.dealPrice || ''}
-                onChange={(e) => handleChange('dealPrice', parseInt(e.target.value) || 0)}
-                placeholder="할인된 가격"
-                min={0}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.dealPrice ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.dealPrice && (
-                <p className="text-red-500 text-sm mt-1">{errors.dealPrice}</p>
-              )}
-            </div>
+            <Input
+              label="딜 가격 (원)"
+              required
+              type="number"
+              value={formData.dealPrice || ''}
+              onChange={(e) => handleChange('dealPrice', parseInt(e.target.value) || 0)}
+              placeholder="할인된 가격"
+              min={0}
+              error={!!errors.dealPrice}
+              errorMessage={errors.dealPrice}
+            />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block mb-1.5 text-sm font-medium text-text-body">
                 할인율
               </label>
-              <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
-                <span className={`text-lg font-bold ${discountRate > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+              <div className="h-9 px-3 py-2 border border-border-default rounded-md bg-bg-hover light:bg-gray-50 flex items-center">
+                <span className={`text-lg font-bold ${discountRate > 0 ? 'text-status-error' : 'text-text-muted'}`}>
                   {discountRate > 0 ? `${discountRate}% OFF` : '-'}
                 </span>
               </div>
@@ -239,119 +229,87 @@ export function AdminTimeDealFormPage() {
           </div>
 
           {selectedProduct && formData.dealPrice > 0 && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mt-4 p-4 bg-[#E03131]/10 light:bg-red-50 border border-status-error rounded-lg">
               <div className="flex items-baseline gap-2">
-                <span className="text-gray-500 line-through">{formatPrice(selectedProduct.price)}원</span>
-                <span className="text-2xl font-bold text-red-600">{formatPrice(formData.dealPrice)}원</span>
-                <span className="text-sm text-gray-600">
+                <span className="text-text-muted line-through">{formatPrice(selectedProduct.price)}원</span>
+                <span className="text-2xl font-bold text-status-error">{formatPrice(formData.dealPrice)}원</span>
+                <span className="text-sm text-text-meta">
                   ({formatPrice(selectedProduct.price - formData.dealPrice)}원 할인)
                 </span>
               </div>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* 수량 설정 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">수량 설정</h2>
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-lg font-medium text-text-heading mb-4">수량 설정</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                총 재고 *
-              </label>
-              <input
-                type="number"
-                value={formData.totalStock || ''}
-                onChange={(e) => handleChange('totalStock', parseInt(e.target.value) || 0)}
-                placeholder="100"
-                min={1}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.totalStock ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.totalStock && (
-                <p className="text-red-500 text-sm mt-1">{errors.totalStock}</p>
-              )}
-            </div>
+            <Input
+              label="총 재고"
+              required
+              type="number"
+              value={formData.totalStock || ''}
+              onChange={(e) => handleChange('totalStock', parseInt(e.target.value) || 0)}
+              placeholder="100"
+              min={1}
+              error={!!errors.totalStock}
+              errorMessage={errors.totalStock}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                1인당 구매 제한 *
-              </label>
-              <input
-                type="number"
-                value={formData.purchaseLimit || ''}
-                onChange={(e) => handleChange('purchaseLimit', parseInt(e.target.value) || 0)}
-                placeholder="1"
-                min={1}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.purchaseLimit ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.purchaseLimit && (
-                <p className="text-red-500 text-sm mt-1">{errors.purchaseLimit}</p>
-              )}
-            </div>
+            <Input
+              label="1인당 구매 제한"
+              required
+              type="number"
+              value={formData.purchaseLimit || ''}
+              onChange={(e) => handleChange('purchaseLimit', parseInt(e.target.value) || 0)}
+              placeholder="1"
+              min={1}
+              error={!!errors.purchaseLimit}
+              errorMessage={errors.purchaseLimit}
+            />
           </div>
-        </div>
+        </Card>
 
         {/* 기간 설정 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">기간 설정</h2>
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-lg font-medium text-text-heading mb-4">기간 설정</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                시작 시간 *
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.startsAt}
-                onChange={(e) => handleChange('startsAt', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.startsAt ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.startsAt && (
-                <p className="text-red-500 text-sm mt-1">{errors.startsAt}</p>
-              )}
-            </div>
+            <Input
+              label="시작 시간"
+              required
+              type="datetime-local"
+              value={formData.startsAt}
+              onChange={(e) => handleChange('startsAt', e.target.value)}
+              error={!!errors.startsAt}
+              errorMessage={errors.startsAt}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                종료 시간 *
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.endsAt}
-                onChange={(e) => handleChange('endsAt', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.endsAt ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.endsAt && (
-                <p className="text-red-500 text-sm mt-1">{errors.endsAt}</p>
-              )}
-            </div>
+            <Input
+              label="종료 시간"
+              required
+              type="datetime-local"
+              value={formData.endsAt}
+              onChange={(e) => handleChange('endsAt', e.target.value)}
+              error={!!errors.endsAt}
+              errorMessage={errors.endsAt}
+            />
           </div>
-        </div>
+        </Card>
 
         {/* 버튼 */}
         <div className="flex justify-end gap-3">
           <Link
             to="/admin/time-deals"
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-md bg-transparent text-text-body border border-border-default hover:bg-bg-hover transition-colors"
           >
             취소
           </Link>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-          >
+          <Button type="submit" variant="danger" loading={isPending}>
             {isPending ? '생성 중...' : '타임딜 생성'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

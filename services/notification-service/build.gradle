@@ -36,10 +36,8 @@ dependencies {
     implementation project(':services:common-library') // 공통 이벤트 DTO, 예외 처리 등
 
     // =======================================
-    // Spring Cloud & Microservice Core
+    // Web
     // =======================================
-    implementation 'org.springframework.cloud:spring-cloud-starter-config' // Externalized Configuration
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client' // Service Discovery
     implementation 'org.springframework.boot:spring-boot-starter-web' // for Health Check endpoints
 
     // =======================================

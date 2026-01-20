@@ -2,6 +2,7 @@
  * CouponCard Component
  * 쿠폰 카드 UI 컴포넌트
  */
+import { Button, Badge } from '@portal/design-system-react'
 import type { Coupon, UserCoupon } from '@/types'
 import { DISCOUNT_TYPE_LABELS, USER_COUPON_STATUS_LABELS } from '@/types'
 
@@ -52,8 +53,8 @@ export function CouponCard({
     <div
       className={`
         border rounded-lg p-4 transition-all
-        ${selectable && isUsable ? 'cursor-pointer hover:border-blue-500' : ''}
-        ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
+        ${selectable && isUsable ? 'cursor-pointer hover:border-brand-primary' : ''}
+        ${isSelected ? 'border-brand-primary light:bg-white bg-bg-card' : 'border-border-default'}
         ${!isUsable && isOwned ? 'opacity-60' : ''}
       `}
       onClick={handleClick}
@@ -61,26 +62,26 @@ export function CouponCard({
       {/* 쿠폰 헤더 */}
       <div className="flex justify-between items-start mb-3">
         <div>
-          <span className="inline-block px-2 py-1 text-xs font-medium rounded bg-indigo-100 text-indigo-700 mb-2">
+          <Badge variant="brand" className="mb-2">
             {DISCOUNT_TYPE_LABELS[coupon.discountType]}
-          </span>
-          <h3 className="text-lg font-semibold text-gray-900">{coupon.name}</h3>
+          </Badge>
+          <h3 className="text-lg font-semibold text-text-heading">{coupon.name}</h3>
         </div>
         <div className="text-right">
-          <span className="text-2xl font-bold text-indigo-600">
+          <span className="text-2xl font-bold text-brand-primary">
             {formatDiscountValue(coupon)}
           </span>
-          <span className="block text-sm text-gray-500">할인</span>
+          <span className="block text-sm text-text-meta">할인</span>
         </div>
       </div>
 
       {/* 쿠폰 설명 */}
       {coupon.description && (
-        <p className="text-sm text-gray-600 mb-3">{coupon.description}</p>
+        <p className="text-sm text-text-body mb-3">{coupon.description}</p>
       )}
 
       {/* 쿠폰 조건 */}
-      <div className="text-xs text-gray-500 space-y-1 mb-3">
+      <div className="text-xs text-text-meta space-y-1 mb-3">
         {coupon.minimumOrderAmount && (
           <p>{coupon.minimumOrderAmount.toLocaleString()}원 이상 구매 시 사용 가능</p>
         )}
@@ -91,46 +92,41 @@ export function CouponCard({
       </div>
 
       {/* 상태 표시 및 버튼 */}
-      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+      <div className="flex justify-between items-center pt-3 border-t border-border-default">
         {isOwned ? (
           <>
             <span
               className={`text-sm font-medium ${
-                isUsable ? 'text-green-600' : 'text-gray-400'
+                isUsable ? 'text-status-success' : 'text-text-meta'
               }`}
             >
               {USER_COUPON_STATUS_LABELS[userCoupon.status]}
             </span>
             {selectable && isUsable && (
-              <span className="text-sm text-blue-600">
+              <span className="text-sm text-brand-primary">
                 {isSelected ? '선택됨' : '선택하기'}
               </span>
             )}
           </>
         ) : (
           <>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-text-meta">
               {coupon.remainingQuantity > 0
                 ? `${coupon.remainingQuantity}장 남음`
                 : '소진됨'}
             </span>
             {onIssue && coupon.remainingQuantity > 0 && (
-              <button
+              <Button
                 onClick={(e) => {
                   e.stopPropagation()
                   onIssue(coupon.id)
                 }}
                 disabled={isIssuing}
-                className={`
-                  px-4 py-2 text-sm font-medium rounded-lg transition-colors
-                  ${isIssuing
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  }
-                `}
+                variant="primary"
+                size="sm"
               >
                 {isIssuing ? '발급 중...' : '쿠폰 받기'}
-              </button>
+              </Button>
             )}
           </>
         )}

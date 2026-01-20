@@ -38,8 +38,6 @@ dependencies {
     // =======================================
     // Spring Cloud & Microservice Core
     // =======================================
-    implementation 'org.springframework.cloud:spring-cloud-starter-config' // Externalized Configuration
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client' // Service Discovery
     // 다른 마이크로서비스의 API를 호출하기 위한 선언적 REST 클라이언트
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 

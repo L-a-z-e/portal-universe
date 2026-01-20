@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => {
           './apiClient': './src/api/apiClient.ts',
           './authStore': './src/store/auth.ts',
           './themeStore': './src/store/theme.ts',
+          './storeAdapter': './src/store/storeAdapter.ts',
         },
         shared: ['vue', 'pinia', 'axios'],
       })

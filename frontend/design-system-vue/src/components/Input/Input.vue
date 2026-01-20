@@ -22,15 +22,16 @@ function handleInput(event: Event) {
   emit('update:modelValue', target.value);
 }
 
+// Linear-inspired sizing
 const sizeClasses = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-3 py-2 text-sm',
-  lg: 'px-4 py-2.5 text-base'
+  sm: 'h-8 px-3 text-sm',
+  md: 'h-9 px-3 text-sm',
+  lg: 'h-11 px-4 text-base'
 };
 </script>
 
 <template>
-  <div class="input-wrapper">
+  <div class="input-wrapper w-full">
     <!-- Label -->
     <label
       v-if="label"
@@ -40,7 +41,7 @@ const sizeClasses = {
       <span v-if="required" class="text-status-error ml-0.5">*</span>
     </label>
 
-    <!-- Input -->
+    <!-- Input - Using design tokens -->
     <input
       :type="type"
       :value="modelValue"
@@ -49,16 +50,24 @@ const sizeClasses = {
       @input="handleInput"
       :class="[
         'w-full rounded-md',
-        'bg-transparent',
-        'border',
+        // Use semantic design tokens (responds to theme automatically)
+        'bg-bg-card',
         'text-text-body placeholder:text-text-muted',
-        'transition-all duration-[160ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]',
-        'focus:outline-none focus:ring-2 focus:ring-brand-primary/20',
+        'border border-border-default',
+        // Transitions
+        'transition-all duration-150 ease-out',
+        // Focus state
+        'focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary',
+        // Hover state
+        'hover:border-border-hover',
+        // Sizing
         sizeClasses[size],
+        // Error state
         error
-          ? 'border-status-error focus:border-status-error'
-          : 'border-border-default focus:border-brand-primary hover:border-border-hover',
-        disabled && 'bg-bg-muted cursor-not-allowed opacity-50'
+          ? 'border-status-error focus:border-status-error focus:ring-status-error/30'
+          : '',
+        // Disabled state
+        disabled && 'bg-bg-elevated cursor-not-allowed opacity-50'
       ]"
     />
 

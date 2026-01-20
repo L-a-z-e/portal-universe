@@ -6,7 +6,7 @@
         "$description": "Default brand primary - Linear indigo"
       },
       "primaryHover": {
-        "$value": "#6e7ae2",
+        "$value": "#4f5bc0",
         "$description": "Default brand primary hover state"
       },
       "secondary": {
@@ -33,13 +33,13 @@
       "50": "#f7f8f8",
       "100": "#ebeced",
       "200": "#d0d6e0",
-      "300": "#8a8f98",
-      "400": "#6c717a",
+      "300": "#b4b4b4",
+      "400": "#6b6b6b",
       "500": "#5c6169",
       "600": "#3e3e44",
-      "700": "#26282b",
-      "800": "#1b1c1e",
-      "850": "#141516",
+      "700": "#2a2a2a",
+      "800": "#18191b",
+      "850": "#0f1011",
       "900": "#0e0f10",
       "950": "#08090a"
     },
@@ -70,15 +70,15 @@
       "900": "#087F5B"
     },
     "orange": {
-      "$description": "Warm accent - for shopping service",
+      "$description": "Warm accent - for shopping service (Shopify recommended)",
       "50": "#FFF4E6",
       "100": "#FFE8CC",
       "200": "#FFD8A8",
       "300": "#FFC078",
       "400": "#FFA94D",
-      "500": "#FF922B",
-      "600": "#FD7E14",
-      "700": "#F76707",
+      "500": "#FF6B35",
+      "600": "#FF6B35",
+      "700": "#E55A2B",
       "800": "#E8590C",
       "900": "#D9480F"
     },

@@ -1,0 +1,83 @@
+# ===================================================================
+# Blog Service - Local Development Profile
+# ===================================================================
+
+server:
+  forward-headers-strategy: framework
+
+app:
+  frontend:
+    base-url: http://localhost:30000
+
+# 서비스 URL 정의 (IntelliJ 개발용 - localhost)
+services:
+  gateway:
+    url: "http://localhost:8080"
+  auth:
+    url: "http://localhost:8081"
+  blog:
+    url: "http://localhost:8082"
+  shopping:
+    url: "http://localhost:8083"
+  notification:
+    url: "http://localhost:8084"
+
+# Feign Client 설정
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+  auth-service:
+    url: "${services.auth.url}"
+  blog-service:
+    url: "${services.blog.url}"
+  shopping-service:
+    url: "${services.shopping.url}"
+  notification-service:
+    url: "${services.notification.url}"
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://laze:password@localhost:27017/blog_db?authSource=admin
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth-service
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+      location: ${java.io.tmpdir}
+
+# Local Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,env,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+
+aws:
+  s3:
+    access-key: test
+    secret-key: test
+    bucket-name: blog-bucket
+    region: ap-northeast-2
+    endpoint: http://localhost:4566

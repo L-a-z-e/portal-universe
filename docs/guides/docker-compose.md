@@ -41,7 +41,7 @@ docker compose up -d prometheus grafana zipkin loki promtail alertmanager
 ### 백엔드 서비스만 시작
 
 ```bash
-docker compose up -d config-service api-gateway auth-service blog-service shopping-service notification-service
+docker compose up -d api-gateway auth-service blog-service shopping-service notification-service
 ```
 
 ## 서비스 포트 매핑
@@ -51,7 +51,6 @@ docker compose up -d config-service api-gateway auth-service blog-service shoppi
 | 서비스 | 포트 | URL |
 |--------|------|-----|
 | API Gateway | 8080 | http://localhost:8080 |
-| Config Service | 8888 | http://localhost:8888 |
 | Auth Service | 8081 | http://localhost:8081 |
 | Blog Service | 8082 | http://localhost:8082 |
 | Shopping Service | 8083 | http://localhost:8083 |
@@ -141,9 +140,9 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 docker compose ps
 
 # 헬스체크 상태 확인
-docker inspect --format='{{json .State.Health}}' config-service
+docker inspect --format='{{json .State.Health}}' api-gateway
 
-# config-service가 먼저 healthy 상태가 되어야 함
+# 인프라 서비스(mysql-db, mongodb, kafka 등)가 먼저 healthy 상태가 되어야 함
 ```
 
 ### 메모리 부족

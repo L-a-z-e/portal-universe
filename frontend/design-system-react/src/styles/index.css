@@ -392,65 +392,84 @@
 
 /* ============================================
    Theme Overrides (Service-specific - Dark Mode)
+   배경색/텍스트색은 글로벌 다크테마로 통일, 브랜드 색상만 서비스별 유지
    ============================================ */
 [data-service="blog"][data-theme="dark"] {
-    --semantic-bg-card: #0F4C47;
-    --semantic-bg-elevated: #135249;
-    --semantic-bg-hover: #0F4C47;
-    --semantic-bg-muted: #195C52;
-    --semantic-bg-page: #0B3D35;
-    --semantic-border-default: #0CA678;
-    --semantic-border-focus: #63E6BE;
-    --semantic-border-hover: #12B886;
-    --semantic-border-muted: #099268;
+    /* 배경색: 글로벌 다크테마 통일 (가독성) */
+    --semantic-bg-page: #08090a;
+    --semantic-bg-card: #0f1011;
+    --semantic-bg-elevated: #18191b;
+    --semantic-bg-muted: #1a1b1d;
+    --semantic-bg-hover: #26282b;
+
+    /* 텍스트: 글로벌 다크테마 통일 (가독성) */
+    --semantic-text-heading: #F0F6FC;
+    --semantic-text-body: #C9D1D9;
+    --semantic-text-meta: #8B949E;
+    --semantic-text-muted: #6E7681;
+    --semantic-text-inverse: #111827;
+    --semantic-text-link: #58A6FF;
+    --semantic-text-linkHover: #A5D6FF;
+
+    /* 테두리: 글로벌 다크테마 통일 */
+    --semantic-border-default: #444C56;
+    --semantic-border-hover: #6E7681;
+    --semantic-border-muted: #2C2C2C;
+    --semantic-border-focus: #58A6FF;
+
+    /* 브랜드 색상: Blog 고유 (그린 계열) */
     --semantic-brand-primary: #20C997;
     --semantic-brand-primaryHover: #38D9A9;
     --semantic-brand-secondary: #63E6BE;
-    --semantic-status-error: #FA5252;
-    --semantic-status-errorBg: #3D1E1E;
-    --semantic-status-info: #339AF0;
-    --semantic-status-infoBg: #1A2E3D;
-    --semantic-status-success: #63E6BE;
+
+    /* 상태 색상: 글로벌 다크테마 통일 */
+    --semantic-status-success: #20C997;
     --semantic-status-successBg: #0A4034;
+    --semantic-status-error: #FA5252;
+    --semantic-status-errorBg: #4A1C1C;
     --semantic-status-warning: #FCC419;
-    --semantic-status-warningBg: #3D3820;
-    --semantic-text-body: #C3FAE8;
-    --semantic-text-heading: #E6FCF5;
-    --semantic-text-inverse: #087F5B;
-    --semantic-text-link: #339AF0;
-    --semantic-text-linkHover: #228BE6;
-    --semantic-text-meta: #96F2D7;
-    --semantic-text-muted: #63E6BE;
+    --semantic-status-warningBg: #4A3C0F;
+    --semantic-status-info: #339AF0;
+    --semantic-status-infoBg: #1A3A52;
 }
 
 [data-service="shopping"][data-theme="dark"] {
-    --semantic-bg-card: #8B3A00;
-    --semantic-bg-elevated: #A85A3D;
-    --semantic-bg-hover: #8B3A00;
-    --semantic-bg-muted: #7A4A2F;
-    --semantic-bg-page: #662200;
-    --semantic-border-default: #F76707;
-    --semantic-border-focus: #FFC078;
-    --semantic-border-hover: #FD7E14;
-    --semantic-border-muted: #E8590C;
+    /* 배경색: 글로벌 다크테마 통일 (가독성) */
+    --semantic-bg-page: #08090a;
+    --semantic-bg-card: #0f1011;
+    --semantic-bg-elevated: #18191b;
+    --semantic-bg-muted: #1a1b1d;
+    --semantic-bg-hover: #26282b;
+
+    /* 텍스트: 글로벌 다크테마 통일 (가독성) */
+    --semantic-text-heading: #F0F6FC;
+    --semantic-text-body: #C9D1D9;
+    --semantic-text-meta: #8B949E;
+    --semantic-text-muted: #6E7681;
+    --semantic-text-inverse: #111827;
+    --semantic-text-link: #58A6FF;
+    --semantic-text-linkHover: #A5D6FF;
+
+    /* 테두리: 글로벌 다크테마 통일 */
+    --semantic-border-default: #444C56;
+    --semantic-border-hover: #6E7681;
+    --semantic-border-muted: #2C2C2C;
+    --semantic-border-focus: #58A6FF;
+
+    /* 브랜드 색상: Shopping 고유 (오렌지 계열) */
     --semantic-brand-primary: #FF922B;
     --semantic-brand-primaryHover: #FFA94D;
     --semantic-brand-secondary: #FFC078;
+
+    /* 상태 색상: 글로벌 다크테마 통일 */
+    --semantic-status-success: #20C997;
+    --semantic-status-successBg: #0A4034;
     --semantic-status-error: #FA5252;
     --semantic-status-errorBg: #4A1C1C;
-    --semantic-status-info: #339AF0;
-    --semantic-status-infoBg: #1A3A52;
-    --semantic-status-success: #63E6BE;
-    --semantic-status-successBg: #0A4034;
     --semantic-status-warning: #FCC419;
     --semantic-status-warningBg: #4A3C0F;
-    --semantic-text-body: #FFD8A8;
-    --semantic-text-heading: #FFE8CC;
-    --semantic-text-inverse: #D9480F;
-    --semantic-text-link: #339AF0;
-    --semantic-text-linkHover: #228BE6;
-    --semantic-text-meta: #FFC078;
-    --semantic-text-muted: #FFA94D;
+    --semantic-status-info: #339AF0;
+    --semantic-status-infoBg: #1A3A52;
 }
 
 /* ============================================

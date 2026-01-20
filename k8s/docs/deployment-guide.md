@@ -115,8 +115,6 @@ resources:
 
 | 서비스 | CPU Requests | Memory Requests | CPU Limits | Memory Limits |
 |--------|--------------|-----------------|------------|---------------|
-| **discovery-service** | 100m | 256Mi | 500m | 512Mi |
-| **config-service** | 100m | 256Mi | 500m | 512Mi |
 | **api-gateway** | 200m | 512Mi | 1000m | 1Gi |
 | **auth-service** | 100m | 256Mi | 500m | 512Mi |
 | **blog-service** | 100m | 256Mi | 500m | 512Mi |
@@ -150,8 +148,6 @@ metadata:
   namespace: portal-universe
 data:
   SPRING_PROFILES_ACTIVE: "kubernetes"
-  CONFIG_SERVER_URL: "http://config-service:8888"
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-service:8761/eureka/"
   KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
   MYSQL_HOST: "mysql-db"
   MONGODB_HOST: "mongodb"
@@ -219,49 +215,32 @@ env:
 
 ---
 
-## 4. Init Container 패턴
+## 4. 서비스 의존성 관리
 
-### 4.1 역할
+### 4.1 개요
 
-Init Container는 메인 컨테이너가 시작되기 전에 실행되어 선행 조건을 만족시킵니다.
+각 마이크로서비스는 설정 파일을 직접 포함하고 있어 별도의 Config Service 없이 독립적으로 실행될 수 있습니다.
 
-Portal Universe에서는 **Config Service가 준비될 때까지 대기**하는 패턴을 사용합니다.
+### 4.2 의존성 구조
 
-### 4.2 구현 예시
+서비스들은 다음과 같은 의존성을 가집니다:
 
-```yaml
-spec:
-  initContainers:
-    - name: wait-for-config
-      image: busybox:1.36
-      command:
-        - sh
-        - -c
-        - |
-          until nc -z config-service 8888; do
-            echo "Waiting for config-service..."
-            sleep 2
-          done
-          echo "Config service is ready!"
+- **인프라 서비스**: MySQL, MongoDB, Kafka, Redis 등이 먼저 준비되어야 함
+- **Kubernetes DNS**: 서비스 간 통신에 Kubernetes 내부 DNS 사용
+
+### 4.3 설정 프로필
+
+각 서비스는 프로필별 설정 파일을 포함합니다:
+
+```
+src/main/resources/
+├── application.yml              # 공통 기본 설정
+├── application-local.yml        # 로컬 개발 환경
+├── application-docker.yml       # Docker Compose 환경
+└── application-kubernetes.yml   # Kubernetes 환경
 ```
 
-### 4.3 동작 방식
-
-1. Init Container가 먼저 실행됩니다.
-2. `nc -z config-service 8888` 명령으로 Config Service의 8888 포트가 열려있는지 확인합니다.
-3. 포트가 열려있지 않으면 2초 대기 후 재시도합니다.
-4. Config Service가 준비되면 Init Container가 종료됩니다.
-5. 메인 컨테이너(auth-service 등)가 시작됩니다.
-
-### 4.4 적용 대상
-
-다음 서비스들은 Config Service에 의존하므로 Init Container를 사용합니다:
-
-- `auth-service`
-- `blog-service`
-- `shopping-service`
-- `notification-service`
-- `api-gateway`
+Kubernetes 환경에서는 `SPRING_PROFILES_ACTIVE=kubernetes`로 설정됩니다.
 
 ---
 
@@ -280,7 +259,7 @@ spec:
 ```
 
 1. **Gradle 빌드 (백엔드)**
-   - `discovery-service`, `config-service`, `api-gateway`, `auth-service`, `blog-service`, `shopping-service`, `notification-service`
+   - `api-gateway`, `auth-service`, `blog-service`, `shopping-service`, `notification-service`
    - 각 서비스의 JAR 파일 생성
 
 2. **npm 빌드 (프론트엔드)**
@@ -340,7 +319,7 @@ Loading discovery-service to Kind...
 | **Step 1** | Base Configuration | Namespace, Secret, ConfigMap 생성 |
 | **Step 2** | Infrastructure | MySQL, MongoDB, Kafka, Zipkin 배포 |
 | **Step 2.5** | Infrastructure Ready 대기 | 인프라 서비스가 모두 Ready 상태가 될 때까지 대기 |
-| **Step 3** | Core Services | Discovery Service, Config Service 순차 배포 |
+| **Step 3** | Core Services | - (제거됨) |
 | **Step 4** | Business Services | Auth, Blog, Shopping, Notification Service 배포 |
 | **Step 5** | API Gateway | Gateway 배포 및 Ready 대기 |
 | **Step 6** | Frontend | Portal Shell 배포 및 Ready 대기 |
@@ -408,9 +387,7 @@ deployment "portal-shell" successfully rolled out
 graph TD
     A[Ingress Controller] --> B[Base: Namespace, Secret, ConfigMap]
     B --> C[Infrastructure: MySQL, MongoDB, Kafka, Zipkin]
-    C --> D[Discovery Service]
-    D --> E[Config Service]
-    E --> F[Business Services: Auth, Blog, Shopping, Notification]
+    C --> F[Business Services: Auth, Blog, Shopping, Notification]
     F --> G[API Gateway]
     G --> H[Frontend: Portal Shell]
     H --> I[Monitoring: Prometheus, Grafana]
@@ -420,22 +397,18 @@ graph TD
 
 ### 6.1 순차 배포가 필요한 이유
 
-1. **Discovery Service**
-   - 모든 서비스가 자신을 등록하고 다른 서비스를 찾기 위해 필요
-   - 가장 먼저 실행되어야 함
+1. **인프라 서비스**
+   - MySQL, MongoDB, Kafka, Redis 등 데이터 저장소가 먼저 준비되어야 함
 
-2. **Config Service**
-   - 모든 비즈니스 서비스가 설정을 가져오기 위해 필요
-   - Discovery Service 다음으로 실행
+2. **Business Services**
+   - 각 서비스는 설정 파일을 직접 포함하여 독립적으로 실행 가능
+   - Kubernetes DNS를 통해 서비스 간 통신
+   - 인프라가 준비된 후 병렬 배포 가능
 
-3. **Business Services**
-   - Init Container로 Config Service 준비 대기
-   - Config Service가 준비된 후 병렬 배포 가능
-
-4. **API Gateway**
+3. **API Gateway**
    - 비즈니스 서비스들을 라우팅하므로 후순위 배포
 
-5. **Frontend**
+4. **Frontend**
    - API Gateway를 통해 백엔드 서비스에 접근하므로 마지막 배포
 
 ---
@@ -493,22 +466,7 @@ kubectl describe pod -n portal-universe <pod-name>
 - Startup Probe의 `failureThreshold`를 늘려 초기 시작 시간 확보
 - Resource Limits를 늘려 메모리/CPU 부족 해결
 
-### 8.2 Init Container가 무한 대기 상태인 경우
-
-**원인**: Config Service가 준비되지 않음
-
-**확인 방법**:
-```bash
-# Config Service 상태 확인
-kubectl get pods -n portal-universe -l app=config-service
-kubectl logs -n portal-universe <config-service-pod-name>
-```
-
-**해결 방법**:
-- Config Service가 정상 실행 중인지 확인
-- Config Service의 Health Check 엔드포인트 확인
-
-### 8.3 Service에 트래픽이 전달되지 않는 경우
+### 8.2 Service에 트래픽이 전달되지 않는 경우
 
 **원인**: Readiness Probe 실패로 Pod가 Service Endpoint에서 제외됨
 

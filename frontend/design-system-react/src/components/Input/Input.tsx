@@ -6,10 +6,11 @@ export interface InputComponentProps
   extends Omit<InputProps, 'value'>,
     Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {}
 
+// Linear-inspired sizing
 const sizeClasses: Record<NonNullable<InputProps['size']>, string> = {
   sm: 'h-8 px-3 text-sm',
-  md: 'h-9 px-3 text-base',
-  lg: 'h-11 px-4 text-lg',
+  md: 'h-9 px-3 text-sm',
+  lg: 'h-11 px-4 text-base',
 };
 
 export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
@@ -55,18 +56,25 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
           aria-invalid={error}
           aria-describedby={error && errorMessage ? `${id}-error` : undefined}
           className={cn(
-            // Base styles
-            'w-full rounded-md border bg-bg-card text-text-body placeholder:text-text-muted',
-            'transition-all duration-normal ease-linear-ease',
-            'focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent',
+            // Base styles - uses design tokens (responds to theme automatically)
+            'w-full rounded-md border',
+            'bg-bg-card',
+            'text-text-body placeholder:text-text-muted',
+            'border-border-default',
+            // Transitions
+            'transition-all duration-150 ease-out',
+            // Focus state
+            'focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary',
+            // Hover state
+            'hover:border-border-hover',
             // Size
             sizeClasses[size],
             // Error state
             error
-              ? 'border-status-error focus:ring-status-error'
-              : 'border-border-default hover:border-border-hover',
+              ? 'border-status-error focus:border-status-error focus:ring-status-error/30'
+              : '',
             // Disabled state
-            disabled && 'opacity-50 cursor-not-allowed bg-bg-muted',
+            disabled && 'bg-bg-elevated cursor-not-allowed opacity-50',
             className
           )}
           {...props}

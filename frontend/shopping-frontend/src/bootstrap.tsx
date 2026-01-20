@@ -13,6 +13,8 @@ export type MountOptions = {
   initialPath?: string
   /** Parent에게 경로 변경 알림 */
   onNavigate?: (path: string) => void
+  /** 🆕 테마 설정 (Portal Shell에서 전달) */
+  theme?: 'light' | 'dark'
 }
 
 /**
@@ -27,6 +29,8 @@ export type ShoppingAppInstance = {
   onActivated?: () => void
   /** 🆕 keep-alive deactivated 콜백 */
   onDeactivated?: () => void
+  /** 🆕 테마 변경 콜백 (Portal Shell에서 호출) */
+  onThemeChange?: (theme: 'light' | 'dark') => void
 }
 
 // 🆕 WeakMap으로 인스턴스별 상태 관리 (전역 상태 제거)
@@ -35,6 +39,8 @@ const instanceRegistry = new WeakMap<HTMLElement, {
   navigateCallback: ((path: string) => void) | null
   styleObserver: MutationObserver | null
   isActive: boolean
+  currentTheme: 'light' | 'dark'
+  rerender: () => void
 }>()
 
 /**
@@ -84,8 +90,9 @@ export function mountShoppingApp(
 
   console.log('📍 Mount target:', el.tagName, el.className || '(no class)');
 
-  const { initialPath = '/', onNavigate } = options;
+  const { initialPath = '/', onNavigate, theme = 'light' } = options;
   console.log('📍 Initial path:', initialPath);
+  console.log('📍 Theme:', theme);
   console.log('📍 Options:', { onNavigate: !!onNavigate });
 
   try {
@@ -107,16 +114,12 @@ export function mountShoppingApp(
     // <head>에 추가되는 스타일 태그 감시
     styleObserver.observe(document.head, { childList: true });
 
-    // 🆕 WeakMap에 인스턴스 등록
-    instanceRegistry.set(el, {
-      root,
-      navigateCallback,
-      styleObserver,
-      isActive: true
-    });
+    // 🆕 Props 상태 관리 (theme 변경 시 재렌더링을 위해)
+    let currentTheme: 'light' | 'dark' = theme;
 
-    const currentProps = {
+    const getCurrentProps = () => ({
       initialPath,
+      theme: currentTheme,
       onNavigate: (path: string) => {
         const instance = instanceRegistry.get(el);
         if (instance?.isActive) {
@@ -124,18 +127,33 @@ export function mountShoppingApp(
           instance.navigateCallback?.(path);
         }
       }
+    });
+
+    // 🆕 재렌더링 함수
+    const rerender = () => {
+      root.render(
+        <React.StrictMode>
+          <App {...getCurrentProps()} />
+        </React.StrictMode>
+      );
     };
+
+    // 🆕 WeakMap에 인스턴스 등록 (theme, rerender 추가)
+    instanceRegistry.set(el, {
+      root,
+      navigateCallback,
+      styleObserver,
+      isActive: true,
+      currentTheme,
+      rerender
+    });
 
     // ✅ Step 2: data-service="shopping" 속성 설정 (CSS 선택자 활성화)
     document.documentElement.setAttribute('data-service', 'shopping');
     console.log('[Shopping] Set data-service="shopping"');
 
     // ✅ Step 3: 초기 Props로 렌더링
-    root.render(
-      <React.StrictMode>
-        <App {...currentProps} />
-      </React.StrictMode>
-    );
+    rerender();
     console.log('✅ [Shopping] App mounted successfully');
     console.groupEnd();
 
@@ -189,6 +207,20 @@ export function mountShoppingApp(
       },
 
       /**
+       * 🆕 테마 변경 콜백
+       * Portal Shell에서 테마가 변경될 때 호출됨
+       */
+      onThemeChange: (newTheme: 'light' | 'dark') => {
+        console.log(`🎨 [Shopping] Theme changed to: ${newTheme}`);
+        const instance = instanceRegistry.get(el);
+        if (instance) {
+          currentTheme = newTheme;
+          instance.currentTheme = newTheme;
+          instance.rerender();
+        }
+      },
+
+      /**
        * 앱 언마운트 및 클린업
        * Blog의 unmount와 동일한 역할
        *
@@ -237,10 +269,15 @@ export function mountShoppingApp(
           });
 
           // <link> 태그 중 Shopping CSS 제거
+          // Vite dev mode에서는 CSS가 localhost:30002에서 로드됨
           const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
           linkTags.forEach((linkTag) => {
             const href = linkTag.getAttribute('href') || '';
-            if (href.includes('shopping') || href.includes('shopping-frontend')) {
+            // Shopping CSS 식별: origin이 30002 포트이거나 data-mf-app="shopping" 마커가 있는 경우
+            const isShoppingCss = href.includes('localhost:30002') ||
+                                 href.includes(':30002/') ||
+                                 linkTag.hasAttribute('data-mf-app') && linkTag.getAttribute('data-mf-app') === 'shopping';
+            if (isShoppingCss) {
               console.log(`   📍 [Shopping] Found Shopping CSS link: ${href}, removing...`);
               linkTag.remove();
             }

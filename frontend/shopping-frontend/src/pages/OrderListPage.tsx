@@ -8,6 +8,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { orderApi } from '@/api/endpoints'
 import type { Order, OrderStatus } from '@/types'
 import { ORDER_STATUS_LABELS } from '@/types'
+import { Button, Spinner, Alert, Badge } from '@portal/design-system-react'
 
 const OrderListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -90,7 +91,7 @@ const OrderListPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          <Spinner size="lg" />
           <p className="text-text-meta">Loading orders...</p>
         </div>
       </div>
@@ -104,15 +105,12 @@ const OrderListPage: React.FC = () => {
 
       {/* Error */}
       {error && (
-        <div className="bg-status-error-bg border border-status-error/20 rounded-lg p-6 text-center">
-          <p className="text-status-error mb-4">{error}</p>
-          <button
-            onClick={fetchOrders}
-            className="px-4 py-2 bg-status-error text-white rounded-lg hover:bg-status-error/90 transition-colors"
-          >
+        <Alert variant="error" className="text-center">
+          <p className="mb-4">{error}</p>
+          <Button onClick={fetchOrders} variant="primary">
             Retry
-          </button>
-        </div>
+          </Button>
+        </Alert>
       )}
 
       {/* Empty State */}
@@ -130,12 +128,9 @@ const OrderListPage: React.FC = () => {
           </div>
           <h2 className="text-lg font-medium text-text-heading mb-2">No orders yet</h2>
           <p className="text-text-meta mb-6">Start shopping and your orders will appear here.</p>
-          <Link
-            to="/"
-            className="inline-block px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
-          >
-            Browse Products
-          </Link>
+          <Button asChild variant="primary">
+            <Link to="/">Browse Products</Link>
+          </Button>
         </div>
       )}
 
@@ -201,25 +196,25 @@ const OrderListPage: React.FC = () => {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-8">
-          <button
+          <Button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 0}
-            className="px-4 py-2 bg-bg-subtle text-text-body rounded-lg hover:bg-bg-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            variant="secondary"
           >
             Previous
-          </button>
+          </Button>
 
           <span className="px-4 py-2 text-text-meta">
             Page {currentPage + 1} of {totalPages}
           </span>
 
-          <button
+          <Button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages - 1}
-            className="px-4 py-2 bg-bg-subtle text-text-body rounded-lg hover:bg-bg-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            variant="secondary"
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
     </div>

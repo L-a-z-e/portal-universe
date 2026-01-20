@@ -1,16 +1,66 @@
+# ===================================================================
+# Auth Service - Default Configuration
+# ===================================================================
+
 server:
-  # 애플리케이션이 실행될 포트
   port: 8081
 
 spring:
   application:
-    # Spring Cloud에서 서비스를 식별하기 위한 이름
     name: auth-service
-  config:
-    # 외부 설정 서버(Config Server)에서 설정을 가져오도록 지정합니다.
-    # CONFIG_SERVER_URL 환경 변수가 없으면 기본값으로 'http://config-service:8888'를 사용합니다.
-    import: "configserver:${CONFIG_SERVER_URL:http://config-service:8888}"
-  cloud:
-    config:
-      # 애플리케이션 시작 시 Config Server 연결에 실패하면 즉시 시작을 중단합니다.
-      fail-fast: true
+
+  # JPA 공통 설정
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # DataSource 공통 설정
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # OAuth2 Client 설정 (소셜 로그인)
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope: openid, profile, email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+  # Kafka Producer 공통 설정
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+
+# 분산 추적용 로그 포맷
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO

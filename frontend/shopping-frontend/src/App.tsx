@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { ShoppingRouter } from '@/router'
 import { useAuthStore } from '@/stores/authStore'
+import { usePortalTheme } from '@/hooks/usePortalStore'
 import './styles/index.css'
 
 /**
@@ -49,8 +50,17 @@ function App({
   /** Portal Shell과의 연동 여부 */
   const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true
 
-  /** Portal Shell의 themeStore (동적 import 후 저장) */
-  const [themeStore, setThemeStore] = useState<any>(null)
+  /** Portal Shell 테마 상태 (Embedded 모드에서 사용) */
+  const portalTheme = usePortalTheme()
+
+  /**
+   * 현재 적용할 테마 결정
+   * - Embedded 모드 & adapter 연결됨: Portal adapter의 isDark 사용
+   * - 그 외: props.theme 사용
+   */
+  const isDark = isEmbedded && portalTheme.isConnected
+    ? portalTheme.isDark
+    : theme === 'dark'
 
   // ============================================
   // Helper 함수
@@ -75,117 +85,53 @@ function App({
   // ============================================
 
   /**
-   * 마운트 및 Props 변화 감지
-   * Blog의 onMounted와 watch 로직 적용
+   * 테마 변경 감지 및 적용
+   * - Embedded 모드: Portal adapter의 isDark 구독
+   * - Standalone 모드: props.theme 사용
    */
   useEffect(() => {
-    console.group('🔧 [Shopping] App mounted with props:')
-    console.log('  theme:', theme)
-    console.log('  locale:', locale)
-    console.log('  userRole:', userRole)
-    console.log('  otherProps:', otherProps)
-    console.groupEnd()
-
-    // ✅ Step 1: data-service="shopping" 속성 설정 (CSS 선택자 활성화)
-    document.documentElement.setAttribute('data-service', 'shopping')
-    console.log('[Shopping] Set data-service="shopping"')
-
-    // ✅ Step 2: 초기 data-theme 설정
-    const isDark = theme === 'dark'
-    updateDataTheme(isDark)
-
-    if (isEmbedded) {
-      // ============================================
-      // Embedded 모드: Portal Shell의 themeStore & authStore 연동
-      // ============================================
-      console.log('[Shopping] Embedded mode detected - connecting to Portal Shell...')
-
-      // ✅ Step 3: Portal Shell의 authStore 동기화 (중요!)
-      const authStore = useAuthStore.getState()
-      authStore.syncFromPortal().then(() => {
-        console.log('[Shopping] Portal Shell authStore synced')
-      }).catch((err) => {
-        console.warn('[Shopping] Failed to sync authStore:', err)
-      })
-
-      /**
-       * Portal Shell의 themeStore 동적 import
-       * Blog의 import('portal_shell/themeStore') 패턴 적용
-       */
-      import('portal/themeStore')
-        .then(({ useThemeStore }) => {
-          try {
-            const store = useThemeStore()
-            setThemeStore(store)
-
-            // ✅ Step 4: 초기 다크모드 적용
-            if (store.isDark) {
-              document.documentElement.classList.add('dark')
-            } else {
-              document.documentElement.classList.remove('dark')
-            }
-            updateDataTheme(store.isDark)
-
-            console.log('[Shopping] Portal Shell themeStore connected')
-            console.log('  isDark:', store.isDark)
-          } catch (err) {
-            console.error('[Shopping] Failed to initialize themeStore:', err)
-          }
-        })
-        .catch((err) => {
-          console.warn('[Shopping] Failed to load portal/themeStore:', err)
-          console.warn('[Shopping] Fallback: Using local theme prop')
-        })
-    } else {
-      // ============================================
-      // Standalone 모드: MutationObserver로 dark 클래스 감지
-      // ============================================
-      console.log('[Shopping] Standalone mode - using MutationObserver...')
-
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.attributeName === 'class') {
-            const isDark = document.documentElement.classList.contains('dark')
-            updateDataTheme(isDark)
-          }
-        })
-      })
-
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class']
-      })
-
-      console.log('[Shopping] Standalone mode: MutationObserver registered')
-
-      // Cleanup
-      return () => {
-        observer.disconnect()
-      }
-    }
-  }, [theme, locale, userRole, otherProps, isEmbedded])
-
-  /**
-   * themeStore 변화 감지 (Embedded 모드)
-   * Blog의 watch(themeStore.isDark) 패턴 적용
-   */
-  useEffect(() => {
-    if (!themeStore || !isEmbedded) return
-
-    // themeStore 감시는 themeStore 자체에서 처리
-    // 여기서는 Props로 전달받은 theme 변화를 처리
-
-    console.log('[Shopping] Theme prop changed:', theme)
-
-    const isDark = theme === 'dark'
+    // data-theme 및 dark 클래스 동기화
     if (isDark) {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
     updateDataTheme(isDark)
+    console.log(`[Shopping] Theme applied: ${isDark ? 'dark' : 'light'} (source: ${
+      isEmbedded && portalTheme.isConnected ? 'Portal adapter' : 'props'
+    })`)
+  }, [isDark, isEmbedded, portalTheme.isConnected])
 
-  }, [theme, themeStore, isEmbedded])
+  /**
+   * 마운트 및 초기 설정
+   */
+  useEffect(() => {
+    console.group('🔧 [Shopping] App mounted with props:')
+    console.log('  theme:', theme)
+    console.log('  locale:', locale)
+    console.log('  userRole:', userRole)
+    console.log('  isEmbedded:', isEmbedded)
+    console.log('  portalTheme.isConnected:', portalTheme.isConnected)
+    console.groupEnd()
+
+    // ✅ Step 1: data-service="shopping" 속성 설정 (CSS 선택자 활성화)
+    document.documentElement.setAttribute('data-service', 'shopping')
+
+    if (isEmbedded) {
+      // ============================================
+      // Embedded 모드: Portal Shell의 authStore 동기화
+      // themeStore는 usePortalTheme hook이 자동으로 구독
+      // ============================================
+      console.log('[Shopping] Embedded mode - syncing authStore...')
+
+      const authStore = useAuthStore.getState()
+      authStore.syncFromPortal().then(() => {
+        console.log('[Shopping] Portal Shell authStore synced')
+      }).catch((err) => {
+        console.warn('[Shopping] Failed to sync authStore:', err)
+      })
+    }
+  }, [theme, locale, userRole, isEmbedded, portalTheme.isConnected])
 
   // ============================================
   // 렌더링
@@ -235,17 +181,6 @@ function App({
             </div>
           </div>
         </header>
-      )}
-
-      {/* Embedded Mode Badge */}
-      {isEmbedded && (
-        <div className="bg-status-warning-bg border-b border-status-warning/20">
-          <div className="max-w-7xl mx-auto px-4 py-2">
-            <p className="text-xs text-status-warning font-medium">
-              🔗 Embedded Mode (Portal Shell)
-            </p>
-          </div>
-        </div>
       )}
 
       {/* Main Content */}

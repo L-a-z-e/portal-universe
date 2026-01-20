@@ -7,6 +7,7 @@ import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCartStore } from '@/stores/cartStore'
 import CartItemComponent from '@/components/CartItem'
+import { Button, Spinner, Alert } from '@portal/design-system-react'
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate()
@@ -48,7 +49,7 @@ const CartPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          <Spinner size="lg" />
           <p className="text-text-meta">Loading cart...</p>
         </div>
       </div>
@@ -60,15 +61,12 @@ const CartPage: React.FC = () => {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-text-heading">Shopping Cart</h1>
-        <div className="bg-status-error-bg border border-status-error/20 rounded-lg p-8 text-center">
-          <p className="text-status-error text-lg mb-4">{error}</p>
-          <button
-            onClick={() => fetchCart()}
-            className="px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
-          >
+        <Alert variant="error" className="text-center">
+          <p className="text-lg mb-4">{error}</p>
+          <Button onClick={() => fetchCart()} variant="primary">
             Retry
-          </button>
-        </div>
+          </Button>
+        </Alert>
       </div>
     )
   }
@@ -118,12 +116,9 @@ const CartPage: React.FC = () => {
           <p className="text-text-meta mb-6">
             Looks like you haven't added any products yet.
           </p>
-          <Link
-            to="/"
-            className="inline-block px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
-          >
-            Start Shopping
-          </Link>
+          <Button asChild variant="primary">
+            <Link to="/">Start Shopping</Link>
+          </Button>
         </div>
       ) : (
         /* Cart Content */
@@ -169,12 +164,14 @@ const CartPage: React.FC = () => {
                 </div>
               </div>
 
-              <button
+              <Button
                 onClick={handleCheckout}
-                className="w-full mt-6 py-4 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 transition-colors"
+                variant="primary"
+                size="lg"
+                className="w-full mt-6"
               >
                 Proceed to Checkout
-              </button>
+              </Button>
 
               <Link
                 to="/"

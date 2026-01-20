@@ -1,30 +1,43 @@
 # ===================================================================
-# Shopping Service - Default Profile Configuration
+# Shopping Service - Default Configuration
 # ===================================================================
 
 server:
-  # Shopping Service가 실행될 기본 포트
   port: 8083
 
 spring:
   application:
-    # Spring Cloud에서 서비스를 식별하기 위한 이름
     name: shopping-service
+
+  # JPA 공통 설정
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Redis 공통 설정
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-  config:
-    # 외부 설정 서버(Config Server)에서 설정을 가져오도록 지정합니다.
-    # CONFIG_SERVER_URL 환경 변수가 없으면 기본값으로 'http://config-service:8888'를 사용합니다.
-    import: "configserver:${CONFIG_SERVER_URL:http://config-service:8888}"
-  cloud:
-    config:
-      # 애플리케이션 시작 시 Config Server 연결에 실패하면 즉시 시작을 중단합니다.
-      fail-fast: true
 
-  # =======================================
-  # Elasticsearch Configuration
-  # =======================================
+  # Elasticsearch 공통 설정
   elasticsearch:
     uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+
+  # Kafka Producer 공통 설정
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+
+# 분산 추적용 로그 포맷
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

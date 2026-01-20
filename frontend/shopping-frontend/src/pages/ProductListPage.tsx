@@ -8,6 +8,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { productApi, inventoryApi } from '@/api/endpoints'
 import type { Product, Inventory } from '@/types'
 import ProductCard from '@/components/ProductCard'
+import { Button, Spinner, Alert, Input } from '@portal/design-system-react'
 
 const ProductListPage: React.FC = () => {
   // URL query params
@@ -106,45 +107,39 @@ const ProductListPage: React.FC = () => {
 
         {/* Search Form */}
         <form onSubmit={handleSearch} className="flex items-center gap-2">
-          <input
+          <Input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search products..."
-            className="px-4 py-2 border border-border-default rounded-lg bg-bg-input text-text-body placeholder:text-text-placeholder focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
           />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
-          >
+          <Button type="submit" variant="primary">
             Search
-          </button>
+          </Button>
           {searchKeyword && (
-            <button
+            <Button
               type="button"
               onClick={clearSearch}
-              className="px-4 py-2 bg-bg-subtle text-text-body rounded-lg hover:bg-bg-hover transition-colors"
+              variant="secondary"
             >
               Clear
-            </button>
+            </Button>
           )}
         </form>
       </div>
 
       {/* Search result info */}
       {searchKeyword && (
-        <div className="bg-status-info-bg border border-status-info/20 rounded-lg p-4">
-          <p className="text-status-info text-sm">
-            Search results for "{searchKeyword}"
-          </p>
-        </div>
+        <Alert variant="info">
+          Search results for "{searchKeyword}"
+        </Alert>
       )}
 
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+            <Spinner size="lg" />
             <p className="text-text-meta">Loading products...</p>
           </div>
         </div>
@@ -152,15 +147,12 @@ const ProductListPage: React.FC = () => {
 
       {/* Error */}
       {error && !loading && (
-        <div className="bg-status-error-bg border border-status-error/20 rounded-lg p-6 text-center">
-          <p className="text-status-error mb-4">{error}</p>
-          <button
-            onClick={fetchProducts}
-            className="px-4 py-2 bg-status-error text-white rounded-lg hover:bg-status-error/90 transition-colors"
-          >
+        <Alert variant="error" className="text-center">
+          <p className="mb-4">{error}</p>
+          <Button onClick={fetchProducts} variant="primary">
             Retry
-          </button>
-        </div>
+          </Button>
+        </Alert>
       )}
 
       {/* Product Grid */}
@@ -196,13 +188,13 @@ const ProductListPage: React.FC = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-8">
-              <button
+              <Button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 0}
-                className="px-4 py-2 bg-bg-subtle text-text-body rounded-lg hover:bg-bg-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="secondary"
               >
                 Previous
-              </button>
+              </Button>
 
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -218,28 +210,26 @@ const ProductListPage: React.FC = () => {
                   }
 
                   return (
-                    <button
+                    <Button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`w-10 h-10 rounded-lg transition-colors ${
-                        page === currentPage
-                          ? 'bg-brand-primary text-white'
-                          : 'bg-bg-subtle text-text-body hover:bg-bg-hover'
-                      }`}
+                      variant={page === currentPage ? 'primary' : 'secondary'}
+                      size="sm"
+                      className="w-10 h-10"
                     >
                       {page + 1}
-                    </button>
+                    </Button>
                   )
                 })}
               </div>
 
-              <button
+              <Button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages - 1}
-                className="px-4 py-2 bg-bg-subtle text-text-body rounded-lg hover:bg-bg-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="secondary"
               >
                 Next
-              </button>
+              </Button>
             </div>
           )}
         </>

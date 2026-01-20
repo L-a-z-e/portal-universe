@@ -7,6 +7,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useCreateCoupon } from '@/hooks/useAdminCoupons'
 import type { DiscountType, CouponCreateRequest } from '@/types'
 import { DISCOUNT_TYPE_LABELS } from '@/types'
+import { Button, Card, Input, Textarea, Select } from '@portal/design-system-react'
+import type { SelectOption } from '@portal/design-types'
 
 export function AdminCouponFormPage() {
   const navigate = useNavigate()
@@ -83,235 +85,170 @@ export function AdminCouponFormPage() {
     }
   }
 
+  const discountTypeOptions: SelectOption[] = (
+    Object.entries(DISCOUNT_TYPE_LABELS) as [DiscountType, string][]
+  ).map(([value, label]) => ({
+    value,
+    label,
+  }))
+
   return (
     <div className="p-6 max-w-2xl">
       {/* 헤더 */}
       <div className="mb-6">
         <Link
           to="/admin/coupons"
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
+          className="inline-flex items-center text-text-meta hover:text-text-heading mb-4"
         >
           <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           쿠폰 목록
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">새 쿠폰 생성</h1>
+        <h1 className="text-2xl font-bold text-text-heading">새 쿠폰 생성</h1>
       </div>
 
       {/* 폼 */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 기본 정보 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">기본 정보</h2>
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-lg font-medium text-text-heading mb-4">기본 정보</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                쿠폰 코드 *
-              </label>
-              <input
-                type="text"
-                value={formData.code}
-                onChange={(e) => handleChange('code', e.target.value.toUpperCase())}
-                placeholder="예: WELCOME2024"
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.code ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.code && (
-                <p className="text-red-500 text-sm mt-1">{errors.code}</p>
-              )}
-            </div>
+            <Input
+              label="쿠폰 코드"
+              required
+              value={formData.code}
+              onChange={(e) => handleChange('code', e.target.value.toUpperCase())}
+              placeholder="예: WELCOME2024"
+              error={!!errors.code}
+              errorMessage={errors.code}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                쿠폰 이름 *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="예: 신규가입 환영 쿠폰"
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-              )}
-            </div>
+            <Input
+              label="쿠폰 이름"
+              required
+              value={formData.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              placeholder="예: 신규가입 환영 쿠폰"
+              error={!!errors.name}
+              errorMessage={errors.name}
+            />
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                설명
-              </label>
-              <textarea
+              <Textarea
+                label="설명"
                 value={formData.description || ''}
                 onChange={(e) => handleChange('description', e.target.value)}
                 placeholder="쿠폰에 대한 설명을 입력하세요"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 할인 설정 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">할인 설정</h2>
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-lg font-medium text-text-heading mb-4">할인 설정</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                할인 유형 *
-              </label>
-              <select
-                value={formData.discountType}
-                onChange={(e) => handleChange('discountType', e.target.value as DiscountType)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                {(Object.entries(DISCOUNT_TYPE_LABELS) as [DiscountType, string][]).map(
-                  ([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
+            <Select
+              label="할인 유형"
+              required
+              value={formData.discountType}
+              options={discountTypeOptions}
+              onChange={(value) => handleChange('discountType', value as DiscountType)}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {formData.discountType === 'FIXED' ? '할인 금액 (원) *' : '할인율 (%) *'}
-              </label>
-              <input
-                type="number"
-                value={formData.discountValue || ''}
-                onChange={(e) => handleChange('discountValue', parseInt(e.target.value) || 0)}
-                placeholder={formData.discountType === 'FIXED' ? '1000' : '10'}
-                min={0}
-                max={formData.discountType === 'PERCENTAGE' ? 100 : undefined}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.discountValue ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.discountValue && (
-                <p className="text-red-500 text-sm mt-1">{errors.discountValue}</p>
-              )}
-            </div>
+            <Input
+              label={formData.discountType === 'FIXED' ? '할인 금액 (원)' : '할인율 (%)'}
+              required
+              type="number"
+              value={formData.discountValue || ''}
+              onChange={(e) => handleChange('discountValue', parseInt(e.target.value) || 0)}
+              placeholder={formData.discountType === 'FIXED' ? '1000' : '10'}
+              min={0}
+              max={formData.discountType === 'PERCENTAGE' ? 100 : undefined}
+              error={!!errors.discountValue}
+              errorMessage={errors.discountValue}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                최소 주문 금액 (원)
-              </label>
-              <input
-                type="number"
-                value={formData.minimumOrderAmount || ''}
-                onChange={(e) =>
-                  handleChange('minimumOrderAmount', e.target.value ? parseInt(e.target.value) : undefined)
-                }
-                placeholder="10000"
-                min={0}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
+            <Input
+              label="최소 주문 금액 (원)"
+              type="number"
+              value={formData.minimumOrderAmount || ''}
+              onChange={(e) =>
+                handleChange('minimumOrderAmount', e.target.value ? parseInt(e.target.value) : undefined)
+              }
+              placeholder="10000"
+              min={0}
+            />
 
             {formData.discountType === 'PERCENTAGE' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  최대 할인 금액 (원)
-                </label>
-                <input
-                  type="number"
-                  value={formData.maximumDiscountAmount || ''}
-                  onChange={(e) =>
-                    handleChange('maximumDiscountAmount', e.target.value ? parseInt(e.target.value) : undefined)
-                  }
-                  placeholder="5000"
-                  min={0}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
+              <Input
+                label="최대 할인 금액 (원)"
+                type="number"
+                value={formData.maximumDiscountAmount || ''}
+                onChange={(e) =>
+                  handleChange('maximumDiscountAmount', e.target.value ? parseInt(e.target.value) : undefined)
+                }
+                placeholder="5000"
+                min={0}
+              />
             )}
           </div>
-        </div>
+        </Card>
 
         {/* 발급 설정 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">발급 설정</h2>
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-lg font-medium text-text-heading mb-4">발급 설정</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                총 발급 수량 *
-              </label>
-              <input
-                type="number"
-                value={formData.totalQuantity || ''}
-                onChange={(e) => handleChange('totalQuantity', parseInt(e.target.value) || 0)}
-                placeholder="100"
-                min={1}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.totalQuantity ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.totalQuantity && (
-                <p className="text-red-500 text-sm mt-1">{errors.totalQuantity}</p>
-              )}
-            </div>
+            <Input
+              label="총 발급 수량"
+              required
+              type="number"
+              value={formData.totalQuantity || ''}
+              onChange={(e) => handleChange('totalQuantity', parseInt(e.target.value) || 0)}
+              placeholder="100"
+              min={1}
+              error={!!errors.totalQuantity}
+              errorMessage={errors.totalQuantity}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                발급 시작일 *
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.startsAt}
-                onChange={(e) => handleChange('startsAt', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.startsAt ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.startsAt && (
-                <p className="text-red-500 text-sm mt-1">{errors.startsAt}</p>
-              )}
-            </div>
+            <Input
+              label="발급 시작일"
+              required
+              type="datetime-local"
+              value={formData.startsAt}
+              onChange={(e) => handleChange('startsAt', e.target.value)}
+              error={!!errors.startsAt}
+              errorMessage={errors.startsAt}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                발급 종료일 *
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.expiresAt}
-                onChange={(e) => handleChange('expiresAt', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.expiresAt ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.expiresAt && (
-                <p className="text-red-500 text-sm mt-1">{errors.expiresAt}</p>
-              )}
-            </div>
+            <Input
+              label="발급 종료일"
+              required
+              type="datetime-local"
+              value={formData.expiresAt}
+              onChange={(e) => handleChange('expiresAt', e.target.value)}
+              error={!!errors.expiresAt}
+              errorMessage={errors.expiresAt}
+            />
           </div>
-        </div>
+        </Card>
 
         {/* 버튼 */}
         <div className="flex justify-end gap-3">
           <Link
             to="/admin/coupons"
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-md bg-transparent text-text-body border border-border-default hover:bg-bg-hover transition-colors"
           >
             취소
           </Link>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-          >
+          <Button type="submit" variant="primary" loading={isPending}>
             {isPending ? '생성 중...' : '쿠폰 생성'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

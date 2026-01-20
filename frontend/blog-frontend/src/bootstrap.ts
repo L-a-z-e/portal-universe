@@ -26,6 +26,10 @@ export type BlogAppInstance = {
   onParentNavigate: (path: string) => void;
   /** 앱 언마운트 */
   unmount: () => void;
+  /** 🆕 keep-alive activated 콜백 */
+  onActivated?: () => void;
+  /** 🆕 keep-alive deactivated 콜백 */
+  onDeactivated?: () => void;
 }
 
 /**
@@ -48,6 +52,9 @@ export function mountBlogApp(
   options: MountOptions = {}
 ): BlogAppInstance {
   console.group('🚀 [Blog] Mounting app in EMBEDDED mode');
+
+  // ✅ Portal Shell에서 마운트됨을 표시 (isEmbedded 플래그 활성화)
+  (window as any).__POWERED_BY_PORTAL_SHELL__ = true;
 
   // ✅ 필수 파라미터 검증
   if (!el) {
@@ -115,6 +122,25 @@ export function mountBlogApp(
     },
 
     /**
+     * 🆕 keep-alive activated 콜백
+     * RemoteWrapper의 onActivated에서 호출됨
+     * Shopping → Blog 전환 시 data-service="shopping"이 유지되는 문제 해결
+     */
+    onActivated: () => {
+      console.log('🔄 [Blog] App activated (keep-alive)');
+      document.documentElement.setAttribute('data-service', 'blog');
+      console.log('[Blog] KeepAlive activated: Restored data-service="blog"');
+    },
+
+    /**
+     * 🆕 keep-alive deactivated 콜백
+     * RemoteWrapper의 onDeactivated에서 호출됨
+     */
+    onDeactivated: () => {
+      console.log('⏸️ [Blog] App deactivated (keep-alive)');
+    },
+
+    /**
      * 앱 언마운트 및 클린업
      * 
      * 🔴 핵심: <head>의 Blog CSS 스타일 태그 제거!
@@ -155,10 +181,15 @@ export function mountBlogApp(
         });
         
         // 🟢 Step 2: <link> 태그 중 Blog CSS 제거 (있는 경우)
+        // Vite dev mode에서는 CSS가 localhost:30001에서 로드됨
         const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
         linkTags.forEach((linkTag) => {
           const href = linkTag.getAttribute('href') || '';
-          if (href.includes('blog') || href.includes('style')) {
+          // Blog CSS 식별: origin이 30001 포트이거나 data-mf-app="blog" 마커가 있는 경우
+          const isBlogCss = href.includes('localhost:30001') ||
+                           href.includes(':30001/') ||
+                           linkTag.hasAttribute('data-mf-app') && linkTag.getAttribute('data-mf-app') === 'blog';
+          if (isBlogCss) {
             console.log(`   📍 [Blog] Found Blog CSS link: ${href}, removing...`);
             linkTag.remove();
           }

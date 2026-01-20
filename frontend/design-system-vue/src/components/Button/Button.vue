@@ -4,69 +4,113 @@ import type { ButtonProps } from './Button.types';
 const props = withDefaults(defineProps<ButtonProps>(), {
   variant: 'primary',
   size: 'md',
-  disabled: false
+  disabled: false,
+  loading: false,
+  fullWidth: false
 });
 
-// Linear-inspired button styles
+// Linear-inspired button styles - Dark mode first design
 const variantClasses = {
-  // Primary: Light button on dark bg (Linear style)
+  // Primary: Bright button on dark bg (Linear style)
+  // Dark mode: white/light gray button with dark text
+  // Light mode: brand color button with white text (handled via theme)
   primary: [
-    'bg-[#e6e6e6] text-[#08090a]',
+    // Dark mode (default)
+    'bg-white/90 text-[#08090a]',
     'hover:bg-white',
-    'active:bg-[#d4d4d4]',
-    'border border-transparent'
+    'active:bg-white/80 active:scale-[0.98]',
+    // Light mode override
+    'light:bg-brand-primary light:text-white',
+    'light:hover:bg-brand-primaryHover',
+    'light:active:bg-brand-primary',
+    'border border-transparent',
+    'shadow-sm'
   ].join(' '),
-  // Secondary: Subtle transparent button
+
+  // Secondary: Ghost style with border
   secondary: [
-    'bg-transparent text-text-meta',
-    'hover:bg-bg-hover hover:text-text-body',
-    'active:bg-bg-muted',
-    'border border-border-default'
+    'bg-transparent text-text-body',
+    'hover:bg-white/5 hover:text-text-heading',
+    'active:bg-white/10 active:scale-[0.98]',
+    'border border-[#2a2a2a]',
+    'light:hover:bg-gray-100',
+    'light:border-gray-200'
   ].join(' '),
-  // Ghost: Minimal button
+
+  // Ghost: Minimal button without border
   ghost: [
-    'bg-transparent text-text-meta',
-    'hover:bg-bg-hover hover:text-text-body',
-    'active:bg-bg-muted',
-    'border border-transparent'
+    'bg-transparent text-text-body',
+    'hover:bg-white/5 hover:text-text-heading',
+    'active:bg-white/10 active:scale-[0.98]',
+    'border border-transparent',
+    'light:hover:bg-gray-100'
   ].join(' '),
-  // Outline: Border only
+
+  // Outline: Border emphasis
   outline: [
     'bg-transparent text-text-body',
-    'hover:bg-bg-hover',
-    'active:bg-bg-muted',
-    'border border-border-default hover:border-border-hover'
+    'hover:bg-white/5 hover:border-[#3a3a3a]',
+    'active:bg-white/10 active:scale-[0.98]',
+    'border border-[#2a2a2a]',
+    'light:border-gray-300 light:hover:border-gray-400',
+    'light:hover:bg-gray-50'
   ].join(' '),
-  // Danger: Destructive action
+
+  // Danger: Destructive action - consistent across modes
   danger: [
-    'bg-status-error text-white',
-    'hover:bg-red-600',
-    'active:bg-red-700',
-    'border border-transparent'
+    'bg-[#E03131] text-white',
+    'hover:bg-[#C92A2A]',
+    'active:bg-[#A51D1D] active:scale-[0.98]',
+    'border border-transparent',
+    'shadow-sm'
   ].join(' ')
 };
 
 const sizeClasses = {
-  xs: 'px-2 py-1 text-xs',
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-5 py-2.5 text-base'
+  xs: 'h-6 px-2 text-xs gap-1',
+  sm: 'h-8 px-3 text-sm gap-1.5',
+  md: 'h-9 px-4 text-sm gap-2',
+  lg: 'h-11 px-5 text-base gap-2'
 };
 </script>
 
 <template>
   <button
     :class="[
-      'inline-flex items-center justify-center gap-2',
+      'inline-flex items-center justify-center',
       'font-medium rounded-md',
-      'transition-all duration-[160ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-page',
+      'transition-all duration-150 ease-out',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a]',
+      'light:focus-visible:ring-offset-white',
       variantClasses[variant],
       sizeClasses[size],
-      { 'opacity-50 cursor-not-allowed pointer-events-none': disabled }
+      fullWidth ? 'w-full' : '',
+      { 'opacity-50 cursor-not-allowed pointer-events-none': disabled || loading }
     ]"
-    :disabled="disabled"
+    :disabled="disabled || loading"
   >
+    <!-- Loading spinner -->
+    <svg
+      v-if="loading"
+      class="animate-spin h-4 w-4 shrink-0"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        class="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="4"
+      />
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
     <slot />
   </button>
 </template>
