@@ -384,67 +384,67 @@ onBeforeUnmount(() => {
 /* Toast UI Editor 스타일 커스터마이징 */
 /* 기본 스타일 (라이트모드) */
 :deep(.toastui-editor-defaultUI) {
-  background: var(--color-bg-card) !important;
-  border: 1px solid var(--color-border-default) !important;
+  background: var(--semantic-bg-card) !important;
+  border: 1px solid var(--semantic-border-default) !important;
 }
 
 :deep(.toastui-editor-toolbar) {
-  background: var(--color-bg-page) !important;
-  border-bottom: 1px solid var(--color-border-default) !important;
+  background: var(--semantic-bg-page) !important;
+  border-bottom: 1px solid var(--semantic-border-default) !important;
 }
 
 :deep(.toastui-editor-md-container),
 :deep(.toastui-editor-ww-container) {
-  background: var(--color-bg-card) !important;
-  color: var(--color-text-body) !important;
+  background: var(--semantic-bg-card) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 /* 다크모드 스타일 */
 .toastui-editor-dark :deep(.toastui-editor-defaultUI) {
-  background: var(--color-bg-card) !important;
-  border-color: var(--color-border-default) !important;
+  background: var(--semantic-bg-card) !important;
+  border-color: var(--semantic-border-default) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-toolbar) {
-  background: var(--color-bg-elevated) !important;
-  border-bottom-color: var(--color-border-default) !important;
+  background: var(--semantic-bg-elevated) !important;
+  border-bottom-color: var(--semantic-border-default) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-toolbar button) {
-  color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-toolbar button:hover) {
-  background: var(--color-bg-hover) !important;
+  background: var(--semantic-bg-hover) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-toolbar .disabled),
 .toastui-editor-dark :deep(.toastui-editor-toolbar button:disabled) {
-  color: var(--color-text-muted) !important;
+  color: var(--semantic-text-muted) !important;
 }
 
 /* [중요] 다크모드 편집 영역 배경 및 텍스트 */
 .toastui-editor-dark :deep(.toastui-editor-md-container),
 .toastui-editor-dark :deep(.toastui-editor-ww-container),
 .toastui-editor-dark :deep(.toastui-editor-md-preview) {
-  background: var(--color-bg-card) !important;
-  color: var(--color-text-body) !important;
+  background: var(--semantic-bg-card) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 /* [중요] 에디터 본문 텍스트 색상 강제 적용 */
 .toastui-editor-dark :deep(.ProseMirror) {
-  color: var(--color-text-body) !important;
-  caret-color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
+  caret-color: var(--semantic-text-body) !important;
 }
 
 /* 마크다운 편집 영역 텍스트 */
 .toastui-editor-dark :deep(.toastui-editor-md-container .toastui-editor-contents) {
-  color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 /* 마크다운 프리뷰 영역 모든 텍스트 요소 */
 .toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents) {
-  color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents p),
@@ -457,12 +457,12 @@ onBeforeUnmount(() => {
 .toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents li),
 .toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents span),
 .toastui-editor-dark :deep(.toastui-editor-md-preview .toastui-editor-contents div) {
-  color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 /* Wysiwyg 모드의 모든 텍스트 요소 */
 .toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents) {
-  color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents p),
@@ -475,113 +475,113 @@ onBeforeUnmount(() => {
 .toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents li),
 .toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents span),
 .toastui-editor-dark :deep(.toastui-editor-ww-container .toastui-editor-contents div) {
-  color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 /* 코드 블록 다크모드 */
 .toastui-editor-dark :deep(.toastui-editor-contents pre) {
-  background: var(--color-bg-elevated) !important;
-  border-color: var(--color-border-default) !important;
+  background: var(--semantic-bg-elevated) !important;
+  border-color: var(--semantic-border-default) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents code) {
-  background: var(--color-bg-muted) !important;
-  color: var(--color-brand-primary) !important;
+  background: var(--semantic-bg-muted) !important;
+  color: var(--semantic-brand-primary) !important;
 }
 
 /* 구분선 */
 .toastui-editor-dark :deep(.toastui-editor-contents hr) {
-  border-color: var(--color-border-default) !important;
+  border-color: var(--semantic-border-default) !important;
 }
 
 /* 테이블 */
 .toastui-editor-dark :deep(.toastui-editor-contents table) {
-  border-color: var(--color-border-default) !important;
+  border-color: var(--semantic-border-default) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents th),
 .toastui-editor-dark :deep(.toastui-editor-contents td) {
-  border-color: var(--color-border-default) !important;
-  background: var(--color-bg-card) !important;
-  color: var(--color-text-body) !important; /* 테이블 셀 텍스트 */
+  border-color: var(--semantic-border-default) !important;
+  background: var(--semantic-bg-card) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents th) {
-  background: var(--color-bg-muted) !important;
-  color: var(--color-text-body) !important; /* 테이블 헤더 텍스트 */
+  background: var(--semantic-bg-muted) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 /* 인용구 (Blockquote) */
 .toastui-editor-dark :deep(.toastui-editor-contents blockquote) {
-  color: var(--color-text-meta) !important;
-  border-left-color: var(--color-brand-primary) !important;
+  color: var(--semantic-text-meta) !important;
+  border-left-color: var(--semantic-brand-primary) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents blockquote p) {
-  color: var(--color-text-meta) !important; /* 인용구 내부 텍스트 */
+  color: var(--semantic-text-meta) !important;
 }
 
 /* 링크 */
 .toastui-editor-dark :deep(.toastui-editor-contents a) {
-  color: var(--color-text-link) !important;
+  color: var(--semantic-text-link) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents a:hover) {
-  color: var(--color-text-link-hover) !important;
+  color: var(--semantic-text-linkHover) !important;
 }
 
 /* 이미지 업로드 영역 */
 .toastui-editor-dark :deep(.toastui-editor-popup) {
-  background: var(--color-bg-elevated) !important;
-  border-color: var(--color-border-default) !important;
-  color: var(--color-text-body) !important;
+  background: var(--semantic-bg-elevated) !important;
+  border-color: var(--semantic-border-default) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-popup input) {
-  background: var(--color-bg-card) !important;
-  border-color: var(--color-border-default) !important;
-  color: var(--color-text-body) !important;
+  background: var(--semantic-bg-card) !important;
+  border-color: var(--semantic-border-default) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 .toastui-editor-dark :deep(.toastui-editor-popup label) {
-  color: var(--color-text-body) !important; /* 팝업 라벨 텍스트 */
+  color: var(--semantic-text-body) !important;
 }
 
 /* 툴바 구분선 */
 .toastui-editor-dark :deep(.toastui-editor-toolbar-divider) {
-  background: var(--color-border-default) !important;
+  background: var(--semantic-border-default) !important;
 }
 
 /* 선택 영역 */
 .toastui-editor-dark :deep(.ProseMirror-selectednode) {
-  outline: 2px solid var(--color-brand-primary) !important;
+  outline: 2px solid var(--semantic-brand-primary) !important;
 }
 
 /* 플레이스홀더 */
 .toastui-editor-dark :deep(.ProseMirror .placeholder) {
-  color: var(--color-text-muted) !important;
+  color: var(--semantic-text-muted) !important;
 }
 
 /* 리스트 마커 색상 */
 .toastui-editor-dark :deep(.toastui-editor-contents ul li::marker),
 .toastui-editor-dark :deep(.toastui-editor-contents ol li::marker) {
-  color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
 }
 
 /* 체크박스 */
 .toastui-editor-dark :deep(.toastui-editor-contents input[type="checkbox"]) {
-  border-color: var(--color-border-default) !important;
+  border-color: var(--semantic-border-default) !important;
 }
 
 /* 강조 텍스트 */
 .toastui-editor-dark :deep(.toastui-editor-contents strong),
 .toastui-editor-dark :deep(.toastui-editor-contents b) {
-  color: var(--color-text-heading) !important;
+  color: var(--semantic-text-heading) !important;
 }
 
 /* 기울임 텍스트 */
 .toastui-editor-dark :deep(.toastui-editor-contents em),
 .toastui-editor-dark :deep(.toastui-editor-contents i) {
-  color: var(--color-text-body) !important;
+  color: var(--semantic-text-body) !important;
 }
 </style>

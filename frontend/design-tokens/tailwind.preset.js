@@ -217,8 +217,8 @@ export default {
         require('@tailwindcss/typography'),
         // Dark-first design: 'light:' variant for light mode overrides
         plugin(function({ addVariant }) {
-            addVariant('light', '.light &');
-            addVariant('light', '[data-theme="light"] &');
+            // Support both .light class and data-theme="light" attribute
+            addVariant('light', ['[data-theme="light"] &', '.light &']);
         }),
     ]
 };
