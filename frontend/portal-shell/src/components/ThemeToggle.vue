@@ -13,10 +13,8 @@ function toggleTheme() {
       @click="toggleTheme"
       :aria-label="themeStore.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
       class="group relative flex items-center gap-2 px-3 py-2 rounded-lg
-             bg-[#18191b] text-[#b4b4b4] border border-[#2a2a2a]
-             hover:bg-[#2a2a2a] hover:text-white
-             light:bg-gray-100 light:text-gray-600 light:border-gray-200
-             light:hover:bg-gray-200 light:hover:text-gray-900
+             bg-bg-elevated text-text-body border border-border-default
+             hover:bg-bg-card hover:text-text-heading
              transition-all duration-normal"
   >
     <span class="w-5 h-5 flex items-center justify-center">
