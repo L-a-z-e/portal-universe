@@ -9,7 +9,7 @@
 
 ## Overview
 
-- **마이크로서비스 아키텍처**: 6개 백엔드 서비스 + 마이크로 프론트엔드
+- **마이크로서비스 아키텍처**: 5개 백엔드 서비스 + 마이크로 프론트엔드
 - **Phase 1 완료**: 이커머스 핵심 기능 (Saga 패턴, 재고 동시성 제어)
 - **관찰성 스택**: Prometheus, Grafana, Zipkin, Loki
 - **이벤트 드리븐**: Kafka 기반 비동기 통신
@@ -27,7 +27,6 @@ docker compose up -d
 | Service | Port | Description |
 |---------|------|-------------|
 | API Gateway | 8080 | 라우팅, JWT 검증, Circuit Breaker |
-| Config Service | 8888 | 중앙 설정 관리 |
 | Auth Service | 8081 | OAuth2 인증, JWT 발급, 소셜 로그인 |
 | Blog Service | 8082 | 게시글/시리즈/댓글, S3 파일 업로드 |
 | Shopping Service | 8083 | 상품/장바구니/주문/결제/재고, Saga 패턴 |
