@@ -15,6 +15,7 @@ import path from 'path'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   console.log('🔧 [Shopping] Building for mode:', mode)
+  console.log('🔧 [Shopping] Portal Remote URL:', env.VITE_PORTAL_SHELL_REMOTE_URL || '(using default)')
 
   // 환경별 base 설정 - Module Federation chunk 파일 로드 경로
   // vite-plugin-federation은 Vite의 base 옵션을 사용하여 remoteEntry.js 내 chunk 경로를 결정함
@@ -24,6 +25,14 @@ export default defineConfig(({ mode }) => {
     k8s: 'http://shopping-frontend.portal-universe.svc.cluster.local/',
   }
 
+  // 환경별 Portal Shell remote URL (themeStore 등 import용)
+  const portalRemoteUrls: Record<string, string> = {
+    dev: 'http://localhost:30000/assets/shellEntry.js',
+    docker: 'http://portal-shell/assets/shellEntry.js',
+    k8s: 'http://portal-shell.portal-universe.svc.cluster.local/assets/shellEntry.js',
+  }
+  const portalRemoteUrl = env.VITE_PORTAL_SHELL_REMOTE_URL || portalRemoteUrls[mode] || portalRemoteUrls.dev
+
   return {
     base: basePaths[mode] || 'http://localhost:30002/',
 
@@ -32,6 +41,9 @@ export default defineConfig(({ mode }) => {
       federation({
         name: 'shopping-frontend',
         filename: 'remoteEntry.js',
+        remotes: {
+          portal: portalRemoteUrl,
+        },
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
         },
@@ -78,10 +90,6 @@ export default defineConfig(({ mode }) => {
       cssCodeSplit: true,
       sourcemap: false,
       outDir: 'dist',
-      rollupOptions: {
-        // Portal Shell 모듈은 런타임에 Module Federation으로 제공됨
-        external: ['portal/themeStore', 'portal/authStore', 'portal/apiClient'],
-      },
     },
   }
 })

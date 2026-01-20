@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, onActivated, onDeactivated, watc
 import { useRoute, useRouter } from "vue-router";
 import type { RemoteConfig } from "../config/remoteRegistry";
 import { remoteLoader } from "../services/remoteLoader";
+import { useThemeStore } from "../store/theme";
 
 // 🆕 간단한 debounce 유틸리티 (외부 의존성 없음)
 function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T {
@@ -21,6 +22,7 @@ const props = defineProps<{
 const container = ref<HTMLElement | null>(null);
 const shellRoute = useRoute();
 const shellRouter = useRouter();
+const themeStore = useThemeStore();
 
 const loading = ref(true);
 const error = ref<Error | null>(null);
@@ -93,6 +95,15 @@ onDeactivated(() => {
   remoteApp?.onDeactivated?.();
 });
 
+// 🆕 테마 변경 감지 및 Remote 앱에 전달
+watch(() => themeStore.isDark, (isDark) => {
+  if (remoteApp?.onThemeChange && isComponentActive) {
+    const newTheme = isDark ? 'dark' : 'light';
+    console.log(`🎨 [RemoteWrapper] Theme changed, notifying ${props.config.name}: ${newTheme}`);
+    remoteApp.onThemeChange(newTheme);
+  }
+});
+
 // -------------------------
 // ✅ Mount 로직 (저장된 mountFn 사용)
 // -------------------------
@@ -127,9 +138,11 @@ async function mountRemote() {
     console.log(`   Initial path: ${initialPath}`);
 
     // ✅ 저장된 mountFn 사용 (중복 load 없음)
+    // 🆕 theme prop 추가 - Portal Shell의 현재 테마 전달
     remoteApp = mountFn(container.value, {
       initialPath,
       onNavigate: onRemoteNavigate,
+      theme: themeStore.isDark ? 'dark' : 'light',
     });
 
     console.log(`✅ [RemoteWrapper] ${props.config.name} mounted successfully`);
