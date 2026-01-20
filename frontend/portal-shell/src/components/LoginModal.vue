@@ -91,10 +91,10 @@ function handleClose() {
     <form @submit.prevent="handleLogin" class="space-y-5">
       <!-- Welcome Message -->
       <div class="text-center mb-6">
-        <div class="w-16 h-16 bg-gradient-to-br from-brand-600 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span class="text-white text-2xl">🔐</span>
+        <div class="w-14 h-14 bg-[#5e6ad2] rounded-xl flex items-center justify-center mx-auto mb-4">
+          <span class="text-white text-xl">🔐</span>
         </div>
-        <p class="text-gray-600">
+        <p class="text-[#6b6b6b] light:text-gray-500">
           Portal Universe에 오신 것을 환영합니다
         </p>
       </div>
@@ -124,15 +124,15 @@ function handleClose() {
       />
 
       <!-- Error Message -->
-      <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-lg">
-        <p class="text-sm text-red-600">{{ error }}</p>
+      <div v-if="error" class="p-3 bg-red-500/10 border border-red-500/20 rounded-lg light:bg-red-50 light:border-red-200">
+        <p class="text-sm text-red-400 light:text-red-600">{{ error }}</p>
       </div>
 
       <!-- Forgot Password -->
       <div class="text-right">
         <button
             type="button"
-            class="text-sm text-brand-600 hover:text-brand-700 hover:underline"
+            class="text-sm text-[#5e6ad2] hover:text-[#818cf8] hover:underline"
             :disabled="isLoading"
         >
           비밀번호를 잊으셨나요?
@@ -152,10 +152,10 @@ function handleClose() {
       <!-- Divider -->
       <div class="relative my-6">
         <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-200"></div>
+          <div class="w-full border-t border-[#2a2a2a] light:border-gray-200"></div>
         </div>
         <div class="relative flex justify-center text-sm">
-          <span class="px-4 bg-white text-gray-500">또는</span>
+          <span class="px-4 bg-[#18191b] text-[#6b6b6b] light:bg-white light:text-gray-500">또는</span>
         </div>
       </div>
 
@@ -163,7 +163,7 @@ function handleClose() {
       <div class="space-y-3">
         <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             :disabled="isLoading"
             class="w-full"
             @click="login"
@@ -176,11 +176,11 @@ function handleClose() {
       </div>
 
       <!-- Sign Up Link -->
-      <div class="text-center text-sm text-gray-600">
+      <div class="text-center text-sm text-[#6b6b6b] light:text-gray-600">
         계정이 없으신가요?
         <button
             type="button"
-            class="text-brand-600 hover:text-brand-700 font-medium hover:underline"
+            class="text-[#5e6ad2] hover:text-[#818cf8] font-medium hover:underline"
             :disabled="isLoading"
         >
           회원가입
