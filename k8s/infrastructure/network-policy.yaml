@@ -49,7 +49,6 @@ spec:
           - grafana
           - prometheus
           - zipkin
-          - discovery-service
   policyTypes:
     - Ingress
   ingress:
