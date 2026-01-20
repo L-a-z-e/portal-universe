@@ -17,14 +17,14 @@
     },
     "text": {
       "heading": {
-        "$value": "{color.linear.50}",
+        "$value": "#ffffff",
         "$type": "color",
-        "$description": "Main headings - Linear light text for dark mode default"
+        "$description": "Main headings - Pure white for dark mode"
       },
       "body": {
-        "$value": "{color.linear.300}",
+        "$value": "#b4b4b4",
         "$type": "color",
-        "$description": "Body text - Linear gray for readability"
+        "$description": "Body text - Optimized for readability on dark backgrounds"
       },
       "meta": {
         "$value": "{color.linear.400}",
@@ -32,7 +32,7 @@
         "$description": "Metadata, timestamps, secondary info"
       },
       "muted": {
-        "$value": "{color.linear.500}",
+        "$value": "#6b6b6b",
         "$type": "color",
         "$description": "Disabled or de-emphasized text"
       },
@@ -53,19 +53,19 @@
     },
     "bg": {
       "page": {
-        "$value": "{color.linear.950}",
+        "$value": "#08090a",
         "$type": "color",
-        "$description": "Main page background - Linear dark"
+        "$description": "Main page background - Near black"
       },
       "card": {
-        "$value": "{color.linear.850}",
+        "$value": "#0f1011",
         "$type": "color",
-        "$description": "Card/elevated surface"
+        "$description": "Card/elevated surface - Dark gray"
       },
       "elevated": {
-        "$value": "{color.linear.800}",
+        "$value": "#18191b",
         "$type": "color",
-        "$description": "Modals, dropdowns"
+        "$description": "Modals, dropdowns - Higher elevation"
       },
       "muted": {
         "$value": "{color.linear.900}",
@@ -80,9 +80,9 @@
     },
     "border": {
       "default": {
-        "$value": "{color.linear.700}",
+        "$value": "#2a2a2a",
         "$type": "color",
-        "$description": "Default border - subtle"
+        "$description": "Default border - Linear style subtle"
       },
       "hover": {
         "$value": "{color.linear.600}",
