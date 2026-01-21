@@ -1,13 +1,29 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
-import { useThemeStore } from '../store/theme';
 import { authService } from '../services/authService';
 import LoginModal from './LoginModal.vue';
 
 // Login Modal state
 const showLoginModal = ref(false);
+
+// Screen size detection for mobile header
+const isMobile = ref(false);
+const LG_BREAKPOINT = 1024;
+
+const updateIsMobile = () => {
+  isMobile.value = window.innerWidth < LG_BREAKPOINT;
+};
+
+onMounted(() => {
+  updateIsMobile();
+  window.addEventListener('resize', updateIsMobile);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateIsMobile);
+});
 
 // Login/Logout 함수 정의
 const handleLogin = () => {
@@ -29,7 +45,6 @@ const handleLogout = async () => {
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-const themeStore = useThemeStore();
 
 // Sidebar state
 const isCollapsed = ref(false);
@@ -104,13 +119,16 @@ const navigate = (path: string) => {
 <template>
   <!-- Mobile Overlay -->
   <div
-    v-if="isMobileOpen"
-    class="fixed inset-0 bg-black/50 z-40 lg:hidden"
+    v-if="isMobile && isMobileOpen"
+    class="fixed inset-0 bg-black/50 z-40"
     @click="toggleMobile"
   />
 
-  <!-- Mobile Header Bar -->
-  <div class="lg:hidden fixed top-0 left-0 right-0 h-14 bg-bg-card/95 backdrop-blur-md border-b border-border-default z-50 flex items-center px-4">
+  <!-- Mobile Header Bar (only shown on mobile) -->
+  <div
+    v-if="isMobile"
+    class="fixed top-0 left-0 right-0 h-14 bg-bg-card/95 backdrop-blur-md border-b border-border-default z-50 flex items-center px-4"
+  >
     <button
       @click="toggleMobile"
       class="p-2 rounded-lg hover:bg-bg-elevated transition-colors"
@@ -151,7 +169,7 @@ const navigate = (path: string) => {
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 py-4 px-2 overflow-y-auto">
+    <nav class="py-4 px-2 overflow-y-auto">
       <div class="space-y-1">
         <template v-for="item in navItems" :key="item.path">
           <!-- Main nav item -->
@@ -196,8 +214,49 @@ const navigate = (path: string) => {
       </div>
     </nav>
 
+    <!-- Spacer to push bottom section down -->
+    <div class="flex-1"></div>
+
     <!-- Bottom Section -->
     <div class="border-t border-border-default p-3 space-y-2 shrink-0">
+      <!-- User Section (최상단) -->
+      <template v-if="authStore.isAuthenticated">
+        <button
+          v-if="!isCollapsed"
+          @click="navigate('/profile')"
+          :class="[
+            'w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
+            isActive('/profile', true)
+              ? 'bg-brand-primary/10'
+              : 'bg-bg-elevated hover:bg-bg-elevated/80'
+          ]"
+        >
+          <div class="w-8 h-8 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
+            <span class="text-brand-primary font-medium text-sm">
+              {{ authStore.displayName?.charAt(0)?.toUpperCase() || 'U' }}
+            </span>
+          </div>
+          <div class="flex-1 min-w-0 text-left">
+            <p class="text-sm font-medium text-text-heading truncate">
+              {{ authStore.displayName }}
+            </p>
+            <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">ADMIN</span>
+          </div>
+        </button>
+      </template>
+      <template v-else>
+        <button
+          @click="handleLogin"
+          :class="[
+            'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
+            'bg-blue-600 text-white hover:bg-blue-700'
+          ]"
+        >
+          <span class="text-lg shrink-0">🔐</span>
+          <span v-if="!isCollapsed" class="font-medium">Login</span>
+        </button>
+      </template>
+
       <!-- Service Status -->
       <button
         @click="navigate('/status')"
@@ -226,67 +285,18 @@ const navigate = (path: string) => {
         <span v-if="!isCollapsed" class="font-medium whitespace-nowrap">Settings</span>
       </button>
 
-      <!-- Theme Toggle -->
+      <!-- Logout (로그인된 경우) -->
       <button
-        @click="themeStore.toggle()"
+        v-if="authStore.isAuthenticated"
+        @click="handleLogout"
         :class="[
           'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-          'text-text-body hover:bg-bg-elevated hover:text-text-heading'
+          'text-red-500 hover:bg-red-500/10'
         ]"
       >
-        <span class="text-lg shrink-0">{{ themeStore.isDark ? '🌙' : '☀️' }}</span>
-        <span v-if="!isCollapsed" class="font-medium whitespace-nowrap">
-          {{ themeStore.isDark ? 'Dark' : 'Light' }}
-        </span>
+        <span class="text-lg shrink-0">🚪</span>
+        <span v-if="!isCollapsed" class="font-medium">Logout</span>
       </button>
-
-      <!-- User Section -->
-      <template v-if="authStore.isAuthenticated">
-        <button
-          v-if="!isCollapsed"
-          @click="navigate('/profile')"
-          :class="[
-            'w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
-            isActive('/profile', true)
-              ? 'bg-brand-primary/10'
-              : 'bg-bg-elevated hover:bg-bg-elevated/80'
-          ]"
-        >
-          <div class="w-8 h-8 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
-            <span class="text-brand-primary font-medium text-sm">
-              {{ authStore.displayName?.charAt(0)?.toUpperCase() || 'U' }}
-            </span>
-          </div>
-          <div class="flex-1 min-w-0 text-left">
-            <p class="text-sm font-medium text-text-heading truncate">
-              {{ authStore.displayName }}
-            </p>
-            <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">ADMIN</span>
-          </div>
-        </button>
-        <button
-          @click="handleLogout"
-          :class="[
-            'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-            'text-red-500 hover:bg-red-500/10'
-          ]"
-        >
-          <span class="text-lg shrink-0">🚪</span>
-          <span v-if="!isCollapsed" class="font-medium">Logout</span>
-        </button>
-      </template>
-      <template v-else>
-        <button
-          @click="handleLogin"
-          :class="[
-            'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-            'bg-blue-600 text-white hover:bg-blue-700'
-          ]"
-        >
-          <span class="text-lg shrink-0">🔐</span>
-          <span v-if="!isCollapsed" class="font-medium">Login</span>
-        </button>
-      </template>
 
       <!-- Collapse Toggle (Desktop only) -->
       <button

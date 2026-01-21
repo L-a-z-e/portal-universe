@@ -56,14 +56,14 @@ function navigateTo(path: string) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-page text-text-body">
+  <div class="bg-bg-page text-text-body">
     <!-- Dashboard Header -->
-    <header class="border-b border-border-default bg-bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-      <div class="max-w-7xl mx-auto px-4 py-6">
+    <header class="border-b border-border-default bg-bg-card/50 backdrop-blur-sm">
+      <div class="max-w-7xl mx-auto px-4 py-4 sm:py-6">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-text-meta text-sm mb-1">{{ greeting }},</p>
-            <h1 class="text-2xl font-bold text-text-heading">
+            <p class="text-text-meta text-sm">{{ greeting }},</p>
+            <h1 class="text-2xl font-bold text-text-heading leading-tight">
               {{ authStore.displayName }}
             </h1>
           </div>
