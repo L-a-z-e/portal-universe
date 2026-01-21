@@ -1,5 +1,7 @@
 package com.portal.universe.apigateway.config;
 
+import com.portal.universe.apigateway.filter.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -28,7 +31,15 @@ import java.util.List;
 @EnableWebFluxSecurity
 @Profile("!test")
 @Slf4j
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtConfig jwtConfig;
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtConfig);
+    }
 
     /**
      * 모든 들어오는 요청의 경로와 HTTP 메서드를 디버그 레벨로 로깅하는 필터입니다.
@@ -113,6 +124,11 @@ public class SecurityConfig {
                         // ========================================
                         .anyExchange().authenticated()
                 )
+                // JWT 인증 필터 추가 (AUTHENTICATION 단계에서 실행)
+                .addFilterAt(jwtAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
+                // 기본 인증 비활성화 (401 시 브라우저 프롬프트 방지)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .build();
     }

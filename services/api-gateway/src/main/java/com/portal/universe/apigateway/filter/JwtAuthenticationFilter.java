@@ -27,7 +27,6 @@ import java.util.List;
  * Auth Service와 동일한 HMAC secret key로 토큰 서명을 검증합니다.
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements WebFilter {
 
