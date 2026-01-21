@@ -47,8 +47,8 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         log.info("Login attempt for email: {}", request.email());
 
-        // 1. 사용자 조회
-        User user = userRepository.findByEmail(request.email())
+        // 1. 사용자 조회 (프로필 포함 - JWT에 nickname 포함 위해)
+        User user = userRepository.findByEmailWithProfile(request.email())
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.INVALID_CREDENTIALS));
 
         // 2. 비밀번호 검증
@@ -90,8 +90,8 @@ public class AuthController {
                 throw new CustomBusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
             }
 
-            // 3. 사용자 정보 조회
-            User user = userRepository.findByUuid(userId)
+            // 3. 사용자 정보 조회 (프로필 포함 - JWT에 nickname 포함 위해)
+            User user = userRepository.findByUuidWithProfile(userId)
                     .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
 
             // 4. 새로운 Access Token 발급

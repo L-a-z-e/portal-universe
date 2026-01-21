@@ -50,6 +50,14 @@ public class TokenService {
         claims.put("roles", user.getRole().getKey());
         claims.put("email", user.getEmail());
 
+        // Profile 정보 추가
+        if (user.getProfile() != null) {
+            claims.put("nickname", user.getProfile().getNickname());
+            if (user.getProfile().getUsername() != null) {
+                claims.put("username", user.getProfile().getUsername());
+            }
+        }
+
         Date now = new Date();
         Date expiration = new Date(now.getTime() + jwtConfig.getAccessTokenExpiration());
 

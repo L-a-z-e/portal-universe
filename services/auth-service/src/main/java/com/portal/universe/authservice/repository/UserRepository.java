@@ -19,11 +19,27 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     /**
+     * 주어진 이메일 주소로 사용자를 프로필과 함께 조회합니다.
+     * @param email 조회할 사용자의 이메일
+     * @return 해당 이메일을 가진 사용자를 담은 Optional 객체. 존재하지 않으면 Optional.empty()를 반환합니다.
+     */
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.email = :email")
+    Optional<User> findByEmailWithProfile(@Param("email") String email);
+
+    /**
      * 주어진 UUID로 사용자를 조회합니다.
      * @param uuid 조회할 사용자의 UUID
      * @return 해당 UUID를 가진 사용자를 담은 Optional 객체. 존재하지 않으면 Optional.empty()를 반환합니다.
      */
     Optional<User> findByUuid(String uuid);
+
+    /**
+     * 주어진 UUID로 사용자를 프로필과 함께 조회합니다.
+     * @param uuid 조회할 사용자의 UUID
+     * @return 해당 UUID를 가진 사용자를 담은 Optional 객체. 존재하지 않으면 Optional.empty()를 반환합니다.
+     */
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.uuid = :uuid")
+    Optional<User> findByUuidWithProfile(@Param("uuid") String uuid);
 
     /**
      * 주어진 username으로 사용자를 조회합니다.
