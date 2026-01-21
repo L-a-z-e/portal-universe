@@ -78,7 +78,8 @@ const getTagColor = (tagName: string): string => {
     hash = tagName.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  return colors[Math.abs(hash) % colors.length] ?? colors[0];
+  const index = Math.abs(hash) % colors.length;
+  return colors[index] as string;
 };
 
 // 태그 로드

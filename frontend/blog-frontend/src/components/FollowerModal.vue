@@ -94,9 +94,10 @@ watch(() => props.type, () => {
 
 <template>
   <Modal
-    :is-open="isOpen"
+    :model-value="isOpen"
     :title="title"
     size="md"
+    @update:model-value="!$event && emit('close')"
     @close="emit('close')"
   >
     <div class="follow-modal-content">
@@ -130,7 +131,7 @@ watch(() => props.type, () => {
             @click="goToProfile(user)"
           >
             <Avatar
-              :src="user.profileImageUrl"
+              :src="user.profileImageUrl ?? undefined"
               :name="user.nickname || user.username || 'User'"
               size="md"
             />
