@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Card, Button } from '@portal/design-system-vue';
+import { Card } from '@portal/design-system-vue';
 import { getPostNavigation } from '@/api/posts';
 import type { PostNavigationResponse } from '@/types';
 import { DEFAULT_THUMBNAILS } from '@/config/assets';

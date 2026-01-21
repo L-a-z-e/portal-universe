@@ -11,3 +11,11 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://dummy-issuer-for-test
+
+aws:
+  s3:
+    access-key: test-access-key
+    secret-key: test-secret-key
+    region: ap-northeast-2
+    endpoint: http://localhost:4566
+    bucket-name: test-bucket

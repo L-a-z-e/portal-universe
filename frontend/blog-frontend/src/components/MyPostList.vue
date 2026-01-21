@@ -173,8 +173,8 @@ onMounted(() => {
         <!-- 제목 및 상태 -->
         <div class="post-header">
           <h3 class="post-title">{{ post.title }}</h3>
-          <Tag :variant="getStatusVariant(post.status)" size="sm">
-            {{ getStatusLabel(post.status) }}
+          <Tag :variant="getStatusVariant(post.status ?? 'DRAFT')" size="sm">
+            {{ getStatusLabel(post.status ?? 'DRAFT') }}
           </Tag>
         </div>
 

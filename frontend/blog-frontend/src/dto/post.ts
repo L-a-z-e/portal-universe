@@ -68,6 +68,7 @@ export interface PostSummaryResponse {
   summary: string;
   authorId: string;
   authorName: string;
+  status?: PostStatus;  // 내 글 목록에서 상태 표시용
   tags: string[];
   category: string;
   thumbnailUrl: string;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { Button, Input, Textarea, Alert } from '@portal/design-system-vue';
 import type { UserProfileResponse, UserProfileUpdateRequest } from '@/dto/user';
 import { updateProfile, setUsername, checkUsername } from '@/api/users';
@@ -16,7 +16,7 @@ const emit = defineEmits<{
 
 // Form data
 const formData = ref<UserProfileUpdateRequest & { username?: string }>({
-  name: props.user.name,
+  name: props.user.nickname,
   bio: props.user.bio || '',
   website: props.user.website || '',
   username: props.user.username || '',
@@ -26,7 +26,7 @@ const formData = ref<UserProfileUpdateRequest & { username?: string }>({
 const usernameCheckLoading = ref(false);
 const usernameAvailable = ref<boolean | null>(null);
 const usernameMessage = ref('');
-const usernameDebounceTimer = ref<NodeJS.Timeout | null>(null);
+const usernameDebounceTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 
 // 로딩 및 에러
 const loading = ref(false);
@@ -42,8 +42,9 @@ const isValidUsername = (username: string): boolean => {
 };
 
 // Username 중복 확인 (디바운스)
-const handleUsernameChange = (value: string) => {
-  formData.value.username = value;
+const handleUsernameChange = (value: string | number) => {
+  const strValue = String(value);
+  formData.value.username = strValue;
 
   if (!canEditUsername.value) return;
 
@@ -55,10 +56,10 @@ const handleUsernameChange = (value: string) => {
   usernameAvailable.value = null;
   usernameMessage.value = '';
 
-  if (!value) return;
+  if (!strValue) return;
 
   // 유효성 검증
-  if (!isValidUsername(value)) {
+  if (!isValidUsername(strValue)) {
     usernameAvailable.value = false;
     usernameMessage.value = 'Username은 3-20자의 영문, 숫자, _, - 만 사용 가능합니다.';
     return;
@@ -68,7 +69,7 @@ const handleUsernameChange = (value: string) => {
   usernameDebounceTimer.value = setTimeout(async () => {
     usernameCheckLoading.value = true;
     try {
-      const result = await checkUsername(value);
+      const result = await checkUsername(strValue);
       usernameAvailable.value = result.available;
       usernameMessage.value = result.message;
     } catch (err: any) {
