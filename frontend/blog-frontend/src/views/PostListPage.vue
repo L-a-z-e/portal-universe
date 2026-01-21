@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useAuthStore } from "portal/authStore";
-import { onMounted, onBeforeUnmount, ref, computed } from "vue";
-import { useRouter } from "vue-router";
-import { getPublishedPosts } from "../api/posts";
+import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { getPublishedPosts, getTrendingPosts } from "../api/posts";
 import type { PostSummaryResponse } from "../dto/post";
 import type { PageResponse } from "@/types";
 import { Button, Card, SearchBar } from '@portal/design-system-vue';
@@ -10,8 +10,16 @@ import PostCard from '../components/PostCard.vue';
 import { useSearchStore } from '../stores/searchStore';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const searchStore = useSearchStore();
+
+// 탭 관련 상태
+type TabType = 'trending' | 'recent';
+type PeriodType = 'today' | 'week' | 'month' | 'year';
+
+const currentTab = ref<TabType>('trending');
+const currentPeriod = ref<PeriodType>('week');
 
 // 일반 목록 상태
 const posts = ref<PostSummaryResponse[]>([]);
@@ -78,7 +86,13 @@ async function loadPosts(page: number = 0, append: boolean = false) {
 
     error.value = null;
 
-    const response: PageResponse<PostSummaryResponse> = await getPublishedPosts(page, pageSize.value);
+    let response: PageResponse<PostSummaryResponse>;
+
+    if (currentTab.value === 'trending') {
+      response = await getTrendingPosts(currentPeriod.value, page, pageSize.value);
+    } else {
+      response = await getPublishedPosts(page, pageSize.value);
+    }
 
     if (append) {
       posts.value = [...posts.value, ...response.content];
@@ -143,6 +157,60 @@ function goToPost(postId: string) {
   router.push(`/${postId}`);
 }
 
+// 탭 변경
+function changeTab(tab: TabType) {
+  if (currentTab.value === tab) return;
+
+  currentTab.value = tab;
+  currentPage.value = 0;
+  posts.value = [];
+  hasMore.value = true;
+
+  // URL 쿼리 업데이트
+  updateQueryParams();
+
+  loadPosts(0, false);
+}
+
+// 기간 변경
+function changePeriod(period: PeriodType) {
+  if (currentPeriod.value === period) return;
+
+  currentPeriod.value = period;
+  currentPage.value = 0;
+  posts.value = [];
+  hasMore.value = true;
+
+  // URL 쿼리 업데이트
+  updateQueryParams();
+
+  loadPosts(0, false);
+}
+
+// URL 쿼리 파라미터 업데이트
+function updateQueryParams() {
+  const query: Record<string, string> = { tab: currentTab.value };
+
+  if (currentTab.value === 'trending') {
+    query.period = currentPeriod.value;
+  }
+
+  router.replace({ query });
+}
+
+// URL 쿼리 파라미터로부터 초기 상태 설정
+function initializeFromQuery() {
+  const { tab, period } = route.query;
+
+  if (tab === 'trending' || tab === 'recent') {
+    currentTab.value = tab as TabType;
+  }
+
+  if (period === 'today' || period === 'week' || period === 'month' || period === 'year') {
+    currentPeriod.value = period as PeriodType;
+  }
+}
+
 // Intersection Observer 설정
 function setupIntersectionObserver() {
   if (observer) {
@@ -170,6 +238,7 @@ function setupIntersectionObserver() {
 
 // 초기화
 onMounted(async () => {
+  initializeFromQuery();
   await loadPosts(0, false);
   setupIntersectionObserver();
 });
@@ -209,7 +278,7 @@ onBeforeUnmount(() => {
       </header>
 
       <!-- SearchBar -->
-      <div class="mb-8">
+      <div class="mb-6">
         <SearchBar
             v-model="searchStore.keyword"
             placeholder="제목, 내용, 태그로 검색..."
@@ -217,6 +286,54 @@ onBeforeUnmount(() => {
             @search="handleSearch"
             @clear="handleClearSearch"
         />
+      </div>
+
+      <!-- 탭 시스템 (검색 모드가 아닐 때만 표시) -->
+      <div v-if="!isSearchMode" class="mb-6">
+        <!-- 탭 버튼 -->
+        <div class="flex items-center gap-2 border-b border-border mb-4">
+          <button
+              @click="changeTab('trending')"
+              class="px-4 py-3 font-medium text-sm relative transition-colors"
+              :class="currentTab === 'trending'
+                ? 'text-brand-primary'
+                : 'text-text-meta hover:text-text-body'"
+          >
+            🔥 트렌딩
+            <div
+                v-if="currentTab === 'trending'"
+                class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary"
+            ></div>
+          </button>
+          <button
+              @click="changeTab('recent')"
+              class="px-4 py-3 font-medium text-sm relative transition-colors"
+              :class="currentTab === 'recent'
+                ? 'text-brand-primary'
+                : 'text-text-meta hover:text-text-body'"
+          >
+            🕐 최신
+            <div
+                v-if="currentTab === 'recent'"
+                class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary"
+            ></div>
+          </button>
+        </div>
+
+        <!-- 기간 필터 (트렌딩 탭일 때만 표시) -->
+        <div v-if="currentTab === 'trending'" class="flex items-center gap-2">
+          <button
+              v-for="period in ['today', 'week', 'month', 'year']"
+              :key="period"
+              @click="changePeriod(period as PeriodType)"
+              class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+              :class="currentPeriod === period
+                ? 'bg-brand-primary text-white'
+                : 'bg-bg-muted text-text-meta hover:bg-bg-hover hover:text-text-body'"
+          >
+            {{ { today: '오늘', week: '이번 주', month: '이번 달', year: '올해' }[period] }}
+          </button>
+        </div>
       </div>
 
       <!-- Loading State (초기 로드) -->

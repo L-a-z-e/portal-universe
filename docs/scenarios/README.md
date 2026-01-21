@@ -22,6 +22,12 @@
 | SCENARIO-005 | [대기열 시스템](./SCENARIO-005-queue-system.md) | Planned | 대기열 |
 | SCENARIO-006 | [서비스 상태 모니터링](./SCENARIO-006-service-status.md) | Current | 서비스 모니터링 |
 | SCENARIO-007 | [Settings Page 사용자 설정 관리](./SCENARIO-007-settings-page.md) | Current | 사용자 설정 |
+| SCENARIO-008 | [게시글 좋아요 기능](./SCENARIO-008-like-post.md) | Current | Blog - 좋아요 |
+| SCENARIO-009 | [시리즈 탐색](./SCENARIO-009-series-navigation.md) | Current | Blog - 시리즈 |
+| SCENARIO-010 | [태그 탐색](./SCENARIO-010-tag-discovery.md) | Current | Blog - 태그 |
+| SCENARIO-011 | [트렌딩 게시글](./SCENARIO-011-trending-posts.md) | Current | Blog - 트렌딩 |
+| SCENARIO-012 | [사용자 블로그 방문](./SCENARIO-012-user-blog-view.md) | Current | Blog - 사용자 페이지 |
+| SCENARIO-013 | [마이페이지 관리](./SCENARIO-013-my-page.md) | Current | Blog - 마이페이지 |
 
 ## 작성 가이드
 

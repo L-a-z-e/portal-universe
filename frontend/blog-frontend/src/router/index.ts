@@ -6,6 +6,11 @@ import PostListPage from '../views/PostListPage.vue';
 import PostDetailPage from '../views/PostDetailPage.vue';
 import PostWritePage from '../views/PostWritePage.vue';
 import PostEditPage from '../views/PostEditPage.vue';
+import SeriesDetailPage from '../views/SeriesDetailPage.vue';
+import TagListPage from '../views/TagListPage.vue';
+import TagDetailPage from '../views/TagDetailPage.vue';
+import UserBlogPage from '../views/UserBlogPage.vue';
+import MyPage from '../views/MyPage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -14,9 +19,14 @@ const routes: RouteRecordRaw[] = [
     component: PostListPage
   },
   {
-    path: '/:postId',
-    name: 'PostDetail',
-    component: PostDetailPage,
+    path: '/tags',
+    name: 'TagList',
+    component: TagListPage
+  },
+  {
+    path: '/tags/:tagName',
+    name: 'TagDetail',
+    component: TagDetailPage,
     props: true
   },
   {
@@ -28,6 +38,30 @@ const routes: RouteRecordRaw[] = [
     path: '/edit/:postId',
     name: 'PostEdit',
     component: PostEditPage,
+    props: true
+  },
+  {
+    path: '/series/:seriesId',
+    name: 'SeriesDetail',
+    component: SeriesDetailPage,
+    props: true
+  },
+  {
+    path: '/my',
+    name: 'MyPage',
+    component: MyPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/@:username',
+    name: 'UserBlog',
+    component: UserBlogPage,
+    props: true
+  },
+  {
+    path: '/:postId',
+    name: 'PostDetail',
+    component: PostDetailPage,
     props: true
   }
 ];

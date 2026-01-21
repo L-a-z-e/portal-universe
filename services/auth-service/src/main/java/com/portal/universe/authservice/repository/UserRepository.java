@@ -2,6 +2,8 @@ package com.portal.universe.authservice.repository;
 
 import com.portal.universe.authservice.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -22,4 +24,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return 해당 UUID를 가진 사용자를 담은 Optional 객체. 존재하지 않으면 Optional.empty()를 반환합니다.
      */
     Optional<User> findByUuid(String uuid);
+
+    /**
+     * 주어진 username으로 사용자를 조회합니다.
+     * @param username 조회할 사용자의 username
+     * @return 해당 username을 가진 사용자를 담은 Optional 객체. 존재하지 않으면 Optional.empty()를 반환합니다.
+     */
+    @Query("SELECT u FROM User u JOIN FETCH u.profile p WHERE p.username = :username")
+    Optional<User> findByUsername(@Param("username") String username);
+
+    /**
+     * 주어진 username이 존재하는지 확인합니다.
+     * @param username 확인할 username
+     * @return username이 존재하면 true, 아니면 false
+     */
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u JOIN u.profile p WHERE p.username = :username")
+    boolean existsByUsername(@Param("username") String username);
 }
