@@ -32,6 +32,7 @@ public class CartServiceImpl implements CartService {
     private final InventoryRepository inventoryRepository;
 
     @Override
+    @Transactional
     public CartResponse getCart(String userId) {
         Cart cart = getOrCreateActiveCart(userId);
         return CartResponse.from(cart);
