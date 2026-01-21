@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -59,8 +58,8 @@ public class UserController {
      */
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(
-            @AuthenticationPrincipal Jwt jwt) {
-        Long userId = Long.parseLong(jwt.getSubject());
+            @AuthenticationPrincipal String userIdStr) {
+        Long userId = Long.parseLong(userIdStr);
         UserProfileResponse profile = userService.getMyProfile(userId);
         return ResponseEntity.ok(ApiResponse.success(profile));
     }
@@ -70,9 +69,9 @@ public class UserController {
      */
     @PutMapping("/me/profile")
     public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
-            @AuthenticationPrincipal Jwt jwt,
+            @AuthenticationPrincipal String userIdStr,
             @Valid @RequestBody UserProfileUpdateRequest request) {
-        Long userId = Long.parseLong(jwt.getSubject());
+        Long userId = Long.parseLong(userIdStr);
         UserProfileResponse profile = userService.updateProfile(
                 userId,
                 request.nickname(),
@@ -88,9 +87,9 @@ public class UserController {
      */
     @PostMapping("/me/username")
     public ResponseEntity<ApiResponse<UserProfileResponse>> setUsername(
-            @AuthenticationPrincipal Jwt jwt,
+            @AuthenticationPrincipal String userIdStr,
             @Valid @RequestBody UsernameSetRequest request) {
-        Long userId = Long.parseLong(jwt.getSubject());
+        Long userId = Long.parseLong(userIdStr);
         UserProfileResponse profile = userService.setUsername(userId, request.username());
         return ResponseEntity.ok(ApiResponse.success(profile));
     }
