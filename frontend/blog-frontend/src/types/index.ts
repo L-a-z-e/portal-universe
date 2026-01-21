@@ -59,3 +59,11 @@ export type {
   PostNavigationItem,
 } from '../dto/navigation';
 
+// User DTOs
+export type {
+  UserProfileResponse,
+  UserProfileUpdateRequest,
+  UsernameSetRequest,
+  UsernameCheckResponse,
+} from '../dto/user';
+

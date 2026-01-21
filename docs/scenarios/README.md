@@ -23,6 +23,8 @@
 | SCENARIO-006 | [시리즈 탐색](./SCENARIO-006-series-navigation.md) | Current | Blog - 시리즈 |
 | SCENARIO-007 | [태그 탐색](./SCENARIO-007-tag-discovery.md) | Current | Blog - 태그 |
 | SCENARIO-008 | [트렌딩 게시글](./SCENARIO-008-trending-posts.md) | Current | Blog - 트렌딩 |
+| SCENARIO-009 | [사용자 블로그 방문](./SCENARIO-009-user-blog-view.md) | Current | Blog - 사용자 페이지 (Phase 1-B) |
+| SCENARIO-010 | [마이페이지 관리](./SCENARIO-010-my-page.md) | Current | Blog - 마이페이지 (Phase 1-B) |
 
 ## 작성 가이드
 

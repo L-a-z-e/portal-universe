@@ -34,7 +34,22 @@ public enum AuthErrorCode implements ErrorCode {
     /**
      * 유효하지 않은 토큰입니다.
      */
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "Invalid token");
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "Invalid token"),
+
+    /**
+     * Username이 이미 존재합니다.
+     */
+    USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "A011", "Username already exists"),
+
+    /**
+     * Username이 이미 설정되어 변경할 수 없습니다.
+     */
+    USERNAME_ALREADY_SET(HttpStatus.BAD_REQUEST, "A012", "Username already set"),
+
+    /**
+     * Username 형식이 올바르지 않습니다.
+     */
+    INVALID_USERNAME_FORMAT(HttpStatus.BAD_REQUEST, "A013", "Invalid username format. Only lowercase letters, numbers, and underscores are allowed (3-20 characters)");
 
     private final HttpStatus status;
     private final String code;

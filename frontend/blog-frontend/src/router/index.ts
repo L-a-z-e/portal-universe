@@ -9,6 +9,8 @@ import PostEditPage from '../views/PostEditPage.vue';
 import SeriesDetailPage from '../views/SeriesDetailPage.vue';
 import TagListPage from '../views/TagListPage.vue';
 import TagDetailPage from '../views/TagDetailPage.vue';
+import UserBlogPage from '../views/UserBlogPage.vue';
+import MyPage from '../views/MyPage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -42,6 +44,18 @@ const routes: RouteRecordRaw[] = [
     path: '/series/:seriesId',
     name: 'SeriesDetail',
     component: SeriesDetailPage,
+    props: true
+  },
+  {
+    path: '/my',
+    name: 'MyPage',
+    component: MyPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/@:username',
+    name: 'UserBlog',
+    component: UserBlogPage,
     props: true
   },
   {
