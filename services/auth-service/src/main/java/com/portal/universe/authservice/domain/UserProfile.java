@@ -51,4 +51,28 @@ public class UserProfile {
         this.profileImageUrl = profileImageUrl;
         this.marketingAgree = false;
     }
+
+    // ========== Update Methods ==========
+
+    public void updateNickname(String nickname) {
+        if (nickname != null && !nickname.isBlank()) {
+            this.nickname = nickname;
+        }
+    }
+
+    public void updateRealName(String realName) {
+        this.realName = realName;
+    }
+
+    public void updatePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public void updateMarketingAgree(boolean marketingAgree) {
+        this.marketingAgree = marketingAgree;
+    }
 }

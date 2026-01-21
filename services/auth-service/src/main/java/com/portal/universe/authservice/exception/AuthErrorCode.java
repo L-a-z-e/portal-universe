@@ -34,7 +34,27 @@ public enum AuthErrorCode implements ErrorCode {
     /**
      * 유효하지 않은 토큰입니다.
      */
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "Invalid token");
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "Invalid token"),
+
+    /**
+     * 소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.
+     */
+    SOCIAL_USER_CANNOT_CHANGE_PASSWORD(HttpStatus.BAD_REQUEST, "A006", "Social login users cannot change password"),
+
+    /**
+     * 현재 비밀번호가 일치하지 않습니다.
+     */
+    INVALID_CURRENT_PASSWORD(HttpStatus.UNAUTHORIZED, "A007", "Current password is incorrect"),
+
+    /**
+     * 비밀번호 확인이 일치하지 않습니다.
+     */
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "A008", "Password confirmation does not match"),
+
+    /**
+     * 회원 탈퇴 시 비밀번호가 일치하지 않습니다.
+     */
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "A009", "Password is incorrect");
 
     private final HttpStatus status;
     private final String code;
