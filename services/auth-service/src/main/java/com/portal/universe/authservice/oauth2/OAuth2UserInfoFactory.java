@@ -14,8 +14,8 @@ public class OAuth2UserInfoFactory {
 
         return switch (provider) {
             case GOOGLE -> new GoogleOAuth2UserInfo(attributes);
-            case NAVER -> throw new IllegalArgumentException("Naver OAuth2 is not yet implemented");
-            case KAKAO -> throw new IllegalArgumentException("Kakao OAuth2 is not yet implemented");
+            case NAVER -> new NaverOAuth2UserInfo(attributes);
+            case KAKAO -> new KakaoOAuth2UserInfo(attributes);
         };
     }
 }

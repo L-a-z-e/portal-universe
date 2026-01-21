@@ -617,6 +617,54 @@ export async function debugAuth(): Promise<void> {
   return authService.debug();
 }
 
+// ====================================================================
+// 8️⃣ 소셜 로그인 (Social Login)
+// ====================================================================
+
+/**
+ * API Base URL 가져오기
+ * OIDC Authority에서 추출
+ */
+function getApiBaseUrl(): string {
+  const authority = import.meta.env.VITE_OIDC_AUTHORITY || '';
+  // authority: http://localhost:8080/auth-service
+  // -> API base: http://localhost:8080
+  const match = authority.match(/^(https?:\/\/[^/]+)/);
+  return match ? match[1] : '';
+}
+
+/**
+ * 현재 환경이 local인지 확인
+ */
+export function isLocalEnvironment(): boolean {
+  const authority = import.meta.env.VITE_OIDC_AUTHORITY || '';
+  return authority.includes('localhost');
+}
+
+/**
+ * Google 소셜 로그인 (local 환경에서만 동작)
+ */
+export function loginWithGoogle(): void {
+  const apiBase = getApiBaseUrl();
+  window.location.href = `${apiBase}/auth-service/oauth2/authorization/google`;
+}
+
+/**
+ * Naver 소셜 로그인 (모든 환경에서 동작)
+ */
+export function loginWithNaver(): void {
+  const apiBase = getApiBaseUrl();
+  window.location.href = `${apiBase}/auth-service/oauth2/authorization/naver`;
+}
+
+/**
+ * Kakao 소셜 로그인 (모든 환경에서 동작)
+ */
+export function loginWithKakao(): void {
+  const apiBase = getApiBaseUrl();
+  window.location.href = `${apiBase}/auth-service/oauth2/authorization/kakao`;
+}
+
 // 공개 export
 export { authService };
 export default authService.userManager;
