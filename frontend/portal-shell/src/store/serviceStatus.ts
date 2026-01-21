@@ -96,6 +96,8 @@ export const useServiceStatusStore = defineStore('serviceStatus', {
       if (!config) return;
 
       const service = this.services[serviceKey];
+      if (!service) return;
+
       const startTime = Date.now();
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
