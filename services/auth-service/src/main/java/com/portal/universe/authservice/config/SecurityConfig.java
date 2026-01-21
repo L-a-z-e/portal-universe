@@ -5,6 +5,8 @@ import com.portal.universe.authservice.oauth2.OAuth2AuthenticationFailureHandler
 import com.portal.universe.authservice.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.portal.universe.authservice.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +21,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.ForwardedHeaderFilter;
@@ -26,15 +29,27 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 /**
  * 애플리케이션의 전반적인 웹 보안 설정을 담당하는 클래스입니다.
  * Spring Security의 필터 체인을 구성하여 요청에 대한 인증 및 인가를 처리합니다.
+ *
+ * OAuth2 소셜 로그인은 ClientRegistrationRepository가 존재할 때만 활성화됩니다.
+ * (OAuth2 클라이언트 설정이 없는 환경에서도 서비스가 정상 시작됩니다)
  */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    // OAuth2 관련 빈들은 선택적 주입 (설정이 없으면 null)
+    @Autowired(required = false)
+    private CustomOAuth2UserService customOAuth2UserService;
+    @Autowired(required = false)
+    private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    @Autowired(required = false)
+    private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    @Autowired(required = false)
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    // JWT 인증 필터는 필수
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
@@ -100,13 +115,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // FormLogin 비활성화 (JWT 기반 인증 사용)
                 .formLogin(AbstractHttpConfigurer::disable)
-                // OAuth2 소셜 로그인 유지 (JWT 토큰 발급 방식으로 전환)
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService))
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .failureHandler(oAuth2AuthenticationFailureHandler)
-                )
                 // HttpBasic 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable)
                 // 로그아웃은 JWT 기반으로 처리하므로 기본 로그아웃 비활성화
@@ -117,7 +125,32 @@ public class SecurityConfig {
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )
                 .cors(AbstractHttpConfigurer::disable);
+
+        // OAuth2 소셜 로그인: ClientRegistrationRepository가 있을 때만 활성화
+        if (isOAuth2Enabled()) {
+            log.info("OAuth2 소셜 로그인 활성화됨");
+            http.oauth2Login(oauth2 -> oauth2
+                    .userInfoEndpoint(userInfo -> userInfo
+                            .userService(customOAuth2UserService))
+                    .successHandler(oAuth2AuthenticationSuccessHandler)
+                    .failureHandler(oAuth2AuthenticationFailureHandler)
+            );
+        } else {
+            log.warn("OAuth2 소셜 로그인 비활성화됨 - ClientRegistrationRepository가 설정되지 않음");
+        }
+
         return http.build();
+    }
+
+    /**
+     * OAuth2 소셜 로그인이 활성화 가능한지 확인합니다.
+     * ClientRegistrationRepository와 관련 핸들러들이 모두 존재해야 활성화됩니다.
+     */
+    private boolean isOAuth2Enabled() {
+        return clientRegistrationRepository != null
+                && customOAuth2UserService != null
+                && oAuth2AuthenticationSuccessHandler != null
+                && oAuth2AuthenticationFailureHandler != null;
     }
 
     /**
