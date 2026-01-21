@@ -88,6 +88,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // /api/admin 경로는 ADMIN 역할을 가진 사용자만 접근 가능합니다.
                         .requestMatchers("/api/admin").hasRole("ADMIN")
+                        // /api/profile 경로는 인증된 사용자만 접근 가능합니다.
+                        .requestMatchers("/api/profile/**").authenticated()
                         // 위에서 지정한 경로 외의 모든 요청은 인증이 필요합니다.
                         .anyRequest().authenticated()
                 )

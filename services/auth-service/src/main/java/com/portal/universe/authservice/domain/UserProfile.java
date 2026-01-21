@@ -62,12 +62,44 @@ public class UserProfile {
         this.marketingAgree = false;
     }
 
+// ========== Update Methods ==========
+
     public void setUsername(String username) {
         this.username = username;
     }
 
+    public void updateNickname(String nickname) {
+        if (nickname != null && !nickname.isBlank()) {
+            this.nickname = nickname;
+        }
+    }
+
+    public void updateRealName(String realName) {
+        this.realName = realName;
+    }
+
+    public void updatePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public void updateBio(String bio) {
+        this.bio = bio;
+    }
+
+    public void updateWebsite(String website) {
+        this.website = website;
+    }
+
+    public void updateMarketingAgree(boolean marketingAgree) {
+        this.marketingAgree = marketingAgree;
+    }
+
     public void updateProfile(String nickname, String bio, String profileImageUrl, String website) {
-        if (nickname != null) {
+        if (nickname != null && !nickname.isBlank()) {
             this.nickname = nickname;
         }
         this.bio = bio;
