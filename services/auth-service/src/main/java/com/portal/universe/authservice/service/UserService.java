@@ -5,6 +5,7 @@ import com.portal.universe.authservice.domain.Role;
 import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.domain.UserProfile;
 import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.follow.repository.FollowRepository;
 import com.portal.universe.authservice.repository.UserRepository;
 import com.portal.universe.common.event.UserSignedUpEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
@@ -22,6 +23,7 @@ import java.util.regex.Pattern;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
     private final PasswordEncoder passwordEncoder;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -80,7 +82,11 @@ public class UserService {
     public UserProfileResponse getProfileByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
-        return UserProfileResponse.from(user);
+
+        int followerCount = (int) followRepository.countByFollowing(user);
+        int followingCount = (int) followRepository.countByFollower(user);
+
+        return UserProfileResponse.from(user, followerCount, followingCount);
     }
 
     /**
@@ -89,7 +95,11 @@ public class UserService {
     public UserProfileResponse getMyProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
-        return UserProfileResponse.from(user);
+
+        int followerCount = (int) followRepository.countByFollowing(user);
+        int followingCount = (int) followRepository.countByFollower(user);
+
+        return UserProfileResponse.from(user, followerCount, followingCount);
     }
 
     /**
@@ -102,7 +112,11 @@ public class UserService {
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
 
         user.getProfile().updateProfile(nickname, bio, profileImageUrl, website);
-        return UserProfileResponse.from(user);
+
+        int followerCount = (int) followRepository.countByFollowing(user);
+        int followingCount = (int) followRepository.countByFollower(user);
+
+        return UserProfileResponse.from(user, followerCount, followingCount);
     }
 
     /**
@@ -129,7 +143,11 @@ public class UserService {
         }
 
         user.getProfile().setUsername(username);
-        return UserProfileResponse.from(user);
+
+        int followerCount = (int) followRepository.countByFollowing(user);
+        int followingCount = (int) followRepository.countByFollower(user);
+
+        return UserProfileResponse.from(user, followerCount, followingCount);
     }
 
     /**

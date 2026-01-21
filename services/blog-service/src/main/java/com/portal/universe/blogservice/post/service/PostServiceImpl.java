@@ -670,4 +670,22 @@ public class PostServiceImpl implements PostService {
         // 현재는 간단히 authorId 반환
         return authorId;
     }
+
+    // ===== 피드 기능 =====
+
+    @Override
+    public Page<PostSummaryResponse> getFeed(List<String> followingIds, int page, int size) {
+        log.info("Fetching feed for {} following users, page: {}, size: {}", followingIds.size(), page, size);
+
+        if (followingIds == null || followingIds.isEmpty()) {
+            // 팔로잉이 없으면 빈 페이지 반환
+            return Page.empty(PageRequest.of(page, size));
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> posts = postRepository.findByAuthorIdInAndStatusOrderByPublishedAtDesc(
+                followingIds, PostStatus.PUBLISHED, pageable);
+
+        return posts.map(this::convertToPostListResponse);
+    }
 }
