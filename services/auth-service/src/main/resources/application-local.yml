@@ -60,13 +60,6 @@ spring:
       authorizationserver:
         # Gateway(8080)를 통해 접근하므로 Issuer를 Gateway 주소로 고정
         issuer: http://localhost:8080/auth-service
-        client:
-          portal-client:
-            redirect-uris:
-              - http://localhost:30000/callback
-              - http://localhost:30000/silent-renew.html
-            post-logout-redirect-uris:
-              - http://localhost:30000
       client:
         registration:
           google:

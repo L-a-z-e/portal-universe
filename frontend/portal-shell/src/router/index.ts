@@ -6,6 +6,7 @@ import HomePage from "../views/HomePage.vue";
 import DashboardPage from "../views/DashboardPage.vue";
 import SignupPage from "../views/SignupPage.vue";
 import CallbackPage from "../views/CallbackPage.vue";
+import OAuth2Callback from "../views/OAuth2Callback.vue";
 import SettingsPage from "../views/SettingsPage.vue";
 import ServiceStatusPage from "../views/ServiceStatusPage.vue";
 import MyProfilePage from "../views/MyProfilePage.vue";
@@ -52,7 +53,14 @@ const routes = [
   {
     path: '/callback',
     name: 'Callback',
-    component: CallbackPage
+    component: CallbackPage,
+    meta: { title: '로그인 처리 중' }
+  },
+  {
+    path: '/oauth2/callback',
+    name: 'OAuth2Callback',
+    component: OAuth2Callback,
+    meta: { title: 'OAuth2 로그인 처리 중', requiresAuth: false }
   },
   {
     path: '/settings',

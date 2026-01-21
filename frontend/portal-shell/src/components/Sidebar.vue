@@ -3,8 +3,28 @@ import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import { useThemeStore } from '../store/theme';
-import { login, logout } from '../services/authService';
-import { Badge } from '@portal/design-system-vue';
+import { authService } from '../services/authService';
+import LoginModal from './LoginModal.vue';
+
+// Login Modal state
+const showLoginModal = ref(false);
+
+// Login/Logout 함수 정의
+const handleLogin = () => {
+  // Open Login Modal instead of redirecting to social login
+  showLoginModal.value = true;
+};
+
+const handleLogout = async () => {
+  try {
+    await authService.logout();
+    const authStore = useAuthStore();
+    authStore.setAuthenticated(false);
+    authStore.setUser(null);
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+};
 
 const route = useRoute();
 const router = useRouter();
@@ -241,14 +261,14 @@ const navigate = (path: string) => {
             <p class="text-sm font-medium text-text-heading truncate">
               {{ authStore.displayName }}
             </p>
-            <Badge v-if="authStore.isAdmin" variant="danger" size="sm">ADMIN</Badge>
+            <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">ADMIN</span>
           </div>
         </button>
         <button
-          @click="logout"
+          @click="handleLogout"
           :class="[
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-            'text-status-error hover:bg-status-error/10'
+            'text-red-500 hover:bg-red-500/10'
           ]"
         >
           <span class="text-lg shrink-0">🚪</span>
@@ -257,10 +277,10 @@ const navigate = (path: string) => {
       </template>
       <template v-else>
         <button
-          @click="login"
+          @click="handleLogin"
           :class="[
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-            'bg-brand-primary text-white hover:bg-brand-primary/90'
+            'bg-blue-600 text-white hover:bg-blue-700'
           ]"
         >
           <span class="text-lg shrink-0">🔐</span>
@@ -285,4 +305,7 @@ const navigate = (path: string) => {
       </button>
     </div>
   </aside>
+
+  <!-- Login Modal -->
+  <LoginModal v-model="showLoginModal" />
 </template>

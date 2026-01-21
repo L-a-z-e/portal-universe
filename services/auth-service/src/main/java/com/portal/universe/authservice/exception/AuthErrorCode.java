@@ -14,7 +14,27 @@ public enum AuthErrorCode implements ErrorCode {
     /**
      * 사용자가 회원가입 시도 시, 해당 이메일이 이미 데이터베이스에 존재할 경우 발생합니다.
      */
-    EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "A001", "Email already exists");
+    EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "A001", "Email already exists"),
+
+    /**
+     * 로그인 실패 - 이메일 또는 비밀번호가 일치하지 않습니다.
+     */
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "A002", "Invalid email or password"),
+
+    /**
+     * Refresh Token 검증 실패 - 토큰이 유효하지 않거나 만료되었습니다.
+     */
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A003", "Invalid or expired refresh token"),
+
+    /**
+     * 사용자를 찾을 수 없습니다.
+     */
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "A004", "User not found"),
+
+    /**
+     * 유효하지 않은 토큰입니다.
+     */
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "Invalid token");
 
     private final HttpStatus status;
     private final String code;

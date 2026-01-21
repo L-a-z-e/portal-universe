@@ -3,33 +3,24 @@ package com.portal.universe.authservice.config;
 import com.portal.universe.authservice.oauth2.CustomOAuth2UserService;
 import com.portal.universe.authservice.oauth2.OAuth2AuthenticationFailureHandler;
 import com.portal.universe.authservice.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.portal.universe.authservice.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 
 /**
@@ -44,6 +35,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * X-Forwarded-* 헤더를 처리하는 필터를 등록합니다.
@@ -60,80 +52,20 @@ public class SecurityConfig {
         return bean;
     }
 
-    @Value("${spring.security.oauth2.authorizationserver.issuer:}")
-    private String issuerUri;
-
     /**
-     * OAuth2 인증 서버 관련 엔드포인트(/oauth2/..., /connect/..., /.well-known/...)에 대한 보안을 설정합니다.
-     * 이 필터 체인은 가장 높은 우선순위(@Order(1))를 가지므로, 다른 필터 체인보다 먼저 실행됩니다.
-     *
-     * @param http HttpSecurity 객체
-     * @return SecurityFilterChain 인증 서버용 보안 필터 체인
-     * @throws Exception 설정 과정에서 발생할 수 있는 예외
-     */
-    @Bean
-    @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
-                new OAuth2AuthorizationServerConfigurer();
-
-        http
-                // 인증 서버 엔드포인트에만 이 필터 체인을 적용합니다.
-                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-                .authorizeHttpRequests(authorize -> {
-                    // OIDC Provider Configuration, JWK Set 등 공개 엔드포인트는 모두 허용합니다.
-                    authorize.requestMatchers(
-                            "/.well-known/**",
-                            "/oauth2/jwks",
-                            "/oauth2/token"
-                    ).permitAll();
-                    // 그 외 모든 인증 서버 엔드포인트는 인증이 필요합니다.
-                    authorize.anyRequest().authenticated();
-                })
-                // OIDC(OpenID Connect) 1.0 기능을 활성화합니다.
-                .with(authorizationServerConfigurer, configurer -> {
-                    configurer.oidc(Customizer.withDefaults());
-                })
-                // 인증 서버 엔드포인트에 대해서는 CSRF 보호를 비활성화합니다.
-                .csrf(csrf -> csrf.ignoringRequestMatchers(authorizationServerConfigurer.getEndpointsMatcher()))
-                .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)  // DENY 대신 DISABLE
-                )
-                .exceptionHandling(exceptions -> exceptions
-                        // 브라우저(HTML) 요청 시에는 로그인 페이지로 리다이렉트합니다.
-                        .defaultAuthenticationEntryPointFor(
-                                (request, response, authException) -> {
-                                    // ✅ issuerUri가 설정되어 있으면 사용, 없으면 상대 경로 사용
-                                    String loginUrl = (issuerUri != null && !issuerUri.isEmpty()) ? issuerUri + "/login" : "/login";
-                                    response.sendRedirect(loginUrl);
-                                },
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                        )
-                        // API(JSON) 요청 시에는 401 Unauthorized 응답을 반환합니다.
-                        .defaultAuthenticationEntryPointFor(
-                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                                new MediaTypeRequestMatcher(MediaType.APPLICATION_JSON)
-                        )
-                )
-                // 리소스 서버 설정을 추가하여 API 요청 시 JWT 토큰을 검증할 수 있도록 합니다.
-                .oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()))
-                .cors(AbstractHttpConfigurer::disable);
-        return http.build();
-    }
-
-    /**
-     * 애플리케이션의 일반적인 엔드포인트(API, 웹 페이지 등)에 대한 보안을 설정합니다.
-     * 인증 서버 필터 체인 다음 순서(@Order(2))로 실행됩니다.
+     * 애플리케이션의 모든 엔드포인트(API, 웹 페이지 등)에 대한 보안을 설정합니다.
+     * Direct JWT 인증 방식을 사용하며, 세션은 사용하지 않습니다(STATELESS).
      *
      * @param http HttpSecurity 객체
      * @return SecurityFilterChain 일반용 보안 필터 체인
      * @throws Exception 설정 과정에서 발생할 수 있는 예외
      */
     @Bean
-    @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
+                        // 인증 API는 누구나 접근 가능해야 합니다.
+                        .requestMatchers("/api/auth/**").permitAll()
                         // 회원가입 API는 누구나 접근 가능해야 합니다.
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                         // OIDC Discovery, 로그인/로그아웃, Actuator 등 인증이 필요 없는 경로들을 지정합니다.
@@ -159,33 +91,29 @@ public class SecurityConfig {
                         // 위에서 지정한 경로 외의 모든 요청은 인증이 필요합니다.
                         .anyRequest().authenticated()
                 )
+                // STATELESS 세션 정책 - 세션을 사용하지 않음
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .maximumSessions(1)
-                        .sessionRegistry(sessionRegistry()))
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // JWT 인증 필터 추가 (UsernamePasswordAuthenticationFilter 앞에 위치)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // FormLogin 비활성화 (JWT 기반 인증 사용)
+                .formLogin(AbstractHttpConfigurer::disable)
+                // OAuth2 소셜 로그인 유지 (JWT 토큰 발급 방식으로 전환)
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
-                .logout(logout -> logout
-                        .logoutSuccessHandler(new SimpleUrlLogoutSuccessHandler()) // 로그아웃 성공 시 기본 핸들러 사용
-                        .invalidateHttpSession(true) // 세션 무효화
-                        .clearAuthentication(true) // 인증 정보 삭제
-                        .deleteCookies("JSESSIONID") // JSESSIONID 쿠키 삭제
-                )
-                // 회원가입 API에 대해서는 CSRF 보호를 비활성화합니다.
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/signup"))
+                // HttpBasic 비활성화
+                .httpBasic(AbstractHttpConfigurer::disable)
+                // 로그아웃은 JWT 기반으로 처리하므로 기본 로그아웃 비활성화
+                .logout(AbstractHttpConfigurer::disable)
+                // CSRF 보호 비활성화 (Stateless 환경)
+                .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)  // DENY 대신 DISABLE
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )
-                .oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()))
                 .cors(AbstractHttpConfigurer::disable);
         return http.build();
     }
@@ -210,15 +138,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    @Bean
-    public SessionRegistryImpl sessionRegistry() {
-        return new SessionRegistryImpl();
-    }
-
-    @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
-    }
-
 }

@@ -47,89 +47,35 @@ spring:
       # 라우팅 규칙 (환경별 URL은 application-*.yml의 services.*.url 참조)
       routes:
         # ========== Auth Service ==========
-        # OIDC Discovery
-        - id: auth-service-oidc-discovery
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/.well-known/**
-          filters:
-            - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 0
-
-        # OAuth2 Protocol
-        - id: auth-service-oauth2-protocol
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/oauth2/**
-          filters:
-            - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 1
-
-        # OIDC Endpoints
-        - id: auth-service-oidc-endpoints
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/connect/**
-          filters:
-            - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 2
-
-        # Login/Logout Pages
-        - id: auth-service-login-logout
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/login,/auth-service/logout
-            - Method=GET,POST
-          filters:
-            - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 3
-
-        # OAuth2 Social Login - Authorization
+        # OAuth2 Social Login - Authorization (소셜 로그인 시작)
         - id: auth-service-oauth2-authorization
           uri: ${services.auth.url}
           predicates:
             - Path=/auth-service/oauth2/authorization/**
           filters:
             - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 3
+          order: 0
 
-        # OAuth2 Social Login - Callback
+        # OAuth2 Social Login - Callback (소셜 로그인 콜백)
         - id: auth-service-oauth2-callback
           uri: ${services.auth.url}
           predicates:
             - Path=/auth-service/login/oauth2/code/**
           filters:
             - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 3
+          order: 1
 
-        # Static assets (로그인 UI 리소스)
-        - id: auth-service-static
+        # Auth REST API - /auth-service prefix (Frontend 호출)
+        - id: auth-service-api-prefixed
           uri: ${services.auth.url}
           predicates:
-            - Path=/auth-service/default-ui.css,/auth-service/favicon.ico,/auth-service/webjars/**
+            - Path=/auth-service/api/auth/**
           filters:
             - StripPrefix=1
-            - name: OidcPrefix
+            - name: CircuitBreaker
               args:
-                enabled: true
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
           order: 4
 
         # Auth REST API (OIDC 아님: 필터 미적용)
@@ -150,7 +96,6 @@ spring:
           predicates:
             - Path=/api/auth/**
           filters:
-            - StripPrefix=2
             - name: CircuitBreaker
               args:
                 name: authCircuitBreaker
