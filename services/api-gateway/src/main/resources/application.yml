@@ -46,91 +46,78 @@ spring:
 
       # 라우팅 규칙 (환경별 URL은 application-*.yml의 services.*.url 참조)
       routes:
-        # ========== Auth Service ==========
-        # OIDC Discovery
-        - id: auth-service-oidc-discovery
+        # ========== Actuator Health Routes (Status Page 용) ==========
+        # Auth Service Actuator
+        - id: auth-service-actuator
           uri: ${services.auth.url}
           predicates:
-            - Path=/auth-service/.well-known/**
+            - Path=/api/auth/actuator/**
           filters:
-            - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
+            - RewritePath=/api/auth/actuator/(?<segment>.*), /actuator/${segment}
           order: 0
 
-        # OAuth2 Protocol
-        - id: auth-service-oauth2-protocol
-          uri: ${services.auth.url}
+        # Blog Service Actuator
+        - id: blog-service-actuator
+          uri: ${services.blog.url}
           predicates:
-            - Path=/auth-service/oauth2/**
+            - Path=/api/blog/actuator/**
           filters:
-            - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 1
+            - RewritePath=/api/blog/actuator/(?<segment>.*), /actuator/${segment}
+          order: 0
 
-        # OIDC Endpoints
-        - id: auth-service-oidc-endpoints
-          uri: ${services.auth.url}
+        # Shopping Service Actuator
+        - id: shopping-service-actuator
+          uri: ${services.shopping.url}
           predicates:
-            - Path=/auth-service/connect/**
+            - Path=/api/shopping/actuator/**
           filters:
-            - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 2
+            - RewritePath=/api/shopping/actuator/(?<segment>.*), /actuator/${segment}
+          order: 0
 
-        # Login/Logout Pages
-        - id: auth-service-login-logout
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/login,/auth-service/logout
-            - Method=GET,POST
-          filters:
-            - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 3
-
-        # OAuth2 Social Login - Authorization
+        # ========== Auth Service ==========
+        # OAuth2 Social Login - Authorization (소셜 로그인 시작)
         - id: auth-service-oauth2-authorization
           uri: ${services.auth.url}
           predicates:
             - Path=/auth-service/oauth2/authorization/**
           filters:
             - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 3
+          order: 0
 
-        # OAuth2 Social Login - Callback
+        # OAuth2 Social Login - Callback (소셜 로그인 콜백)
         - id: auth-service-oauth2-callback
           uri: ${services.auth.url}
           predicates:
             - Path=/auth-service/login/oauth2/code/**
           filters:
             - StripPrefix=1
-            - name: OidcPrefix
-              args:
-                enabled: true
-          order: 3
+          order: 1
 
-        # Static assets (로그인 UI 리소스)
-        - id: auth-service-static
+        # Auth REST API - /auth-service prefix (Frontend 호출)
+        - id: auth-service-api-prefixed
           uri: ${services.auth.url}
           predicates:
-            - Path=/auth-service/default-ui.css,/auth-service/favicon.ico,/auth-service/webjars/**
+            - Path=/auth-service/api/auth/**
           filters:
             - StripPrefix=1
-            - name: OidcPrefix
+            - name: CircuitBreaker
               args:
-                enabled: true
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
           order: 4
+
+        # Profile API - /auth-service prefix (인증 필요)
+        - id: auth-service-profile
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/api/profile/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+          order: 3
 
         # Auth REST API (OIDC 아님: 필터 미적용)
         # Auth User API (Signup, Profile, etc.)
@@ -150,7 +137,6 @@ spring:
           predicates:
             - Path=/api/auth/**
           filters:
-            - StripPrefix=2
             - name: CircuitBreaker
               args:
                 name: authCircuitBreaker
@@ -228,6 +214,10 @@ resilience4j:
         base-config: default
       shoppingCircuitBreaker:
         base-config: default
+
+# JWT 설정 (Auth Service와 동일한 secret key 사용)
+jwt:
+  secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
 
 # 분산 추적용 로그 포맷 (모든 환경 동일)
 logging:

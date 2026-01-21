@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -26,10 +25,9 @@ public class SeriesController {
     @PostMapping
     public ApiResponse<SeriesResponse> createSeries(
             @Valid @RequestBody SeriesCreateRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId,
+            @RequestHeader(value = "X-User-Name", required = false) String authorName
     ) {
-        String authorId = jwt.getSubject();
-        String authorName = jwt.getClaim("name");
         SeriesResponse response = seriesService.createSeries(request, authorId, authorName);
         return ApiResponse.success(response);
     }
@@ -39,9 +37,8 @@ public class SeriesController {
     public ApiResponse<SeriesResponse> updateSeries(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
             @Valid @RequestBody SeriesUpdateRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         SeriesResponse response = seriesService.updateSeries(seriesId, request, authorId);
         return ApiResponse.success(response);
     }
@@ -50,9 +47,8 @@ public class SeriesController {
     @DeleteMapping("/{seriesId}")
     public ApiResponse<Void> deleteSeries(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         seriesService.deleteSeries(seriesId, authorId);
         return ApiResponse.success(null);
     }
@@ -78,9 +74,8 @@ public class SeriesController {
     @Operation(summary = "내 시리즈 목록 조회")
     @GetMapping("/my")
     public ApiResponse<List<SeriesListResponse>> getMySeries(
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         List<SeriesListResponse> responses = seriesService.getSeriesByAuthor(authorId);
         return ApiResponse.success(responses);
     }
@@ -90,9 +85,8 @@ public class SeriesController {
     public ApiResponse<SeriesResponse> addPostToSeries(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         SeriesResponse response = seriesService.addPostToSeries(seriesId, postId, authorId);
         return ApiResponse.success(response);
     }
@@ -102,9 +96,8 @@ public class SeriesController {
     public ApiResponse<SeriesResponse> removePostFromSeries(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         SeriesResponse response = seriesService.removePostFromSeries(seriesId, postId, authorId);
         return ApiResponse.success(response);
     }
@@ -114,9 +107,8 @@ public class SeriesController {
     public ApiResponse<SeriesResponse> reorderPosts(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
             @Valid @RequestBody SeriesPostOrderRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         SeriesResponse response = seriesService.reorderPosts(seriesId, request, authorId);
         return ApiResponse.success(response);
     }

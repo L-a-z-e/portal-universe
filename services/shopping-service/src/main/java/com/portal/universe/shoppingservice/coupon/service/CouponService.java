@@ -27,17 +27,17 @@ public interface CouponService {
     /**
      * 선착순으로 쿠폰을 발급합니다.
      */
-    UserCouponResponse issueCoupon(Long couponId, Long userId);
+    UserCouponResponse issueCoupon(Long couponId, String userId);
 
     /**
      * 사용자의 쿠폰 목록을 조회합니다.
      */
-    List<UserCouponResponse> getUserCoupons(Long userId);
+    List<UserCouponResponse> getUserCoupons(String userId);
 
     /**
      * 사용자의 사용 가능한 쿠폰 목록을 조회합니다.
      */
-    List<UserCouponResponse> getAvailableUserCoupons(Long userId);
+    List<UserCouponResponse> getAvailableUserCoupons(String userId);
 
     /**
      * 쿠폰을 사용합니다.
@@ -63,5 +63,5 @@ public interface CouponService {
      * @param userId 사용자 ID
      * @param orderAmount 주문 총 금액
      */
-    void validateCouponForOrder(Long userCouponId, Long userId, BigDecimal orderAmount);
+    void validateCouponForOrder(Long userCouponId, String userId, BigDecimal orderAmount);
 }

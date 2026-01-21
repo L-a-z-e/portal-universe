@@ -27,12 +27,12 @@ public interface TimeDealService {
     /**
      * 타임딜 상품을 구매합니다.
      */
-    TimeDealPurchaseResponse purchaseTimeDeal(Long userId, TimeDealPurchaseRequest request);
+    TimeDealPurchaseResponse purchaseTimeDeal(String userId, TimeDealPurchaseRequest request);
 
     /**
      * 사용자의 타임딜 구매 내역을 조회합니다.
      */
-    List<TimeDealPurchaseResponse> getUserPurchases(Long userId);
+    List<TimeDealPurchaseResponse> getUserPurchases(String userId);
 
     /**
      * 타임딜을 취소합니다. (관리자)

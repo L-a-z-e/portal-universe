@@ -14,6 +14,7 @@ import type {
   TagStats,
   AuthorStats,
   BlogStats,
+  PostNavigationResponse,
 } from '@/types';
 
 // ==================== 경로 상수 ====================
@@ -146,6 +147,21 @@ export async function getPopularPosts(
   return response.data.data;
 }
 
+/** 트렌딩 게시물 (기간별) */
+export async function getTrendingPosts(
+  period: 'today' | 'week' | 'month' | 'year' = 'week',
+  page: number = 0,
+  size: number = 10
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
+    `${BASE_PATH}/trending`,
+    {
+      params: { period, page, size },
+    }
+  );
+  return response.data.data;
+}
+
 /** 최근 게시물 */
 export async function getRecentPosts(limit: number = 5): Promise<PostSummaryResponse[]> {
   const response = await apiClient.get<ApiResponse<PostSummaryResponse[]>>(`${BASE_PATH}/recent`, {
@@ -254,6 +270,48 @@ export async function getBlogStats(): Promise<BlogStats> {
 export async function getPostsByProductId(productId: string): Promise<PostResponse[]> {
   const response = await apiClient.get<ApiResponse<PostResponse[]>>(
     `${BASE_PATH}/product/${productId}`
+  );
+  return response.data.data;
+}
+
+// ==================== 네비게이션 ====================
+
+/**
+ * 포스트 네비게이션 조회 (이전/다음 포스트)
+ * @param postId 현재 포스트 ID
+ * @param scope 네비게이션 범위 ('all' | 'author' | 'category' | 'series')
+ */
+export async function getPostNavigation(
+  postId: string,
+  scope: 'all' | 'author' | 'category' | 'series' = 'all'
+): Promise<PostNavigationResponse> {
+  const response = await apiClient.get<ApiResponse<PostNavigationResponse>>(
+    `${BASE_PATH}/${postId}/navigation`,
+    {
+      params: { scope },
+    }
+  );
+  return response.data.data;
+}
+
+// ==================== 피드 ====================
+
+/**
+ * 피드 조회 (팔로잉 사용자들의 게시물)
+ * @param followingIds 팔로잉 사용자 UUID 목록
+ * @param page 페이지 번호
+ * @param size 페이지 크기
+ */
+export async function getFeed(
+  followingIds: string[],
+  page: number = 0,
+  size: number = 10
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
+    `${BASE_PATH}/feed`,
+    {
+      params: { followingIds: followingIds.join(','), page, size },
+    }
   );
   return response.data.data;
 }

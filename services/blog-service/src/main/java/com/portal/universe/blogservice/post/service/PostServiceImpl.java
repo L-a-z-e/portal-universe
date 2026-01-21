@@ -7,6 +7,8 @@ import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.post.domain.SortDirection;
 import com.portal.universe.blogservice.post.dto.*;
 import com.portal.universe.blogservice.post.repository.PostRepository;
+import com.portal.universe.blogservice.series.domain.Series;
+import com.portal.universe.blogservice.series.repository.SeriesRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final SeriesRepository seriesRepository;
 
     // ===== 기존 메서드 구현 (하위 호환성) =====
 
@@ -285,6 +288,105 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public Page<PostSummaryResponse> getTrendingPosts(String period, int page, int size) {
+        log.info("Fetching trending posts, period: {}, page: {}, size: {}", period, page, size);
+
+        LocalDateTime startDate = calculateStartDateByPeriod(period);
+        LocalDateTime endDate = LocalDateTime.now();
+
+        // Phase 3: 시간 가중치 트렌딩 점수 기반 정렬
+        // 전체 게시물을 가져와서 점수 계산 후 정렬 (메모리 내 정렬)
+        List<Post> allPosts = postRepository.findPopularPostsInPeriod(
+                PostStatus.PUBLISHED, startDate, endDate, Pageable.unpaged()).getContent();
+
+        // 트렌딩 점수 계산 및 정렬
+        List<Post> sortedPosts = allPosts.stream()
+                .sorted((p1, p2) -> Double.compare(
+                        calculateTrendingScore(p2, period),
+                        calculateTrendingScore(p1, period)
+                ))
+                .toList();
+
+        // 페이징 처리
+        int start = page * size;
+        int end = Math.min(start + size, sortedPosts.size());
+
+        if (start >= sortedPosts.size()) {
+            return Page.empty(PageRequest.of(page, size));
+        }
+
+        List<PostSummaryResponse> pagedContent = sortedPosts.subList(start, end).stream()
+                .map(this::convertToPostListResponse)
+                .toList();
+
+        return new org.springframework.data.domain.PageImpl<>(
+                pagedContent,
+                PageRequest.of(page, size),
+                sortedPosts.size()
+        );
+    }
+
+    /**
+     * Phase 3: 트렌딩 점수 계산
+     * 공식: score = (views * 1 + likes * 3 + comments * 5) * timeDecay
+     * - 조회수: 기본 참여 지표 (가중치 1)
+     * - 좋아요: 적극적 참여 지표 (가중치 3)
+     * - 댓글: 최고 참여 지표 (가중치 5)
+     * - 시간 감쇠: 오래된 게시물은 점수 감소
+     */
+    private double calculateTrendingScore(Post post, String period) {
+        // 기본 점수 (가중치 적용)
+        double viewScore = post.getViewCount() * 1.0;
+        double likeScore = post.getLikeCount() * 3.0;
+        double commentScore = (post.getCommentCount() != null ? post.getCommentCount() : 0L) * 5.0;
+
+        double baseScore = viewScore + likeScore + commentScore;
+
+        // 시간 감쇠 계산
+        double timeDecay = calculateTimeDecay(post.getPublishedAt(), period);
+
+        return baseScore * timeDecay;
+    }
+
+    /**
+     * 시간 감쇠 계수 계산
+     * 최근 게시물일수록 높은 점수, 기간에 따라 감쇠 속도 조절
+     */
+    private double calculateTimeDecay(LocalDateTime publishedAt, String period) {
+        if (publishedAt == null) {
+            return 0.1; // 발행일이 없으면 최소 점수
+        }
+
+        long hoursElapsed = java.time.Duration.between(publishedAt, LocalDateTime.now()).toHours();
+
+        // 기간별 반감기 설정 (시간 단위)
+        double halfLife = switch (period) {
+            case "today" -> 6.0;    // 6시간마다 점수 반감
+            case "week" -> 48.0;    // 48시간(2일)마다 점수 반감
+            case "month" -> 168.0;  // 168시간(7일)마다 점수 반감
+            case "year" -> 720.0;   // 720시간(30일)마다 점수 반감
+            default -> 48.0;        // 기본값: 2일
+        };
+
+        // 지수 감쇠: decay = 2^(-hoursElapsed / halfLife)
+        return Math.pow(2, -hoursElapsed / halfLife);
+    }
+
+    /**
+     * 기간 문자열을 기준으로 시작 날짜 계산
+     */
+    private LocalDateTime calculateStartDateByPeriod(String period) {
+        LocalDateTime now = LocalDateTime.now();
+        return switch (period) {
+            case "today" -> now.toLocalDate().atStartOfDay();
+            case "week" -> now.minusDays(7);
+            case "month" -> now.minusDays(30);
+            case "year" -> now.minusYears(1);
+            default -> now.minusDays(7); // 기본값: 1주일
+        };
+    }
+
+    @Override
     public List<PostSummaryResponse> getRelatedPosts(String postId, int limit) {
         log.info("Fetching related posts for postId: {}", postId);
 
@@ -444,6 +546,121 @@ public class PostServiceImpl implements PostService {
         );
     }
 
+    @Override
+    public PostNavigationResponse getPostNavigation(String postId, String scope) {
+        log.info("Fetching post navigation for postId: {}, scope: {}", postId, scope);
+
+        Post currentPost = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
+
+        if (currentPost.getPublishedAt() == null) {
+            throw new CustomBusinessException(BlogErrorCode.POST_NOT_PUBLISHED);
+        }
+
+        PostSummaryResponse previousPost = null;
+        PostSummaryResponse nextPost = null;
+        SeriesNavigationResponse seriesNavigation = null;
+
+        // scope에 따라 네비게이션 로직 선택
+        String normalizedScope = scope != null ? scope.toLowerCase() : "all";
+
+        switch (normalizedScope) {
+            case "author":
+                previousPost = getPreviousPostByAuthor(currentPost);
+                nextPost = getNextPostByAuthor(currentPost);
+                break;
+            case "category":
+                previousPost = getPreviousPostByCategory(currentPost);
+                nextPost = getNextPostByCategory(currentPost);
+                break;
+            case "series":
+                seriesNavigation = getSeriesNavigation(currentPost);
+                // 시리즈 내부의 이전/다음은 seriesNavigation에만 포함
+                break;
+            default: // "all"
+                previousPost = getPreviousPost(currentPost);
+                nextPost = getNextPost(currentPost);
+        }
+
+        // 시리즈 정보는 항상 조회 (scope와 무관)
+        if (!"series".equals(normalizedScope)) {
+            seriesNavigation = getSeriesNavigation(currentPost);
+        }
+
+        return PostNavigationResponse.of(previousPost, nextPost, seriesNavigation);
+    }
+
+    private PostSummaryResponse getPreviousPost(Post currentPost) {
+        return postRepository.findFirstByStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+                        PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getNextPost(Post currentPost) {
+        return postRepository.findFirstByStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+                        PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getPreviousPostByAuthor(Post currentPost) {
+        return postRepository.findFirstByAuthorIdAndStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+                        currentPost.getAuthorId(), PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getNextPostByAuthor(Post currentPost) {
+        return postRepository.findFirstByAuthorIdAndStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+                        currentPost.getAuthorId(), PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getPreviousPostByCategory(Post currentPost) {
+        return postRepository.findFirstByCategoryAndStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+                        currentPost.getCategory(), PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getNextPostByCategory(Post currentPost) {
+        return postRepository.findFirstByCategoryAndStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+                        currentPost.getCategory(), PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private SeriesNavigationResponse getSeriesNavigation(Post currentPost) {
+        List<Series> seriesList = seriesRepository.findByPostIdsContaining(currentPost.getId());
+
+        if (seriesList.isEmpty()) {
+            return null;
+        }
+
+        // 첫 번째 시리즈 사용 (일반적으로 하나의 포스트는 하나의 시리즈에만 속함)
+        Series series = seriesList.get(0);
+        List<String> postIds = series.getPostIds();
+        int currentIndex = postIds.indexOf(currentPost.getId());
+
+        if (currentIndex == -1) {
+            return null;
+        }
+
+        String previousPostId = currentIndex > 0 ? postIds.get(currentIndex - 1) : null;
+        String nextPostId = currentIndex < postIds.size() - 1 ? postIds.get(currentIndex + 1) : null;
+
+        return SeriesNavigationResponse.of(
+                series.getId(),
+                series.getName(),
+                currentIndex,
+                series.getPostCount(),
+                previousPostId,
+                nextPostId
+        );
+    }
+
     // ===== 변환 헬퍼 메서드 =====
 
     private PostResponse convertToPostResponse(Post post) {
@@ -485,6 +702,7 @@ public class PostServiceImpl implements PostService {
                 post.getImages(),
                 post.getViewCount(),
                 post.getLikeCount(),
+                post.getCommentCount() != null ? post.getCommentCount() : 0L,  // Phase 3: 댓글 수 추가
                 post.getPublishedAt(),
                 estimatedReadTime
         );
@@ -517,5 +735,23 @@ public class PostServiceImpl implements PostService {
         // TODO: JWT 토큰에서 이름 추출하거나 User 서비스 호출
         // 현재는 간단히 authorId 반환
         return authorId;
+    }
+
+    // ===== 피드 기능 =====
+
+    @Override
+    public Page<PostSummaryResponse> getFeed(List<String> followingIds, int page, int size) {
+        log.info("Fetching feed for {} following users, page: {}, size: {}", followingIds.size(), page, size);
+
+        if (followingIds == null || followingIds.isEmpty()) {
+            // 팔로잉이 없으면 빈 페이지 반환
+            return Page.empty(PageRequest.of(page, size));
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> posts = postRepository.findByAuthorIdInAndStatusOrderByPublishedAtDesc(
+                followingIds, PostStatus.PUBLISHED, pageable);
+
+        return posts.map(this::convertToPostListResponse);
     }
 }

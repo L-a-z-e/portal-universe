@@ -11,12 +11,12 @@ public interface QueueService {
     /**
      * 대기열 진입
      */
-    QueueStatusResponse enterQueue(String eventType, Long eventId, Long userId);
+    QueueStatusResponse enterQueue(String eventType, Long eventId, String userId);
 
     /**
      * 대기열 상태 조회
      */
-    QueueStatusResponse getQueueStatus(String eventType, Long eventId, Long userId);
+    QueueStatusResponse getQueueStatus(String eventType, Long eventId, String userId);
 
     /**
      * 대기열 상태 조회 (토큰 기반)
@@ -26,7 +26,7 @@ public interface QueueService {
     /**
      * 대기열 이탈
      */
-    void leaveQueue(String eventType, Long eventId, Long userId);
+    void leaveQueue(String eventType, Long eventId, String userId);
 
     /**
      * 대기열 이탈 (토큰 기반)
@@ -41,7 +41,7 @@ public interface QueueService {
     /**
      * 입장 확인 (구매 시 호출)
      */
-    boolean validateEntry(String eventType, Long eventId, Long userId);
+    boolean validateEntry(String eventType, Long eventId, String userId);
 
     /**
      * 대기열 생성/활성화 (Admin)

@@ -68,12 +68,14 @@ export interface PostSummaryResponse {
   summary: string;
   authorId: string;
   authorName: string;
+  status?: PostStatus;  // 내 글 목록에서 상태 표시용
   tags: string[];
   category: string;
   thumbnailUrl: string;
   images: string[];
   viewCount: number;
   likeCount: number;
+  commentCount: number;  // Phase 3: 댓글 수 추가
   publishedAt: string;
   estimatedReadTime: number;
 }

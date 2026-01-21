@@ -42,14 +42,24 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-authorization-server' // OAuth2 인증 서버 구현
     implementation 'org.springframework.security:spring-security-oauth2-jose' // JOSE (Javascript Object Signing and Encryption)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // OAuth2 소셜 로그인 클라이언트
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6' // JWT token generation and parsing
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6' // JSON processing for JWT
+
+    // =======================================
+    // API Documentation
+    // =======================================
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14' // Swagger UI
 
     // =======================================
     // Web & Data
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web (MVC)
+    implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation API
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // Spring Data JPA
     runtimeOnly 'com.mysql:mysql-connector-j' // MySQL Driver
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis for token storage
 
     // =======================================
     // Messaging (Kafka)

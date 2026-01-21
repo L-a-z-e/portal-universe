@@ -6,10 +6,10 @@ services:
       - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./infrastructure/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     env_file:
       - .env.docker
     environment:
-      - MYSQL_DATABASE=auth_db, shopping_db
       - MYSQL_ROOT_HOST=%
     networks:
       - portal-universe-net
@@ -36,6 +36,11 @@ services:
       - redis-data:/data
     networks:
       - portal-universe-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   elasticsearch:
     build:
@@ -132,6 +137,8 @@ services:
       - SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_ISSUER=https://portal-universe:30000/auth-service
       - SERVER_FORWARD_HEADERS_STRATEGY=framework
       - SERVER_USE_FORWARD_HEADERS=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 10s
@@ -142,6 +149,8 @@ services:
         condition: service_started
       kafka:
         condition: service_started
+      redis:
+        condition: service_healthy
     networks:
       - portal-universe-net
 

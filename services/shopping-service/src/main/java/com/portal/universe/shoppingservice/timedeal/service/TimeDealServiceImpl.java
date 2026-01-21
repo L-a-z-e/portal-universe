@@ -96,7 +96,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     @Override
     @Transactional
-    public TimeDealPurchaseResponse purchaseTimeDeal(Long userId, TimeDealPurchaseRequest request) {
+    public TimeDealPurchaseResponse purchaseTimeDeal(String userId, TimeDealPurchaseRequest request) {
         TimeDealProduct timeDealProduct = timeDealProductRepository
                 .findByIdWithProductAndDeal(request.timeDealProductId())
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_PRODUCT_NOT_FOUND));
@@ -153,7 +153,7 @@ public class TimeDealServiceImpl implements TimeDealService {
     }
 
     @Override
-    public List<TimeDealPurchaseResponse> getUserPurchases(Long userId) {
+    public List<TimeDealPurchaseResponse> getUserPurchases(String userId) {
         return timeDealPurchaseRepository.findByUserIdWithProduct(userId)
                 .stream()
                 .map(TimeDealPurchaseResponse::from)

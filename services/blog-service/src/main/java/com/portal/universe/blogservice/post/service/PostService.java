@@ -69,6 +69,15 @@ public interface PostService {
     Page<PostSummaryResponse> getPopularPosts(int page, int size);
 
     /**
+     * PRD Phase 1: 트렌딩 게시물 조회 (기간별)
+     * @param period 기간 (today, week, month, year)
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return 트렌딩 게시물 목록
+     */
+    Page<PostSummaryResponse> getTrendingPosts(String period, int page, int size);
+
+    /**
      * PRD Phase 2 대비: 관련 게시물 추천
      */
     List<PostSummaryResponse> getRelatedPosts(String postId, int limit);
@@ -99,4 +108,20 @@ public interface PostService {
      * 전체 블로그 통계
      */
     BlogStats getBlogStats();
+
+    /**
+     * 포스트 네비게이션 조회 (이전/다음 게시물)
+     */
+    PostNavigationResponse getPostNavigation(String postId, String scope);
+
+    // ===== 피드 기능 =====
+
+    /**
+     * 팔로잉 사용자들의 피드 조회
+     * @param followingIds 팔로잉 사용자 UUID 목록
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return 팔로잉 사용자들의 발행된 게시물 (최신순)
+     */
+    Page<PostSummaryResponse> getFeed(List<String> followingIds, int page, int size);
 }

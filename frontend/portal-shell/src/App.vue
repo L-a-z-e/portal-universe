@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useThemeStore } from "./store/theme.ts";
+import { useSettingsStore } from "./store/settings.ts";
 import { onMounted, watch, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
 import QuickActions from "./components/QuickActions.vue";
 
 const themeStore = useThemeStore();
+const settingsStore = useSettingsStore();
 const route = useRoute();
 
 // Quick Actions modal state
@@ -56,6 +58,7 @@ function forceReflowToApplyCSSChanges() {
 
 onMounted(() => {
   themeStore.initialize();
+  settingsStore.initialize();
   resetDataService();
   updateDataTheme();
 

@@ -1,25 +1,25 @@
 // portal-shell/src/store/auth.ts
 
 import { defineStore } from 'pinia';
-import { computed, ref } from "vue";
-import type { User } from 'oidc-client-ts';
-import { parseJwtPayload } from '../utils/jwt';
+import { computed, ref } from 'vue';
+import { authService, type UserInfo } from '../services/authService';
 import type { PortalUser, UserProfile, UserAuthority } from '../types/user';
 
 export const useAuthStore = defineStore('auth', () => {
   // ==================== State ====================
   const user = ref<PortalUser | null>(null);
+  const loading = ref(false);
 
   // ==================== Getters ====================
 
   /**
-   * 로그인 여부
+   * Login status
    */
   const isAuthenticated = computed(() => user.value !== null);
 
   /**
-   * 사용자 표시 이름
-   * 우선순위: nickname > username > name > email
+   * Display name
+   * Priority: nickname > username > name > email
    */
   const displayName = computed(() => {
     if (!user.value) return 'Guest';
@@ -29,81 +29,153 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   /**
-   * 역할 확인
+   * Check if user has a specific role
    */
   const hasRole = (role: string): boolean => {
     return user.value?.authority.roles.includes(role) || false;
   };
 
   /**
-   * Admin 여부
+   * Check if user is admin
    */
   const isAdmin = computed(() => hasRole('ROLE_ADMIN'));
 
   // ==================== Actions ====================
 
   /**
-   * OIDC User로 Store 설정
+   * Login with email and password
    */
-  function setUser(oidcUser: User) {
-    console.group('🔄 [Auth Store] Setting user');
-
+  async function login(email: string, password: string): Promise<void> {
+    loading.value = true;
     try {
-      const payload = parseJwtPayload(oidcUser.access_token);
-      console.log('JWT Payload:', payload);
+      console.log('[Auth Store] Logging in:', email);
 
-      if (!payload) {
-        // 오류 처리
-        console.error('❌ Invalid JWT payload. Logging out.');
-        logout(); // 강제 로그아웃
-        return;
+      const response = await authService.login(email, password);
+
+      // Extract user info from JWT
+      const userInfo = authService.getUserInfo();
+      if (userInfo) {
+        setUserFromInfo(userInfo, response.accessToken);
       }
 
-      // ✅ UserProfile 생성
+      console.log('✅ [Auth Store] Login successful');
+    } catch (error) {
+      console.error('❌ [Auth Store] Login failed:', error);
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Social login (redirect)
+   */
+  function socialLogin(provider: 'google' | 'naver' | 'kakao'): void {
+    console.log(`[Auth Store] Redirecting to ${provider} login`);
+    authService.socialLogin(provider);
+  }
+
+  /**
+   * Logout
+   */
+  async function logout(): Promise<void> {
+    loading.value = true;
+    try {
+      console.log('[Auth Store] Logging out');
+
+      await authService.logout();
+      user.value = null;
+
+      // Clear global token
+      delete window.__PORTAL_ACCESS_TOKEN__;
+
+      console.log('✅ [Auth Store] Logout successful');
+    } catch (error) {
+      console.error('❌ [Auth Store] Logout error:', error);
+      // Still clear user on error
+      user.value = null;
+      delete window.__PORTAL_ACCESS_TOKEN__;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Check authentication status and restore user if token exists
+   */
+  async function checkAuth(): Promise<void> {
+    console.log('[Auth Store] Checking authentication status');
+
+    try {
+      // Try to refresh token if expired
+      await authService.autoRefreshIfNeeded();
+
+      const userInfo = authService.getUserInfo();
+      if (userInfo && authService.isAuthenticated()) {
+        const accessToken = authService.getAccessToken();
+        if (accessToken) {
+          setUserFromInfo(userInfo, accessToken);
+          console.log('✅ [Auth Store] User restored from token');
+        }
+      } else {
+        user.value = null;
+        console.log('[Auth Store] No valid token found');
+      }
+    } catch (error) {
+      console.error('❌ [Auth Store] Auth check failed:', error);
+      user.value = null;
+      authService.clearTokens();
+    }
+  }
+
+  /**
+   * Set user from UserInfo
+   */
+  function setUserFromInfo(userInfo: UserInfo, accessToken: string): void {
+    console.group('🔄 [Auth Store] Setting user from UserInfo');
+
+    try {
+      // Create UserProfile
       const profile: UserProfile = {
-        sub: payload.sub,
-        email: payload.sub,  // 현재는 sub가 email
-        username: payload.preferred_username || payload.username,
-        name: payload.name,
-        nickname: payload.nickname,
-        picture: payload.picture,
-        emailVerified: payload.email_verified,
-        locale: payload.locale || 'ko',
-        timezone: payload.zoneinfo,
+        sub: userInfo.uuid,
+        email: userInfo.email,
+        username: userInfo.username,
+        name: userInfo.name,
+        nickname: userInfo.nickname,
+        picture: userInfo.picture,
+        emailVerified: true, // Assume verified for JWT
+        locale: 'ko',
+        timezone: undefined,
       };
 
-      // ✅ UserAuthority 생성
+      // Create UserAuthority
       const authority: UserAuthority = {
-        roles: Array.isArray(payload.roles) ? payload.roles :
-          payload.roles ? [payload.roles] : [],
-        scopes: Array.isArray(payload.scope) ? payload.scope :
-          payload.scope ? payload.scope.split(' ') : [],
+        roles: userInfo.roles,
+        scopes: userInfo.scopes,
       };
 
-      // ✅ PortalUser 생성
+      // Create PortalUser
       user.value = {
         profile,
         authority,
         preferences: {
           theme: 'light',
-          language: profile.locale || 'ko',
+          language: 'ko',
           notifications: true,
         },
-        _accessToken: oidcUser.access_token,
-        _refreshToken: oidcUser.refresh_token,
-        _expiresAt: oidcUser.expires_at,
+        _accessToken: accessToken,
+        _refreshToken: undefined, // Refresh token is stored in authService
+        _expiresAt: undefined,
         _issuedAt: Math.floor(Date.now() / 1000),
       };
 
-      // ✅ Remote 앱(Shopping, Blog 등)에서 사용할 전역 토큰 설정
-      window.__PORTAL_ACCESS_TOKEN__ = oidcUser.access_token;
-      console.log('✅ window.__PORTAL_ACCESS_TOKEN__ set for remote apps');
+      // Set global token for remote apps
+      window.__PORTAL_ACCESS_TOKEN__ = accessToken;
 
       console.log('✅ User set successfully');
       console.log('   Display name:', displayName.value);
       console.log('   Roles:', authority.roles);
       console.log('   Scopes:', authority.scopes);
-      console.log('   Expires at:', oidcUser.expires_at !== undefined ? new Date(oidcUser.expires_at * 1000).toLocaleString() : 0);
     } catch (error) {
       console.error('❌ Failed to set user:', error);
       user.value = null;
@@ -113,21 +185,35 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 로그아웃
+   * Set authenticated status (for OAuth2 callback)
    */
-  function logout() {
-    console.log('👋 [Auth Store] Logging out');
-    user.value = null;
+  function setAuthenticated(value: boolean): void {
+    if (!value) {
+      user.value = null;
+      authService.clearTokens();
+    }
+  }
 
-    // ✅ 전역 토큰 제거
-    delete window.__PORTAL_ACCESS_TOKEN__;
-    console.log('✅ window.__PORTAL_ACCESS_TOKEN__ cleared');
+  /**
+   * Set user from external source (OAuth2 callback)
+   */
+  function setUser(userInfo: UserInfo | null): void {
+    if (!userInfo) {
+      user.value = null;
+      return;
+    }
+
+    const accessToken = authService.getAccessToken();
+    if (accessToken) {
+      setUserFromInfo(userInfo, accessToken);
+    }
   }
 
   // ==================== Return ====================
   return {
     // State
     user,
+    loading,
 
     // Getters
     isAuthenticated,
@@ -138,7 +224,11 @@ export const useAuthStore = defineStore('auth', () => {
     hasRole,
 
     // Actions
-    setUser,
+    login,
+    socialLogin,
     logout,
+    checkAuth,
+    setAuthenticated,
+    setUser,
   };
 });

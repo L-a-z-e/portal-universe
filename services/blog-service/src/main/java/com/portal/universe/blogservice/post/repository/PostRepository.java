@@ -127,4 +127,51 @@ public interface PostRepository extends MongoRepository<Post, String> {
      * 시리즈/연재 기능 대비: 동일 태그 그룹의 연속 게시물
      */
     Page<Post> findByTagsContainingAndStatusOrderByPublishedAtAsc(String seriesTag, PostStatus status, Pageable pageable);
+
+    // ===== 피드 기능 =====
+
+    /**
+     * 팔로잉 사용자들의 게시물 조회 (피드)
+     * authorIds에 포함된 작성자들의 발행된 게시물을 최신순으로 조회
+     */
+    Page<Post> findByAuthorIdInAndStatusOrderByPublishedAtDesc(
+            List<String> authorIds, PostStatus status, Pageable pageable);
+
+    // ===== 네비게이션 기능 =====
+
+    /**
+     * 이전 게시물 조회 (publishedAt이 현재보다 작은 것 중 가장 최신)
+     */
+    Optional<Post> findFirstByStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+            PostStatus status, LocalDateTime publishedAt);
+
+    /**
+     * 다음 게시물 조회 (publishedAt이 현재보다 큰 것 중 가장 오래된 것)
+     */
+    Optional<Post> findFirstByStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+            PostStatus status, LocalDateTime publishedAt);
+
+    /**
+     * 같은 작성자의 이전 게시물 조회
+     */
+    Optional<Post> findFirstByAuthorIdAndStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+            String authorId, PostStatus status, LocalDateTime publishedAt);
+
+    /**
+     * 같은 작성자의 다음 게시물 조회
+     */
+    Optional<Post> findFirstByAuthorIdAndStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+            String authorId, PostStatus status, LocalDateTime publishedAt);
+
+    /**
+     * 같은 카테고리의 이전 게시물 조회
+     */
+    Optional<Post> findFirstByCategoryAndStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+            String category, PostStatus status, LocalDateTime publishedAt);
+
+    /**
+     * 같은 카테고리의 다음 게시물 조회
+     */
+    Optional<Post> findFirstByCategoryAndStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+            String category, PostStatus status, LocalDateTime publishedAt);
 }

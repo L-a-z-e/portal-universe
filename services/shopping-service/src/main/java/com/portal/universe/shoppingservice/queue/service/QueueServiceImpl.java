@@ -46,7 +46,7 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     @Transactional
-    public QueueStatusResponse enterQueue(String eventType, Long eventId, Long userId) {
+    public QueueStatusResponse enterQueue(String eventType, Long eventId, String userId) {
         // 1. 활성 대기열 확인
         WaitingQueue queue = waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue(eventType, eventId)
             .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.QUEUE_NOT_FOUND));
@@ -80,7 +80,7 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     @Transactional(readOnly = true)
-    public QueueStatusResponse getQueueStatus(String eventType, Long eventId, Long userId) {
+    public QueueStatusResponse getQueueStatus(String eventType, Long eventId, String userId) {
         WaitingQueue queue = waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue(eventType, eventId)
             .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.QUEUE_NOT_FOUND));
 
@@ -134,7 +134,7 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     @Transactional
-    public void leaveQueue(String eventType, Long eventId, Long userId) {
+    public void leaveQueue(String eventType, Long eventId, String userId) {
         WaitingQueue queue = waitingQueueRepository.findByEventTypeAndEventId(eventType, eventId)
             .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.QUEUE_NOT_FOUND));
 
@@ -217,7 +217,7 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean validateEntry(String eventType, Long eventId, Long userId) {
+    public boolean validateEntry(String eventType, Long eventId, String userId) {
         Optional<WaitingQueue> queueOpt = waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue(eventType, eventId);
         if (queueOpt.isEmpty()) {
             // 대기열이 없으면 바로 통과

@@ -34,6 +34,12 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
 
+  # Redis 공통 설정
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   # OAuth2 Client 설정은 각 프로필별로 정의
   # local 프로필에서 필요시 활성화
 
@@ -44,6 +50,12 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       acks: all
       retries: 3
+
+# JWT 설정
+jwt:
+  secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
+  access-token-expiration: 900000  # 15분 (ms)
+  refresh-token-expiration: 604800000  # 7일 (ms)
 
 # 분산 추적용 로그 포맷
 logging:

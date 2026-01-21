@@ -34,8 +34,10 @@ dependencies {
     // Security (OAuth2 & JWT)
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server' // JWT 토큰 검증 및 리소스 서버 기능
-    implementation 'org.springframework.security:spring-security-oauth2-jose' // JOSE (Javascript Object Signing and Encryption) 라이브러리
+    // HMAC JWT 검증용 jjwt 라이브러리
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
     // =======================================
     // Observability (Monitoring & Tracing)

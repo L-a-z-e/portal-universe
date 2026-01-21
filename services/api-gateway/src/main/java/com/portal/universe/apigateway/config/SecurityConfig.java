@@ -1,46 +1,45 @@
 package com.portal.universe.apigateway.config;
 
+import com.portal.universe.apigateway.filter.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
-import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * API Gateway의 보안 관련 설정을 담당하는 클래스입니다.
- * Spring Security의 WebFlux 지원을 활성화하고, CORS, 경로별 접근 제어, JWT 검증 등을 설정합니다.
+ * Spring Security의 WebFlux 지원을 활성화하고, CORS, 경로별 접근 제어 등을 설정합니다.
+ *
+ * JWT 검증은 JwtAuthenticationFilter에서 HMAC 방식으로 수행합니다.
+ * (Auth Service와 동일한 secret key 사용)
  */
 @Configuration
 @EnableWebFluxSecurity
 @Profile("!test")
 @Slf4j
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-    private String issuerUri;
+    private final JwtConfig jwtConfig;
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
-    private String jwkSetUri;
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtConfig);
+    }
 
     /**
      * 모든 들어오는 요청의 경로와 HTTP 메서드를 디버그 레벨로 로깅하는 필터입니다.
@@ -88,26 +87,34 @@ public class SecurityConfig {
 
     /**
      * 전체 API에 대한 통합 보안 설정을 담당합니다.
+     * JWT 검증은 JwtAuthenticationFilter에서 HMAC 방식으로 수행하므로,
+     * 여기서는 경로별 접근 제어만 설정합니다.
+     *
      * @param http ServerHttpSecurity 객체
      * @return SecurityWebFilterChain 보안 필터 체인
      */
     @Bean
-    @Order(1)
-    public SecurityWebFilterChain apiSecurityFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
         return http
                 .authorizeExchange(authorize -> authorize
                         // ========================================
                         // [공개] 인증 없이 접근 가능
                         // ========================================
-                        .pathMatchers("/auth-service/**").permitAll()
-                        .pathMatchers("/api/users/**").permitAll()
+                        // Auth Service 경로 (자체 검증)
+                        .pathMatchers("/auth-service/**", "/api/auth/**", "/api/users/**").permitAll()
+
+                        // Blog Service - GET 요청은 공개 (조회)
+                        .pathMatchers(org.springframework.http.HttpMethod.GET, "/api/blog/**").permitAll()
+
                         // Shopping Service - 상품/카테고리 조회는 공개
                         .pathMatchers("/api/shopping/products", "/api/shopping/products/**").permitAll()
                         .pathMatchers("/api/shopping/categories", "/api/shopping/categories/**").permitAll()
                         // 쿠폰/타임딜 목록 조회도 공개
                         .pathMatchers("/api/shopping/coupons", "/api/shopping/time-deals").permitAll()
                         .pathMatchers("/api/shopping/time-deals/**").permitAll()
+                        // Actuator Health Check (Status Page용)
                         .pathMatchers("/actuator/**").permitAll()
+                        .pathMatchers("/api/*/actuator/**").permitAll()
 
                         // ========================================
                         // [관리자] ADMIN 권한 필요
@@ -119,30 +126,12 @@ public class SecurityConfig {
                         // ========================================
                         .anyExchange().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
-                )
+                // JWT 인증 필터 추가 (AUTHENTICATION 단계에서 실행)
+                .addFilterAt(jwtAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
+                // 기본 인증 비활성화 (401 시 브라우저 프롬프트 방지)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .build();
     }
-
-    /**
-     * JWT 토큰의 서명을 검증하고 디코딩하는 역할을 담당합니다.
-     * 내부망(Docker Network)에서는 jwk-set-uri로 키를 가져오고,
-     * 외부에서 발급된 토큰의 issuer(iss) 필드는 issuer-uri로 검증하여 보안을 강화합니다.
-     * @return ReactiveJwtDecoder JWT 디코더 Bean
-     */
-    @Bean
-    public ReactiveJwtDecoder reactiveJwtDecoder() {
-        // 1. 내부 주소(jwk-set-uri)를 사용해 키 세트를 가져오는 Decoder를 먼저 생성합니다.
-        //    (애플리케이션 시작 시 순환 참조 문제 방지)
-        NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder.withJwkSetUri(this.jwkSetUri).build();
-
-        // 2. 외부 주소(issuer-uri)를 기준으로 토큰의 'iss' 필드를 검증하는 Validator를 추가합니다.
-        OAuth2TokenValidator<Jwt> issuerValidator = JwtValidators.createDefaultWithIssuer(this.issuerUri);
-        jwtDecoder.setJwtValidator(issuerValidator);
-
-        return jwtDecoder;
-    }
-
 }

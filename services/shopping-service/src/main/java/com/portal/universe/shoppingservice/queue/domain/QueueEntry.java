@@ -30,8 +30,8 @@ public class QueueEntry {
     @JoinColumn(name = "queue_id", nullable = false)
     private WaitingQueue queue;
 
-    @Column(nullable = false)
-    private Long userId;
+    @Column(nullable = false, length = 36)
+    private String userId;
 
     @Column(nullable = false, unique = true, length = 36)
     private String entryToken;   // 고유 토큰 (UUID)
@@ -50,7 +50,7 @@ public class QueueEntry {
     private LocalDateTime leftAt;      // 이탈 시간
 
     @Builder
-    public QueueEntry(WaitingQueue queue, Long userId) {
+    public QueueEntry(WaitingQueue queue, String userId) {
         this.queue = queue;
         this.userId = userId;
         this.entryToken = UUID.randomUUID().toString();

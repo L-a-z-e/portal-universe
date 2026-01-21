@@ -75,4 +75,28 @@ public class User {
     public void setProfile(UserProfile profile) {
         this.profile = profile;
     }
+
+    /**
+     * 비밀번호를 변경합니다.
+     * @param encodedPassword 암호화된 새 비밀번호
+     */
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    /**
+     * 회원 탈퇴를 요청합니다. (Soft Delete)
+     * 상태를 WITHDRAWAL_PENDING으로 변경합니다.
+     */
+    public void markForWithdrawal() {
+        this.status = UserStatus.WITHDRAWAL_PENDING;
+    }
+
+    /**
+     * 소셜 로그인 사용자인지 확인합니다.
+     * 비밀번호가 null이고 소셜 계정이 연결되어 있으면 소셜 사용자입니다.
+     */
+    public boolean isSocialUser() {
+        return this.password == null && !this.socialAccounts.isEmpty();
+    }
 }

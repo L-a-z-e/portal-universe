@@ -154,6 +154,85 @@ Spring Cloud Config Service와 Discovery Service(Eureka)를 제거하고 로컬 
 
 ---
 
+### ADR-007: 서비스 상태 모니터링 전략
+**상태**: Accepted | **작성일**: 2026-01-21
+
+Portal Shell에서 마이크로서비스의 Health 상태를 모니터링하는 전략을 수립합니다.
+
+**결정 요약**:
+- Client-Side Polling 방식 채택 (10초 간격)
+- Spring Boot Actuator `/actuator/health` 엔드포인트 활용
+- 인증 불필요 공개 API
+- UP/DOWN/DEGRADED 3가지 상태
+
+**파일**: [ADR-007-service-status-monitoring.md](./ADR-007-service-status-monitoring.md)
+
+**영향 범위**:
+- `frontend/portal-shell/src/pages/ServiceStatus.vue`
+- `frontend/portal-shell/src/composables/useHealthCheck.ts`
+- 모든 서비스의 `application.yml` (Actuator 설정)
+- API Gateway CORS 설정
+
+**대안 검토**:
+- ✅ Polling: 구현 간단, 인프라 불필요 (채택)
+- ❌ WebSocket: 구현 복잡, 서버 부하
+- 🟡 Prometheus + Grafana: 프로덕션 환경 향후 검토
+
+---
+
+### ADR-008: 마이프로필 단계별 구현 전략
+**상태**: Accepted | **작성일**: 2026-01-21
+
+마이프로필 기능을 2단계(Phase)로 나누어 구현합니다.
+
+**결정 요약**:
+- **Phase 1 (즉시)**: 읽기 전용 프로필 - Auth Store 데이터 사용
+- **Phase 2 (JWT 작업 후)**: 프로필 수정, 비밀번호 변경, 회원 탈퇴 - API 연동
+
+**파일**: [ADR-008-my-profile-phased-approach.md](./ADR-008-my-profile-phased-approach.md)
+
+**영향 범위**:
+- `frontend/portal-shell/src/pages/MyProfilePage.vue` (신규 생성)
+- JWT 작업 완료 후 Backend API 추가
+- Auth Store 읽기 전용 사용
+
+**대안 검토**:
+- ❌ 한 번에 완성: JWT 작업 충돌 위험
+- ✅ Phase 분리: 리스크 최소화 + 빠른 제공
+- ❌ 읽기만 구현: 핵심 기능 누락
+
+**결과**:
+- **긍정적**: 리스크 회피, 빠른 기능 제공, 코드 격리
+- **부정적**: 2단계 배포, Phase 1 UX 제약
+
+---
+
+### ADR-009: Settings Page 아키텍처 설계
+**상태**: Accepted | **작성일**: 2026-01-21
+
+Portal Shell에 사용자 설정 페이지 추가를 위한 아키텍처 설계를 수립합니다.
+
+**결정 요약**:
+- Local-First with Optional Sync 방식 채택
+- localStorage를 primary storage로 사용
+- 백엔드는 선택적 동기화 레이어 (Best Effort)
+- 기존 `theme.ts` store 확장 + 새로운 `settings.ts` store 추가
+
+**파일**: [ADR-009-settings-page-architecture.md](./ADR-009-settings-page-architecture.md)
+
+**영향 범위**:
+- `frontend/portal-shell/src/store/settings.ts` (신규)
+- `frontend/portal-shell/src/pages/SettingsPage.vue` (신규)
+- `services/auth-service/.../entity/UserSettings.java` (선택적)
+- Auth Service API: `GET/PUT /api/auth/users/me/settings` (선택적)
+
+**대안 검토**:
+- ❌ Backend-First: 네트워크 지연, 비회원 사용 불가
+- 🟡 localStorage-Only: 다중 디바이스 동기화 불가
+- ✅ Local-First + Optional Sync: 빠른 응답 + 동기화 (채택)
+
+---
+
 ## ADR 관리 규칙
 
 ### 상태 정의
@@ -250,8 +329,11 @@ YYYY-MM-DD
 | ADR-004 | 1.0 | 2026-01-19 | 초기 작성 |
 | ADR-005 | 1.0 | 2026-01-19 | 초기 작성 |
 | ADR-006 | 1.0 | 2026-01-20 | 초기 작성 |
+| ADR-007 | 1.0 | 2026-01-21 | 초기 작성 |
+| ADR-008 | 1.0 | 2026-01-21 | 초기 작성 |
+| ADR-009 | 1.0 | 2026-01-21 | 초기 작성 |
 
 ---
 
-**최종 업데이트**: 2026-01-20
+**최종 업데이트**: 2026-01-21
 **관리자**: Documenter Agent

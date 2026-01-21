@@ -1,7 +1,7 @@
 // portal-shell/src/api/apiClient.ts
 import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
-import { useAuthStore } from '../store/auth.ts'
+import { authService } from '../services/authService';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -13,34 +13,80 @@ const apiClient = axios.create({
 
 /**
  * Request Interceptor
- * - 항상 shell의 auth store 기준으로 토큰 주입
+ * - Automatically attach access token to requests
+ * - Auto-refresh token if expired
  */
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const authStore = useAuthStore();
+  async (config: InternalAxiosRequestConfig) => {
+    try {
+      // Try to auto-refresh if token is expired
+      await authService.autoRefreshIfNeeded();
+    } catch (error) {
+      console.warn('[API Client] Auto-refresh failed:', error);
+      // Continue with the request even if refresh fails
+    }
 
-    if (authStore.user?._accessToken) {
-      config.headers.Authorization =
-        `Bearer ${authStore.user._accessToken}`;
+    // Attach access token if available
+    const token = authService.getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('[API Client] Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
 /**
  * Response Interceptor
- * - 401 → shell 기준으로 처리 (logout / redirect 등)
+ * - Handle 401 Unauthorized errors
+ * - Attempt token refresh and retry request
  */
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      console.warn('[API] 401 Unauthorized – forcing logout');
-      const authStore = useAuthStore();
-      authStore.logout();
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        console.log('[API Client] 401 detected, attempting token refresh...');
+
+        // Try to refresh token
+        const newToken = await authService.refresh();
+
+        // Update request header with new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+        // Retry original request
+        return apiClient.request(originalRequest);
+
+      } catch (refreshError) {
+        console.error('[API Client] Token refresh failed:', refreshError);
+
+        // Clear tokens and redirect to login
+        authService.clearTokens();
+
+        // Redirect to home page (which will show login modal)
+        if (typeof window !== 'undefined') {
+          window.location.href = '/?login=required';
+        }
+
+        return Promise.reject(refreshError);
+      }
     }
+
+    // Handle other errors
+    console.error('[API Client] Response error:', {
+      status: error.response?.status,
+      message: error.message,
+    });
+
     return Promise.reject(error);
   }
 );

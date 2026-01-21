@@ -4,7 +4,10 @@ import com.portal.universe.blogservice.comment.domain.Comment;
 import com.portal.universe.blogservice.comment.dto.*;
 import com.portal.universe.blogservice.comment.exception.CommentNotFoundException;
 import com.portal.universe.blogservice.comment.repository.CommentRepository;
+import com.portal.universe.blogservice.post.domain.Post;
+import com.portal.universe.blogservice.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,12 +17,14 @@ import java.util.List;
 /**
  * 댓글 비즈니스 로직 서비스
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final PostRepository postRepository;
 
     /**
      * 댓글 생성
@@ -36,6 +41,10 @@ public class CommentService {
                 .build();
 
         commentRepository.save(comment);
+
+        // Phase 3: 게시물의 댓글 수 증가
+        updatePostCommentCount(request.postId(), true);
+
         return toResponse(comment);
     }
 
@@ -68,6 +77,24 @@ public class CommentService {
 
         comment.delete();
         commentRepository.save(comment);
+
+        // Phase 3: 게시물의 댓글 수 감소
+        updatePostCommentCount(comment.getPostId(), false);
+    }
+
+    /**
+     * 게시물의 댓글 수 업데이트 (Phase 3: 트렌딩 점수 계산용)
+     */
+    private void updatePostCommentCount(String postId, boolean increment) {
+        postRepository.findById(postId).ifPresent(post -> {
+            if (increment) {
+                post.incrementCommentCount();
+            } else {
+                post.decrementCommentCount();
+            }
+            postRepository.save(post);
+            log.debug("Updated comment count for post {}: increment={}", postId, increment);
+        });
     }
 
     /**

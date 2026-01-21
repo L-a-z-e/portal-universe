@@ -44,12 +44,9 @@ feign:
 spring:
   kafka:
     bootstrap-servers: localhost:9092
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/auth-service
-          jwk-set-uri: http://localhost:8080/auth-service/oauth2/jwks
+
+# JWT secret은 Auth Service와 동일한 값을 환경 변수로 주입
+# 기본값은 application.yml에 정의됨
 
 # Local Actuator 설정
 management:

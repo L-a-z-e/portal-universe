@@ -47,6 +47,11 @@ spec:
             # Config Server 설정 오버라이드 - 스키마 자동 생성
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: "update"
+            # Redis 연결 설정
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
           # 리소스 제한 설정
           resources:
             requests:

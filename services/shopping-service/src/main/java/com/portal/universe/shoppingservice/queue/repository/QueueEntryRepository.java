@@ -19,9 +19,9 @@ public interface QueueEntryRepository extends JpaRepository<QueueEntry, Long> {
 
     Optional<QueueEntry> findByEntryToken(String entryToken);
 
-    Optional<QueueEntry> findByQueueAndUserId(WaitingQueue queue, Long userId);
+    Optional<QueueEntry> findByQueueAndUserId(WaitingQueue queue, String userId);
 
-    Optional<QueueEntry> findByQueueAndUserIdAndStatus(WaitingQueue queue, Long userId, QueueStatus status);
+    Optional<QueueEntry> findByQueueAndUserIdAndStatus(WaitingQueue queue, String userId, QueueStatus status);
 
     @Query("SELECT COUNT(e) FROM QueueEntry e WHERE e.queue = :queue AND e.status = :status")
     Long countByQueueAndStatus(@Param("queue") WaitingQueue queue, @Param("status") QueueStatus status);

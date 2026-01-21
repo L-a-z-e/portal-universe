@@ -61,11 +61,7 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/auth-service
+  # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
 
 # Local Actuator 설정
 management:

@@ -5,10 +5,10 @@ import com.portal.universe.shoppingservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingservice.queue.service.QueueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -29,9 +29,8 @@ public class QueueController {
     public ResponseEntity<ApiResponse<QueueStatusResponse>> enterQueue(
             @PathVariable String eventType,
             @PathVariable Long eventId,
-            HttpServletRequest request
+            @AuthenticationPrincipal String userId
     ) {
-        Long userId = extractUserId(request);
         QueueStatusResponse response = queueService.enterQueue(eventType, eventId, userId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -41,9 +40,8 @@ public class QueueController {
     public ResponseEntity<ApiResponse<QueueStatusResponse>> getQueueStatus(
             @PathVariable String eventType,
             @PathVariable Long eventId,
-            HttpServletRequest request
+            @AuthenticationPrincipal String userId
     ) {
-        Long userId = extractUserId(request);
         QueueStatusResponse response = queueService.getQueueStatus(eventType, eventId, userId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -62,9 +60,8 @@ public class QueueController {
     public ResponseEntity<ApiResponse<Void>> leaveQueue(
             @PathVariable String eventType,
             @PathVariable Long eventId,
-            HttpServletRequest request
+            @AuthenticationPrincipal String userId
     ) {
-        Long userId = extractUserId(request);
         queueService.leaveQueue(eventType, eventId, userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -76,13 +73,5 @@ public class QueueController {
     ) {
         queueService.leaveQueueByToken(entryToken);
         return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    private Long extractUserId(HttpServletRequest request) {
-        String userIdHeader = request.getHeader("X-User-Id");
-        if (userIdHeader == null) {
-            throw new IllegalArgumentException("User ID header is missing");
-        }
-        return Long.parseLong(userIdHeader);
     }
 }

@@ -35,7 +35,7 @@ public class TimeDealRedisService {
      *
      * @return > 0: 구매 성공 (남은 재고), 0: 재고 소진, -1: 구매 제한 초과
      */
-    public Long purchaseProduct(Long timeDealId, Long productId, Long userId,
+    public Long purchaseProduct(Long timeDealId, Long productId, String userId,
                                  int requestedQuantity, int maxPerUser) {
         String stockKey = buildStockKey(timeDealId, productId);
         String purchasedKey = buildPurchasedKey(timeDealId, productId, userId);
@@ -67,7 +67,7 @@ public class TimeDealRedisService {
     /**
      * 사용자의 현재 구매 수량을 조회합니다.
      */
-    public int getUserPurchasedQuantity(Long timeDealId, Long productId, Long userId) {
+    public int getUserPurchasedQuantity(Long timeDealId, Long productId, String userId) {
         String purchasedKey = buildPurchasedKey(timeDealId, productId, userId);
         Object purchased = redisTemplate.opsForValue().get(purchasedKey);
         if (purchased == null) {
@@ -79,7 +79,7 @@ public class TimeDealRedisService {
     /**
      * 재고를 롤백합니다 (구매 취소 시).
      */
-    public void rollbackStock(Long timeDealId, Long productId, Long userId, int quantity) {
+    public void rollbackStock(Long timeDealId, Long productId, String userId, int quantity) {
         String stockKey = buildStockKey(timeDealId, productId);
         String purchasedKey = buildPurchasedKey(timeDealId, productId, userId);
 
@@ -111,7 +111,7 @@ public class TimeDealRedisService {
         return TIMEDEAL_STOCK_KEY + timeDealId + ":" + productId;
     }
 
-    private String buildPurchasedKey(Long timeDealId, Long productId, Long userId) {
+    private String buildPurchasedKey(Long timeDealId, Long productId, String userId) {
         return TIMEDEAL_PURCHASED_KEY + timeDealId + ":" + productId + ":" + userId;
     }
 }
