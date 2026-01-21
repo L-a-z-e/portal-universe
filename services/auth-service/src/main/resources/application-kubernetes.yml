@@ -51,6 +51,17 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
   kafka:
     bootstrap-servers: kafka:29092
 
@@ -58,13 +69,6 @@ spring:
     oauth2:
       authorizationserver:
         issuer: http://portal-universe/auth-service
-        client:
-          portal-client:
-            redirect-uris:
-              - http://portal-universe/callback
-              - http://portal-universe/silent-renew.html
-            post-logout-redirect-uris:
-              - http://portal-universe
       # OAuth2 Client 설정 (소셜 로그인용)
       # Google OAuth - 비활성화 (임의 도메인 불가)
       # Naver/Kakao는 임의 hosts 도메인 허용

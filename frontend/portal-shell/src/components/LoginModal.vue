@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Modal, Input, Button } from '@portal/design-system-vue';
-import {
-  login,
-  loginWithGoogle,
-  loginWithNaver,
-  loginWithKakao,
-  isLocalEnvironment
-} from '../services/authService';
+import { useAuthStore } from '../store/auth';
+import { socialLogin } from '../services/authService';
 
 defineProps<{
   modelValue: boolean;
@@ -17,6 +12,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean];
 }>();
 
+const authStore = useAuthStore();
+
 const email = ref('');
 const password = ref('');
 const isLoading = ref(false);
@@ -25,8 +22,11 @@ const error = ref('');
 const emailError = ref('');
 const passwordError = ref('');
 
-// Local 환경에서만 Google 로그인 표시
-const isLocalEnv = computed(() => isLocalEnvironment());
+// Check if local environment (Google login available)
+const isLocalEnv = computed(() => {
+  const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+  return apiBase.includes('localhost');
+});
 
 function validate(): boolean {
   let isValid = true;
@@ -61,13 +61,13 @@ async function handleLogin() {
   error.value = '';
 
   try {
-    // 실제 로그인 (OIDC)
-    await login();
+    // Login with email + password (Direct JWT)
+    await authStore.login(email.value, password.value);
 
-    // 성공하면 Modal 닫기
+    // Success - close modal
     emit('update:modelValue', false);
 
-    // 폼 초기화
+    // Reset form
     email.value = '';
     password.value = '';
 
@@ -79,9 +79,13 @@ async function handleLogin() {
   }
 }
 
+function handleSocialLogin(provider: 'google' | 'naver' | 'kakao') {
+  socialLogin(provider);
+}
+
 function handleClose() {
   emit('update:modelValue', false);
-  // 폼 초기화
+  // Reset form
   email.value = '';
   password.value = '';
   error.value = '';
@@ -177,7 +181,7 @@ function handleClose() {
             variant="secondary"
             :disabled="isLoading"
             class="w-full"
-            @click="loginWithGoogle"
+            @click="handleSocialLogin('google')"
         >
           <span class="flex items-center justify-center gap-2">
             <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -195,7 +199,7 @@ function handleClose() {
             type="button"
             :disabled="isLoading"
             class="w-full bg-[#03C75A] hover:bg-[#02b351] text-white border-none"
-            @click="loginWithNaver"
+            @click="handleSocialLogin('naver')"
         >
           <span class="flex items-center justify-center gap-2">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -210,27 +214,13 @@ function handleClose() {
             type="button"
             :disabled="isLoading"
             class="w-full bg-[#FEE500] hover:bg-[#fdd835] text-[#191919] border-none"
-            @click="loginWithKakao"
+            @click="handleSocialLogin('kakao')"
         >
           <span class="flex items-center justify-center gap-2">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3zm5.907 8.06l1.47-1.424a.472.472 0 0 0-.656-.678l-1.928 1.866V9.282a.472.472 0 0 0-.944 0v2.557a.471.471 0 0 0 0 .222v2.476a.472.472 0 0 0 .944 0v-1.95l.333-.323 1.59 2.162a.472.472 0 0 0 .76-.56l-1.57-2.036zm-6.442-1.823a.472.472 0 0 0-.471.472v3.827a.472.472 0 0 0 .943 0v-3.355h1.177a.472.472 0 0 0 0-.944h-1.65zm-3.02.472v2.412h1.61a.472.472 0 0 0 0-.944h-1.138v-.524h1.138a.472.472 0 0 0 0-.944H8.444v-.471h1.61a.472.472 0 0 0 0-.944H7.973a.472.472 0 0 0-.472.472c0 .165 0 .946-.056.943zm-2.19 3.07a.472.472 0 0 0 .472-.472V9.756a.472.472 0 0 0-.943 0v3.551c0 .26.21.472.471.472z"/>
             </svg>
             <span>카카오로 로그인</span>
-          </span>
-        </Button>
-
-        <!-- OIDC 로그인 (기존 유지) -->
-        <Button
-            type="button"
-            variant="secondary"
-            :disabled="isLoading"
-            class="w-full"
-            @click="login"
-        >
-          <span class="flex items-center justify-center gap-2">
-            <span>🌐</span>
-            <span>OIDC로 로그인</span>
           </span>
         </Button>
       </div>
