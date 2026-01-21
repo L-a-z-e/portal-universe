@@ -46,6 +46,34 @@ spring:
 
       # 라우팅 규칙 (환경별 URL은 application-*.yml의 services.*.url 참조)
       routes:
+        # ========== Actuator Health Routes (Status Page 용) ==========
+        # Auth Service Actuator
+        - id: auth-service-actuator
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/api/auth/actuator/**
+          filters:
+            - RewritePath=/api/auth/actuator/(?<segment>.*), /actuator/${segment}
+          order: 0
+
+        # Blog Service Actuator
+        - id: blog-service-actuator
+          uri: ${services.blog.url}
+          predicates:
+            - Path=/api/blog/actuator/**
+          filters:
+            - RewritePath=/api/blog/actuator/(?<segment>.*), /actuator/${segment}
+          order: 0
+
+        # Shopping Service Actuator
+        - id: shopping-service-actuator
+          uri: ${services.shopping.url}
+          predicates:
+            - Path=/api/shopping/actuator/**
+          filters:
+            - RewritePath=/api/shopping/actuator/(?<segment>.*), /actuator/${segment}
+          order: 0
+
         # ========== Auth Service ==========
         # OAuth2 Social Login - Authorization (소셜 로그인 시작)
         - id: auth-service-oauth2-authorization

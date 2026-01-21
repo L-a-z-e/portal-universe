@@ -112,7 +112,9 @@ public class SecurityConfig {
                         // 쿠폰/타임딜 목록 조회도 공개
                         .pathMatchers("/api/shopping/coupons", "/api/shopping/time-deals").permitAll()
                         .pathMatchers("/api/shopping/time-deals/**").permitAll()
+                        // Actuator Health Check (Status Page용)
                         .pathMatchers("/actuator/**").permitAll()
+                        .pathMatchers("/api/*/actuator/**").permitAll()
 
                         // ========================================
                         // [관리자] ADMIN 권한 필요

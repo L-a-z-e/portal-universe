@@ -1,7 +1,6 @@
 package com.portal.universe.shoppingservice.common.config;
 
 import com.portal.universe.commonlibrary.security.filter.GatewayAuthenticationFilter;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -30,7 +29,7 @@ public class SecurityConfig {
     @Order(0)
     public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher(EndpointRequest.toAnyEndpoint())
+                .securityMatcher("/actuator/**")
                 .authorizeHttpRequests(requests -> requests
                         .anyRequest().permitAll())
                 .csrf(AbstractHttpConfigurer::disable);
@@ -55,6 +54,8 @@ public class SecurityConfig {
                         // [공개] 누구나 접근 가능
                         // Gateway StripPrefix=2 적용 후 경로 (/api/shopping 제거됨)
                         // ========================================
+                        // Actuator 엔드포인트 (EndpointRequest와 별개로 경로 기반 허용)
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
 
