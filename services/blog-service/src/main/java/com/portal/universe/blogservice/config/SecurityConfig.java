@@ -73,22 +73,32 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // --- 공개 엔드포인트 (조회) ---
-                        .requestMatchers(HttpMethod.GET, "/api/blog").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/blog/**").permitAll()
-                        // GET 메서드로 시작하는 모든 경로 공개 (posts, tags, categories, trending, feed 등)
-                        .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/tags/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
+                        // ========================================
+                        // [공개] 누구나 접근 가능
+                        // Gateway StripPrefix=2 적용 후 경로 (/api/blog 제거됨)
+                        // ========================================
+                        .requestMatchers(HttpMethod.GET, "/posts", "/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/tags", "/tags/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
 
-                        // --- 파일 업로드 API 권한 설정 ---
+                        // ========================================
+                        // [인증된 사용자] 로그인 필요
+                        // ========================================
+                        // 파일 업로드
                         .requestMatchers(HttpMethod.POST, "/file/upload").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/file/delete").hasRole("ADMIN")
+                        // 게시글 작성 (일반 사용자도 가능)
+                        .requestMatchers(HttpMethod.POST, "/posts").authenticated()
+                        // 게시글 수정/삭제 (본인 게시글)
+                        .requestMatchers(HttpMethod.PUT, "/posts/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/posts/**").authenticated()
+                        // 좋아요, 팔로우 등
+                        .requestMatchers(HttpMethod.POST, "/posts/*/like").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/follows/**").authenticated()
 
-                        // --- 관리자 전용 엔드포인트 (생성, 수정, 삭제) ---
-                        .requestMatchers(HttpMethod.POST, "/api/blog").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/blog/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/blog/**").hasRole("ADMIN")
+                        // ========================================
+                        // [관리자] ADMIN 역할 필요
+                        // ========================================
+                        .requestMatchers(HttpMethod.DELETE, "/file/delete").hasRole("ADMIN")
 
                         // --- 위에서 지정하지 않은 나머지 모든 요청은 인증만 되면 허용 ---
                         .anyRequest().authenticated()

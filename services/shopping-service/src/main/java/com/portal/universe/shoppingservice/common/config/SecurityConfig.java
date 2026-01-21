@@ -53,49 +53,50 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ========================================
                         // [공개] 누구나 접근 가능
+                        // Gateway StripPrefix=2 적용 후 경로 (/api/shopping 제거됨)
                         // ========================================
-                        .requestMatchers(HttpMethod.GET, "/api/shopping/products", "/api/shopping/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/shopping/categories", "/api/shopping/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
 
                         // ========================================
                         // [인증된 사용자] USER 또는 ADMIN 역할 필요
                         // ========================================
                         // 장바구니
-                        .requestMatchers("/api/shopping/cart/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/cart/**").hasAnyRole("USER", "ADMIN")
 
                         // 주문 (사용자 본인 주문)
-                        .requestMatchers(HttpMethod.POST, "/api/shopping/orders").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/shopping/orders", "/api/shopping/orders/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/shopping/orders/*/cancel").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/orders").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/orders", "/orders/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/orders/*/cancel").hasAnyRole("USER", "ADMIN")
 
                         // 결제
-                        .requestMatchers(HttpMethod.POST, "/api/shopping/payments").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/shopping/payments/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/shopping/payments/*/cancel").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/payments").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/payments/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/payments/*/cancel").hasAnyRole("USER", "ADMIN")
 
                         // 배송 조회
-                        .requestMatchers(HttpMethod.GET, "/api/shopping/deliveries/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/deliveries/**").hasAnyRole("USER", "ADMIN")
 
                         // 재고 조회
-                        .requestMatchers(HttpMethod.GET, "/api/shopping/inventory/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/inventory/**").hasAnyRole("USER", "ADMIN")
 
                         // ========================================
                         // [관리자] ADMIN 역할 필요
                         // ========================================
                         // 상품 관리
-                        .requestMatchers(HttpMethod.POST, "/api/shopping/products").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/shopping/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/shopping/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/products").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
 
                         // 재고 관리
-                        .requestMatchers(HttpMethod.POST, "/api/shopping/inventory/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/shopping/inventory/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/inventory/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/inventory/**").hasRole("ADMIN")
 
                         // 배송 상태 관리
-                        .requestMatchers(HttpMethod.PUT, "/api/shopping/deliveries/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/deliveries/**").hasRole("ADMIN")
 
                         // 결제 환불 (관리자)
-                        .requestMatchers(HttpMethod.POST, "/api/shopping/payments/*/refund").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/payments/*/refund").hasRole("ADMIN")
 
                         // 그 외 모든 요청은 인증만 되면 허용
                         .anyRequest().authenticated()
