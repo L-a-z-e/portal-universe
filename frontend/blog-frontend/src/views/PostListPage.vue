@@ -319,7 +319,7 @@ onBeforeUnmount(() => {
       <!-- 탭 시스템 (검색 모드가 아닐 때만 표시) -->
       <div v-if="!isSearchMode" class="mb-6">
         <!-- 탭 버튼 -->
-        <div class="flex items-center gap-2 border-b border-border mb-4">
+        <div class="flex items-center gap-2 border-b border-border mb-4" data-testid="post-list-tabs">
           <!-- 피드 탭 (로그인 시에만 표시) -->
           <button
               v-if="authStore.isAuthenticated"
@@ -328,6 +328,8 @@ onBeforeUnmount(() => {
               :class="currentTab === 'feed'
                 ? 'text-brand-primary'
                 : 'text-text-meta hover:text-text-body'"
+              :data-active="currentTab === 'feed'"
+              data-testid="feed-tab"
           >
             📬 피드
             <div
@@ -341,6 +343,8 @@ onBeforeUnmount(() => {
               :class="currentTab === 'trending'
                 ? 'text-brand-primary'
                 : 'text-text-meta hover:text-text-body'"
+              :data-active="currentTab === 'trending'"
+              data-testid="trending-tab"
           >
             🔥 트렌딩
             <div
@@ -354,6 +358,8 @@ onBeforeUnmount(() => {
               :class="currentTab === 'recent'
                 ? 'text-brand-primary'
                 : 'text-text-meta hover:text-text-body'"
+              :data-active="currentTab === 'recent'"
+              data-testid="recent-tab"
           >
             🕐 최신
             <div
@@ -380,22 +386,22 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Loading State (초기 로드) -->
-      <Card v-if="isInitialLoad && isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none">
+      <Card v-if="isInitialLoad && isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none" data-testid="feed-loading">
         <div class="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-5"></div>
         <p class="text-text-meta text-lg">게시글을 불러오는 중...</p>
       </Card>
 
       <!-- Error State -->
-      <Card v-else-if="currentError && isEmpty" class="bg-status-error-bg border-status-error/20 py-16 text-center">
+      <Card v-else-if="currentError && isEmpty" class="bg-status-error-bg border-status-error/20 py-16 text-center" data-testid="feed-error">
         <div class="text-4xl text-status-error mb-4">❌</div>
         <div class="text-status-error font-semibold text-lg mb-2">{{ currentError }}</div>
-        <Button variant="secondary" class="mt-4" @click="refresh">
+        <Button variant="secondary" class="mt-4" @click="refresh" data-testid="retry-button">
           다시 시도
         </Button>
       </Card>
 
       <!-- Empty State -->
-      <Card v-else-if="isEmpty" class="text-center py-20">
+      <Card v-else-if="isEmpty" class="text-center py-20" data-testid="empty-feed">
         <div class="text-6xl mb-4">{{ isSearchMode ? '🔍' : (currentTab === 'feed' ? '👋' : '📭') }}</div>
         <h3 class="text-2xl font-bold text-text-heading mb-2">
           <template v-if="isSearchMode">검색 결과가 없습니다</template>
@@ -422,6 +428,7 @@ onBeforeUnmount(() => {
             v-if="currentTab === 'feed' && followStore.followingIds.length === 0"
             variant="primary"
             @click="changeTab('trending')"
+            data-testid="go-to-trending"
         >
           트렌딩 게시글 보기
         </Button>
@@ -452,14 +459,14 @@ onBeforeUnmount(() => {
             ref="loadMoreTrigger"
             class="min-h-[100px] flex items-center justify-center mt-8"
         >
-          <div v-if="isLoadingMore || searchStore.isSearching" class="text-center py-8">
+          <div v-if="isLoadingMore || searchStore.isSearching" class="text-center py-8" data-testid="loading-more">
             <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
             <p class="text-text-meta text-sm">더 많은 게시글을 불러오는 중...</p>
           </div>
         </div>
 
         <!-- 모두 로드 완료 -->
-        <div v-else class="text-center py-8 mt-8">
+        <div v-else class="text-center py-8 mt-8" data-testid="feed-end">
           <div class="inline-flex items-center gap-2 px-4 py-2 bg-bg-muted rounded-full">
             <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
