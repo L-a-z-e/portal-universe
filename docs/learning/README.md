@@ -36,6 +36,7 @@ learning/
 | 05 | [05-react-fundamentals.md](./notes/05-react-fundamentals.md)                             | React 기초 | Hooks, Context API |
 | 06 | [06-shopping-frontend-implementation.md](./notes/06-shopping-frontend-implementation.md) | Shopping Frontend 구현 | Module Federation, React Router |
 | 07 | [07-security-cryptography.md](./notes/07-security-cryptography.md)                       | 암호화 개념 | AES, RSA, BCrypt, JWT, PKCE, OAuth2 |
+| 08 | [08-redis-lua-script-atomicity.md](./notes/08-redis-lua-script-atomicity.md)             | Redis Lua 원자성 | Lua Script, 동시성 제어, 선착순 처리 |
 
 ## 주제별 인덱스
 
@@ -44,6 +45,7 @@ learning/
 - Saga Pattern: [02-saga-pattern.md](./notes/02-saga-pattern.md)
 - Concurrency: [03-concurrency-control.md](./notes/03-concurrency-control.md)
 - Snapshot: [04-snapshot-pattern.md](./notes/04-snapshot-pattern.md)
+- Redis Lua: [08-redis-lua-script-atomicity.md](./notes/08-redis-lua-script-atomicity.md)
 
 ### Frontend
 - React: [05-react-fundamentals.md](./notes/05-react-fundamentals.md)
@@ -57,6 +59,7 @@ learning/
 
 ## 관련 문서
 
+- [Scenarios 목록](../scenarios/README.md) - 업무 시나리오 문서
 - [ADR 목록](../adr/README.md) - 아키텍처 결정 기록
 - [Architecture](../architecture/) - 아키텍처 설계 문서
 - [PRD](../prd/) - 제품 요구사항 문서
