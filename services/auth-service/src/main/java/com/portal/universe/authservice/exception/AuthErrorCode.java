@@ -69,7 +69,27 @@ public enum AuthErrorCode implements ErrorCode {
     /**
      * Username 형식이 올바르지 않습니다.
      */
-    INVALID_USERNAME_FORMAT(HttpStatus.BAD_REQUEST, "A013", "Invalid username format. Only lowercase letters, numbers, and underscores are allowed (3-20 characters)");
+    INVALID_USERNAME_FORMAT(HttpStatus.BAD_REQUEST, "A013", "Invalid username format. Only lowercase letters, numbers, and underscores are allowed (3-20 characters)"),
+
+    /**
+     * 이미 팔로우 중인 사용자입니다.
+     */
+    ALREADY_FOLLOWING(HttpStatus.CONFLICT, "A014", "Already following this user"),
+
+    /**
+     * 팔로우하지 않은 사용자입니다.
+     */
+    NOT_FOLLOWING(HttpStatus.NOT_FOUND, "A015", "Not following this user"),
+
+    /**
+     * 자기 자신을 팔로우할 수 없습니다.
+     */
+    CANNOT_FOLLOW_YOURSELF(HttpStatus.BAD_REQUEST, "A016", "Cannot follow yourself"),
+
+    /**
+     * 팔로우 대상 사용자를 찾을 수 없습니다.
+     */
+    FOLLOW_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "A017", "Target user not found");
 
     private final HttpStatus status;
     private final String code;

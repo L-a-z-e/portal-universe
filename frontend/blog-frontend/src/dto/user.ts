@@ -5,12 +5,15 @@
  */
 export interface UserProfileResponse {
   id: number;
+  uuid: string;
   email: string;
-  name: string;
+  nickname: string;
   username: string | null;
   bio: string | null;
   profileImageUrl: string | null;
   website: string | null;
+  followerCount: number;
+  followingCount: number;
   createdAt: string;
 }
 

@@ -269,4 +269,16 @@ public class PostController {
         PostNavigationResponse navigation = postService.getPostNavigation(postId, scope);
         return ApiResponse.success(navigation);
     }
+
+    @Operation(summary = "피드 조회", description = "팔로잉 사용자들의 게시물을 최신순으로 조회합니다.")
+    @GetMapping("/feed")
+    public ApiResponse<Page<PostSummaryResponse>> getFeed(
+            @Parameter(description = "팔로잉 사용자 UUID 목록 (쉼표로 구분)")
+            @RequestParam List<String> followingIds,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<PostSummaryResponse> posts = postService.getFeed(followingIds, page, size);
+        return ApiResponse.success(posts);
+    }
 }

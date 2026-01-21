@@ -293,3 +293,25 @@ export async function getPostNavigation(
   );
   return response.data.data;
 }
+
+// ==================== 피드 ====================
+
+/**
+ * 피드 조회 (팔로잉 사용자들의 게시물)
+ * @param followingIds 팔로잉 사용자 UUID 목록
+ * @param page 페이지 번호
+ * @param size 페이지 크기
+ */
+export async function getFeed(
+  followingIds: string[],
+  page: number = 0,
+  size: number = 10
+): Promise<PageResponse<PostSummaryResponse>> {
+  const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
+    `${BASE_PATH}/feed`,
+    {
+      params: { followingIds: followingIds.join(','), page, size },
+    }
+  );
+  return response.data.data;
+}

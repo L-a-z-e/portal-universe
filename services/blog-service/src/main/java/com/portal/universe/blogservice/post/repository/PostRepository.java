@@ -128,6 +128,15 @@ public interface PostRepository extends MongoRepository<Post, String> {
      */
     Page<Post> findByTagsContainingAndStatusOrderByPublishedAtAsc(String seriesTag, PostStatus status, Pageable pageable);
 
+    // ===== 피드 기능 =====
+
+    /**
+     * 팔로잉 사용자들의 게시물 조회 (피드)
+     * authorIds에 포함된 작성자들의 발행된 게시물을 최신순으로 조회
+     */
+    Page<Post> findByAuthorIdInAndStatusOrderByPublishedAtDesc(
+            List<String> authorIds, PostStatus status, Pageable pageable);
+
     // ===== 네비게이션 기능 =====
 
     /**

@@ -2,20 +2,22 @@
 import { useAuthStore } from "portal/authStore";
 import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { getPublishedPosts, getTrendingPosts } from "../api/posts";
+import { getPublishedPosts, getTrendingPosts, getFeed } from "../api/posts";
 import type { PostSummaryResponse } from "../dto/post";
 import type { PageResponse } from "@/types";
 import { Button, Card, SearchBar } from '@portal/design-system-vue';
 import PostCard from '../components/PostCard.vue';
 import { useSearchStore } from '../stores/searchStore';
+import { useFollowStore } from '../stores/followStore';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const searchStore = useSearchStore();
+const followStore = useFollowStore();
 
 // 탭 관련 상태
-type TabType = 'trending' | 'recent';
+type TabType = 'feed' | 'trending' | 'recent';
 type PeriodType = 'today' | 'week' | 'month' | 'year';
 
 const currentTab = ref<TabType>('trending');
@@ -88,7 +90,28 @@ async function loadPosts(page: number = 0, append: boolean = false) {
 
     let response: PageResponse<PostSummaryResponse>;
 
-    if (currentTab.value === 'trending') {
+    if (currentTab.value === 'feed') {
+      // 팔로잉 목록이 로드되지 않았으면 먼저 로드
+      if (!followStore.followingIdsLoaded) {
+        await followStore.loadFollowingIds();
+      }
+
+      // 팔로잉이 없으면 빈 응답 반환
+      if (followStore.followingIds.length === 0) {
+        response = {
+          content: [],
+          number: 0,
+          size: pageSize.value,
+          totalElements: 0,
+          totalPages: 0,
+          first: true,
+          last: true,
+          empty: true,
+        } as PageResponse<PostSummaryResponse>;
+      } else {
+        response = await getFeed(followStore.followingIds, page, pageSize.value);
+      }
+    } else if (currentTab.value === 'trending') {
       response = await getTrendingPosts(currentPeriod.value, page, pageSize.value);
     } else {
       response = await getPublishedPosts(page, pageSize.value);
@@ -202,8 +225,13 @@ function updateQueryParams() {
 function initializeFromQuery() {
   const { tab, period } = route.query;
 
-  if (tab === 'trending' || tab === 'recent') {
-    currentTab.value = tab as TabType;
+  if (tab === 'feed' || tab === 'trending' || tab === 'recent') {
+    // 피드 탭은 로그인한 사용자만 접근 가능
+    if (tab === 'feed' && !authStore.isAuthenticated) {
+      currentTab.value = 'trending';
+    } else {
+      currentTab.value = tab as TabType;
+    }
   }
 
   if (period === 'today' || period === 'week' || period === 'month' || period === 'year') {
@@ -292,6 +320,21 @@ onBeforeUnmount(() => {
       <div v-if="!isSearchMode" class="mb-6">
         <!-- 탭 버튼 -->
         <div class="flex items-center gap-2 border-b border-border mb-4">
+          <!-- 피드 탭 (로그인 시에만 표시) -->
+          <button
+              v-if="authStore.isAuthenticated"
+              @click="changeTab('feed')"
+              class="px-4 py-3 font-medium text-sm relative transition-colors"
+              :class="currentTab === 'feed'
+                ? 'text-brand-primary'
+                : 'text-text-meta hover:text-text-body'"
+          >
+            📬 피드
+            <div
+                v-if="currentTab === 'feed'"
+                class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary"
+            ></div>
+          </button>
           <button
               @click="changeTab('trending')"
               class="px-4 py-3 font-medium text-sm relative transition-colors"
@@ -353,19 +396,34 @@ onBeforeUnmount(() => {
 
       <!-- Empty State -->
       <Card v-else-if="isEmpty" class="text-center py-20">
-        <div class="text-6xl mb-4">{{ isSearchMode ? '🔍' : '📭' }}</div>
+        <div class="text-6xl mb-4">{{ isSearchMode ? '🔍' : (currentTab === 'feed' ? '👋' : '📭') }}</div>
         <h3 class="text-2xl font-bold text-text-heading mb-2">
-          {{ isSearchMode ? '검색 결과가 없습니다' : '아직 게시글이 없습니다' }}
+          <template v-if="isSearchMode">검색 결과가 없습니다</template>
+          <template v-else-if="currentTab === 'feed'">
+            {{ followStore.followingIds.length === 0 ? '팔로우하는 사용자가 없습니다' : '피드가 비어있습니다' }}
+          </template>
+          <template v-else>아직 게시글이 없습니다</template>
         </h3>
         <p class="text-text-meta mb-6">
-          {{ isSearchMode ? '다른 검색어를 시도해보세요.' : '첫 게시글을 작성해보세요!' }}
+          <template v-if="isSearchMode">다른 검색어를 시도해보세요.</template>
+          <template v-else-if="currentTab === 'feed'">
+            {{ followStore.followingIds.length === 0 ? '관심 있는 사용자를 팔로우해보세요!' : '팔로우한 사용자들이 아직 게시글을 작성하지 않았습니다.' }}
+          </template>
+          <template v-else>첫 게시글을 작성해보세요!</template>
         </p>
         <Button
-            v-if="!isSearchMode && authStore.isAuthenticated"
+            v-if="!isSearchMode && authStore.isAuthenticated && currentTab !== 'feed'"
             variant="primary"
             @click="router.push('/write')"
         >
           첫 글 작성하기
+        </Button>
+        <Button
+            v-if="currentTab === 'feed' && followStore.followingIds.length === 0"
+            variant="primary"
+            @click="changeTab('trending')"
+        >
+          트렌딩 게시글 보기
         </Button>
       </Card>
 

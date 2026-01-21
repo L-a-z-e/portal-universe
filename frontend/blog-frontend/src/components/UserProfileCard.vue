@@ -1,12 +1,27 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Avatar, Card } from '@portal/design-system-vue';
 import type { UserProfileResponse } from '@/dto/user';
+import FollowButton from './FollowButton.vue';
+import FollowerModal from './FollowerModal.vue';
 
 interface Props {
   user: UserProfileResponse;
+  isCurrentUser?: boolean;
 }
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  isCurrentUser: false
+});
+
+const emit = defineEmits<{
+  followChanged: [followerCount: number, followingCount: number];
+}>();
+
+// State
+const followerCount = ref(props.user.followerCount);
+const followingCount = ref(props.user.followingCount);
+const modalOpen = ref(false);
+const modalType = ref<'followers' | 'following'>('followers');
 
 // 가입일 포맷팅
 const formattedDate = computed(() => {
@@ -24,6 +39,24 @@ const websiteUrl = computed(() => {
     ? props.user.website
     : `https://${props.user.website}`;
 });
+
+// 팔로우 변경 처리
+function handleFollowChanged(following: boolean, newFollowerCount: number, newFollowingCount: number) {
+  followerCount.value = newFollowerCount;
+  followingCount.value = newFollowingCount;
+  emit('followChanged', newFollowerCount, newFollowingCount);
+}
+
+// 팔로워/팔로잉 모달 열기
+function openFollowerModal() {
+  modalType.value = 'followers';
+  modalOpen.value = true;
+}
+
+function openFollowingModal() {
+  modalType.value = 'following';
+  modalOpen.value = true;
+}
 </script>
 
 <template>
@@ -33,7 +66,7 @@ const websiteUrl = computed(() => {
       <div class="avatar-section">
         <Avatar
           :src="user.profileImageUrl"
-          :name="user.name || user.username || user.email"
+          :name="user.nickname || user.username || user.email"
           size="2xl"
           class="profile-avatar"
         />
@@ -41,11 +74,32 @@ const websiteUrl = computed(() => {
 
       <!-- 프로필 정보 -->
       <div class="info-section">
-        <!-- 이름 -->
-        <h2 class="user-name">{{ user.name }}</h2>
+        <!-- 이름 + 팔로우 버튼 -->
+        <div class="name-row">
+          <h2 class="user-name">{{ user.nickname }}</h2>
+          <FollowButton
+            v-if="!isCurrentUser && user.username"
+            :username="user.username"
+            :target-uuid="user.uuid"
+            size="sm"
+            @follow-changed="handleFollowChanged"
+          />
+        </div>
 
         <!-- Username -->
         <p v-if="user.username" class="username">@{{ user.username }}</p>
+
+        <!-- 팔로워/팔로잉 수 -->
+        <div class="follow-stats">
+          <button class="stat-button" @click="openFollowerModal">
+            <span class="stat-count">{{ followerCount }}</span>
+            <span class="stat-label">팔로워</span>
+          </button>
+          <button class="stat-button" @click="openFollowingModal">
+            <span class="stat-count">{{ followingCount }}</span>
+            <span class="stat-label">팔로잉</span>
+          </button>
+        </div>
 
         <!-- Bio -->
         <p v-if="user.bio" class="bio">{{ user.bio }}</p>
@@ -83,6 +137,15 @@ const websiteUrl = computed(() => {
         </div>
       </div>
     </div>
+
+    <!-- 팔로워/팔로잉 모달 -->
+    <FollowerModal
+      v-if="user.username"
+      :username="user.username"
+      :is-open="modalOpen"
+      :type="modalType"
+      @close="modalOpen = false"
+    />
   </Card>
 </template>
 
@@ -110,11 +173,53 @@ const websiteUrl = computed(() => {
   width: 100%;
 }
 
+.name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .user-name {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text-heading);
   margin: 0;
+}
+
+/* 팔로우 통계 */
+.follow-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.stat-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: background 0.2s;
+}
+
+.stat-button:hover {
+  background: var(--color-surface-alt);
+}
+
+.stat-count {
+  font-weight: 700;
+  color: var(--color-text-heading);
+}
+
+.stat-label {
+  color: var(--color-text-meta);
+  font-size: 0.875rem;
 }
 
 .username {
@@ -180,6 +285,14 @@ const websiteUrl = computed(() => {
 
   .info-section {
     align-items: flex-start;
+  }
+
+  .name-row {
+    justify-content: flex-start;
+  }
+
+  .follow-stats {
+    justify-content: flex-start;
   }
 
   .website-link {
