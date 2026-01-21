@@ -41,7 +41,7 @@ const websiteUrl = computed(() => {
 });
 
 // 팔로우 변경 처리
-function handleFollowChanged(following: boolean, newFollowerCount: number, newFollowingCount: number) {
+function handleFollowChanged(_following: boolean, newFollowerCount: number, newFollowingCount: number) {
   followerCount.value = newFollowerCount;
   followingCount.value = newFollowingCount;
   emit('followChanged', newFollowerCount, newFollowingCount);
@@ -65,7 +65,7 @@ function openFollowingModal() {
       <!-- 프로필 이미지 -->
       <div class="avatar-section">
         <Avatar
-          :src="user.profileImageUrl"
+          :src="user.profileImageUrl ?? undefined"
           :name="user.nickname || user.username || user.email"
           size="2xl"
           class="profile-avatar"

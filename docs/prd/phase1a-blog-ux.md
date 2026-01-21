@@ -441,6 +441,10 @@ GET /api/v1/blog/tags/{tagName}/stats  - 태그 통계 (게시글 수)
 
 ### 2.6 메인 페이지 탭 개선
 
+> **구현 상태**: ✅ Phase 3 완료 (2026-01-21)
+>
+> 트렌딩 알고리즘이 시간 가중치 기반으로 구현되었습니다.
+
 #### 사용자 스토리
 ```
 As a 독자
@@ -454,13 +458,23 @@ So that 내 관심사에 맞는 콘텐츠를 효율적으로 탐색할 수 있�
 
 1. **트렌딩 API**
    ```
-   GET /api/v1/blog/posts/trending?period={today|week|month}&page=0&size=20
+   GET /api/v1/blog/posts/trending?period={today|week|month|year}&page=0&size=20
    ```
 
-2. **트렌딩 계산 로직**
-   - Score = `(likeCount * 3) + (viewCount * 1) + (commentCount * 5)`
-   - Time decay: 최근 게시글 가중치 부여
-   - 기간 필터: 오늘, 이번 주, 이번 달
+2. **트렌딩 계산 로직** ✅ 구현됨
+   ```java
+   // PostServiceImpl.java
+   score = (views * 1 + likes * 3 + comments * 5) * timeDecay
+
+   // 시간 감쇠: decay = 2^(-hoursElapsed / halfLife)
+   // 기간별 반감기:
+   //   today: 6시간 | week: 48시간 | month: 168시간 | year: 720시간
+   ```
+   - 조회수: 기본 참여 지표 (가중치 1)
+   - 좋아요: 적극적 참여 (가중치 3)
+   - 댓글: 최고 참여 (가중치 5) → Post.commentCount 필드 추가됨
+   - Time decay: 지수 감쇠 함수로 최신 게시글 우선
+   - 기간 필터: 오늘, 이번 주, 이번 달, 올해
 
 3. **최신 게시글 API** (기존)
    ```
@@ -911,8 +925,40 @@ export const usePostStore = defineStore('post', () => {
 
 ---
 
-## 9. 변경 이력
+## 9. 구현 상태
+
+### Phase 1-A (Blog UX Enhancement) ✅ 완료
+- 좋아요 시스템
+- 이전/다음 포스트 네비게이션
+- 시리즈 API 및 UI
+- 상세 페이지 개선
+- 태그 페이지
+- 메인 페이지 탭 개선
+- 대댓글 UI 개선
+
+### Phase 1-B (User Profile & My Page) ✅ 완료
+- 사용자 프로필 조회
+- 내 페이지 (MyPage)
+- 사용자 설정
+
+### Phase 2 (Follow/Feed) ✅ 완료
+- 팔로우/언팔로우 기능
+- 팔로워/팔로잉 목록
+- 피드 탭 (팔로잉 사용자의 게시글)
+
+### Phase 3 (Trending Algorithm) ✅ 완료 (2026-01-21)
+- Post 엔티티에 `commentCount` 필드 추가
+- 댓글 생성/삭제 시 `commentCount` 자동 업데이트
+- 시간 가중치 트렌딩 점수 알고리즘 구현
+  - 공식: `score = (views * 1 + likes * 3 + comments * 5) * timeDecay`
+  - 지수 감쇠: `decay = 2^(-hoursElapsed / halfLife)`
+- PostSummaryResponse에 `commentCount` 필드 추가
+
+---
+
+## 10. 변경 이력
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
 | 1.0 | 2026-01-21 | 초기 작성 | - |
+| 1.1 | 2026-01-21 | Phase 3 트렌딩 알고리즘 구현 완료, 구현 상태 섹션 추가 | Claude |

@@ -16,6 +16,7 @@ public record PostSummaryResponse(
         List<String> images,
         Long viewCount,
         Long likeCount,
+        Long commentCount,  // Phase 3: 댓글 수 추가
         LocalDateTime publishedAt,
         int estimatedReadTime
 ) {}

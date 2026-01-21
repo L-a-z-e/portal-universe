@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from "portal/authStore";
-import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { getPublishedPosts, getTrendingPosts, getFeed } from "../api/posts";
 import type { PostSummaryResponse } from "../dto/post";
@@ -107,7 +107,17 @@ async function loadPosts(page: number = 0, append: boolean = false) {
           first: true,
           last: true,
           empty: true,
-        } as PageResponse<PostSummaryResponse>;
+          numberOfElements: 0,
+          pageable: {
+            pageNumber: 0,
+            pageSize: pageSize.value,
+            sort: { empty: true, sorted: false, unsorted: true },
+            offset: 0,
+            paged: true,
+            unpaged: false,
+          },
+          sort: { empty: true, sorted: false, unsorted: true },
+        };
       } else {
         response = await getFeed(followStore.followingIds, page, pageSize.value);
       }

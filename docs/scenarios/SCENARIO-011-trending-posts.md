@@ -1,11 +1,12 @@
 ---
-id: SCENARIO-008
+id: SCENARIO-011
 title: 트렌딩 게시글 시나리오
 type: scenario
-status: current
+status: implemented
 created: 2026-01-21
 updated: 2026-01-21
 author: Laze
+implementation_date: 2026-01-21
 tags:
   - blog
   - trending
@@ -167,47 +168,81 @@ sequenceDiagram
 
 ## Trending Score Formula
 
-### 기본 점수 계산
+> **구현 상태**: Phase 3 구현 완료 (2026-01-21)
+>
+> 현재 구현은 메모리 내 계산 방식을 사용합니다.
+> 추후 Redis 캐싱 최적화가 예정되어 있습니다.
 
-```javascript
-const calculateBaseScore = (post) => {
-  const viewWeight = 1
-  const likeWeight = 10
-  const commentWeight = 20
+### 기본 점수 계산 (구현됨)
 
-  return (
-    post.viewCount * viewWeight +
-    post.likeCount * likeWeight +
-    post.commentCount * commentWeight
-  )
+```java
+// PostServiceImpl.java - calculateTrendingScore()
+private double calculateTrendingScore(Post post, String period) {
+    // 기본 점수 (가중치 적용)
+    double viewScore = post.getViewCount() * 1.0;      // 조회: 기본 참여
+    double likeScore = post.getLikeCount() * 3.0;      // 좋아요: 적극적 참여
+    double commentScore = post.getCommentCount() * 5.0; // 댓글: 최고 참여
+
+    double baseScore = viewScore + likeScore + commentScore;
+
+    // 시간 감쇠 계산
+    double timeDecay = calculateTimeDecay(post.getPublishedAt(), period);
+
+    return baseScore * timeDecay;
 }
 ```
 
-### 시간 감쇠 적용
+### 시간 감쇠 적용 (구현됨)
 
-```javascript
-const calculateDecay = (publishedDate) => {
-  const ageHours = (Date.now() - publishedDate) / (1000 * 60 * 60)
-  const halfLife = 24  // 24시간마다 점수 절반으로 감소
-  return Math.exp(-ageHours / halfLife)
-}
+```java
+// PostServiceImpl.java - calculateTimeDecay()
+private double calculateTimeDecay(LocalDateTime publishedAt, String period) {
+    if (publishedAt == null) {
+        return 0.1; // 발행일이 없으면 최소 점수
+    }
 
-const calculateTrendingScore = (post) => {
-  const baseScore = calculateBaseScore(post)
-  const decay = calculateDecay(post.publishedDate)
-  return baseScore * decay
+    long hoursElapsed = Duration.between(publishedAt, LocalDateTime.now()).toHours();
+
+    // 기간별 반감기 설정 (시간 단위)
+    double halfLife = switch (period) {
+        case "today" -> 6.0;    // 6시간마다 점수 반감
+        case "week" -> 48.0;    // 48시간(2일)마다 점수 반감
+        case "month" -> 168.0;  // 168시간(7일)마다 점수 반감
+        case "year" -> 720.0;   // 720시간(30일)마다 점수 반감
+        default -> 48.0;        // 기본값: 2일
+    };
+
+    // 지수 감쇠: decay = 2^(-hoursElapsed / halfLife)
+    return Math.pow(2, -hoursElapsed / halfLife);
 }
 ```
 
-### 예시
+### 가중치 설명
 
-| 게시글 | 조회수 | 좋아요 | 댓글 | 작성일 | 기본 점수 | 감쇠 | 최종 점수 |
-|--------|--------|--------|------|--------|----------|------|----------|
-| A | 1000 | 50 | 10 | 2시간 전 | 1700 | 0.92 | 1564 |
-| B | 500 | 100 | 20 | 12시간 전 | 1900 | 0.61 | 1159 |
-| C | 2000 | 30 | 5 | 1일 전 | 2400 | 0.37 | 888 |
+| 지표 | 가중치 | 설명 |
+|------|--------|------|
+| 조회수 | 1 | 기본 참여 지표, 쉽게 발생 |
+| 좋아요 | 3 | 적극적 참여, 로그인 필요 |
+| 댓글 | 5 | 최고 참여, 콘텐츠 품질 반영 |
 
-→ 순위: A > B > C
+### 기간별 반감기
+
+| 기간 | 반감기 | 설명 |
+|------|--------|------|
+| today | 6시간 | 빠른 순환, 실시간 트렌드 |
+| week | 48시간 | 2일 기준, 주간 인기 |
+| month | 168시간 | 7일 기준, 꾸준한 인기 |
+| year | 720시간 | 30일 기준, 장기 인기 |
+
+### 예시 (현재 구현 기준)
+
+| 게시글 | 조회수 | 좋아요 | 댓글 | 작성일 | 기본 점수 | 감쇠 (week) | 최종 점수 |
+|--------|--------|--------|------|--------|----------|-------------|----------|
+| A | 1000 | 50 | 10 | 2시간 전 | 1200 | 0.97 | 1164 |
+| B | 500 | 100 | 20 | 12시간 전 | 900 | 0.84 | 756 |
+| C | 2000 | 30 | 5 | 2일 전 | 2115 | 0.50 | 1058 |
+
+→ 순위: A > C > B (최신 + 높은 참여도가 유리)
 
 ## API Endpoints
 
@@ -392,6 +427,39 @@ score = log10(upvotes) + (timestamp / 45000)
 2. **IP 기반 중복 제거**: 동일 IP에서 1시간 내 중복 조회 무시
 3. **봇 필터링**: User-Agent 검증
 4. **최소 임계값**: 조회수 10 이상만 트렌딩 진입
+
+## Implementation Notes (Phase 3)
+
+### 구현 완료 항목 (2026-01-21)
+
+1. **Post 엔티티 확장**
+   - `commentCount` 필드 추가
+   - `incrementCommentCount()`, `decrementCommentCount()` 메서드 추가
+   - 파일: `services/blog-service/.../post/domain/Post.java`
+
+2. **CommentRepository 확장**
+   - `countByPostIdAndIsDeletedFalse()` 메서드 추가
+   - 파일: `services/blog-service/.../comment/repository/CommentRepository.java`
+
+3. **CommentService 연동**
+   - 댓글 생성/삭제 시 게시물의 `commentCount` 자동 업데이트
+   - 파일: `services/blog-service/.../comment/service/CommentService.java`
+
+4. **트렌딩 점수 알고리즘**
+   - 시간 가중치 복합 점수 계산 구현
+   - 메모리 내 정렬 방식 (추후 Redis 최적화 예정)
+   - 파일: `services/blog-service/.../post/service/PostServiceImpl.java`
+
+5. **DTO 업데이트**
+   - `PostSummaryResponse`에 `commentCount` 필드 추가
+   - 백엔드/프론트엔드 동기화 완료
+
+### 추후 개선 사항
+
+1. **Redis 캐싱**: 트렌딩 점수를 Redis Sorted Set에 캐싱하여 성능 최적화
+2. **스케줄러**: 주기적 트렌딩 점수 재계산 및 캐시 갱신
+3. **순위 변동 추적**: 이전 순위 대비 변동 표시
+4. **최소 임계값**: 조회수 10 이상만 트렌딩 대상 (스팸 방지)
 
 ## Related
 
