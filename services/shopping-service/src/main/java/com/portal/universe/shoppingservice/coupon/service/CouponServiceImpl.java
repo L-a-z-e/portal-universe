@@ -79,7 +79,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     @Transactional
-    public UserCouponResponse issueCoupon(Long couponId, Long userId) {
+    public UserCouponResponse issueCoupon(Long couponId, String userId) {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.COUPON_NOT_FOUND));
 
@@ -132,7 +132,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    public List<UserCouponResponse> getUserCoupons(Long userId) {
+    public List<UserCouponResponse> getUserCoupons(String userId) {
         return userCouponRepository.findByUserId(userId)
                 .stream()
                 .map(UserCouponResponse::from)
@@ -140,7 +140,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    public List<UserCouponResponse> getAvailableUserCoupons(Long userId) {
+    public List<UserCouponResponse> getAvailableUserCoupons(String userId) {
         LocalDateTime now = LocalDateTime.now();
         return userCouponRepository.findAvailableByUserId(userId, now)
                 .stream()
@@ -192,7 +192,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    public void validateCouponForOrder(Long userCouponId, Long userId, java.math.BigDecimal orderAmount) {
+    public void validateCouponForOrder(Long userCouponId, String userId, java.math.BigDecimal orderAmount) {
         UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.USER_COUPON_NOT_FOUND));
 

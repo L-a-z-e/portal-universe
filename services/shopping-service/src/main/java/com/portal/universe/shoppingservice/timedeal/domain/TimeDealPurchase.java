@@ -21,8 +21,8 @@ public class TimeDealPurchase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "user_id", nullable = false, length = 36)
+    private String userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "time_deal_product_id", nullable = false)
@@ -41,7 +41,7 @@ public class TimeDealPurchase {
     private LocalDateTime purchasedAt = LocalDateTime.now();
 
     @Builder
-    public TimeDealPurchase(Long userId, TimeDealProduct timeDealProduct, Integer quantity,
+    public TimeDealPurchase(String userId, TimeDealProduct timeDealProduct, Integer quantity,
                             BigDecimal purchasePrice, Long orderId) {
         this.userId = userId;
         this.timeDealProduct = timeDealProduct;

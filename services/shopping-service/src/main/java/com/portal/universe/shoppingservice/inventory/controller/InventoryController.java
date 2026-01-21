@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -41,16 +40,14 @@ public class InventoryController {
      *
      * @param productId 상품 ID
      * @param request 초기 재고 정보
-     * @param jwt 인증 정보
+     * @param userId 사용자 ID
      * @return 생성된 재고 정보
      */
     @PostMapping("/{productId}")
     public ApiResponse<InventoryResponse> initializeInventory(
             @PathVariable Long productId,
             @Valid @RequestBody InventoryUpdateRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
-
-        String userId = jwt.getSubject();
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(inventoryService.initializeInventory(productId, request.quantity(), userId));
     }
 
@@ -59,16 +56,14 @@ public class InventoryController {
      *
      * @param productId 상품 ID
      * @param request 추가할 재고 정보
-     * @param jwt 인증 정보
+     * @param userId 사용자 ID
      * @return 업데이트된 재고 정보
      */
     @PutMapping("/{productId}/add")
     public ApiResponse<InventoryResponse> addStock(
             @PathVariable Long productId,
             @Valid @RequestBody InventoryUpdateRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
-
-        String userId = jwt.getSubject();
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(inventoryService.addStock(productId, request.quantity(), request.reason(), userId));
     }
 
@@ -83,7 +78,6 @@ public class InventoryController {
     public ApiResponse<Page<StockMovementResponse>> getStockMovements(
             @PathVariable Long productId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-
         return ApiResponse.success(inventoryService.getStockMovements(productId, pageable));
     }
 }

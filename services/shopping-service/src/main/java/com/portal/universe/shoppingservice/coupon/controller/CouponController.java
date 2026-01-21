@@ -6,7 +6,6 @@ import com.portal.universe.shoppingservice.coupon.dto.UserCouponResponse;
 import com.portal.universe.shoppingservice.coupon.service.CouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,8 +42,7 @@ public class CouponController {
     @PostMapping("/{couponId}/issue")
     public ApiResponse<UserCouponResponse> issueCoupon(
             @PathVariable Long couponId,
-            @AuthenticationPrincipal Jwt jwt) {
-        Long userId = Long.valueOf(jwt.getSubject());
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(couponService.issueCoupon(couponId, userId));
     }
 
@@ -52,8 +50,7 @@ public class CouponController {
      * 내 쿠폰 목록을 조회합니다.
      */
     @GetMapping("/my")
-    public ApiResponse<List<UserCouponResponse>> getMyCoupons(@AuthenticationPrincipal Jwt jwt) {
-        Long userId = Long.valueOf(jwt.getSubject());
+    public ApiResponse<List<UserCouponResponse>> getMyCoupons(@AuthenticationPrincipal String userId) {
         return ApiResponse.success(couponService.getUserCoupons(userId));
     }
 
@@ -61,8 +58,7 @@ public class CouponController {
      * 내 사용 가능한 쿠폰 목록을 조회합니다.
      */
     @GetMapping("/my/available")
-    public ApiResponse<List<UserCouponResponse>> getMyAvailableCoupons(@AuthenticationPrincipal Jwt jwt) {
-        Long userId = Long.valueOf(jwt.getSubject());
+    public ApiResponse<List<UserCouponResponse>> getMyAvailableCoupons(@AuthenticationPrincipal String userId) {
         return ApiResponse.success(couponService.getAvailableUserCoupons(userId));
     }
 }

@@ -11,14 +11,14 @@ public interface TimeDealPurchaseRepository extends JpaRepository<TimeDealPurcha
 
     @Query("SELECT COALESCE(SUM(p.quantity), 0) FROM TimeDealPurchase p " +
            "WHERE p.userId = :userId AND p.timeDealProduct.id = :timeDealProductId")
-    int getTotalPurchasedQuantity(@Param("userId") Long userId,
+    int getTotalPurchasedQuantity(@Param("userId") String userId,
                                    @Param("timeDealProductId") Long timeDealProductId);
 
-    List<TimeDealPurchase> findByUserId(Long userId);
+    List<TimeDealPurchase> findByUserId(String userId);
 
     @Query("SELECT p FROM TimeDealPurchase p " +
            "JOIN FETCH p.timeDealProduct tdp " +
            "JOIN FETCH tdp.product " +
            "WHERE p.userId = :userId")
-    List<TimeDealPurchase> findByUserIdWithProduct(@Param("userId") Long userId);
+    List<TimeDealPurchase> findByUserIdWithProduct(@Param("userId") String userId);
 }

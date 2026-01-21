@@ -34,7 +34,7 @@ public class CouponRedisService {
      *
      * @return 1: 성공, 0: 재고 소진, -1: 이미 발급됨
      */
-    public Long issueCoupon(Long couponId, Long userId, int maxQuantity) {
+    public Long issueCoupon(Long couponId, String userId, int maxQuantity) {
         String stockKey = COUPON_STOCK_KEY + couponId;
         String issuedKey = COUPON_ISSUED_KEY + couponId;
 
@@ -52,9 +52,9 @@ public class CouponRedisService {
     /**
      * 쿠폰이 이미 발급되었는지 확인합니다.
      */
-    public boolean isAlreadyIssued(Long couponId, Long userId) {
+    public boolean isAlreadyIssued(Long couponId, String userId) {
         String issuedKey = COUPON_ISSUED_KEY + couponId;
-        Boolean isMember = redisTemplate.opsForSet().isMember(issuedKey, String.valueOf(userId));
+        Boolean isMember = redisTemplate.opsForSet().isMember(issuedKey, userId);
         return Boolean.TRUE.equals(isMember);
     }
 
@@ -90,9 +90,9 @@ public class CouponRedisService {
     /**
      * 사용자의 쿠폰 발급 기록을 제거합니다 (발급 취소 시).
      */
-    public void removeIssuedUser(Long couponId, Long userId) {
+    public void removeIssuedUser(Long couponId, String userId) {
         String issuedKey = COUPON_ISSUED_KEY + couponId;
-        redisTemplate.opsForSet().remove(issuedKey, String.valueOf(userId));
+        redisTemplate.opsForSet().remove(issuedKey, userId);
     }
 
     /**

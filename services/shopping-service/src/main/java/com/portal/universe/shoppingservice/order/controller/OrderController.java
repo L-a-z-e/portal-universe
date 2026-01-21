@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -30,15 +29,13 @@ public class OrderController {
      * 장바구니가 체크아웃된 상태여야 합니다.
      *
      * @param request 주문 생성 요청
-     * @param jwt 인증 정보
+     * @param userId 사용자 ID
      * @return 생성된 주문 정보
      */
     @PostMapping
     public ApiResponse<OrderResponse> createOrder(
             @Valid @RequestBody CreateOrderRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
-
-        String userId = jwt.getSubject();
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(orderService.createOrder(userId, request));
     }
 
@@ -46,15 +43,13 @@ public class OrderController {
      * 사용자의 주문 목록을 조회합니다.
      *
      * @param pageable 페이징 정보
-     * @param jwt 인증 정보
+     * @param userId 사용자 ID
      * @return 주문 목록
      */
     @GetMapping
     public ApiResponse<Page<OrderResponse>> getUserOrders(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @AuthenticationPrincipal Jwt jwt) {
-
-        String userId = jwt.getSubject();
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(orderService.getUserOrders(userId, pageable));
     }
 
@@ -62,15 +57,13 @@ public class OrderController {
      * 주문 번호로 주문을 조회합니다.
      *
      * @param orderNumber 주문 번호
-     * @param jwt 인증 정보
+     * @param userId 사용자 ID
      * @return 주문 정보
      */
     @GetMapping("/{orderNumber}")
     public ApiResponse<OrderResponse> getOrder(
             @PathVariable String orderNumber,
-            @AuthenticationPrincipal Jwt jwt) {
-
-        String userId = jwt.getSubject();
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(orderService.getOrder(userId, orderNumber));
     }
 
@@ -79,16 +72,14 @@ public class OrderController {
      *
      * @param orderNumber 주문 번호
      * @param request 취소 요청
-     * @param jwt 인증 정보
+     * @param userId 사용자 ID
      * @return 취소된 주문 정보
      */
     @PostMapping("/{orderNumber}/cancel")
     public ApiResponse<OrderResponse> cancelOrder(
             @PathVariable String orderNumber,
             @Valid @RequestBody CancelOrderRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
-
-        String userId = jwt.getSubject();
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(orderService.cancelOrder(userId, orderNumber, request));
     }
 }

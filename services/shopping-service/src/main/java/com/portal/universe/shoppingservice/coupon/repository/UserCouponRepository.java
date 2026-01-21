@@ -12,21 +12,21 @@ import java.util.Optional;
 
 public interface UserCouponRepository extends JpaRepository<UserCoupon, Long> {
 
-    boolean existsByUserIdAndCouponId(Long userId, Long couponId);
+    boolean existsByUserIdAndCouponId(String userId, Long couponId);
 
-    Optional<UserCoupon> findByUserIdAndCouponId(Long userId, Long couponId);
+    Optional<UserCoupon> findByUserIdAndCouponId(String userId, Long couponId);
 
-    List<UserCoupon> findByUserId(Long userId);
+    List<UserCoupon> findByUserId(String userId);
 
     @Query("SELECT uc FROM UserCoupon uc JOIN FETCH uc.coupon " +
            "WHERE uc.userId = :userId AND uc.status = :status")
-    List<UserCoupon> findByUserIdAndStatus(@Param("userId") Long userId,
+    List<UserCoupon> findByUserIdAndStatus(@Param("userId") String userId,
                                             @Param("status") UserCouponStatus status);
 
     @Query("SELECT uc FROM UserCoupon uc JOIN FETCH uc.coupon " +
            "WHERE uc.userId = :userId AND uc.status = 'AVAILABLE' " +
            "AND uc.expiresAt > :now")
-    List<UserCoupon> findAvailableByUserId(@Param("userId") Long userId,
+    List<UserCoupon> findAvailableByUserId(@Param("userId") String userId,
                                             @Param("now") LocalDateTime now);
 
     @Query("SELECT uc FROM UserCoupon uc WHERE uc.status = 'AVAILABLE' " +

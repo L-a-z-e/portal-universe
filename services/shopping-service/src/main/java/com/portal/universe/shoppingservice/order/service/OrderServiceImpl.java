@@ -73,9 +73,8 @@ public class OrderServiceImpl implements OrderService {
 
         // 3. 쿠폰 적용 (선택 사항)
         if (request.userCouponId() != null) {
-            // 쿠폰 검증 (userId는 String이므로 Long으로 파싱)
-            Long userIdLong = Long.parseLong(userId);
-            couponService.validateCouponForOrder(request.userCouponId(), userIdLong, order.getTotalAmount());
+            // 쿠폰 검증
+            couponService.validateCouponForOrder(request.userCouponId(), userId, order.getTotalAmount());
 
             // 할인 금액 계산
             BigDecimal discountAmount = couponService.calculateDiscount(request.userCouponId(), order.getTotalAmount());

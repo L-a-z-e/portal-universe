@@ -8,7 +8,6 @@ import com.portal.universe.shoppingservice.timedeal.service.TimeDealService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,8 +44,7 @@ public class TimeDealController {
     @PostMapping("/purchase")
     public ApiResponse<TimeDealPurchaseResponse> purchaseTimeDeal(
             @Valid @RequestBody TimeDealPurchaseRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
-        Long userId = Long.valueOf(jwt.getSubject());
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(timeDealService.purchaseTimeDeal(userId, request));
     }
 
@@ -54,8 +52,7 @@ public class TimeDealController {
      * 내 타임딜 구매 내역을 조회합니다.
      */
     @GetMapping("/my/purchases")
-    public ApiResponse<List<TimeDealPurchaseResponse>> getMyPurchases(@AuthenticationPrincipal Jwt jwt) {
-        Long userId = Long.valueOf(jwt.getSubject());
+    public ApiResponse<List<TimeDealPurchaseResponse>> getMyPurchases(@AuthenticationPrincipal String userId) {
         return ApiResponse.success(timeDealService.getUserPurchases(userId));
     }
 }

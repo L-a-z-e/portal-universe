@@ -18,8 +18,8 @@ public class UserCoupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "user_id", nullable = false, length = 36)
+    private String userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id", nullable = false)
@@ -41,7 +41,7 @@ public class UserCoupon {
     private LocalDateTime expiresAt;
 
     @Builder
-    public UserCoupon(Long userId, Coupon coupon, LocalDateTime expiresAt) {
+    public UserCoupon(String userId, Coupon coupon, LocalDateTime expiresAt) {
         this.userId = userId;
         this.coupon = coupon;
         this.status = UserCouponStatus.AVAILABLE;
