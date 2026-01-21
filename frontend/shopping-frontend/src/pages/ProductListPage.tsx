@@ -110,7 +110,7 @@ const ProductListPage: React.FC = () => {
           <Input
             type="text"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
             placeholder="Search products..."
           />
           <Button type="submit" variant="primary">

@@ -117,7 +117,7 @@ export function CouponCard({
             </span>
             {onIssue && coupon.remainingQuantity > 0 && (
               <Button
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation()
                   onIssue(coupon.id)
                 }}

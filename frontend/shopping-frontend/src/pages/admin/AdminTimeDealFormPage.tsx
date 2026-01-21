@@ -165,7 +165,7 @@ export function AdminTimeDealFormPage() {
               required
               value={formData.productId}
               options={productOptions}
-              onChange={(value) => handleProductChange(Number(value))}
+              onChange={(value: string) => handleProductChange(Number(value))}
               error={!!errors.productId}
               errorMessage={errors.productId}
             />
@@ -209,7 +209,7 @@ export function AdminTimeDealFormPage() {
               required
               type="number"
               value={formData.dealPrice || ''}
-              onChange={(e) => handleChange('dealPrice', parseInt(e.target.value) || 0)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('dealPrice', parseInt(e.target.value) || 0)}
               placeholder="할인된 가격"
               min={0}
               error={!!errors.dealPrice}
@@ -251,7 +251,7 @@ export function AdminTimeDealFormPage() {
               required
               type="number"
               value={formData.totalStock || ''}
-              onChange={(e) => handleChange('totalStock', parseInt(e.target.value) || 0)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('totalStock', parseInt(e.target.value) || 0)}
               placeholder="100"
               min={1}
               error={!!errors.totalStock}
@@ -263,7 +263,7 @@ export function AdminTimeDealFormPage() {
               required
               type="number"
               value={formData.purchaseLimit || ''}
-              onChange={(e) => handleChange('purchaseLimit', parseInt(e.target.value) || 0)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('purchaseLimit', parseInt(e.target.value) || 0)}
               placeholder="1"
               min={1}
               error={!!errors.purchaseLimit}
@@ -282,7 +282,7 @@ export function AdminTimeDealFormPage() {
               required
               type="datetime-local"
               value={formData.startsAt}
-              onChange={(e) => handleChange('startsAt', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('startsAt', e.target.value)}
               error={!!errors.startsAt}
               errorMessage={errors.startsAt}
             />
@@ -292,7 +292,7 @@ export function AdminTimeDealFormPage() {
               required
               type="datetime-local"
               value={formData.endsAt}
-              onChange={(e) => handleChange('endsAt', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('endsAt', e.target.value)}
               error={!!errors.endsAt}
               errorMessage={errors.endsAt}
             />
