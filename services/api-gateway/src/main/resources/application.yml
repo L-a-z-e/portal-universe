@@ -78,6 +78,19 @@ spring:
                 fallbackUri: forward:/fallback/auth
           order: 4
 
+        # Profile API - /auth-service prefix (인증 필요)
+        - id: auth-service-profile
+          uri: ${services.auth.url}
+          predicates:
+            - Path=/auth-service/api/profile/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+          order: 3
+
         # Auth REST API (OIDC 아님: 필터 미적용)
         # Auth User API (Signup, Profile, etc.)
         - id: auth-service-users

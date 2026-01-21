@@ -87,6 +87,22 @@ public class SecurityConfig {
     }
 
     /**
+     * Auth Service 전용 보안 설정 (JWT 검증 없이 통과)
+     * Auth Service는 자체적으로 HMAC 기반 JWT를 검증하므로 Gateway에서는 검증하지 않습니다.
+     * @param http ServerHttpSecurity 객체
+     * @return SecurityWebFilterChain Auth Service 전용 보안 필터 체인
+     */
+    @Bean
+    @Order(0)
+    public SecurityWebFilterChain authServiceSecurityFilterChain(ServerHttpSecurity http) {
+        return http
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/auth-service/**", "/api/auth/**", "/api/users/**"))
+                .authorizeExchange(authorize -> authorize.anyExchange().permitAll())
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .build();
+    }
+
+    /**
      * 전체 API에 대한 통합 보안 설정을 담당합니다.
      * @param http ServerHttpSecurity 객체
      * @return SecurityWebFilterChain 보안 필터 체인
@@ -99,8 +115,6 @@ public class SecurityConfig {
                         // ========================================
                         // [공개] 인증 없이 접근 가능
                         // ========================================
-                        .pathMatchers("/auth-service/**").permitAll()
-                        .pathMatchers("/api/users/**").permitAll()
                         // Shopping Service - 상품/카테고리 조회는 공개
                         .pathMatchers("/api/shopping/products", "/api/shopping/products/**").permitAll()
                         .pathMatchers("/api/shopping/categories", "/api/shopping/categories/**").permitAll()
