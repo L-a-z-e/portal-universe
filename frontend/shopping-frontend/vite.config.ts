@@ -17,24 +17,9 @@ export default defineConfig(({ mode }) => {
   console.log('🔧 [Shopping] Building for mode:', mode)
   console.log('🔧 [Shopping] Portal Remote URL:', env.VITE_PORTAL_SHELL_REMOTE_URL || '(using default)')
 
-  // 환경별 base 설정 - Module Federation chunk 파일 로드 경로
-  // vite-plugin-federation은 Vite의 base 옵션을 사용하여 remoteEntry.js 내 chunk 경로를 결정함
-  const basePaths: Record<string, string> = {
-    dev: 'http://localhost:30002/',
-    docker: 'http://shopping-frontend/',
-    k8s: 'http://shopping-frontend.portal-universe.svc.cluster.local/',
-  }
-
-  // 환경별 Portal Shell remote URL (themeStore 등 import용)
-  const portalRemoteUrls: Record<string, string> = {
-    dev: 'http://localhost:30000/assets/shellEntry.js',
-    docker: 'http://portal-shell/assets/shellEntry.js',
-    k8s: 'http://portal-shell.portal-universe.svc.cluster.local/assets/shellEntry.js',
-  }
-  const portalRemoteUrl = env.VITE_PORTAL_SHELL_REMOTE_URL || portalRemoteUrls[mode] || portalRemoteUrls.dev
-
+  // base 설정 제거 - 상대 경로 사용 (blog-frontend와 동일)
+  // vite-plugin-federation이 import.meta.url 기준으로 chunk 경로를 동적 해석
   return {
-    base: basePaths[mode] || 'http://localhost:30002/',
 
     plugins: [
       react(),
@@ -42,7 +27,8 @@ export default defineConfig(({ mode }) => {
         name: 'shopping-frontend',
         filename: 'remoteEntry.js',
         remotes: {
-          portal: portalRemoteUrl,
+          portal: env.VITE_PORTAL_SHELL_REMOTE_URL,
+          shopping: env.VITE_SHOPPING_REMOTE_URL,
         },
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
