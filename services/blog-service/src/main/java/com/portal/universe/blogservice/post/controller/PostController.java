@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -28,9 +27,8 @@ public class PostController {
     @PostMapping
     public ApiResponse<PostResponse> createPost(
             @Valid @RequestBody PostCreateRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         PostResponse response = postService.createPost(request, authorId);
         return ApiResponse.success(response);
     }
@@ -55,9 +53,8 @@ public class PostController {
     @GetMapping("/{postId}/view")
     public ApiResponse<PostResponse> getPostWithViewIncrement(
             @Parameter(description = "게시물 ID") @PathVariable String postId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String userId
     ) {
-        String userId = jwt != null ? jwt.getSubject() : null;
         PostResponse response = postService.getPostByIdWithViewIncrement(postId, userId);
         return ApiResponse.success(response);
     }
@@ -67,9 +64,8 @@ public class PostController {
     public ApiResponse<PostResponse> updatePost(
             @Parameter(description = "게시물 ID") @PathVariable String postId,
             @Valid @RequestBody PostUpdateRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String userId
     ) {
-        String userId = jwt.getSubject();
         PostResponse response = postService.updatePost(postId, request, userId);
         return ApiResponse.success(response);
     }
@@ -78,9 +74,8 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> deletePost(
             @Parameter(description = "게시물 ID") @PathVariable String postId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String userId
     ) {
-        String userId = jwt.getSubject();
         postService.deletePost(postId, userId);
         return ApiResponse.success(null);
     }
@@ -112,9 +107,8 @@ public class PostController {
             @RequestParam(required = false) PostStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         if (status != null) {
             Page<PostSummaryResponse> posts = postService.getPostsByAuthorAndStatus(authorId, status, page, size);
             return ApiResponse.success(posts);
@@ -211,9 +205,8 @@ public class PostController {
     public ApiResponse<PostResponse> changePostStatus(
             @Parameter(description = "게시물 ID") @PathVariable String postId,
             @Valid @RequestBody PostStatusChangeRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String userId
     ) {
-        String userId = jwt.getSubject();
         PostResponse response = postService.changePostStatus(postId, request.newStatus(), userId);
         return ApiResponse.success(response);
     }

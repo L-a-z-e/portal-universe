@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -26,10 +25,9 @@ public class CommentController {
     @PostMapping
     public ApiResponse<CommentResponse> createComment(
             @Valid @RequestBody CommentCreateRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId,
+            @RequestHeader(value = "X-User-Name", required = false) String authorName
     ) {
-        String authorId = jwt.getSubject();
-        String authorName = jwt.getClaim("name");
         CommentResponse response = commentService.createComment(request, authorId, authorName);
         return ApiResponse.success(response);
     }
@@ -39,9 +37,8 @@ public class CommentController {
     public ApiResponse<CommentResponse> updateComment(
             @Parameter(description = "댓글 ID") @PathVariable String commentId,
             @Valid @RequestBody CommentUpdateRequest request,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         CommentResponse response = commentService.updateComment(commentId, request, authorId);
         return ApiResponse.success(response);
     }
@@ -50,9 +47,8 @@ public class CommentController {
     @DeleteMapping("/{commentId}")
     public ApiResponse<Void> deleteComment(
             @Parameter(description = "댓글 ID") @PathVariable String commentId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String authorId
     ) {
-        String authorId = jwt.getSubject();
         commentService.deleteComment(commentId, authorId);
         return ApiResponse.success(null);
     }

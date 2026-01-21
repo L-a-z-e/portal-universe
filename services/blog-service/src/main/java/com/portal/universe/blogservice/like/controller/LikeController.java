@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -36,10 +35,9 @@ public class LikeController {
     @PostMapping("/like")
     public ApiResponse<LikeToggleResponse> toggleLike(
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String userId,
+            @RequestHeader(value = "X-User-Name", required = false) String userName
     ) {
-        String userId = jwt.getSubject();
-        String userName = jwt.getClaim("name");
         LikeToggleResponse response = likeService.toggleLike(postId, userId, userName);
         return ApiResponse.success(response);
     }
@@ -51,9 +49,8 @@ public class LikeController {
     @GetMapping("/like")
     public ApiResponse<LikeStatusResponse> getLikeStatus(
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal String userId
     ) {
-        String userId = jwt.getSubject();
         LikeStatusResponse response = likeService.getLikeStatus(postId, userId);
         return ApiResponse.success(response);
     }
