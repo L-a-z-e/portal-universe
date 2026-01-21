@@ -17,8 +17,11 @@
 |----|------|------|----------|
 | SCENARIO-001 | [선착순 쿠폰 발급](./SCENARIO-001-coupon-issue.md) | Current | 쿠폰 시스템 |
 | SCENARIO-002 | [주문/결제 Saga](./SCENARIO-002-order-saga.md) | Current | 주문/결제/배송 |
-| SCENARIO-003 | [타임딜 구매](./SCENARIO-003-timedeal-purchase.md) | Planned | 타임딜 |
-| SCENARIO-004 | [대기열 시스템](./SCENARIO-004-queue-system.md) | Planned | 대기열 |
+| SCENARIO-003 | [마이프로필 조회 및 관리](./SCENARIO-003-my-profile.md) | Current | 사용자 프로필 |
+| SCENARIO-004 | [타임딜 구매](./SCENARIO-004-timedeal-purchase.md) | Planned | 타임딜 |
+| SCENARIO-005 | [대기열 시스템](./SCENARIO-005-queue-system.md) | Planned | 대기열 |
+| SCENARIO-006 | [서비스 상태 모니터링](./SCENARIO-006-service-status.md) | Current | 서비스 모니터링 |
+| SCENARIO-007 | [Settings Page 사용자 설정 관리](./SCENARIO-007-settings-page.md) | Current | 사용자 설정 |
 
 ## 작성 가이드
 

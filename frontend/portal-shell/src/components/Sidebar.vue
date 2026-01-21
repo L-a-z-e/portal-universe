@@ -178,6 +178,34 @@ const navigate = (path: string) => {
 
     <!-- Bottom Section -->
     <div class="border-t border-border-default p-3 space-y-2 shrink-0">
+      <!-- Service Status -->
+      <button
+        @click="navigate('/status')"
+        :class="[
+          'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
+          isActive('/status', true)
+            ? 'bg-brand-primary/10 text-brand-primary'
+            : 'text-text-body hover:bg-bg-elevated hover:text-text-heading'
+        ]"
+      >
+        <span class="text-lg shrink-0">📊</span>
+        <span v-if="!isCollapsed" class="font-medium whitespace-nowrap">Status</span>
+      </button>
+
+      <!-- Settings -->
+      <button
+        @click="navigate('/settings')"
+        :class="[
+          'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
+          isActive('/settings', true)
+            ? 'bg-brand-primary/10 text-brand-primary'
+            : 'text-text-body hover:bg-bg-elevated hover:text-text-heading'
+        ]"
+      >
+        <span class="text-lg shrink-0">⚙️</span>
+        <span v-if="!isCollapsed" class="font-medium whitespace-nowrap">Settings</span>
+      </button>
+
       <!-- Theme Toggle -->
       <button
         @click="themeStore.toggle()"
@@ -194,22 +222,28 @@ const navigate = (path: string) => {
 
       <!-- User Section -->
       <template v-if="authStore.isAuthenticated">
-        <div
+        <button
           v-if="!isCollapsed"
-          class="flex items-center gap-2 px-3 py-2 rounded-lg bg-bg-elevated"
+          @click="navigate('/profile')"
+          :class="[
+            'w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
+            isActive('/profile', true)
+              ? 'bg-brand-primary/10'
+              : 'bg-bg-elevated hover:bg-bg-elevated/80'
+          ]"
         >
           <div class="w-8 h-8 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
             <span class="text-brand-primary font-medium text-sm">
               {{ authStore.displayName?.charAt(0)?.toUpperCase() || 'U' }}
             </span>
           </div>
-          <div class="flex-1 min-w-0">
+          <div class="flex-1 min-w-0 text-left">
             <p class="text-sm font-medium text-text-heading truncate">
               {{ authStore.displayName }}
             </p>
             <Badge v-if="authStore.isAdmin" variant="danger" size="sm">ADMIN</Badge>
           </div>
-        </div>
+        </button>
         <button
           @click="logout"
           :class="[

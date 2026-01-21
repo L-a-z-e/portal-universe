@@ -6,6 +6,9 @@ import HomePage from "../views/HomePage.vue";
 import DashboardPage from "../views/DashboardPage.vue";
 import SignupPage from "../views/SignupPage.vue";
 import CallbackPage from "../views/CallbackPage.vue";
+import SettingsPage from "../views/SettingsPage.vue";
+import ServiceStatusPage from "../views/ServiceStatusPage.vue";
+import MyProfilePage from "../views/MyProfilePage.vue";
 import { getRemoteConfigs } from '../config/remoteRegistry';
 
 function createRemoteRoutes() {
@@ -50,6 +53,24 @@ const routes = [
     path: '/callback',
     name: 'Callback',
     component: CallbackPage
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: SettingsPage,
+    meta: { title: '설정' }
+  },
+  {
+    path: '/status',
+    name: 'ServiceStatus',
+    component: ServiceStatusPage,
+    meta: { title: '서비스 상태' }
+  },
+  {
+    path: '/profile',
+    name: 'MyProfile',
+    component: MyProfilePage,
+    meta: { title: '내 프로필', requiresAuth: true }
   },
 
   // ✅ Remote 라우트 동적 생성
