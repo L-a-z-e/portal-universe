@@ -228,13 +228,13 @@ function handleClose() {
       <!-- Sign Up Link -->
       <div class="text-center text-sm text-text-meta">
         계정이 없으신가요?
-        <button
-            type="button"
+        <router-link
+            to="/signup"
             class="text-brand-primary hover:text-brand-primaryHover font-medium hover:underline"
-            :disabled="isLoading"
+            @click="handleClose"
         >
           회원가입
-        </button>
+        </router-link>
       </div>
     </form>
   </Modal>
