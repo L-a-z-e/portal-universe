@@ -19,6 +19,10 @@
 | SCENARIO-002 | [주문/결제 Saga](./SCENARIO-002-order-saga.md) | Current | 주문/결제/배송 |
 | SCENARIO-003 | [타임딜 구매](./SCENARIO-003-timedeal-purchase.md) | Planned | 타임딜 |
 | SCENARIO-004 | [대기열 시스템](./SCENARIO-004-queue-system.md) | Planned | 대기열 |
+| SCENARIO-005 | [게시글 좋아요 기능](./SCENARIO-005-like-post.md) | Current | Blog - 좋아요 |
+| SCENARIO-006 | [시리즈 탐색](./SCENARIO-006-series-navigation.md) | Current | Blog - 시리즈 |
+| SCENARIO-007 | [태그 탐색](./SCENARIO-007-tag-discovery.md) | Current | Blog - 태그 |
+| SCENARIO-008 | [트렌딩 게시글](./SCENARIO-008-trending-posts.md) | Current | Blog - 트렌딩 |
 
 ## 작성 가이드
 

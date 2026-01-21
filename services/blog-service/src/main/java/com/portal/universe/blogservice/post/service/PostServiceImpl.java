@@ -7,6 +7,8 @@ import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.post.domain.SortDirection;
 import com.portal.universe.blogservice.post.dto.*;
 import com.portal.universe.blogservice.post.repository.PostRepository;
+import com.portal.universe.blogservice.series.domain.Series;
+import com.portal.universe.blogservice.series.repository.SeriesRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final SeriesRepository seriesRepository;
 
     // ===== 기존 메서드 구현 (하위 호환성) =====
 
@@ -285,6 +288,40 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public Page<PostSummaryResponse> getTrendingPosts(String period, int page, int size) {
+        log.info("Fetching trending posts, period: {}, page: {}, size: {}", period, page, size);
+
+        LocalDateTime startDate = calculateStartDateByPeriod(period);
+        LocalDateTime endDate = LocalDateTime.now();
+
+        // 정렬: (viewCount + likeCount) 내림차순
+        Pageable pageable = PageRequest.of(page, size,
+            Sort.by(Sort.Direction.DESC, "viewCount")
+                .and(Sort.by(Sort.Direction.DESC, "likeCount"))
+                .and(Sort.by(Sort.Direction.DESC, "publishedAt"))
+        );
+
+        Page<Post> posts = postRepository.findPopularPostsInPeriod(
+                PostStatus.PUBLISHED, startDate, endDate, pageable);
+
+        return posts.map(this::convertToPostListResponse);
+    }
+
+    /**
+     * 기간 문자열을 기준으로 시작 날짜 계산
+     */
+    private LocalDateTime calculateStartDateByPeriod(String period) {
+        LocalDateTime now = LocalDateTime.now();
+        return switch (period) {
+            case "today" -> now.toLocalDate().atStartOfDay();
+            case "week" -> now.minusDays(7);
+            case "month" -> now.minusDays(30);
+            case "year" -> now.minusYears(1);
+            default -> now.minusDays(7); // 기본값: 1주일
+        };
+    }
+
+    @Override
     public List<PostSummaryResponse> getRelatedPosts(String postId, int limit) {
         log.info("Fetching related posts for postId: {}", postId);
 
@@ -441,6 +478,121 @@ public class PostServiceImpl implements PostService {
                 topCategories,
                 topTags,
                 lastPostDate
+        );
+    }
+
+    @Override
+    public PostNavigationResponse getPostNavigation(String postId, String scope) {
+        log.info("Fetching post navigation for postId: {}, scope: {}", postId, scope);
+
+        Post currentPost = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
+
+        if (currentPost.getPublishedAt() == null) {
+            throw new CustomBusinessException(BlogErrorCode.POST_NOT_PUBLISHED);
+        }
+
+        PostSummaryResponse previousPost = null;
+        PostSummaryResponse nextPost = null;
+        SeriesNavigationResponse seriesNavigation = null;
+
+        // scope에 따라 네비게이션 로직 선택
+        String normalizedScope = scope != null ? scope.toLowerCase() : "all";
+
+        switch (normalizedScope) {
+            case "author":
+                previousPost = getPreviousPostByAuthor(currentPost);
+                nextPost = getNextPostByAuthor(currentPost);
+                break;
+            case "category":
+                previousPost = getPreviousPostByCategory(currentPost);
+                nextPost = getNextPostByCategory(currentPost);
+                break;
+            case "series":
+                seriesNavigation = getSeriesNavigation(currentPost);
+                // 시리즈 내부의 이전/다음은 seriesNavigation에만 포함
+                break;
+            default: // "all"
+                previousPost = getPreviousPost(currentPost);
+                nextPost = getNextPost(currentPost);
+        }
+
+        // 시리즈 정보는 항상 조회 (scope와 무관)
+        if (!"series".equals(normalizedScope)) {
+            seriesNavigation = getSeriesNavigation(currentPost);
+        }
+
+        return PostNavigationResponse.of(previousPost, nextPost, seriesNavigation);
+    }
+
+    private PostSummaryResponse getPreviousPost(Post currentPost) {
+        return postRepository.findFirstByStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+                        PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getNextPost(Post currentPost) {
+        return postRepository.findFirstByStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+                        PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getPreviousPostByAuthor(Post currentPost) {
+        return postRepository.findFirstByAuthorIdAndStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+                        currentPost.getAuthorId(), PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getNextPostByAuthor(Post currentPost) {
+        return postRepository.findFirstByAuthorIdAndStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+                        currentPost.getAuthorId(), PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getPreviousPostByCategory(Post currentPost) {
+        return postRepository.findFirstByCategoryAndStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
+                        currentPost.getCategory(), PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private PostSummaryResponse getNextPostByCategory(Post currentPost) {
+        return postRepository.findFirstByCategoryAndStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
+                        currentPost.getCategory(), PostStatus.PUBLISHED, currentPost.getPublishedAt())
+                .map(this::convertToPostListResponse)
+                .orElse(null);
+    }
+
+    private SeriesNavigationResponse getSeriesNavigation(Post currentPost) {
+        List<Series> seriesList = seriesRepository.findByPostIdsContaining(currentPost.getId());
+
+        if (seriesList.isEmpty()) {
+            return null;
+        }
+
+        // 첫 번째 시리즈 사용 (일반적으로 하나의 포스트는 하나의 시리즈에만 속함)
+        Series series = seriesList.get(0);
+        List<String> postIds = series.getPostIds();
+        int currentIndex = postIds.indexOf(currentPost.getId());
+
+        if (currentIndex == -1) {
+            return null;
+        }
+
+        String previousPostId = currentIndex > 0 ? postIds.get(currentIndex - 1) : null;
+        String nextPostId = currentIndex < postIds.size() - 1 ? postIds.get(currentIndex + 1) : null;
+
+        return SeriesNavigationResponse.of(
+                series.getId(),
+                series.getName(),
+                currentIndex,
+                series.getPostCount(),
+                previousPostId,
+                nextPostId
         );
     }
 

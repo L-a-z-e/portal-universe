@@ -9,22 +9,27 @@ import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById } from "../api/posts";
-import {Button, Tag, Avatar, Card, Textarea} from "@portal/design-system-vue";
+import {Button, Tag, Avatar, Card} from "@portal/design-system-vue";
 import type { PostResponse } from "@/dto/post.ts";
-import type { CommentResponse } from "@/dto/comment.ts";
-import { getCommentsByPostId, createComment, updateComment, deleteComment } from "@/api/comments.ts";
+import LikeButton from "@/components/LikeButton.vue";
+import SeriesBox from "@/components/SeriesBox.vue";
+import RelatedPosts from "@/components/RelatedPosts.vue";
+import PostNavigation from "@/components/PostNavigation.vue";
+import CommentList from "@/components/CommentList.vue";
 
 const route = useRoute();
 const router = useRouter();
 const post = ref<PostResponse | null>(null);
-const comments = ref<CommentResponse[]>([]);
-const newComment = ref('');
-const isCommentsLoading = ref(false);
-const editingCommentId = ref<string | null>(null);
-const editingContent = ref('');
 
 const isLoading = ref(true);
 const error = ref<string | null>(null);
+
+// 좋아요 상태
+const likeCount = ref(0);
+const isLiked = ref(false);
+
+// 시리즈 정보
+const seriesId = ref<string | null>(null);
 
 const viewerElement = ref<HTMLDivElement | null>(null);
 let viewerInstance: Viewer | null = null;
@@ -132,7 +137,11 @@ async function loadPost() {
     post.value = await getPostById(postId);
 
     if (post.value) {
-      await loadComments(post.value.id);
+      // 좋아요 정보 설정
+      likeCount.value = post.value.likeCount || 0;
+
+      // 시리즈 정보 설정 (필요한 경우)
+      // seriesId.value = post.value.seriesId;
     }
 
   } catch (err) {
@@ -194,71 +203,12 @@ function handleEdit() {
   }
 }
 
-async function loadComments(postId: string) {
-  isCommentsLoading.value = true;
-  try {
-    comments.value = await getCommentsByPostId(postId);
-  } catch (e) {
-    console.error('댓글 로드 실패:', e);
-  } finally {
-    isCommentsLoading.value = false;
-  }
-}
-
-async function handleAddComment() {
-  if (!post.value || !newComment.value.trim()) return;
-  try {
-    const payload = {
-      postId: post.value.id,
-      content: newComment.value.trim(),
-      parentCommentId: null,
-    };
-    const comment = await createComment(payload);
-    comments.value.push(comment);
-    newComment.value = '';
-  } catch (e) {
-    console.error('댓글 추가 실패:', e);
-  }
-}
-
-function startEditComment(comment: CommentResponse) {
-  editingCommentId.value = comment.id;
-  editingContent.value = comment.content;
-}
-
-async function handleUpdateComment(commentId: string) {
-  if (!editingContent.value.trim()) return;
-
-  try {
-    const updated = await updateComment(commentId, {
-      content: editingContent.value.trim()
-    });
-
-    const index = comments.value.findIndex(c => c.id === commentId);
-    if (index !== -1) {
-      comments.value[index] = updated;
-    }
-
-    editingCommentId.value = null;
-    editingContent.value = '';
-  } catch (e) {
-    console.error('댓글 수정 실패:', e);
-  }
-}
-
-function cancelEditComment() {
-  editingCommentId.value = null;
-  editingContent.value = '';
-}
-
-async function handleDeleteComment(commentId: string) {
-  if (!confirm('댓글을 삭제하시겠습니까?')) return;
-
-  try {
-    await deleteComment(commentId);
-    comments.value = comments.value.filter(c => c.id !== commentId);
-  } catch (e) {
-    console.error('댓글 삭제 실패:', e);
+// 좋아요 변경 핸들러
+function handleLikeChanged(liked: boolean, count: number) {
+  isLiked.value = liked;
+  likeCount.value = count;
+  if (post.value) {
+    post.value.likeCount = count;
   }
 }
 </script>
@@ -279,6 +229,13 @@ async function handleDeleteComment(commentId: string) {
 
     <!-- Post Detail -->
     <article v-else-if="post" class="space-y-8">
+      <!-- Series Box (시리즈에 속한 경우) -->
+      <SeriesBox
+        v-if="seriesId"
+        :series-id="seriesId"
+        :current-post-id="post.id"
+      />
+
       <!-- Header -->
       <header class="space-y-4 border-b border-border-default pb-6">
         <h1 class="text-4xl font-bold text-text-heading break-words leading-tight">
@@ -349,127 +306,41 @@ async function handleDeleteComment(commentId: string) {
         </div>
       </footer>
 
+      <!-- Like Button Section -->
+      <div class="like-section">
+        <div class="like-container">
+          <p class="like-message">이 글이 마음에 드셨나요?</p>
+          <LikeButton
+            :post-id="post.id"
+            :initial-liked="isLiked"
+            :initial-count="likeCount"
+            @like-changed="handleLikeChanged"
+          />
+        </div>
+      </div>
+
       <!-- Action Buttons -->
       <div class="flex items-center justify-between pt-6 border-t border-border-default">
         <Button variant="secondary" @click="router.push('/')">
           ← 목록으로
         </Button>
-        <div class="flex gap-3">
-          <Button variant="outline" @click="handleEdit">
-            ✏️ 수정
-          </Button>
-          <Button variant="primary">
-            ❤️ 좋아요
-          </Button>
-        </div>
+        <Button variant="outline" @click="handleEdit">
+          ✏️ 수정
+        </Button>
       </div>
+
+      <!-- Post Navigation (이전/다음 게시글) -->
+      <PostNavigation :post-id="post.id" />
+
+      <!-- Related Posts (관련 게시글) -->
+      <RelatedPosts
+        :post-id="post.id"
+        :tags="post.tags"
+        :limit="4"
+      />
 
       <!-- 댓글 영역 -->
-      <div class="mt-12">
-        <h2 class="text-2xl font-bold text-text-heading mb-6">💬 댓글</h2>
-        <Card class="bg-bg-muted border-border-muted py-8">
-          <div v-if="isCommentsLoading" class="text-center py-8">
-            댓글을 불러오는 중...
-          </div>
-
-          <div v-else>
-            <!-- 댓글 없음 -->
-            <div v-if="comments.length === 0" class="text-text-meta pb-6">
-              아직 댓글이 없습니다.
-            </div>
-
-            <!-- 댓글 목록 -->
-            <ul v-else class="space-y-4 mb-6">
-              <li v-for="comment in comments" :key="comment.id" class="p-4 bg-bg-card rounded-lg border border-border-default">
-                <!-- 수정 모드가 아닐 때 (조회) -->
-                <div v-if="editingCommentId !== comment.id">
-                  <div class="flex items-start justify-between mb-2">
-                    <div>
-                      <span class="font-semibold text-text-heading">{{ comment.authorName }}</span>
-                      <span class="text-xs text-text-meta ml-2">
-                    {{ new Date(comment.createdAt).toLocaleString('ko-KR') }}
-                  </span>
-                    </div>
-
-                    <!-- ⭐ 수정/삭제 버튼 -->
-                    <div class="flex gap-2">
-                      <Button
-                          variant="secondary"
-                          size="sm"
-                          @click="startEditComment(comment)"
-                      >
-                        ✏️ 수정
-                      </Button>
-                      <Button
-                          variant="outline"
-                          size="sm"
-                          @click="handleDeleteComment(comment.id)"
-                      >
-                        🗑️ 삭제
-                      </Button>
-                    </div>
-                  </div>
-
-                  <!-- 댓글 내용 -->
-                  <p class="text-text-body whitespace-pre-wrap">{{ comment.content }}</p>
-
-                  <!-- 좋아요 (선택사항) -->
-                  <div class="mt-2 text-xs text-text-meta">
-                    ❤️ {{ comment.likeCount }}
-                  </div>
-                </div>
-
-                <!-- ⭐ 수정 모드 (편집) -->
-                <div v-else class="space-y-2">
-                  <Textarea
-                      v-model="editingContent"
-                      :rows="3"
-                      placeholder="댓글 내용을 수정하세요..."
-                  />
-
-                  <div class="flex gap-2 justify-end">
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        @click="cancelEditComment"
-                    >
-                      취소
-                    </Button>
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        :disabled="!editingContent.trim()"
-                        @click="handleUpdateComment(comment.id)"
-                    >
-                      저장
-                    </Button>
-                  </div>
-                </div>
-              </li>
-            </ul>
-
-            <!-- 댓글 입력 -->
-            <div class="border-t border-border-default pt-6 space-y-2">
-              <label class="block text-sm font-medium text-text-heading">
-                댓글 작성
-              </label>
-              <Textarea
-                  v-model="newComment"
-                  :rows="2"
-                  placeholder="댓글을 입력하세요..."
-              />
-              <div class="flex justify-end">
-                <Button
-                    :disabled="!newComment.trim()"
-                    @click="handleAddComment"
-                >
-                  등록
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <CommentList :post-id="post.id" />
     </article>
   </div>
 </template>
@@ -745,5 +616,40 @@ async function handleDeleteComment(commentId: string) {
 .toastui-editor-dark :deep(.toastui-editor-contents em),
 .toastui-editor-dark :deep(.toastui-editor-contents i) {
   color: var(--color-text-body);
+}
+
+/* ============================================
+   Like Section Styles
+   ============================================ */
+.like-section {
+  padding: 2rem 0;
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.like-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.like-message {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text-heading);
+  margin: 0;
+  text-align: center;
+}
+
+/* 반응형 - 모바일 */
+@media (max-width: 640px) {
+  .like-section {
+    padding: 1.5rem 0;
+  }
+
+  .like-message {
+    font-size: 0.9375rem;
+  }
 }
 </style>

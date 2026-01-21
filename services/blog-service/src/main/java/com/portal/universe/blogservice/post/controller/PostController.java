@@ -156,6 +156,17 @@ public class PostController {
         return ApiResponse.success(posts);
     }
 
+    @Operation(summary = "트렌딩 게시물 조회", description = "기간별 인기 게시물을 조회합니다. (viewCount + likeCount 기준)")
+    @GetMapping("/trending")
+    public ApiResponse<Page<PostSummaryResponse>> getTrendingPosts(
+            @Parameter(description = "기간 (today, week, month, year)") @RequestParam(defaultValue = "week") String period,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<PostSummaryResponse> posts = postService.getTrendingPosts(period, page, size);
+        return ApiResponse.success(posts);
+    }
+
     @Operation(summary = "최근 게시물 조회")
     @GetMapping("/recent")
     public ApiResponse<List<PostSummaryResponse>> getRecentPosts(
@@ -246,5 +257,16 @@ public class PostController {
     ) {
         List<PostResponse> posts = postService.getPostsByProductId(productId);
         return ApiResponse.success(posts);
+    }
+
+    @Operation(summary = "포스트 네비게이션 조회", description = "현재 포스트의 이전/다음 게시물 및 시리즈 네비게이션 정보를 조회합니다.")
+    @GetMapping("/{postId}/navigation")
+    public ApiResponse<PostNavigationResponse> getPostNavigation(
+            @Parameter(description = "게시물 ID") @PathVariable String postId,
+            @Parameter(description = "네비게이션 범위 (all, author, category, series)")
+            @RequestParam(defaultValue = "all") String scope
+    ) {
+        PostNavigationResponse navigation = postService.getPostNavigation(postId, scope);
+        return ApiResponse.success(navigation);
     }
 }

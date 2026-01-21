@@ -24,7 +24,27 @@ public enum BlogErrorCode implements ErrorCode {
     /**
      * 게시물 작성자가 아닌 다른 사용자가 게시물 삭제를 시도할 경우 발생합니다.
      */
-    POST_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "B003", "You are not allowed to delete this post");
+    POST_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "B003", "You are not allowed to delete this post"),
+
+    /**
+     * 게시물이 아직 발행되지 않은 경우 발생합니다.
+     */
+    POST_NOT_PUBLISHED(HttpStatus.BAD_REQUEST, "B004", "Post is not published yet"),
+
+    /**
+     * 요청한 ID에 해당하는 좋아요가 존재하지 않을 경우 발생합니다.
+     */
+    LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "B020", "Like not found"),
+
+    /**
+     * 좋아요가 이미 존재하는 경우 발생합니다.
+     */
+    LIKE_ALREADY_EXISTS(HttpStatus.CONFLICT, "B021", "Like already exists"),
+
+    /**
+     * 좋아요 작업 중 예기치 않은 오류가 발생한 경우입니다.
+     */
+    LIKE_OPERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "B022", "Like operation failed");
 
     private final HttpStatus status;
     private final String code;
