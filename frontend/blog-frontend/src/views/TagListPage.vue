@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getAllTags, getPopularTags } from '../api/tags';
-import type { TagResponse, TagStatsResponse } from '@/types';
+import { getAllTags } from '../api/tags';
+import type { TagResponse } from '@/types';
 import { Card, Button } from '@portal/design-system-vue';
 
 const router = useRouter();
@@ -78,7 +78,7 @@ const getTagColor = (tagName: string): string => {
     hash = tagName.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  return colors[Math.abs(hash) % colors.length];
+  return colors[Math.abs(hash) % colors.length] ?? colors[0];
 };
 
 // 태그 로드

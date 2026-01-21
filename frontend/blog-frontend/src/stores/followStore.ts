@@ -3,7 +3,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import * as followApi from '@/api/follow';
-import type { FollowUserResponse, FollowListResponse } from '@/dto/follow';
+import type { FollowListResponse } from '@/dto/follow';
 
 export const useFollowStore = defineStore('follow', () => {
   // ==================== State ====================

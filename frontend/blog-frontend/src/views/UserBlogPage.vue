@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Spinner, Alert } from '@portal/design-system-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';

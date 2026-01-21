@@ -93,6 +93,11 @@ public class Post {
     private Long likeCount = 0L;
 
     /**
+     * 댓글 수 - PRD Phase 3: 트렌딩 점수 계산용
+     */
+    private Long commentCount = 0L;
+
+    /**
      * 발행일시 (공개 게시물)
      */
     @Indexed
@@ -198,6 +203,22 @@ public class Post {
     public void decrementLikeCount() {
         if (this.likeCount > 0) {
             this.likeCount--;
+        }
+    }
+
+    /**
+     * 댓글 수 증가 - PRD Phase 3
+     */
+    public void incrementCommentCount() {
+        this.commentCount++;
+    }
+
+    /**
+     * 댓글 수 감소
+     */
+    public void decrementCommentCount() {
+        if (this.commentCount > 0) {
+            this.commentCount--;
         }
     }
 

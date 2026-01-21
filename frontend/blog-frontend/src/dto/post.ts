@@ -74,6 +74,7 @@ export interface PostSummaryResponse {
   images: string[];
   viewCount: number;
   likeCount: number;
+  commentCount: number;  // Phase 3: 댓글 수 추가
   publishedAt: string;
   estimatedReadTime: number;
 }
