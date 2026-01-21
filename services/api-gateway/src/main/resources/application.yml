@@ -187,6 +187,10 @@ resilience4j:
       shoppingCircuitBreaker:
         base-config: default
 
+# JWT 설정 (Auth Service와 동일한 secret key 사용)
+jwt:
+  secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
+
 # 분산 추적용 로그 포맷 (모든 환경 동일)
 logging:
   pattern:

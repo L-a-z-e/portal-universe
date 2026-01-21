@@ -46,12 +46,7 @@ spring:
   kafka:
     bootstrap-servers: kafka:29092
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://portal-universe:30000/auth-service
-          jwk-set-uri: http://auth-service:8081/oauth2/jwks
+  # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
 
   servlet:
     multipart:

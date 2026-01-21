@@ -1,19 +1,23 @@
 package com.portal.universe.shoppingservice.common.config;
 
+import com.portal.universe.commonlibrary.security.filter.GatewayAuthenticationFilter;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * 쇼핑 서비스의 웹 보안 설정을 담당하는 클래스입니다.
- * Actuator와 API 엔드포인트에 대한 별도의 보안 필터 체인을 구성하여 역할을 분리합니다.
+ *
+ * API Gateway에서 JWT를 검증하고 X-User-Id, X-User-Roles 헤더를 전달합니다.
+ * 이 서비스는 해당 헤더를 읽어 SecurityContext를 설정합니다.
  */
 @Configuration
 @EnableWebSecurity
@@ -96,9 +100,10 @@ public class SecurityConfig {
                         // 그 외 모든 요청은 인증만 되면 허용
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
-                )
+                // Gateway에서 전달한 헤더로 인증 정보 설정
+                .addFilterBefore(new GatewayAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                // Stateless REST API
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable);
 
         return http.build();
