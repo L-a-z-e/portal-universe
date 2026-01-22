@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from "portal/authStore";
+import { useAuthStore } from "portal/stores";
 import { onMounted, onBeforeUnmount, ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { getPublishedPosts, getTrendingPosts, getFeed } from "../api/posts";

@@ -1,22 +1,79 @@
 // blog-frontend/src/types/federation.d.ts
 
-declare module 'portal/authStore' {
+/**
+ * portal/api 모듈 - API 관련 exports
+ */
+declare module 'portal/api' {
+  import type { AxiosInstance, AxiosResponse } from 'axios';
+
+  // API Client
+  export const apiClient: AxiosInstance;
+
+  // Types
+  export interface FieldError {
+    field: string;
+    message: string;
+    rejectedValue?: unknown;
+  }
+
+  export interface ErrorDetails {
+    code: string;
+    message: string;
+    timestamp?: string;
+    path?: string;
+    details?: FieldError[];
+  }
+
+  export interface ApiResponse<T> {
+    success: true;
+    data: T;
+    error: null;
+  }
+
+  export interface ApiErrorResponse {
+    success: false;
+    data: null;
+    error: ErrorDetails;
+  }
+
+  // Utilities
+  export function getData<T>(response: AxiosResponse<ApiResponse<T>>): T;
+  export function getErrorDetails(error: unknown): ErrorDetails | null;
+  export function getErrorMessage(error: unknown): string;
+  export function getErrorCode(error: unknown): string | null;
+}
+
+/**
+ * portal/stores 모듈 - Store 관련 exports
+ */
+declare module 'portal/stores' {
+  import type { ComputedRef, Ref } from 'vue';
+
+  // Auth Store
   export const useAuthStore: () => {
-    isAuthenticated: import('vue').ComputedRef<boolean>;
-    user: import('vue').ComputedRef<{ name: string; email: string } | null>;
-  }
-}
+    isAuthenticated: ComputedRef<boolean>;
+    user: ComputedRef<{
+      profile?: {
+        sub?: string;
+        email?: string;
+        name?: string;
+        nickname?: string;
+        picture?: string;
+      };
+    } | null>;
+    displayName: ComputedRef<string>;
+    isAdmin: ComputedRef<boolean>;
+  };
 
-declare module 'portal/themeStore' {
+  // Theme Store
+  export type ThemeMode = 'dark' | 'light' | 'system';
+
   export const useThemeStore: () => {
-    isDark: import('vue').Ref<boolean>;
+    isDark: Ref<boolean>;
+    mode: Ref<ThemeMode>;
     toggle: () => void;
+    setMode: (mode: ThemeMode) => void;
+    applyTheme: () => void;
     initialize: () => void;
-  }
-}
-
-declare module 'portal/apiClient' {
-  import type { AxiosInstance } from 'axios';
-  const apiClient: AxiosInstance;
-  export default apiClient;
+  };
 }
