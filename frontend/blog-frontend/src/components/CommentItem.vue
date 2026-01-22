@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { Avatar, Button } from '@portal/design-system-vue'
 import type { CommentResponse } from '@/dto/comment'
 import CommentForm from './CommentForm.vue'
+import { formatRelativeTime } from '@/composables/useRelativeTime'
 
 interface Props {
   comment: CommentResponse
@@ -36,10 +37,10 @@ const paddingLeft = computed(() => {
   return `${level * 2.5}rem`
 })
 
-// 본인 댓글 여부 (추후 인증 연동 시 구현)
+// 본인 댓글 여부 (currentUserId prop과 비교)
 const isOwnComment = computed(() => {
-  // TODO: 실제 userId와 비교
-  return false
+  if (!props.currentUserId) return false
+  return props.comment.authorId === props.currentUserId
 })
 
 // 답글 개수
@@ -88,28 +89,6 @@ const handleReplyCancel = () => {
   showReplyForm.value = false
   emit('cancelReply', props.comment.id)
 }
-
-// 날짜 포맷팅
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-
-  if (minutes < 1) return '방금 전'
-  if (minutes < 60) return `${minutes}분 전`
-  if (hours < 24) return `${hours}시간 전`
-  if (days < 7) return `${days}일 전`
-
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
 </script>
 
 <template>
@@ -142,7 +121,7 @@ const formatDate = (dateString: string) => {
                   {{ comment.authorName }}
                 </span>
                 <span class="text-xs text-text-meta">
-                  {{ formatDate(comment.createdAt) }}
+                  {{ formatRelativeTime(comment.createdAt) }}
                   <span v-if="comment.updatedAt !== comment.createdAt" class="ml-1">
                     (수정됨)
                   </span>
