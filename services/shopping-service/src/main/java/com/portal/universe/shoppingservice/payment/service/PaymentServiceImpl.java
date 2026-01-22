@@ -57,12 +57,12 @@ public class PaymentServiceImpl implements PaymentService {
                     throw new CustomBusinessException(ShoppingErrorCode.PAYMENT_ALREADY_COMPLETED);
                 });
 
-        // 2. 결제 생성
+        // 2. 결제 생성 (쿠폰 적용된 최종 금액으로 결제)
         Payment payment = Payment.builder()
                 .orderId(order.getId())
                 .orderNumber(order.getOrderNumber())
                 .userId(userId)
-                .amount(order.getTotalAmount())
+                .amount(order.getFinalAmount())
                 .paymentMethod(request.paymentMethod())
                 .build();
 
