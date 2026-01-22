@@ -27,16 +27,9 @@ scrape_configs:
             time: time
             attrs: attrs
 
-      # Extract container labels
-      - json:
-          expressions:
-            container_name: '{{ index .attrs "com.docker.compose.service" }}'
-          source: attrs
-
       # Add labels
       - labels:
           stream:
-          container_name:
 
       # Parse timestamp
       - timestamp:
@@ -102,9 +95,9 @@ scrape_configs:
       - output:
           source: log
 
-      # Parse JSON logs from Spring Boot
+      # Parse JSON logs from Spring Boot (all backend services including api-gateway)
       - match:
-          selector: '{service=~".+-service"}'
+          selector: '{service=~".+-service|api-gateway"}'
           stages:
             - json:
                 expressions:
