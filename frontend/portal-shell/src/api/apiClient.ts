@@ -2,6 +2,7 @@
 import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 import { authService } from '../services/authService';
+import type { ApiErrorResponse } from './types';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -81,10 +82,19 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle other errors
+    // Backend 에러 메시지 파싱
+    const backendError = (error.response?.data as ApiErrorResponse | undefined)?.error;
+    if (backendError) {
+      // 에러 객체에 백엔드 정보 추가
+      error.message = backendError.message;
+      (error as any).code = backendError.code;
+      (error as any).errorDetails = backendError;
+    }
+
     console.error('[API Client] Response error:', {
       status: error.response?.status,
-      message: error.message,
+      code: backendError?.code,
+      message: backendError?.message || error.message,
     });
 
     return Promise.reject(error);

@@ -23,10 +23,8 @@ export default defineConfig(({ mode }) => {
           shopping: env.VITE_SHOPPING_REMOTE_URL,
         },
         exposes: {
-          './apiClient': './src/api/apiClient.ts',
-          './authStore': './src/store/auth.ts',
-          './themeStore': './src/store/theme.ts',
-          './storeAdapter': './src/store/storeAdapter.ts',
+          './api': './src/api/index.ts',
+          './stores': './src/store/index.ts',
         },
         shared: ['vue', 'pinia', 'axios'],
       })
