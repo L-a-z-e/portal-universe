@@ -1,9 +1,10 @@
 package com.portal.universe.blogservice.tag.service;
 
+import com.portal.universe.blogservice.exception.BlogErrorCode;
 import com.portal.universe.blogservice.tag.domain.Tag;
 import com.portal.universe.blogservice.tag.dto.*;
-import com.portal.universe.blogservice.tag.exception.TagNotFoundException;
 import com.portal.universe.blogservice.tag.repository.TagRepository;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +34,7 @@ public class TagService {
 
         // 중복 체크
         if (tagRepository.existsByNameIgnoreCase(normalizedName)) {
-            throw new IllegalArgumentException("이미 존재하는 태그입니다: " + normalizedName);
+            throw new CustomBusinessException(BlogErrorCode.TAG_ALREADY_EXISTS);
         }
 
         Tag tag = Tag.builder()
@@ -75,7 +76,7 @@ public class TagService {
     public void incrementTagPostCount(String tagName) {
         String normalizedName = Tag.normalizeName(tagName);
         Tag tag = tagRepository.findByNameIgnoreCase(normalizedName)
-                .orElseThrow(() -> new TagNotFoundException(normalizedName));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.TAG_NOT_FOUND));
 
         tag.incrementPostCount();
         tagRepository.save(tag);
@@ -115,7 +116,7 @@ public class TagService {
     public TagResponse getTagByName(String tagName) {
         String normalizedName = Tag.normalizeName(tagName);
         Tag tag = tagRepository.findByNameIgnoreCase(normalizedName)
-                .orElseThrow(() -> new TagNotFoundException(normalizedName));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.TAG_NOT_FOUND));
         return toResponse(tag);
     }
 
@@ -175,7 +176,7 @@ public class TagService {
     public TagResponse updateTagDescription(String tagName, String description) {
         String normalizedName = Tag.normalizeName(tagName);
         Tag tag = tagRepository.findByNameIgnoreCase(normalizedName)
-                .orElseThrow(() -> new TagNotFoundException(normalizedName));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.TAG_NOT_FOUND));
 
         tag.updateDescription(description);
         tagRepository.save(tag);
@@ -197,7 +198,7 @@ public class TagService {
     public void deleteTag(String tagName) {
         String normalizedName = Tag.normalizeName(tagName);
         Tag tag = tagRepository.findByNameIgnoreCase(normalizedName)
-                .orElseThrow(() -> new TagNotFoundException(normalizedName));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.TAG_NOT_FOUND));
 
         if (!tag.isUnused()) {
             log.warn("Deleting tag '{}' with {} posts", normalizedName, tag.getPostCount());

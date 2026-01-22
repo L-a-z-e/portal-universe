@@ -1,9 +1,10 @@
 package com.portal.universe.blogservice.series.service;
 
+import com.portal.universe.blogservice.exception.BlogErrorCode;
 import com.portal.universe.blogservice.series.domain.Series;
 import com.portal.universe.blogservice.series.dto.*;
-import com.portal.universe.blogservice.series.exception.SeriesNotFoundException;
 import com.portal.universe.blogservice.series.repository.SeriesRepository;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,10 +45,10 @@ public class SeriesService {
      */
     public SeriesResponse updateSeries(String seriesId, SeriesUpdateRequest request, String authorId) {
         Series series = seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new SeriesNotFoundException(seriesId));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
         if (!series.getAuthorId().equals(authorId)) {
-            throw new IllegalStateException("작성자만 수정할 수 있습니다.");
+            throw new CustomBusinessException(BlogErrorCode.SERIES_UPDATE_FORBIDDEN);
         }
 
         series.update(request.name(), request.description(), request.thumbnailUrl());
@@ -60,10 +61,10 @@ public class SeriesService {
      */
     public void deleteSeries(String seriesId, String authorId) {
         Series series = seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new SeriesNotFoundException(seriesId));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
         if (!series.getAuthorId().equals(authorId)) {
-            throw new IllegalStateException("작성자만 삭제할 수 있습니다.");
+            throw new CustomBusinessException(BlogErrorCode.SERIES_DELETE_FORBIDDEN);
         }
 
         seriesRepository.delete(series);
@@ -75,7 +76,7 @@ public class SeriesService {
     @Transactional(readOnly = true)
     public SeriesResponse getSeriesById(String seriesId) {
         Series series = seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new SeriesNotFoundException(seriesId));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
         return toResponse(series);
     }
 
@@ -95,10 +96,10 @@ public class SeriesService {
      */
     public SeriesResponse addPostToSeries(String seriesId, String postId, String authorId) {
         Series series = seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new SeriesNotFoundException(seriesId));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
         if (!series.getAuthorId().equals(authorId)) {
-            throw new IllegalStateException("작성자만 포스트를 추가할 수 있습니다.");
+            throw new CustomBusinessException(BlogErrorCode.SERIES_ADD_POST_FORBIDDEN);
         }
 
         series.addPost(postId);
@@ -111,10 +112,10 @@ public class SeriesService {
      */
     public SeriesResponse removePostFromSeries(String seriesId, String postId, String authorId) {
         Series series = seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new SeriesNotFoundException(seriesId));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
         if (!series.getAuthorId().equals(authorId)) {
-            throw new IllegalStateException("작성자만 포스트를 제거할 수 있습니다.");
+            throw new CustomBusinessException(BlogErrorCode.SERIES_REMOVE_POST_FORBIDDEN);
         }
 
         series.removePost(postId);
@@ -127,10 +128,10 @@ public class SeriesService {
      */
     public SeriesResponse reorderPosts(String seriesId, SeriesPostOrderRequest request, String authorId) {
         Series series = seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new SeriesNotFoundException(seriesId));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
         if (!series.getAuthorId().equals(authorId)) {
-            throw new IllegalStateException("작성자만 순서를 변경할 수 있습니다.");
+            throw new CustomBusinessException(BlogErrorCode.SERIES_REORDER_FORBIDDEN);
         }
 
         series.reorderPosts(request.postIds());
