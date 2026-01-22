@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface PostRepository extends MongoRepository<Post, String> {
+public interface PostRepository extends MongoRepository<Post, String>, PostRepositoryCustom {
     // ===== 기존 메서드 유지 (하위 호환성) =====
     List<Post> findByProductId(String productId);
 

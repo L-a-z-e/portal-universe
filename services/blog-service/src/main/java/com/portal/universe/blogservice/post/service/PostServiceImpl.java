@@ -287,43 +287,45 @@ public class PostServiceImpl implements PostService {
         return posts.map(this::convertToPostListResponse);
     }
 
+    /**
+     * 트렌딩 게시물 조회
+     *
+     * [성능 개선] 전체 로드 + 메모리 정렬 → MongoDB Aggregation
+     *
+     * 기존: 모든 게시물 로드 → Java에서 점수 계산 및 정렬 (OOM 위험)
+     * 개선: $addFields로 DB에서 점수 계산 → $sort로 정렬 → $skip/$limit으로 페이징
+     *
+     * 점수 공식: (views×1 + likes×3 + comments×5) × 2^(-hoursElapsed/halfLife)
+     */
     @Override
     public Page<PostSummaryResponse> getTrendingPosts(String period, int page, int size) {
-        log.info("Fetching trending posts, period: {}, page: {}, size: {}", period, page, size);
+        log.info("Fetching trending posts using aggregation, period: {}, page: {}, size: {}", period, page, size);
 
         LocalDateTime startDate = calculateStartDateByPeriod(period);
-        LocalDateTime endDate = LocalDateTime.now();
+        double halfLifeHours = getHalfLifeByPeriod(period);
 
-        // Phase 3: 시간 가중치 트렌딩 점수 기반 정렬
-        // 전체 게시물을 가져와서 점수 계산 후 정렬 (메모리 내 정렬)
-        List<Post> allPosts = postRepository.findPopularPostsInPeriod(
-                PostStatus.PUBLISHED, startDate, endDate, Pageable.unpaged()).getContent();
+        // MongoDB Aggregation으로 점수 계산 및 정렬
+        Page<Post> trendingPosts = postRepository.aggregateTrendingPosts(
+                PostStatus.PUBLISHED, startDate, halfLifeHours, page, size);
 
-        // 트렌딩 점수 계산 및 정렬
-        List<Post> sortedPosts = allPosts.stream()
-                .sorted((p1, p2) -> Double.compare(
-                        calculateTrendingScore(p2, period),
-                        calculateTrendingScore(p1, period)
-                ))
-                .toList();
+        return trendingPosts.map(this::convertToPostListResponse);
+    }
 
-        // 페이징 처리
-        int start = page * size;
-        int end = Math.min(start + size, sortedPosts.size());
-
-        if (start >= sortedPosts.size()) {
-            return Page.empty(PageRequest.of(page, size));
-        }
-
-        List<PostSummaryResponse> pagedContent = sortedPosts.subList(start, end).stream()
-                .map(this::convertToPostListResponse)
-                .toList();
-
-        return new org.springframework.data.domain.PageImpl<>(
-                pagedContent,
-                PageRequest.of(page, size),
-                sortedPosts.size()
-        );
+    /**
+     * 기간별 반감기 반환 (시간 단위)
+     * - today: 6시간 (빠른 감쇠 - 실시간 트렌드)
+     * - week: 48시간 (중간 감쇠)
+     * - month: 168시간 (느린 감쇠)
+     * - year: 720시간 (매우 느린 감쇠)
+     */
+    private double getHalfLifeByPeriod(String period) {
+        return switch (period) {
+            case "today" -> 6.0;
+            case "week" -> 48.0;
+            case "month" -> 168.0;
+            case "year" -> 720.0;
+            default -> 48.0;
+        };
     }
 
     /**
@@ -418,56 +420,32 @@ public class PostServiceImpl implements PostService {
 
     // ===== 통계 및 메타 정보 =====
 
+    /**
+     * 카테고리별 통계 조회
+     *
+     * [성능 개선] N+1 쿼리 → MongoDB Aggregation (1번 쿼리)
+     *
+     * 기존: 카테고리 목록 조회(1) + 카테고리별 count(N) + 최신글 조회(N) = 2N+1 쿼리
+     * 개선: $group aggregation으로 한 번에 집계 = 1 쿼리
+     */
     @Override
     public List<CategoryStats> getCategoryStats() {
-        log.info("Fetching category statistics");
-
-        List<String> categories = postRepository.findDistinctCategoriesByStatus(PostStatus.PUBLISHED);
-
-        return categories.stream()
-                .filter(Objects::nonNull)
-                .map(category -> {
-                    long count = postRepository.countByCategoryAndStatus(category, PostStatus.PUBLISHED);
-                    // 최신 게시물 날짜 조회 (간단히 하기 위해 첫 번째 게시물 사용)
-                    Page<Post> latestPost = postRepository.findByCategoryAndStatusOrderByPublishedAtDesc(
-                            category, PostStatus.PUBLISHED, PageRequest.of(0, 1));
-                    LocalDateTime latestDate = latestPost.hasContent()
-                            ? latestPost.getContent().get(0).getPublishedAt()
-                            : null;
-
-                    return new CategoryStats(category, count, latestDate);
-                })
-                .collect(Collectors.toList());
+        log.info("Fetching category statistics using aggregation");
+        return postRepository.aggregateCategoryStats(PostStatus.PUBLISHED);
     }
 
+    /**
+     * 인기 태그 조회
+     *
+     * [성능 개선] 전체 로드 + 메모리 집계 → MongoDB Aggregation
+     *
+     * 기존: 모든 게시물 로드 → Java에서 태그 집계 (메모리 사용량 ↑)
+     * 개선: $unwind + $group으로 DB에서 집계 (메모리 사용량 ↓)
+     */
     @Override
     public List<TagStats> getPopularTags(int limit) {
-        log.info("Fetching popular tags, limit: {}", limit);
-
-        // 모든 발행된 게시물에서 태그 집계
-        List<Post> posts = postRepository.findByStatusForTagAggregation(PostStatus.PUBLISHED);
-
-        // 태그별 카운트 집계
-        Map<String, Long> tagCountMap = new HashMap<>();
-        Map<String, Long> tagViewsMap = new HashMap<>();
-
-        for (Post post : posts) {
-            for (String tag : post.getTags()) {
-                tagCountMap.merge(tag, 1L, Long::sum);
-                tagViewsMap.merge(tag, post.getViewCount(), Long::sum);
-            }
-        }
-
-        // 카운트 기준으로 정렬하여 상위 limit개 반환
-        return tagCountMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .limit(limit)
-                .map(entry -> new TagStats(
-                        entry.getKey(),
-                        entry.getValue(),
-                        tagViewsMap.getOrDefault(entry.getKey(), 0L)
-                ))
-                .collect(Collectors.toList());
+        log.info("Fetching popular tags using aggregation, limit: {}", limit);
+        return postRepository.aggregatePopularTags(PostStatus.PUBLISHED, limit);
     }
 
     @Override
