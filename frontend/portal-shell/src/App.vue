@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useThemeStore } from "./store/theme.ts";
 import { useSettingsStore } from "./store/settings.ts";
-import { onMounted, watch, ref, computed } from "vue";
+import { onMounted, onBeforeUnmount, watch, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
 import QuickActions from "./components/QuickActions.vue";
@@ -15,6 +15,9 @@ const showQuickActions = ref(false);
 
 // Sidebar collapsed state (synced with Sidebar component via localStorage)
 const sidebarCollapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true');
+
+// Interval ID for cleanup
+let sidebarCheckInterval: ReturnType<typeof setInterval> | null = null;
 
 // Watch localStorage changes
 const updateSidebarState = () => {
@@ -31,7 +34,6 @@ const mainClass = computed(() => ({
 function updateDataTheme() {
   const isDark = document.documentElement.classList.contains('dark');
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  console.log(`[Portal-Shell] Theme updated: ${isDark ? 'dark' : 'light'}`);
 }
 
 /**
@@ -41,19 +43,17 @@ function updateDataTheme() {
 function resetDataService() {
   if (!route.meta.remoteName) {
     document.documentElement.setAttribute('data-service', 'portal');
-    console.log('[Portal-Shell] Route change: Reset data-service="portal"');
     forceReflowToApplyCSSChanges();
   }
 }
 
 /**
  * CSS 변수 강제 재계산
+ * data-service 속성 변경 시 CSS 변수가 즉시 적용되도록 브라우저 리플로우 트리거
  */
 function forceReflowToApplyCSSChanges() {
   const html = document.documentElement;
-  const trigger = html.offsetHeight;
-  void trigger;
-  console.log('[Portal-Shell] Forced CSS recalculation');
+  void html.offsetHeight;
 }
 
 onMounted(() => {
@@ -66,7 +66,18 @@ onMounted(() => {
   window.addEventListener('storage', updateSidebarState);
 
   // Periodic check for sidebar state (same-tab changes)
-  setInterval(updateSidebarState, 100);
+  sidebarCheckInterval = setInterval(updateSidebarState, 100);
+});
+
+onBeforeUnmount(() => {
+  // Cleanup event listener
+  window.removeEventListener('storage', updateSidebarState);
+
+  // Cleanup interval
+  if (sidebarCheckInterval) {
+    clearInterval(sidebarCheckInterval);
+    sidebarCheckInterval = null;
+  }
 });
 
 watch(() => route.path, () => {
