@@ -62,7 +62,14 @@ export function usePortalTheme() {
     // Portal Shell에서 storeAdapter 동적 import
     import('portal/stores')
       .then((module) => {
-        const themeAdapter = module.themeAdapter as ThemeAdapter
+        // Module Federation의 wrapDefault로 인해 module.default에 있을 수 있음
+        const actualModule = (module as any).default || module
+        const themeAdapter = actualModule.themeAdapter as ThemeAdapter
+
+        if (!themeAdapter) {
+          throw new Error('themeAdapter not found in portal/stores')
+        }
+
         setAdapter(themeAdapter)
 
         // 초기 상태 설정
@@ -124,7 +131,14 @@ export function usePortalAuth() {
     // Portal Shell에서 storeAdapter 동적 import
     import('portal/stores')
       .then((module) => {
-        const authAdapter = module.authAdapter as AuthAdapter
+        // Module Federation의 wrapDefault로 인해 module.default에 있을 수 있음
+        const actualModule = (module as any).default || module
+        const authAdapter = actualModule.authAdapter as AuthAdapter
+
+        if (!authAdapter) {
+          throw new Error('authAdapter not found in portal/stores')
+        }
+
         setAdapter(authAdapter)
 
         // 초기 상태 설정

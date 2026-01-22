@@ -17,9 +17,10 @@ export default defineConfig(({ mode }) => {
   console.log('🔧 [Shopping] Building for mode:', mode)
   console.log('🔧 [Shopping] Portal Remote URL:', env.VITE_PORTAL_SHELL_REMOTE_URL || '(using default)')
 
-  // base 설정 제거 - 상대 경로 사용 (blog-frontend와 동일)
-  // vite-plugin-federation이 import.meta.url 기준으로 chunk 경로를 동적 해석
+  // Module Federation remote 앱의 chunk가 올바른 URL에서 로드되도록 base 설정
+  // React lazy() + code-splitting 사용 시 필수 (blog-frontend는 단일 번들이라 불필요)
   return {
+    base: env.VITE_BASE_URL,
 
     plugins: [
       react(),
