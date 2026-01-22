@@ -48,6 +48,11 @@ dependencies {
     implementation 'io.zipkin.reporter2:zipkin-reporter-brave' // Tracing data reporter for Zipkin
 
     // =======================================
+    // Logging (common-library 미사용)
+    // =======================================
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
+
+    // =======================================
     // Etc.
     // =======================================
     // macOS aarch64 환경에서 Netty DNS 문제 해결을 위한 네이티브 의존성
