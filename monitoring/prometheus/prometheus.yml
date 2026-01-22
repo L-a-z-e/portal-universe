@@ -1,6 +1,10 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  # External labels - 다중 클러스터/환경 구분용
+  external_labels:
+    cluster: 'portal-universe'
+    environment: 'docker'
 
 alerting:
   alertmanagers:
@@ -12,31 +16,117 @@ rule_files:
   - /etc/prometheus/rules/*.yml
 
 scrape_configs:
+  # ========================================
+  # Prometheus Self-Monitoring
+  # ========================================
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    relabel_configs:
+      - target_label: service
+        replacement: 'prometheus'
 
+  # ========================================
+  # API Gateway
+  # ========================================
   - job_name: 'api-gateway'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['api-gateway:8080']
+    relabel_configs:
+      - target_label: service
+        replacement: 'api-gateway'
+      - target_label: team
+        replacement: 'platform'
 
+  # ========================================
+  # Auth Service
+  # ========================================
   - job_name: 'auth-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['auth-service:8081']
+    relabel_configs:
+      - target_label: service
+        replacement: 'auth-service'
+      - target_label: team
+        replacement: 'platform'
 
+  # ========================================
+  # Blog Service
+  # ========================================
   - job_name: 'blog-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['blog-service:8082']
+    relabel_configs:
+      - target_label: service
+        replacement: 'blog-service'
+      - target_label: team
+        replacement: 'content'
 
+  # ========================================
+  # Shopping Service
+  # ========================================
   - job_name: 'shopping-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['shopping-service:8083']
+    relabel_configs:
+      - target_label: service
+        replacement: 'shopping-service'
+      - target_label: team
+        replacement: 'commerce'
 
+  # ========================================
+  # Notification Service
+  # ========================================
   - job_name: 'notification-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['notification-service:8084']
+    relabel_configs:
+      - target_label: service
+        replacement: 'notification-service'
+      - target_label: team
+        replacement: 'platform'
+
+  # ========================================
+  # Infrastructure (Optional - Node Exporter)
+  # ========================================
+  # - job_name: 'node-exporter'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #   relabel_configs:
+  #     - target_label: service
+  #       replacement: 'node-exporter'
+
+  # ========================================
+  # MySQL Exporter (Optional)
+  # ========================================
+  # - job_name: 'mysql-exporter'
+  #   static_configs:
+  #     - targets: ['mysql-exporter:9104']
+  #   relabel_configs:
+  #     - target_label: service
+  #       replacement: 'mysql'
+
+  # ========================================
+  # Redis Exporter (Optional)
+  # ========================================
+  # - job_name: 'redis-exporter'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #   relabel_configs:
+  #     - target_label: service
+  #       replacement: 'redis'
+
+  # ========================================
+  # Kafka Exporter (Optional)
+  # ========================================
+  # - job_name: 'kafka-exporter'
+  #   static_configs:
+  #     - targets: ['kafka-exporter:9308']
+  #   relabel_configs:
+  #     - target_label: service
+  #       replacement: 'kafka'

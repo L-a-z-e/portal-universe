@@ -1,0 +1,114 @@
+groups:
+  # ========================================
+  # Request Rate Recording Rules
+  # ========================================
+  - name: request-rate-rules
+    interval: 15s
+    rules:
+      # Total request rate by service
+      - record: job:http_requests:rate5m
+        expr: sum(rate(http_server_requests_seconds_count[5m])) by (job)
+
+      # Error rate by service
+      - record: job:http_errors:rate5m
+        expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+
+      # Error ratio by service (for dashboards)
+      - record: job:http_error_ratio:rate5m
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+
+      # Request rate by endpoint
+      - record: job_uri:http_requests:rate5m
+        expr: sum(rate(http_server_requests_seconds_count[5m])) by (job, uri)
+
+  # ========================================
+  # Latency Recording Rules
+  # ========================================
+  - name: latency-rules
+    interval: 15s
+    rules:
+      # P50 latency by service
+      - record: job:http_latency_p50:rate5m
+        expr: histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+
+      # P95 latency by service
+      - record: job:http_latency_p95:rate5m
+        expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+
+      # P99 latency by service
+      - record: job:http_latency_p99:rate5m
+        expr: histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+
+      # Average latency by service
+      - record: job:http_latency_avg:rate5m
+        expr: |
+          sum(rate(http_server_requests_seconds_sum[5m])) by (job)
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+
+  # ========================================
+  # JVM Recording Rules
+  # ========================================
+  - name: jvm-rules
+    interval: 30s
+    rules:
+      # Heap usage ratio
+      - record: job:jvm_heap_usage_ratio
+        expr: |
+          jvm_memory_used_bytes{area="heap"}
+          /
+          jvm_memory_max_bytes{area="heap"}
+
+      # Non-heap usage
+      - record: job:jvm_nonheap_used_bytes
+        expr: jvm_memory_used_bytes{area="nonheap"}
+
+      # GC rate
+      - record: job:jvm_gc_rate:rate5m
+        expr: sum(rate(jvm_gc_pause_seconds_count[5m])) by (job)
+
+      # GC time ratio (% of time spent in GC)
+      - record: job:jvm_gc_time_ratio:rate5m
+        expr: sum(rate(jvm_gc_pause_seconds_sum[5m])) by (job)
+
+  # ========================================
+  # Database Connection Pool Rules
+  # ========================================
+  - name: database-rules
+    interval: 30s
+    rules:
+      # HikariCP connection usage ratio
+      - record: job:hikaricp_connection_usage_ratio
+        expr: |
+          hikaricp_connections_active
+          /
+          hikaricp_connections_max
+
+      # HikariCP pending requests
+      - record: job:hikaricp_pending_requests
+        expr: hikaricp_connections_pending
+
+  # ========================================
+  # Service Availability (SLI)
+  # ========================================
+  - name: sli-rules
+    interval: 1m
+    rules:
+      # Availability (non-5xx responses / total responses)
+      - record: job:availability:rate5m
+        expr: |
+          1 - (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          )
+
+      # Latency SLI (% of requests under 200ms)
+      - record: job:latency_sli:rate5m
+        expr: |
+          sum(rate(http_server_requests_seconds_bucket{le="0.2"}[5m])) by (job)
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) by (job)
