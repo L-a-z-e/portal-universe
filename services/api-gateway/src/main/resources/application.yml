@@ -219,7 +219,4 @@ resilience4j:
 jwt:
   secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
 
-# 분산 추적용 로그 포맷 (모든 환경 동일)
-logging:
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+# 로깅 설정은 logback-spring.xml에서 관리

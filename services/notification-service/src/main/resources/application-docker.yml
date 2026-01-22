@@ -97,5 +97,8 @@ management:
 logging:
   level:
     root: INFO
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    com.portal.universe: INFO
+    # 노이즈 억제
+    org.apache.kafka: WARN
+    org.hibernate.SQL: WARN
+    io.lettuce: WARN

@@ -133,10 +133,12 @@ management:
       application: ${spring.application.name}
       environment: docker
 
-# Docker 환경 디버깅용 상세 로그
+# Docker 환경 로그 설정
 logging:
   level:
-    org.springframework.security: TRACE
-    org.springframework.security.web: TRACE
-    org.springframework.security.oauth2.server.authorization: TRACE
-    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    root: INFO
+    com.portal.universe: INFO
+    # 노이즈 억제
+    org.apache.kafka: WARN
+    org.hibernate.SQL: WARN
+    io.lettuce: WARN
