@@ -7,6 +7,7 @@ import com.portal.universe.authservice.controller.dto.profile.UpdateProfileReque
 import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.exception.AuthErrorCode;
 import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.authservice.utils.TokenUtils;
 import com.portal.universe.authservice.service.ProfileService;
 import com.portal.universe.authservice.service.RefreshTokenService;
 import com.portal.universe.authservice.service.TokenBlacklistService;
@@ -107,7 +108,7 @@ public class ProfileController {
         profileService.deleteAccount(userId, request);
 
         // 2. 현재 Access Token 블랙리스트에 추가
-        String accessToken = extractToken(authorization);
+        String accessToken = TokenUtils.extractBearerToken(authorization);
         long remainingExpiration = tokenService.getRemainingExpiration(accessToken);
         tokenBlacklistService.addToBlacklist(accessToken, remainingExpiration);
 
@@ -145,16 +146,4 @@ public class ProfileController {
         return (String) authentication.getPrincipal();
     }
 
-    /**
-     * Authorization 헤더에서 Bearer 토큰을 추출합니다.
-     *
-     * @param authorization Authorization 헤더 값
-     * @return JWT 토큰
-     */
-    private String extractToken(String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new CustomBusinessException(AuthErrorCode.INVALID_TOKEN);
-        }
-        return authorization.substring(7);
-    }
 }

@@ -83,23 +83,18 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
 
-        int followerCount = (int) followRepository.countByFollowing(user);
-        int followingCount = (int) followRepository.countByFollower(user);
-
-        return UserProfileResponse.from(user, followerCount, followingCount);
+        FollowCounts counts = getFollowCounts(user);
+        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
     }
 
     /**
      * 내 프로필 조회
      */
     public UserProfileResponse getMyProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
+        User user = findUserByIdOrThrow(userId);
+        FollowCounts counts = getFollowCounts(user);
 
-        int followerCount = (int) followRepository.countByFollowing(user);
-        int followingCount = (int) followRepository.countByFollower(user);
-
-        return UserProfileResponse.from(user, followerCount, followingCount);
+        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
     }
 
     /**
@@ -108,15 +103,11 @@ public class UserService {
     @Transactional
     public UserProfileResponse updateProfile(Long userId, String nickname, String bio,
                                             String profileImageUrl, String website) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
-
+        User user = findUserByIdOrThrow(userId);
         user.getProfile().updateProfile(nickname, bio, profileImageUrl, website);
 
-        int followerCount = (int) followRepository.countByFollowing(user);
-        int followingCount = (int) followRepository.countByFollower(user);
-
-        return UserProfileResponse.from(user, followerCount, followingCount);
+        FollowCounts counts = getFollowCounts(user);
+        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
     }
 
     /**
@@ -129,8 +120,7 @@ public class UserService {
             throw new CustomBusinessException(AuthErrorCode.INVALID_USERNAME_FORMAT);
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
+        User user = findUserByIdOrThrow(userId);
 
         // 이미 설정된 경우
         if (user.getProfile().getUsername() != null) {
@@ -144,10 +134,8 @@ public class UserService {
 
         user.getProfile().setUsername(username);
 
-        int followerCount = (int) followRepository.countByFollowing(user);
-        int followingCount = (int) followRepository.countByFollower(user);
-
-        return UserProfileResponse.from(user, followerCount, followingCount);
+        FollowCounts counts = getFollowCounts(user);
+        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
     }
 
     /**
@@ -161,4 +149,42 @@ public class UserService {
 
         return !userRepository.existsByUsername(username);
     }
+
+    // ==================== Private Helper Methods ====================
+
+    /**
+     * ID로 사용자를 조회하고, 없으면 예외를 발생시킵니다.
+     *
+     * <p>이 메서드는 반복되는 "조회 후 예외 처리" 패턴을 추출한 것입니다.
+     * 여러 메서드에서 동일한 로직이 중복되면 버그 수정이나 변경 시
+     * 모든 위치를 찾아 수정해야 하는 문제가 발생합니다.</p>
+     *
+     * @param userId 조회할 사용자 ID
+     * @return 조회된 User 엔티티
+     * @throws CustomBusinessException 사용자를 찾을 수 없는 경우
+     */
+    private User findUserByIdOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
+    }
+
+    /**
+     * 사용자의 팔로워/팔로잉 카운트를 담은 DTO를 생성합니다.
+     *
+     * <p>팔로우 카운트 조회 로직이 여러 메서드에서 반복되어 추출했습니다.
+     * 나중에 캐싱이나 최적화가 필요할 때 이 메서드만 수정하면 됩니다.</p>
+     *
+     * @param user 조회 대상 사용자
+     * @return 팔로워 수와 팔로잉 수를 담은 레코드
+     */
+    private FollowCounts getFollowCounts(User user) {
+        int followerCount = (int) followRepository.countByFollowing(user);
+        int followingCount = (int) followRepository.countByFollower(user);
+        return new FollowCounts(followerCount, followingCount);
+    }
+
+    /**
+     * 팔로워/팔로잉 카운트를 담는 불변 데이터 클래스
+     */
+    private record FollowCounts(int followerCount, int followingCount) {}
 }
