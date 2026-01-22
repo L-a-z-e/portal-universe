@@ -22,7 +22,18 @@ public enum CommonErrorCode implements ErrorCode {
     /**
      * 요청한 리소스를 찾을 수 없을 경우 사용됩니다.
      */
-    NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "Not Found");
+    NOT_FOUND(HttpStatus.NOT_FOUND, "C003", "Not Found"),
+
+    /**
+     * 권한이 없거나 허용되지 않는 상태에서 작업이 수행될 경우 사용됩니다.
+     */
+    FORBIDDEN(HttpStatus.FORBIDDEN, "C004", "Forbidden"),
+
+    /**
+     * 인증되지 않은 사용자가 보호된 리소스에 접근할 경우 사용됩니다.
+     * JWT 토큰이 없거나, 만료되었거나, 유효하지 않은 경우에 해당합니다.
+     */
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "C005", "Unauthorized");
 
     private final HttpStatus status;
     private final String code;
