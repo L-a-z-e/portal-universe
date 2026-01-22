@@ -60,7 +60,7 @@ export function usePortalTheme() {
     }
 
     // Portal Shell에서 storeAdapter 동적 import
-    import('portal/storeAdapter')
+    import('portal/stores')
       .then((module) => {
         const themeAdapter = module.themeAdapter as ThemeAdapter
         setAdapter(themeAdapter)
@@ -122,7 +122,7 @@ export function usePortalAuth() {
     }
 
     // Portal Shell에서 storeAdapter 동적 import
-    import('portal/storeAdapter')
+    import('portal/stores')
       .then((module) => {
         const authAdapter = module.authAdapter as AuthAdapter
         setAdapter(authAdapter)

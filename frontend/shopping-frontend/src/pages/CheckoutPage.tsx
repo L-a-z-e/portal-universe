@@ -93,15 +93,10 @@ const CheckoutPage: React.FC = () => {
         shippingAddress: address,
         userCouponId: selectedCoupon?.id
       })
-
-      if (response.success) {
-        setOrder(response.data)
-        setStep('payment')
-      } else {
-        setError(response.message || 'Failed to create order')
-      }
+      setOrder(response.data)
+      setStep('payment')
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to create order')
+      setError(err.response?.data?.error?.message || err.message || 'Failed to create order')
     } finally {
       setLoading(false)
     }
@@ -115,20 +110,15 @@ const CheckoutPage: React.FC = () => {
     setError(null)
 
     try {
-      const response = await paymentApi.processPayment({
+      await paymentApi.processPayment({
         orderNumber: order.orderNumber,
         method: paymentMethod
       })
-
-      if (response.success) {
-        // Clear cart after successful payment
-        await clearCart()
-        setStep('complete')
-      } else {
-        setError(response.message || 'Payment failed')
-      }
+      // Clear cart after successful payment
+      await clearCart()
+      setStep('complete')
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Payment failed')
+      setError(err.response?.data?.error?.message || err.message || 'Payment failed')
     } finally {
       setLoading(false)
     }

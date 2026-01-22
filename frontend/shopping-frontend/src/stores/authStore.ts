@@ -102,7 +102,7 @@ export const useAuthStore = create<AuthState>()(
 
             // Pinia store에서 사용자 정보 가져오기 시도
             try {
-              const portalAuthModule = await import('portal/authStore')
+              const portalAuthModule = await import('portal/stores')
               // Pinia store는 함수로 호출해야 인스턴스를 얻음 (getState 아님!)
               const usePortalAuthStore = portalAuthModule.useAuthStore
               const portalStore = usePortalAuthStore()
@@ -154,7 +154,7 @@ export const useAuthStore = create<AuthState>()(
           // ✅ 방법 2: 토큰이 없으면 Pinia store에서 직접 추출 시도
           console.log('[Auth] No global token, trying Pinia store directly...')
 
-          const portalAuthModule = await import('portal/authStore')
+          const portalAuthModule = await import('portal/stores')
           const usePortalAuthStore = portalAuthModule.useAuthStore
           const portalStore = usePortalAuthStore()
 

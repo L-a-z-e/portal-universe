@@ -88,9 +88,6 @@ export function useCreateTimeDeal() {
       setIsLoading(true)
       setError(null)
       const response = await adminTimeDealApi.createTimeDeal(data)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to create time deal')
-      }
       return response.data
     } catch (e) {
       const err = e instanceof Error ? e : new Error('Failed to create time deal')
@@ -115,10 +112,7 @@ export function useCancelTimeDeal() {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await adminTimeDealApi.cancelTimeDeal(id)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to cancel time deal')
-      }
+      await adminTimeDealApi.cancelTimeDeal(id)
     } catch (e) {
       const err = e instanceof Error ? e : new Error('Failed to cancel time deal')
       setError(err)

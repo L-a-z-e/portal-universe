@@ -88,9 +88,6 @@ export function useCreateCoupon() {
       setIsLoading(true)
       setError(null)
       const response = await adminCouponApi.createCoupon(data)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to create coupon')
-      }
       return response.data
     } catch (e) {
       const err = e instanceof Error ? e : new Error('Failed to create coupon')
@@ -115,10 +112,7 @@ export function useDeactivateCoupon() {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await adminCouponApi.deactivateCoupon(id)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to deactivate coupon')
-      }
+      await adminCouponApi.deactivateCoupon(id)
     } catch (e) {
       const err = e instanceof Error ? e : new Error('Failed to deactivate coupon')
       setError(err)

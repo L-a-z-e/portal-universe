@@ -31,29 +31,22 @@ const OrderDetailPage: React.FC = () => {
 
       try {
         const orderRes = await orderApi.getOrder(orderNumber)
+        setOrder(orderRes.data)
 
-        if (orderRes.success) {
-          setOrder(orderRes.data)
-
-          // Fetch delivery info if order is paid/shipping
-          if (['PAID', 'SHIPPING', 'DELIVERED'].includes(orderRes.data.status)) {
-            try {
-              const deliveryRes = await deliveryApi.getDeliveryByOrder(orderNumber)
-              if (deliveryRes.success) {
-                setDelivery(deliveryRes.data)
-              }
-            } catch (deliveryErr) {
-              console.warn('Failed to fetch delivery:', deliveryErr)
-            }
+        // Fetch delivery info if order is paid/shipping
+        if (['PAID', 'SHIPPING', 'DELIVERED'].includes(orderRes.data.status)) {
+          try {
+            const deliveryRes = await deliveryApi.getDeliveryByOrder(orderNumber)
+            setDelivery(deliveryRes.data)
+          } catch (deliveryErr) {
+            console.warn('Failed to fetch delivery:', deliveryErr)
           }
-        } else {
-          setError(orderRes.message || 'Failed to fetch order')
         }
       } catch (err: any) {
         if (err.response?.status === 404) {
           setError('Order not found')
         } else {
-          setError(err.response?.data?.message || err.message || 'Failed to fetch order')
+          setError(err.response?.data?.error?.message || err.message || 'Failed to fetch order')
         }
       } finally {
         setLoading(false)
@@ -111,14 +104,9 @@ const OrderDetailPage: React.FC = () => {
       const response = await orderApi.cancelOrder(order.orderNumber, {
         reason: 'Cancelled by customer'
       })
-
-      if (response.success) {
-        setOrder(response.data)
-      } else {
-        alert(response.message || 'Failed to cancel order')
-      }
+      setOrder(response.data)
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || 'Failed to cancel order')
+      alert(err.response?.data?.error?.message || err.message || 'Failed to cancel order')
     } finally {
       setCancelling(false)
     }

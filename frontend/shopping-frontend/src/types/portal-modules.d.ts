@@ -9,16 +9,57 @@ interface Window {
   __PORTAL_ACCESS_TOKEN__?: string
 }
 
-declare module 'portal/themeStore' {
-  interface ThemeStore {
-    isDark: boolean
-    toggleTheme: () => void
+/**
+ * portal/api 모듈 - API 관련 exports
+ */
+declare module 'portal/api' {
+  import type { AxiosInstance, AxiosResponse } from 'axios'
+
+  // API Client
+  export const apiClient: AxiosInstance
+
+  // Types
+  export interface FieldError {
+    field: string
+    message: string
+    rejectedValue?: unknown
   }
 
-  export function useThemeStore(): ThemeStore
+  export interface ErrorDetails {
+    code: string
+    message: string
+    timestamp?: string
+    path?: string
+    details?: FieldError[]
+  }
+
+  export interface ApiResponse<T> {
+    success: true
+    data: T
+    error: null
+  }
+
+  export interface ApiErrorResponse {
+    success: false
+    data: null
+    error: ErrorDetails
+  }
+
+  // Utilities
+  export function getData<T>(response: AxiosResponse<ApiResponse<T>>): T
+  export function getErrorDetails(error: unknown): ErrorDetails | null
+  export function getErrorMessage(error: unknown): string
+  export function getErrorCode(error: unknown): string | null
 }
 
-declare module 'portal/authStore' {
+/**
+ * portal/stores 모듈 - Store 관련 exports
+ */
+declare module 'portal/stores' {
+  // ============================================
+  // Pinia Stores (Vue용)
+  // ============================================
+
   // Portal Shell의 실제 PortalUser 구조
   interface UserProfile {
     sub: string
@@ -63,16 +104,26 @@ declare module 'portal/authStore' {
   }
 
   export const useAuthStore: AuthStore
-}
 
-declare module 'portal/apiClient' {
-  import type { AxiosInstance } from 'axios'
-  export const apiClient: AxiosInstance
-}
+  // Theme Store
+  export type ThemeMode = 'dark' | 'light' | 'system'
 
-declare module 'portal/storeAdapter' {
+  interface ThemeStore {
+    isDark: boolean
+    mode: ThemeMode
+    toggle: () => void
+    setMode: (mode: ThemeMode) => void
+    applyTheme: () => void
+  }
+
+  export function useThemeStore(): ThemeStore
+
+  // ============================================
+  // Store Adapters (React 등 다른 프레임워크용)
+  // ============================================
+
   // Theme Store Adapter Types
-  interface ThemeState {
+  export interface ThemeState {
     isDark: boolean
   }
 
@@ -84,7 +135,7 @@ declare module 'portal/storeAdapter' {
   }
 
   // Auth Store Adapter Types
-  interface AuthState {
+  export interface AuthState {
     isAuthenticated: boolean
     displayName: string
     isAdmin: boolean
@@ -104,10 +155,13 @@ declare module 'portal/storeAdapter' {
     logout: () => void
   }
 
+  export type UnsubscribeFn = () => void
+
   export const themeAdapter: ThemeAdapter
   export const authAdapter: AuthAdapter
   export const portalStoreAdapter: {
     theme: ThemeAdapter
     auth: AuthAdapter
   }
+  export const storeAdapter: typeof portalStoreAdapter
 }

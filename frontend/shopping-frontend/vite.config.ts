@@ -28,7 +28,8 @@ export default defineConfig(({ mode }) => {
         filename: 'remoteEntry.js',
         remotes: {
           portal: env.VITE_PORTAL_SHELL_REMOTE_URL,
-          shopping: env.VITE_SHOPPING_REMOTE_URL,
+          blog: env.VITE_BLOG_REMOTE_URL,
+          shopping: env.VITE_SHOPPING_REMOTE_URL
         },
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
