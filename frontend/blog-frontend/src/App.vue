@@ -6,8 +6,6 @@ import { Button } from '@portal/design-system-vue';
 const route = useRoute();
 const isEmbedded = computed(() => window.__POWERED_BY_PORTAL_SHELL__ === true);
 
-// 다크모드 감지
-let themeStore: any = null;
 
 /**
  * data-theme 속성 동기화
@@ -18,59 +16,46 @@ let themeStore: any = null;
 function updateDataTheme() {
   const isDark = document.documentElement.classList.contains('dark');
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  console.log(`[Blog] Theme synced: data-theme="${isDark ? 'dark' : 'light'}"`);
 }
 
 onMounted(() => {
-  // 🟢 Step 1: data-service="blog" 속성 설정 (CSS 선택자 활성화)
+  // Step 1: data-service="blog" 속성 설정 (CSS 선택자 활성화)
   document.documentElement.setAttribute('data-service', 'blog');
-  console.log('[Blog] Set data-service="blog"');
 
-  // 🟢 Step 2: 초기 data-theme 설정
+  // Step 2: 초기 data-theme 설정
   updateDataTheme();
 
   if (isEmbedded.value) {
-    // ============================================
     // Embedded 모드: Portal Shell의 themeStore 연동
-    // ============================================
-    try {
-      import('portal/themeStore').then(({ useThemeStore }) => {
-        themeStore = useThemeStore();
+    import('portal/stores').then(({ useThemeStore }) => {
+      const store = useThemeStore();
 
-        // 🟢 Step 3: 초기 다크모드 적용
-        if (themeStore.isDark) {
+      // Step 3: 초기 다크모드 적용
+      if (store.isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      updateDataTheme();
+
+      // Step 4: 다크모드 변경 감지 및 동기화
+      watch(() => store.isDark, (newVal) => {
+        if (newVal) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
         }
-        updateDataTheme();  // ← data-theme 속성도 함께 업데이트
-
-        // 🟢 Step 4: 다크모드 변경 감지 및 동기화
-        watch(() => themeStore.isDark, (newVal) => {
-          if (newVal) {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-          updateDataTheme();  // ← data-theme 속성도 함께 업데이트
-          console.log(`[Blog] Theme toggled: isDark=${newVal}`);
-        });
-
-        console.log('[Blog] Portal Shell themeStore connected');
-      }).catch((err) => {
-        console.warn('[Blog] Failed to load portal themeStore:', err);
+        updateDataTheme();
       });
-    } catch (err) {
-      console.warn('[Blog] themeStore import failed:', err);
-    }
+    }).catch(() => {
+      // Portal Shell themeStore 로드 실패 시 무시
+    });
   } else {
-    // ============================================
     // Standalone 모드: MutationObserver로 dark 클래스 감지
-    // ============================================
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.attributeName === 'class') {
-          updateDataTheme();  // ← 클래스 변경 시 data-theme도 함께 업데이트
+          updateDataTheme();
         }
       });
     });
@@ -79,18 +64,15 @@ onMounted(() => {
       attributes: true,
       attributeFilter: ['class']
     });
-
-    console.log('[Blog] Standalone mode: MutationObserver registered');
   }
 });
 
 /**
- * 🟢 KeepAlive 재활성화 시 data-service 복원
+ * KeepAlive 재활성화 시 data-service 복원
  * Shopping → Blog 전환 시 data-service="shopping"이 유지되는 문제 해결
  */
 onActivated(() => {
   document.documentElement.setAttribute('data-service', 'blog');
-  console.log('[Blog] KeepAlive activated: Restored data-service="blog"');
   updateDataTheme();
 });
 </script>

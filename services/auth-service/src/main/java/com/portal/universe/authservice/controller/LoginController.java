@@ -1,11 +1,13 @@
 package com.portal.universe.authservice.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+@Slf4j
 @Controller
 public class LoginController {
 
@@ -29,7 +31,7 @@ public class LoginController {
 
         // 디버깅 로그
         String requestUri = request.getRequestURI();
-        System.out.println("🔍 Login request: " + requestUri);
+        log.debug("Login page requested: {}", requestUri);
 
         return "login";  // templates/login.html
     }

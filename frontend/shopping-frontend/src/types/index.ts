@@ -14,11 +14,15 @@ export interface PageInfo {
   totalPages: number
 }
 
+/**
+ * API 성공 응답
+ * - axios가 4xx/5xx를 reject하므로, resolve된 응답은 항상 성공
+ * - portal/api 모듈의 타입과 동일한 구조
+ */
 export interface ApiResponse<T> {
-  success: boolean
+  success: true
   data: T
-  message?: string
-  timestamp: string
+  error: null
 }
 
 export interface PagedResponse<T> {

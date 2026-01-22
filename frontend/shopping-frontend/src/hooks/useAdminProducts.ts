@@ -20,11 +20,7 @@ export const useAdminProducts = (filters: ProductFilters) => {
     setError(null)
     try {
       const response = await adminProductApi.getProducts(filters)
-      if (response.success) {
-        setData(response.data)
-      } else {
-        setError(new Error(response.message || 'Failed to fetch products'))
-      }
+      setData(response.data)
     } catch (err) {
       setError(err as Error)
     } finally {
@@ -59,11 +55,7 @@ export const useAdminProduct = (id: number) => {
     setError(null)
     try {
       const response = await adminProductApi.getProduct(id)
-      if (response.success) {
-        setData(response.data)
-      } else {
-        setError(new Error(response.message || 'Failed to fetch product'))
-      }
+      setData(response.data)
     } catch (err) {
       setError(err as Error)
     } finally {
@@ -95,9 +87,6 @@ export const useCreateProduct = () => {
     setError(null)
     try {
       const response = await adminProductApi.createProduct(data)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to create product')
-      }
       return response.data
     } catch (err) {
       setError(err as Error)
@@ -126,9 +115,6 @@ export const useUpdateProduct = () => {
     setError(null)
     try {
       const response = await adminProductApi.updateProduct(id, data)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to update product')
-      }
       return response.data
     } catch (err) {
       setError(err as Error)
@@ -156,10 +142,7 @@ export const useDeleteProduct = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await adminProductApi.deleteProduct(id)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to delete product')
-      }
+      await adminProductApi.deleteProduct(id)
       return true
     } catch (err) {
       setError(err as Error)

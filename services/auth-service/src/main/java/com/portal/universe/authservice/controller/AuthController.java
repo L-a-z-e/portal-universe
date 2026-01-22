@@ -4,6 +4,7 @@ import com.portal.universe.authservice.controller.dto.*;
 import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.exception.AuthErrorCode;
 import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.authservice.utils.TokenUtils;
 import com.portal.universe.authservice.service.RefreshTokenService;
 import com.portal.universe.authservice.service.TokenBlacklistService;
 import com.portal.universe.authservice.service.TokenService;
@@ -123,7 +124,7 @@ public class AuthController {
         log.info("Logout attempt");
 
         // 1. Authorization 헤더에서 Access Token 추출
-        String accessToken = extractToken(authorization);
+        String accessToken = TokenUtils.extractBearerToken(authorization);
 
         try {
             // 2. Access Token 검증 및 userId 추출
@@ -147,16 +148,4 @@ public class AuthController {
         }
     }
 
-    /**
-     * Authorization 헤더에서 Bearer 토큰을 추출합니다.
-     *
-     * @param authorization Authorization 헤더 값
-     * @return JWT 토큰
-     */
-    private String extractToken(String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new CustomBusinessException(AuthErrorCode.INVALID_TOKEN);
-        }
-        return authorization.substring(7);
-    }
 }

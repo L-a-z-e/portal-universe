@@ -82,9 +82,6 @@ export function usePurchaseTimeDeal() {
       setIsLoading(true)
       setError(null)
       const response = await timeDealApi.purchaseTimeDeal(id, quantity)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to purchase time deal')
-      }
       return response.data
     } catch (e) {
       const err = e instanceof Error ? e : new Error('Failed to purchase time deal')

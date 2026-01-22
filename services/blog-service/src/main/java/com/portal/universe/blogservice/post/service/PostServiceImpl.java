@@ -287,6 +287,107 @@ public class PostServiceImpl implements PostService {
         return posts.map(this::convertToPostListResponse);
     }
 
+    /**
+     * 트렌딩 게시물 조회
+     *
+     * [성능 개선] 전체 로드 + 메모리 정렬 → MongoDB Aggregation
+     *
+     * 기존: 모든 게시물 로드 → Java에서 점수 계산 및 정렬 (OOM 위험)
+     * 개선: $addFields로 DB에서 점수 계산 → $sort로 정렬 → $skip/$limit으로 페이징
+     *
+     * 점수 공식: (views×1 + likes×3 + comments×5) × 2^(-hoursElapsed/halfLife)
+     */
+    @Override
+    public Page<PostSummaryResponse> getTrendingPosts(String period, int page, int size) {
+        log.info("Fetching trending posts using aggregation, period: {}, page: {}, size: {}", period, page, size);
+
+        LocalDateTime startDate = calculateStartDateByPeriod(period);
+        double halfLifeHours = getHalfLifeByPeriod(period);
+
+        // MongoDB Aggregation으로 점수 계산 및 정렬
+        Page<Post> trendingPosts = postRepository.aggregateTrendingPosts(
+                PostStatus.PUBLISHED, startDate, halfLifeHours, page, size);
+
+        return trendingPosts.map(this::convertToPostListResponse);
+    }
+
+    /**
+     * 기간별 반감기 반환 (시간 단위)
+     * - today: 6시간 (빠른 감쇠 - 실시간 트렌드)
+     * - week: 48시간 (중간 감쇠)
+     * - month: 168시간 (느린 감쇠)
+     * - year: 720시간 (매우 느린 감쇠)
+     */
+    private double getHalfLifeByPeriod(String period) {
+        return switch (period) {
+            case "today" -> 6.0;
+            case "week" -> 48.0;
+            case "month" -> 168.0;
+            case "year" -> 720.0;
+            default -> 48.0;
+        };
+    }
+
+    /**
+     * Phase 3: 트렌딩 점수 계산
+     * 공식: score = (views * 1 + likes * 3 + comments * 5) * timeDecay
+     * - 조회수: 기본 참여 지표 (가중치 1)
+     * - 좋아요: 적극적 참여 지표 (가중치 3)
+     * - 댓글: 최고 참여 지표 (가중치 5)
+     * - 시간 감쇠: 오래된 게시물은 점수 감소
+     */
+    private double calculateTrendingScore(Post post, String period) {
+        // 기본 점수 (가중치 적용)
+        double viewScore = post.getViewCount() * 1.0;
+        double likeScore = post.getLikeCount() * 3.0;
+        double commentScore = (post.getCommentCount() != null ? post.getCommentCount() : 0L) * 5.0;
+
+        double baseScore = viewScore + likeScore + commentScore;
+
+        // 시간 감쇠 계산
+        double timeDecay = calculateTimeDecay(post.getPublishedAt(), period);
+
+        return baseScore * timeDecay;
+    }
+
+    /**
+     * 시간 감쇠 계수 계산
+     * 최근 게시물일수록 높은 점수, 기간에 따라 감쇠 속도 조절
+     */
+    private double calculateTimeDecay(LocalDateTime publishedAt, String period) {
+        if (publishedAt == null) {
+            return 0.1; // 발행일이 없으면 최소 점수
+        }
+
+        long hoursElapsed = java.time.Duration.between(publishedAt, LocalDateTime.now()).toHours();
+
+        // 기간별 반감기 설정 (시간 단위)
+        double halfLife = switch (period) {
+            case "today" -> 6.0;    // 6시간마다 점수 반감
+            case "week" -> 48.0;    // 48시간(2일)마다 점수 반감
+            case "month" -> 168.0;  // 168시간(7일)마다 점수 반감
+            case "year" -> 720.0;   // 720시간(30일)마다 점수 반감
+            default -> 48.0;        // 기본값: 2일
+        };
+
+        // 지수 감쇠: decay = 2^(-hoursElapsed / halfLife)
+        return Math.pow(2, -hoursElapsed / halfLife);
+    }
+
+    /**
+     * 기간 문자열을 기준으로 시작 날짜 계산
+     */
+    private LocalDateTime calculateStartDateByPeriod(String period) {
+        LocalDateTime now = LocalDateTime.now();
+        return switch (period) {
+            case "today" -> now.toLocalDate().atStartOfDay();
+            case "week" -> now.minusDays(7);
+            case "month" -> now.minusDays(30);
+            case "year" -> now.minusYears(1);
+            default -> now.minusDays(7); // 기본값: 1주일
+        };
+    }
+
     @Override
     public Page<PostSummaryResponse> getTrendingPosts(String period, int page, int size) {
         log.info("Fetching trending posts, period: {}, page: {}, size: {}", period, page, size);
@@ -418,56 +519,32 @@ public class PostServiceImpl implements PostService {
 
     // ===== 통계 및 메타 정보 =====
 
+    /**
+     * 카테고리별 통계 조회
+     *
+     * [성능 개선] N+1 쿼리 → MongoDB Aggregation (1번 쿼리)
+     *
+     * 기존: 카테고리 목록 조회(1) + 카테고리별 count(N) + 최신글 조회(N) = 2N+1 쿼리
+     * 개선: $group aggregation으로 한 번에 집계 = 1 쿼리
+     */
     @Override
     public List<CategoryStats> getCategoryStats() {
-        log.info("Fetching category statistics");
-
-        List<String> categories = postRepository.findDistinctCategoriesByStatus(PostStatus.PUBLISHED);
-
-        return categories.stream()
-                .filter(Objects::nonNull)
-                .map(category -> {
-                    long count = postRepository.countByCategoryAndStatus(category, PostStatus.PUBLISHED);
-                    // 최신 게시물 날짜 조회 (간단히 하기 위해 첫 번째 게시물 사용)
-                    Page<Post> latestPost = postRepository.findByCategoryAndStatusOrderByPublishedAtDesc(
-                            category, PostStatus.PUBLISHED, PageRequest.of(0, 1));
-                    LocalDateTime latestDate = latestPost.hasContent()
-                            ? latestPost.getContent().get(0).getPublishedAt()
-                            : null;
-
-                    return new CategoryStats(category, count, latestDate);
-                })
-                .collect(Collectors.toList());
+        log.info("Fetching category statistics using aggregation");
+        return postRepository.aggregateCategoryStats(PostStatus.PUBLISHED);
     }
 
+    /**
+     * 인기 태그 조회
+     *
+     * [성능 개선] 전체 로드 + 메모리 집계 → MongoDB Aggregation
+     *
+     * 기존: 모든 게시물 로드 → Java에서 태그 집계 (메모리 사용량 ↑)
+     * 개선: $unwind + $group으로 DB에서 집계 (메모리 사용량 ↓)
+     */
     @Override
     public List<TagStats> getPopularTags(int limit) {
-        log.info("Fetching popular tags, limit: {}", limit);
-
-        // 모든 발행된 게시물에서 태그 집계
-        List<Post> posts = postRepository.findByStatusForTagAggregation(PostStatus.PUBLISHED);
-
-        // 태그별 카운트 집계
-        Map<String, Long> tagCountMap = new HashMap<>();
-        Map<String, Long> tagViewsMap = new HashMap<>();
-
-        for (Post post : posts) {
-            for (String tag : post.getTags()) {
-                tagCountMap.merge(tag, 1L, Long::sum);
-                tagViewsMap.merge(tag, post.getViewCount(), Long::sum);
-            }
-        }
-
-        // 카운트 기준으로 정렬하여 상위 limit개 반환
-        return tagCountMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .limit(limit)
-                .map(entry -> new TagStats(
-                        entry.getKey(),
-                        entry.getValue(),
-                        tagViewsMap.getOrDefault(entry.getKey(), 0L)
-                ))
-                .collect(Collectors.toList());
+        log.info("Fetching popular tags using aggregation, limit: {}", limit);
+        return postRepository.aggregatePopularTags(PostStatus.PUBLISHED, limit);
     }
 
     @Override

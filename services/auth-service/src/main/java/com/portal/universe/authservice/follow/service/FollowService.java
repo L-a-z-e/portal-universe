@@ -58,10 +58,12 @@ public class FollowService {
             isFollowing = true;
         }
 
-        int followerCount = (int) followRepository.countByFollowing(targetUser);
-        int followingCount = (int) followRepository.countByFollower(targetUser);
-
-        return new FollowResponse(isFollowing, followerCount, followingCount);
+        // 기존 헬퍼 메서드 재사용 (DRY 원칙)
+        return new FollowResponse(
+                isFollowing,
+                getFollowerCount(targetUser),
+                getFollowingCount(targetUser)
+        );
     }
 
     /**

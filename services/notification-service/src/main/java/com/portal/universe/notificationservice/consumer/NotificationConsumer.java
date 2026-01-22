@@ -55,20 +55,33 @@ public class NotificationConsumer {
         createAndPush(event);
     }
 
+    /**
+     * 알림을 생성하고 푸시합니다.
+     *
+     * 중요: try-catch로 예외를 삼키지 않습니다.
+     * 예외가 발생하면 KafkaConsumerConfig의 ErrorHandler가:
+     * 1. 설정된 횟수만큼 재시도
+     * 2. 재시도 실패 시 DLQ(Dead Letter Queue)로 이동
+     *
+     * @param event 알림 이벤트
+     * @throws RuntimeException 처리 실패 시 (ErrorHandler가 처리)
+     */
     private void createAndPush(NotificationEvent event) {
-        try {
-            Notification notification = notificationService.create(
-                    event.getUserId(),
-                    event.getType(),
-                    event.getTitle(),
-                    event.getMessage(),
-                    event.getLink(),
-                    event.getReferenceId(),
-                    event.getReferenceType()
-            );
-            pushService.push(notification);
-        } catch (Exception e) {
-            log.error("Failed to create and push notification for user: {}", event.getUserId(), e);
-        }
+        log.debug("Creating notification for user: {}", event.getUserId());
+
+        Notification notification = notificationService.create(
+                event.getUserId(),
+                event.getType(),
+                event.getTitle(),
+                event.getMessage(),
+                event.getLink(),
+                event.getReferenceId(),
+                event.getReferenceType()
+        );
+
+        pushService.push(notification);
+
+        log.info("Notification created and pushed: userId={}, type={}, notificationId={}",
+                event.getUserId(), event.getType(), notification.getId());
     }
 }

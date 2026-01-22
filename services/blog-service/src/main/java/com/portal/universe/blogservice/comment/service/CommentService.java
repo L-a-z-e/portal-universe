@@ -2,10 +2,10 @@ package com.portal.universe.blogservice.comment.service;
 
 import com.portal.universe.blogservice.comment.domain.Comment;
 import com.portal.universe.blogservice.comment.dto.*;
-import com.portal.universe.blogservice.comment.exception.CommentNotFoundException;
 import com.portal.universe.blogservice.comment.repository.CommentRepository;
-import com.portal.universe.blogservice.post.domain.Post;
+import com.portal.universe.blogservice.exception.BlogErrorCode;
 import com.portal.universe.blogservice.post.repository.PostRepository;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,10 +53,10 @@ public class CommentService {
      */
     public CommentResponse updateComment(String commentId, CommentUpdateRequest request, String authorId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException(commentId));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
 
         if (!comment.getAuthorId().equals(authorId)) {
-            throw new IllegalStateException("작성자만 수정할 수 있습니다.");
+            throw new CustomBusinessException(BlogErrorCode.COMMENT_UPDATE_FORBIDDEN);
         }
 
         comment.update(request.content());
@@ -69,10 +69,10 @@ public class CommentService {
      */
     public void deleteComment(String commentId, String authorId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException(commentId));
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
 
         if (!comment.getAuthorId().equals(authorId)) {
-            throw new IllegalStateException("작성자만 삭제할 수 있습니다.");
+            throw new CustomBusinessException(BlogErrorCode.COMMENT_DELETE_FORBIDDEN);
         }
 
         comment.delete();

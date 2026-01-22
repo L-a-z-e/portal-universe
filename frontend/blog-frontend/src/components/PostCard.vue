@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { Card, Tag, Avatar } from '@portal/design-system-vue';
 import type { PostSummaryResponse } from '../dto/post';
 import { DEFAULT_THUMBNAILS } from '../config/assets';
+import { useRelativeTime } from '@/composables/useRelativeTime';
 
 interface Props {
   post: PostSummaryResponse;
@@ -15,17 +16,14 @@ const emit = defineEmits<{
 // 썸네일 이미지 에러 핸들링
 const imgError = ref(false);
 const thumbnailSrc = computed(() => {
-  // 에러 발생 시 기본 이미지
   if (imgError.value) {
     return DEFAULT_THUMBNAILS.write;
   }
 
-  // post에 thumbnailUrl이 있으면 사용
   if (props.post.thumbnailUrl) {
     return props.post.thumbnailUrl;
   }
 
-  // 카테고리별 기본 이미지
   const category = props.post.category?.toLowerCase();
   switch (category) {
     case 'travel':
@@ -42,39 +40,16 @@ const onImgError = () => {
   imgError.value = true;
 };
 
-// 날짜 포맷팅
-const formattedDate = computed(() => {
-  return new Date(props.post.publishedAt).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-});
+// 상대 시간 (composable 사용)
+const { relativeTime } = useRelativeTime(
+  computed(() => props.post.publishedAt)
+);
 
-// 상대 시간 (예: "3일 전")
-const relativeTime = computed(() => {
-  const now = new Date();
-  const published = new Date(props.post.publishedAt);
-  const diff = now.getTime() - published.getTime();
-
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 60) return `${minutes}분 전`;
-  if (hours < 24) return `${hours}시간 전`;
-  if (days < 7) return `${days}일 전`;
-  return formattedDate.value;
-});
-
-// 요약 텍스트
+// 요약 텍스트 (PostSummaryResponse에는 content가 없으므로 summary만 사용)
 const summary = computed(() => {
-  if (props.post.summary && props.post.summary.trim())
-    return props.post.summary.length > 150
-        ? props.post.summary.slice(0, 150) + '...'
-        : props.post.summary;
-  const clean = (props.post as any).content?.replace(/<[^>]*>/g, '') || '';
-  return clean.length > 150 ? clean.substring(0, 150) + '...' : clean;
+  const text = props.post.summary?.trim() || '';
+  if (!text) return '';
+  return text.length > 150 ? text.slice(0, 150) + '...' : text;
 });
 
 const handleClick = () => {

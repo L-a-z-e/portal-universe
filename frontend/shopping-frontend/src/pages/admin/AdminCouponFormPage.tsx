@@ -119,7 +119,7 @@ export function AdminCouponFormPage() {
               label="쿠폰 코드"
               required
               value={formData.code}
-              onChange={(e) => handleChange('code', e.target.value.toUpperCase())}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('code', e.target.value.toUpperCase())}
               placeholder="예: WELCOME2024"
               error={!!errors.code}
               errorMessage={errors.code}
@@ -129,7 +129,7 @@ export function AdminCouponFormPage() {
               label="쿠폰 이름"
               required
               value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('name', e.target.value)}
               placeholder="예: 신규가입 환영 쿠폰"
               error={!!errors.name}
               errorMessage={errors.name}
@@ -139,7 +139,7 @@ export function AdminCouponFormPage() {
               <Textarea
                 label="설명"
                 value={formData.description || ''}
-                onChange={(e) => handleChange('description', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange('description', e.target.value)}
                 placeholder="쿠폰에 대한 설명을 입력하세요"
                 rows={3}
               />
@@ -157,7 +157,7 @@ export function AdminCouponFormPage() {
               required
               value={formData.discountType}
               options={discountTypeOptions}
-              onChange={(value) => handleChange('discountType', value as DiscountType)}
+              onChange={(value: string) => handleChange('discountType', value as DiscountType)}
             />
 
             <Input
@@ -165,7 +165,7 @@ export function AdminCouponFormPage() {
               required
               type="number"
               value={formData.discountValue || ''}
-              onChange={(e) => handleChange('discountValue', parseInt(e.target.value) || 0)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('discountValue', parseInt(e.target.value) || 0)}
               placeholder={formData.discountType === 'FIXED' ? '1000' : '10'}
               min={0}
               max={formData.discountType === 'PERCENTAGE' ? 100 : undefined}
@@ -177,7 +177,7 @@ export function AdminCouponFormPage() {
               label="최소 주문 금액 (원)"
               type="number"
               value={formData.minimumOrderAmount || ''}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 handleChange('minimumOrderAmount', e.target.value ? parseInt(e.target.value) : undefined)
               }
               placeholder="10000"
@@ -189,7 +189,7 @@ export function AdminCouponFormPage() {
                 label="최대 할인 금액 (원)"
                 type="number"
                 value={formData.maximumDiscountAmount || ''}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleChange('maximumDiscountAmount', e.target.value ? parseInt(e.target.value) : undefined)
                 }
                 placeholder="5000"
@@ -209,7 +209,7 @@ export function AdminCouponFormPage() {
               required
               type="number"
               value={formData.totalQuantity || ''}
-              onChange={(e) => handleChange('totalQuantity', parseInt(e.target.value) || 0)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('totalQuantity', parseInt(e.target.value) || 0)}
               placeholder="100"
               min={1}
               error={!!errors.totalQuantity}
@@ -221,7 +221,7 @@ export function AdminCouponFormPage() {
               required
               type="datetime-local"
               value={formData.startsAt}
-              onChange={(e) => handleChange('startsAt', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('startsAt', e.target.value)}
               error={!!errors.startsAt}
               errorMessage={errors.startsAt}
             />
@@ -231,7 +231,7 @@ export function AdminCouponFormPage() {
               required
               type="datetime-local"
               value={formData.expiresAt}
-              onChange={(e) => handleChange('expiresAt', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('expiresAt', e.target.value)}
               error={!!errors.expiresAt}
               errorMessage={errors.expiresAt}
             />

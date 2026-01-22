@@ -1,6 +1,7 @@
 package com.portal.universe.blogservice.file.service;
 
-import com.portal.universe.blogservice.file.exception.FileUploadException;
+import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,10 +95,10 @@ public class FileService {
 
         } catch (IOException e) {
             log.error("❌ 파일 읽기 실패: {}", e.getMessage());
-            throw new FileUploadException("파일을 읽을 수 없습니다: " + e.getMessage());
+            throw new CustomBusinessException(BlogErrorCode.FILE_UPLOAD_FAILED);
         } catch (S3Exception e) {
             log.error("❌ S3 업로드 실패: {}", e.getMessage());
-            throw new FileUploadException("S3 업로드 실패: " + e.awsErrorDetails().errorMessage());
+            throw new CustomBusinessException(BlogErrorCode.FILE_UPLOAD_FAILED);
         }
     }
 
@@ -120,7 +121,7 @@ public class FileService {
 
         } catch (S3Exception e) {
             log.error("❌ S3 파일 삭제 실패: {}", e.getMessage());
-            throw new FileUploadException("파일 삭제 실패: " + e.awsErrorDetails().errorMessage());
+            throw new CustomBusinessException(BlogErrorCode.FILE_DELETE_FAILED);
         }
     }
 
@@ -131,11 +132,11 @@ public class FileService {
      */
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new FileUploadException("파일이 비어있습니다");
+            throw new CustomBusinessException(BlogErrorCode.FILE_EMPTY);
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new FileUploadException("파일 크기가 100MB를 초과합니다");
+            throw new CustomBusinessException(BlogErrorCode.FILE_SIZE_EXCEEDED);
         }
 
         String extension = getFileExtension(file.getOriginalFilename());
@@ -161,7 +162,7 @@ public class FileService {
     private String extractKeyFromUrl(String url) {
         String[] parts = url.split(bucketName + "/");
         if (parts.length < 2) {
-            throw new FileUploadException("잘못된 S3 URL 형식입니다: " + url);
+            throw new CustomBusinessException(BlogErrorCode.INVALID_FILE_URL);
         }
         return parts[1];
     }

@@ -38,13 +38,9 @@ const ProductDetailPage: React.FC = () => {
           inventoryApi.getInventory(parseInt(productId)).catch(() => null)
         ])
 
-        if (productRes.success) {
-          setProduct(productRes.data)
-        } else {
-          setError(productRes.message || 'Failed to fetch product')
-        }
+        setProduct(productRes.data)
 
-        if (inventoryRes?.success) {
+        if (inventoryRes) {
           setInventory(inventoryRes.data)
         }
       } catch (err: any) {

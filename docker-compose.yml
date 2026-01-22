@@ -131,7 +131,8 @@ services:
     ports:
       - "8081:8081"
     env_file:
-      - .env.docker
+      - path: ./.env.docker
+        required: true
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_SECURITY_OAUTH2_AUTHORIZATIONSERVER_ISSUER=https://portal-universe:30000/auth-service
@@ -306,7 +307,7 @@ services:
       - ./monitoring/alertmanager/templates:/etc/alertmanager/templates
       - alertmanager-data:/alertmanager
     ports:
-      - "9093:9093"
+      - "9094:9093"
     networks:
       - portal-universe-net
     command:

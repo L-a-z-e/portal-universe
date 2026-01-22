@@ -42,4 +42,16 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> error(String code, String message) {
         return new ApiResponse<>(false, null, new ErrorResponse(code, message));
     }
+
+    /**
+     * 상세 에러 정보를 포함한 실패 응답을 생성하는 정적 팩토리 메서드입니다.
+     * Validation 에러 등 필드별 상세 정보가 필요한 경우 사용됩니다.
+     *
+     * @param errorResponse 상세 에러 정보를 담은 ErrorResponse 객체
+     * @param <T> 데이터의 타입 (실패 시에는 항상 null)
+     * @return 상세 에러 정보가 포함된 실패 ApiResponse 객체
+     */
+    public static <T> ApiResponse<T> errorWithDetails(ErrorResponse errorResponse) {
+        return new ApiResponse<>(false, null, errorResponse);
+    }
 }

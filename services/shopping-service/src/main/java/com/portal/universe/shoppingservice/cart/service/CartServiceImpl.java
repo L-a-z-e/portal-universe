@@ -47,30 +47,23 @@ public class CartServiceImpl implements CartService {
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
 
-        // 재고 확인
-        Inventory inventory = inventoryRepository.findByProductId(request.productId())
-                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.INVENTORY_NOT_FOUND));
-
-        if (inventory.getAvailableQuantity() < request.quantity()) {
-            throw new CustomBusinessException(ShoppingErrorCode.CART_ITEM_QUANTITY_EXCEEDED);
-        }
-
-        // 이미 장바구니에 있는 상품인 경우 수량 증가
+        // 이미 장바구니에 있는 상품인 경우 수량 증가, 없으면 새로 추가
         cart.findItemByProductId(request.productId())
                 .ifPresentOrElse(
                         existingItem -> {
                             int newQuantity = existingItem.getQuantity() + request.quantity();
-                            if (inventory.getAvailableQuantity() < newQuantity) {
-                                throw new CustomBusinessException(ShoppingErrorCode.CART_ITEM_QUANTITY_EXCEEDED);
-                            }
+                            validateStockAvailability(request.productId(), newQuantity);
                             existingItem.updateQuantity(newQuantity);
                         },
-                        () -> cart.addItem(
-                                request.productId(),
-                                product.getName(),
-                                BigDecimal.valueOf(product.getPrice()),
-                                request.quantity()
-                        )
+                        () -> {
+                            validateStockAvailability(request.productId(), request.quantity());
+                            cart.addItem(
+                                    request.productId(),
+                                    product.getName(),
+                                    BigDecimal.valueOf(product.getPrice()),
+                                    request.quantity()
+                            );
+                        }
                 );
 
         Cart savedCart = cartRepository.save(cart);
@@ -90,12 +83,7 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.CART_ITEM_NOT_FOUND));
 
         // 재고 확인
-        Inventory inventory = inventoryRepository.findByProductId(item.getProductId())
-                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.INVENTORY_NOT_FOUND));
-
-        if (inventory.getAvailableQuantity() < request.quantity()) {
-            throw new CustomBusinessException(ShoppingErrorCode.CART_ITEM_QUANTITY_EXCEEDED);
-        }
+        validateStockAvailability(item.getProductId(), request.quantity());
 
         cart.updateItemQuantity(itemId, request.quantity());
 
@@ -133,12 +121,7 @@ public class CartServiceImpl implements CartService {
 
         // 모든 항목의 재고 확인
         for (CartItem item : cart.getItems()) {
-            Inventory inventory = inventoryRepository.findByProductId(item.getProductId())
-                    .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.INVENTORY_NOT_FOUND));
-
-            if (inventory.getAvailableQuantity() < item.getQuantity()) {
-                throw new CustomBusinessException(ShoppingErrorCode.CART_ITEM_QUANTITY_EXCEEDED);
-            }
+            validateStockAvailability(item.getProductId(), item.getQuantity());
         }
 
         cart.checkout();
@@ -168,5 +151,21 @@ public class CartServiceImpl implements CartService {
     private Cart getActiveCartWithItems(String userId) {
         return cartRepository.findActiveCartWithItems(userId)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.CART_NOT_FOUND));
+    }
+
+    /**
+     * 상품의 재고 가용량을 검증합니다.
+     *
+     * @param productId 상품 ID
+     * @param requiredQuantity 필요한 수량
+     * @throws CustomBusinessException 재고가 없거나 부족한 경우
+     */
+    private void validateStockAvailability(Long productId, int requiredQuantity) {
+        Inventory inventory = inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.INVENTORY_NOT_FOUND));
+
+        if (inventory.getAvailableQuantity() < requiredQuantity) {
+            throw new CustomBusinessException(ShoppingErrorCode.CART_ITEM_QUANTITY_EXCEEDED);
+        }
     }
 }

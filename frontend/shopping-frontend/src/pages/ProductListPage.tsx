@@ -38,32 +38,26 @@ const ProductListPage: React.FC = () => {
         response = await productApi.getProducts(currentPage, 12, category || undefined)
       }
 
-      if (response.success) {
-        const productsData = response.data.content
-        setProducts(productsData)
-        setTotalPages(response.data.totalPages)
+      const productsData = response.data.content
+      setProducts(productsData)
+      setTotalPages(response.data.totalPages)
 
-        // Fetch inventories for all products
-        if (productsData.length > 0) {
-          const productIds = productsData.map((p: Product) => p.id)
-          try {
-            const invResponse = await inventoryApi.getInventories(productIds)
-            if (invResponse.success) {
-              const invMap = new Map<number, Inventory>()
-              invResponse.data.forEach((inv: Inventory) => {
-                invMap.set(inv.productId, inv)
-              })
-              setInventories(invMap)
-            }
-          } catch (invError) {
-            console.warn('Failed to fetch inventories:', invError)
-          }
+      // Fetch inventories for all products
+      if (productsData.length > 0) {
+        const productIds = productsData.map((p: Product) => p.id)
+        try {
+          const invResponse = await inventoryApi.getInventories(productIds)
+          const invMap = new Map<number, Inventory>()
+          invResponse.data.forEach((inv: Inventory) => {
+            invMap.set(inv.productId, inv)
+          })
+          setInventories(invMap)
+        } catch (invError) {
+          console.warn('Failed to fetch inventories:', invError)
         }
-      } else {
-        setError(response.message || 'Failed to fetch products')
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to fetch products')
+      setError(err.response?.data?.error?.message || err.message || 'Failed to fetch products')
     } finally {
       setLoading(false)
     }
@@ -110,7 +104,7 @@ const ProductListPage: React.FC = () => {
           <Input
             type="text"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
             placeholder="Search products..."
           />
           <Button type="submit" variant="primary">

@@ -108,9 +108,6 @@ export function useIssueCoupon() {
       setIsLoading(true)
       setError(null)
       const response = await couponApi.issueCoupon(couponId)
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to issue coupon')
-      }
       return response.data
     } catch (e) {
       const err = e instanceof Error ? e : new Error('Failed to issue coupon')

@@ -14,10 +14,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * Mock PG (Payment Gateway) 클라이언트입니다.
  * 실제 PG사 연동 대신 시뮬레이션을 제공합니다.
  *
- * 특징:
- * - 90% 성공률 시뮬레이션
- * - 랜덤 실패 시나리오
- * - 거래 내역 메모리 저장
+ * <p><b>주의:</b> 이 클래스는 개발/테스트 환경에서만 사용해야 합니다.
+ * 프로덕션 환경에서는 실제 PG사 클라이언트를 사용해야 합니다.</p>
+ *
+ * <p>특징:</p>
+ * <ul>
+ *   <li>90% 성공률 시뮬레이션</li>
+ *   <li>랜덤 실패 시나리오</li>
+ *   <li>거래 내역 메모리 저장 (서버 재시작 시 소멸)</li>
+ * </ul>
  */
 @Slf4j
 @Component
@@ -39,7 +44,9 @@ public class MockPGClient {
      * @return PG 응답
      */
     public PgResponse processPayment(String paymentNumber, BigDecimal amount, PaymentMethod method, String cardNumber) {
-        log.info("MockPG: Processing payment {} - amount: {}, method: {}", paymentNumber, amount, method);
+        // 금융 정보(금액)는 DEBUG 레벨로 로깅 (프로덕션에서는 비활성화됨)
+        log.debug("MockPG: Processing payment {} - amount: {}, method: {}", paymentNumber, amount, method);
+        log.info("MockPG: Processing payment {}", paymentNumber);
 
         // 결제 처리 시뮬레이션 (실제로는 네트워크 지연이 있음)
         simulateProcessingDelay();
@@ -107,7 +114,9 @@ public class MockPGClient {
      * @return PG 응답
      */
     public PgResponse refundPayment(String pgTransactionId, BigDecimal refundAmount) {
-        log.info("MockPG: Refunding payment - txId: {}, amount: {}", pgTransactionId, refundAmount);
+        // 금융 정보(금액)는 DEBUG 레벨로 로깅
+        log.debug("MockPG: Refunding payment - txId: {}, amount: {}", pgTransactionId, refundAmount);
+        log.info("MockPG: Refunding payment - txId: {}", pgTransactionId);
 
         MockTransaction transaction = transactions.get(pgTransactionId);
         if (transaction == null) {

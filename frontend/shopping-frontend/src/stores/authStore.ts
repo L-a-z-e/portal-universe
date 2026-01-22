@@ -82,8 +82,8 @@ export const useAuthStore = create<AuthState>()(
        * Portal Shell에서 인증 상태 동기화 (Embedded 모드)
        *
        * Vue(Pinia) ↔ React(Zustand) 간 상태 공유:
-       * 1. window.__PORTAL_ACCESS_TOKEN__ 전역 변수 우선 사용 (가장 안정적)
-       * 2. Pinia store 직접 호출 시도 (Pinia는 getState() 없음, 직접 호출)
+       * - authAdapter 사용 (Framework-agnostic adapter)
+       * - Pinia store 직접 호출 불가 (React 환경에서 Vue Pinia hook 사용 불가)
        */
       syncFromPortal: async () => {
         if (!window.__POWERED_BY_PORTAL_SHELL__) {
@@ -94,104 +94,67 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true, error: null })
 
         try {
-          // ✅ 방법 1: window 전역 변수에서 토큰 확인 (Portal Shell이 설정)
-          const globalToken = window.__PORTAL_ACCESS_TOKEN__
+          // ✅ authAdapter 사용 (Framework-agnostic)
+          const portalStoresModule = await import('portal/stores')
+          // Module Federation의 wrapDefault로 인해 module.default에 있을 수 있음
+          const actualModule = (portalStoresModule as any).default || portalStoresModule
+          const authAdapter = actualModule.authAdapter
 
-          if (globalToken) {
-            console.log('[Auth] Found token in window.__PORTAL_ACCESS_TOKEN__')
-
-            // Pinia store에서 사용자 정보 가져오기 시도
-            try {
-              const portalAuthModule = await import('portal/authStore')
-              // Pinia store는 함수로 호출해야 인스턴스를 얻음 (getState 아님!)
-              const usePortalAuthStore = portalAuthModule.useAuthStore
-              const portalStore = usePortalAuthStore()
-
-              // Pinia reactive proxy에서 값 추출
-              const portalUser = portalStore.user
-              const portalIsAuthenticated = portalStore.isAuthenticated
-
-              console.log('[Auth] Pinia store user:', portalUser)
-              console.log('[Auth] Pinia store isAuthenticated:', portalIsAuthenticated)
-
-              if (portalUser) {
-                // User 정보 매핑 (Pinia PortalUser → Zustand User)
-                const mappedUser: User = {
-                  id: portalUser.profile?.sub || '',
-                  email: portalUser.profile?.email || '',
-                  name: portalUser.profile?.name || portalUser.profile?.nickname || '',
-                  role: portalUser.authority?.roles?.includes('ROLE_ADMIN') ? 'admin' :
-                        portalUser.authority?.roles?.includes('ROLE_USER') ? 'user' : 'guest',
-                  avatar: portalUser.profile?.picture
-                }
-
-                set({
-                  user: mappedUser,
-                  isAuthenticated: true,
-                  accessToken: globalToken,
-                  loading: false
-                })
-
-                console.log('[Auth] ✅ Synced from Portal Shell:', mappedUser)
-                return
-              }
-            } catch (piniaError) {
-              console.warn('[Auth] Pinia store access failed, using token only:', piniaError)
-            }
-
-            // Pinia 실패 시에도 토큰만으로 인증 상태 설정
-            set({
-              user: { id: '', email: '', name: 'User', role: 'user' },
-              isAuthenticated: true,
-              accessToken: globalToken,
-              loading: false
-            })
-
-            console.log('[Auth] ✅ Token synced (minimal user info)')
+          if (!authAdapter) {
+            console.warn('[Auth] authAdapter not found in portal/stores')
+            set({ loading: false })
             return
           }
 
-          // ✅ 방법 2: 토큰이 없으면 Pinia store에서 직접 추출 시도
-          console.log('[Auth] No global token, trying Pinia store directly...')
+          // authAdapter에서 현재 인증 상태 가져오기
+          // AuthAdapter의 AuthState 타입 (PortalUser가 아님)
+          const authState = authAdapter.getState() as {
+            isAuthenticated: boolean
+            displayName: string
+            isAdmin: boolean
+            user: {
+              email?: string
+              username?: string
+              name?: string
+              nickname?: string
+              picture?: string
+            } | null
+          }
+          console.log('[Auth] authAdapter state:', authState)
 
-          const portalAuthModule = await import('portal/authStore')
-          const usePortalAuthStore = portalAuthModule.useAuthStore
-          const portalStore = usePortalAuthStore()
-
-          const portalUser = portalStore.user
-          const portalToken = portalUser?._accessToken
-
-          if (portalToken) {
-            window.__PORTAL_ACCESS_TOKEN__ = portalToken
-
+          if (authState.isAuthenticated && authState.user) {
+            // User 정보 매핑 (AuthAdapter State → Zustand User)
             const mappedUser: User = {
-              id: portalUser.profile?.sub || '',
-              email: portalUser.profile?.email || '',
-              name: portalUser.profile?.name || portalUser.profile?.nickname || '',
-              role: portalUser.authority?.roles?.includes('ROLE_ADMIN') ? 'admin' :
-                    portalUser.authority?.roles?.includes('ROLE_USER') ? 'user' : 'guest',
-              avatar: portalUser.profile?.picture
+              id: '', // authAdapter에서 id는 제공하지 않음
+              email: authState.user.email || '',
+              name: authState.user.name || authState.user.nickname || authState.displayName,
+              role: authState.isAdmin ? 'admin' : 'user',
+              avatar: authState.user.picture
             }
+
+            // 전역 토큰 확인
+            const globalToken = window.__PORTAL_ACCESS_TOKEN__
 
             set({
               user: mappedUser,
               isAuthenticated: true,
-              accessToken: portalToken,
+              accessToken: globalToken || null,
               loading: false
             })
 
-            console.log('[Auth] ✅ Synced from Pinia store:', mappedUser)
+            console.log('[Auth] ✅ Synced from authAdapter:', mappedUser)
             return
           }
 
           // 인증 정보 없음
-          console.warn('[Auth] No authentication found in Portal Shell')
+          console.log('[Auth] No authentication found via authAdapter')
           set({ loading: false })
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to sync auth state'
           console.warn('[Auth] Failed to sync from Portal:', error)
           set({
-            error: error.message || 'Failed to sync auth state',
+            error: errorMessage,
             loading: false
           })
         }

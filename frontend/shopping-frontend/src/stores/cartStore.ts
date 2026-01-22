@@ -48,17 +48,13 @@ export const useCartStore = create<CartState>()(
           set({ loading: true, error: null })
           try {
             const response = await cartApi.getCart()
-            if (response.success) {
-              const cart = response.data
-              set({
-                cart,
-                itemCount: cart.itemCount,
-                totalAmount: cart.totalAmount,
-                loading: false
-              })
-            } else {
-              set({ error: response.message || 'Failed to fetch cart', loading: false })
-            }
+            const cart = response.data
+            set({
+              cart,
+              itemCount: cart.itemCount,
+              totalAmount: cart.totalAmount,
+              loading: false
+            })
           } catch (error: any) {
             // 장바구니가 없는 경우 (신규 사용자)
             if (error.response?.status === 404) {
@@ -96,20 +92,16 @@ export const useCartStore = create<CartState>()(
               productId,
               quantity
             })
-            if (response.success) {
-              const cart = response.data
-              set({
-                cart,
-                itemCount: cart.itemCount,
-                totalAmount: cart.totalAmount,
-                loading: false
-              })
-            } else {
-              set({ error: response.message || 'Failed to add item', loading: false })
-            }
+            const cart = response.data
+            set({
+              cart,
+              itemCount: cart.itemCount,
+              totalAmount: cart.totalAmount,
+              loading: false
+            })
           } catch (error: any) {
             set({
-              error: error.response?.data?.message || error.message || 'Failed to add item',
+              error: error.response?.data?.error?.message || error.message || 'Failed to add item',
               loading: false
             })
             throw error
@@ -123,20 +115,16 @@ export const useCartStore = create<CartState>()(
           set({ loading: true, error: null })
           try {
             const response = await cartApi.updateItem(itemId, { quantity })
-            if (response.success) {
-              const cart = response.data
-              set({
-                cart,
-                itemCount: cart.itemCount,
-                totalAmount: cart.totalAmount,
-                loading: false
-              })
-            } else {
-              set({ error: response.message || 'Failed to update item', loading: false })
-            }
+            const cart = response.data
+            set({
+              cart,
+              itemCount: cart.itemCount,
+              totalAmount: cart.totalAmount,
+              loading: false
+            })
           } catch (error: any) {
             set({
-              error: error.response?.data?.message || error.message || 'Failed to update item',
+              error: error.response?.data?.error?.message || error.message || 'Failed to update item',
               loading: false
             })
             throw error
@@ -150,20 +138,16 @@ export const useCartStore = create<CartState>()(
           set({ loading: true, error: null })
           try {
             const response = await cartApi.removeItem(itemId)
-            if (response.success) {
-              const cart = response.data
-              set({
-                cart,
-                itemCount: cart.itemCount,
-                totalAmount: cart.totalAmount,
-                loading: false
-              })
-            } else {
-              set({ error: response.message || 'Failed to remove item', loading: false })
-            }
+            const cart = response.data
+            set({
+              cart,
+              itemCount: cart.itemCount,
+              totalAmount: cart.totalAmount,
+              loading: false
+            })
           } catch (error: any) {
             set({
-              error: error.response?.data?.message || error.message || 'Failed to remove item',
+              error: error.response?.data?.error?.message || error.message || 'Failed to remove item',
               loading: false
             })
             throw error
