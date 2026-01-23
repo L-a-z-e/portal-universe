@@ -30,7 +30,7 @@ public class JwtProperties {
 
     /**
      * 여러 개의 JWT 서명 키를 관리하는 맵
-     * Key: 키 ID (예: "key-2024-01")
+     * Key: 키 ID (예: "key-2026-01")
      * Value: KeyConfig 객체
      */
     private Map<String, KeyConfig> keys;

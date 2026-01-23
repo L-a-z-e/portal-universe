@@ -28,12 +28,12 @@ Portal Universe는 **kid(Key ID)** 기반 다중 키 관리를 지원합니다:
 
 ```yaml
 jwt:
-  current-key-id: key-2024-01  # 현재 토큰 생성에 사용할 키
+  current-key-id: key-2026-01  # 현재 토큰 생성에 사용할 키
   keys:
-    key-2024-01:  # 현재 키
+    key-2026-01:  # 현재 키
       secret-key: ${JWT_SECRET_KEY_2024_01}
-      activated-at: 2024-01-01T00:00:00
-    key-2023-12:  # 이전 키 (검증용)
+      activated-at: 2026-01-01T00:00:00
+    key-2025-12:  # 이전 키 (검증용)
       secret-key: ${JWT_SECRET_KEY_2023_12}
       activated-at: 2023-12-01T00:00:00
       expires-at: 2024-02-01T00:00:00  # 2개월 후 만료
@@ -88,7 +88,7 @@ jwt:
   keys:
     key-default:
       secret-key: "your-local-development-secret-key-min-32-chars"
-      activated-at: 2024-01-01T00:00:00
+      activated-at: 2026-01-01T00:00:00
 ```
 
 **변경 방법**: 파일 직접 수정 후 애플리케이션 재시작
@@ -101,7 +101,7 @@ jwt:
 
 ```bash
 # .env.docker 파일 생성/수정
-JWT_CURRENT_KEY_ID=key-2024-01
+JWT_CURRENT_KEY_ID=key-2026-01
 JWT_SECRET_KEY_2024_01=새로운256비트시크릿키
 JWT_SECRET_KEY_2023_12=이전256비트시크릿키  # 검증용
 ```
@@ -146,7 +146,7 @@ metadata:
   namespace: default
 type: Opaque
 stringData:
-  JWT_CURRENT_KEY_ID: "key-2024-02"  # 새 키 ID로 변경
+  JWT_CURRENT_KEY_ID: "key-2026-02"  # 새 키 ID로 변경
   JWT_SECRET_KEY_2024_02: "새로운키"
   JWT_SECRET_KEY_2024_01: "이전키"  # 검증용 유지
 
@@ -187,7 +187,7 @@ openssl rand -base64 32
 
 ```
 key-YYYY-MM 형식 권장
-예: key-2024-01, key-2024-02
+예: key-2026-01, key-2026-02
 ```
 
 #### 2. 설정 업데이트
@@ -196,14 +196,14 @@ key-YYYY-MM 형식 권장
 
 ```yaml
 jwt:
-  current-key-id: key-2024-02  # 새 키 ID
+  current-key-id: key-2026-02  # 새 키 ID
   keys:
-    key-2024-02:  # 새 키 추가
+    key-2026-02:  # 새 키 추가
       secret-key: ${JWT_SECRET_KEY_2024_02}
       activated-at: 2024-02-01T00:00:00
-    key-2024-01:  # 이전 키 유지
+    key-2026-01:  # 이전 키 유지
       secret-key: ${JWT_SECRET_KEY_2024_01}
-      activated-at: 2024-01-01T00:00:00
+      activated-at: 2026-01-01T00:00:00
       expires-at: 2024-02-22T00:00:00  # 3주 후 만료
 ```
 
@@ -265,7 +265,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 
 # 2. JWT 토큰 헤더 확인
 # 응답에서 access_token을 복사하여 jwt.io에서 디코딩
-# 헤더에 "kid": "key-2024-02" 확인
+# 헤더에 "kid": "key-2026-02" 확인
 ```
 
 **기존 토큰 검증 테스트:**
@@ -285,8 +285,8 @@ curl -X GET http://localhost:8080/api/auth/me \
 kubectl logs deployment/auth-service -n portal-universe | grep "key ID"
 
 # 출력 예시:
-# Generating access token with key ID: key-2024-02
-# Validating access token with key ID: key-2024-01  # 이전 토큰도 검증됨
+# Generating access token with key ID: key-2026-02
+# Validating access token with key ID: key-2026-01  # 이전 토큰도 검증됨
 ```
 
 #### 5. 이전 키 만료 설정
@@ -296,12 +296,12 @@ kubectl logs deployment/auth-service -n portal-universe | grep "key ID"
 ```yaml
 jwt:
   keys:
-    key-2024-02:
+    key-2026-02:
       secret-key: ${JWT_SECRET_KEY_2024_02}
       activated-at: 2024-02-01T00:00:00
-    key-2024-01:
+    key-2026-01:
       secret-key: ${JWT_SECRET_KEY_2024_01}
-      activated-at: 2024-01-01T00:00:00
+      activated-at: 2026-01-01T00:00:00
       expires-at: 2024-02-22T00:00:00  # 만료 시간 설정
 ```
 
@@ -311,12 +311,12 @@ jwt:
 
 ```yaml
 jwt:
-  current-key-id: key-2024-02
+  current-key-id: key-2026-02
   keys:
-    key-2024-02:
+    key-2026-02:
       secret-key: ${JWT_SECRET_KEY_2024_02}
       activated-at: 2024-02-01T00:00:00
-    # key-2024-01은 제거
+    # key-2026-01은 제거
 ```
 
 **Kubernetes Secret 정리:**
@@ -333,7 +333,7 @@ kubectl edit configmap jwt-rotation-config
 
 ## 트러블슈팅
 
-### 문제 1: "JWT key not found for ID: key-2024-02"
+### 문제 1: "JWT key not found for ID: key-2026-02"
 
 **원인**: Gateway/Auth Service가 새 키를 인식하지 못함
 
@@ -352,7 +352,7 @@ kubectl exec deployment/auth-service -n portal-universe -- \
   cat /workspace/BOOT-INF/classes/application-kubernetes.yml
 ```
 
-### 문제 2: "JWT key is expired: key-2023-12"
+### 문제 2: "JWT key is expired: key-2025-12"
 
 **원인**: 만료된 키로 발급된 토큰 사용
 
