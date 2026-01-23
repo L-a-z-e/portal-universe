@@ -68,6 +68,26 @@ JWT 기반 역할 기반 접근 제어(RBAC) 설정 방법을 상세히 설명�
 
 ---
 
+#### 보안 강화 구현 명세서
+**파일**: [security-implementation-spec.md](./security-implementation-spec.md) | **작성일**: 2026-01-23
+
+Portal Universe 프로젝트의 보안을 강화하기 위한 구현 명세서입니다.
+
+**주요 내용**:
+- Rate Limiting 구현 (Gateway + Redis)
+- 보안 감사 로깅 구현 (AOP + Database)
+- 로그인 보안 강화 (Brute-force 방지)
+- 보안 헤더 설정 (CSP, HSTS 등)
+- 파일 위치 및 의존성 가이드
+
+**관련 문서**:
+- [JWT RBAC 설정 가이드](./jwt-rbac-setup.md)
+- [환경 변수 설정 가이드](./environment-variables.md)
+- [ADR-004: JWT RBAC 자동 설정 전략](../adr/ADR-004-jwt-rbac-auto-configuration.md)
+- [ADR-005: 민감 데이터 관리 전략](../adr/ADR-005-sensitive-data-management.md)
+
+---
+
 #### Configuration 설정 가이드
 **파일**: [configuration.md](./configuration.md)
 
@@ -172,5 +192,5 @@ related:
 
 ---
 
-**최종 업데이트**: 2026-01-19
+**최종 업데이트**: 2026-01-23
 **관리자**: Documenter Agent
