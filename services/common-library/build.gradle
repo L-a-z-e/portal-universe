@@ -31,6 +31,11 @@ dependencies {
     implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
 
     // =======================================
+    // AOP (for @AuditLog aspect)
+    // =======================================
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // =======================================
     // Provided Dependencies
     // 이 라이브러리를 사용하는 서비스가 이미 가지고 있을 것으로 예상되는 의존성들입니다.
     // 'implementation' 대신 'compileOnly'를 사용하여, 이 라이브러리가 특정 버전의 의존성을 강제하지 않도록 합니다.

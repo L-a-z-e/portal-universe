@@ -33,7 +33,22 @@ public enum CommonErrorCode implements ErrorCode {
      * 인증되지 않은 사용자가 보호된 리소스에 접근할 경우 사용됩니다.
      * JWT 토큰이 없거나, 만료되었거나, 유효하지 않은 경우에 해당합니다.
      */
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "C005", "Unauthorized");
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "C005", "Unauthorized"),
+
+    /**
+     * 입력값에서 XSS(Cross-Site Scripting) 공격이 감지되었을 경우 사용됩니다.
+     */
+    XSS_DETECTED(HttpStatus.BAD_REQUEST, "C006", "Potential XSS attack detected"),
+
+    /**
+     * 입력값에서 SQL Injection 공격이 감지되었을 경우 사용됩니다.
+     */
+    SQL_INJECTION_DETECTED(HttpStatus.BAD_REQUEST, "C007", "Potential SQL Injection detected"),
+
+    /**
+     * 허용되지 않은 HTML 태그가 포함된 경우 사용됩니다.
+     */
+    INVALID_HTML_CONTENT(HttpStatus.BAD_REQUEST, "C008", "Invalid HTML content");
 
     private final HttpStatus status;
     private final String code;
