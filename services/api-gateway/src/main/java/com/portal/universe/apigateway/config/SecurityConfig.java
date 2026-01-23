@@ -34,11 +34,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtConfig jwtConfig;
+    private final JwtProperties jwtProperties;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtConfig);
+        return new JwtAuthenticationFilter(jwtProperties);
     }
 
     /**
