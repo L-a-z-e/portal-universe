@@ -1,11 +1,15 @@
 package com.portal.universe.authservice.service;
 
 import com.portal.universe.authservice.controller.dto.UserProfileResponse;
+import com.portal.universe.authservice.domain.PasswordHistory;
 import com.portal.universe.authservice.domain.Role;
 import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.domain.UserProfile;
 import com.portal.universe.authservice.exception.AuthErrorCode;
 import com.portal.universe.authservice.follow.repository.FollowRepository;
+import com.portal.universe.authservice.password.PasswordValidator;
+import com.portal.universe.authservice.password.ValidationResult;
+import com.portal.universe.authservice.repository.PasswordHistoryRepository;
 import com.portal.universe.authservice.repository.UserRepository;
 import com.portal.universe.common.event.UserSignedUpEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
@@ -26,6 +30,8 @@ public class UserService {
     private final FollowRepository followRepository;
     private final PasswordEncoder passwordEncoder;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final PasswordValidator passwordValidator;
+    private final PasswordHistoryRepository passwordHistoryRepository;
 
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-z0-9_]{3,20}$");
 
@@ -45,13 +51,20 @@ public class UserService {
             throw new CustomBusinessException(AuthErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        // 2. 비밀번호 암호화
+        // 2. 비밀번호 정책 검증
+        ValidationResult validationResult = passwordValidator.validate(command.password());
+        if (!validationResult.isValid()) {
+            throw new CustomBusinessException(AuthErrorCode.PASSWORD_TOO_WEAK,
+                    validationResult.getFirstError());
+        }
+
+        // 3. 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(command.password());
 
-        // 3. User 엔티티 생성
+        // 4. User 엔티티 생성
         User newUser = new User(command.email(), encodedPassword, Role.USER);
 
-        // 4. UserProfile 엔티티 생성 및 연결
+        // 5. UserProfile 엔티티 생성 및 연결
         UserProfile profile = new UserProfile(
                 newUser,
                 command.nickname(),
@@ -60,10 +73,13 @@ public class UserService {
         );
         newUser.setProfile(profile);
 
-        // 5. 저장 (Cascade로 인해 Profile도 함께 저장)
+        // 6. 저장 (Cascade로 인해 Profile도 함께 저장)
         User savedUser = userRepository.save(newUser);
 
-        // 6. 이벤트 발행
+        // 7. 비밀번호 히스토리 저장
+        savePasswordHistory(savedUser.getId(), encodedPassword);
+
+        // 8. 이벤트 발행
         // 주의: 트랜잭션 커밋 후 발행하는 것이 안전함 (TransactionalEventListener 고려 가능)
         // 현재는 단순성을 위해 직접 발행
         UserSignedUpEvent event = new UserSignedUpEvent(
@@ -150,6 +166,38 @@ public class UserService {
         return !userRepository.existsByUsername(username);
     }
 
+    /**
+     * 비밀번호 변경
+     */
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = findUserByIdOrThrow(userId);
+
+        // 1. 소셜 로그인 사용자 확인
+        if (user.isSocialUser()) {
+            throw new CustomBusinessException(AuthErrorCode.SOCIAL_USER_CANNOT_CHANGE_PASSWORD);
+        }
+
+        // 2. 현재 비밀번호 확인
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new CustomBusinessException(AuthErrorCode.INVALID_CURRENT_PASSWORD);
+        }
+
+        // 3. 새 비밀번호 정책 검증 (사용자 정보 포함 + 이전 비밀번호 재사용 체크)
+        ValidationResult validationResult = passwordValidator.validate(newPassword, user);
+        if (!validationResult.isValid()) {
+            throw new CustomBusinessException(AuthErrorCode.PASSWORD_TOO_WEAK,
+                    validationResult.getFirstError());
+        }
+
+        // 4. 비밀번호 변경
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.changePassword(encodedPassword);
+
+        // 5. 비밀번호 히스토리 저장
+        savePasswordHistory(userId, encodedPassword);
+    }
+
     // ==================== Private Helper Methods ====================
 
     /**
@@ -187,4 +235,13 @@ public class UserService {
      * 팔로워/팔로잉 카운트를 담는 불변 데이터 클래스
      */
     private record FollowCounts(int followerCount, int followingCount) {}
+
+    /**
+     * 비밀번호 히스토리를 저장합니다.
+     * 정책에 따라 최근 N개의 비밀번호만 유지합니다.
+     */
+    private void savePasswordHistory(Long userId, String encodedPassword) {
+        PasswordHistory history = PasswordHistory.create(userId, encodedPassword);
+        passwordHistoryRepository.save(history);
+    }
 }

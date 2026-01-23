@@ -1,7 +1,9 @@
 package com.portal.universe.authservice.controller;
 
 import com.portal.universe.authservice.controller.dto.*;
+import com.portal.universe.authservice.exception.AuthErrorCode;
 import com.portal.universe.authservice.service.UserService;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -104,5 +106,23 @@ public class UserController {
         boolean available = userService.checkUsernameAvailability(username);
         UsernameCheckResponse response = new UsernameCheckResponse(username, available);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * 비밀번호 변경 (인증 필요)
+     */
+    @PutMapping("/me/password")
+    public ResponseEntity<ApiResponse<String>> changePassword(
+            @AuthenticationPrincipal String userIdStr,
+            @Valid @RequestBody PasswordChangeRequest request) {
+        // 비밀번호 확인 일치 여부 검증
+        if (!request.isPasswordMatching()) {
+            throw new CustomBusinessException(AuthErrorCode.PASSWORD_MISMATCH);
+        }
+
+        Long userId = Long.parseLong(userIdStr);
+        userService.changePassword(userId, request.currentPassword(), request.newPassword());
+
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully"));
     }
 }

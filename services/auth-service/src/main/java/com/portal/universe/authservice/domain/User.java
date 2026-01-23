@@ -50,6 +50,8 @@ public class User {
 
     private LocalDateTime lastLoginAt;
 
+    private LocalDateTime passwordChangedAt;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -82,6 +84,7 @@ public class User {
      */
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
+        this.passwordChangedAt = LocalDateTime.now();
     }
 
     /**
