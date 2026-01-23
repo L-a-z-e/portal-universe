@@ -51,10 +51,52 @@ spring:
       acks: all
       retries: 3
 
-# JWT 설정
+# JWT 설정 (다중 키 지원 - Key Rotation)
 jwt:
-  secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
+  # 현재 토큰 서명에 사용할 키 ID
+  current-key-id: ${JWT_CURRENT_KEY_ID:key-default}
+  # 여러 키를 관리 (키 ID -> 키 설정)
+  keys:
+    key-default:
+      secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
+      activated-at: 2024-01-01T00:00:00
+      # expires-at은 null이면 만료되지 않음
   access-token-expiration: 900000  # 15분 (ms)
   refresh-token-expiration: 604800000  # 7일 (ms)
+
+# 비밀번호 정책 설정
+security:
+  password:
+    min-length: 8
+    max-length: 128
+    require-uppercase: true
+    require-lowercase: true
+    require-digit: true
+    require-special-char: true
+    special-chars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    history-count: 5  # 최근 5개 비밀번호 재사용 금지
+    max-age: 90  # 비밀번호 만료 기간 (일)
+    prevent-sequential: true  # 연속 문자/숫자 금지
+    prevent-user-info: true  # 사용자 정보 포함 금지
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      roles: ACTUATOR_ADMIN
+    info:
+      enabled: true
+    prometheus:
+      enabled: true
+    metrics:
+      enabled: true
+  server:
+    port: 8081  # 메인 애플리케이션과 동일 포트 사용
 
 # 로깅 설정은 logback-spring.xml에서 관리

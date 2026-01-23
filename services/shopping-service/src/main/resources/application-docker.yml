@@ -67,6 +67,13 @@ spring:
 
   # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
 
+# Swagger 설정 (Docker 환경: 활성화, 개발 환경)
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 # Docker 환경 모니터링 설정
 management:
   endpoints:
