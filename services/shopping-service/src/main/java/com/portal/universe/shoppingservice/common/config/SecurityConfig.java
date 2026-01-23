@@ -24,12 +24,39 @@ public class SecurityConfig {
 
     /**
      * Actuator 엔드포인트(/actuator/**)에 대한 보안 필터 체인을 설정합니다.
+     * - /actuator/health, /actuator/info: 공개 (상태 확인용)
+     * - /actuator/prometheus, /actuator/metrics: 내부망 전용 (Prometheus 스크래핑)
+     * - 나머지: 차단
      */
     @Bean
     @Order(0)
     public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/actuator/**")
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // 공개
+                        .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()  // 내부망 전용 (Gateway에서 차단)
+                        .anyRequest().denyAll())  // 나머지는 차단
+                .csrf(AbstractHttpConfigurer::disable);
+
+        return http.build();
+    }
+
+    /**
+     * Swagger UI 및 OpenAPI 문서 엔드포인트에 대한 보안 필터 체인을 설정합니다.
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain swaggerSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/api-docs",
+                        "/api-docs/**",
+                        "/v3/api-docs",
+                        "/v3/api-docs/**"
+                )
                 .authorizeHttpRequests(requests -> requests
                         .anyRequest().permitAll())
                 .csrf(AbstractHttpConfigurer::disable);
@@ -46,7 +73,7 @@ public class SecurityConfig {
      * - **관리자 전용 (ADMIN)**: 상품, 재고, 배송 상태 관리 기능.
      */
     @Bean
-    @Order(1)
+    @Order(2)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth

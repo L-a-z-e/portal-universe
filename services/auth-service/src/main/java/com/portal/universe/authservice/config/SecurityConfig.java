@@ -83,7 +83,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         // 회원가입 API는 누구나 접근 가능해야 합니다.
                         .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
-                        // OIDC Discovery, 로그인/로그아웃, Actuator 등 인증이 필요 없는 경로들을 지정합니다.
+                        // OIDC Discovery, 로그인/로그아웃 등 인증이 필요 없는 경로들을 지정합니다.
                         .requestMatchers(
                                 "/css/**",           // CSS 파일
                                 "/js/**",            // JavaScript 파일
@@ -96,11 +96,14 @@ public class SecurityConfig {
                                 "/login",
                                 "/logout",
                                 "/default-ui.css",   // Spring Security 기본 로그인 페이지 CSS
-                                "/actuator/**",
                                 "/ping",
                                 "/oauth2/**",        // OAuth2 소셜 로그인 엔드포인트
                                 "/login/oauth2/**"   // OAuth2 콜백 엔드포인트
                         ).permitAll()
+                        // Actuator 보안 설정
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // 공개
+                        .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()  // 내부망에서만 접근 (Gateway에서 차단)
+                        .requestMatchers("/actuator/**").denyAll()  // 나머지는 차단
                         // /api/admin 경로는 ADMIN 역할을 가진 사용자만 접근 가능합니다.
                         .requestMatchers("/api/admin").hasRole("ADMIN")
                         // /api/profile 경로는 인증된 사용자만 접근 가능합니다.
