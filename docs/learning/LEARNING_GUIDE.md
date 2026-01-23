@@ -2,7 +2,7 @@
 
 ## 개요
 
-이 가이드는 Portal Universe 프로젝트의 **250개 학습 문서**를 체계적으로 학습하기 위한 로드맵입니다.
+이 가이드는 Portal Universe 프로젝트의 **292개 학습 문서**를 체계적으로 학습하기 위한 로드맵입니다.
 
 ---
 
@@ -41,10 +41,9 @@
 
 ```
 Week 1: 기초
-├── fundamentals/microservices-overview.md
-├── fundamentals/service-decomposition.md
-├── fundamentals/inter-service-communication.md
-└── fundamentals/12-factor-app.md
+├── fundamentals/ (8개 전체) ⭐ 마이크로서비스 기초
+├── security/oauth2-fundamentals.md ⭐ 보안 기초
+└── security/jwt-deep-dive.md ⭐ 보안 기초
 
 Week 2: 메시징 & 캐싱
 ├── kafka/ (12개 문서 전체)
@@ -52,6 +51,7 @@ Week 2: 메시징 & 캐싱
 
 Week 3: 데이터베이스
 ├── mongodb/ (8개)
+├── postgresql/ (12개) ⭐ MySQL 비교 & 마이그레이션 필수
 ├── elasticsearch/ (8개)
 └── Shopping Service - database/ (8개)
 
@@ -85,8 +85,9 @@ Week 2: React 18 기초
 └── shopping-frontend/shopping/ (6개)
 
 Week 3: Design System & 통합
-├── design-system/tokens/ (2개)
-├── design-system/components/ (3개)
+├── design-system/design-tokens/ (2개) ⭐ 디자인 토큰
+├── design-system/components/ (3개) ⭐ 컴포넌트 라이브러리
+├── design-system/patterns/ (3개) ⭐ UI 패턴
 └── 백엔드 API 이해: fundamentals/api-gateway-pattern.md
 
 Week 4: 심화
@@ -397,15 +398,15 @@ docker-compose up -d kafka redis mysql
 
 | 영역 | 경로 | 문서 수 |
 |------|------|---------|
-| 전체 시스템 | `docs/learning/` | 99개 |
-| Shopping Service | `services/shopping-service/docs/learning/` | 44개 |
+| 전체 시스템 | `docs/learning/` | 139개 |
+| Shopping Service | `services/shopping-service/docs/learning/` | 47개 |
 | Blog Service | `services/blog-service/docs/learning/` | 24개 |
 | Auth Service | `services/auth-service/docs/learning/` | 20개 |
 | Notification Service | `services/notification-service/docs/learning/` | 16개 |
 | API Gateway | `services/api-gateway/docs/learning/` | 12개 |
 | Portal Shell | `frontend/portal-shell/docs/learning/` | 15개 |
-| Shopping Frontend | `frontend/shopping-frontend/docs/learning/` | 20개 |
-| **총계** | | **250개** |
+| Shopping Frontend | `frontend/shopping-frontend/docs/learning/` | 19개 |
+| **총계** | | **292개** |
 
 ---
 
