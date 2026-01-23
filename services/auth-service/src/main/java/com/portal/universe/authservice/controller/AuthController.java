@@ -5,12 +5,14 @@ import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.exception.AuthErrorCode;
 import com.portal.universe.authservice.repository.UserRepository;
 import com.portal.universe.authservice.utils.TokenUtils;
+import com.portal.universe.authservice.service.LoginAttemptService;
 import com.portal.universe.authservice.service.RefreshTokenService;
 import com.portal.universe.authservice.service.TokenBlacklistService;
 import com.portal.universe.authservice.service.TokenService;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,35 +38,63 @@ public class AuthController {
     private final TokenService tokenService;
     private final RefreshTokenService refreshTokenService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final LoginAttemptService loginAttemptService;
 
     /**
      * 일반 로그인 API
      * email/password로 인증 후 Access Token과 Refresh Token을 발급합니다.
      *
      * @param request 로그인 요청 (email, password)
+     * @param servletRequest HTTP 요청 (IP 추출용)
      * @return 로그인 응답 (accessToken, refreshToken, expiresIn)
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
-        log.info("Login attempt for email: {}", request.email());
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest servletRequest) {
 
-        // 1. 사용자 조회 (프로필 포함 - JWT에 nickname 포함 위해)
+        String clientIp = getClientIp(servletRequest);
+        String loginKey = clientIp + ":" + request.email();
+
+        log.info("Login attempt for email: {} from IP: {}", request.email(), clientIp);
+
+        // 1. 잠금 상태 확인
+        if (loginAttemptService.isBlocked(loginKey)) {
+            long remainingSeconds = loginAttemptService.getRemainingLockTime(loginKey);
+            int remainingMinutes = (int) Math.ceil(remainingSeconds / 60.0);
+
+            log.warn("Login blocked for key: {} (remaining: {} seconds)", loginKey, remainingSeconds);
+
+            throw new CustomBusinessException(
+                    AuthErrorCode.ACCOUNT_TEMPORARILY_LOCKED,
+                    String.valueOf(remainingMinutes)
+            );
+        }
+
+        // 2. 사용자 조회 (프로필 포함 - JWT에 nickname 포함 위해)
         User user = userRepository.findByEmailWithProfile(request.email())
-                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.INVALID_CREDENTIALS));
+                .orElseThrow(() -> {
+                    loginAttemptService.recordFailure(loginKey);
+                    return new CustomBusinessException(AuthErrorCode.INVALID_CREDENTIALS);
+                });
 
-        // 2. 비밀번호 검증
+        // 3. 비밀번호 검증
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            loginAttemptService.recordFailure(loginKey);
             throw new CustomBusinessException(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
-        // 3. Access Token 발급
+        // 4. 로그인 성공 - 실패 기록 초기화
+        loginAttemptService.recordSuccess(loginKey);
+
+        // 5. Access Token 발급
         String accessToken = tokenService.generateAccessToken(user);
 
-        // 4. Refresh Token 발급 및 Redis 저장
+        // 6. Refresh Token 발급 및 Redis 저장
         String refreshToken = tokenService.generateRefreshToken(user);
         refreshTokenService.saveRefreshToken(user.getUuid(), refreshToken);
 
-        log.info("Login successful for user: {}", user.getUuid());
+        log.info("Login successful for user: {} from IP: {}", user.getUuid(), clientIp);
 
         LoginResponse response = new LoginResponse(accessToken, refreshToken, 900);  // 15분 = 900초
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -146,6 +176,40 @@ public class AuthController {
             log.warn("Logout failed: {}", e.getMessage());
             throw new CustomBusinessException(AuthErrorCode.INVALID_TOKEN);
         }
+    }
+
+    /**
+     * 클라이언트 IP 주소를 추출합니다.
+     * 프록시나 로드 밸런서를 거친 경우 X-Forwarded-For 헤더를 우선 확인합니다.
+     *
+     * @param request HTTP 요청
+     * @return 클라이언트 IP 주소
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+
+        // X-Forwarded-For에 여러 IP가 있는 경우 첫 번째 IP 사용
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+
+        return ip;
     }
 
 }

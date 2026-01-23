@@ -89,7 +89,52 @@ public enum AuthErrorCode implements ErrorCode {
     /**
      * 팔로우 대상 사용자를 찾을 수 없습니다.
      */
-    FOLLOW_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "A017", "Target user not found");
+    FOLLOW_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "A017", "Target user not found"),
+
+    /**
+     * 계정이 일시적으로 잠겼습니다.
+     */
+    ACCOUNT_TEMPORARILY_LOCKED(HttpStatus.TOO_MANY_REQUESTS, "A018", "Account temporarily locked. Please try again after {0} minute(s)"),
+
+    /**
+     * 로그인 시도 횟수가 초과되었습니다.
+     */
+    TOO_MANY_LOGIN_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS, "A019", "Too many login attempts"),
+
+    /**
+     * 비밀번호 길이가 최소 요구사항을 만족하지 않습니다.
+     */
+    PASSWORD_TOO_SHORT(HttpStatus.BAD_REQUEST, "A020", "Password must be at least {0} characters long"),
+
+    /**
+     * 비밀번호가 정책 요구사항을 만족하지 않습니다.
+     */
+    PASSWORD_TOO_WEAK(HttpStatus.BAD_REQUEST, "A021", "Password must contain uppercase, lowercase, digit, and special character"),
+
+    /**
+     * 최근 사용한 비밀번호는 재사용할 수 없습니다.
+     */
+    PASSWORD_RECENTLY_USED(HttpStatus.BAD_REQUEST, "A022", "Cannot reuse recently used passwords"),
+
+    /**
+     * 비밀번호에 사용자 정보를 포함할 수 없습니다.
+     */
+    PASSWORD_CONTAINS_USER_INFO(HttpStatus.BAD_REQUEST, "A023", "Password cannot contain user information"),
+
+    /**
+     * 비밀번호가 만료되었습니다.
+     */
+    PASSWORD_EXPIRED(HttpStatus.UNAUTHORIZED, "A024", "Password has expired. Please set a new password"),
+
+    /**
+     * 비밀번호 길이가 최대 허용 길이를 초과했습니다.
+     */
+    PASSWORD_TOO_LONG(HttpStatus.BAD_REQUEST, "A025", "Password must not exceed {0} characters"),
+
+    /**
+     * 비밀번호에 연속된 문자를 사용할 수 없습니다.
+     */
+    PASSWORD_CONTAINS_SEQUENTIAL(HttpStatus.BAD_REQUEST, "A026", "Password cannot contain sequential characters");
 
     private final HttpStatus status;
     private final String code;
