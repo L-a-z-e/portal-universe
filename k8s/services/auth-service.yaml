@@ -44,6 +44,17 @@ spec:
                 secretKeyRef:
                   name: portal-universe-secret
                   key: MYSQL_PASSWORD
+            # JWT Secret Keys (Key Rotation 지원)
+            - name: JWT_CURRENT_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_CURRENT_KEY_ID
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_SECRET_KEY_2024_01
             # Config Server 설정 오버라이드 - 스키마 자동 생성
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: "update"

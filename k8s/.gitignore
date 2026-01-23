@@ -1,0 +1,8 @@
+# Kubernetes Secrets (절대 커밋 금지)
+jwt-secrets.yaml
+*-secrets.yaml
+*.secret.yaml
+
+# 임시 파일
+*.tmp
+*.bak
