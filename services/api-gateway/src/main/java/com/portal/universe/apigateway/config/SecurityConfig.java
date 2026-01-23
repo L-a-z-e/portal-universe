@@ -52,7 +52,10 @@ public class SecurityConfig {
         return (exchange, chain) -> {
             String path = exchange.getRequest().getPath().value();
             String method = exchange.getRequest().getMethod().name();
-            log.debug("Request: {} {}", method, path);
+            String origin = exchange.getRequest().getHeaders().getOrigin();
+            String host = exchange.getRequest().getHeaders().getHost() != null
+                ? exchange.getRequest().getHeaders().getHost().toString() : "null";
+            log.debug("Request: {} {} | Origin: {} | Host: {}", method, path, origin, host);
 
             return chain.filter(exchange);
         };
@@ -76,7 +79,6 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-        configuration.addAllowedOrigin("null"); // 로컬 개발 환경에서 Origin이 'null'인 경우 허용
         configuration.setMaxAge(3600L); // Preflight 요청 결과를 3600초(1시간) 동안 캐시
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
