@@ -60,15 +60,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,env,info,metrics
+        include: health,env,info,metrics,prometheus
       base-path: /actuator
   endpoint:
     health:
       show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   level:
     root: INFO
+    com.portal.universe: DEBUG
 
 aws:
   s3:

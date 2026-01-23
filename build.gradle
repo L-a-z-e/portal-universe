@@ -1,6 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '3.5.5' apply false
     id 'io.spring.dependency-management' version '1.1.7' apply false
+    id 'jacoco'
 }
 
 subprojects {
@@ -11,31 +12,116 @@ subprojects {
         mavenCentral()
     }
 
-    plugins.withType(JavaPlugin).tap {
-        configureEach {
-            apply plugin: 'io.spring.dependency-management'
+    // integration-tests는 별도 설정 사용
+    if (project.name == 'integration-tests') {
+        return
+    }
 
-            sourceCompatibility = '17'
+    // Java 플러그인이 적용된 프로젝트에 공통 설정
+    pluginManager.withPlugin('java') {
+        apply plugin: 'io.spring.dependency-management'
+        apply plugin: 'jacoco'
 
-            dependencyManagement {
-                imports {
-                    mavenBom "org.springframework.cloud:spring-cloud-dependencies:2025.0.0"
+        java {
+            sourceCompatibility = JavaVersion.VERSION_17
+        }
+
+        dependencyManagement {
+            imports {
+                mavenBom "org.springframework.cloud:spring-cloud-dependencies:2025.0.0"
+            }
+        }
+
+        dependencies {
+            compileOnly 'org.projectlombok:lombok'
+            annotationProcessor 'org.projectlombok:lombok'
+            testCompileOnly 'org.projectlombok:lombok'
+            testAnnotationProcessor 'org.projectlombok:lombok'
+            testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        }
+
+        // ========================================
+        // JaCoCo Configuration
+        // ========================================
+        jacoco {
+            toolVersion = "0.8.11"
+        }
+
+        tasks.withType(Test).configureEach {
+            useJUnitPlatform()
+            finalizedBy jacocoTestReport
+        }
+
+        jacocoTestReport {
+            dependsOn test
+            reports {
+                xml.required = true   // Codecov용
+                html.required = true  // 로컬 확인용
+                csv.required = false
+            }
+
+            // 커버리지 제외 대상
+            afterEvaluate {
+                classDirectories.setFrom(files(classDirectories.files.collect {
+                    fileTree(dir: it, exclude: [
+                        '**/config/**',
+                        '**/dto/**',
+                        '**/entity/**',
+                        '**/exception/**',
+                        '**/*Application*',
+                        '**/*Config*',
+                        '**/*Request*',
+                        '**/*Response*',
+                        '**/*Dto*',
+                        '**/*Entity*'
+                    ])
+                }))
+            }
+        }
+
+        jacocoTestCoverageVerification {
+            dependsOn jacocoTestReport
+
+            violationRules {
+                // 전체 커버리지 규칙
+                rule {
+                    limit {
+                        minimum = 0.60  // 60% (점진적 도입)
+                    }
                 }
-            }
 
-            dependencies {
-                compileOnly 'org.projectlombok:lombok'
-                annotationProcessor 'org.projectlombok:lombok'
-                testCompileOnly 'org.projectlombok:lombok'
-                testAnnotationProcessor 'org.projectlombok:lombok'
-                testImplementation 'org.springframework.boot:spring-boot-starter-test'
-            }
+                // Service 레이어: 80%
+                rule {
+                    element = 'CLASS'
+                    includes = ['**/service/**', '**/service/impl/**']
+                    excludes = ['**/service/*Config*']
+                    limit {
+                        minimum = 0.80
+                    }
+                }
 
-            tasks.withType(Test).tap {
-                configureEach {
-                    useJUnitPlatform()
+                // Controller 레이어: 70%
+                rule {
+                    element = 'CLASS'
+                    includes = ['**/controller/**']
+                    limit {
+                        minimum = 0.70
+                    }
+                }
+
+                // Repository 레이어: 제외 (JPA 자동 구현)
+                rule {
+                    element = 'CLASS'
+                    includes = ['**/repository/**']
+                    limit {
+                        minimum = 0.0
+                    }
                 }
             }
         }
+
+        // 커버리지 검증은 선택적으로 실행 (로컬에서 빠른 빌드 위해)
+        // CI에서만 실행: ./gradlew check 또는 ./gradlew jacocoTestCoverageVerification
+        // check.dependsOn jacocoTestCoverageVerification
     }
 }

@@ -43,7 +43,4 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
-# 분산 추적용 로그 포맷
-logging:
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+# 로깅 설정은 logback-spring.xml에서 관리
