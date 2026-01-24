@@ -374,19 +374,23 @@ services:
 
   localstack:
     image: localstack/localstack:latest
+    container_name: localstack
     ports:
       - "4566:4566"
     environment:
       - SERVICES=s3
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=ap-northeast-2
       - PERSISTENCE=1
-      - DATA_DIR=/var/lib/localstack
     volumes:
       - ./localstack_data:/var/lib/localstack
+      - ./localstack-init:/etc/localstack/init/ready.d
     networks:
       - portal-universe-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   dozzle:
     image: amir20/dozzle:latest
@@ -406,6 +410,7 @@ volumes:
   alertmanager-data:
   grafana-data:
   loki-data:
+  localstack-data:
 
 networks:
   portal-universe-net:
