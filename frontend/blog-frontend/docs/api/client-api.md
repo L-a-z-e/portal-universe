@@ -31,7 +31,7 @@ related:
 
 ```typescript
 // blog-frontend/src/api/index.ts
-import apiClient from 'portal/apiClient';
+import { apiClient } from 'portal/api';
 
 export default apiClient;
 ```
@@ -818,7 +818,7 @@ const createPostWithImage = async (
 
 ## 🔗 관련 문서
 
-- [아키텍처: 데이터 흐름](../architecture/arch-data-flow.md)
+- [아키텍처: 데이터 흐름](../architecture/data-flow.md)
 - [Backend: Blog Service API 명세](../../../services/blog-service/docs/api/README.md)
 - [Design System: API 클라이언트 패턴](../../../frontend/design-system/docs/api/README.md)
 

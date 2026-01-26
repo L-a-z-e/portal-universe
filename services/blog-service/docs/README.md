@@ -4,7 +4,7 @@ title: Blog Service Documentation Portal
 type: guide
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-26
 author: Portal Universe Team
 tags:
   - blog
@@ -14,10 +14,10 @@ tags:
   - microservice
 related:
   - architecture/system-overview
-  - api/rest-api-spec
+  - api/blog-api
 ---
 
-# Blog Service Documentation Portal
+# Blog Service Documentation
 
 MongoDB 기반 블로그 콘텐츠 관리 마이크로서비스입니다.
 
@@ -36,11 +36,12 @@ MongoDB 기반 블로그 콘텐츠 관리 마이크로서비스입니다.
 
 | 도메인 | 기능 | 설명 |
 |--------|------|------|
-| **Post** | CRUD, 검색, 통계 | 게시물 생성/수정/삭제, 키워드 검색, 고급 검색, 인기/최근 게시물 조회 |
+| **Post** | CRUD, 검색, 통계 | 게시물 생성/수정/삭제, 키워드 검색, 고급 검색, 인기/최근/트렌딩/피드 조회 |
 | **Comment** | 댓글/대댓글 | 게시물에 대한 댓글 작성 및 계층 구조 지원 |
-| **Series** | 시리즈 관리 | 연속된 게시물을 시리즈로 그룹화 |
-| **Tag** | 태그 관리/통계 | 태그 기반 분류 및 인기 태그 통계 |
-| **File** | 파일 업로드 | S3 기반 이미지/파일 업로드 |
+| **Like** | 좋아요 | 게시물 좋아요 토글, 상태 확인, 좋아요한 사용자 목록 |
+| **Series** | 시리즈 관리 | 연속된 게시물을 시리즈로 그룹화, 순서 변경 |
+| **Tag** | 태그 관리/통계 | 태그 기반 분류 및 인기 태그 통계, 태그 검색 |
+| **File** | 파일 업로드 | S3 기반 이미지/파일 업로드/삭제 |
 
 ## 🏗️ 기술 스택
 
@@ -70,6 +71,17 @@ MongoDB 기반 블로그 콘텐츠 관리 마이크로서비스입니다.
 | POST | `/posts/search/advanced` | 고급 검색 | ❌ |
 | GET | `/posts/popular` | 인기 게시물 | ❌ |
 | GET | `/posts/recent` | 최근 게시물 | ❌ |
+| GET | `/posts/trending` | 트렌딩 게시물 | ❌ |
+| POST | `/posts/feed` | 팔로잉 피드 | ✅ |
+| GET | `/posts/{id}/navigation` | 이전/다음 게시물 | ❌ |
+
+### Like API
+
+| 메서드 | 경로 | 설명 | 인증 필요 |
+|--------|------|------|----------|
+| POST | `/likes/{postId}/toggle` | 좋아요 토글 | ✅ |
+| GET | `/likes/{postId}/status` | 좋아요 상태 확인 | ✅ |
+| GET | `/likes/{postId}/likers` | 좋아요한 사용자 목록 | ❌ |
 
 ### Comment API
 
@@ -136,29 +148,29 @@ kubectl apply -f k8s/blog-service/
 
 ## 📚 문서 네비게이션
 
+### 현황
+
+| 문서 | 설명 |
+|------|------|
+| [STATUS](./STATUS.md) | 구현 상태 대시보드 (도메인별 완료율, 엔드포인트 수) |
+
 ### 아키텍처
 
 | 문서 | 설명 |
 |------|------|
-| [System Overview](./architecture/system-overview.md) | 서비스 전체 구조 및 컴포넌트 |
-| [Data Model](./architecture/data-model.md) | MongoDB 스키마 및 관계 |
-| [Integration](./architecture/integration.md) | 외부 서비스 연동 방식 |
+| [System Overview](./architecture/system-overview.md) | 서비스 전체 구조, 도메인 모델, 인덱스, 에러코드 |
 
 ### API 명세
 
 | 문서 | 설명 |
 |------|------|
-| [REST API Specification](./api/rest-api-spec.md) | 전체 API 엔드포인트 상세 명세 |
-| [Error Codes](./api/error-codes.md) | 에러 코드 및 처리 방법 |
-| [Authentication](./api/authentication.md) | 인증/인가 가이드 |
+| [Blog API](./api/blog-api.md) | 전체 API 엔드포인트 상세 명세 (53개 엔드포인트) |
 
 ### 개발 가이드
 
 | 문서 | 설명 |
 |------|------|
-| [Setup Guide](./guides/setup-guide.md) | 로컬 개발 환경 구성 |
-| [Development Workflow](./guides/development-workflow.md) | 개발 프로세스 및 규칙 |
-| [Testing Guide](./guides/testing-guide.md) | 테스트 작성 가이드 |
+| [Getting Started](./guides/getting-started.md) | 로컬 개발 환경 구성 및 실행 방법 |
 
 ## 🔗 관련 서비스
 
@@ -176,5 +188,5 @@ kubectl apply -f k8s/blog-service/
 
 ---
 
-**Last Updated**: 2026-01-18
+**Last Updated**: 2026-01-26
 **Maintained by**: Portal Universe Team

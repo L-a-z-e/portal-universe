@@ -30,7 +30,7 @@ http://localhost:8080/api/blog
 ---
 
 ## 🔗 관련 문서
-- [아키텍처: 데이터 흐름](../architecture/arch-data-flow.md)
+- [아키텍처: 데이터 흐름](../architecture/data-flow.md)
 - [Backend: Blog Service API](../../../../services/blog-service/docs/api/README.md)
 
 ---

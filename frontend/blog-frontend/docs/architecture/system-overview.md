@@ -240,7 +240,7 @@ graph LR
 #### API Client
 ```typescript
 // src/api/index.ts
-import apiClient from 'portal/apiClient';  // Portal Shell의 axios 인스턴스 재사용
+import { apiClient } from 'portal/api';  // Portal Shell의 axios 인스턴스 재사용
 export default apiClient;
 ```
 
@@ -601,7 +601,7 @@ npm run preview
 ## 🔗 관련 문서
 
 - [Data Flow Architecture](./data-flow.md)
-- [Module Federation Setup](./module-federation.md)
+- [Module Federation](../FEDERATION.md)
 - [API Documentation](../api/README.md)
 - [Developer Guide](../guides/getting-started.md)
 

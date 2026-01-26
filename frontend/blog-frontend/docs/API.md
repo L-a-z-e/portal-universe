@@ -6,7 +6,7 @@ Blog Frontend의 API 통신은 Portal Shell에서 제공하는 공유 `apiClient
 
 ```typescript
 // src/api/index.ts
-import apiClient from 'portal/apiClient';
+import { apiClient } from 'portal/api';
 export default apiClient;
 ```
 
@@ -329,11 +329,215 @@ export function deleteComment(commentId: string): Promise<void>
 ### Files API (`src/api/files.ts`)
 
 ```typescript
-// 파일 업로드
-export function uploadFile(file: File): Promise<FileUploadResponse>
+// 타입 정의
+interface FileUploadResponse {
+  url: string;          // S3에 업로드된 파일의 전체 URL
+  filename: string;     // 원본 파일명
+  size: number;         // 파일 크기 (bytes)
+  contentType: string;  // MIME 타입 (예: image/jpeg)
+}
 
-// 파일 삭제
-export function deleteFile(fileId: string): Promise<void>
+// 파일 업로드 (multipart/form-data)
+export async function uploadFile(file: File | Blob): Promise<FileUploadResponse>
+
+// 요청
+const file = event.target.files[0];
+const response = await uploadFile(file);
+console.log('업로드 URL:', response.url);
+```
+
+```typescript
+// 파일 삭제 (ADMIN 권한 필요)
+export async function deleteFile(url: string): Promise<void>
+
+// 요청 (DELETE body에 url 전달)
+await deleteFile('http://localhost:4566/blog-bucket/abc123_image.jpg');
+```
+
+### Likes API (`src/api/likes.ts`)
+
+```typescript
+// 좋아요 토글 (추가/취소)
+export async function toggleLike(postId: string): Promise<LikeToggleResponse>
+
+// 요청
+const result = await toggleLike('post-123');
+// 응답: { liked: true, likeCount: 42 }
+```
+
+```typescript
+// 좋아요 상태 확인
+export async function getLikeStatus(postId: string): Promise<LikeStatusResponse>
+
+// 요청
+const status = await getLikeStatus('post-123');
+// 응답: { liked: true, likeCount: 42 }
+```
+
+```typescript
+// 좋아요한 사용자 목록 조회
+export async function getLikers(
+  postId: string,
+  page: number = 0,
+  size: number = 20
+): Promise<PageResponse<LikerResponse>>
+
+// 요청
+const likers = await getLikers('post-123', 0, 20);
+```
+
+### Tags API (`src/api/tags.ts`)
+
+```typescript
+// 전체 태그 목록 조회
+export async function getAllTags(): Promise<TagResponse[]>
+
+// 태그 상세 조회 (ID)
+export async function getTagById(tagId: string): Promise<TagResponse>
+
+// 태그명으로 조회
+export async function getTagByName(tagName: string): Promise<TagResponse>
+```
+
+```typescript
+// 태그별 게시글 검색
+export async function getPostsByTag(
+  tagName: string,
+  page: number = 0,
+  size: number = 10
+): Promise<PageResponse<PostSummaryResponse>>
+
+// 요청
+const posts = await getPostsByTag('react', 0, 10);
+```
+
+```typescript
+// 인기 태그 목록
+export async function getPopularTags(
+  limit: number = 20
+): Promise<TagStatsResponse[]>
+
+// 태그 검색
+export async function searchTags(keyword: string): Promise<TagResponse[]>
+```
+
+### Series API (`src/api/series.ts`)
+
+```typescript
+// 시리즈 목록 조회 (작성자 필터 가능)
+export async function getSeriesList(
+  authorId?: string
+): Promise<SeriesListResponse[]>
+
+// 시리즈 상세 조회
+export async function getSeriesById(
+  seriesId: string
+): Promise<SeriesResponse>
+
+// 시리즈에 포함된 포스트 목록
+export async function getSeriesPosts(
+  seriesId: string
+): Promise<PostSummaryResponse[]>
+
+// 내 시리즈 목록
+export async function getMySeries(): Promise<SeriesListResponse[]>
+```
+
+```typescript
+// 시리즈 생성
+export async function createSeries(
+  request: SeriesCreateRequest
+): Promise<SeriesResponse>
+
+// 시리즈 수정
+export async function updateSeries(
+  seriesId: string,
+  request: SeriesUpdateRequest
+): Promise<SeriesResponse>
+
+// 시리즈 삭제
+export async function deleteSeries(seriesId: string): Promise<void>
+
+// 시리즈 포스트 순서 변경
+export async function reorderSeriesPosts(
+  seriesId: string,
+  postIds: string[]
+): Promise<SeriesResponse>
+```
+
+### Users API (`src/api/users.ts`)
+
+> auth-service 경로(`/auth-api/users/`)를 통해 사용자 정보에 접근합니다.
+
+```typescript
+// 공개 프로필 조회 (username 기반)
+export async function getPublicProfile(
+  username: string
+): Promise<UserProfileResponse>
+
+// 내 프로필 조회 (인증 필요)
+export async function getMyProfile(): Promise<UserProfileResponse>
+
+// 프로필 수정 (PATCH)
+export async function updateProfile(
+  request: UserProfileUpdateRequest
+): Promise<UserProfileResponse>
+```
+
+```typescript
+// Username 설정 (최초 1회만)
+export async function setUsername(
+  username: string
+): Promise<UserProfileResponse>
+
+// Username 중복 확인
+export async function checkUsername(
+  username: string
+): Promise<UsernameCheckResponse>
+```
+
+```typescript
+// 특정 사용자의 게시글 조회
+export async function getUserPosts(
+  authorId: string,
+  page: number = 0,
+  size: number = 10
+): Promise<PageResponse<PostSummaryResponse>>
+```
+
+### Follow API (`src/api/follow.ts`)
+
+> auth-service 경로(`/auth-api/users/`)를 통해 팔로우 기능에 접근합니다.
+
+```typescript
+// 팔로우 토글 (팔로우/언팔로우)
+export async function toggleFollow(
+  username: string
+): Promise<FollowResponse>
+
+// 팔로워 목록 조회
+export async function getFollowers(
+  username: string,
+  page: number = 0,
+  size: number = 20
+): Promise<FollowListResponse>
+
+// 팔로잉 목록 조회
+export async function getFollowings(
+  username: string,
+  page: number = 0,
+  size: number = 20
+): Promise<FollowListResponse>
+```
+
+```typescript
+// 팔로우 상태 확인
+export async function getFollowStatus(
+  username: string
+): Promise<FollowStatusResponse>
+
+// 내 팔로잉 ID 목록 (피드 API 호출 시 사용)
+export async function getMyFollowingIds(): Promise<FollowingIdsResponse>
 ```
 
 ## 사용 예제

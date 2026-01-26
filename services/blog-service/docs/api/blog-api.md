@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-26
 author: Documenter Agent
 tags: [api, blog, mongodb, post, comment, series, tag, file]
 related:
@@ -58,6 +58,17 @@ related:
 | GET | `/posts/stats/author/{authorId}` | 작성자 통계 조회 | ❌ |
 | GET | `/posts/stats/blog` | 전체 블로그 통계 조회 | ❌ |
 | GET | `/posts/product/{productId}` | 상품별 게시물 조회 | ❌ |
+| GET | `/posts/trending` | 트렌딩 게시물 조회 | ❌ |
+| GET | `/posts/feed` | 피드 게시물 조회 (팔로잉 기반) | ✅ |
+| GET | `/posts/{postId}/navigation` | 이전/다음 게시물 네비게이션 | ❌ |
+
+### Like API
+
+| Method | Endpoint | 설명 | 인증 |
+|--------|----------|------|------|
+| POST | `/posts/{postId}/like` | 좋아요 토글 | ✅ |
+| GET | `/posts/{postId}/like` | 좋아요 여부 확인 | ✅ |
+| GET | `/posts/{postId}/likes` | 좋아요한 사용자 목록 | ❌ |
 
 ### Comment API
 
@@ -1129,6 +1140,221 @@ Authorization: Bearer {token}
 
 ---
 
+## 🔹 Like API
+
+### 1. 좋아요 토글
+
+게시물에 좋아요를 추가하거나 취소합니다. 동일 사용자가 다시 호출하면 좋아요가 취소됩니다.
+
+#### Request
+
+```http
+POST /api/v1/blog/posts/{postId}/like
+Authorization: Bearer {token}
+```
+
+#### Path Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `postId` | string | ✅ | 게시물 ID |
+
+#### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "liked": true,
+    "likeCount": 13
+  },
+  "timestamp": "2026-01-26T10:00:00Z"
+}
+```
+
+---
+
+### 2. 좋아요 여부 확인
+
+현재 사용자가 해당 게시물에 좋아요를 눌렀는지 확인합니다.
+
+#### Request
+
+```http
+GET /api/v1/blog/posts/{postId}/like
+Authorization: Bearer {token}
+```
+
+#### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "liked": true
+  },
+  "timestamp": "2026-01-26T10:00:00Z"
+}
+```
+
+---
+
+### 3. 좋아요한 사용자 목록
+
+게시물에 좋아요를 누른 사용자 목록을 조회합니다.
+
+#### Request
+
+```http
+GET /api/v1/blog/posts/{postId}/likes
+```
+
+#### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "userId": "user-123",
+      "userName": "홍길동",
+      "likedAt": "2026-01-26T10:00:00Z"
+    }
+  ],
+  "timestamp": "2026-01-26T10:00:00Z"
+}
+```
+
+---
+
+## 🔹 Post API (추가)
+
+### 20. 트렌딩 게시물 조회
+
+트렌딩 알고리즘 기반 인기 게시물을 조회합니다.
+점수 계산: `score = viewCount×1 + likeCount×3 + commentCount×5` (시간 감쇠 적용)
+
+#### Request
+
+```http
+GET /api/v1/blog/posts/trending?period=week&page=0&size=10
+```
+
+#### Query Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 | 기본값 |
+|----------|------|------|------|--------|
+| `period` | string | ❌ | 기간 필터 | week |
+| `page` | int | ❌ | 페이지 번호 | 0 |
+| `size` | int | ❌ | 페이지 크기 | 10 |
+
+#### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": "677ab123c4d5e6f7g8h9i0j1",
+        "title": "Spring Boot 가이드",
+        "viewCount": 1250,
+        "likeCount": 85,
+        "commentCount": 12
+      }
+    ],
+    "totalElements": 50
+  },
+  "timestamp": "2026-01-26T10:00:00Z"
+}
+```
+
+---
+
+### 21. 피드 게시물 조회
+
+팔로잉 중인 사용자의 게시물을 조회합니다.
+
+#### Request
+
+```http
+GET /api/v1/blog/posts/feed?page=0&size=10
+Authorization: Bearer {token}
+```
+
+#### Query Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 | 기본값 |
+|----------|------|------|------|--------|
+| `page` | int | ❌ | 페이지 번호 | 0 |
+| `size` | int | ❌ | 페이지 크기 | 10 |
+
+#### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": "677ab123c4d5e6f7g8h9i0j1",
+        "title": "팔로잉 사용자의 게시물",
+        "authorId": "user-456",
+        "authorName": "김철수",
+        "publishedAt": "2026-01-26T09:00:00Z"
+      }
+    ],
+    "totalElements": 30
+  },
+  "timestamp": "2026-01-26T10:00:00Z"
+}
+```
+
+---
+
+### 22. 이전/다음 게시물 네비게이션
+
+현재 게시물 기준 이전/다음 게시물을 조회합니다.
+
+#### Request
+
+```http
+GET /api/v1/blog/posts/{postId}/navigation?scope=all
+```
+
+#### Path Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `postId` | string | ✅ | 현재 게시물 ID |
+
+#### Query Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 | 기본값 |
+|----------|------|------|------|--------|
+| `scope` | string | ❌ | 범위 (all/author/category/series) | all |
+
+#### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "previous": {
+      "id": "677ab000c4d5e6f7g8h9i0j0",
+      "title": "이전 게시물"
+    },
+    "next": {
+      "id": "677ab456c4d5e6f7g8h9i0j4",
+      "title": "다음 게시물"
+    }
+  },
+  "timestamp": "2026-01-26T10:00:00Z"
+}
+```
+
+---
+
 ## 🔹 Series API
 
 ### 1. 시리즈 생성
@@ -1891,8 +2117,20 @@ Authorization: Bearer {token}
 | Code | HTTP Status | 설명 | 해결 방법 |
 |------|-------------|------|-----------|
 | `B001` | 404 | Post not found | 유효한 게시물 ID 확인 |
-| `B002` | 403 | You are not allowed to update this post | 본인 게시물만 수정 가능 |
-| `B003` | 403 | You are not allowed to delete this post | 본인 게시물만 삭제 가능 |
+| `B002` | 403 | Post update forbidden | 본인 게시물만 수정 가능 |
+| `B003` | 403 | Post delete forbidden | 본인 게시물만 삭제 가능 |
+| `B004` | 400 | Post not published | 발행된 게시물만 접근 가능 |
+| `B020` | 404 | Like not found | 좋아요 기록 없음 |
+| `B021` | 409 | Like already exists | 이미 좋아요한 게시물 |
+| `B022` | 500 | Like operation failed | 서버 내부 오류 |
+| `B030` | 404 | Comment not found | 유효한 댓글 ID 확인 |
+| `B031` | 403 | Comment update forbidden | 본인 댓글만 수정 가능 |
+| `B032` | 403 | Comment delete forbidden | 본인 댓글만 삭제 가능 |
+| `B040` | 404 | Series not found | 유효한 시리즈 ID 확인 |
+| `B041`-`B045` | 403 | Series permission errors | 본인 시리즈만 관리 가능 |
+| `B050` | 404 | Tag not found | 유효한 태그명 확인 |
+| `B051` | 409 | Tag already exists | 중복 태그 |
+| `B060`-`B065` | 4xx/5xx | File errors | 파일 크기/타입/URL 확인 |
 
 ### 공통 에러 코드
 
@@ -1976,9 +2214,7 @@ grant_type=password&username=user@example.com&password=password123
 
 ## 📚 관련 문서
 
-- [Blog Service Architecture](/services/blog-service/docs/architecture/blog-architecture.md)
-- [PRD-001: Blog Service Requirements](/docs/prd/PRD-001-blog-service.md)
-- [Auth Service API](/services/auth-service/docs/api/auth-api.md)
+- [Blog Service Architecture](../architecture/system-overview.md)
 
 ---
 

@@ -4,7 +4,7 @@ title: Blog Service System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-26
 author: Documenter Agent
 tags: [architecture, blog-service, system-design, mongodb, microservices]
 related:
@@ -88,7 +88,7 @@ graph TB
 ## 📁 도메인 구조
 
 ```
-services/blog-service/src/main/java/com/portal/blog/
+services/blog-service/src/main/java/com/portal/universe/blogservice/
 ├── post/                    # 게시물 도메인
 │   ├── domain/
 │   │   ├── Post.java        # 게시물 엔티티
@@ -107,6 +107,10 @@ services/blog-service/src/main/java/com/portal/blog/
 ├── comment/                 # 댓글 도메인
 │   ├── domain/
 │   │   └── Comment.java     # 댓글 엔티티 (대댓글 지원)
+│   └── ...
+├── like/                    # 좋아요 도메인
+│   ├── domain/
+│   │   └── Like.java        # 좋아요 엔티티 (userId+postId 복합 유니크)
 │   └── ...
 ├── series/                  # 시리즈 도메인
 │   ├── domain/
@@ -128,7 +132,7 @@ services/blog-service/src/main/java/com/portal/blog/
 │   ├── SecurityConfig.java
 │   └── OpenApiConfig.java
 └── exception/
-    └── BlogErrorCode.java   # B001-B006
+    └── BlogErrorCode.java   # B001-B065
 ```
 
 ---
@@ -148,7 +152,6 @@ public class Post {
     private String category;              // 카테고리
     private List<String> tags;            // 태그 목록
     private PostStatus status;            // DRAFT | PUBLISHED | ARCHIVED
-    private String seriesId;              // 시리즈 ID (optional)
     private int viewCount;                // 조회수
     private LocalDateTime createdAt;      // 생성일
     private LocalDateTime updatedAt;      // 수정일
@@ -156,12 +159,16 @@ public class Post {
 }
 ```
 
-**인덱스**:
+**인덱스** (총 7개):
 ```javascript
-db.posts.createIndex({ status: 1, publishedAt: -1 })    // 발행된 게시물 조회
-db.posts.createIndex({ authorId: 1, status: 1 })        // 작성자별 게시물
-db.posts.createIndex({ tags: 1, status: 1 })            // 태그별 게시물
-db.posts.createIndex({ title: "text", content: "text" }) // 전문 검색
+db.posts.createIndex({ title: "text", content: "text" },
+    { weights: { title: 2, content: 1 } })                    // 전문 검색 (가중치)
+db.posts.createIndex({ status: 1, publishedAt: -1 })          // 발행된 게시물 조회
+db.posts.createIndex({ authorId: 1, createdAt: -1 })          // 작성자별 게시물
+db.posts.createIndex({ category: 1, status: 1, publishedAt: -1 }) // 카테고리별 게시물
+db.posts.createIndex({ tags: 1 })                              // 태그별 게시물
+db.posts.createIndex({ status: 1, viewCount: -1, publishedAt: -1 }) // 트렌딩/인기 게시물
+db.posts.createIndex({ productId: 1 })                         // 상품별 게시물
 ```
 
 ### Comment (댓글)
@@ -192,9 +199,10 @@ db.comments.createIndex({ parentId: 1 })                 // 대댓글 조회
 public class Series {
     @Id
     private String id;
-    private String title;                 // 시리즈 제목
+    private String name;                  // 시리즈 이름
     private String description;           // 설명
     private String authorId;              // 작성자 ID
+    private String thumbnailUrl;          // 썸네일 URL
     private List<String> postIds;         // 게시물 ID 목록 (순서 유지)
     private LocalDateTime createdAt;      // 생성일
 }
@@ -402,20 +410,36 @@ public String extractUserId(Authentication authentication) {
 
 ## ⚠️ 에러 코드
 
-| 코드 | 메시지 | 설명 | HTTP 상태 |
-|------|--------|------|-----------|
-| `B001` | Duplicate title | 중복된 제목 | 409 Conflict |
-| `B002` | Post not found | 게시물을 찾을 수 없음 | 404 Not Found |
-| `B003` | Unauthorized access | 권한 없음 (작성자만 수정/삭제 가능) | 403 Forbidden |
-| `B004` | Comment not found | 댓글을 찾을 수 없음 | 404 Not Found |
-| `B005` | Series not found | 시리즈를 찾을 수 없음 | 404 Not Found |
-| `B006` | File upload failed | 파일 업로드 실패 | 500 Internal Server Error |
+| 코드 | HTTP 상태 | 메시지 | 설명 |
+|------|-----------|--------|------|
+| B001 | 404 | Post not found | 게시물을 찾을 수 없음 |
+| B002 | 403 | Post update forbidden | 게시물 수정 권한 없음 |
+| B003 | 403 | Post delete forbidden | 게시물 삭제 권한 없음 |
+| B004 | 400 | Post not published | 게시물 미발행 상태 |
+| B020 | 404 | Like not found | 좋아요를 찾을 수 없음 |
+| B021 | 409 | Like already exists | 좋아요 중복 |
+| B022 | 500 | Like operation failed | 좋아요 처리 실패 |
+| B030 | 404 | Comment not found | 댓글을 찾을 수 없음 |
+| B031 | 403 | Comment update forbidden | 댓글 수정 권한 없음 |
+| B032 | 403 | Comment delete forbidden | 댓글 삭제 권한 없음 |
+| B040 | 404 | Series not found | 시리즈를 찾을 수 없음 |
+| B041 | 403 | Series update forbidden | 시리즈 수정 권한 없음 |
+| B042 | 403 | Series delete forbidden | 시리즈 삭제 권한 없음 |
+| B043 | 403 | Series add post forbidden | 시리즈 포스트 추가 권한 없음 |
+| B044 | 403 | Series remove post forbidden | 시리즈 포스트 제거 권한 없음 |
+| B045 | 403 | Series reorder forbidden | 시리즈 순서 변경 권한 없음 |
+| B050 | 404 | Tag not found | 태그를 찾을 수 없음 |
+| B051 | 409 | Tag already exists | 태그 중복 |
+| B060 | 500 | File upload failed | 파일 업로드 실패 |
+| B061 | 400 | File is empty | 빈 파일 |
+| B062 | 400 | File size exceeded | 파일 크기 초과 |
+| B063 | 400 | File type not allowed | 허용되지 않는 파일 유형 |
+| B064 | 500 | File delete failed | 파일 삭제 실패 |
+| B065 | 400 | Invalid file URL | 잘못된 파일 URL |
 
 **사용 예시**:
 ```java
-if (isDuplicateTitle(request.getTitle())) {
-    throw new CustomBusinessException(BlogErrorCode.DUPLICATE_TITLE);
-}
+throw new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND);
 ```
 
 ---
@@ -458,11 +482,9 @@ if (isDuplicateTitle(request.getTitle())) {
 
 ## 🔗 관련 문서
 
-- [ADR-001: MongoDB 선택 이유](../../docs/adr/ADR-001-mongodb-selection.md)
-- [API 명세서](../api/blog-api-spec.md)
-- [Data Flow](./data-flow.md)
-- [배포 가이드](../guides/deployment.md)
+- [API 명세서](../api/blog-api.md)
+- [Getting Started](../guides/getting-started.md)
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-26
