@@ -26,7 +26,7 @@ services:
       - portal-universe-net
 
   mongodb:
-    image: mongo:latest
+    image: mongo:8.0
     container_name: mongodb
     ports:
       - "27017:27017"
@@ -38,7 +38,7 @@ services:
       - portal-universe-net
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.2-alpine
     container_name: redis
     ports:
       - "6379:6379"
@@ -88,7 +88,7 @@ services:
       - portal-universe-net
 
   kafka:
-    image: apache/kafka:4.1.0
+    image: apache/kafka:4.1.1
     container_name: kafka
     ports:
       - "9092:9092"
@@ -112,7 +112,7 @@ services:
       - portal-universe-net
 
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:4.3.0
     container_name: localstack
     ports:
       - "4566:4566"
@@ -135,7 +135,7 @@ services:
   # Monitoring Stack (Local용 설정)
   # ===========================================
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.53.5
     container_name: prometheus
     volumes:
       - ./monitoring/prometheus/prometheus-local.yml:/etc/prometheus/prometheus.yml
@@ -155,7 +155,7 @@ services:
       - '--web.enable-admin-api'
 
   alertmanager:
-    image: prom/alertmanager:latest
+    image: prom/alertmanager:v0.28.1
     container_name: alertmanager
     volumes:
       - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
@@ -171,7 +171,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana-oss:latest
+    image: grafana/grafana-oss:11.4.0
     container_name: grafana
     env_file:
       - .env.docker
@@ -218,7 +218,7 @@ services:
     restart: unless-stopped
 
   zipkin:
-    image: openzipkin/zipkin:latest
+    image: openzipkin/zipkin:3.4.2
     container_name: zipkin
     ports:
       - "9411:9411"
@@ -228,7 +228,7 @@ services:
       - portal-universe-net
 
   dozzle:
-    image: amir20/dozzle:latest
+    image: amir20/dozzle:v8.14.5
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:

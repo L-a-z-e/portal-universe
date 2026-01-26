@@ -43,7 +43,7 @@ public abstract class IntegrationTest {
      * JWT Refresh Token 저장 및 블랙리스트 관리에 사용됩니다.
      */
     @Container
-    private static final GenericContainer<?> redisContainer = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
+    private static final GenericContainer<?> redisContainer = new GenericContainer<>(DockerImageName.parse("redis:7.2-alpine"))
             .withExposedPorts(6379);
 
     /**

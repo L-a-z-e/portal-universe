@@ -182,7 +182,7 @@ data:
 spec:
   containers:
     - name: auth-service
-      image: portal-universe-auth-service:latest
+      image: portal-universe-auth-service:1.0.0
       envFrom:
         - configMapRef:
             name: portal-universe-config

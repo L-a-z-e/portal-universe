@@ -51,7 +51,7 @@ services:
   # Kafka (KRaft mode - no Zookeeper)
   # =======================================
   kafka-test:
-    image: apache/kafka:3.8.0
+    image: apache/kafka:4.1.1
     container_name: portal-kafka-test
     environment:
       KAFKA_NODE_ID: 1
@@ -110,7 +110,7 @@ services:
   # Wait for all services to be ready
   # =======================================
   test-readiness:
-    image: alpine:latest
+    image: alpine:3.21
     container_name: portal-test-readiness
     depends_on:
       mysql-test:
