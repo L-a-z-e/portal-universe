@@ -16,6 +16,15 @@ if [ -z "$WORKTREE_PATH" ] || [ -z "$BRANCH" ]; then
     exit 1
 fi
 
+# 절대 경로로 변환
+WORKTREE_ABS_PATH=$(cd "$(dirname "$WORKTREE_PATH")" 2>/dev/null && pwd)/$(basename "$WORKTREE_PATH") 2>/dev/null || WORKTREE_ABS_PATH="$WORKTREE_PATH"
+
+# 메인 repo에서 실행 방지 (순환참조 방지)
+if [ "$WORKTREE_ABS_PATH" = "$MAIN_REPO" ]; then
+    echo "Error: Worktree path cannot be the main repository"
+    exit 1
+fi
+
 echo "Creating worktree at $WORKTREE_PATH for branch $BRANCH..."
 
 # 브랜치 존재 여부 확인
@@ -28,19 +37,26 @@ fi
 
 cd "$WORKTREE_PATH"
 
+# Symlink helper function (이미 존재하면 스킵)
+safe_symlink() {
+    local src=$1
+    local dest=$2
+    if [ -e "$src" ] && [ ! -e "$dest" ] && [ ! -L "$dest" ]; then
+        ln -s "$src" "$dest"
+        echo "  - $dest → $src"
+    elif [ -L "$dest" ]; then
+        echo "  - $dest (already linked, skipped)"
+    fi
+}
+
+echo "Creating symlinks..."
+
 # Symlink gitignored files/folders
-[ -d "$MAIN_REPO/.claude" ] && ln -s "$MAIN_REPO/.claude" .claude
-[ -d "$MAIN_REPO/certs" ] && ln -s "$MAIN_REPO/certs" certs
-[ -f "$MAIN_REPO/.env" ] && ln -s "$MAIN_REPO/.env" .env
-[ -f "$MAIN_REPO/.env.local" ] && ln -s "$MAIN_REPO/.env.local" .env.local
-[ -f "$MAIN_REPO/.env.docker" ] && ln -s "$MAIN_REPO/.env.docker" .env.docker
-[ -f "$MAIN_REPO/.mcp.json" ] && ln -s "$MAIN_REPO/.mcp.json" .mcp.json
+safe_symlink "$MAIN_REPO/.claude" ".claude"
+safe_symlink "$MAIN_REPO/certs" "certs"
+safe_symlink "$MAIN_REPO/.env" ".env"
+safe_symlink "$MAIN_REPO/.env.local" ".env.local"
+safe_symlink "$MAIN_REPO/.env.docker" ".env.docker"
+safe_symlink "$MAIN_REPO/.mcp.json" ".mcp.json"
 
 echo "✓ Worktree 설정 완료: $WORKTREE_PATH ($BRANCH)"
-echo "  Symlinks:"
-[ -d "$MAIN_REPO/.claude" ] && echo "  - .claude → $MAIN_REPO/.claude"
-[ -d "$MAIN_REPO/certs" ] && echo "  - certs → $MAIN_REPO/certs"
-[ -f "$MAIN_REPO/.env" ] && echo "  - .env → $MAIN_REPO/.env"
-[ -f "$MAIN_REPO/.env.local" ] && echo "  - .env.local → $MAIN_REPO/.env.local"
-[ -f "$MAIN_REPO/.env.docker" ] && echo "  - .env.docker → $MAIN_REPO/.env.docker"
-[ -f "$MAIN_REPO/.mcp.json" ] && echo "  - .mcp.json → $MAIN_REPO/.mcp.json"
