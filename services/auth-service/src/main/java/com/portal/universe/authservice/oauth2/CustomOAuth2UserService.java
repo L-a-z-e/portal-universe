@@ -1,6 +1,10 @@
 package com.portal.universe.authservice.oauth2;
 
-import com.portal.universe.authservice.domain.*;
+import com.portal.universe.authservice.domain.Role;
+import com.portal.universe.authservice.domain.SocialAccount;
+import com.portal.universe.authservice.domain.SocialProvider;
+import com.portal.universe.authservice.domain.User;
+import com.portal.universe.authservice.domain.UserProfile;
 import com.portal.universe.authservice.repository.SocialAccountRepository;
 import com.portal.universe.authservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
