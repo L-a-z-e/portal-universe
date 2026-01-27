@@ -79,4 +79,4 @@ management:
 logging:
   level:
     root: INFO
-    com.portal.universe: DEBUG
+    com.portal.universe: INFO
