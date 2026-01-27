@@ -14,7 +14,6 @@ export type {
   AuthorStats,
   BlogStats,
   CategoryStats,
-  TagStats,
 } from '../dto/post';
 
 // Comment DTOs
