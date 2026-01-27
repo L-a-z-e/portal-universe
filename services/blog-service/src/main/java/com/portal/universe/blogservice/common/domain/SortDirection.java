@@ -1,4 +1,4 @@
-package com.portal.universe.blogservice.post.domain;
+package com.portal.universe.blogservice.common.domain;
 
 public enum SortDirection {
     ASC,    // 오름차순

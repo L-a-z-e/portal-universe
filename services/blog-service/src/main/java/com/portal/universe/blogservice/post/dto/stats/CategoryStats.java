@@ -1,4 +1,4 @@
-package com.portal.universe.blogservice.post.dto;
+package com.portal.universe.blogservice.post.dto.stats;
 
 import java.time.LocalDateTime;
 

@@ -2,7 +2,11 @@ package com.portal.universe.blogservice.post.controller;
 
 import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.post.dto.*;
+import com.portal.universe.blogservice.post.dto.stats.AuthorStats;
+import com.portal.universe.blogservice.post.dto.stats.BlogStats;
+import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.post.service.PostService;
+import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -220,10 +224,10 @@ public class PostController {
 
     @Operation(summary = "인기 태그 통계 조회")
     @GetMapping("/stats/tags")
-    public ApiResponse<List<TagStats>> getPopularTags(
+    public ApiResponse<List<TagStatsResponse>> getPopularTags(
             @Parameter(description = "조회할 개수") @RequestParam(defaultValue = "10") int limit
     ) {
-        List<TagStats> tags = postService.getPopularTags(limit);
+        List<TagStatsResponse> tags = postService.getPopularTags(limit);
         return ApiResponse.success(tags);
     }
 

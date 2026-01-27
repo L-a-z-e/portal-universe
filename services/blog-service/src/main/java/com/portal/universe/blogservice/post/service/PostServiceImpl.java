@@ -1,13 +1,17 @@
 package com.portal.universe.blogservice.post.service;
 
 import com.portal.universe.blogservice.common.exception.BlogErrorCode;
+import com.portal.universe.blogservice.common.domain.SortDirection;
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.domain.PostSortType;
 import com.portal.universe.blogservice.post.domain.PostStatus;
-import com.portal.universe.blogservice.post.domain.SortDirection;
 import com.portal.universe.blogservice.post.dto.*;
+import com.portal.universe.blogservice.post.dto.stats.AuthorStats;
+import com.portal.universe.blogservice.post.dto.stats.BlogStats;
+import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.blogservice.series.domain.Series;
+import com.portal.universe.blogservice.series.dto.SeriesNavigationResponse;
 import com.portal.universe.blogservice.series.repository.SeriesRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
@@ -443,7 +447,7 @@ public class PostServiceImpl implements PostService {
      * 개선: $unwind + $group으로 DB에서 집계 (메모리 사용량 ↓)
      */
     @Override
-    public List<TagStats> getPopularTags(int limit) {
+    public List<com.portal.universe.blogservice.tag.dto.TagStatsResponse> getPopularTags(int limit) {
         log.info("Fetching popular tags using aggregation, limit: {}", limit);
         return postRepository.aggregatePopularTags(PostStatus.PUBLISHED, limit);
     }
@@ -502,7 +506,7 @@ public class PostServiceImpl implements PostService {
 
         // 상위 태그 (상위 10개)
         List<String> topTags = getPopularTags(10).stream()
-                .map(TagStats::tagName)
+                .map(com.portal.universe.blogservice.tag.dto.TagStatsResponse::name)
                 .collect(Collectors.toList());
 
         // 최신 게시물 날짜

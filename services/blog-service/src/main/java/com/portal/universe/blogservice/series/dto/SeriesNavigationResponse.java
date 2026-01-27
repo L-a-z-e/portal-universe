@@ -1,4 +1,4 @@
-package com.portal.universe.blogservice.post.dto;
+package com.portal.universe.blogservice.series.dto;
 
 /**
  * 시리즈 내 네비게이션 정보 응답 DTO
