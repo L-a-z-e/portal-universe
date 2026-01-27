@@ -5,9 +5,9 @@ import com.portal.universe.authservice.controller.dto.profile.DeleteAccountReque
 import com.portal.universe.authservice.controller.dto.profile.ProfileResponse;
 import com.portal.universe.authservice.controller.dto.profile.UpdateProfileRequest;
 import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.repository.UserRepository;
-import com.portal.universe.authservice.utils.TokenUtils;
+import com.portal.universe.authservice.common.util.TokenUtils;
 import com.portal.universe.authservice.service.ProfileService;
 import com.portal.universe.authservice.service.RefreshTokenService;
 import com.portal.universe.authservice.service.TokenBlacklistService;

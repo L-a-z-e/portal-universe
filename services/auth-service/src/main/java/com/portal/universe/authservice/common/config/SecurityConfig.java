@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.config;
+package com.portal.universe.authservice.common.config;
 
 import com.portal.universe.authservice.oauth2.CustomOAuth2UserService;
 import com.portal.universe.authservice.oauth2.OAuth2AuthenticationFailureHandler;

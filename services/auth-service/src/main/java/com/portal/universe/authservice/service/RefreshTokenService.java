@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.service;
 
-import com.portal.universe.authservice.config.JwtConfig;
+import com.portal.universe.authservice.common.config.JwtConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

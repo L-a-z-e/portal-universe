@@ -1,7 +1,7 @@
 package com.portal.universe.authservice.controller;
 
 import com.portal.universe.authservice.controller.dto.*;
-import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.service.UserService;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.response.ApiResponse;

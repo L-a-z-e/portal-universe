@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.config;
+package com.portal.universe.authservice.common.config;
 
 import org.springframework.context.annotation.Configuration;
 

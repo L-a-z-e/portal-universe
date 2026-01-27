@@ -6,7 +6,7 @@ import com.portal.universe.authservice.controller.dto.profile.ProfileResponse;
 import com.portal.universe.authservice.controller.dto.profile.UpdateProfileRequest;
 import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.domain.UserProfile;
-import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;

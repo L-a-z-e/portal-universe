@@ -1,6 +1,6 @@
-package com.portal.universe.authservice.utils;
+package com.portal.universe.authservice.common.util;
 
-import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 
 /**

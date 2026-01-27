@@ -2,9 +2,9 @@ package com.portal.universe.authservice.controller;
 
 import com.portal.universe.authservice.controller.dto.*;
 import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.repository.UserRepository;
-import com.portal.universe.authservice.utils.TokenUtils;
+import com.portal.universe.authservice.common.util.TokenUtils;
 import com.portal.universe.authservice.service.LoginAttemptService;
 import com.portal.universe.authservice.service.RefreshTokenService;
 import com.portal.universe.authservice.service.TokenBlacklistService;

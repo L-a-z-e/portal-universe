@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.exception;
+package com.portal.universe.authservice.common.exception;
 
 import com.portal.universe.commonlibrary.exception.ErrorCode;
 import lombok.Getter;

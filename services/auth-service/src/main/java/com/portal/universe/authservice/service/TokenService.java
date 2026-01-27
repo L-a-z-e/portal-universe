@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.service;
 
-import com.portal.universe.authservice.config.JwtProperties;
+import com.portal.universe.authservice.common.config.JwtProperties;
 import com.portal.universe.authservice.domain.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

@@ -5,7 +5,7 @@ import com.portal.universe.authservice.domain.PasswordHistory;
 import com.portal.universe.authservice.domain.Role;
 import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.domain.UserProfile;
-import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.follow.repository.FollowRepository;
 import com.portal.universe.authservice.password.PasswordValidator;
 import com.portal.universe.authservice.password.ValidationResult;

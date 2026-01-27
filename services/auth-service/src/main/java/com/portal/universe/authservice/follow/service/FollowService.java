@@ -1,7 +1,7 @@
 package com.portal.universe.authservice.follow.service;
 
 import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.follow.domain.Follow;
 import com.portal.universe.authservice.follow.dto.*;
 import com.portal.universe.authservice.follow.repository.FollowRepository;
