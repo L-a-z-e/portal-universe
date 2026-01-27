@@ -5,10 +5,13 @@
  */
 import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { productApi, inventoryApi } from '@/api/endpoints'
+import { productApi, inventoryApi, searchApi } from '@/api/endpoints'
 import type { Product, Inventory } from '@/types'
 import ProductCard from '@/components/ProductCard'
-import { Button, Spinner, Alert, Input } from '@portal/design-system-react'
+import SearchAutocomplete from '@/components/search/SearchAutocomplete'
+import PopularKeywords from '@/components/search/PopularKeywords'
+import RecentKeywords from '@/components/search/RecentKeywords'
+import { Button, Spinner, Alert } from '@portal/design-system-react'
 
 const ProductListPage: React.FC = () => {
   // URL query params
@@ -70,12 +73,19 @@ const ProductListPage: React.FC = () => {
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    executeSearch(searchInput)
+  }
+
+  const executeSearch = (keyword: string) => {
     const params = new URLSearchParams()
-    if (searchInput) {
-      params.set('keyword', searchInput)
+    if (keyword) {
+      params.set('keyword', keyword)
+      // Record recent keyword
+      searchApi.addRecentKeyword(keyword).catch(() => {})
     }
     params.set('page', '0')
     setSearchParams(params)
+    setSearchInput(keyword)
   }
 
   // Handle page change
@@ -94,22 +104,19 @@ const ProductListPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-text-heading">
           Products
         </h1>
 
-        {/* Search Form */}
-        <form onSubmit={handleSearch} className="flex items-center gap-2">
-          <Input
-            type="text"
+        {/* Search */}
+        <div className="flex items-center gap-2">
+          <SearchAutocomplete
             value={searchInput}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
+            onChange={setSearchInput}
+            onSearch={executeSearch}
             placeholder="Search products..."
           />
-          <Button type="submit" variant="primary">
-            Search
-          </Button>
           {searchKeyword && (
             <Button
               type="button"
@@ -119,8 +126,16 @@ const ProductListPage: React.FC = () => {
               Clear
             </Button>
           )}
-        </form>
+        </div>
       </div>
+
+      {/* Popular & Recent Keywords */}
+      {!searchKeyword && (
+        <div className="space-y-4">
+          <PopularKeywords onSelect={executeSearch} />
+          <RecentKeywords onSelect={executeSearch} />
+        </div>
+      )}
 
       {/* Search result info */}
       {searchKeyword && (
