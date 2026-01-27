@@ -32,7 +32,7 @@ services:
   # Redis Cache
   # =======================================
   redis-test:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     container_name: portal-redis-test
     ports:
       - "63790:6379"
