@@ -43,6 +43,11 @@ const AdminCouponListPage = lazy(() => import('@/pages/admin/AdminCouponListPage
 const AdminCouponFormPage = lazy(() => import('@/pages/admin/AdminCouponFormPage'))
 const AdminTimeDealListPage = lazy(() => import('@/pages/admin/AdminTimeDealListPage'))
 const AdminTimeDealFormPage = lazy(() => import('@/pages/admin/AdminTimeDealFormPage'))
+const AdminOrderListPage = lazy(() => import('@/pages/admin/AdminOrderListPage'))
+const AdminOrderDetailPage = lazy(() => import('@/pages/admin/AdminOrderDetailPage'))
+const AdminDeliveryPage = lazy(() => import('@/pages/admin/AdminDeliveryPage'))
+const AdminStockMovementPage = lazy(() => import('@/pages/admin/AdminStockMovementPage'))
+const AdminQueuePage = lazy(() => import('@/pages/admin/AdminQueuePage'))
 const ForbiddenPage = lazy(() => import('@/pages/error/ForbiddenPage'))
 
 // Guards
@@ -294,6 +299,46 @@ const routes = [
             element: (
               <Suspense fallback={<PageLoader />}>
                 <AdminTimeDealFormPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'orders',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminOrderListPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'orders/:orderNumber',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminOrderDetailPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'deliveries',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminDeliveryPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'stock-movements',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminStockMovementPage />
+              </Suspense>
+            )
+          },
+          {
+            path: 'queue',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AdminQueuePage />
               </Suspense>
             )
           }
