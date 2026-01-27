@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.service;
+package com.portal.universe.authservice.auth.service;
 
 import com.portal.universe.authservice.common.config.JwtConfig;
 import lombok.RequiredArgsConstructor;

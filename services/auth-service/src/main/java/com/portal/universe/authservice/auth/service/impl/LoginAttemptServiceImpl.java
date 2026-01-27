@@ -1,6 +1,6 @@
-package com.portal.universe.authservice.service.impl;
+package com.portal.universe.authservice.auth.service.impl;
 
-import com.portal.universe.authservice.service.LoginAttemptService;
+import com.portal.universe.authservice.auth.service.LoginAttemptService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

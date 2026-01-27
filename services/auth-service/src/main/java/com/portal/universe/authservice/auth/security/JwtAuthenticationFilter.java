@@ -1,7 +1,7 @@
-package com.portal.universe.authservice.security;
+package com.portal.universe.authservice.auth.security;
 
-import com.portal.universe.authservice.service.TokenBlacklistService;
-import com.portal.universe.authservice.service.TokenService;
+import com.portal.universe.authservice.auth.service.TokenBlacklistService;
+import com.portal.universe.authservice.auth.service.TokenService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -3,7 +3,7 @@ package com.portal.universe.authservice.common.config;
 import com.portal.universe.authservice.oauth2.CustomOAuth2UserService;
 import com.portal.universe.authservice.oauth2.OAuth2AuthenticationFailureHandler;
 import com.portal.universe.authservice.oauth2.OAuth2AuthenticationSuccessHandler;
-import com.portal.universe.authservice.security.JwtAuthenticationFilter;
+import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

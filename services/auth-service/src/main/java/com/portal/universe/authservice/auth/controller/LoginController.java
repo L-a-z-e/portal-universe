@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.controller;
+package com.portal.universe.authservice.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

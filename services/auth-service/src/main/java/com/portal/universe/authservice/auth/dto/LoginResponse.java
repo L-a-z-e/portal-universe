@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.controller.dto;
+package com.portal.universe.authservice.auth.dto;
 
 /**
  * 로그인 응답 DTO

@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.service;
+package com.portal.universe.authservice.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.service;
+package com.portal.universe.authservice.auth.service;
 
 /**
  * 로그인 시도를 추적하고 계정 잠금을 관리하는 서비스 인터페이스입니다.

@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.service;
+package com.portal.universe.authservice.auth.service;
 
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.repository.UserRepository;

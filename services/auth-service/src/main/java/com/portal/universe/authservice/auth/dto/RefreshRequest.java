@@ -1,11 +1,11 @@
-package com.portal.universe.authservice.controller.dto;
+package com.portal.universe.authservice.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * 로그아웃 요청 DTO
+ * 토큰 갱신 요청 DTO
  */
-public record LogoutRequest(
+public record RefreshRequest(
         @NotBlank(message = "Refresh Token은 필수입니다")
         String refreshToken
 ) {

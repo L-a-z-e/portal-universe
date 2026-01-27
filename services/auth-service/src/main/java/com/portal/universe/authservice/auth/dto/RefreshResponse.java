@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.controller.dto;
+package com.portal.universe.authservice.auth.dto;
 
 /**
  * 토큰 갱신 응답 DTO

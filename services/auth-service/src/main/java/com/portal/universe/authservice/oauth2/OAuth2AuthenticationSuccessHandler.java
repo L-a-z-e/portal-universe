@@ -1,8 +1,8 @@
 package com.portal.universe.authservice.oauth2;
 
 import com.portal.universe.authservice.user.domain.User;
-import com.portal.universe.authservice.service.RefreshTokenService;
-import com.portal.universe.authservice.service.TokenService;
+import com.portal.universe.authservice.auth.service.RefreshTokenService;
+import com.portal.universe.authservice.auth.service.TokenService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
