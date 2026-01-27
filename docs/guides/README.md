@@ -119,6 +119,26 @@ Admin 페이지에서 상품을 관리하는 방법을 설명합니다.
 
 ---
 
+#### Shopping Frontend-Backend Gap 구현 완료 보고서
+**파일**: [../shopping-frontend-gap-implementation.md](../shopping-frontend-gap-implementation.md) | **작성일**: 2026-01-28
+
+shopping-service 백엔드 API와 shopping-frontend 간 10개 Gap 구현 완료 보고서입니다.
+
+**주요 내용**:
+- 검색 자동완성, 인기/최근 검색어 (Gap 1-3)
+- 재고 실시간 SSE 스트림 (Gap 4)
+- 상품 리뷰 Blog 연동 (Gap 5)
+- Admin 결제 환불 (Gap 6)
+- Admin 대기열/배송/재고이동/주문 관리 (Gap 7-10)
+- Frontend 17개 파일 생성, Backend 3개 파일 생성
+- EventSource, Debounce, React 18 Hooks 패턴 활용
+
+**관련 문서**:
+- [Admin 상품 관리 가이드](./admin-product-guide.md)
+- [ADR-002: API 엔드포인트 설계](../adr/ADR-002-api-endpoint-design.md)
+
+---
+
 ## 가이드 작성 규칙
 
 ### 파일 명명 규칙
@@ -192,5 +212,5 @@ related:
 
 ---
 
-**최종 업데이트**: 2026-01-23
+**최종 업데이트**: 2026-01-28
 **관리자**: Documenter Agent
