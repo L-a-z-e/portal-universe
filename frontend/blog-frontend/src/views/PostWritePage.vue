@@ -12,6 +12,7 @@ import 'prismjs/themes/prism-okaidia.css';
 import { createPost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import type { PostCreateRequest } from '@/types';
+import TagAutocomplete from '@/components/TagAutocomplete.vue';
 
 const router = useRouter();
 const isDarkMode = ref(false);
@@ -286,32 +287,11 @@ onBeforeUnmount(() => {
         </div>
 
         <div>
-          <div class="flex gap-2">
-            <Input
-                v-model="tagInput"
-                label="태그 추가"
-                placeholder="태그 입력 후 Enter"
-                @keydown="handleTagKeydown"
-            />
-            <Button variant="secondary" size="sm" @click="addTag" class="mt-6">
-              추가
-            </Button>
-          </div>
+          <TagAutocomplete
+            :model-value="form.tags || []"
+            @update:model-value="form.tags = $event"
+          />
         </div>
-      </div>
-
-      <!-- 태그 목록 -->
-      <div v-if="form.tags && form.tags.length > 0" class="flex flex-wrap gap-2">
-        <Tag
-            v-for="tag in form.tags"
-            :key="tag"
-            variant="default"
-            size="sm"
-            closable
-            @close="removeTag(tag)"
-        >
-          {{ tag }}
-        </Tag>
       </div>
 
       <!-- Toast UI Editor (순수 JavaScript 방식) -->

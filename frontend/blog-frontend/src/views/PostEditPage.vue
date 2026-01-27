@@ -10,6 +10,7 @@ import { Button, Card, Input, Tag } from '@portal/design-system-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import type { PostUpdateRequest } from '@/dto/post';
+import TagAutocomplete from '@/components/TagAutocomplete.vue';
 
 // CSS 임포트
 import 'prismjs/themes/prism.css';
@@ -333,39 +334,11 @@ onBeforeUnmount(() => {
         </div>
 
         <div>
-          <div class="flex gap-2">
-            <Input
-                v-model="tagInput"
-                label="태그 추가"
-                placeholder="태그 입력 후 Enter"
-                :disabled="isSubmitting"
-                @keydown="handleTagKeydown"
-            />
-            <Button
-                variant="secondary"
-                size="sm"
-                :disabled="isSubmitting"
-                @click="addTag"
-                class="mt-6"
-            >
-              추가
-            </Button>
-          </div>
+          <TagAutocomplete
+            :model-value="tags"
+            @update:model-value="tags = $event"
+          />
         </div>
-      </div>
-
-      <!-- 태그 목록 -->
-      <div v-if="tags.length > 0" class="flex flex-wrap gap-2">
-        <Tag
-            v-for="tag in tags"
-            :key="tag"
-            variant="default"
-            size="sm"
-            closable
-            @close="removeTag(tag)"
-        >
-          {{ tag }}
-        </Tag>
       </div>
 
       <!-- Toast UI Editor -->
