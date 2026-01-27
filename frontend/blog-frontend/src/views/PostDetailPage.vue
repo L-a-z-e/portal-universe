@@ -43,8 +43,8 @@ const showLikersModal = ref(false);
 
 // 본인 게시글 여부
 const isAuthor = computed(() => {
-  if (!post.value || !authStore.user) return false;
-  return post.value.authorId === authStore.user.uuid;
+  if (!post.value || !authStore.user.value) return false;
+  return post.value.authorId === authStore.user.value?.profile?.sub;
 });
 
 const viewerElement = ref<HTMLDivElement | null>(null);

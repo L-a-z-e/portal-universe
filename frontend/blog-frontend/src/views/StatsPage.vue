@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from 'portal/stores'
 import { Card, Spinner } from '@portal/design-system-vue'
 import { getBlogStats, getCategoryStats, getPopularTags, getAuthorStats } from '@/api/posts'
 import type { BlogStats, CategoryStats, TagStatsResponse, AuthorStats } from '@/types'
 
 // Composables
-const router = useRouter()
 const authStore = useAuthStore()
 
 // State
@@ -48,10 +46,10 @@ const fetchPopularTags = async () => {
 }
 
 const fetchAuthorStats = async () => {
-  if (!isAuthenticated.value || !authStore.user?.uuid) return
+  if (!isAuthenticated.value || !authStore.user.value?.profile?.sub) return
 
   try {
-    authorStats.value = await getAuthorStats(authStore.user.uuid)
+    authorStats.value = await getAuthorStats(authStore.user.value.profile.sub)
   } catch (e) {
     console.error('Failed to fetch author stats:', e)
   }
@@ -99,7 +97,7 @@ onMounted(() => {
     </div>
 
     <div v-if="loading" class="loading-container">
-      <Spinner size="large" />
+      <Spinner size="lg" />
       <p class="loading-text">통계를 불러오는 중...</p>
     </div>
 
@@ -244,10 +242,10 @@ onMounted(() => {
               v-for="tag in popularTags"
               :key="tag.name"
               class="tag-item"
-              :style="{ fontSize: `${Math.min(1 + tag.count * 0.05, 1.8)}rem` }"
+              :style="{ fontSize: `${Math.min(1 + tag.postCount * 0.05, 1.8)}rem` }"
             >
               <span class="tag-name">{{ tag.name }}</span>
-              <span class="tag-count">({{ formatNumber(tag.count) }})</span>
+              <span class="tag-count">({{ formatNumber(tag.postCount) }})</span>
             </div>
           </div>
         </Card>

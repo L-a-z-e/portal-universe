@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Input, Card, Tag, Textarea } from '@portal/design-system-vue';
+import { Button, Input, Card, Textarea } from '@portal/design-system-vue';
 import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
@@ -56,7 +56,6 @@ const form = ref<PostCreateRequest>({
   publishImmediately: false
 });
 
-const tagInput = ref('');
 const isLoading = ref(false);
 const autoSaveTimer = ref<number | null>(null);
 
@@ -99,27 +98,6 @@ function saveDraft() {
 function clearDraft() {
   localStorage.removeItem(AUTOSAVE_KEY);
   console.log('🗑️ 임시 저장 삭제');
-}
-
-// ==================== 태그 관리 ====================
-
-function addTag() {
-  const tag = tagInput.value.trim();
-  if (tag && !form.value.tags?.includes(tag)) {
-    form.value.tags = [...(form.value.tags || []), tag];
-    tagInput.value = '';
-  }
-}
-
-function removeTag(tagToRemove: string) {
-  form.value.tags = form.value.tags?.filter(tag => tag !== tagToRemove);
-}
-
-function handleTagKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    addTag();
-  }
 }
 
 // ==================== 발행/저장 ====================

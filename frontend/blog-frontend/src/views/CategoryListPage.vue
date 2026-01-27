@@ -44,12 +44,6 @@ const canLoadMore = computed(() => hasMore.value && !isLoadingMore.value && !isL
 // 총 게시글 수
 const totalCount = computed(() => totalElements.value);
 
-// 현재 선택된 카테고리 정보
-const selectedCategoryInfo = computed(() => {
-  if (!selectedCategory.value) return null;
-  return categories.value.find(c => c.categoryName === selectedCategory.value);
-});
-
 // 카테고리 통계 로드
 async function loadCategories() {
   try {

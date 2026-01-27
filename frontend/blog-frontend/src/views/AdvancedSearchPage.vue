@@ -276,13 +276,13 @@ onBeforeUnmount(() => {
               <label for="startDate" class="block text-sm font-medium text-text-heading mb-2">
                 시작일
               </label>
-              <Input id="startDate" v-model="startDate" type="date" class="w-full" />
+              <input id="startDate" v-model="startDate" type="date" class="w-full px-3 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent" />
             </div>
             <div>
               <label for="endDate" class="block text-sm font-medium text-text-heading mb-2">
                 종료일
               </label>
-              <Input id="endDate" v-model="endDate" type="date" class="w-full" />
+              <input id="endDate" v-model="endDate" type="date" class="w-full px-3 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent" />
             </div>
           </div>
 

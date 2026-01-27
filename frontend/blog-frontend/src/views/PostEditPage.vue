@@ -6,7 +6,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
-import { Button, Card, Input, Tag } from '@portal/design-system-vue';
+import { Button, Card, Input } from '@portal/design-system-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import type { PostUpdateRequest } from '@/dto/post';
@@ -57,32 +57,11 @@ let editorInstance: Editor | null = null;
 const title = ref('');
 const tags = ref<string[]>([]);
 const category = ref('');
-const tagInput = ref('');
-
 const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 const isLoading = ref(true);
 const titleError = ref('');
 const postData = ref<any>(null);
-
-function addTag() {
-  const tag = tagInput.value.trim();
-  if (tag && !tags.value.includes(tag)) {
-    tags.value = [...tags.value, tag];
-    tagInput.value = '';
-  }
-}
-
-function removeTag(tagToRemove: string) {
-  tags.value = tags.value.filter(tag => tag !== tagToRemove);
-}
-
-function handleTagKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    addTag();
-  }
-}
 
 // Editor 초기화 함수
 function initEditor(content: string) {
