@@ -204,6 +204,16 @@ public class Order {
     }
 
     /**
+     * 주문 상태를 직접 변경합니다 (관리자 전용).
+     * 비즈니스 로직 검증 없이 상태를 변경하므로 주의해서 사용해야 합니다.
+     *
+     * @param newStatus 변경할 상태
+     */
+    public void updateStatus(OrderStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    /**
      * 총 주문 금액을 재계산합니다.
      */
     public void recalculateTotalAmount() {

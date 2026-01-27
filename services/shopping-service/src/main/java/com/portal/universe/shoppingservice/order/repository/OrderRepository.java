@@ -60,4 +60,23 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * @return 존재 여부
      */
     boolean existsByOrderNumber(String orderNumber);
+
+    /**
+     * 특정 상태의 주문 목록을 조회합니다 (Admin).
+     *
+     * @param status 주문 상태
+     * @param pageable 페이징 정보
+     * @return 주문 목록
+     */
+    Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+
+    /**
+     * 주문 번호 또는 사용자 ID로 주문을 검색합니다 (Admin).
+     *
+     * @param orderNumber 주문 번호 검색어
+     * @param userId 사용자 ID 검색어
+     * @param pageable 페이징 정보
+     * @return 주문 목록
+     */
+    Page<Order> findByOrderNumberContainingOrUserIdContaining(String orderNumber, String userId, Pageable pageable);
 }
