@@ -1,5 +1,6 @@
 package com.portal.universe.authservice.domain;
 
+import com.portal.universe.authservice.oauth2.domain.SocialAccount;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

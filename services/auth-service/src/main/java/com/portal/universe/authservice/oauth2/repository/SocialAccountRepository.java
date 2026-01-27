@@ -1,7 +1,7 @@
-package com.portal.universe.authservice.repository;
+package com.portal.universe.authservice.oauth2.repository;
 
-import com.portal.universe.authservice.domain.SocialAccount;
-import com.portal.universe.authservice.domain.SocialProvider;
+import com.portal.universe.authservice.oauth2.domain.SocialAccount;
+import com.portal.universe.authservice.oauth2.domain.SocialProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
