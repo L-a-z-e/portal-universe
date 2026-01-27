@@ -2,7 +2,7 @@ package com.portal.universe.blogservice.post.dto;
 
 import com.portal.universe.blogservice.post.domain.PostSortType;
 import com.portal.universe.blogservice.post.domain.PostStatus;
-import com.portal.universe.blogservice.post.domain.SortDirection;
+import com.portal.universe.blogservice.common.domain.SortDirection;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -38,6 +38,13 @@ spring:
   kafka:
     bootstrap-servers: kafka:29092
 
+  # Redis - Kubernetes
+  data:
+    redis:
+      host: redis-service
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+
 # JWT secret은 Auth Service와 동일한 값을 환경 변수로 주입
 # K8s Secret에서 JWT_SECRET_KEY 환경 변수 설정 필요
 

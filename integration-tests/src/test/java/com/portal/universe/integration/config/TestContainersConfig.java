@@ -30,7 +30,7 @@ public class TestContainersConfig implements ApplicationContextInitializer<Confi
             .withReuse(true);
 
     static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(
-            DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch:8.11.0"))
+            DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch:8.18.5"))
             .withEnv("discovery.type", "single-node")
             .withEnv("xpack.security.enabled", "false")
             .withEnv("ES_JAVA_OPTS", "-Xms256m -Xmx256m")

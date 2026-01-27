@@ -304,7 +304,7 @@ sequenceDiagram
     Note over PS: 사용자 로그인 완료<br/>(OAuth2 + JWT 발급)
     PS->>PS: axios interceptor 설정<br/>Authorization: Bearer {JWT}
     PS->>BS: mountBlogApp(el, options)
-    BS->>BS: import apiClient from 'portal/apiClient'
+    BS->>BS: import { apiClient } from 'portal/api'
     BS->>BS: import authStore from 'portal/authStore'
     Note over BS: Module Federation을 통해<br/>Portal의 apiClient와<br/>authStore를 참조
     BS->>API: API 함수에서 apiClient 사용
@@ -331,14 +331,14 @@ sequenceDiagram
 
 | 모듈 | 소스 | 설명 |
 |------|------|------|
-| `apiClient` | `portal/apiClient` | axios 인스턴스 (JWT 자동 첨부) |
+| `apiClient` | `portal/api` | axios 인스턴스 (JWT 자동 첨부) |
 | `authStore` | `portal/authStore` | Pinia Store (인증 상태, 사용자 정보) |
 
 **사용 예시**:
 
 ```typescript
 // src/api/index.ts
-import apiClient from 'portal/apiClient';
+import { apiClient } from 'portal/api';
 export default apiClient;
 
 // src/views/PostListPage.vue
@@ -517,7 +517,7 @@ async function loadPosts() {
 ```
 src/
 ├── api/                          # API 통신 레이어
-│   ├── index.ts                  # apiClient export (from 'portal/apiClient')
+│   ├── index.ts                  # apiClient export (from 'portal/api')
 │   ├── posts.ts                  # Posts API 함수
 │   ├── comments.ts               # Comments API 함수
 │   └── files.ts                  # Files API 함수
@@ -640,8 +640,7 @@ watch(
 ## 🔗 관련 문서
 
 - [API 명세](../api/README.md)
-- [Pinia Store 가이드](../guides/state-management.md)
-- [API Gateway 라우팅 규칙](../../../services/api-gateway/docs/architecture/routing.md)
+- [System Overview](./system-overview.md)
 
 ---
 

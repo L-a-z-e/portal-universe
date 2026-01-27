@@ -2,6 +2,9 @@ package com.portal.universe.blogservice.post.service;
 
 import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.post.dto.*;
+import com.portal.universe.blogservice.post.dto.stats.AuthorStats;
+import com.portal.universe.blogservice.post.dto.stats.BlogStats;
+import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -97,7 +100,7 @@ public interface PostService {
     /**
      * PRD: 인기 태그 조회 (태그 클라우드용)
      */
-    List<TagStats> getPopularTags(int limit);
+    List<com.portal.universe.blogservice.tag.dto.TagStatsResponse> getPopularTags(int limit);
 
     /**
      * 작성자 통계

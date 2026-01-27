@@ -2,8 +2,8 @@ package com.portal.universe.blogservice.post.repository;
 
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.domain.PostStatus;
-import com.portal.universe.blogservice.post.dto.CategoryStats;
-import com.portal.universe.blogservice.post.dto.TagStats;
+import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
+import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
@@ -45,7 +45,7 @@ public interface PostRepositoryCustom {
      * 4. $sort: count 내림차순 정렬
      * 5. $limit: 상위 N개만 반환
      */
-    List<TagStats> aggregatePopularTags(PostStatus status, int limit);
+    List<TagStatsResponse> aggregatePopularTags(PostStatus status, int limit);
 
     /**
      * 트렌딩 게시물 조회 (Aggregation 사용)

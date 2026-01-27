@@ -36,7 +36,7 @@ export async function getTagById(tagId: string): Promise<TagResponse> {
  * @param tagName 태그명
  */
 export async function getTagByName(tagName: string): Promise<TagResponse> {
-  const response = await apiClient.get<ApiResponse<TagResponse>>(`${BASE_PATH}/name/${tagName}`);
+  const response = await apiClient.get<ApiResponse<TagResponse>>(`${BASE_PATH}/${tagName}`);
   return response.data.data;
 }
 
@@ -52,9 +52,9 @@ export async function getPostsByTag(
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
-    `${BASE_PATH}/${encodeURIComponent(tagName)}/posts`,
+    '/api/blog/posts/tags',
     {
-      params: { page, size },
+      params: { tags: tagName, page, size },
     }
   );
   return response.data.data;
@@ -80,7 +80,7 @@ export async function getPopularTags(limit: number = 20): Promise<TagStatsRespon
  */
 export async function searchTags(keyword: string): Promise<TagResponse[]> {
   const response = await apiClient.get<ApiResponse<TagResponse[]>>(`${BASE_PATH}/search`, {
-    params: { keyword },
+    params: { q: keyword },
   });
   return response.data.data;
 }

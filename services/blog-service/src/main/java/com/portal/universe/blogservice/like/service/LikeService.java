@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.like.service;
 
-import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.like.domain.Like;
 import com.portal.universe.blogservice.like.dto.LikeStatusResponse;
 import com.portal.universe.blogservice.like.dto.LikeToggleResponse;

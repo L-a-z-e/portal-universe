@@ -18,11 +18,17 @@ Portal Universe의 Vue 3 기반 블로그 마이크로 프론트엔드 모듈 �
 
 ## 📚 문서 카테고리
 
+### 📊 현황
+| 문서 | 설명 | 상태 |
+|------|------|------|
+| [STATUS](./STATUS.md) | 구현 상태 대시보드 (페이지/컴포넌트/API 현황) | ✅ |
+
 ### 🏗️ Architecture (아키텍처)
 시스템 구조와 설계 문서
 
 | 문서 | 설명 | 상태 |
 |------|------|------|
+| [ARCHITECTURE](./ARCHITECTURE.md) | 계층 구조, 상태 관리, 데이터 플로우, Module Federation | ✅ |
 | [System Overview](./architecture/system-overview.md) | 시스템 전체 구조, Dual Mode, Module Federation | ✅ |
 | [Data Flow](./architecture/data-flow.md) | 데이터 흐름, API 통신, 상태 관리 | ✅ |
 
@@ -31,7 +37,16 @@ API 클라이언트 및 통신 관련 문서
 
 | 문서 | 설명 | 상태 |
 |------|------|------|
-| [Client API](./api/client-api.md) | axios 기반 API 클라이언트 명세 (Posts, Comments, Files) | ✅ |
+| [API Guide](./API.md) | API 클라이언트 가이드 (8개 모듈, 64개 함수) | ✅ |
+| [Client API](./api/client-api.md) | axios 기반 API 클라이언트 상세 명세 | ✅ |
+
+### 🧩 Components & Federation
+컴포넌트 및 Module Federation 관련 문서
+
+| 문서 | 설명 | 상태 |
+|------|------|------|
+| [COMPONENTS](./COMPONENTS.md) | 컴포넌트 가이드 (14개 컴포넌트 + 9개 페이지) | ✅ |
+| [FEDERATION](./FEDERATION.md) | Module Federation 설정, 통신, KeepAlive | ✅ |
 
 ### 📖 Guides (가이드)
 개발자 가이드 및 튜토리얼

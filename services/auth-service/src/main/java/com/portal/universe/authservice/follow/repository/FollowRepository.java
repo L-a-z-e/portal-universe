@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.follow.repository;
 
-import com.portal.universe.authservice.domain.User;
+import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.follow.domain.Follow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

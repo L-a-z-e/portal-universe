@@ -41,6 +41,17 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
+            # JWT Secret Keys (Auth Service와 동일한 키 사용)
+            - name: JWT_CURRENT_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_CURRENT_KEY_ID
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_SECRET_KEY_2024_01
           # 리소스 제한 설정
           resources:
             requests:

@@ -51,6 +51,13 @@ spring:
       max-request-size: 100MB
       location: ${java.io.tmpdir}
 
+# Swagger 설정 (Kubernetes 환경: 비활성화, 프로덕션)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 # Kubernetes 환경 모니터링 설정
 management:
   endpoints:

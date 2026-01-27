@@ -22,30 +22,46 @@
                                 │
         ┌───────────────────────┼───────────────────────┐
         │                       │                       │
-┌───────▼──────────┐  ┌─────────▼──────────┐  ┌────────▼────────┐
-│  Blog Frontend   │  │ Blog Detail Page   │  │ Shopping        │
-│  (Remote)        │  │                    │  │ Frontend        │
-│                  │  │ - Markdown         │  │ (Remote)        │
-│ - PostListPage   │  │   Rendering        │  │                 │
-│ - PostDetailPage │  │ - Comments         │  │ (Future)        │
-│ - PostWritePage  │  │ - Stats            │  │                 │
-│ - PostEditPage   │  │                    │  │                 │
-└──────────────────┘  └────────────────────┘  └─────────────────┘
+┌───────▼──────────────────────────────────┐  ┌────────▼────────┐
+│  Blog Frontend (Remote)                  │  │ Shopping        │
+│                                          │  │ Frontend        │
+│ Pages:                                   │  │ (Remote)        │
+│ - PostListPage (Feed/Trending/Recent)    │  │                 │
+│ - PostDetailPage (Markdown/Comments)     │  │                 │
+│ - PostWritePage / PostEditPage           │  │                 │
+│ - TagListPage / TagDetailPage            │  │                 │
+│ - SeriesDetailPage                       │  │                 │
+│ - MyPage (프로필/게시글/시리즈)            │  │                 │
+│ - UserBlogPage (@username)               │  │                 │
+└──────────────────────────────────────────┘  └─────────────────┘
 ```
 
 ## 계층 구조
 
 ### 1. Presentation Layer (표현층)
 
-#### Views (페이지)
-- **PostListPage**: 게시글 목록, 무한 스크롤, 검색
-- **PostDetailPage**: 게시글 상세, 댓글, 통계
+#### Views (페이지 — 9개)
+- **PostListPage**: 게시글 목록, 탭(Feed/Trending/Recent), 무한 스크롤, 검색
+- **PostDetailPage**: 게시글 상세, Markdown 렌더링, 댓글, 좋아요, 시리즈 네비게이션
 - **PostWritePage**: 새 게시글 작성 (Toast UI Editor)
 - **PostEditPage**: 기존 게시글 수정
+- **TagListPage**: 태그 목록, 검색/정렬, 태그 클라우드
+- **TagDetailPage**: 태그별 게시글, 무한 스크롤
+- **SeriesDetailPage**: 시리즈 상세, 순번 목록
+- **MyPage**: 마이페이지 (프로필 조회/수정, 내 게시글, 내 시리즈)
+- **UserBlogPage**: 사용자 블로그 (`/@username`)
 
-#### Components (재사용 가능 컴포넌트)
+#### Components (재사용 가능 컴포넌트 — 14개)
 - **PostCard**: 게시글 요약 카드 (목록용)
-- Design System 컴포넌트: Button, Card, Tag, Avatar, SearchBar
+- **PostNavigation**: 이전/다음 게시글 네비게이션
+- **RelatedPosts**: 관련 게시글 그리드
+- **MyPostList**: 내 게시글 관리 (상태별 필터)
+- **CommentList / CommentForm / CommentItem**: 댓글 트리 구조 CRUD
+- **LikeButton**: 좋아요 토글 (Optimistic UI)
+- **SeriesCard / SeriesBox**: 시리즈 카드 및 네비게이션
+- **FollowButton / FollowerModal**: 팔로우 토글 및 목록 모달
+- **UserProfileCard / ProfileEditForm**: 프로필 표시 및 수정
+- Design System 컴포넌트: Button, Card, Tag, Avatar, SearchBar, Modal, Alert, Spinner
 
 ### 2. State Management Layer (상태 관리층)
 
@@ -58,6 +74,20 @@ searchStore
 ├── error: string | null
 ├── hasMore: boolean
 └── Actions: search(), loadMore(), clear()
+```
+
+```
+followStore
+├── followingIds: string[]           # 팔로잉 UUID 배열
+├── followingIdsLoaded: boolean
+├── loading: boolean
+├── error: Error | null
+├── followersCache: Map<string, FollowListResponse>
+├── followingsCache: Map<string, FollowListResponse>
+├── Getters: isFollowing(uuid), followingCount
+└── Actions: loadFollowingIds(), toggleFollow(),
+             getFollowers(), getFollowings(),
+             checkFollowStatus(), clearCache(), reset()
 ```
 
 #### Shared Stores (Portal Shell)
@@ -94,6 +124,10 @@ authStore (공유)
 │   └── searchPostsAdvanced()    # 고급 검색
 ├── 상태 관리
 │   └── changePostStatus()
+├── 피드/트렌딩
+│   ├── getTrendingPosts()         # 인기 게시글
+│   ├── getFeed()                  # 팔로잉 피드
+│   └── getPostNavigation()        # 이전/다음 글
 └── 통계
     ├── getCategoryStats()
     ├── getPopularTags()
@@ -107,15 +141,53 @@ authStore (공유)
 └── deleteComment()
 
 // src/api/files.ts
-├── uploadFile()
-└── deleteFile()
+├── uploadFile()              # multipart/form-data
+└── deleteFile()              # ADMIN 권한
+
+// src/api/likes.ts
+├── toggleLike()              # 좋아요 토글
+├── getLikeStatus()           # 상태 확인
+└── getLikers()               # 좋아요한 사용자 목록
+
+// src/api/tags.ts
+├── getAllTags()
+├── getTagById()
+├── getTagByName()
+├── getPostsByTag()           # 태그별 게시글
+├── getPopularTags()
+└── searchTags()
+
+// src/api/series.ts
+├── getSeriesList()           # 목록 (작성자 필터)
+├── getSeriesById()
+├── getSeriesPosts()
+├── getMySeries()
+├── createSeries()
+├── updateSeries()
+├── deleteSeries()
+└── reorderSeriesPosts()      # 순서 변경
+
+// src/api/users.ts (→ auth-service)
+├── getPublicProfile()        # username 기반
+├── getMyProfile()
+├── updateProfile()
+├── setUsername()              # 최초 1회
+├── checkUsername()            # 중복 확인
+└── getUserPosts()
+
+// src/api/follow.ts (→ auth-service)
+├── toggleFollow()
+├── getFollowers()
+├── getFollowings()
+├── getFollowStatus()
+└── getMyFollowingIds()       # 피드용 UUID 목록
 ```
 
 #### API Client 상속
 
 ```typescript
 // src/api/index.ts
-import apiClient from 'portal/apiClient';
+import { apiClient } from 'portal/api';
 export default apiClient;
 
 // Portal Shell의 apiClient를 재사용
@@ -142,7 +214,9 @@ src/dto/
 │   └── CommentUpdateRequest
 ├── series.ts                 # 시리즈
 ├── tag.ts                    # 태그
-└── file.ts                   # 파일
+├── file.ts                   # 파일
+├── user.ts                   # 사용자 프로필, Username
+└── follow.ts                 # 팔로우/팔로워
 
 src/types/
 ├── index.ts                  # 모든 DTO 재내보내기
@@ -156,10 +230,15 @@ src/types/
 ```typescript
 // src/router/index.ts
 const routes = [
-  { path: '/', component: PostListPage },
-  { path: '/:postId', component: PostDetailPage, props: true },
-  { path: '/write', component: PostWritePage },
-  { path: '/edit/:postId', component: PostEditPage, props: true }
+  { path: '/',                name: 'PostList',      component: PostListPage },
+  { path: '/tags',            name: 'TagList',       component: TagListPage },
+  { path: '/tags/:tagName',   name: 'TagDetail',     component: TagDetailPage,    props: true },
+  { path: '/write',           name: 'PostWrite',     component: PostWritePage },
+  { path: '/edit/:postId',    name: 'PostEdit',      component: PostEditPage,     props: true },
+  { path: '/series/:seriesId',name: 'SeriesDetail',  component: SeriesDetailPage, props: true },
+  { path: '/my',              name: 'MyPage',        component: MyPage,           meta: { requiresAuth: true } },
+  { path: '/@:username',      name: 'UserBlog',      component: UserBlogPage,     props: true },
+  { path: '/:postId',         name: 'PostDetail',    component: PostDetailPage,   props: true }
 ];
 ```
 
@@ -313,7 +392,7 @@ if (authStore.isAuthenticated) {
 }
 
 // 2. API 클라이언트 사용
-import apiClient from 'portal/apiClient';
+import { apiClient } from 'portal/api';
 const { data } = await apiClient.get('/api/blog/posts');
 
 // 3. 네비게이션 공유
@@ -328,10 +407,17 @@ router.afterEach((to) => {
 
 ```typescript
 // Vite + Vue Router 자동 코드 분할
+// 9개 라우트 각각 자동으로 분할됨
 const routes = [
-  { path: '/', component: PostListPage },      // 자동으로 분할됨
-  { path: '/:postId', component: PostDetailPage },
+  { path: '/', component: PostListPage },
+  { path: '/tags', component: TagListPage },
+  { path: '/tags/:tagName', component: TagDetailPage },
   { path: '/write', component: PostWritePage },
+  { path: '/edit/:postId', component: PostEditPage },
+  { path: '/series/:seriesId', component: SeriesDetailPage },
+  { path: '/my', component: MyPage },
+  { path: '/@:username', component: UserBlogPage },
+  { path: '/:postId', component: PostDetailPage },
 ];
 ```
 

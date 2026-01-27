@@ -25,5 +25,6 @@ export interface TagCreateRequest {
  */
 export interface TagStatsResponse {
   name: string;
-  count: number;
+  postCount: number;
+  totalViews: number | null;
 }

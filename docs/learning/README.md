@@ -386,13 +386,30 @@ Portal Universe 프로젝트의 기술 스택과 아키텍처를 이해하기 �
 
 ### ⚛️ React 18 (Shopping Frontend)
 
+#### 기초 학습 가이드
+
+위치: `frontend/shopping-frontend/docs/learning/`
+
+| 문서 | 주제 | 난이도 |
+|------|------|--------|
+| [README.md](../../frontend/shopping-frontend/docs/learning/README.md) | React 학습 가이드 마스터, 4주 로드맵, 개발 환경 설정 | ⭐ |
+| [01-project-structure.md](../../frontend/shopping-frontend/docs/learning/01-project-structure.md) | 프로젝트 구조, 디렉토리 역할, 진입점 차이 (main.tsx vs bootstrap.tsx) | ⭐ |
+| [02-react-basics.md](../../frontend/shopping-frontend/docs/learning/02-react-basics.md) | JSX 문법, 함수형 컴포넌트, Props, 조건부 렌더링, 리스트, 이벤트 | ⭐⭐ |
+| [03-hooks.md](../../frontend/shopping-frontend/docs/learning/03-hooks.md) | useState, useEffect, useCallback, useMemo, Custom Hooks | ⭐⭐⭐ |
+| [04-state-management.md](../../frontend/shopping-frontend/docs/learning/04-state-management.md) | Zustand Store 생성, 선택적 구독, Persist 미들웨어, 비동기 액션 | ⭐⭐⭐ |
+| [05-routing.md](../../frontend/shopping-frontend/docs/learning/05-routing.md) | React Router, 중첩 라우트, Protected Routes, URL 파라미터, Query String | ⭐⭐ |
+| [06-styling.md](../../frontend/shopping-frontend/docs/learning/06-styling.md) | Tailwind CSS Utility 클래스, 반응형 디자인, 다크모드 | ⭐⭐ |
+| [07-module-federation.md](../../frontend/shopping-frontend/docs/learning/07-module-federation.md) | Micro Frontend, Host/Remote 구조, 의존성 공유, 컨텍스트 주입 | ⭐⭐⭐⭐ |
+
+#### 심화 학습 (계획)
+
 위치: `frontend/shopping-frontend/docs/learning/react/`
 
 | 문서 | 주제 |
 |------|------|
-| [hooks-deep-dive.md](../../frontend/shopping-frontend/docs/learning/react/hooks-deep-dive.md) | useState, useEffect, useCallback, useMemo |
+| [hooks-deep-dive.md](../../frontend/shopping-frontend/docs/learning/react/hooks-deep-dive.md) | useState, useEffect, useCallback, useMemo 심화 |
 | [zustand-state.md](../../frontend/shopping-frontend/docs/learning/react/zustand-state.md) | Zustand Store, 미들웨어, 최적화 |
-| [react-router.md](../../frontend/shopping-frontend/docs/learning/react/react-router.md) | React Router 6 |
+| [react-router.md](../../frontend/shopping-frontend/docs/learning/react/react-router.md) | React Router 6 심화 |
 | [custom-hooks.md](../../frontend/shopping-frontend/docs/learning/react/custom-hooks.md) | Custom Hooks 패턴 |
 | [context-api.md](../../frontend/shopping-frontend/docs/learning/react/context-api.md) | Context API |
 | [error-boundaries.md](../../frontend/shopping-frontend/docs/learning/react/error-boundaries.md) | Error Boundaries |
@@ -672,7 +689,8 @@ AWS 클라우드 서비스와 LocalStack을 활용한 로컬 개발 환경 가�
 ### Frontend
 - **MFE**: [Host (Vue)](../../frontend/portal-shell/docs/learning/mfe/module-federation-host.md) | [Remote (React)](../../frontend/shopping-frontend/docs/learning/mfe/module-federation-remote.md) | [통신](../../frontend/portal-shell/docs/learning/mfe/mfe-communication.md) | [공유 의존성](../../frontend/portal-shell/docs/learning/mfe/shared-dependencies.md) | [동적 로딩](../../frontend/portal-shell/docs/learning/mfe/dynamic-remote-loading.md) | [라우팅](../../frontend/portal-shell/docs/learning/mfe/mfe-routing.md) | [에러 처리](../../frontend/portal-shell/docs/learning/mfe/mfe-error-handling.md)
 - **Vue**: [Composition API](../../frontend/portal-shell/docs/learning/vue/composition-api.md) | [Pinia](../../frontend/portal-shell/docs/learning/vue/pinia-state.md) | [Router](../../frontend/portal-shell/docs/learning/vue/vue-router.md) | [Composables](../../frontend/portal-shell/docs/learning/vue/composables.md) | [Lifecycle](../../frontend/portal-shell/docs/learning/vue/lifecycle-hooks.md) | [Reactivity](../../frontend/portal-shell/docs/learning/vue/reactivity-system.md) | [Component](../../frontend/portal-shell/docs/learning/vue/component-design.md) | [성능](../../frontend/portal-shell/docs/learning/vue/vue-performance.md)
-- **React**: [Hooks](../../frontend/shopping-frontend/docs/learning/react/hooks-deep-dive.md) | [Zustand](../../frontend/shopping-frontend/docs/learning/react/zustand-state.md) | [Router](../../frontend/shopping-frontend/docs/learning/react/react-router.md) | [Custom Hooks](../../frontend/shopping-frontend/docs/learning/react/custom-hooks.md) | [Context](../../frontend/shopping-frontend/docs/learning/react/context-api.md) | [Error Boundaries](../../frontend/shopping-frontend/docs/learning/react/error-boundaries.md) | [Code Splitting](../../frontend/shopping-frontend/docs/learning/react/code-splitting.md) | [성능](../../frontend/shopping-frontend/docs/learning/react/react-performance.md) | [테스트](../../frontend/shopping-frontend/docs/learning/react/testing-react.md)
+- **React 기초**: [학습 가이드](../../frontend/shopping-frontend/docs/learning/README.md) | [프로젝트 구조](../../frontend/shopping-frontend/docs/learning/01-project-structure.md) | [React 기초](../../frontend/shopping-frontend/docs/learning/02-react-basics.md) | [Hooks](../../frontend/shopping-frontend/docs/learning/03-hooks.md) | [Zustand](../../frontend/shopping-frontend/docs/learning/04-state-management.md) | [Router](../../frontend/shopping-frontend/docs/learning/05-routing.md) | [Tailwind CSS](../../frontend/shopping-frontend/docs/learning/06-styling.md) | [Module Federation](../../frontend/shopping-frontend/docs/learning/07-module-federation.md)
+- **React 심화**: [Hooks 심화](../../frontend/shopping-frontend/docs/learning/react/hooks-deep-dive.md) | [Zustand 심화](../../frontend/shopping-frontend/docs/learning/react/zustand-state.md) | [Router 심화](../../frontend/shopping-frontend/docs/learning/react/react-router.md) | [Custom Hooks](../../frontend/shopping-frontend/docs/learning/react/custom-hooks.md) | [Context](../../frontend/shopping-frontend/docs/learning/react/context-api.md) | [Error Boundaries](../../frontend/shopping-frontend/docs/learning/react/error-boundaries.md) | [Code Splitting](../../frontend/shopping-frontend/docs/learning/react/code-splitting.md) | [성능](../../frontend/shopping-frontend/docs/learning/react/react-performance.md) | [테스트](../../frontend/shopping-frontend/docs/learning/react/testing-react.md)
 - **Design System**: [Design Tokens](./design-system/design-tokens.md) | [Token 구현](./design-system/design-tokens/token-implementation.md) | [Component Library](./design-system/components/component-library.md) | [Button](./design-system/components/button-component.md) | [Form](./design-system/components/form-components.md) | [패턴](./design-system/patterns/design-patterns.md) | [반응형](./design-system/patterns/responsive-design.md) | [접근성](./design-system/patterns/accessibility.md)
 
 ### Architecture Patterns
@@ -708,14 +726,14 @@ AWS 클라우드 서비스와 LocalStack을 활용한 로컬 개발 환경 가�
 | Auth Service | 20개 |
 | Notification Service | 16개 |
 | API Gateway | 12개 |
-| Frontend (Portal Shell, Shopping) | 34개 |
+| Frontend (Portal Shell, Shopping) | 42개 |
 | Design System | 8개 |
 | Clean Code & 리팩토링 | 15개 |
 | AWS & LocalStack | 25개 |
 | Monitoring & Infra | 10개 |
 | 학습 노트 | 8개 |
 | 기타 | 3개 |
-| **총계** | **292개** |
+| **총계** | **300개** |
 
 ---
 

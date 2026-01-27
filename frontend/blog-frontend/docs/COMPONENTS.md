@@ -5,13 +5,31 @@
 ```
 src/components/
 ├── PostCard.vue          # 게시글 카드 (목록용)
+├── PostNavigation.vue    # 이전/다음 게시글 네비게이션
+├── RelatedPosts.vue      # 관련 게시글
+├── MyPostList.vue        # 내 게시글 목록 (상태별 필터)
+├── CommentList.vue       # 댓글 목록 (트리 구조)
+├── CommentForm.vue       # 댓글/답글/수정 입력 폼
+├── CommentItem.vue       # 개별 댓글 (재귀)
+├── LikeButton.vue        # 좋아요 토글 (Optimistic UI)
+├── SeriesCard.vue        # 시리즈 카드 (목록용)
+├── SeriesBox.vue         # 시리즈 네비게이션 (상세 페이지용)
+├── FollowButton.vue      # 팔로우/언팔로우 토글
+├── FollowerModal.vue     # 팔로워/팔로잉 목록 모달
+├── UserProfileCard.vue   # 사용자 프로필 카드
+├── ProfileEditForm.vue   # 프로필 수정 폼
 └── HelloWorld.vue        # 데모 컴포넌트
 
 src/views/
-├── PostListPage.vue      # 게시글 목록 페이지
-├── PostDetailPage.vue    # 게시글 상세 페이지
-├── PostWritePage.vue     # 게시글 작성 페이지
-└── PostEditPage.vue      # 게시글 수정 페이지
+├── PostListPage.vue      # 게시글 목록 (무한 스크롤)
+├── PostDetailPage.vue    # 게시글 상세 (Markdown 렌더링)
+├── PostWritePage.vue     # 게시글 작성 (Toast UI Editor)
+├── PostEditPage.vue      # 게시글 수정
+├── TagListPage.vue       # 태그 목록 (검색/정렬/클라우드)
+├── TagDetailPage.vue     # 태그별 게시글 (무한 스크롤)
+├── SeriesDetailPage.vue  # 시리즈 상세 (순번 목록)
+├── MyPage.vue            # 마이페이지 (프로필/게시글/시리즈)
+└── UserBlogPage.vue      # 사용자 블로그 (공개 프로필)
 ```
 
 ## 주요 컴포넌트
@@ -371,6 +389,395 @@ const form = ref({
   status: 'DRAFT'         // DRAFT, PUBLISHED, DELETED
 });
 ```
+
+### 5. CommentList.vue
+
+**역할**: 게시글의 댓글을 트리 구조(루트 댓글 + 대댓글)로 표시 및 관리
+
+#### Props
+
+```typescript
+interface Props {
+  postId: string
+  currentUserId?: string
+}
+```
+
+#### 주요 기능
+
+- 댓글 CRUD (생성, 수정, 삭제, 대댓글)
+- 트리 구조 관리 (루트 댓글과 대댓글 분리)
+- CommentItem + CommentForm 하위 컴포넌트 조합
+- API: `getCommentsByPostId`, `createComment`, `updateComment`, `deleteComment`
+
+### 6. CommentForm.vue
+
+**역할**: 댓글/답글/수정의 3가지 모드를 지원하는 입력 폼
+
+#### Props
+
+```typescript
+interface Props {
+  postId: string
+  parentCommentId?: string | null
+  initialContent?: string
+  mode?: 'create' | 'edit' | 'reply'
+  placeholder?: string
+}
+```
+
+#### Events
+
+```typescript
+emit('submit', content: string)  // 제출
+emit('cancel')                   // 취소
+```
+
+#### 주요 기능
+
+- 모드별 버튼 텍스트 변경 ('등록' / '수정')
+- 공백 검사 및 제출 검증
+- 취소 버튼 (create 모드에서는 숨김)
+
+### 7. CommentItem.vue
+
+**역할**: 개별 댓글을 재귀적으로 표시 (대댓글 지원)
+
+#### Props
+
+```typescript
+interface Props {
+  comment: CommentResponse
+  depth: number
+  replies?: CommentResponse[]
+  currentUserId?: string
+}
+```
+
+#### Events
+
+```typescript
+emit('reply', parentCommentId: string)
+emit('edit', commentId: string, content: string)
+emit('delete', commentId: string)
+emit('submitReply', commentId: string, content: string)
+emit('toggleReplies', commentId: string)
+```
+
+#### 주요 기능
+
+- 본인 댓글만 수정/삭제 버튼 표시
+- 삭제된 댓글 표시 ("삭제된 댓글입니다")
+- 답글 폼 토글
+- CommentItem 재귀 렌더링 (depth + 1)
+- 상대 시간 표시 (`formatRelativeTime`)
+
+### 8. LikeButton.vue
+
+**역할**: 좋아요 토글 버튼 (Optimistic UI 적용)
+
+#### Props
+
+```typescript
+interface Props {
+  postId: string
+  initialLiked?: boolean
+  initialCount?: number
+}
+```
+
+#### Events
+
+```typescript
+emit('likeChanged', liked: boolean, count: number)
+```
+
+#### 주요 기능
+
+- Optimistic UI: 즉시 UI 업데이트 후 API 호출, 실패 시 롤백
+- Heart 아이콘 애니메이션 (heartBeat)
+- 초기 상태 API 조회 (`getLikeStatus`)
+- API: `toggleLike`, `getLikeStatus`
+
+### 9. SeriesCard.vue
+
+**역할**: 시리즈 요약을 카드 형태로 표시 (목록용)
+
+#### Props
+
+```typescript
+interface Props {
+  series: SeriesListResponse
+}
+```
+
+#### Events
+
+```typescript
+emit('click', seriesId: string)
+```
+
+#### 주요 기능
+
+- 시리즈 기본 정보 표시 (이름, 설명, 작성자)
+- 게시글 개수 + 마지막 업데이트 날짜
+- 썸네일 이미지 에러 핸들링
+- 호버 효과
+
+### 10. SeriesBox.vue
+
+**역할**: 게시글 상세 페이지에서 시리즈 네비게이션 표시
+
+#### Props
+
+```typescript
+interface Props {
+  seriesId: string
+  currentPostId: string
+}
+```
+
+#### 주요 기능
+
+- 현재 게시글의 시리즈 정보 및 위치 표시 (n/total)
+- 이전/다음 게시글 네비게이션 버튼
+- 시리즈 전체 목록 보기 링크
+- API: `getSeriesById`, `getSeriesPosts`
+
+### 11. FollowButton.vue
+
+**역할**: 팔로우/언팔로우 토글 버튼
+
+#### Props
+
+```typescript
+interface Props {
+  username: string
+  targetUuid: string
+  initialFollowing?: boolean
+  size?: 'sm' | 'md' | 'lg'
+  showText?: boolean
+}
+```
+
+#### Events
+
+```typescript
+emit('followChanged', following: boolean, followerCount: number, followingCount: number)
+```
+
+#### 주요 기능
+
+- Optimistic UI 업데이트
+- 호버 시 "취소" 텍스트 표시
+- 에러 처리 (401 미인증, 400 자기 자신 등)
+- `useFollowStore` 연동
+
+### 12. FollowerModal.vue
+
+**역할**: 팔로워/팔로잉 사용자 목록을 모달로 표시
+
+#### Props
+
+```typescript
+interface Props {
+  username: string
+  isOpen: boolean
+  type: 'followers' | 'following'
+}
+```
+
+#### Events
+
+```typescript
+emit('close')
+```
+
+#### 주요 기능
+
+- 팔로워/팔로잉 리스트 표시 (닉네임, 유저명, bio)
+- 페이지네이션 (더 보기 버튼)
+- 각 사용자에 FollowButton 표시
+- 사용자 클릭 시 프로필 페이지 이동
+
+### 13. UserProfileCard.vue
+
+**역할**: 사용자 프로필 정보를 카드 형태로 표시
+
+#### Props
+
+```typescript
+interface Props {
+  user: UserProfileResponse
+  isCurrentUser?: boolean
+}
+```
+
+#### Events
+
+```typescript
+emit('followChanged', followerCount: number, followingCount: number)
+```
+
+#### 주요 기능
+
+- 아바타, 이름, bio, 웹사이트, 가입일 표시
+- 팔로워/팔로잉 통계 (클릭 시 FollowerModal)
+- 현재 사용자가 아닐 경우 FollowButton 표시
+- 웹사이트 프로토콜 자동 추가
+
+### 14. ProfileEditForm.vue
+
+**역할**: 프로필 정보 수정 폼
+
+#### Props
+
+```typescript
+interface Props {
+  user: UserProfileResponse
+}
+```
+
+#### Events
+
+```typescript
+emit('success', user: UserProfileResponse)
+emit('cancel')
+```
+
+#### 주요 기능
+
+- 이름, Username, bio(200자 제한), 웹사이트 수정
+- Username 최초 1회 설정 (이후 변경 불가)
+- Username 중복 확인 (디바운스)
+- Username 유효성 검증 (3-20자, 영문/숫자/_/-)
+- API: `updateProfile`, `setUsername`, `checkUsername`
+
+### 15. PostNavigation.vue
+
+**역할**: 이전/다음 게시글 네비게이션
+
+#### Props
+
+```typescript
+interface Props {
+  postId: string
+  scope?: 'all' | 'author' | 'category' | 'series'
+}
+```
+
+#### 주요 기능
+
+- 범위 선택 지원 (전체/작성자/카테고리/시리즈)
+- 썸네일 + 제목으로 이전/다음 표시
+- 반응형: 모바일 1열, 태블릿 이상 2열
+- API: `getPostNavigation`
+
+### 16. RelatedPosts.vue
+
+**역할**: 관련 게시글 표시 (PostCard 그리드)
+
+#### Props
+
+```typescript
+interface Props {
+  postId: string
+  tags?: string[]
+  limit?: number  // 기본값: 4
+}
+```
+
+#### 주요 기능
+
+- 관련 게시글 조회 및 PostCard 그리드 표시
+- 반응형: 1열 → 2열 → 4열
+- API: `getRelatedPosts`
+
+### 17. MyPostList.vue
+
+**역할**: 내 게시글 목록 (상태별 필터 + 관리)
+
+#### 주요 기능
+
+- 상태 필터 탭: ALL / PUBLISHED / DRAFT
+- 게시글 관리: 수정, 삭제, 발행(Draft→Published)
+- 메타정보 표시 (날짜, 조회수, 좋아요)
+- 페이지네이션 (더 보기)
+- API: `getMyPosts`, `deletePost`, `changePostStatus`
+
+### 18. TagListPage.vue (View)
+
+**역할**: 전체 태그 목록 페이지 (검색/정렬/클라우드 뷰)
+
+#### 주요 기능
+
+- 태그 검색 (태그명, 설명)
+- 정렬 옵션: 인기순 / 이름순 / 최신순
+- 뷰 모드: 그리드(인기순/최신순) / 태그 클라우드(이름순)
+- 태그 크기 계산 (postCount 기반)
+- 통계 요약 표시
+- API: `getAllTags`
+
+### 19. TagDetailPage.vue (View)
+
+**역할**: 특정 태그의 게시글 목록 (무한 스크롤)
+
+#### Props
+
+```typescript
+interface Props {
+  tagName: string
+}
+```
+
+#### 주요 기능
+
+- 태그 정보 + 해당 게시글 표시
+- IntersectionObserver 기반 무한 스크롤
+- 태그 색상 (해시 기반)
+- API: `getTagByName`, `getPostsByTag`
+
+### 20. SeriesDetailPage.vue (View)
+
+**역할**: 시리즈 상세 페이지 (순번 목록)
+
+#### 주요 기능
+
+- 시리즈 정보 카드 (썸네일, 설명, 작성자)
+- 게시글을 순번과 함께 리스트로 표시
+- 메타정보 (날짜, 조회수, 좋아요)
+- API: `getSeriesById`, `getSeriesPosts`
+
+### 21. MyPage.vue (View)
+
+**역할**: 마이페이지 (프로필 + 콘텐츠 관리)
+
+#### 주요 기능
+
+- 내 프로필 조회 + 수정 모드 토글
+- 탭 네비게이션: 내 게시글 / 내 시리즈
+- 하위 컴포넌트: UserProfileCard, ProfileEditForm, MyPostList
+- API: `getMyProfile`
+
+### 22. UserBlogPage.vue (View)
+
+**역할**: 다른 사용자의 블로그 페이지
+
+#### Props
+
+```typescript
+interface Props {
+  username: string
+}
+```
+
+#### 주요 기능
+
+- 사용자 공개 프로필 + 게시글 표시
+- 무한 스크롤 (스크롤 이벤트)
+- Username 변경 감시 및 리로드
+- 하위 컴포넌트: UserProfileCard, PostCard
+- API: `getPublicProfile`, `getPostsByAuthor`
 
 ## Design System 컴포넌트 사용
 

@@ -10,7 +10,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
- * `blog-service`의 모든 통합 테스트를 위한 추상 базовый(base) 클래스입니다.
+ * `blog-service`의 모든 통합 테스트를 위한 추상 클래스입니다.
  * 주요 역할:
  * 1. Testcontainers를 사용하여 테스트용 MongoDB 인스턴스를 실행합니다.
  * 2. 외부 시스템(Config Server, Eureka)에 대한 의존성을 비활성화합니다.
@@ -26,7 +26,7 @@ public abstract class IntegrationTest {
      * 모든 테스트 클래스에서 동일한 컨테이너 인스턴스를 공유하도록 static으로 선언되었습니다.
      */
     @Container
-    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
+    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:8.0");
 
     /**
      * Testcontainers로 실행된 MongoDB 컨테이너의 동적 URI 설정을

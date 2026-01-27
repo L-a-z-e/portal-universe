@@ -63,12 +63,18 @@ Authorization: Bearer {token}
 
 **문서**: [Blog API - File API](./blog-api.md#-file-api)
 
+### Like API (좋아요)
+
+- 좋아요 토글
+- 상태 확인
+- 좋아요한 사용자 목록
+
+**문서**: [Blog API - Like API](./blog-api.md#-like-api)
+
 ## 🔗 관련 문서
 
-- [Blog Service Architecture](../architecture/blog-architecture.md)
-- [API 작성 가이드](/docs_template/guide/api/how-to-write.md)
-- [PRD-001: Blog Service Requirements](/docs/prd/PRD-001-blog-service.md)
+- [Blog Service Architecture](../architecture/system-overview.md)
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-26

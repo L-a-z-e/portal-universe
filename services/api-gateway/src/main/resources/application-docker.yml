@@ -45,6 +45,13 @@ spring:
   kafka:
     bootstrap-servers: kafka:29092
 
+  # Redis - Docker Compose
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+
 # JWT secret은 Auth Service와 동일한 값을 환경 변수로 주입
 # Docker Compose에서 JWT_SECRET_KEY 환경 변수 설정 필요
 

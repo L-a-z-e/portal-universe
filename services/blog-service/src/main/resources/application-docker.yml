@@ -55,6 +55,13 @@ spring:
       max-request-size: 100MB
       location: ${java.io.tmpdir}
 
+# Swagger 설정 (Docker 환경: 활성화, 개발 환경)
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 # Docker 환경 모니터링 설정
 management:
   endpoints:

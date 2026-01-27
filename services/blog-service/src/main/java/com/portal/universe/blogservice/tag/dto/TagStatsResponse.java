@@ -5,5 +5,6 @@ package com.portal.universe.blogservice.tag.dto;
  */
 public record TagStatsResponse(
         String name,
-        Long postCount
+        Long postCount,
+        Long totalViews
 ) {}

@@ -126,10 +126,15 @@ docker-compose down -v
 ### 올바른 설정
 
 #### Docker Compose 설정 (현재 Portal Universe)
+
+> **주의**: `DATA_DIR` 환경변수는 최신 LocalStack에서 **deprecated**되었습니다.
+> 설정해도 무시되며 경고 로그만 출력됩니다. `PERSISTENCE=1`만 사용하세요.
+
 ```yaml
 services:
   localstack:
     image: localstack/localstack:latest
+    container_name: localstack        # 고정된 컨테이너 이름 (필수)
     ports:
       - "4566:4566"
     environment:
@@ -137,14 +142,30 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=ap-northeast-2
-      - PERSISTENCE=1               # 영속성 활성화
-      - DATA_DIR=/var/lib/localstack  # 컨테이너 내부 경로
+      - PERSISTENCE=1                 # 영속성 활성화
+      # DATA_DIR은 deprecated - 사용하지 않음
     volumes:
-      # 반드시 DATA_DIR과 매핑!
-      - ./localstack_data:/var/lib/localstack
+      - localstack-data:/var/lib/localstack  # Named Volume 권장
     networks:
       - portal-universe-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  localstack-data:  # Named Volume 정의
 ```
+
+#### Bind Mount vs Named Volume
+
+| 방식 | 장점 | 단점 |
+|------|------|------|
+| **Bind Mount** (`./localstack_data:/path`) | 호스트에서 직접 접근 가능 | 권한 문제 발생 가능 |
+| **Named Volume** (`localstack-data:/path`) | Docker가 권한 관리 | 호스트에서 직접 접근 어려움 |
+
+**권장**: Named Volume 사용 (권한 문제 회피)
 
 #### 디렉토리 권한 설정 (macOS/Linux)
 ```bash
@@ -460,19 +481,31 @@ docker-compose restart localstack
 
 ```yaml
 ✅ PERSISTENCE=1 설정
-✅ DATA_DIR 환경변수 지정
-✅ volumes 설정으로 호스트 경로 마운트
-✅ 경로 일치 확인 (DATA_DIR === volumes의 컨테이너 경로)
+❌ DATA_DIR 환경변수 (deprecated - 사용하지 않음)
+✅ container_name 고정 설정
+✅ volumes 설정 (Named Volume 권장)
 ✅ docker-compose down 사용 (down -v 사용 금지)
 ✅ 버킷 자동 생성 로직 구현 (@PostConstruct 권장)
-✅ 디렉토리 권한 확인 (macOS/Linux)
+✅ healthcheck 설정 (서비스 의존성 관리)
 ```
 
 ### Portal Universe 현재 구현
 - ✅ PERSISTENCE=1 활성화
-- ✅ 볼륨 마운트: `./localstack_data:/var/lib/localstack`
+- ✅ container_name: localstack 설정
+- ✅ Named Volume: `localstack-data:/var/lib/localstack`
+- ✅ healthcheck 설정
 - ✅ @PostConstruct로 버킷 자동 생성 (Blog Service)
 - ✅ 재시작 안전성 보장
+
+### 중요: Community vs Pro 버전
+
+| 기능 | Community | Pro |
+|------|-----------|-----|
+| PERSISTENCE 지원 | 제한적 | 완전 지원 |
+| 버킷 메타데이터 영속성 | X | O |
+| 파일 데이터 영속성 | 제한적 | O |
+
+> **참고**: 완전한 영속성이 필요한 프로덕션 환경에서는 LocalStack Pro 사용을 권장합니다.
 
 ### 안전한 컨테이너 관리 명령어
 

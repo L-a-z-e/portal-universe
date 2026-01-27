@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.file.service;
 
-import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

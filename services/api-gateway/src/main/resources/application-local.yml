@@ -45,8 +45,21 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
 
+  # Redis - Local Development
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:  # 로컬은 비밀번호 없음
+
 # JWT secret은 Auth Service와 동일한 값을 환경 변수로 주입
 # 기본값은 application.yml에 정의됨
+
+# 로컬 환경에서는 HSTS 비활성화 (HTTP 사용)
+security:
+  headers:
+    hsts:
+      enabled: false
 
 # Local Actuator 설정
 management:
@@ -66,4 +79,4 @@ management:
 logging:
   level:
     root: INFO
-    com.portal.universe: DEBUG
+    com.portal.universe: INFO

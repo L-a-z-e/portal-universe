@@ -107,9 +107,12 @@ export interface PostSearchRequest {
 export interface AuthorStats {
   authorId: string;
   authorName: string;
-  postCount: number;
+  totalPosts: number;
+  publishedPosts: number;
   totalViews: number;
   totalLikes: number;
+  firstPostDate: string;
+  lastPostDate: string;
 }
 
 /**
@@ -117,23 +120,20 @@ export interface AuthorStats {
  */
 export interface BlogStats {
   totalPosts: number;
+  publishedPosts: number;
   totalViews: number;
   totalLikes: number;
-  totalComments: number;
+  topCategories: string[];
+  topTags: string[];
+  lastPostDate: string;
 }
 
 /**
  * 카테고리 통계 DTO
  */
 export interface CategoryStats {
-  category: string;
-  count: number;
+  categoryName: string;
+  postCount: number;
+  latestPostDate: string;
 }
 
-/**
- * 태그 통계 DTO
- */
-export interface TagStats {
-  tag: string;
-  count: number;
-}

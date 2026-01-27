@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.oauth2;
 
-import com.portal.universe.authservice.domain.SocialProvider;
+import com.portal.universe.authservice.oauth2.domain.SocialProvider;
 
 import java.util.Map;
 

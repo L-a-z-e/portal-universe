@@ -1,11 +1,11 @@
 package com.portal.universe.authservice.follow.service;
 
-import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.exception.AuthErrorCode;
+import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.follow.domain.Follow;
 import com.portal.universe.authservice.follow.dto.*;
 import com.portal.universe.authservice.follow.repository.FollowRepository;
-import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.tag.service;
 
-import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.tag.domain.Tag;
 import com.portal.universe.blogservice.tag.dto.*;
 import com.portal.universe.blogservice.tag.repository.TagRepository;
@@ -140,7 +140,7 @@ public class TagService {
         List<Tag> tags = tagRepository.findByPostCountGreaterThanOrderByPostCountDesc(0L, pageable);
 
         return tags.stream()
-                .map(tag -> new TagStatsResponse(tag.getName(), tag.getPostCount()))
+                .map(tag -> new TagStatsResponse(tag.getName(), tag.getPostCount(), null))
                 .toList();
     }
 

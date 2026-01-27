@@ -55,6 +55,13 @@ spring:
       max-request-size: 100MB
       location: ${java.io.tmpdir}
 
+# Swagger 설정 (Local 환경: 활성화)
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 # Local Actuator 설정
 management:
   endpoints:

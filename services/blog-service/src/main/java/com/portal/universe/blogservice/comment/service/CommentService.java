@@ -3,7 +3,7 @@ package com.portal.universe.blogservice.comment.service;
 import com.portal.universe.blogservice.comment.domain.Comment;
 import com.portal.universe.blogservice.comment.dto.*;
 import com.portal.universe.blogservice.comment.repository.CommentRepository;
-import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;

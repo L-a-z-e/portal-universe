@@ -49,6 +49,13 @@ spring:
 
   # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
 
+# Swagger 설정 (Kubernetes 환경: 비활성화, 프로덕션)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 # Kubernetes 환경 모니터링 설정
 management:
   endpoints:

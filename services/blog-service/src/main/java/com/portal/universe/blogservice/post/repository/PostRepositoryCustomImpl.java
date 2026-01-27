@@ -2,8 +2,8 @@ package com.portal.universe.blogservice.post.repository;
 
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.domain.PostStatus;
-import com.portal.universe.blogservice.post.dto.CategoryStats;
-import com.portal.universe.blogservice.post.dto.TagStats;
+import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
+import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -118,7 +118,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
      * ])
      */
     @Override
-    public List<TagStats> aggregatePopularTags(PostStatus status, int limit) {
+    public List<TagStatsResponse> aggregatePopularTags(PostStatus status, int limit) {
         log.debug("Aggregating popular tags for status: {}, limit: {}", status, limit);
 
         // 1단계: $match - PUBLISHED 상태만
@@ -159,7 +159,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         );
 
         return results.getMappedResults().stream()
-                .map(r -> new TagStats(r.id(), r.postCount(), r.totalViews()))
+                .map(r -> new TagStatsResponse(r.id(), r.postCount(), r.totalViews()))
                 .toList();
     }
 

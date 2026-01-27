@@ -11,10 +11,10 @@ import type {
   PostStatusChangeRequest,
   PostSearchRequest,
   CategoryStats,
-  TagStats,
   AuthorStats,
   BlogStats,
   PostNavigationResponse,
+  TagStatsResponse,
 } from '@/types';
 
 // ==================== 경로 상수 ====================
@@ -243,8 +243,8 @@ export async function getCategoryStats(): Promise<CategoryStats[]> {
 }
 
 /** 인기 태그 */
-export async function getPopularTags(limit: number = 10): Promise<TagStats[]> {
-  const response = await apiClient.get<ApiResponse<TagStats[]>>(`${BASE_PATH}/stats/tags`, {
+export async function getPopularTags(limit: number = 10): Promise<TagStatsResponse[]> {
+  const response = await apiClient.get<ApiResponse<TagStatsResponse[]>>(`${BASE_PATH}/stats/tags`, {
     params: { limit },
   });
   return response.data.data;

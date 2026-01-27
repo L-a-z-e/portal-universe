@@ -85,7 +85,7 @@ import { useAuthStore } from 'portal/authStore';
 const authStore = useAuthStore();
 
 // 2. Portal Shell의 apiClient 접근
-import apiClient from 'portal/apiClient';
+import { apiClient } from 'portal/api';
 const { data } = await apiClient.get('/api/blog/posts');
 
 // 3. 공유 라이브러리 직접 사용
@@ -339,7 +339,7 @@ VITE_SHOPPING_REMOTE_URL=https://shopping-frontend.example.com
 
 ## 트러블슈팅
 
-### 1. "Cannot find module 'portal/apiClient'"
+### 1. "Cannot find module 'portal/api'"
 
 **원인**: Portal Shell이 아직 로드되지 않음
 
@@ -395,6 +395,67 @@ styleTags.forEach((tag) => {
     tag.remove();
   }
 });
+```
+
+## KeepAlive Lifecycle Hooks
+
+Portal Shell이 KeepAlive로 Remote 모듈을 캐싱할 때, 서비스 전환 시 `data-service` 속성 동기화가 필요합니다.
+
+### App.vue에서의 사용
+
+```typescript
+// src/App.vue
+import { onActivated } from 'vue';
+
+onActivated(() => {
+  // Shopping → Blog 전환 시 data-service 복원
+  document.documentElement.setAttribute('data-service', 'blog');
+  updateDataTheme();
+});
+```
+
+- `onActivated`: KeepAlive 캐시에서 재활성화될 때 호출
+- 다른 Remote(Shopping 등)에서 돌아올 때 `data-service="blog"` 복원
+- 테마 정보(`data-theme`) 동시 업데이트
+
+### bootstrap.ts에서의 콜백
+
+```typescript
+// src/bootstrap.ts - BlogAppInstance 타입
+export type BlogAppInstance = {
+  router: Router;
+  onParentNavigate: (path: string) => void;
+  unmount: () => void;
+  /** keep-alive activated 콜백 */
+  onActivated?: () => void;
+  /** keep-alive deactivated 콜백 */
+  onDeactivated?: () => void;
+};
+
+// mountBlogApp 반환값
+return {
+  // ...
+  onActivated: () => {
+    document.documentElement.setAttribute('data-service', 'blog');
+  },
+  onDeactivated: () => {
+    console.log('[Blog] App deactivated (keep-alive)');
+  },
+};
+```
+
+Portal Shell의 `RemoteWrapper`에서 이 콜백을 호출하여 서비스 전환을 처리합니다.
+
+### 동작 흐름
+
+```
+1. 사용자가 Shopping → Blog 전환
+2. Portal Shell이 Blog KeepAlive 캐시 활성화
+3. App.vue의 onActivated() 실행
+4. data-service="blog" 복원 → CSS 테마 전환
+5. 사용자가 Blog → Shopping 전환
+6. bootstrap.ts의 onDeactivated() 실행
+7. Blog 컴포넌트는 캐시에 보존
 ```
 
 ## 성능 최적화

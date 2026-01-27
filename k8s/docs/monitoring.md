@@ -15,7 +15,7 @@ Portal Universe 프로젝트는 다음 3가지 핵심 모니터링 도구를 사
 ### 배포 구성
 
 ```yaml
-image: prom/prometheus:latest
+image: prom/prometheus:v2.53.5
 port: 9090
 ```
 
@@ -49,7 +49,7 @@ annotations:
 ### 배포 구성
 
 ```yaml
-image: grafana/grafana:latest
+image: grafana/grafana-oss:11.4.0
 port: 3000
 ```
 
@@ -81,7 +81,7 @@ Prometheus를 데이터소스로 추가:
 ### 배포 구성
 
 ```yaml
-image: openzipkin/zipkin:latest
+image: openzipkin/zipkin:3.4.2
 port: 9411
 ```
 

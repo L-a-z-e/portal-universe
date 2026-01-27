@@ -428,18 +428,15 @@ curl "http://localhost:8082/posts/search?keyword=spring"
 
 ## ➡️ 다음 단계
 
-1. **API 명세 확인**: [API.md](../api/) - 전체 API 엔드포인트 상세
-2. **아키텍처 이해**: [ARCHITECTURE.md](../architecture/) - 도메인 모델, 검색, 통계 기능
-3. **개발 워크플로우**: [Development Workflow](./development-workflow.md) - Git, PR 프로세스 (작성 예정)
-4. **배포 가이드**: [Deployment](../runbooks/) - K8s 배포 방법 (작성 예정)
+1. **API 명세 확인**: [Blog API](../api/blog-api.md) - 전체 API 엔드포인트 상세
+2. **아키텍처 이해**: [System Overview](../architecture/system-overview.md) - 도메인 모델, 검색, 통계 기능
 
 ---
 
 ## 🔗 관련 문서
 
-- [Blog Service README](../backup/README.md)
-- [Blog Service Architecture](../backup/ARCHITECTURE.md)
-- [Portal Universe CLAUDE.md](/Users/laze/Laze/Project/portal-universe-docs/CLAUDE.md)
+- [Blog Service Documentation](../README.md)
+- [Blog Service Architecture](../architecture/system-overview.md)
 
 ---
 

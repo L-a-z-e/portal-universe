@@ -29,159 +29,234 @@ spring:
       acks: all
       retries: 3
 
+  # Redis 설정 (Rate Limiting용, 환경별 override)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
   cloud:
     gateway:
-      # 전역 필터
-      default-filters:
-        - name: PreserveHostHeader
+      server:
+        webflux:
+          # 전역 필터
+          default-filters:
+            - name: PreserveHostHeader
 
-      # X-Forwarded 헤더
-      x-forwarded:
-        enabled: true
+          # X-Forwarded 헤더
+          x-forwarded:
+            enabled: true
 
-      # Discovery 설정 (Eureka 비활성화)
-      discovery:
-        locator:
-          enabled: false
+          # 라우팅 규칙 (환경별 URL은 application-*.yml의 services.*.url 참조)
+          routes:
+            # ========== Actuator Health Routes (Status Page 용) ==========
+            # 주의: /actuator/prometheus, /actuator/metrics는 외부 접근 차단 (내부망 전용)
+            # 주의: /swagger-ui, /api-docs는 Gateway를 통한 접근 차단 (직접 서비스 포트로만 접근)
 
-      # 라우팅 규칙 (환경별 URL은 application-*.yml의 services.*.url 참조)
-      routes:
-        # ========== Actuator Health Routes (Status Page 용) ==========
-        # Auth Service Actuator
-        - id: auth-service-actuator
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/api/auth/actuator/**
-          filters:
-            - RewritePath=/api/auth/actuator/(?<segment>.*), /actuator/${segment}
-          order: 0
+            # Auth Service Actuator - health, info만 허용
+            - id: auth-service-actuator-health
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/auth/actuator/health,/api/auth/actuator/info
+              filters:
+                - RewritePath=/api/auth/actuator/(?<segment>.*), /actuator/${segment}
+              order: 0
 
-        # Blog Service Actuator
-        - id: blog-service-actuator
-          uri: ${services.blog.url}
-          predicates:
-            - Path=/api/blog/actuator/**
-          filters:
-            - RewritePath=/api/blog/actuator/(?<segment>.*), /actuator/${segment}
-          order: 0
+            # Blog Service Actuator - health, info만 허용
+            - id: blog-service-actuator-health
+              uri: ${services.blog.url}
+              predicates:
+                - Path=/api/blog/actuator/health,/api/blog/actuator/info
+              filters:
+                - RewritePath=/api/blog/actuator/(?<segment>.*), /actuator/${segment}
+              order: 0
 
-        # Shopping Service Actuator
-        - id: shopping-service-actuator
-          uri: ${services.shopping.url}
-          predicates:
-            - Path=/api/shopping/actuator/**
-          filters:
-            - RewritePath=/api/shopping/actuator/(?<segment>.*), /actuator/${segment}
-          order: 0
+            # Shopping Service Actuator - health, info만 허용
+            - id: shopping-service-actuator-health
+              uri: ${services.shopping.url}
+              predicates:
+                - Path=/api/shopping/actuator/health,/api/shopping/actuator/info
+              filters:
+                - RewritePath=/api/shopping/actuator/(?<segment>.*), /actuator/${segment}
+              order: 0
 
-        # ========== Auth Service ==========
-        # OAuth2 Social Login - Authorization (소셜 로그인 시작)
-        - id: auth-service-oauth2-authorization
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/oauth2/authorization/**
-          filters:
-            - StripPrefix=1
-          order: 0
+            # ========== Auth Service ==========
+            # [Rate Limited] Login API - Strict (5 req/min, Brute Force 방어)
+            - id: auth-service-login
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/auth/login
+                - Method=POST
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@strictRedisRateLimiter}"
+                    key-resolver: "#{@compositeKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 0
 
-        # OAuth2 Social Login - Callback (소셜 로그인 콜백)
-        - id: auth-service-oauth2-callback
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/login/oauth2/code/**
-          filters:
-            - StripPrefix=1
-          order: 1
+            # [Rate Limited] Signup API - Very Strict (3 req/min)
+            - id: auth-service-signup
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/users/signup
+                - Method=POST
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@signupRedisRateLimiter}"
+                    key-resolver: "#{@compositeKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 1
 
-        # Auth REST API - /auth-service prefix (Frontend 호출)
-        - id: auth-service-api-prefixed
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/api/auth/**
-          filters:
-            - StripPrefix=1
-            - name: CircuitBreaker
-              args:
-                name: authCircuitBreaker
-                fallbackUri: forward:/fallback/auth
-          order: 4
+            # OAuth2 Social Login - Authorization (소셜 로그인 시작)
+            - id: auth-service-oauth2-authorization
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/auth-service/oauth2/authorization/**
+              filters:
+                - StripPrefix=1
+              order: 2
 
-        # Profile API - /auth-service prefix (인증 필요)
-        - id: auth-service-profile
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/auth-service/api/profile/**
-          filters:
-            - StripPrefix=1
-            - name: CircuitBreaker
-              args:
-                name: authCircuitBreaker
-                fallbackUri: forward:/fallback/auth
-          order: 3
+            # OAuth2 Social Login - Callback (소셜 로그인 콜백)
+            - id: auth-service-oauth2-callback
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/auth-service/login/oauth2/code/**
+              filters:
+                - StripPrefix=1
+              order: 3
 
-        # Auth REST API (OIDC 아님: 필터 미적용)
-        # Auth User API (Signup, Profile, etc.)
-        - id: auth-service-users
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/api/users/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: authCircuitBreaker
-                fallbackUri: forward:/fallback/auth
-          order: 5
+            # Auth REST API - /auth-service prefix (Frontend 호출)
+            - id: auth-service-api-prefixed
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/auth-service/api/auth/**
+              filters:
+                - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@unauthenticatedRedisRateLimiter}"
+                    key-resolver: "#{@ipKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 4
 
-        - id: auth-service-api
-          uri: ${services.auth.url}
-          predicates:
-            - Path=/api/auth/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: authCircuitBreaker
-                fallbackUri: forward:/fallback/auth
-          order: 5
+            # Profile API - /auth-service prefix (인증 필요)
+            - id: auth-service-profile
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/auth-service/api/profile/**
+              filters:
+                - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 5
 
-        # ========== Blog Service ==========
-        - id: blog-service-file-route
-          uri: ${services.blog.url}
-          predicates:
-            - Path=/api/blog/file/**
-          filters:
-            - StripPrefix=2
-            - name: CircuitBreaker
-              args:
-                name: blogCircuitBreaker
-                fallbackUri: forward:/fallback/blog
-            - name: RequestSize
-              args:
-                max-request-size: 100MB
-          order: 1
+            # Auth REST API (OIDC 아님: 필터 미적용)
+            # Auth User API (Signup, Profile, etc.)
+            - id: auth-service-users
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@unauthenticatedRedisRateLimiter}"
+                    key-resolver: "#{@ipKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 6
 
-        - id: blog-service-route
-          uri: ${services.blog.url}
-          predicates:
-            - Path=/api/blog/**
-          filters:
-            - StripPrefix=2
-            - name: CircuitBreaker
-              args:
-                name: blogCircuitBreaker
-                fallbackUri: forward:/fallback/blog
-          order: 2
+            - id: auth-service-api
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@unauthenticatedRedisRateLimiter}"
+                    key-resolver: "#{@ipKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 7
 
-        # ========== Shopping Service ==========
-        - id: shopping-service-route
-          uri: ${services.shopping.url}
-          predicates:
-            - Path=/api/shopping/**
-          filters:
-            - StripPrefix=2
-            - name: CircuitBreaker
-              args:
-                name: shoppingCircuitBreaker
-                fallbackUri: forward:/fallback/shopping
+            # ========== Blog Service ==========
+            - id: blog-service-file-route
+              uri: ${services.blog.url}
+              predicates:
+                - Path=/api/blog/file/**
+              filters:
+                - StripPrefix=2
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: blogCircuitBreaker
+                    fallbackUri: forward:/fallback/blog
+                - name: RequestSize
+                  args:
+                    max-request-size: 100MB
+              order: 8
+
+            - id: blog-service-route
+              uri: ${services.blog.url}
+              predicates:
+                - Path=/api/blog/**
+              filters:
+                - StripPrefix=2
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@unauthenticatedRedisRateLimiter}"
+                    key-resolver: "#{@ipKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: blogCircuitBreaker
+                    fallbackUri: forward:/fallback/blog
+              order: 9
+
+            # ========== Shopping Service ==========
+            - id: shopping-service-route
+              uri: ${services.shopping.url}
+              predicates:
+                - Path=/api/shopping/**
+              filters:
+                - StripPrefix=2
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@unauthenticatedRedisRateLimiter}"
+                    key-resolver: "#{@ipKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: shoppingCircuitBreaker
+                    fallbackUri: forward:/fallback/shopping
 
 # Resilience4j Circuit Breaker 설정
 resilience4j:
@@ -215,8 +290,48 @@ resilience4j:
       shoppingCircuitBreaker:
         base-config: default
 
-# JWT 설정 (Auth Service와 동일한 secret key 사용)
+# JWT 설정 (Auth Service와 동일한 설정 사용, 다중 키 지원)
 jwt:
-  secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
+  # 현재 키 ID
+  current-key-id: ${JWT_CURRENT_KEY_ID:key-default}
+  # 여러 키를 관리 (Auth Service와 동일하게 설정)
+  keys:
+    key-default:
+      secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
+      activated-at: 2026-01-01T00:00:00
+      # expires-at은 null이면 만료되지 않음
+
+# 보안 헤더 설정
+security:
+  headers:
+    enabled: true
+    frame-options: DENY
+    content-type-options: true
+    xss-protection: true
+    referrer-policy: strict-origin-when-cross-origin
+    permissions-policy: "geolocation=(), microphone=(), camera=()"
+
+    # Content Security Policy
+    csp:
+      enabled: true
+      report-only: false
+      policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'"
+
+    # HTTP Strict Transport Security
+    hsts:
+      enabled: true
+      https-only: true
+      max-age: 31536000
+      include-sub-domains: true
+      preload: false
+
+    # Cache Control
+    cache-control:
+      auth-paths: true
+      no-cache-paths:
+        - "/api/auth/**"
+        - "/auth-service/**"
+        - "/api/users/**"
+        - "/api/*/profile/**"
 
 # 로깅 설정은 logback-spring.xml에서 관리
