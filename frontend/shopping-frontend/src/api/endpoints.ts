@@ -705,6 +705,133 @@ export const adminQueueApi = {
   }
 }
 
+// ============================================
+// Search API (Suggest, Popular, Recent)
+// ============================================
+
+export const searchApi = {
+  suggest: async (keyword: string, size = 5) => {
+    const params = new URLSearchParams({ keyword, size: String(size) })
+    const response = await getApiClient().get<ApiResponse<string[]>>(
+      `${API_PREFIX}/search/suggest?${params}`
+    )
+    return response.data
+  },
+
+  getPopularKeywords: async (size = 10) => {
+    const params = new URLSearchParams({ size: String(size) })
+    const response = await getApiClient().get<ApiResponse<string[]>>(
+      `${API_PREFIX}/search/popular?${params}`
+    )
+    return response.data
+  },
+
+  getRecentKeywords: async (size = 10) => {
+    const response = await getApiClient().get<ApiResponse<string[]>>(
+      `${API_PREFIX}/search/recent?size=${size}`
+    )
+    return response.data
+  },
+
+  addRecentKeyword: async (keyword: string) => {
+    const response = await getApiClient().post<ApiResponse<void>>(
+      `${API_PREFIX}/search/recent?keyword=${encodeURIComponent(keyword)}`
+    )
+    return response.data
+  },
+
+  deleteRecentKeyword: async (keyword: string) => {
+    const response = await getApiClient().delete<ApiResponse<void>>(
+      `${API_PREFIX}/search/recent/${encodeURIComponent(keyword)}`
+    )
+    return response.data
+  },
+
+  clearRecentKeywords: async () => {
+    const response = await getApiClient().delete<ApiResponse<void>>(
+      `${API_PREFIX}/search/recent`
+    )
+    return response.data
+  }
+}
+
+// ============================================
+// Inventory Stream API (SSE)
+// ============================================
+
+export const inventoryStreamApi = {
+  getStreamUrl: (productIds: number[]) => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+    const params = productIds.map(id => `productIds=${id}`).join('&')
+    return `${baseUrl}${API_PREFIX}/inventory/stream?${params}`
+  }
+}
+
+// ============================================
+// Product Review API (Blog Integration)
+// ============================================
+
+export const productReviewApi = {
+  getProductWithReviews: async (productId: number) => {
+    const response = await getApiClient().get<ApiResponse<import('@/types').ProductWithReviews>>(
+      `${API_PREFIX}/products/${productId}/with-reviews`
+    )
+    return response.data
+  }
+}
+
+// ============================================
+// Admin Payment API
+// ============================================
+
+export const adminPaymentApi = {
+  refundPayment: async (paymentNumber: string) => {
+    const response = await getApiClient().post<ApiResponse<Payment>>(
+      `${API_PREFIX}/payments/${paymentNumber}/refund`
+    )
+    return response.data
+  }
+}
+
+// ============================================
+// Admin Order API
+// ============================================
+
+export const adminOrderApi = {
+  getOrders: async (params: {
+    page?: number
+    size?: number
+    status?: string
+    keyword?: string
+  } = {}) => {
+    const searchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        searchParams.append(key, String(value))
+      }
+    })
+    const response = await getApiClient().get<ApiResponse<PagedResponse<Order>>>(
+      `${API_PREFIX}/admin/orders?${searchParams}`
+    )
+    return response.data
+  },
+
+  getOrder: async (orderNumber: string) => {
+    const response = await getApiClient().get<ApiResponse<Order>>(
+      `${API_PREFIX}/admin/orders/${orderNumber}`
+    )
+    return response.data
+  },
+
+  updateOrderStatus: async (orderNumber: string, status: string) => {
+    const response = await getApiClient().put<ApiResponse<Order>>(
+      `${API_PREFIX}/admin/orders/${orderNumber}/status`,
+      { status }
+    )
+    return response.data
+  }
+}
+
 // 통합 export
 export const shoppingApi = {
   product: productApi,
@@ -720,7 +847,12 @@ export const shoppingApi = {
   adminCoupon: adminCouponApi,
   adminTimeDeal: adminTimeDealApi,
   queue: queueApi,
-  adminQueue: adminQueueApi
+  adminQueue: adminQueueApi,
+  search: searchApi,
+  inventoryStream: inventoryStreamApi,
+  productReview: productReviewApi,
+  adminPayment: adminPaymentApi,
+  adminOrder: adminOrderApi
 }
 
 export default shoppingApi

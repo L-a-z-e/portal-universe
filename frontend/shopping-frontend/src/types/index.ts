@@ -486,3 +486,43 @@ export const QUEUE_STATUS_LABELS: Record<QueueStatus, string> = {
   EXPIRED: '만료됨',
   LEFT: '이탈'
 }
+
+// ============================================
+// Search Types
+// ============================================
+
+export interface SearchSuggestion {
+  keyword: string
+}
+
+// ============================================
+// Inventory Stream (SSE)
+// ============================================
+
+export interface InventoryUpdate {
+  productId: number
+  available: number
+  reserved: number
+  timestamp: string
+}
+
+// ============================================
+// Blog Review (Product Integration)
+// ============================================
+
+export interface BlogReview {
+  id: string
+  title: string
+  content: string
+  authorId: string
+  productId: string
+}
+
+export interface ProductWithReviews {
+  id: number
+  name: string
+  description: string
+  price: number
+  stock: number
+  reviews: BlogReview[]
+}
