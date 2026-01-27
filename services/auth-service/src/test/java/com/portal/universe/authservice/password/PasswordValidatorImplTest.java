@@ -1,8 +1,8 @@
 package com.portal.universe.authservice.password;
 
-import com.portal.universe.authservice.domain.Role;
-import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.domain.UserProfile;
+import com.portal.universe.authservice.user.domain.Role;
+import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.password.config.PasswordPolicyProperties;
 import com.portal.universe.authservice.password.domain.PasswordHistory;
 import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;

@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.oauth2.domain;
 
-import com.portal.universe.authservice.domain.User;
+import com.portal.universe.authservice.user.domain.User;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

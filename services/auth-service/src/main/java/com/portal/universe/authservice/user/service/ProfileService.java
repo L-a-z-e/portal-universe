@@ -1,13 +1,13 @@
-package com.portal.universe.authservice.service;
+package com.portal.universe.authservice.user.service;
 
-import com.portal.universe.authservice.controller.dto.profile.ChangePasswordRequest;
-import com.portal.universe.authservice.controller.dto.profile.DeleteAccountRequest;
-import com.portal.universe.authservice.controller.dto.profile.ProfileResponse;
-import com.portal.universe.authservice.controller.dto.profile.UpdateProfileRequest;
-import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.domain.UserProfile;
+import com.portal.universe.authservice.user.dto.profile.ChangePasswordRequest;
+import com.portal.universe.authservice.user.dto.profile.DeleteAccountRequest;
+import com.portal.universe.authservice.user.dto.profile.ProfileResponse;
+import com.portal.universe.authservice.user.dto.profile.UpdateProfileRequest;
+import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
-import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

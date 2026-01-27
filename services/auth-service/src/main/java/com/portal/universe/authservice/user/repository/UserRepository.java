@@ -1,6 +1,6 @@
-package com.portal.universe.authservice.repository;
+package com.portal.universe.authservice.user.repository;
 
-import com.portal.universe.authservice.domain.User;
+import com.portal.universe.authservice.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

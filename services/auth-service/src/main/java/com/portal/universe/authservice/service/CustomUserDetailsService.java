@@ -1,7 +1,7 @@
 package com.portal.universe.authservice.service;
 
-import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

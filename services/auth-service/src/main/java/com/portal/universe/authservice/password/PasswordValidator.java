@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.password;
 
-import com.portal.universe.authservice.domain.User;
+import com.portal.universe.authservice.user.domain.User;
 
 /**
  * 비밀번호 정책 검증을 담당하는 인터페이스입니다.

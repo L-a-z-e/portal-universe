@@ -1,7 +1,7 @@
-package com.portal.universe.authservice.controller.dto.profile;
+package com.portal.universe.authservice.user.dto.profile;
 
-import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.domain.UserProfile;
+import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.user.domain.UserProfile;
 
 import java.time.LocalDateTime;
 import java.util.List;

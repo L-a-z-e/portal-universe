@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.domain;
+package com.portal.universe.authservice.user.domain;
 
 import com.portal.universe.authservice.oauth2.domain.SocialAccount;
 import jakarta.persistence.*;

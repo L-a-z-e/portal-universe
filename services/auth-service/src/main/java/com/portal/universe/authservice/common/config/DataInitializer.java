@@ -1,9 +1,9 @@
 package com.portal.universe.authservice.common.config;
 
-import com.portal.universe.authservice.domain.Role;
-import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.domain.UserProfile;
-import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.authservice.user.domain.Role;
+import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.user.domain.UserProfile;
+import com.portal.universe.authservice.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

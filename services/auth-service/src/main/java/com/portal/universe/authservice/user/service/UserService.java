@@ -1,16 +1,16 @@
-package com.portal.universe.authservice.service;
+package com.portal.universe.authservice.user.service;
 
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
-import com.portal.universe.authservice.controller.dto.UserProfileResponse;
-import com.portal.universe.authservice.domain.Role;
-import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.domain.UserProfile;
+import com.portal.universe.authservice.user.dto.UserProfileResponse;
+import com.portal.universe.authservice.user.domain.Role;
+import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.follow.repository.FollowRepository;
 import com.portal.universe.authservice.password.PasswordValidator;
 import com.portal.universe.authservice.password.ValidationResult;
 import com.portal.universe.authservice.password.domain.PasswordHistory;
 import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;
-import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.common.event.UserSignedUpEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;

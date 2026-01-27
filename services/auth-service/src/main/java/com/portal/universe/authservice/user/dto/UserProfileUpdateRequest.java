@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.controller.dto;
+package com.portal.universe.authservice.user.dto;
 
 import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;

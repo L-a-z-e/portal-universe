@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.controller.dto;
+package com.portal.universe.authservice.user.dto;
 
 /**
  * Username 중복 확인 응답 DTO

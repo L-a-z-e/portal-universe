@@ -1,12 +1,12 @@
 package com.portal.universe.authservice.oauth2;
 
-import com.portal.universe.authservice.domain.Role;
-import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.domain.UserProfile;
+import com.portal.universe.authservice.user.domain.Role;
+import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.oauth2.domain.SocialAccount;
 import com.portal.universe.authservice.oauth2.domain.SocialProvider;
 import com.portal.universe.authservice.oauth2.repository.SocialAccountRepository;
-import com.portal.universe.authservice.repository.UserRepository;
+import com.portal.universe.authservice.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;

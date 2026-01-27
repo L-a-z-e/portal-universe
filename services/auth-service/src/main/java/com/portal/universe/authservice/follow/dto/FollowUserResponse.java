@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.follow.dto;
 
-import com.portal.universe.authservice.domain.User;
+import com.portal.universe.authservice.user.domain.User;
 
 /**
  * 팔로워/팔로잉 목록에서 사용되는 사용자 정보 DTO

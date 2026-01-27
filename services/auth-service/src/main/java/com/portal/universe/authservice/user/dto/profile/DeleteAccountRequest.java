@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.controller.dto.profile;
+package com.portal.universe.authservice.user.dto.profile;
 
 import jakarta.validation.constraints.NotBlank;
 

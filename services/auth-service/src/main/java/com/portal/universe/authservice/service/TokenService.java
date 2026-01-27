@@ -1,7 +1,7 @@
 package com.portal.universe.authservice.service;
 
 import com.portal.universe.authservice.common.config.JwtProperties;
-import com.portal.universe.authservice.domain.User;
+import com.portal.universe.authservice.user.domain.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;

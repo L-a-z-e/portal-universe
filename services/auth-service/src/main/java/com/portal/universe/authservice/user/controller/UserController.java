@@ -1,12 +1,12 @@
-package com.portal.universe.authservice.controller;
+package com.portal.universe.authservice.user.controller;
 
-import com.portal.universe.authservice.controller.dto.PasswordChangeRequest;
-import com.portal.universe.authservice.controller.dto.UserProfileResponse;
-import com.portal.universe.authservice.controller.dto.UserProfileUpdateRequest;
-import com.portal.universe.authservice.controller.dto.UsernameCheckResponse;
-import com.portal.universe.authservice.controller.dto.UsernameSetRequest;
+import com.portal.universe.authservice.user.dto.PasswordChangeRequest;
+import com.portal.universe.authservice.user.dto.UserProfileResponse;
+import com.portal.universe.authservice.user.dto.UserProfileUpdateRequest;
+import com.portal.universe.authservice.user.dto.UsernameCheckResponse;
+import com.portal.universe.authservice.user.dto.UsernameSetRequest;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
-import com.portal.universe.authservice.service.UserService;
+import com.portal.universe.authservice.user.service.UserService;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import jakarta.validation.Valid;

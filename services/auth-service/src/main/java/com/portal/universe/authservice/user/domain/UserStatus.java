@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.domain;
+package com.portal.universe.authservice.user.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
