@@ -1,4 +1,4 @@
-package com.portal.universe.authservice.common.config;
+package com.portal.universe.authservice.password.config;
 
 import lombok.Getter;
 import lombok.Setter;

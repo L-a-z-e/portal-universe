@@ -1,6 +1,6 @@
-package com.portal.universe.authservice.repository;
+package com.portal.universe.authservice.password.repository;
 
-import com.portal.universe.authservice.domain.PasswordHistory;
+import com.portal.universe.authservice.password.domain.PasswordHistory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

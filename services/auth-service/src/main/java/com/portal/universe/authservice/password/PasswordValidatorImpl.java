@@ -1,9 +1,9 @@
 package com.portal.universe.authservice.password;
 
-import com.portal.universe.authservice.common.config.PasswordPolicyProperties;
-import com.portal.universe.authservice.domain.PasswordHistory;
 import com.portal.universe.authservice.domain.User;
-import com.portal.universe.authservice.repository.PasswordHistoryRepository;
+import com.portal.universe.authservice.password.config.PasswordPolicyProperties;
+import com.portal.universe.authservice.password.domain.PasswordHistory;
+import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;

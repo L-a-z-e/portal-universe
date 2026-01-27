@@ -19,6 +19,13 @@ public class RequestLoggingFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String requestUri = httpRequest.getRequestURI();
+
+        // Prometheus 및 Actuator 엔드포인트 로그 스킵
+        if (requestUri.startsWith("/actuator")) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         log.info("========== REQUEST ==========");
         log.info("URL: {}", httpRequest.getRequestURL());

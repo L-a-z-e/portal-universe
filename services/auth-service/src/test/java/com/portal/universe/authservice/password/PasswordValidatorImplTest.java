@@ -1,11 +1,11 @@
 package com.portal.universe.authservice.password;
 
-import com.portal.universe.authservice.common.config.PasswordPolicyProperties;
-import com.portal.universe.authservice.domain.PasswordHistory;
 import com.portal.universe.authservice.domain.Role;
 import com.portal.universe.authservice.domain.User;
 import com.portal.universe.authservice.domain.UserProfile;
-import com.portal.universe.authservice.repository.PasswordHistoryRepository;
+import com.portal.universe.authservice.password.config.PasswordPolicyProperties;
+import com.portal.universe.authservice.password.domain.PasswordHistory;
+import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
