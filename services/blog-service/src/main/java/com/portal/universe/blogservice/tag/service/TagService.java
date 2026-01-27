@@ -140,7 +140,7 @@ public class TagService {
         List<Tag> tags = tagRepository.findByPostCountGreaterThanOrderByPostCountDesc(0L, pageable);
 
         return tags.stream()
-                .map(tag -> new TagStatsResponse(tag.getName(), tag.getPostCount()))
+                .map(tag -> new TagStatsResponse(tag.getName(), tag.getPostCount(), null))
                 .toList();
     }
 
