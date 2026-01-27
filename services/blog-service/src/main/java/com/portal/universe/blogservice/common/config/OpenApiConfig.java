@@ -1,4 +1,4 @@
-package com.portal.universe.blogservice.config;
+package com.portal.universe.blogservice.common.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

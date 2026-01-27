@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.series.service;
 
-import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.dto.PostSummaryResponse;
 import com.portal.universe.blogservice.post.repository.PostRepository;

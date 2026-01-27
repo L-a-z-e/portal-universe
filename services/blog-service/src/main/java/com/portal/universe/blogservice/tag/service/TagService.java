@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.tag.service;
 
-import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.tag.domain.Tag;
 import com.portal.universe.blogservice.tag.dto.*;
 import com.portal.universe.blogservice.tag.repository.TagRepository;

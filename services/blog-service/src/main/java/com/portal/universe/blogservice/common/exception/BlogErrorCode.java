@@ -1,4 +1,4 @@
-package com.portal.universe.blogservice.exception;
+package com.portal.universe.blogservice.common.exception;
 
 import com.portal.universe.commonlibrary.exception.ErrorCode;
 import lombok.Getter;

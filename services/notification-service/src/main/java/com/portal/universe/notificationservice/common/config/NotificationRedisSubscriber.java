@@ -1,4 +1,4 @@
-package com.portal.universe.notificationservice.config;
+package com.portal.universe.notificationservice.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.notificationservice.dto.NotificationResponse;

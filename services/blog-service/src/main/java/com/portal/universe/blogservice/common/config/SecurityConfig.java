@@ -1,4 +1,4 @@
-package com.portal.universe.blogservice.config;
+package com.portal.universe.blogservice.common.config;
 
 import com.portal.universe.commonlibrary.security.filter.GatewayAuthenticationFilter;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;

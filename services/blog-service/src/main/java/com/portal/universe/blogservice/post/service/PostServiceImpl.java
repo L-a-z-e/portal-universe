@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.post.service;
 
-import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.domain.PostSortType;
 import com.portal.universe.blogservice.post.domain.PostStatus;

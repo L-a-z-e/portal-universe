@@ -1,4 +1,4 @@
-package com.portal.universe.blogservice.config;
+package com.portal.universe.blogservice.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
