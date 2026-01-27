@@ -19,6 +19,13 @@ export default defineConfig(({ mode }) => {
 
   // Module Federation remote 앱의 chunk가 올바른 URL에서 로드되도록 base 설정
   // React lazy() + code-splitting 사용 시 필수 (blog-frontend는 단일 번들이라 불필요)
+  // .env 미설정 시 기본 로컬 URL fallback (빌드 시 federation 플러그인 크래시 방지)
+  const DEFAULT_REMOTES = {
+    portal: 'http://localhost:30000/assets/shellEntry.js',
+    blog: 'http://localhost:30001/assets/remoteEntry.js',
+    shopping: 'http://localhost:30002/assets/remoteEntry.js',
+  }
+
   return {
     base: env.VITE_BASE_URL,
 
@@ -28,9 +35,9 @@ export default defineConfig(({ mode }) => {
         name: 'shopping-frontend',
         filename: 'remoteEntry.js',
         remotes: {
-          portal: env.VITE_PORTAL_SHELL_REMOTE_URL,
-          blog: env.VITE_BLOG_REMOTE_URL,
-          shopping: env.VITE_SHOPPING_REMOTE_URL
+          portal: env.VITE_PORTAL_SHELL_REMOTE_URL || DEFAULT_REMOTES.portal,
+          blog: env.VITE_BLOG_REMOTE_URL || DEFAULT_REMOTES.blog,
+          shopping: env.VITE_SHOPPING_REMOTE_URL || DEFAULT_REMOTES.shopping,
         },
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
