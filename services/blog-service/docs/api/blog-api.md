@@ -22,10 +22,9 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **Base URL** | `/api/v1/blog` (Gateway 경유) |
+| **Base URL** | `/api/blog` (Gateway 경유) |
 | **직접 URL** | `http://localhost:8082` |
 | **인증** | Bearer Token (JWT) 필요 |
-| **버전** | v1 |
 | **데이터베이스** | MongoDB |
 
 ---
