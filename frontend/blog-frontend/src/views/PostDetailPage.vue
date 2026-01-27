@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import {onMounted, onBeforeUnmount, ref, nextTick, watch} from "vue";
+import {onMounted, onBeforeUnmount, ref, nextTick, watch, computed} from "vue";
+import { useAuthStore } from "portal/stores";
 import { useRoute, useRouter } from "vue-router";
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import '@toast-ui/editor/dist/toastui-editor-viewer.css';
@@ -8,10 +9,11 @@ import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
-import { getPostById } from "../api/posts";
-import {Button, Tag, Avatar, Card} from "@portal/design-system-vue";
+import { getPostById, deletePost } from "../api/posts";
+import {Button, Tag, Avatar, Card, Modal} from "@portal/design-system-vue";
 import type { PostResponse } from "@/dto/post.ts";
 import LikeButton from "@/components/LikeButton.vue";
+import LikersModal from "@/components/LikersModal.vue";
 import SeriesBox from "@/components/SeriesBox.vue";
 import RelatedPosts from "@/components/RelatedPosts.vue";
 import PostNavigation from "@/components/PostNavigation.vue";
@@ -19,6 +21,7 @@ import CommentList from "@/components/CommentList.vue";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const post = ref<PostResponse | null>(null);
 
 const isLoading = ref(true);
@@ -30,6 +33,19 @@ const isLiked = ref(false);
 
 // 시리즈 정보
 const seriesId = ref<string | null>(null);
+
+// 삭제 확인 다이얼로그
+const showDeleteConfirm = ref(false);
+const isDeleting = ref(false);
+
+// 좋아요 사용자 모달
+const showLikersModal = ref(false);
+
+// 본인 게시글 여부
+const isAuthor = computed(() => {
+  if (!post.value || !authStore.user) return false;
+  return post.value.authorId === authStore.user.uuid;
+});
 
 const viewerElement = ref<HTMLDivElement | null>(null);
 let viewerInstance: Viewer | null = null;
@@ -203,6 +219,22 @@ function handleEdit() {
   }
 }
 
+// 삭제 핸들러
+async function handleDelete() {
+  if (!post.value) return;
+  isDeleting.value = true;
+  try {
+    await deletePost(post.value.id);
+    showDeleteConfirm.value = false;
+    router.push('/');
+  } catch (err) {
+    console.error('Failed to delete post:', err);
+    alert('게시글 삭제에 실패했습니다.');
+  } finally {
+    isDeleting.value = false;
+  }
+}
+
 // 좋아요 변경 핸들러
 function handleLikeChanged(liked: boolean, count: number) {
   isLiked.value = liked;
@@ -261,13 +293,18 @@ function handleLikeChanged(liked: boolean, count: number) {
             <span class="flex items-center gap-1 text-sm text-text-meta">
               <span>👁</span>{{ post.viewCount || 0 }}
             </span>
-            <span class="flex items-center gap-1 text-sm text-text-meta">
+            <button class="flex items-center gap-1 text-sm text-text-meta hover:text-brand-primary transition-colors cursor-pointer" @click="showLikersModal = true">
               <span>❤️</span>{{ post.likeCount || 0 }}
-            </span>
-            <!-- 수정 버튼 (권한 체크 필요) -->
-            <Button variant="secondary" size="sm" @click="handleEdit">
-              ✏️ 수정
-            </Button>
+            </button>
+            <!-- 수정/삭제 버튼 (작성자만 표시) -->
+            <template v-if="isAuthor">
+              <Button variant="secondary" size="sm" @click="handleEdit">
+                수정
+              </Button>
+              <Button variant="outline" size="sm" class="text-status-error border-status-error hover:bg-status-error-bg" @click="showDeleteConfirm = true">
+                삭제
+              </Button>
+            </template>
           </div>
         </div>
 
@@ -322,11 +359,16 @@ function handleLikeChanged(liked: boolean, count: number) {
       <!-- Action Buttons -->
       <div class="flex items-center justify-between pt-6 border-t border-border-default">
         <Button variant="secondary" @click="router.push('/')">
-          ← 목록으로
+          목록으로
         </Button>
-        <Button variant="outline" @click="handleEdit">
-          ✏️ 수정
-        </Button>
+        <div v-if="isAuthor" class="flex gap-2">
+          <Button variant="outline" @click="handleEdit">
+            수정
+          </Button>
+          <Button variant="outline" class="text-status-error border-status-error hover:bg-status-error-bg" @click="showDeleteConfirm = true">
+            삭제
+          </Button>
+        </div>
       </div>
 
       <!-- Post Navigation (이전/다음 게시글) -->
@@ -341,6 +383,30 @@ function handleLikeChanged(liked: boolean, count: number) {
 
       <!-- 댓글 영역 -->
       <CommentList :post-id="post.id" />
+
+      <!-- 삭제 확인 모달 -->
+      <Modal
+        :model-value="showDeleteConfirm"
+        title="게시글 삭제"
+        size="sm"
+        @update:model-value="showDeleteConfirm = $event"
+        @close="showDeleteConfirm = false"
+      >
+        <p class="text-text-body mb-4">이 게시글을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
+        <div class="flex justify-end gap-2">
+          <Button variant="secondary" size="sm" @click="showDeleteConfirm = false" :disabled="isDeleting">취소</Button>
+          <Button variant="primary" size="sm" class="bg-status-error hover:bg-red-700" @click="handleDelete" :disabled="isDeleting">
+            {{ isDeleting ? '삭제 중...' : '삭제' }}
+          </Button>
+        </div>
+      </Modal>
+
+      <!-- 좋아요 사용자 목록 모달 -->
+      <LikersModal
+        :post-id="post.id"
+        :is-open="showLikersModal"
+        @close="showLikersModal = false"
+      />
     </article>
   </div>
 </template>
