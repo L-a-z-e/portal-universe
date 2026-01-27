@@ -20,8 +20,8 @@ const BASE_PATH = '/api/blog/series';
  * @param authorId 작성자 ID (optional)
  */
 export async function getSeriesList(authorId?: string): Promise<SeriesListResponse[]> {
-  const params = authorId ? { authorId } : {};
-  const response = await apiClient.get<ApiResponse<SeriesListResponse[]>>(BASE_PATH, { params });
+  const url = authorId ? `${BASE_PATH}/author/${authorId}` : BASE_PATH;
+  const response = await apiClient.get<ApiResponse<SeriesListResponse[]>>(url);
   return response.data.data;
 }
 
@@ -98,7 +98,7 @@ export async function reorderSeriesPosts(
   postIds: string[]
 ): Promise<SeriesResponse> {
   const response = await apiClient.put<ApiResponse<SeriesResponse>>(
-    `${BASE_PATH}/${seriesId}/order`,
+    `${BASE_PATH}/${seriesId}/posts/order`,
     { postIds }
   );
   return response.data.data;
