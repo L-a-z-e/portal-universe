@@ -4,6 +4,7 @@ import { Button, Spinner, Alert, Card } from '@portal/design-system-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import ProfileEditForm from '@/components/ProfileEditForm.vue';
 import MyPostList from '@/components/MyPostList.vue';
+import MySeriesList from '@/components/MySeriesList.vue';
 import type { UserProfileResponse } from '@/dto/user';
 import { getMyProfile } from '@/api/users';
 
@@ -99,9 +100,8 @@ onMounted(() => {
           <button
             :class="['tab', { active: activeTab === 'series' }]"
             @click="activeTab = 'series'"
-            disabled
           >
-            내 시리즈 (준비중)
+            내 시리즈
           </button>
         </div>
 
@@ -114,9 +114,7 @@ onMounted(() => {
 
           <!-- 시리즈 탭 -->
           <div v-else-if="activeTab === 'series'" class="series-tab">
-            <div class="empty-state">
-              <p class="empty-message">시리즈 기능은 준비중입니다.</p>
-            </div>
+            <MySeriesList />
           </div>
         </div>
       </section>
