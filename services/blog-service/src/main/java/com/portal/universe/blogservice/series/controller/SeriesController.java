@@ -1,5 +1,6 @@
 package com.portal.universe.blogservice.series.controller;
 
+import com.portal.universe.blogservice.post.dto.PostSummaryResponse;
 import com.portal.universe.blogservice.series.dto.*;
 import com.portal.universe.blogservice.series.service.SeriesService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
@@ -77,6 +78,15 @@ public class SeriesController {
             @AuthenticationPrincipal String authorId
     ) {
         List<SeriesListResponse> responses = seriesService.getSeriesByAuthor(authorId);
+        return ApiResponse.success(responses);
+    }
+
+    @Operation(summary = "시리즈에 포함된 포스트 목록 조회")
+    @GetMapping("/{seriesId}/posts")
+    public ApiResponse<List<PostSummaryResponse>> getSeriesPosts(
+            @Parameter(description = "시리즈 ID") @PathVariable String seriesId
+    ) {
+        List<PostSummaryResponse> responses = seriesService.getSeriesPosts(seriesId);
         return ApiResponse.success(responses);
     }
 

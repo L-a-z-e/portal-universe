@@ -1,6 +1,9 @@
 package com.portal.universe.blogservice.series.service;
 
 import com.portal.universe.blogservice.exception.BlogErrorCode;
+import com.portal.universe.blogservice.post.domain.Post;
+import com.portal.universe.blogservice.post.dto.PostSummaryResponse;
+import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.blogservice.series.domain.Series;
 import com.portal.universe.blogservice.series.dto.*;
 import com.portal.universe.blogservice.series.repository.SeriesRepository;
@@ -11,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 시리즈 비즈니스 로직 서비스
@@ -21,6 +27,7 @@ import java.util.List;
 public class SeriesService {
 
     private final SeriesRepository seriesRepository;
+    private final PostRepository postRepository;
 
     /**
      * 시리즈 생성
@@ -140,6 +147,30 @@ public class SeriesService {
     }
 
     /**
+     * 시리즈에 포함된 포스트 목록 조회 (시리즈 내 순서 유지)
+     */
+    @Transactional(readOnly = true)
+    public List<PostSummaryResponse> getSeriesPosts(String seriesId) {
+        Series series = seriesRepository.findById(seriesId)
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
+
+        List<String> postIds = series.getPostIds();
+        if (postIds == null || postIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Post> posts = postRepository.findAllById(postIds);
+        Map<String, Post> postMap = posts.stream()
+                .collect(Collectors.toMap(Post::getId, Function.identity()));
+
+        return postIds.stream()
+                .map(postMap::get)
+                .filter(post -> post != null)
+                .map(this::convertToPostSummary)
+                .toList();
+    }
+
+    /**
      * 특정 포스트가 포함된 시리즈 조회
      */
     @Transactional(readOnly = true)
@@ -179,5 +210,32 @@ public class SeriesService {
                 series.getCreatedAt(),
                 series.getUpdatedAt()
         );
+    }
+
+    private PostSummaryResponse convertToPostSummary(Post post) {
+        int estimatedReadTime = calculateReadTime(post.getContent());
+        return new PostSummaryResponse(
+                post.getId(),
+                post.getTitle(),
+                post.getSummary(),
+                post.getAuthorId(),
+                post.getAuthorName(),
+                post.getTags(),
+                post.getCategory(),
+                post.getThumbnailUrl(),
+                post.getImages(),
+                post.getViewCount(),
+                post.getLikeCount(),
+                post.getCommentCount() != null ? post.getCommentCount() : 0L,
+                post.getPublishedAt(),
+                estimatedReadTime
+        );
+    }
+
+    private int calculateReadTime(String content) {
+        if (content == null || content.isEmpty()) return 1;
+        int charCount = content.length();
+        int readTime = (int) Math.ceil(charCount / 200.0);
+        return Math.max(1, readTime);
     }
 }
