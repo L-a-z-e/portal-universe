@@ -1,5 +1,7 @@
 package com.portal.universe.commonlibrary.security.filter;
 
+import com.portal.universe.commonlibrary.security.context.CurrentUserArgumentResolver;
+import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +14,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +39,7 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
     public static final String USER_ROLES_HEADER = "X-User-Roles";
     public static final String USER_MEMBERSHIPS_HEADER = "X-User-Memberships";
     public static final String USER_NICKNAME_HEADER = "X-User-Nickname";
+    public static final String USER_NAME_HEADER = "X-User-Name";
 
     @Override
     protected void doFilterInternal(
@@ -47,11 +52,20 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
         String roles = request.getHeader(USER_ROLES_HEADER);
         String memberships = request.getHeader(USER_MEMBERSHIPS_HEADER);
         String nickname = request.getHeader(USER_NICKNAME_HEADER);
+        String username = request.getHeader(USER_NAME_HEADER);
 
         if (StringUtils.hasText(userId)) {
             log.debug("Gateway authentication - userId: {}, roles: {}, memberships: {}", userId, roles, memberships);
 
-            // nickname을 request attribute로 저장 (하위 서비스에서 활용)
+            // URL 디코딩
+            String decodedNickname = decodeHeader(nickname);
+            String decodedUsername = decodeHeader(username);
+
+            // GatewayUser를 request attribute로 저장 (@CurrentUser resolver에서 사용)
+            GatewayUser gatewayUser = new GatewayUser(userId, decodedUsername, decodedNickname);
+            request.setAttribute(CurrentUserArgumentResolver.GATEWAY_USER_ATTRIBUTE, gatewayUser);
+
+            // 하위 호환: 기존 attribute도 유지
             if (StringUtils.hasText(nickname)) {
                 request.setAttribute("userNickname", nickname);
             }
@@ -90,5 +104,12 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
                 .filter(r -> !r.isEmpty())
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
+    }
+
+    private String decodeHeader(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 }

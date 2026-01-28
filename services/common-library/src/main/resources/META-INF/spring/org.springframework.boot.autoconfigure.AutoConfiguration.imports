@@ -1,1 +1,2 @@
 com.portal.universe.commonlibrary.security.config.JwtSecurityAutoConfiguration
+com.portal.universe.commonlibrary.security.config.GatewayUserWebConfig
