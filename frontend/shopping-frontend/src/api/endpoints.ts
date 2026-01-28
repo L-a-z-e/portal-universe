@@ -27,7 +27,8 @@ import type {
   UserCoupon,
   CouponCreateRequest,
   TimeDeal,
-  TimeDealCreateRequest
+  TimeDealCreateRequest,
+  TimeDealPurchase
 } from '@/types'
 
 const API_PREFIX = '/api/shopping'
@@ -74,7 +75,7 @@ export const productApi = {
       size: String(size)
     })
     const response = await getApiClient().get<ApiResponse<PagedResponse<Product>>>(
-      `${API_PREFIX}/products/search?${params}`
+      `${API_PREFIX}/search/products?${params}`
     )
     return response.data
   },
@@ -139,10 +140,21 @@ export const inventoryApi = {
   },
 
   /**
+   * 재고 초기화 (관리자 - 신규 상품)
+   */
+  initializeInventory: async (productId: number, data: InventoryUpdateRequest) => {
+    const response = await getApiClient().post<ApiResponse<Inventory>>(
+      `${API_PREFIX}/inventory/${productId}`,
+      data
+    )
+    return response.data
+  },
+
+  /**
    * 재고 추가 (관리자)
    */
   addStock: async (productId: number, data: InventoryUpdateRequest) => {
-    const response = await getApiClient().post<ApiResponse<Inventory>>(
+    const response = await getApiClient().put<ApiResponse<Inventory>>(
       `${API_PREFIX}/inventory/${productId}/add`,
       data
     )
@@ -449,7 +461,7 @@ export const couponApi = {
    */
   getAvailableCoupons: async () => {
     const response = await getApiClient().get<ApiResponse<Coupon[]>>(
-      `${API_PREFIX}/coupons/available`
+      `${API_PREFIX}/coupons`
     )
     return response.data
   },
@@ -495,7 +507,7 @@ export const timeDealApi = {
    */
   getActiveTimeDeals: async () => {
     const response = await getApiClient().get<ApiResponse<TimeDeal[]>>(
-      `${API_PREFIX}/timedeals/active`
+      `${API_PREFIX}/time-deals`
     )
     return response.data
   },
@@ -505,7 +517,7 @@ export const timeDealApi = {
    */
   getTimeDeal: async (id: number) => {
     const response = await getApiClient().get<ApiResponse<TimeDeal>>(
-      `${API_PREFIX}/timedeals/${id}`
+      `${API_PREFIX}/time-deals/${id}`
     )
     return response.data
   },
@@ -513,10 +525,20 @@ export const timeDealApi = {
   /**
    * 타임딜 구매
    */
-  purchaseTimeDeal: async (id: number, quantity: number) => {
-    const response = await getApiClient().post<ApiResponse<Order>>(
-      `${API_PREFIX}/timedeals/${id}/purchase`,
-      { quantity }
+  purchaseTimeDeal: async (timeDealProductId: number, quantity: number) => {
+    const response = await getApiClient().post<ApiResponse<unknown>>(
+      `${API_PREFIX}/time-deals/purchase`,
+      { timeDealProductId, quantity }
+    )
+    return response.data
+  },
+
+  /**
+   * 내 타임딜 구매 내역 조회
+   */
+  getMyPurchases: async () => {
+    const response = await getApiClient().get<ApiResponse<TimeDealPurchase[]>>(
+      `${API_PREFIX}/time-deals/my/purchases`
     )
     return response.data
   }
@@ -566,8 +588,8 @@ export const adminCouponApi = {
    * 쿠폰 비활성화 (Admin)
    */
   deactivateCoupon: async (id: number) => {
-    const response = await getApiClient().post<ApiResponse<void>>(
-      `${API_PREFIX}/admin/coupons/${id}/deactivate`
+    const response = await getApiClient().delete<ApiResponse<void>>(
+      `${API_PREFIX}/admin/coupons/${id}`
     )
     return response.data
   }
@@ -587,7 +609,7 @@ export const adminTimeDealApi = {
       size: String(size)
     })
     const response = await getApiClient().get<ApiResponse<PagedResponse<TimeDeal>>>(
-      `${API_PREFIX}/admin/timedeals?${params}`
+      `${API_PREFIX}/admin/time-deals?${params}`
     )
     return response.data
   },
@@ -597,7 +619,7 @@ export const adminTimeDealApi = {
    */
   getTimeDeal: async (id: number) => {
     const response = await getApiClient().get<ApiResponse<TimeDeal>>(
-      `${API_PREFIX}/admin/timedeals/${id}`
+      `${API_PREFIX}/admin/time-deals/${id}`
     )
     return response.data
   },
@@ -607,7 +629,7 @@ export const adminTimeDealApi = {
    */
   createTimeDeal: async (data: TimeDealCreateRequest) => {
     const response = await getApiClient().post<ApiResponse<TimeDeal>>(
-      `${API_PREFIX}/admin/timedeals`,
+      `${API_PREFIX}/admin/time-deals`,
       data
     )
     return response.data
@@ -617,8 +639,8 @@ export const adminTimeDealApi = {
    * 타임딜 취소 (Admin)
    */
   cancelTimeDeal: async (id: number) => {
-    const response = await getApiClient().post<ApiResponse<void>>(
-      `${API_PREFIX}/admin/timedeals/${id}/cancel`
+    const response = await getApiClient().delete<ApiResponse<void>>(
+      `${API_PREFIX}/admin/time-deals/${id}`
     )
     return response.data
   }
@@ -682,7 +704,7 @@ export const adminQueueApi = {
   // 대기열 활성화
   activateQueue: async (eventType: string, eventId: number, request: import('@/types').QueueActivateRequest) => {
     const response = await getApiClient().post<ApiResponse<void>>(
-      `${API_PREFIX}/admin/shopping/queue/${eventType}/${eventId}/activate`,
+      `${API_PREFIX}/admin/queue/${eventType}/${eventId}/activate`,
       request
     )
     return response.data
@@ -691,7 +713,7 @@ export const adminQueueApi = {
   // 대기열 비활성화
   deactivateQueue: async (eventType: string, eventId: number) => {
     const response = await getApiClient().post<ApiResponse<void>>(
-      `${API_PREFIX}/admin/shopping/queue/${eventType}/${eventId}/deactivate`
+      `${API_PREFIX}/admin/queue/${eventType}/${eventId}/deactivate`
     )
     return response.data
   },
@@ -699,7 +721,7 @@ export const adminQueueApi = {
   // 대기열 수동 처리
   processQueue: async (eventType: string, eventId: number) => {
     const response = await getApiClient().post<ApiResponse<void>>(
-      `${API_PREFIX}/admin/shopping/queue/${eventType}/${eventId}/process`
+      `${API_PREFIX}/admin/queue/${eventType}/${eventId}/process`
     )
     return response.data
   }
