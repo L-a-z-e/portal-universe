@@ -12,6 +12,7 @@ interface User {
   id: string
   email: string
   name: string
+  nickname?: string
   roles: string[]
   avatar?: string
 }
@@ -115,6 +116,7 @@ export const useAuthStore = create<AuthState>()(
             roles: string[]
             memberships: Record<string, string>
             user: {
+              uuid?: string
               email?: string
               username?: string
               name?: string
@@ -127,9 +129,10 @@ export const useAuthStore = create<AuthState>()(
           if (authState.isAuthenticated && authState.user) {
             // User 정보 매핑 (AuthAdapter State → Zustand User)
             const mappedUser: User = {
-              id: '',
+              id: authState.user.uuid || '',
               email: authState.user.email || '',
               name: authState.user.name || authState.user.nickname || authState.displayName,
+              nickname: authState.user.nickname,
               roles: authState.roles || [],
               avatar: authState.user.picture
             }

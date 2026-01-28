@@ -29,6 +29,7 @@ export interface AuthState {
   roles: string[]
   memberships: Record<string, string>
   user: {
+    uuid?: string
     email?: string
     username?: string
     name?: string
@@ -105,6 +106,7 @@ export const authAdapter = {
       roles: store.user?.authority.roles || [],
       memberships: store.user?.authority.memberships || {},
       user: store.user ? {
+        uuid: store.user.profile.sub,
         email: store.user.profile.email,
         username: store.user.profile.username,
         name: store.user.profile.name,
