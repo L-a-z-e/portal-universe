@@ -37,14 +37,15 @@ function updateDataTheme() {
 }
 
 /**
- * data-service 초기화
- * 호스트 앱 경로로 이동할 때 data-service="portal"로 리셋
+ * data-service 속성 동기화
+ * 현재 라우트에 맞는 data-service 속성을 설정하여 서비스별 CSS 변수 활성화
+ * - remote 앱 라우트: remoteName 기반 (blog, shopping 등)
+ * - portal 자체 라우트: "portal"
  */
-function resetDataService() {
-  if (!route.meta.remoteName) {
-    document.documentElement.setAttribute('data-service', 'portal');
-    forceReflowToApplyCSSChanges();
-  }
+function syncDataService() {
+  const serviceName = route.meta.remoteName as string || 'portal';
+  document.documentElement.setAttribute('data-service', serviceName);
+  forceReflowToApplyCSSChanges();
 }
 
 /**
@@ -59,7 +60,7 @@ function forceReflowToApplyCSSChanges() {
 onMounted(() => {
   themeStore.initialize();
   settingsStore.initialize();
-  resetDataService();
+  syncDataService();
   updateDataTheme();
 
   // Listen for localStorage changes (sidebar state)
@@ -81,7 +82,7 @@ onBeforeUnmount(() => {
 });
 
 watch(() => route.path, () => {
-  resetDataService();
+  syncDataService();
 });
 
 watch(() => themeStore.isDark, (newVal) => {

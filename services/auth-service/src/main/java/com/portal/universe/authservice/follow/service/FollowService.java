@@ -35,30 +35,38 @@ public class FollowService {
     public FollowResponse toggleFollow(Long currentUserId, String targetUsername) {
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
+        return doToggleFollow(currentUser, targetUsername);
+    }
 
+    /**
+     * 팔로우 토글 (UUID 기반)
+     */
+    @Transactional
+    public FollowResponse toggleFollowByUuid(String userUuid, String targetUsername) {
+        User currentUser = findUserByUuidOrThrow(userUuid);
+        return doToggleFollow(currentUser, targetUsername);
+    }
+
+    private FollowResponse doToggleFollow(User currentUser, String targetUsername) {
         User targetUser = userRepository.findByUsername(targetUsername)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.FOLLOW_USER_NOT_FOUND));
 
-        // 자기 자신 팔로우 방지
         if (currentUser.getId().equals(targetUser.getId())) {
             throw new CustomBusinessException(AuthErrorCode.CANNOT_FOLLOW_YOURSELF);
         }
 
         boolean isFollowing;
         if (followRepository.existsByFollowerAndFollowing(currentUser, targetUser)) {
-            // 이미 팔로우 중이면 언팔로우
             Follow follow = followRepository.findByFollowerAndFollowing(currentUser, targetUser)
                     .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.NOT_FOLLOWING));
             followRepository.delete(follow);
             isFollowing = false;
         } else {
-            // 팔로우
             Follow follow = new Follow(currentUser, targetUser);
             followRepository.save(follow);
             isFollowing = true;
         }
 
-        // 기존 헬퍼 메서드 재사용 (DRY 원칙)
         return new FollowResponse(
                 isFollowing,
                 getFollowerCount(targetUser),
@@ -118,6 +126,28 @@ public class FollowService {
     }
 
     /**
+     * 팔로우 상태 확인 (UUID 기반)
+     */
+    public FollowStatusResponse getFollowStatusByUuid(String userUuid, String targetUsername) {
+        User currentUser = findUserByUuidOrThrow(userUuid);
+
+        User targetUser = userRepository.findByUsername(targetUsername)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.FOLLOW_USER_NOT_FOUND));
+
+        boolean isFollowing = followRepository.existsByFollowerAndFollowing(currentUser, targetUser);
+        return new FollowStatusResponse(isFollowing);
+    }
+
+    /**
+     * 내 팔로잉 UUID 목록 조회 (UUID 기반)
+     */
+    public FollowingIdsResponse getMyFollowingIdsByUuid(String userUuid) {
+        User currentUser = findUserByUuidOrThrow(userUuid);
+        List<String> followingIds = followRepository.findFollowingUuidsByFollowerId(currentUser.getId());
+        return new FollowingIdsResponse(followingIds);
+    }
+
+    /**
      * 특정 사용자의 팔로워 수 조회
      */
     public int getFollowerCount(User user) {
@@ -129,6 +159,11 @@ public class FollowService {
      */
     public int getFollowingCount(User user) {
         return (int) followRepository.countByFollower(user);
+    }
+
+    private User findUserByUuidOrThrow(String uuid) {
+        return userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
     }
 
     /**

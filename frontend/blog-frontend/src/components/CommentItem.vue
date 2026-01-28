@@ -155,14 +155,6 @@ const handleReplyCancel = () => {
 
           <!-- 액션 버튼 -->
           <div class="flex items-center gap-3 text-xs">
-            <!-- 좋아요 -->
-            <button
-              class="flex items-center gap-1 text-text-meta hover:text-brand-primary transition-colors"
-            >
-              <span>❤️</span>
-              <span>{{ comment.likeCount }}</span>
-            </button>
-
             <!-- 답글 버튼 -->
             <button
               class="text-text-meta hover:text-brand-primary transition-colors font-medium"

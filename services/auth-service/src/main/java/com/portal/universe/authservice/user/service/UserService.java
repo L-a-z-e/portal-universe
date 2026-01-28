@@ -114,12 +114,35 @@ public class UserService {
     }
 
     /**
+     * 내 프로필 조회 (UUID 기반)
+     */
+    public UserProfileResponse getMyProfileByUuid(String uuid) {
+        User user = findUserByUuidOrThrow(uuid);
+        FollowCounts counts = getFollowCounts(user);
+
+        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
+    }
+
+    /**
      * 프로필 수정
      */
     @Transactional
     public UserProfileResponse updateProfile(Long userId, String nickname, String bio,
                                             String profileImageUrl, String website) {
         User user = findUserByIdOrThrow(userId);
+        user.getProfile().updateProfile(nickname, bio, profileImageUrl, website);
+
+        FollowCounts counts = getFollowCounts(user);
+        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
+    }
+
+    /**
+     * 프로필 수정 (UUID 기반)
+     */
+    @Transactional
+    public UserProfileResponse updateProfileByUuid(String uuid, String nickname, String bio,
+                                                   String profileImageUrl, String website) {
+        User user = findUserByUuidOrThrow(uuid);
         user.getProfile().updateProfile(nickname, bio, profileImageUrl, website);
 
         FollowCounts counts = getFollowCounts(user);
@@ -155,6 +178,31 @@ public class UserService {
     }
 
     /**
+     * Username 설정 (UUID 기반, 최초 1회)
+     */
+    @Transactional
+    public UserProfileResponse setUsernameByUuid(String uuid, String username) {
+        if (!USERNAME_PATTERN.matcher(username).matches()) {
+            throw new CustomBusinessException(AuthErrorCode.INVALID_USERNAME_FORMAT);
+        }
+
+        User user = findUserByUuidOrThrow(uuid);
+
+        if (user.getProfile().getUsername() != null) {
+            throw new CustomBusinessException(AuthErrorCode.USERNAME_ALREADY_SET);
+        }
+
+        if (userRepository.existsByUsername(username)) {
+            throw new CustomBusinessException(AuthErrorCode.USERNAME_ALREADY_EXISTS);
+        }
+
+        user.getProfile().setUsername(username);
+
+        FollowCounts counts = getFollowCounts(user);
+        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
+    }
+
+    /**
      * Username 중복 확인
      */
     public boolean checkUsernameAvailability(String username) {
@@ -172,30 +220,37 @@ public class UserService {
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword) {
         User user = findUserByIdOrThrow(userId);
+        doChangePassword(user, currentPassword, newPassword);
+    }
 
-        // 1. 소셜 로그인 사용자 확인
+    /**
+     * 비밀번호 변경 (UUID 기반)
+     */
+    @Transactional
+    public void changePasswordByUuid(String uuid, String currentPassword, String newPassword) {
+        User user = findUserByUuidOrThrow(uuid);
+        doChangePassword(user, currentPassword, newPassword);
+    }
+
+    private void doChangePassword(User user, String currentPassword, String newPassword) {
         if (user.isSocialUser()) {
             throw new CustomBusinessException(AuthErrorCode.SOCIAL_USER_CANNOT_CHANGE_PASSWORD);
         }
 
-        // 2. 현재 비밀번호 확인
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new CustomBusinessException(AuthErrorCode.INVALID_CURRENT_PASSWORD);
         }
 
-        // 3. 새 비밀번호 정책 검증 (사용자 정보 포함 + 이전 비밀번호 재사용 체크)
         ValidationResult validationResult = passwordValidator.validate(newPassword, user);
         if (!validationResult.isValid()) {
             throw new CustomBusinessException(AuthErrorCode.PASSWORD_TOO_WEAK,
                     validationResult.getFirstError());
         }
 
-        // 4. 비밀번호 변경
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.changePassword(encodedPassword);
 
-        // 5. 비밀번호 히스토리 저장
-        savePasswordHistory(userId, encodedPassword);
+        savePasswordHistory(user.getId(), encodedPassword);
     }
 
     // ==================== Private Helper Methods ====================
@@ -213,6 +268,11 @@ public class UserService {
      */
     private User findUserByIdOrThrow(Long userId) {
         return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
+    }
+
+    private User findUserByUuidOrThrow(String uuid) {
+        return userRepository.findByUuid(uuid)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
     }
 

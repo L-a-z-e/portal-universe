@@ -34,7 +34,7 @@ public class CommentService {
                 .postId(request.postId())
                 .parentCommentId(request.parentCommentId())
                 .authorId(authorId)
-                .authorName(authorName)
+                .authorName(decodeHeaderValue(authorName))
                 .content(request.content())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -108,6 +108,15 @@ public class CommentService {
         return comments.stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    private String decodeHeaderValue(String value) {
+        if (value == null) return null;
+        try {
+            return java.net.URLDecoder.decode(value, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return value;
+        }
     }
 
     /**

@@ -26,10 +26,9 @@ public class FollowController {
     @PostMapping("/{username}/follow")
     public ResponseEntity<ApiResponse<FollowResponse>> toggleFollow(
             @Parameter(description = "대상 사용자 username") @PathVariable String username,
-            @AuthenticationPrincipal String userId
+            @AuthenticationPrincipal String userUuid
     ) {
-        Long currentUserId = Long.parseLong(userId);
-        FollowResponse response = followService.toggleFollow(currentUserId, username);
+        FollowResponse response = followService.toggleFollowByUuid(userUuid, username);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -58,10 +57,9 @@ public class FollowController {
     @Operation(summary = "내 팔로잉 ID 목록 조회", description = "피드 API에서 사용하기 위한 팔로잉 사용자 UUID 목록을 조회합니다.")
     @GetMapping("/me/following/ids")
     public ResponseEntity<ApiResponse<FollowingIdsResponse>> getMyFollowingIds(
-            @AuthenticationPrincipal String userId
+            @AuthenticationPrincipal String userUuid
     ) {
-        Long currentUserId = Long.parseLong(userId);
-        FollowingIdsResponse response = followService.getMyFollowingIds(currentUserId);
+        FollowingIdsResponse response = followService.getMyFollowingIdsByUuid(userUuid);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -69,10 +67,9 @@ public class FollowController {
     @GetMapping("/{username}/follow/status")
     public ResponseEntity<ApiResponse<FollowStatusResponse>> getFollowStatus(
             @Parameter(description = "대상 사용자 username") @PathVariable String username,
-            @AuthenticationPrincipal String userId
+            @AuthenticationPrincipal String userUuid
     ) {
-        Long currentUserId = Long.parseLong(userId);
-        FollowStatusResponse response = followService.getFollowStatus(currentUserId, username);
+        FollowStatusResponse response = followService.getFollowStatusByUuid(userUuid, username);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

@@ -26,7 +26,7 @@ public class CommentController {
     public ApiResponse<CommentResponse> createComment(
             @Valid @RequestBody CommentCreateRequest request,
             @AuthenticationPrincipal String authorId,
-            @RequestHeader(value = "X-User-Name", required = false) String authorName
+            @RequestHeader(value = "X-User-Nickname", required = false) String authorName
     ) {
         CommentResponse response = commentService.createComment(request, authorId, authorName);
         return ApiResponse.success(response);

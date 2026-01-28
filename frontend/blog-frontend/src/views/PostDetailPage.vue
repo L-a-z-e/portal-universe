@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {onMounted, onBeforeUnmount, ref, nextTick, watch, computed} from "vue";
-import { useAuthStore } from "portal/stores";
 import { useRoute, useRouter } from "vue-router";
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import '@toast-ui/editor/dist/toastui-editor-viewer.css';
@@ -22,7 +21,6 @@ import CommentList from "@/components/CommentList.vue";
 
 const route = useRoute();
 const router = useRouter();
-const authStore = useAuthStore();
 const post = ref<PostResponse | null>(null);
 
 const isLoading = ref(true);
@@ -42,10 +40,24 @@ const isDeleting = ref(false);
 // 좋아요 사용자 모달
 const showLikersModal = ref(false);
 
+// JWT에서 현재 사용자 UUID 추출
+function getCurrentUserUuid(): string | null {
+  const token = window.__PORTAL_ACCESS_TOKEN__;
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || null;
+  } catch {
+    return null;
+  }
+}
+
 // 본인 게시글 여부
 const isAuthor = computed(() => {
-  if (!post.value || !authStore.user.value) return false;
-  return post.value.authorId === authStore.user.value?.profile?.sub;
+  if (!post.value) return false;
+  const currentUuid = getCurrentUserUuid();
+  if (!currentUuid) return false;
+  return post.value.authorId === currentUuid;
 });
 
 const viewerElement = ref<HTMLDivElement | null>(null);
@@ -296,7 +308,7 @@ function handleLikeChanged(liked: boolean, count: number) {
             </div>
           </div>
 
-          <!-- Stats & Actions -->
+          <!-- Stats -->
           <div class="flex items-center gap-4">
             <span class="flex items-center gap-1 text-sm text-text-meta">
               <span>👁</span>{{ post.viewCount || 0 }}
@@ -304,15 +316,6 @@ function handleLikeChanged(liked: boolean, count: number) {
             <button class="flex items-center gap-1 text-sm text-text-meta hover:text-brand-primary transition-colors cursor-pointer" @click="showLikersModal = true">
               <span>❤️</span>{{ post.likeCount || 0 }}
             </button>
-            <!-- 수정/삭제 버튼 (작성자만 표시) -->
-            <template v-if="isAuthor">
-              <Button variant="secondary" size="sm" @click="handleEdit">
-                수정
-              </Button>
-              <Button variant="outline" size="sm" class="text-status-error border-status-error hover:bg-status-error-bg" @click="showDeleteConfirm = true">
-                삭제
-              </Button>
-            </template>
           </div>
         </div>
 
@@ -328,6 +331,17 @@ function handleLikeChanged(liked: boolean, count: number) {
           </div>
         </div>
       </header>
+
+      <!-- Author Action Bar (작성자만 표시) -->
+      <div v-if="isAuthor" class="flex items-center justify-end gap-3 py-3 px-4 bg-bg-elevated rounded-lg border border-border-default">
+        <span class="text-sm text-text-meta mr-auto">이 게시글의 작성자입니다</span>
+        <Button variant="primary" size="sm" @click="handleEdit">
+          ✏️ 수정
+        </Button>
+        <Button variant="outline" size="sm" class="text-status-error border-status-error hover:bg-status-error-bg" @click="showDeleteConfirm = true">
+          🗑️ 삭제
+        </Button>
+      </div>
 
       <!-- Content (Toast UI Viewer) -->
       <section class="post-content">
@@ -369,14 +383,6 @@ function handleLikeChanged(liked: boolean, count: number) {
         <Button variant="secondary" @click="router.push('/')">
           목록으로
         </Button>
-        <div v-if="isAuthor" class="flex gap-2">
-          <Button variant="outline" @click="handleEdit">
-            수정
-          </Button>
-          <Button variant="outline" class="text-status-error border-status-error hover:bg-status-error-bg" @click="showDeleteConfirm = true">
-            삭제
-          </Button>
-        </div>
       </div>
 
       <!-- Post Navigation (이전/다음 게시글) -->
@@ -390,7 +396,7 @@ function handleLikeChanged(liked: boolean, count: number) {
       />
 
       <!-- 댓글 영역 -->
-      <CommentList :post-id="post.id" />
+      <CommentList :post-id="post.id" :current-user-id="getCurrentUserUuid() ?? undefined" />
 
       <!-- 삭제 확인 모달 -->
       <Modal
