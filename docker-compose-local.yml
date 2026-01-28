@@ -10,6 +10,29 @@ services:
   # ===========================================
   # Infrastructure
   # ===========================================
+  # PostgreSQL (for Prism Service)
+  postgresql:
+    image: postgres:18-alpine
+    container_name: postgresql
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql/init-prism.sql:/docker-entrypoint-initdb.d/init-prism.sql
+    env_file:
+      - .env.docker
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-prism}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-prism}
+      - POSTGRES_DB=${POSTGRES_DB:-prism}
+    networks:
+      - portal-universe-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prism -d prism"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   mysql-db:
     image: mysql:8.0
     container_name: mysql-db
@@ -237,6 +260,7 @@ services:
       - portal-universe-net
 
 volumes:
+  postgresql-data:
   mysql-data:
   mongo-data:
   redis-data:
