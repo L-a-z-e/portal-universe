@@ -87,10 +87,28 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/search/**").permitAll()
 
                         // ========================================
                         // [인증된 사용자] USER 또는 ADMIN 역할 필요
+                        // 주의: 구체적 경로를 와일드카드보다 먼저 선언
                         // ========================================
+
+                        // 쿠폰 - 인증 필요 (my, issue는 와일드카드 매칭 전에 선언)
+                        .requestMatchers(HttpMethod.GET, "/coupons/my", "/coupons/my/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/coupons/*/issue").hasAnyRole("USER", "ADMIN")
+                        // 쿠폰 - 공개 조회
+                        .requestMatchers(HttpMethod.GET, "/coupons", "/coupons/*").permitAll()
+
+                        // 타임딜 - 인증 필요 (my, purchase는 와일드카드 매칭 전에 선언)
+                        .requestMatchers(HttpMethod.GET, "/time-deals/my/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/time-deals/purchase").hasAnyRole("USER", "ADMIN")
+                        // 타임딜 - 공개 조회
+                        .requestMatchers(HttpMethod.GET, "/time-deals", "/time-deals/*").permitAll()
+
+                        // 대기열
+                        .requestMatchers("/queue/**").hasAnyRole("USER", "ADMIN")
+
                         // 장바구니
                         .requestMatchers("/cart/**").hasAnyRole("USER", "ADMIN")
 

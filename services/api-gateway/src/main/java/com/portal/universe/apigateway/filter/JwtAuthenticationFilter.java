@@ -246,14 +246,13 @@ public class JwtAuthenticationFilter implements WebFilter {
                path.startsWith("/api/auth/") ||
                path.startsWith("/api/users/") ||
                path.startsWith("/actuator/") ||
-               // Shopping 공개 경로
+               // Shopping 공개 경로 (인증 불필요 조회)
                path.equals("/api/shopping/products") ||
                path.startsWith("/api/shopping/products/") ||
                path.equals("/api/shopping/categories") ||
-               path.startsWith("/api/shopping/categories/") ||
-               path.equals("/api/shopping/coupons") ||
-               path.equals("/api/shopping/time-deals") ||
-               path.startsWith("/api/shopping/time-deals/");
+               path.startsWith("/api/shopping/categories/");
+        // Note: /coupons, /time-deals는 하위 경로에 인증 필요 엔드포인트가 있으므로
+        // Gateway에서 public 처리하지 않고 shopping-service SecurityConfig에서 관리
     }
 
     /**
