@@ -242,7 +242,56 @@ Authorization: Bearer <JWT_TOKEN>
 
 ## 관리자 API
 
-### 1. 쿠폰 생성
+### 1. 쿠폰 전체 목록 조회
+
+모든 쿠폰을 페이징으로 조회합니다.
+
+**Endpoint**: `GET /api/shopping/admin/coupons`
+
+**권한**: ADMIN (ROLE_SHOPPING_ADMIN 또는 ROLE_SUPER_ADMIN)
+
+**Query Parameters**:
+
+| 파라미터 | 타입 | 기본값 | 설명 |
+|----------|------|--------|------|
+| page | Integer | 0 | 페이지 번호 |
+| size | Integer | 10 | 페이지 크기 |
+| sort | String | createdAt | 정렬 기준 |
+
+**Response (200 OK)**:
+
+Page<CouponResponse> 형태의 Spring Data 페이지 응답
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "code": "WELCOME2026",
+        "name": "신규 가입 환영 쿠폰",
+        "status": "ACTIVE",
+        "totalQuantity": 1000,
+        "issuedQuantity": 523,
+        "remainingQuantity": 477,
+        "createdAt": "2026-01-01T00:00:00"
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 10
+    },
+    "totalElements": 1,
+    "totalPages": 1
+  },
+  "error": null
+}
+```
+
+---
+
+### 2. 쿠폰 생성
 
 새로운 쿠폰을 생성합니다.
 
@@ -317,7 +366,7 @@ Content-Type: application/json
 
 ---
 
-### 2. 쿠폰 비활성화
+### 3. 쿠폰 비활성화
 
 쿠폰을 비활성화하고 Redis 캐시를 삭제합니다.
 
@@ -346,4 +395,5 @@ Content-Type: application/json
 
 | 버전 | 날짜 | 작성자 | 변경 내용 |
 |------|------|--------|----------|
+| 1.1.0 | 2026-01-28 | Documenter Agent | 관리자 쿠폰 전체 목록 조회 API 추가 |
 | 1.0.0 | 2026-01-18 | Claude | 초기 명세 작성 |

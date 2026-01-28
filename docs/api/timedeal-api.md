@@ -276,7 +276,55 @@ Authorization: Bearer <JWT_TOKEN>
 
 ## 관리자 API
 
-### 1. 타임딜 생성
+### 1. 타임딜 전체 목록 조회
+
+모든 타임딜을 페이징으로 조회합니다.
+
+**Endpoint**: `GET /api/shopping/admin/time-deals`
+
+**권한**: ADMIN (ROLE_SHOPPING_ADMIN 또는 ROLE_SUPER_ADMIN)
+
+**Query Parameters**:
+
+| 파라미터 | 타입 | 기본값 | 설명 |
+|----------|------|--------|------|
+| page | Integer | 0 | 페이지 번호 |
+| size | Integer | 10 | 페이지 크기 |
+| sort | String | createdAt | 정렬 기준 |
+
+**Response (200 OK)**:
+
+Page<TimeDealResponse> 형태의 Spring Data 페이지 응답
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "name": "신년 특가 타임딜",
+        "description": "2026년 새해 맞이 특별 할인",
+        "status": "ACTIVE",
+        "startsAt": "2026-01-18T10:00:00",
+        "endsAt": "2026-01-18T12:00:00",
+        "createdAt": "2026-01-17T15:00:00"
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 10
+    },
+    "totalElements": 1,
+    "totalPages": 1
+  },
+  "error": null
+}
+```
+
+---
+
+### 2. 타임딜 생성
 
 새로운 타임딜을 생성합니다.
 
@@ -374,7 +422,7 @@ Content-Type: application/json
 
 ---
 
-### 2. 타임딜 취소
+### 3. 타임딜 취소
 
 타임딜을 취소하고 Redis 캐시를 삭제합니다.
 
@@ -427,4 +475,5 @@ public void updateTimeDealStatus() {
 
 | 버전 | 날짜 | 작성자 | 변경 내용 |
 |------|------|--------|----------|
+| 1.1.0 | 2026-01-28 | Documenter Agent | 관리자 타임딜 전체 목록 조회 API 추가 |
 | 1.0.0 | 2026-01-18 | Claude | 초기 명세 작성 |

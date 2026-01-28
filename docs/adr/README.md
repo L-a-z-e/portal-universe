@@ -263,6 +263,37 @@ Portal Shell에 사용자 설정 페이지 추가를 위한 아키텍처 설계�
 
 ---
 
+### ADR-012: Shopping Service Frontend-Backend Gap Analysis 및 수정
+**상태**: Accepted | **작성일**: 2026-01-28
+
+Shopping Service의 프론트엔드와 백엔드 간 24개 API 불일치를 해결합니다.
+
+**결정 요약**:
+- **Phase 1**: Frontend API 경로/메서드 수정 (10개 Critical Fix)
+- **Phase 2**: Backend 누락 엔드포인트 추가 (Admin 목록 조회 2개)
+- **Phase 3**: Frontend 누락 UI 구현 (타임딜 구매 내역 페이지 등 3개)
+
+**파일**: [ADR-012-shopping-frontend-backend-gap-analysis.md](./ADR-012-shopping-frontend-backend-gap-analysis.md)
+
+**영향 범위**:
+- `frontend/shopping-frontend/src/api/endpoints.ts` - API 경로/메서드 수정
+- `frontend/shopping-frontend/src/pages/timedeal/TimeDealPurchasesPage.tsx` - 신규 페이지
+- `services/shopping-service/` - Admin 목록 조회 API 추가
+- API 명세서 업데이트 (coupon-api.md, timedeal-api.md)
+
+**주요 수정 사항**:
+- 경로 불일치: `/products/search` → `/search/products`
+- Hyphen 표기 통일: `/timedeals` → `/time-deals`
+- HTTP 메서드 일치: POST → PUT (Inventory)
+- Admin 목록 조회 API 추가
+
+**대안 검토**:
+- ❌ 프론트엔드만 수정: Admin 목록 조회 불가
+- ✅ 백엔드도 함께 수정: 완전한 기능 제공 (채택)
+- ❌ API Versioning(v2): 과도한 복잡성
+
+---
+
 ## ADR 관리 규칙
 
 ### 상태 정의
@@ -363,8 +394,9 @@ YYYY-MM-DD
 | ADR-008 | 1.0 | 2026-01-21 | 초기 작성 |
 | ADR-009 | 1.0 | 2026-01-21 | 초기 작성 |
 | ADR-011 | 1.0 | 2026-01-28 | 초기 작성 |
+| ADR-012 | 1.0 | 2026-01-28 | 초기 작성 |
 
 ---
 
-**최종 업데이트**: 2026-01-21
+**최종 업데이트**: 2026-01-28
 **관리자**: Documenter Agent

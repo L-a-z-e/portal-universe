@@ -44,6 +44,7 @@
 │   ├── GET /my              - 내 쿠폰 목록
 │   └── GET /my/available    - 사용 가능한 내 쿠폰
 ├── /admin/coupons           (ADMIN only)
+│   ├── GET                  - 쿠폰 전체 목록 (페이징)
 │   ├── POST                 - 쿠폰 생성
 │   └── DELETE /{couponId}   - 쿠폰 비활성화
 ├── /time-deals              → timedeal-api.md 참조
@@ -51,9 +52,22 @@
 │   ├── GET /{timeDealId}    - 타임딜 상세
 │   ├── POST /purchase       - 타임딜 구매
 │   └── GET /my/purchases    - 내 구매 내역
-└── /admin/time-deals        (ADMIN only)
-    ├── POST                 - 타임딜 생성
-    └── DELETE /{timeDealId} - 타임딜 취소
+├── /admin/time-deals        (ADMIN only)
+│   ├── GET                  - 타임딜 전체 목록 (페이징)
+│   ├── GET /{timeDealId}    - 타임딜 상세
+│   ├── POST                 - 타임딜 생성
+│   └── DELETE /{timeDealId} - 타임딜 취소
+├── /inventory
+│   ├── GET /{productId}     - 재고 조회
+│   ├── PUT /{productId}/add - 재고 추가
+│   ├── PUT /{productId}/deduct - 재고 차감
+│   └── POST /{productId}    - 재고 초기화
+├── /search
+│   └── GET /products        - 상품 검색 (Elasticsearch)
+└── /queue
+    ├── POST /enter          - 대기열 진입
+    ├── GET /{eventType}/{eventId}/status - 대기열 상태
+    └── DELETE /{eventType}/{eventId} - 대기열 이탈
 ```
 
 ---
@@ -729,5 +743,6 @@ curl -X POST http://localhost:8080/api/shopping/admin/products \
 
 | 버전 | 날짜 | 작성자 | 변경 내용 |
 |------|------|--------|----------|
+| 1.2.0 | 2026-01-28 | Documenter Agent | Admin 쿠폰/타임딜 목록 조회, Inventory 초기화 API 추가 반영, 경로 정합성 수정 |
 | 1.1.0 | 2026-01-17 | Documenter Agent | Admin API, 일반 사용자 API 통합 문서화 |
 | 1.0.0 | 2026-01-17 | API Designer Agent | 초기 명세 작성 |
