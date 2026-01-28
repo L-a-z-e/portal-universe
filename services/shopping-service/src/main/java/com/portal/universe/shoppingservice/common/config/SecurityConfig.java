@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     /**
@@ -109,22 +111,33 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/inventory/**").hasAnyRole("USER", "ADMIN")
 
                         // ========================================
-                        // [관리자] ADMIN 역할 필요
+                        // [관리자] SHOPPING_ADMIN / SUPER_ADMIN 역할 필요
                         // ========================================
-                        // 상품 관리
-                        .requestMatchers(HttpMethod.POST, "/products").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+                        // Admin 전용 경로
+                        .requestMatchers("/admin/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+
+                        // 상품 관리 (Seller도 가능)
+                        .requestMatchers(HttpMethod.POST, "/products")
+                            .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/products/**")
+                            .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/products/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // 재고 관리
-                        .requestMatchers(HttpMethod.POST, "/inventory/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/inventory/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/inventory/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/inventory/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // 배송 상태 관리
-                        .requestMatchers(HttpMethod.PUT, "/deliveries/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/deliveries/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // 결제 환불 (관리자)
-                        .requestMatchers(HttpMethod.POST, "/payments/*/refund").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/payments/*/refund")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // 그 외 모든 요청은 인증만 되면 허용
                         .anyRequest().authenticated()
