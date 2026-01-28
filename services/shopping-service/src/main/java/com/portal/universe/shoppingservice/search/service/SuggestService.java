@@ -81,7 +81,7 @@ public class SuggestService {
         redisTemplate.opsForZSet().incrementScore(POPULAR_KEY, keyword, 1);
     }
 
-    public List<String> getRecentKeywords(Long userId, int size) {
+    public List<String> getRecentKeywords(String userId, int size) {
         String key = RECENT_KEY_PREFIX + userId;
         List<Object> keywords = redisTemplate.opsForList().range(key, 0, size - 1);
         if (keywords == null) {
@@ -92,7 +92,7 @@ public class SuggestService {
                 .toList();
     }
 
-    public void addRecentKeyword(Long userId, String keyword) {
+    public void addRecentKeyword(String userId, String keyword) {
         String key = RECENT_KEY_PREFIX + userId;
         // Remove existing duplicate
         redisTemplate.opsForList().remove(key, 0, keyword);
@@ -105,12 +105,12 @@ public class SuggestService {
         incrementSearchCount(keyword);
     }
 
-    public void deleteRecentKeyword(Long userId, String keyword) {
+    public void deleteRecentKeyword(String userId, String keyword) {
         String key = RECENT_KEY_PREFIX + userId;
         redisTemplate.opsForList().remove(key, 0, keyword);
     }
 
-    public void clearRecentKeywords(Long userId) {
+    public void clearRecentKeywords(String userId) {
         String key = RECENT_KEY_PREFIX + userId;
         redisTemplate.delete(key);
     }
