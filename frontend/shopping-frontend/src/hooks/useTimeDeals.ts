@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { timeDealApi } from '@/api/endpoints'
-import type { TimeDeal } from '@/types'
+import type { TimeDeal, TimeDealPurchase } from '@/types'
 
 /**
  * 진행 중인 타임딜 목록 조회
@@ -159,4 +159,34 @@ export function calculateDiscountRate(originalPrice: number, dealPrice: number):
 export function calculateStockPercentage(sold: number, total: number): number {
   if (total <= 0) return 100
   return Math.round((sold / total) * 100)
+}
+
+/**
+ * 타임딜 구매 내역 조회
+ */
+export function useTimeDealPurchases() {
+  const [data, setData] = useState<TimeDealPurchase[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  const fetchPurchases = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const response = await timeDealApi.getMyPurchases()
+      if (response.success) {
+        setData(response.data)
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e : new Error('Failed to fetch time deal purchases'))
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchPurchases()
+  }, [fetchPurchases])
+
+  return { data, isLoading, error, refetch: fetchPurchases }
 }

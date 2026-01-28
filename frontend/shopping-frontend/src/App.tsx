@@ -161,6 +161,18 @@ function App({
                   🛍️ Products
                 </a>
                 <a
+                  href="/coupons"
+                  className="text-text-body hover:text-brand-primary font-medium transition-colors"
+                >
+                  🎫 Coupons
+                </a>
+                <a
+                  href="/time-deals"
+                  className="text-text-body hover:text-brand-primary font-medium transition-colors"
+                >
+                  ⏰ Time Deals
+                </a>
+                <a
                   href="/cart"
                   className="text-text-body hover:text-brand-primary font-medium transition-colors"
                 >

@@ -31,6 +31,7 @@ const CouponListPage = lazy(() => import('@/pages/coupon/CouponListPage'))
 // TimeDeal pages
 const TimeDealListPage = lazy(() => import('@/pages/timedeal/TimeDealListPage'))
 const TimeDealDetailPage = lazy(() => import('@/pages/timedeal/TimeDealDetailPage'))
+const TimeDealPurchasesPage = lazy(() => import('@/pages/timedeal/TimeDealPurchasesPage'))
 
 // Queue pages
 const QueueWaitingPage = lazy(() => import('@/pages/queue/QueueWaitingPage'))
@@ -216,6 +217,14 @@ const routes = [
         element: (
           <Suspense fallback={<PageLoader />}>
             <TimeDealDetailPage />
+          </Suspense>
+        )
+      },
+      {
+        path: 'time-deals/purchases',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <TimeDealPurchasesPage />
           </Suspense>
         )
       },

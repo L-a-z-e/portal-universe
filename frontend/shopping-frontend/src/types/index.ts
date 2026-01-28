@@ -459,6 +459,16 @@ export const TIMEDEAL_STATUS_LABELS: Record<TimeDealStatus, string> = {
   CANCELLED: '취소'
 }
 
+export interface TimeDealPurchase {
+  id: number
+  timeDealProductId: number
+  productName: string
+  quantity: number
+  purchasePrice: number
+  totalPrice: number
+  purchasedAt: string
+}
+
 // ========================================
 // Queue Types
 // ========================================
