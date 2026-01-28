@@ -122,11 +122,11 @@ const Layout: React.FC = () => (
   </>
 )
 
-// Admin Wrapper - Guards를 렌더링 시점에 처리
+// Admin Wrapper - RBAC 기반 Guards (SHOPPING_ADMIN 또는 SUPER_ADMIN 필요)
 const AdminWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Suspense fallback={<PageLoader />}>
     <RequireAuth>
-      <RequireRole roles={['admin']}>
+      <RequireRole roles={['ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN']}>
         {children}
       </RequireRole>
     </RequireAuth>

@@ -36,9 +36,39 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   /**
-   * Check if user is admin
+   * Check if user has any of the specified roles
    */
-  const isAdmin = computed(() => hasRole('ROLE_ADMIN'));
+  const hasAnyRole = (roles: string[]): boolean => {
+    return roles.some(role => hasRole(role));
+  };
+
+  /**
+   * Check if user is a system-wide admin (SUPER_ADMIN)
+   * 하위 호환: ROLE_ADMIN도 허용
+   */
+  const isAdmin = computed(() =>
+    hasAnyRole(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN'])
+  );
+
+  /**
+   * Check if user is a service-specific admin
+   */
+  const isServiceAdmin = (service: string): boolean => {
+    const serviceAdminRole = `ROLE_${service.toUpperCase()}_ADMIN`;
+    return hasAnyRole([serviceAdminRole, 'ROLE_SUPER_ADMIN']);
+  };
+
+  /**
+   * Check if user is a seller
+   */
+  const isSeller = computed(() => hasRole('ROLE_SELLER'));
+
+  /**
+   * Get user's membership tier for a service
+   */
+  const getMembershipTier = (service: string): string => {
+    return user.value?.authority.memberships[service] || 'FREE';
+  };
 
   // ==================== Actions ====================
 
@@ -152,6 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
       const authority: UserAuthority = {
         roles: userInfo.roles,
         scopes: userInfo.scopes,
+        memberships: userInfo.memberships || {},
       };
 
       // Create PortalUser
@@ -219,9 +250,13 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     displayName,
     isAdmin,
+    isSeller,
 
     // Methods
     hasRole,
+    hasAnyRole,
+    isServiceAdmin,
+    getMembershipTier,
 
     // Actions
     login,

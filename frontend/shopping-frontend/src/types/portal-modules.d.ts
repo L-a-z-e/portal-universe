@@ -76,6 +76,7 @@ declare module 'portal/stores' {
   interface UserAuthority {
     roles: string[]
     scopes: string[]
+    memberships: Record<string, string>
   }
 
   interface PortalUser {
@@ -139,6 +140,9 @@ declare module 'portal/stores' {
     isAuthenticated: boolean
     displayName: string
     isAdmin: boolean
+    isSeller: boolean
+    roles: string[]
+    memberships: Record<string, string>
     user: {
       email?: string
       username?: string
@@ -152,6 +156,8 @@ declare module 'portal/stores' {
     getState: () => AuthState
     subscribe: (callback: (state: AuthState) => void) => () => void
     hasRole: (role: string) => boolean
+    hasAnyRole: (roles: string[]) => boolean
+    isServiceAdmin: (service: string) => boolean
     logout: () => void
   }
 

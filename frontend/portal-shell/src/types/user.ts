@@ -18,10 +18,14 @@ export interface UserProfile {
 
 /**
  * 사용자 권한 정보
+ *
+ * roles 예시: ['ROLE_USER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SELLER']
+ * memberships 예시: { shopping: 'PREMIUM', blog: 'FREE' }
  */
 export interface UserAuthority {
-  roles: string[];                // 역할 (ROLE_ADMIN, ROLE_USER)
+  roles: string[];                // 역할 (ROLE_USER, ROLE_SUPER_ADMIN, ROLE_SHOPPING_ADMIN, ...)
   scopes: string[];               // OAuth2 Scope (read, write)
+  memberships: Record<string, string>;  // 서비스별 멤버십 티어 (serviceName → tierKey)
 }
 
 /**

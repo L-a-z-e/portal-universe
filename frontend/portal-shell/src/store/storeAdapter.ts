@@ -25,6 +25,9 @@ export interface AuthState {
   isAuthenticated: boolean
   displayName: string
   isAdmin: boolean
+  isSeller: boolean
+  roles: string[]
+  memberships: Record<string, string>
   user: {
     email?: string
     username?: string
@@ -98,6 +101,9 @@ export const authAdapter = {
       isAuthenticated: store.isAuthenticated,
       displayName: store.displayName,
       isAdmin: store.isAdmin,
+      isSeller: store.isSeller,
+      roles: store.user?.authority.roles || [],
+      memberships: store.user?.authority.memberships || {},
       user: store.user ? {
         email: store.user.profile.email,
         username: store.user.profile.username,
@@ -131,6 +137,22 @@ export const authAdapter = {
   hasRole: (role: string): boolean => {
     const store = useAuthStore()
     return store.hasRole(role)
+  },
+
+  /**
+   * 복수 역할 중 하나 이상 보유 여부
+   */
+  hasAnyRole: (roles: string[]): boolean => {
+    const store = useAuthStore()
+    return store.hasAnyRole(roles)
+  },
+
+  /**
+   * 특정 서비스의 admin 여부
+   */
+  isServiceAdmin: (service: string): boolean => {
+    const store = useAuthStore()
+    return store.isServiceAdmin(service)
   },
 
   /**

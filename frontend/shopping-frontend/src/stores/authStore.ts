@@ -12,7 +12,7 @@ interface User {
   id: string
   email: string
   name: string
-  role: 'guest' | 'user' | 'admin'
+  roles: string[]
   avatar?: string
 }
 
@@ -107,11 +107,13 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // authAdapter에서 현재 인증 상태 가져오기
-          // AuthAdapter의 AuthState 타입 (PortalUser가 아님)
           const authState = authAdapter.getState() as {
             isAuthenticated: boolean
             displayName: string
             isAdmin: boolean
+            isSeller: boolean
+            roles: string[]
+            memberships: Record<string, string>
             user: {
               email?: string
               username?: string
@@ -125,10 +127,10 @@ export const useAuthStore = create<AuthState>()(
           if (authState.isAuthenticated && authState.user) {
             // User 정보 매핑 (AuthAdapter State → Zustand User)
             const mappedUser: User = {
-              id: '', // authAdapter에서 id는 제공하지 않음
+              id: '',
               email: authState.user.email || '',
               name: authState.user.name || authState.user.nickname || authState.displayName,
-              role: authState.isAdmin ? 'admin' : 'user',
+              roles: authState.roles || [],
               avatar: authState.user.picture
             }
 

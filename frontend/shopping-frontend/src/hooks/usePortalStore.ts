@@ -19,6 +19,9 @@ interface AuthState {
   isAuthenticated: boolean
   displayName: string
   isAdmin: boolean
+  isSeller: boolean
+  roles: string[]
+  memberships: Record<string, string>
   user: {
     email?: string
     username?: string
@@ -39,6 +42,8 @@ interface AuthAdapter {
   getState: () => AuthState
   subscribe: (callback: (state: AuthState) => void) => () => void
   hasRole: (role: string) => boolean
+  hasAnyRole: (roles: string[]) => boolean
+  isServiceAdmin: (service: string) => boolean
   logout: () => void
 }
 
@@ -115,6 +120,9 @@ export function usePortalAuth() {
     isAuthenticated: false,
     displayName: 'Guest',
     isAdmin: false,
+    isSeller: false,
+    roles: [],
+    memberships: {},
     user: null
   })
   const [adapter, setAdapter] = useState<AuthAdapter | null>(null)
@@ -167,6 +175,20 @@ export function usePortalAuth() {
     return false
   }, [adapter])
 
+  const hasAnyRole = useCallback((roles: string[]): boolean => {
+    if (adapter) {
+      return adapter.hasAnyRole(roles)
+    }
+    return false
+  }, [adapter])
+
+  const isServiceAdmin = useCallback((service: string): boolean => {
+    if (adapter) {
+      return adapter.isServiceAdmin(service)
+    }
+    return false
+  }, [adapter])
+
   const logout = useCallback(() => {
     if (adapter) {
       adapter.logout()
@@ -176,6 +198,8 @@ export function usePortalAuth() {
   return {
     ...auth,
     hasRole,
+    hasAnyRole,
+    isServiceAdmin,
     logout,
     loading,
     error,
