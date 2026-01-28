@@ -10,7 +10,8 @@ export default defineConfig(({ mode }) => {
 
   console.log('🔧 [Vite Config] Building for mode:', mode);
   console.log('🔧 [Vite Config] Blog Remote URL:', env.VITE_BLOG_REMOTE_URL);
-  console.log('🔧 [Vite Config] Shopping Remote URL:', env.VITE_SHOPPING_REMOTE_URL)
+  console.log('🔧 [Vite Config] Shopping Remote URL:', env.VITE_SHOPPING_REMOTE_URL);
+  console.log('🔧 [Vite Config] Prism Remote URL:', env.VITE_PRISM_REMOTE_URL);
 
   return {
     plugins: [
@@ -21,6 +22,7 @@ export default defineConfig(({ mode }) => {
         remotes: {
           blog: env.VITE_BLOG_REMOTE_URL,
           shopping: env.VITE_SHOPPING_REMOTE_URL,
+          prism: env.VITE_PRISM_REMOTE_URL,
         },
         exposes: {
           './api': './src/api/index.ts',

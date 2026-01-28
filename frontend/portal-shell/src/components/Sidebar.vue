@@ -78,6 +78,16 @@ const navItems = [
       { name: 'Orders', path: '/shopping/orders' },
     ],
   },
+  {
+    name: 'Prism',
+    path: '/prism',
+    icon: '🤖',
+    children: [
+      { name: 'Boards', path: '/prism' },
+      { name: 'Agents', path: '/prism/agents' },
+      { name: 'Providers', path: '/prism/providers' },
+    ],
+  },
 ];
 
 // Check if route is active
