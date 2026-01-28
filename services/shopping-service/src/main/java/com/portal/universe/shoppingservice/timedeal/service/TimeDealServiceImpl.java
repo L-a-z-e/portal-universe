@@ -18,6 +18,8 @@ import com.portal.universe.shoppingservice.timedeal.repository.TimeDealPurchaseR
 import com.portal.universe.shoppingservice.timedeal.repository.TimeDealRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,12 @@ public class TimeDealServiceImpl implements TimeDealService {
     private final TimeDealPurchaseRepository timeDealPurchaseRepository;
     private final ProductRepository productRepository;
     private final TimeDealRedisService timeDealRedisService;
+
+    @Override
+    public Page<TimeDealResponse> getAllTimeDeals(Pageable pageable) {
+        return timeDealRepository.findAll(pageable)
+                .map(TimeDealResponse::from);
+    }
 
     @Override
     @Transactional

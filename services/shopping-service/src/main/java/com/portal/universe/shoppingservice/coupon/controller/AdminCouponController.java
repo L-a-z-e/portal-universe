@@ -6,6 +6,9 @@ import com.portal.universe.shoppingservice.coupon.dto.CouponResponse;
 import com.portal.universe.shoppingservice.coupon.service.CouponService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,15 @@ import org.springframework.web.bind.annotation.*;
 public class AdminCouponController {
 
     private final CouponService couponService;
+
+    /**
+     * 전체 쿠폰 목록을 페이징 조회합니다.
+     */
+    @GetMapping
+    public ApiResponse<Page<CouponResponse>> getCoupons(
+            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+        return ApiResponse.success(couponService.getAllCoupons(pageable));
+    }
 
     /**
      * 새로운 쿠폰을 생성합니다.

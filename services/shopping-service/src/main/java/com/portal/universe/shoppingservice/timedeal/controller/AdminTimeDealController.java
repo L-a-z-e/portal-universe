@@ -6,6 +6,9 @@ import com.portal.universe.shoppingservice.timedeal.dto.TimeDealResponse;
 import com.portal.universe.shoppingservice.timedeal.service.TimeDealService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,15 @@ import org.springframework.web.bind.annotation.*;
 public class AdminTimeDealController {
 
     private final TimeDealService timeDealService;
+
+    /**
+     * 전체 타임딜 목록을 페이징 조회합니다.
+     */
+    @GetMapping
+    public ApiResponse<Page<TimeDealResponse>> getTimeDeals(
+            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+        return ApiResponse.success(timeDealService.getAllTimeDeals(pageable));
+    }
 
     /**
      * 새로운 타임딜을 생성합니다.

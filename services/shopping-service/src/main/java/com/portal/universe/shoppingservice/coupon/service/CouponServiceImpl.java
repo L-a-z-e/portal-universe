@@ -14,9 +14,12 @@ import com.portal.universe.shoppingservice.coupon.repository.CouponRepository;
 import com.portal.universe.shoppingservice.coupon.repository.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,6 +31,12 @@ public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
+
+    @Override
+    public Page<CouponResponse> getAllCoupons(Pageable pageable) {
+        return couponRepository.findAll(pageable)
+                .map(CouponResponse::from);
+    }
     private final CouponRedisService couponRedisService;
 
     @Override

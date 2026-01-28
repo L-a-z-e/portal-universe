@@ -6,8 +6,10 @@ import com.portal.universe.shoppingservice.product.dto.*;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.feign.BlogServiceClient;
 import com.portal.universe.shoppingservice.feign.dto.BlogResponse;
+import com.portal.universe.shoppingservice.inventory.service.InventoryService;
 import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,12 +21,14 @@ import java.util.List;
  * ProductService 인터페이스의 구현 클래스입니다.
  * 상품 관련 비즈니스 로직을 실제로 처리합니다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final BlogServiceClient blogServiceClient;
+    private final InventoryService inventoryService;
 
     @Override
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
@@ -128,6 +132,17 @@ public class ProductServiceImpl implements ProductService {
                 .build();
 
         Product savedProduct = productRepository.save(newProduct);
+
+        // 재고 시스템 자동 초기화
+        if (request.stock() > 0) {
+            try {
+                inventoryService.initializeInventory(savedProduct.getId(), request.stock(), "SYSTEM");
+                log.info("Inventory initialized for product: productId={}, stock={}", savedProduct.getId(), request.stock());
+            } catch (Exception e) {
+                log.warn("Failed to initialize inventory for product: productId={}, reason={}", savedProduct.getId(), e.getMessage());
+            }
+        }
+
         return convertToResponse(savedProduct);
     }
 
