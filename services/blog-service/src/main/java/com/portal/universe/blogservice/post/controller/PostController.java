@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,7 @@ public class PostController {
 
     @Operation(summary = "전체 게시물 조회(관리자용)")
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ApiResponse<List<PostResponse>> getAllPosts() {
         List<PostResponse> posts = postService.getAllPosts();
         return ApiResponse.success(posts);

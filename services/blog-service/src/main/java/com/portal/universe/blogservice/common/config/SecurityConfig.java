@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     /**
@@ -101,9 +103,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/follows/**").authenticated()
 
                         // ========================================
-                        // [관리자] ADMIN 역할 필요
+                        // [관리자] BLOG_ADMIN 또는 SUPER_ADMIN 역할 필요
                         // ========================================
-                        .requestMatchers(HttpMethod.DELETE, "/file/delete").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/file/delete")
+                            .hasAnyAuthority("ROLE_BLOG_ADMIN", "ROLE_SUPER_ADMIN")
+                        // Admin 전용 경로
+                        .requestMatchers("/admin/**")
+                            .hasAnyAuthority("ROLE_BLOG_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // --- 위에서 지정하지 않은 나머지 모든 요청은 인증만 되면 허용 ---
                         .anyRequest().authenticated()
