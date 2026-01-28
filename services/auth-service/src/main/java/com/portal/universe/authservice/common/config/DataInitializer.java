@@ -24,7 +24,7 @@ public class DataInitializer {
     private final PasswordEncoder passwordEncoder;
 
     @Bean
-    @Profile({"default", "dev", "docker"}) // 특정 프로필에서만 작동하도록 설정
+    @Profile({"default", "dev", "local", "docker"}) // 특정 프로필에서만 작동하도록 설정
     public CommandLineRunner initData() {
         return args -> {
             // 일반 테스트 유저 생성
