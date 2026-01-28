@@ -31,9 +31,10 @@ public class PostController {
     @PostMapping
     public ApiResponse<PostResponse> createPost(
             @Valid @RequestBody PostCreateRequest request,
-            @AuthenticationPrincipal String authorId
+            @AuthenticationPrincipal String authorId,
+            @RequestHeader(value = "X-User-Nickname", required = false) String authorName
     ) {
-        PostResponse response = postService.createPost(request, authorId);
+        PostResponse response = postService.createPost(request, authorId, authorName);
         return ApiResponse.success(response);
     }
 

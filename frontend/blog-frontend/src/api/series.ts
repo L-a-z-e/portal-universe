@@ -103,3 +103,44 @@ export async function reorderSeriesPosts(
   );
   return response.data.data;
 }
+
+/**
+ * 시리즈에 포스트 추가
+ * @param seriesId 시리즈 ID
+ * @param postId 포스트 ID
+ */
+export async function addPostToSeries(
+  seriesId: string,
+  postId: string
+): Promise<SeriesResponse> {
+  const response = await apiClient.post<ApiResponse<SeriesResponse>>(
+    `${BASE_PATH}/${seriesId}/posts/${postId}`
+  );
+  return response.data.data;
+}
+
+/**
+ * 시리즈에서 포스트 제거
+ * @param seriesId 시리즈 ID
+ * @param postId 포스트 ID
+ */
+export async function removePostFromSeries(
+  seriesId: string,
+  postId: string
+): Promise<SeriesResponse> {
+  const response = await apiClient.delete<ApiResponse<SeriesResponse>>(
+    `${BASE_PATH}/${seriesId}/posts/${postId}`
+  );
+  return response.data.data;
+}
+
+/**
+ * 특정 포스트가 속한 시리즈 조회
+ * @param postId 포스트 ID
+ */
+export async function getSeriesByPostId(postId: string): Promise<SeriesListResponse[]> {
+  const response = await apiClient.get<ApiResponse<SeriesListResponse[]>>(
+    `${BASE_PATH}/by-post/${postId}`
+  );
+  return response.data.data;
+}

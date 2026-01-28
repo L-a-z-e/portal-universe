@@ -45,14 +45,20 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostResponse createPost(PostCreateRequest request, String authorId) {
-        log.info("Creating post with title: {}, authorId: {}", request.title(), authorId);
+        return createPost(request, authorId, null);
+    }
+
+    @Override
+    @Transactional
+    public PostResponse createPost(PostCreateRequest request, String authorId, String authorName) {
+        log.info("Creating post with title: {}, authorId: {}, authorName: {}", request.title(), authorId, authorName);
 
         Post post = Post.builder()
                 .title(request.title())
                 .content(request.content())
                 .summary(request.summary())
                 .authorId(authorId)
-                .authorName(extractAuthorName(authorId)) // JWT에서 추출하거나 별도 처리
+                .authorName(resolveAuthorName(authorId, authorName))
                 .status(request.publishImmediately() ? PostStatus.PUBLISHED : PostStatus.DRAFT)
                 .tags(request.tags())
                 .category(request.category())
@@ -713,10 +719,19 @@ public class PostServiceImpl implements PostService {
         return Sort.by(sortDirection, field);
     }
 
-    private String extractAuthorName(String authorId) {
-        // TODO: JWT 토큰에서 이름 추출하거나 User 서비스 호출
-        // 현재는 간단히 authorId 반환
+    private String resolveAuthorName(String authorId, String authorName) {
+        if (authorName != null && !authorName.isBlank()) {
+            return decodeHeaderValue(authorName);
+        }
         return authorId;
+    }
+
+    private String decodeHeaderValue(String value) {
+        try {
+            return java.net.URLDecoder.decode(value, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return value;
+        }
     }
 
     // ===== 피드 기능 =====

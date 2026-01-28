@@ -29,6 +29,7 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String USER_ID_HEADER = "X-User-Id";
     public static final String USER_ROLES_HEADER = "X-User-Roles";
+    public static final String USER_NICKNAME_HEADER = "X-User-Nickname";
 
     @Override
     protected void doFilterInternal(
@@ -39,9 +40,15 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
         String userId = request.getHeader(USER_ID_HEADER);
         String roles = request.getHeader(USER_ROLES_HEADER);
+        String nickname = request.getHeader(USER_NICKNAME_HEADER);
 
         if (StringUtils.hasText(userId)) {
-            log.debug("Gateway authentication - userId: {}, roles: {}", userId, roles);
+            log.debug("Gateway authentication - userId: {}, roles: {}, nickname: {}", userId, roles, nickname);
+
+            // nickname을 request attribute로 저장 (하위 서비스에서 활용)
+            if (StringUtils.hasText(nickname)) {
+                request.setAttribute("userNickname", nickname);
+            }
 
             List<SimpleGrantedAuthority> authorities = StringUtils.hasText(roles)
                     ? List.of(new SimpleGrantedAuthority(roles))

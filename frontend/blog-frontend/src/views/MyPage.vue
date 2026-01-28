@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { Button, Spinner, Alert, Card } from '@portal/design-system-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import ProfileEditForm from '@/components/ProfileEditForm.vue';
 import MyPostList from '@/components/MyPostList.vue';
+import MySeriesList from '@/components/MySeriesList.vue';
 import type { UserProfileResponse } from '@/dto/user';
 import { getMyProfile } from '@/api/users';
+
+const route = useRoute();
 
 // 상태
 const user = ref<UserProfileResponse | null>(null);
 const loading = ref(false);
 const error = ref('');
 const isEditMode = ref(false);
-const activeTab = ref<'posts' | 'series'>('posts');
+const activeTab = ref<'posts' | 'series'>(
+  route.query.tab === 'series' ? 'series' : 'posts'
+);
 
 // 프로필 조회
 const fetchProfile = async () => {
@@ -99,9 +105,8 @@ onMounted(() => {
           <button
             :class="['tab', { active: activeTab === 'series' }]"
             @click="activeTab = 'series'"
-            disabled
           >
-            내 시리즈 (준비중)
+            내 시리즈
           </button>
         </div>
 
@@ -114,9 +119,7 @@ onMounted(() => {
 
           <!-- 시리즈 탭 -->
           <div v-else-if="activeTab === 'series'" class="series-tab">
-            <div class="empty-state">
-              <p class="empty-message">시리즈 기능은 준비중입니다.</p>
-            </div>
+            <MySeriesList />
           </div>
         </div>
       </section>

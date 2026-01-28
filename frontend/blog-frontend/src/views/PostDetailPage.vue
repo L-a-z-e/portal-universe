@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, onBeforeUnmount, ref, nextTick, watch} from "vue";
+import {onMounted, onBeforeUnmount, ref, nextTick, watch, computed} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import '@toast-ui/editor/dist/toastui-editor-viewer.css';
@@ -8,10 +8,12 @@ import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
-import { getPostById } from "../api/posts";
-import {Button, Tag, Avatar, Card} from "@portal/design-system-vue";
+import { getPostById, deletePost } from "../api/posts";
+import { getSeriesByPostId } from "../api/series";
+import {Button, Tag, Avatar, Card, Modal} from "@portal/design-system-vue";
 import type { PostResponse } from "@/dto/post.ts";
 import LikeButton from "@/components/LikeButton.vue";
+import LikersModal from "@/components/LikersModal.vue";
 import SeriesBox from "@/components/SeriesBox.vue";
 import RelatedPosts from "@/components/RelatedPosts.vue";
 import PostNavigation from "@/components/PostNavigation.vue";
@@ -30,6 +32,33 @@ const isLiked = ref(false);
 
 // 시리즈 정보
 const seriesId = ref<string | null>(null);
+
+// 삭제 확인 다이얼로그
+const showDeleteConfirm = ref(false);
+const isDeleting = ref(false);
+
+// 좋아요 사용자 모달
+const showLikersModal = ref(false);
+
+// JWT에서 현재 사용자 UUID 추출
+function getCurrentUserUuid(): string | null {
+  const token = window.__PORTAL_ACCESS_TOKEN__;
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || null;
+  } catch {
+    return null;
+  }
+}
+
+// 본인 게시글 여부
+const isAuthor = computed(() => {
+  if (!post.value) return false;
+  const currentUuid = getCurrentUserUuid();
+  if (!currentUuid) return false;
+  return post.value.authorId === currentUuid;
+});
 
 const viewerElement = ref<HTMLDivElement | null>(null);
 let viewerInstance: Viewer | null = null;
@@ -140,8 +169,15 @@ async function loadPost() {
       // 좋아요 정보 설정
       likeCount.value = post.value.likeCount || 0;
 
-      // 시리즈 정보 설정 (필요한 경우)
-      // seriesId.value = post.value.seriesId;
+      // 시리즈 정보 조회
+      try {
+        const seriesList = await getSeriesByPostId(postId);
+        if (seriesList && seriesList.length > 0) {
+          seriesId.value = seriesList[0].id;
+        }
+      } catch (seriesErr) {
+        console.warn('Failed to load series info:', seriesErr);
+      }
     }
 
   } catch (err) {
@@ -203,6 +239,22 @@ function handleEdit() {
   }
 }
 
+// 삭제 핸들러
+async function handleDelete() {
+  if (!post.value) return;
+  isDeleting.value = true;
+  try {
+    await deletePost(post.value.id);
+    showDeleteConfirm.value = false;
+    router.push('/');
+  } catch (err) {
+    console.error('Failed to delete post:', err);
+    alert('게시글 삭제에 실패했습니다.');
+  } finally {
+    isDeleting.value = false;
+  }
+}
+
 // 좋아요 변경 핸들러
 function handleLikeChanged(liked: boolean, count: number) {
   isLiked.value = liked;
@@ -256,18 +308,14 @@ function handleLikeChanged(liked: boolean, count: number) {
             </div>
           </div>
 
-          <!-- Stats & Actions -->
+          <!-- Stats -->
           <div class="flex items-center gap-4">
             <span class="flex items-center gap-1 text-sm text-text-meta">
               <span>👁</span>{{ post.viewCount || 0 }}
             </span>
-            <span class="flex items-center gap-1 text-sm text-text-meta">
+            <button class="flex items-center gap-1 text-sm text-text-meta hover:text-brand-primary transition-colors cursor-pointer" @click="showLikersModal = true">
               <span>❤️</span>{{ post.likeCount || 0 }}
-            </span>
-            <!-- 수정 버튼 (권한 체크 필요) -->
-            <Button variant="secondary" size="sm" @click="handleEdit">
-              ✏️ 수정
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -283,6 +331,17 @@ function handleLikeChanged(liked: boolean, count: number) {
           </div>
         </div>
       </header>
+
+      <!-- Author Action Bar (작성자만 표시) -->
+      <div v-if="isAuthor" class="flex items-center justify-end gap-3 py-3 px-4 bg-bg-elevated rounded-lg border border-border-default">
+        <span class="text-sm text-text-meta mr-auto">이 게시글의 작성자입니다</span>
+        <Button variant="primary" size="sm" @click="handleEdit">
+          ✏️ 수정
+        </Button>
+        <Button variant="outline" size="sm" class="text-status-error border-status-error hover:bg-status-error-bg" @click="showDeleteConfirm = true">
+          🗑️ 삭제
+        </Button>
+      </div>
 
       <!-- Content (Toast UI Viewer) -->
       <section class="post-content">
@@ -322,10 +381,7 @@ function handleLikeChanged(liked: boolean, count: number) {
       <!-- Action Buttons -->
       <div class="flex items-center justify-between pt-6 border-t border-border-default">
         <Button variant="secondary" @click="router.push('/')">
-          ← 목록으로
-        </Button>
-        <Button variant="outline" @click="handleEdit">
-          ✏️ 수정
+          목록으로
         </Button>
       </div>
 
@@ -340,7 +396,31 @@ function handleLikeChanged(liked: boolean, count: number) {
       />
 
       <!-- 댓글 영역 -->
-      <CommentList :post-id="post.id" />
+      <CommentList :post-id="post.id" :current-user-id="getCurrentUserUuid() ?? undefined" />
+
+      <!-- 삭제 확인 모달 -->
+      <Modal
+        :model-value="showDeleteConfirm"
+        title="게시글 삭제"
+        size="sm"
+        @update:model-value="showDeleteConfirm = $event"
+        @close="showDeleteConfirm = false"
+      >
+        <p class="text-text-body mb-4">이 게시글을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
+        <div class="flex justify-end gap-2">
+          <Button variant="secondary" size="sm" @click="showDeleteConfirm = false" :disabled="isDeleting">취소</Button>
+          <Button variant="primary" size="sm" class="bg-status-error hover:bg-red-700" @click="handleDelete" :disabled="isDeleting">
+            {{ isDeleting ? '삭제 중...' : '삭제' }}
+          </Button>
+        </div>
+      </Modal>
+
+      <!-- 좋아요 사용자 목록 모달 -->
+      <LikersModal
+        :post-id="post.id"
+        :is-open="showLikersModal"
+        @close="showLikersModal = false"
+      />
     </article>
   </div>
 </template>

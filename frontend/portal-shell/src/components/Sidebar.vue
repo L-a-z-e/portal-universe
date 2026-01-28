@@ -64,6 +64,7 @@ const navItems = [
     icon: '📝',
     children: [
       { name: 'Posts', path: '/blog' },
+      { name: 'Series', path: '/blog/my?tab=series' },
       { name: 'Write', path: '/blog/write' },
     ],
   },

@@ -77,10 +77,11 @@ export async function getPopularTags(limit: number = 20): Promise<TagStatsRespon
 /**
  * 태그 검색
  * @param keyword 검색 키워드
+ * @param limit 조회 개수 (기본값: 5)
  */
-export async function searchTags(keyword: string): Promise<TagResponse[]> {
+export async function searchTags(keyword: string, limit: number = 5): Promise<TagResponse[]> {
   const response = await apiClient.get<ApiResponse<TagResponse[]>>(`${BASE_PATH}/search`, {
-    params: { q: keyword },
+    params: { q: keyword, limit },
   });
   return response.data.data;
 }

@@ -11,6 +11,9 @@ import TagListPage from '../views/TagListPage.vue';
 import TagDetailPage from '../views/TagDetailPage.vue';
 import UserBlogPage from '../views/UserBlogPage.vue';
 import MyPage from '../views/MyPage.vue';
+import CategoryListPage from '../views/CategoryListPage.vue';
+import AdvancedSearchPage from '../views/AdvancedSearchPage.vue';
+import StatsPage from '../views/StatsPage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -28,6 +31,21 @@ const routes: RouteRecordRaw[] = [
     name: 'TagDetail',
     component: TagDetailPage,
     props: true
+  },
+  {
+    path: '/categories',
+    name: 'CategoryList',
+    component: CategoryListPage
+  },
+  {
+    path: '/search/advanced',
+    name: 'AdvancedSearch',
+    component: AdvancedSearchPage
+  },
+  {
+    path: '/stats',
+    name: 'Stats',
+    component: StatsPage
   },
   {
     path: '/write',

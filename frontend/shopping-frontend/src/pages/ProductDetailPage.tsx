@@ -7,7 +7,9 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { productApi, inventoryApi } from '@/api/endpoints'
 import { useCartStore } from '@/stores/cartStore'
+import { useInventoryStream } from '@/hooks/useInventoryStream'
 import type { Product, Inventory } from '@/types'
+import ProductReviews from '@/components/product/ProductReviews'
 import { Button, Spinner, Alert, Badge } from '@portal/design-system-react'
 
 const ProductDetailPage: React.FC = () => {
@@ -23,6 +25,18 @@ const ProductDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [addSuccess, setAddSuccess] = useState(false)
+
+  // SSE for real-time inventory updates
+  const parsedId = productId ? parseInt(productId) : 0
+  const { getUpdate } = useInventoryStream({
+    productIds: parsedId > 0 ? [parsedId] : [],
+    enabled: parsedId > 0
+  })
+  const sseUpdate = parsedId > 0 ? getUpdate(parsedId) : null
+
+  // Override inventory with SSE data if available
+  const liveAvailable = sseUpdate ? sseUpdate.available : inventory?.availableQuantity
+  const liveReserved = sseUpdate ? sseUpdate.reserved : inventory?.reservedQuantity
 
   // Fetch product data
   useEffect(() => {
@@ -57,8 +71,8 @@ const ProductDetailPage: React.FC = () => {
     fetchProduct()
   }, [productId])
 
-  const isInStock = inventory ? inventory.availableQuantity > 0 : true
-  const maxQuantity = inventory?.availableQuantity || 10
+  const isInStock = liveAvailable !== undefined ? liveAvailable > 0 : (inventory ? inventory.availableQuantity > 0 : true)
+  const maxQuantity = liveAvailable ?? inventory?.availableQuantity ?? 10
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ko-KR', {
@@ -199,32 +213,35 @@ const ProductDetailPage: React.FC = () => {
           </div>
 
           {/* Stock Status */}
-          {inventory && (
+          {(inventory || sseUpdate) && (
             <div className="flex items-center gap-2">
               <div
                 className={`w-3 h-3 rounded-full ${
                   isInStock
-                    ? inventory.availableQuantity <= 5
+                    ? maxQuantity <= 5
                       ? 'bg-status-warning'
                       : 'bg-status-success'
                     : 'bg-status-error'
-                }`}
+                }${sseUpdate ? ' animate-pulse' : ''}`}
               />
               <span
                 className={`text-sm font-medium ${
                   isInStock
-                    ? inventory.availableQuantity <= 5
+                    ? maxQuantity <= 5
                       ? 'text-status-warning'
                       : 'text-status-success'
                     : 'text-status-error'
                 }`}
               >
                 {isInStock
-                  ? inventory.availableQuantity <= 5
-                    ? `Only ${inventory.availableQuantity} left in stock`
-                    : `${inventory.availableQuantity} in stock`
+                  ? maxQuantity <= 5
+                    ? `Only ${maxQuantity} left in stock`
+                    : `${maxQuantity} in stock`
                   : 'Out of Stock'}
               </span>
+              {sseUpdate && (
+                <span className="text-xs text-text-meta">(live)</span>
+              )}
             </div>
           )}
 
@@ -313,6 +330,10 @@ const ProductDetailPage: React.FC = () => {
             </p>
           </div>
         </div>
+      </div>
+      {/* Reviews Section */}
+      <div className="pt-6 border-t border-border-default">
+        <ProductReviews productId={parseInt(productId!)} />
       </div>
     </div>
   )

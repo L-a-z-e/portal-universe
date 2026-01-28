@@ -64,9 +64,8 @@ public class UserController {
      */
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(
-            @AuthenticationPrincipal String userIdStr) {
-        Long userId = Long.parseLong(userIdStr);
-        UserProfileResponse profile = userService.getMyProfile(userId);
+            @AuthenticationPrincipal String userUuid) {
+        UserProfileResponse profile = userService.getMyProfileByUuid(userUuid);
         return ResponseEntity.ok(ApiResponse.success(profile));
     }
 
@@ -75,11 +74,10 @@ public class UserController {
      */
     @PutMapping("/me/profile")
     public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
-            @AuthenticationPrincipal String userIdStr,
+            @AuthenticationPrincipal String userUuid,
             @Valid @RequestBody UserProfileUpdateRequest request) {
-        Long userId = Long.parseLong(userIdStr);
-        UserProfileResponse profile = userService.updateProfile(
-                userId,
+        UserProfileResponse profile = userService.updateProfileByUuid(
+                userUuid,
                 request.nickname(),
                 request.bio(),
                 request.profileImageUrl(),
@@ -93,10 +91,9 @@ public class UserController {
      */
     @PostMapping("/me/username")
     public ResponseEntity<ApiResponse<UserProfileResponse>> setUsername(
-            @AuthenticationPrincipal String userIdStr,
+            @AuthenticationPrincipal String userUuid,
             @Valid @RequestBody UsernameSetRequest request) {
-        Long userId = Long.parseLong(userIdStr);
-        UserProfileResponse profile = userService.setUsername(userId, request.username());
+        UserProfileResponse profile = userService.setUsernameByUuid(userUuid, request.username());
         return ResponseEntity.ok(ApiResponse.success(profile));
     }
 
@@ -117,15 +114,14 @@ public class UserController {
      */
     @PutMapping("/me/password")
     public ResponseEntity<ApiResponse<String>> changePassword(
-            @AuthenticationPrincipal String userIdStr,
+            @AuthenticationPrincipal String userUuid,
             @Valid @RequestBody PasswordChangeRequest request) {
         // 비밀번호 확인 일치 여부 검증
         if (!request.isPasswordMatching()) {
             throw new CustomBusinessException(AuthErrorCode.PASSWORD_MISMATCH);
         }
 
-        Long userId = Long.parseLong(userIdStr);
-        userService.changePassword(userId, request.currentPassword(), request.newPassword());
+        userService.changePasswordByUuid(userUuid, request.currentPassword(), request.newPassword());
 
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully"));
     }

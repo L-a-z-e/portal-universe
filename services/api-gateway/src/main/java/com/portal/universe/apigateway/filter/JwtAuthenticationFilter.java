@@ -18,6 +18,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -129,8 +130,9 @@ public class JwtAuthenticationFilter implements WebFilter {
             Claims claims = validateToken(token);
             String userId = claims.getSubject();
             String roles = claims.get("roles", String.class);
+            String nickname = claims.get("nickname", String.class);
 
-            log.debug("JWT validated for user: {}, roles: {}", userId, roles);
+            log.debug("JWT validated for user: {}, roles: {}, nickname: {}", userId, roles, nickname);
 
             // Spring Security Context에 인증 정보 설정
             List<SimpleGrantedAuthority> authorities = roles != null
@@ -140,10 +142,11 @@ public class JwtAuthenticationFilter implements WebFilter {
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
-            // X-User-Id 헤더 추가 (하위 서비스에서 사용)
+            // X-User-Id, X-User-Roles, X-User-Nickname 헤더 추가 (하위 서비스에서 사용)
             ServerHttpRequest mutatedRequest = request.mutate()
                     .header("X-User-Id", userId)
                     .header("X-User-Roles", roles != null ? roles : "")
+                    .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
                     .build();
 
             ServerWebExchange mutatedExchange = exchange.mutate()
