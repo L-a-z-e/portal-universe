@@ -1,3 +1,19 @@
+<script lang="ts">
+// -------------------------
+// Module-level CSS Registry
+// 컴포넌트 인스턴스 간 CSS 추적 정보 공유
+// <script setup>은 인스턴스별로 실행되므로, CSS 추적은 module-level에서 관리
+// -------------------------
+const cssRegistry = new Map<string, HTMLElement[]>();
+
+function getTrackedCss(key: string): HTMLElement[] {
+  if (!cssRegistry.has(key)) {
+    cssRegistry.set(key, []);
+  }
+  return cssRegistry.get(key)!;
+}
+</script>
+
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated, onDeactivated, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -6,7 +22,7 @@ import { remoteLoader } from "../services/remoteLoader";
 import { useThemeStore } from "../store/theme";
 import { Spinner, Button, Card } from '@portal/design-system-vue';
 
-// 🆕 간단한 debounce 유틸리티 (외부 의존성 없음)
+// 간단한 debounce 유틸리티 (외부 의존성 없음)
 function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   return ((...args: any[]) => {
@@ -30,7 +46,58 @@ const error = ref<Error | null>(null);
 const isDev = computed(() => import.meta.env.DEV);
 
 let remoteApp: any = null;
-let mountFn: any = null; // ✅ load 결과 저장 (중복 load 방지)
+let mountFn: any = null; // load 결과 저장 (중복 load 방지)
+
+// -------------------------
+// CSS Lifecycle Management
+// Remote app의 CSS를 Portal Shell에서 중앙 관리
+// module-level cssRegistry를 사용하여 인스턴스 간 공유
+// -------------------------
+let cssObserver: MutationObserver | null = null;
+
+function startCssTracking() {
+  const tracked = getTrackedCss(props.config.key);
+  cssObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node instanceof HTMLLinkElement && node.rel === 'stylesheet') {
+          tracked.push(node);
+        } else if (node instanceof HTMLStyleElement) {
+          tracked.push(node);
+        }
+      }
+    }
+  });
+  cssObserver.observe(document.head, { childList: true });
+}
+
+function stopCssTracking() {
+  cssObserver?.disconnect();
+  cssObserver = null;
+}
+
+function disableTrackedCss() {
+  const tracked = getTrackedCss(props.config.key);
+  for (const el of tracked) {
+    if (el instanceof HTMLLinkElement) {
+      el.disabled = true;
+    } else if (el instanceof HTMLStyleElement) {
+      el.setAttribute('media', 'not all');
+    }
+  }
+}
+
+function enableTrackedCss() {
+  const tracked = getTrackedCss(props.config.key);
+  for (const el of tracked) {
+    if (!el.isConnected) continue;
+    if (el instanceof HTMLLinkElement) {
+      el.disabled = false;
+    } else if (el instanceof HTMLStyleElement) {
+      el.removeAttribute('media');
+    }
+  }
+}
 
 // -------------------------
 // Remote Navigation Sync
@@ -138,6 +205,13 @@ async function mountRemote() {
     console.log(`   Container:`, container.value);
     console.log(`   Initial path: ${initialPath}`);
 
+    // CSS 관리: 이전에 tracked된 CSS가 있으면 재활성화
+    const tracked = getTrackedCss(props.config.key);
+    if (tracked.length > 0) {
+      enableTrackedCss();
+      console.log(`🎨 [RemoteWrapper] Re-enabled ${tracked.length} tracked CSS elements for ${props.config.name}`);
+    }
+
     // ✅ 저장된 mountFn 사용 (중복 load 없음)
     // 🆕 theme prop 추가 - Portal Shell의 현재 테마 전달
     remoteApp = mountFn(container.value, {
@@ -150,6 +224,7 @@ async function mountRemote() {
     loading.value = false;
 
   } catch (err: any) {
+    stopCssTracking();
     console.error(`❌ [RemoteWrapper] Mount failed:`, err);
     error.value = err;
     loading.value = false;
@@ -173,9 +248,18 @@ watch(loading, async (isLoading, wasLoading) => {
 onMounted(async () => {
   console.log(`📍 [RemoteWrapper] Component mounted for ${props.config.name}`);
 
+  // CSS tracking: 모듈 로드 시 주입되는 CSS를 캡처하기 위해 로드 전에 시작
+  // module-level registry를 사용하므로 이미 tracked된 CSS가 있으면 observer 생략
+  if (getTrackedCss(props.config.key).length === 0) {
+    startCssTracking();
+  }
+
   try {
-    // Remote 로드 (mountFn 획득)
+    // Remote 로드 (mountFn 획득) - 이 과정에서 CSS가 <head>에 주입됨
     const result = await remoteLoader.loadRemote(props.config);
+
+    // CSS tracking 종료 (로드 완료 후)
+    stopCssTracking();
 
     if (!result.success || !result.mountFn) {
       throw result.error || new Error('Failed to load remote');
@@ -184,10 +268,13 @@ onMounted(async () => {
     // ✅ mountFn 저장 (나중에 watch에서 사용)
     mountFn = result.mountFn;
 
+    console.log(`🎨 [RemoteWrapper] Tracked ${getTrackedCss(props.config.key).length} CSS elements for ${props.config.name}`);
+
     // ✅ loading을 false로 변경 → watch가 mountRemote() 호출
     loading.value = false;
 
   } catch (err: any) {
+    stopCssTracking();
     console.error(`❌ [RemoteWrapper] Load failed:`, err);
     error.value = err;
     loading.value = false;
@@ -206,6 +293,11 @@ onUnmounted(() => {
       console.error('⚠️ Error during unmount:', err);
     }
   }
+
+  // CSS disable (제거하지 않고 비활성화)
+  disableTrackedCss();
+  stopCssTracking();
+  console.log(`🎨 [RemoteWrapper] Disabled ${getTrackedCss(props.config.key).length} CSS elements for ${props.config.name}`);
 
   remoteApp = null;
   mountFn = null;
