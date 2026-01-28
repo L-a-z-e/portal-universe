@@ -88,4 +88,3 @@ management:
 logging:
   level:
     root: INFO
-    com.portal.universe: DEBUG
