@@ -17,11 +17,16 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.crypto.SecretKey;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * JWT 토큰을 검증하는 WebFlux 필터입니다.
@@ -37,6 +42,7 @@ public class JwtAuthenticationFilter implements WebFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtProperties jwtProperties;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 특정 키 ID에 해당하는 서명용 키를 생성합니다.
@@ -129,24 +135,33 @@ public class JwtAuthenticationFilter implements WebFilter {
             // JWT 검증
             Claims claims = validateToken(token);
             String userId = claims.getSubject();
-            String roles = claims.get("roles", String.class);
             String nickname = claims.get("nickname", String.class);
+            String username = claims.get("username", String.class);
 
-            log.debug("JWT validated for user: {}, roles: {}, nickname: {}", userId, roles, nickname);
+            // JWT v1/v2 dual format 지원: roles 파싱
+            List<String> rolesList = parseRoles(claims);
+            String rolesHeader = String.join(",", rolesList);
 
-            // Spring Security Context에 인증 정보 설정
-            List<SimpleGrantedAuthority> authorities = roles != null
-                    ? List.of(new SimpleGrantedAuthority(roles))
-                    : Collections.emptyList();
+            // JWT v2: memberships 파싱
+            String membershipsHeader = parseMemberships(claims);
+
+            log.debug("JWT validated for user: {}, roles: {}, memberships: {}", userId, rolesList, membershipsHeader);
+
+            // 복수 Authority 생성
+            List<SimpleGrantedAuthority> authorities = rolesList.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
-            // X-User-Id, X-User-Roles, X-User-Nickname 헤더 추가 (하위 서비스에서 사용)
+            // 하위 서비스로 전달할 헤더 설정
             ServerHttpRequest mutatedRequest = request.mutate()
                     .header("X-User-Id", userId)
-                    .header("X-User-Roles", roles != null ? roles : "")
+                    .header("X-User-Roles", rolesHeader)
+                    .header("X-User-Memberships", membershipsHeader)
                     .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
+                    .header("X-User-Name", username != null ? URLEncoder.encode(username, StandardCharsets.UTF_8) : "")
                     .build();
 
             ServerWebExchange mutatedExchange = exchange.mutate()
@@ -186,6 +201,41 @@ public class JwtAuthenticationFilter implements WebFilter {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    /**
+     * JWT claims에서 roles를 파싱합니다.
+     * v1 (String): "ROLE_USER" → ["ROLE_USER"]
+     * v2 (List): ["ROLE_USER", "ROLE_SELLER"] → 그대로 반환
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> parseRoles(Claims claims) {
+        Object rolesClaim = claims.get("roles");
+        if (rolesClaim instanceof String rolesStr) {
+            return List.of(rolesStr);
+        } else if (rolesClaim instanceof List<?> rolesArr) {
+            return ((List<Object>) rolesArr).stream()
+                    .map(Object::toString)
+                    .toList();
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * JWT claims에서 memberships를 JSON 문자열로 변환합니다.
+     * v1 (없음): → "{}"
+     * v2 (Map): {"shopping":"PREMIUM"} → JSON 문자열
+     */
+    private String parseMemberships(Claims claims) {
+        Object membershipsClaim = claims.get("memberships");
+        if (membershipsClaim instanceof Map<?, ?> membershipsMap) {
+            try {
+                return objectMapper.writeValueAsString(membershipsMap);
+            } catch (JsonProcessingException e) {
+                log.warn("Failed to serialize memberships: {}", e.getMessage());
+            }
+        }
+        return "{}";
     }
 
     /**

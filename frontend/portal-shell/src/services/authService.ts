@@ -27,6 +27,7 @@ export interface UserInfo {
   picture?: string;
   roles: string[];
   scopes: string[];
+  memberships: Record<string, string>;
 }
 
 // ====================================================================
@@ -265,6 +266,8 @@ class AuthenticationService {
                payload.roles ? [payload.roles] : [],
         scopes: Array.isArray(payload.scope) ? payload.scope :
                 payload.scope ? payload.scope.split(' ') : [],
+        memberships: (typeof payload.memberships === 'object' && payload.memberships !== null)
+                ? payload.memberships : {},
       };
     } catch (error) {
       console.error('Failed to extract user info from token:', error);

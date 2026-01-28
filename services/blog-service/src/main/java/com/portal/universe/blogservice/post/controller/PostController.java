@@ -8,11 +8,14 @@ import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.post.service.PostService;
 import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
+import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,15 +34,15 @@ public class PostController {
     @PostMapping
     public ApiResponse<PostResponse> createPost(
             @Valid @RequestBody PostCreateRequest request,
-            @AuthenticationPrincipal String authorId,
-            @RequestHeader(value = "X-User-Nickname", required = false) String authorName
+            @CurrentUser GatewayUser user
     ) {
-        PostResponse response = postService.createPost(request, authorId, authorName);
+        PostResponse response = postService.createPost(request, user.uuid(), user.nickname());
         return ApiResponse.success(response);
     }
 
     @Operation(summary = "전체 게시물 조회(관리자용)")
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ApiResponse<List<PostResponse>> getAllPosts() {
         List<PostResponse> posts = postService.getAllPosts();
         return ApiResponse.success(posts);

@@ -159,7 +159,7 @@ onMounted(() => {
 <style scoped>
 .series-box {
   background: linear-gradient(135deg, rgba(32, 201, 151, 0.05) 0%, rgba(32, 201, 151, 0.02) 100%);
-  border: 1px solid var(--color-brand-primary, #20c997);
+  border: 1px solid var(--semantic-brand-primary, #20c997);
 }
 
 /* 헤더 */
@@ -170,7 +170,7 @@ onMounted(() => {
   gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border-muted);
+  border-bottom: 1px solid var(--semantic-border-muted);
 }
 
 .series-info {
@@ -188,14 +188,14 @@ onMounted(() => {
 .series-icon {
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--color-brand-primary, #20c997);
+  color: var(--semantic-brand-primary, #20c997);
   flex-shrink: 0;
 }
 
 .series-name {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -204,7 +204,7 @@ onMounted(() => {
 
 .series-position {
   font-size: 0.875rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   font-weight: 500;
 }
 
@@ -230,8 +230,8 @@ onMounted(() => {
 }
 
 .nav-button:hover {
-  background-color: var(--color-bg-hover);
-  border-color: var(--color-brand-primary, #20c997);
+  background-color: var(--semantic-bg-hover);
+  border-color: var(--semantic-brand-primary, #20c997);
 }
 
 .prev-button {
@@ -258,13 +258,13 @@ onMounted(() => {
 
 .nav-label {
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   font-weight: 500;
 }
 
 .nav-title {
   font-size: 0.875rem;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -275,11 +275,11 @@ onMounted(() => {
 .error-content {
   text-align: center;
   padding: 1rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .error-content {
-  color: var(--color-error, #f56565);
+  color: var(--semantic-error, #f56565);
 }
 
 /* 반응형 */

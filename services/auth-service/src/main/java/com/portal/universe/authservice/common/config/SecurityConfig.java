@@ -15,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -35,6 +36,7 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
@@ -104,10 +106,20 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // 공개
                         .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()  // 내부망에서만 접근 (Gateway에서 차단)
                         .requestMatchers("/actuator/**").denyAll()  // 나머지는 차단
-                        // /api/admin 경로는 ADMIN 역할을 가진 사용자만 접근 가능합니다.
-                        .requestMatchers("/api/admin").hasRole("ADMIN")
+                        // 멤버십 티어 목록은 공개
+                        .requestMatchers(HttpMethod.GET, "/api/memberships/tiers/**").permitAll()
+                        // 관리자 경로: RBAC 기반 접근 제어
+                        .requestMatchers("/api/admin/rbac/**").hasAuthority("ROLE_SUPER_ADMIN")
+                        .requestMatchers("/api/admin/memberships/**").hasAuthority("ROLE_SUPER_ADMIN")
+                        .requestMatchers("/api/admin/seller/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
                         // /api/profile 경로는 인증된 사용자만 접근 가능합니다.
                         .requestMatchers("/api/profile/**").authenticated()
+                        // 셀러/멤버십/권한 셀프서비스는 인증 필요
+                        .requestMatchers("/api/seller/**").authenticated()
+                        .requestMatchers("/api/memberships/**").authenticated()
+                        .requestMatchers("/api/permissions/**").authenticated()
                         // 위에서 지정한 경로 외의 모든 요청은 인증이 필요합니다.
                         .anyRequest().authenticated()
                 )

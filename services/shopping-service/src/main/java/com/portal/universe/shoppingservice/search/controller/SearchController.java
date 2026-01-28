@@ -1,6 +1,8 @@
 package com.portal.universe.shoppingservice.search.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
+import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchResult;
 import com.portal.universe.shoppingservice.search.dto.SearchResponse;
@@ -59,32 +61,32 @@ public class SearchController {
 
     @GetMapping("/recent")
     public ResponseEntity<ApiResponse<List<String>>> getRecentKeywords(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser GatewayUser user,
             @RequestParam(required = false, defaultValue = "10") int size) {
-        List<String> keywords = suggestService.getRecentKeywords(userId, size);
+        List<String> keywords = suggestService.getRecentKeywords(user.uuid(), size);
         return ResponseEntity.ok(ApiResponse.success(keywords));
     }
 
     @PostMapping("/recent")
     public ResponseEntity<ApiResponse<Void>> addRecentKeyword(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser GatewayUser user,
             @RequestParam String keyword) {
-        suggestService.addRecentKeyword(userId, keyword);
+        suggestService.addRecentKeyword(user.uuid(), keyword);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @DeleteMapping("/recent/{keyword}")
     public ResponseEntity<ApiResponse<Void>> deleteRecentKeyword(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser GatewayUser user,
             @PathVariable String keyword) {
-        suggestService.deleteRecentKeyword(userId, keyword);
+        suggestService.deleteRecentKeyword(user.uuid(), keyword);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @DeleteMapping("/recent")
     public ResponseEntity<ApiResponse<Void>> clearRecentKeywords(
-            @RequestHeader("X-User-Id") Long userId) {
-        suggestService.clearRecentKeywords(userId);
+            @CurrentUser GatewayUser user) {
+        suggestService.clearRecentKeywords(user.uuid());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

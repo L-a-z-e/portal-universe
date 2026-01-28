@@ -14,6 +14,7 @@ import com.portal.universe.blogservice.series.domain.Series;
 import com.portal.universe.blogservice.series.dto.SeriesNavigationResponse;
 import com.portal.universe.blogservice.series.repository.SeriesRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.commonlibrary.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -103,8 +104,9 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증: 작성자만 수정 가능
-        if (!post.getAuthorId().equals(userId)) {
+        // 권한 검증: 작성자 또는 블로그 관리자만 수정 가능
+        if (!post.getAuthorId().equals(userId)
+                && !SecurityUtils.isServiceAdmin("BLOG")) {
             throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
         }
 
@@ -134,8 +136,9 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증: 작성자만 삭제 가능
-        if (!post.getAuthorId().equals(userId)) {
+        // 권한 검증: 작성자 또는 블로그 관리자만 삭제 가능
+        if (!post.getAuthorId().equals(userId)
+                && !SecurityUtils.isServiceAdmin("BLOG")) {
             throw new CustomBusinessException(BlogErrorCode.POST_DELETE_FORBIDDEN);
         }
 
@@ -269,8 +272,9 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증
-        if (!post.getAuthorId().equals(userId)) {
+        // 권한 검증: 작성자 또는 블로그 관리자만 상태 변경 가능
+        if (!post.getAuthorId().equals(userId)
+                && !SecurityUtils.isServiceAdmin("BLOG")) {
             throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
         }
 

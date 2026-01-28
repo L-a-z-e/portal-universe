@@ -118,10 +118,29 @@ public class SecurityConfig {
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/api/*/actuator/**").permitAll()
 
+                        // 멤버십 티어 목록 조회는 공개
+                        .pathMatchers(org.springframework.http.HttpMethod.GET, "/api/memberships/tiers/**").permitAll()
+
                         // ========================================
-                        // [관리자] ADMIN 권한 필요
+                        // [시스템 관리자] SUPER_ADMIN 전용
                         // ========================================
-                        .pathMatchers("/api/shopping/admin/**").hasRole("ADMIN")
+                        .pathMatchers("/api/admin/seller/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                        .pathMatchers("/api/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
+
+                        // ========================================
+                        // [서비스 관리자] 서비스별 Admin 권한
+                        // ========================================
+                        .pathMatchers("/api/shopping/admin/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                        .pathMatchers("/api/blog/admin/**")
+                            .hasAnyAuthority("ROLE_BLOG_ADMIN", "ROLE_SUPER_ADMIN")
+
+                        // ========================================
+                        // [판매자] Seller 권한
+                        // ========================================
+                        .pathMatchers("/api/shopping/seller/**")
+                            .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // ========================================
                         // [비공개] 인증 필요

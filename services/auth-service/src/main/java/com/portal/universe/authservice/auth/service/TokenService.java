@@ -1,5 +1,8 @@
 package com.portal.universe.authservice.auth.service;
 
+import com.portal.universe.authservice.auth.domain.UserMembership;
+import com.portal.universe.authservice.auth.repository.UserMembershipRepository;
+import com.portal.universe.authservice.auth.repository.UserRoleRepository;
 import com.portal.universe.authservice.common.config.JwtProperties;
 import com.portal.universe.authservice.user.domain.User;
 import io.jsonwebtoken.*;
@@ -10,9 +13,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * JWT Access Token과 Refresh Token을 생성하고 검증하는 서비스입니다.
@@ -30,6 +32,8 @@ import java.util.Map;
 public class TokenService {
 
     private final JwtProperties jwtProperties;
+    private final UserRoleRepository userRoleRepository;
+    private final UserMembershipRepository userMembershipRepository;
 
     /**
      * 현재 활성화된 키 ID를 반환합니다.
@@ -133,10 +137,11 @@ public class TokenService {
     }
 
     /**
-     * Access Token을 생성합니다.
+     * Access Token을 생성합니다 (JWT v2 포맷).
      * - header: kid (현재 키 ID)
      * - sub: 사용자 UUID
-     * - roles: 사용자 권한
+     * - roles: 사용자 권한 배열 (v2: String[])
+     * - memberships: 서비스별 멤버십 티어 Map
      * - exp: 만료 시간 (15분)
      *
      * @param user 사용자 정보
@@ -144,7 +149,25 @@ public class TokenService {
      */
     public String generateAccessToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", user.getRole().getKey());
+
+        // JWT v2: roles를 배열로 저장 (RBAC 테이블 기반)
+        List<String> roleKeys = userRoleRepository.findActiveRoleKeysByUserId(user.getUuid());
+        if (roleKeys.isEmpty()) {
+            // Fallback: RBAC 마이그레이션 전 사용자는 기존 enum 사용
+            roleKeys = List.of(user.getRole().getKey());
+        }
+        claims.put("roles", roleKeys);
+
+        // JWT v2: memberships Map 추가
+        List<UserMembership> activeMemberships = userMembershipRepository.findActiveByUserId(user.getUuid());
+        Map<String, String> membershipsMap = activeMemberships.stream()
+                .collect(Collectors.toMap(
+                        UserMembership::getServiceName,
+                        m -> m.getTier().getTierKey(),
+                        (existing, replacement) -> existing
+                ));
+        claims.put("memberships", membershipsMap);
+
         claims.put("email", user.getEmail());
 
         // Profile 정보 추가
@@ -159,7 +182,7 @@ public class TokenService {
         Date expiration = new Date(now.getTime() + jwtProperties.getAccessTokenExpiration());
 
         String currentKeyId = getCurrentKeyId();
-        log.debug("Generating access token with key ID: {}", currentKeyId);
+        log.debug("Generating access token with key ID: {} for user: {}, roles: {}", currentKeyId, user.getUuid(), roleKeys);
 
         return Jwts.builder()
                 .header()

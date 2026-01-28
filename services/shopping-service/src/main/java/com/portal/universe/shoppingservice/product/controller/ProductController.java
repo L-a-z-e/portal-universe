@@ -52,7 +52,7 @@ public class ProductController {
      */
     @Deprecated
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ApiResponse<ProductResponse> createProduct(@RequestBody ProductCreateRequest request) {
         return ApiResponse.success(productService.createProduct(request));
     }
@@ -77,7 +77,7 @@ public class ProductController {
      */
     @Deprecated
     @PutMapping("/{productId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ApiResponse<ProductResponse> updateProduct(@PathVariable Long productId, @RequestBody ProductUpdateRequest request) {
         return ApiResponse.success(productService.updateProduct(productId, request));
     }
@@ -91,7 +91,7 @@ public class ProductController {
      */
     @Deprecated
     @DeleteMapping("/{productId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ApiResponse<Void> deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
         return ApiResponse.success(null);

@@ -235,13 +235,13 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .loading-spinner svg {
   width: 3rem;
   height: 3rem;
-  color: var(--color-brand-primary, #20c997);
+  color: var(--semantic-brand-primary, #20c997);
 }
 
 @keyframes spin {
@@ -276,11 +276,11 @@ onMounted(() => {
 .error-icon {
   width: 3rem;
   height: 3rem;
-  color: var(--color-error, #f56565);
+  color: var(--semantic-error, #f56565);
 }
 
 .error-message {
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   margin: 0;
 }
 
@@ -316,7 +316,7 @@ onMounted(() => {
   height: 240px;
   border-radius: 0.5rem;
   overflow: hidden;
-  background-color: var(--color-bg-muted);
+  background-color: var(--semantic-bg-muted);
 }
 
 .series-thumbnail {
@@ -336,8 +336,8 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  background-color: var(--color-brand-primary-light, rgba(32, 201, 151, 0.1));
-  color: var(--color-brand-primary, #20c997);
+  background-color: var(--semantic-brand-primary-light, rgba(32, 201, 151, 0.1));
+  color: var(--semantic-brand-primary, #20c997);
   font-size: 0.875rem;
   font-weight: 600;
   border-radius: 0.375rem;
@@ -352,7 +352,7 @@ onMounted(() => {
 .series-title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0;
   line-height: 1.3;
 }
@@ -360,7 +360,7 @@ onMounted(() => {
 .series-description {
   font-size: 1rem;
   line-height: 1.6;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   margin: 0;
 }
 
@@ -369,7 +369,7 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-border-muted);
+  border-top: 1px solid var(--semantic-border-muted);
 }
 
 .author-info {
@@ -380,7 +380,7 @@ onMounted(() => {
 
 .author-name {
   font-weight: 600;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 .stats-info {
@@ -388,11 +388,11 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .separator {
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 /* 포스트 목록 */
@@ -403,7 +403,7 @@ onMounted(() => {
 .posts-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0 0 1rem 0;
 }
 
@@ -432,8 +432,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-brand-primary-light, rgba(32, 201, 151, 0.1));
-  color: var(--color-brand-primary, #20c997);
+  background-color: var(--semantic-brand-primary-light, rgba(32, 201, 151, 0.1));
+  color: var(--semantic-brand-primary, #20c997);
   font-size: 1.125rem;
   font-weight: 700;
   border-radius: 0.5rem;
@@ -450,19 +450,19 @@ onMounted(() => {
 .post-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0;
   line-height: 1.5;
 }
 
 .post-item:hover .post-title {
-  color: var(--color-brand-primary, #20c997);
+  color: var(--semantic-brand-primary, #20c997);
 }
 
 .post-summary {
   font-size: 0.875rem;
   line-height: 1.6;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -475,7 +475,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .post-stat {
@@ -495,7 +495,7 @@ onMounted(() => {
   height: 80px;
   border-radius: 0.375rem;
   overflow: hidden;
-  background-color: var(--color-bg-muted);
+  background-color: var(--semantic-bg-muted);
 }
 
 .post-thumbnail img {

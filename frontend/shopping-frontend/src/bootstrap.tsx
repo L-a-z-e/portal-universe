@@ -222,9 +222,9 @@ export function mountShoppingApp(
 
       /**
        * 앱 언마운트 및 클린업
-       * Blog의 unmount와 동일한 역할
        *
-       * 🔴 핵심: <head>의 Shopping CSS 스타일 태그 제거!
+       * CSS lifecycle은 Portal Shell(RemoteWrapper)에서 중앙 관리
+       * Remote app은 React app unmount와 DOM 정리만 담당
        */
       unmount: () => {
         console.group('🔄 [Shopping] Unmounting app');
@@ -246,56 +246,15 @@ export function mountShoppingApp(
           console.error('❌ [Shopping] App unmount failed:', err);
         }
 
-        // 3. DOM & Style Cleanup
+        // 3. DOM Cleanup (CSS는 Portal Shell에서 관리)
         try {
           el.innerHTML = '';
 
-          // 🆕 마커 기반 스타일 태그 제거 (더 정확함)
-          document.querySelectorAll('style[data-mf-app="shopping"]').forEach(el => {
-            console.log('   📍 [Shopping] Removing marked style tag');
-            el.remove();
-          });
-
-          // 기존 방식도 유지 (fallback)
-          const styleTags = document.querySelectorAll('style:not([data-mf-app])');
-          styleTags.forEach((styleTag, index) => {
-            const content = styleTag.textContent || '';
-            if (content.includes('[data-service="shopping"]') ||
-              content.includes('shopping-') ||
-              (content.includes('@import') && content.includes('shopping'))) {
-              console.log(`   📍 [Shopping] Found Shopping CSS at index ${index}, removing...`);
-              styleTag.remove();
-            }
-          });
-
-          // <link> 태그 중 Shopping CSS 제거
-          // Vite dev mode에서는 CSS가 localhost:30002에서 로드됨
-          const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
-          linkTags.forEach((linkTag) => {
-            const href = linkTag.getAttribute('href') || '';
-            // Shopping CSS 식별: origin이 30002 포트이거나 data-mf-app="shopping" 마커가 있는 경우
-            const isShoppingCss = href.includes('localhost:30002') ||
-                                 href.includes(':30002/') ||
-                                 linkTag.hasAttribute('data-mf-app') && linkTag.getAttribute('data-mf-app') === 'shopping';
-            if (isShoppingCss) {
-              console.log(`   📍 [Shopping] Found Shopping CSS link: ${href}, removing...`);
-              linkTag.remove();
-            }
-          });
-
-          // data-service 속성 정리
           if (document.documentElement.getAttribute('data-service') === 'shopping') {
-            console.log('   📍 [Shopping] Resetting data-service attribute...');
             document.documentElement.removeAttribute('data-service');
           }
 
-          // 🆕 Router 상태 리셋
           resetRouter();
-
-          // Portal Shell 플래그 리셋 (다른 앱 영향 방지)
-          // Note: 다른 remote 앱이 아직 마운트되어 있을 수 있으므로 주석 처리
-          // delete (window as any).__POWERED_BY_PORTAL_SHELL__;
-
           console.log('✅ [Shopping] Cleanup completed');
         } catch (err) {
           console.error('❌ [Shopping] Cleanup failed:', err);

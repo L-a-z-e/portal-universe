@@ -60,9 +60,18 @@ declare module 'portal/stores' {
         nickname?: string;
         picture?: string;
       };
+      authority?: {
+        roles?: string[];
+        memberships?: Record<string, string>;
+      };
     } | null>;
     displayName: ComputedRef<string>;
     isAdmin: ComputedRef<boolean>;
+    isSeller: ComputedRef<boolean>;
+    hasRole: (role: string) => boolean;
+    hasAnyRole: (roles: string[]) => boolean;
+    isServiceAdmin: (service: string) => boolean;
+    getMembershipTier: (service: string) => string;
   };
 
   // Theme Store

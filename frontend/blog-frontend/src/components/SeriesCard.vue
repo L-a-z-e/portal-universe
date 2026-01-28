@@ -105,7 +105,7 @@ const handleClick = () => {
   width: 100%;
   height: 180px;
   overflow: hidden;
-  background-color: var(--color-bg-muted);
+  background-color: var(--semantic-bg-muted);
   flex-shrink: 0;
 }
 
@@ -155,7 +155,7 @@ const handleClick = () => {
 .series-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -168,7 +168,7 @@ const handleClick = () => {
 .series-description {
   font-size: 0.875rem;
   line-height: 1.6;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -184,9 +184,9 @@ const handleClick = () => {
   align-items: center;
   margin-top: auto;
   padding-top: 0.75rem;
-  border-top: 1px solid var(--color-border-muted);
+  border-top: 1px solid var(--semantic-border-muted);
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .meta-info {
@@ -200,12 +200,12 @@ const handleClick = () => {
 }
 
 .separator {
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .post-count {
   font-weight: 600;
-  color: var(--color-brand-primary, #20c997);
+  color: var(--semantic-brand-primary, #20c997);
 }
 
 .update-time {

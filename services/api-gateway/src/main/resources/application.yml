@@ -206,6 +206,71 @@ spring:
                     fallbackUri: forward:/fallback/auth
               order: 7
 
+            # ========== Auth Service - RBAC/Membership/Seller APIs ==========
+            # Admin API (RBAC, Membership, Seller 관리) - 인증 필요
+            - id: auth-service-admin
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/admin/rbac/**,/api/admin/memberships/**,/api/admin/seller/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 8
+
+            # Membership Self-Service API - 인증 필요
+            - id: auth-service-memberships
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/memberships/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 9
+
+            # Seller Self-Service API - 인증 필요
+            - id: auth-service-seller
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/seller/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 10
+
+            # Permission Resolution API - 인증 필요
+            - id: auth-service-permissions
+              uri: ${services.auth.url}
+              predicates:
+                - Path=/api/permissions/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: authCircuitBreaker
+                    fallbackUri: forward:/fallback/auth
+              order: 11
+
             # ========== Blog Service ==========
             - id: blog-service-file-route
               uri: ${services.blog.url}

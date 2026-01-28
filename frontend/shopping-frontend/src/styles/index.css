@@ -19,16 +19,16 @@
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-track {
-  background: var(--color-bg-subtle);
+  background: var(--semantic-bg-subtle);
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: var(--color-border-default);
+  background: var(--semantic-border-default);
   border-radius: 4px;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-strong);
+  background: var(--semantic-border-strong);
 }
 
 /* Shopping-specific overrides - Product cards */
@@ -38,7 +38,7 @@
 }
 
 [data-service="shopping"] .product-card:hover {
-  border-color: color-mix(in srgb, var(--color-brand-primary) 30%, transparent);
+  border-color: color-mix(in srgb, var(--semantic-brand-primary) 30%, transparent);
 }
 
 /* Shopping-specific overrides - Form inputs */
@@ -59,7 +59,7 @@
 [data-service="shopping"] input[type="number"]:focus,
 [data-service="shopping"] textarea:focus,
 [data-service="shopping"] select:focus {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-primary) 20%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--semantic-brand-primary) 20%, transparent);
 }
 
 /* Shopping-specific overrides - Buttons */
@@ -70,7 +70,7 @@
 }
 
 [data-service="shopping"] .btn-primary:hover:not(:disabled) {
-  background-color: color-mix(in srgb, var(--color-brand-primary) 90%, black);
+  background-color: color-mix(in srgb, var(--semantic-brand-primary) 90%, black);
 }
 
 [data-service="shopping"] .btn-secondary {

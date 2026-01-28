@@ -16,7 +16,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * JWT Access Token을 검증하고 SecurityContext에 인증 정보를 설정하는 필터입니다.
@@ -44,10 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // JWT 토큰 검증
                 Claims claims = tokenService.validateAccessToken(token);
                 String userId = claims.getSubject();
-                String roles = claims.get("roles", String.class);
 
-                // Authentication 객체 생성
-                List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roles));
+                // JWT v1/v2 dual format: roles 파싱
+                List<SimpleGrantedAuthority> authorities = parseAuthorities(claims);
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
@@ -77,6 +79,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return authorization.substring(7);
         }
         return null;
+    }
+
+    /**
+     * JWT claims에서 roles를 복수 Authority로 파싱합니다.
+     * v1 (String): "ROLE_USER" → [ROLE_USER]
+     * v2 (List): ["ROLE_USER", "ROLE_SELLER"] → 복수 Authority
+     */
+    @SuppressWarnings("unchecked")
+    private List<SimpleGrantedAuthority> parseAuthorities(Claims claims) {
+        Object rolesClaim = claims.get("roles");
+        if (rolesClaim instanceof String rolesStr) {
+            return List.of(new SimpleGrantedAuthority(rolesStr));
+        } else if (rolesClaim instanceof List<?> rolesArr) {
+            return ((List<Object>) rolesArr).stream()
+                    .map(Object::toString)
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     /**

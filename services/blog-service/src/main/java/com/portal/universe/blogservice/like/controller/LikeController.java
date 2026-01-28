@@ -5,6 +5,8 @@ import com.portal.universe.blogservice.like.dto.LikeToggleResponse;
 import com.portal.universe.blogservice.like.dto.LikerResponse;
 import com.portal.universe.blogservice.like.service.LikeService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
+import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,10 +37,9 @@ public class LikeController {
     @PostMapping("/like")
     public ApiResponse<LikeToggleResponse> toggleLike(
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @AuthenticationPrincipal String userId,
-            @RequestHeader(value = "X-User-Name", required = false) String userName
+            @CurrentUser GatewayUser user
     ) {
-        LikeToggleResponse response = likeService.toggleLike(postId, userId, userName);
+        LikeToggleResponse response = likeService.toggleLike(postId, user.uuid(), user.nickname());
         return ApiResponse.success(response);
     }
 

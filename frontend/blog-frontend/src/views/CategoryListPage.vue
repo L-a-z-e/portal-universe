@@ -369,12 +369,12 @@ onBeforeUnmount(() => {
 }
 
 .category-card:hover {
-  border-color: var(--color-brand-primary);
+  border-color: var(--semantic-brand-primary);
 }
 
 .category-card-active {
-  border-color: var(--color-brand-primary);
-  background-color: var(--color-bg-muted);
+  border-color: var(--semantic-brand-primary);
+  background-color: var(--semantic-bg-muted);
 }
 
 .category-card-content {
@@ -397,7 +397,7 @@ onBeforeUnmount(() => {
 .category-name {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0 0 0.25rem 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -406,13 +406,13 @@ onBeforeUnmount(() => {
 
 .category-count {
   font-size: 0.875rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin: 0;
 }
 
 .category-date {
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin: 0.25rem 0 0 0;
 }
 
@@ -428,16 +428,16 @@ onBeforeUnmount(() => {
 }
 
 .category-sidebar::-webkit-scrollbar-track {
-  background: var(--color-bg-muted);
+  background: var(--semantic-bg-muted);
   border-radius: 3px;
 }
 
 .category-sidebar::-webkit-scrollbar-thumb {
-  background: var(--color-border-default);
+  background: var(--semantic-border-default);
   border-radius: 3px;
 }
 
 .category-sidebar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-meta);
+  background: var(--semantic-text-meta);
 }
 </style>

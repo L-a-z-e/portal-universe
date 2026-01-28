@@ -233,6 +233,36 @@ Portal Shell에 사용자 설정 페이지 추가를 위한 아키텍처 설계�
 
 ---
 
+### ADR-011: 계층적 RBAC + 멤버십 기반 인증/인가 시스템
+**상태**: Proposed | **작성일**: 2026-01-28
+
+계층적 RBAC + Permission + Membership 통합 모델로 인증/인가 시스템을 전환합니다.
+
+**결정 요약**:
+- Role 계층: SUPER_ADMIN, BLOG_ADMIN, SHOPPING_ADMIN, SELLER, USER
+- Permission 모델: `{service}:{resource}:{action}` 형식
+- Membership 티어: FREE, BASIC, PREMIUM, VIP (서비스별)
+- JWT v2: roles 배열 + memberships 필드
+- Lean Token, Rich Resolution: JWT 작게, Redis 캐시 기반 해석
+
+**파일**: [ADR-011-hierarchical-rbac-membership-system.md](./ADR-011-hierarchical-rbac-membership-system.md)
+
+**영향 범위**:
+- `services/auth-service/` - Role/Permission/Membership 엔티티, API
+- `services/api-gateway/` - JWT v1/v2 dual format 지원
+- `services/common-library/.../security/` - PermissionResolver, 필터
+- `services/shopping-service/` - Seller 역할, 권한 체크
+- `services/blog-service/` - BLOG_ADMIN 역할
+- `frontend/` - authStore, usePermission, PermissionGuard
+
+**대안 검토**:
+- ❌ 기존 시스템 유지: 확장성 없음
+- ❌ ABAC만: 복잡도 과도함
+- 🟡 RBAC만: Permission 없어 세밀한 제어 불가
+- ✅ RBAC + Membership 하이브리드: 확장성 + 유연성 (채택)
+
+---
+
 ## ADR 관리 규칙
 
 ### 상태 정의
@@ -332,6 +362,7 @@ YYYY-MM-DD
 | ADR-007 | 1.0 | 2026-01-21 | 초기 작성 |
 | ADR-008 | 1.0 | 2026-01-21 | 초기 작성 |
 | ADR-009 | 1.0 | 2026-01-21 | 초기 작성 |
+| ADR-011 | 1.0 | 2026-01-28 | 초기 작성 |
 
 ---
 

@@ -163,14 +163,14 @@ onMounted(async () => {
 }
 
 .follow-button.following {
-  color: var(--color-brand-primary);
-  border-color: var(--color-brand-primary);
+  color: var(--semantic-brand-primary);
+  border-color: var(--semantic-brand-primary);
 }
 
 .follow-button.following:hover:not(:disabled) {
-  background: var(--color-status-error-bg);
-  border-color: var(--color-status-error);
-  color: var(--color-status-error);
+  background: var(--semantic-status-error-bg);
+  border-color: var(--semantic-status-error);
+  color: var(--semantic-status-error);
 }
 
 .follow-button.following:hover:not(:disabled) .button-text::after {
@@ -213,8 +213,8 @@ onMounted(async () => {
   top: calc(100% + 0.5rem);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--color-status-error-bg);
-  color: var(--color-status-error);
+  background: var(--semantic-status-error-bg);
+  color: var(--semantic-status-error);
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;

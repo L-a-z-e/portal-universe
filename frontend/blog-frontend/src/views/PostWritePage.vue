@@ -59,6 +59,7 @@ const form = ref<PostCreateRequest>({
 });
 
 const isLoading = ref(false);
+const isSubmitted = ref(false);
 const autoSaveTimer = ref<number | null>(null);
 
 // 시리즈 선택
@@ -140,6 +141,7 @@ async function handleSubmit(publish: boolean) {
       }
     }
 
+    isSubmitted.value = true;
     clearDraft();
     alert(publish ? '글이 발행되었습니다!' : '초안으로 저장되었습니다!');
     router.push(`/${newPost.id}`);
@@ -154,6 +156,9 @@ async function handleSubmit(publish: boolean) {
 // ==================== Lifecycle ====================
 
 onMounted(() => {
+  // 현재 테마 감지 (에디터 생성 전에 호출해야 올바른 테마로 초기화됨)
+  detectTheme();
+
   // Editor 인스턴스 생성 (Vue 3 방식)
   if (editorElement.value) {
     editorInstance = new Editor({
@@ -238,7 +243,9 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  saveDraft();
+  if (!isSubmitted.value) {
+    saveDraft();
+  }
 
   if (autoSaveTimer.value) {
     clearInterval(autoSaveTimer.value);

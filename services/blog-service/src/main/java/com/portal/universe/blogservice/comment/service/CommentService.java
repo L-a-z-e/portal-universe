@@ -6,6 +6,7 @@ import com.portal.universe.blogservice.comment.repository.CommentRepository;
 import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.commonlibrary.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getAuthorId().equals(authorId)) {
+        if (!comment.getAuthorId().equals(authorId)
+                && !SecurityUtils.isServiceAdmin("BLOG")) {
             throw new CustomBusinessException(BlogErrorCode.COMMENT_UPDATE_FORBIDDEN);
         }
 
@@ -71,7 +73,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getAuthorId().equals(authorId)) {
+        if (!comment.getAuthorId().equals(authorId)
+                && !SecurityUtils.isServiceAdmin("BLOG")) {
             throw new CustomBusinessException(BlogErrorCode.COMMENT_DELETE_FORBIDDEN);
         }
 

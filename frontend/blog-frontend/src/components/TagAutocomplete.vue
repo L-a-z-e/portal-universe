@@ -160,9 +160,9 @@ function handleBlur() {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-text-body);
-  background: var(--color-bg-muted);
-  border: 1px solid var(--color-border-default);
+  color: var(--semantic-text-body);
+  background: var(--semantic-bg-muted);
+  border: 1px solid var(--semantic-border-default);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -172,7 +172,7 @@ function handleBlur() {
 }
 
 .add-btn:hover:not(:disabled) {
-  background: var(--color-bg-hover);
+  background: var(--semantic-bg-hover);
 }
 
 .add-btn:disabled {
@@ -188,8 +188,8 @@ function handleBlur() {
   z-index: 50;
   max-height: 200px;
   overflow-y: auto;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border-default);
+  background: var(--semantic-bg-card);
+  border: 1px solid var(--semantic-border-default);
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-top: 0.25rem;
@@ -209,23 +209,23 @@ function handleBlur() {
 }
 
 .suggestion-item:hover {
-  background: var(--color-bg-hover);
+  background: var(--semantic-bg-hover);
 }
 
 .suggestion-name {
   font-weight: 500;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 .suggestion-count {
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .suggestion-loading {
   padding: 0.75rem;
   text-align: center;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   font-size: 0.875rem;
 }
 

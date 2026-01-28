@@ -4,6 +4,8 @@ import com.portal.universe.blogservice.post.dto.PostSummaryResponse;
 import com.portal.universe.blogservice.series.dto.*;
 import com.portal.universe.blogservice.series.service.SeriesService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
+import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,10 +28,9 @@ public class SeriesController {
     @PostMapping
     public ApiResponse<SeriesResponse> createSeries(
             @Valid @RequestBody SeriesCreateRequest request,
-            @AuthenticationPrincipal String authorId,
-            @RequestHeader(value = "X-User-Name", required = false) String authorName
+            @CurrentUser GatewayUser user
     ) {
-        SeriesResponse response = seriesService.createSeries(request, authorId, authorName);
+        SeriesResponse response = seriesService.createSeries(request, user.uuid(), user.nickname());
         return ApiResponse.success(response);
     }
 
