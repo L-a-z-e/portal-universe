@@ -136,6 +136,7 @@ public class JwtAuthenticationFilter implements WebFilter {
             Claims claims = validateToken(token);
             String userId = claims.getSubject();
             String nickname = claims.get("nickname", String.class);
+            String username = claims.get("username", String.class);
 
             // JWT v1/v2 dual format 지원: roles 파싱
             List<String> rolesList = parseRoles(claims);
@@ -160,6 +161,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                     .header("X-User-Roles", rolesHeader)
                     .header("X-User-Memberships", membershipsHeader)
                     .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
+                    .header("X-User-Name", username != null ? URLEncoder.encode(username, StandardCharsets.UTF_8) : "")
                     .build();
 
             ServerWebExchange mutatedExchange = exchange.mutate()
