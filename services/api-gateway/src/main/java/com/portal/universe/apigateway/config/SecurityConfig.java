@@ -1,6 +1,8 @@
 package com.portal.universe.apigateway.config;
 
 import com.portal.universe.apigateway.filter.JwtAuthenticationFilter;
+import com.portal.universe.apigateway.security.CustomAccessDeniedHandler;
+import com.portal.universe.apigateway.security.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +37,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtProperties jwtProperties;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -114,6 +118,11 @@ public class SecurityConfig {
                         // 쿠폰/타임딜 목록 조회도 공개
                         .pathMatchers("/api/shopping/coupons", "/api/shopping/time-deals").permitAll()
                         .pathMatchers("/api/shopping/time-deals/**").permitAll()
+
+                        // Prism Service - SSE, Health 공개 (EventSource는 Authorization 헤더 미지원)
+                        .pathMatchers("/api/prism/sse/**").permitAll()
+                        .pathMatchers("/api/prism/health", "/api/prism/ready").permitAll()
+
                         // Actuator Health Check (Status Page용)
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/api/*/actuator/**").permitAll()
@@ -153,6 +162,11 @@ public class SecurityConfig {
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                // 인증/인가 실패 시 커스텀 핸들러 사용 (WWW-Authenticate 헤더 방지)
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
                 .build();
     }
 }
