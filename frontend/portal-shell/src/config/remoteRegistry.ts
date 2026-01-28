@@ -37,6 +37,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       icon: '🛒',
       description: '쇼핑 서비스'
     },
+    {
+      name: 'Prism',
+      key: 'prism',
+      url: 'http://localhost:30003/assets/remoteEntry.js',
+      module: 'prism/bootstrap',
+      mountFn: 'mountPrismApp',
+      basePath: '/prism',
+      icon: '🤖',
+      description: 'AI 에이전트 오케스트레이션'
+    },
   ],
   docker: [
     {
@@ -59,6 +69,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       icon: '🛒',
       description: '쇼핑 서비스'
     },
+    {
+      name: 'Prism',
+      key: 'prism',
+      url: import.meta.env.VITE_PRISM_REMOTE_URL || 'http://localhost:30003/assets/remoteEntry.js',
+      module: 'prism/bootstrap',
+      mountFn: 'mountPrismApp',
+      basePath: '/prism',
+      icon: '🤖',
+      description: 'AI 에이전트 오케스트레이션'
+    },
   ],
   k8s: [
     {
@@ -80,6 +100,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       basePath: '/shopping',
       icon: '🛒',
       description: '쇼핑 서비스'
+    },
+    {
+      name: 'Prism',
+      key: 'prism',
+      url: import.meta.env.VITE_PRISM_REMOTE_URL,
+      module: 'prism/bootstrap',
+      mountFn: 'mountPrismApp',
+      basePath: '/prism',
+      icon: '🤖',
+      description: 'AI 에이전트 오케스트레이션'
     },
   ]
 };

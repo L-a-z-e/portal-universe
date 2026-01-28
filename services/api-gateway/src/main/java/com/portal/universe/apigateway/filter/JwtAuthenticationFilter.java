@@ -250,7 +250,11 @@ public class JwtAuthenticationFilter implements WebFilter {
                path.equals("/api/shopping/products") ||
                path.startsWith("/api/shopping/products/") ||
                path.equals("/api/shopping/categories") ||
-               path.startsWith("/api/shopping/categories/");
+               path.startsWith("/api/shopping/categories/") ||
+               // Prism 공개 경로
+               path.startsWith("/api/prism/health") ||
+               path.startsWith("/api/prism/ready") ||
+               path.startsWith("/api/prism/sse/");  // SSE는 EventSource가 Auth 헤더 미지원
         // Note: /coupons, /time-deals는 하위 경로에 인증 필요 엔드포인트가 있으므로
         // Gateway에서 public 처리하지 않고 shopping-service SecurityConfig에서 관리
     }

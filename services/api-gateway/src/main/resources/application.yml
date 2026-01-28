@@ -323,6 +323,41 @@ spring:
                     name: shoppingCircuitBreaker
                     fallbackUri: forward:/fallback/shopping
 
+            # ========== Prism Service (AI Orchestration) ==========
+            # Prism Service Health/Ready - public
+            - id: prism-service-health
+              uri: ${services.prism.url:http://localhost:8085}
+              predicates:
+                - Path=/api/prism/health,/api/prism/ready
+              filters:
+                - RewritePath=/api/prism/(?<segment>.*), /api/v1/${segment}
+              order: 0
+
+            # Prism Service SSE - long-lived connections (no rate limit)
+            - id: prism-service-sse
+              uri: ${services.prism.url:http://localhost:8085}
+              predicates:
+                - Path=/api/prism/sse/**
+              filters:
+                - RewritePath=/api/prism/(?<segment>.*), /api/v1/${segment}
+              order: 1
+
+            # Prism Service API - authenticated
+            - id: prism-service-route
+              uri: ${services.prism.url:http://localhost:8085}
+              predicates:
+                - Path=/api/prism/**
+              filters:
+                - RewritePath=/api/prism/(?<segment>.*), /api/v1/${segment}
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: prismCircuitBreaker
+                    fallbackUri: forward:/fallback/prism
+
 # Resilience4j Circuit Breaker 설정
 resilience4j:
   circuitbreaker:
@@ -342,6 +377,8 @@ resilience4j:
         base-config: default
       shoppingCircuitBreaker:
         base-config: default
+      prismCircuitBreaker:
+        base-config: default
 
   timelimiter:
     configs:
@@ -354,6 +391,9 @@ resilience4j:
         base-config: default
       shoppingCircuitBreaker:
         base-config: default
+      prismCircuitBreaker:
+        base-config: default
+        timeout-duration: 60s  # AI 응답 대기를 위해 타임아웃 늘림
 
 # JWT 설정 (Auth Service와 동일한 설정 사용, 다중 키 지원)
 jwt:

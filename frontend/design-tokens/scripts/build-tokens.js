@@ -193,7 +193,7 @@ function buildTokens() {
         }
 
         console.log('📖 Step 4: Reading theme tokens (with darkMode/lightMode support)...');
-        const themeFiles = ['portal', 'blog', 'shopping'];
+        const themeFiles = ['portal', 'blog', 'shopping', 'prism'];
 
         themeFiles.forEach(themeName => {
             const filePath = join(tokensDir, 'themes', `${themeName}.json`);

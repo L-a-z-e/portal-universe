@@ -180,4 +180,16 @@
         </root>
     </springProfile>
 
+    <!-- Default (no profile) - fallback to prevent no-logger error -->
+    <springProfile name="default">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_TEXT"/>
+        </root>
+    </springProfile>
+
+    <!-- Fallback root logger when no profile matches -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_TEXT"/>
+    </root>
+
 </configuration>

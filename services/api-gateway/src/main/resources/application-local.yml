@@ -24,6 +24,8 @@ services:
     url: "http://localhost:8083"
   notification:
     url: "http://localhost:8084"
+  prism:
+    url: "http://localhost:8085"
 
 # Feign Client 설정
 feign:
