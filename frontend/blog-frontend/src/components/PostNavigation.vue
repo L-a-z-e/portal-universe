@@ -147,14 +147,14 @@ onMounted(() => {
 .nav-error {
   text-align: center;
   padding: 2rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .loading-spinner {
   width: 2rem;
   height: 2rem;
-  border: 3px solid var(--color-border-muted);
-  border-top-color: var(--color-brand-primary);
+  border: 3px solid var(--semantic-border-muted);
+  border-top-color: var(--semantic-brand-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 1rem;
@@ -167,7 +167,7 @@ onMounted(() => {
 }
 
 .nav-error {
-  color: var(--color-status-error);
+  color: var(--semantic-status-error);
 }
 
 /* Navigation Container */
@@ -192,7 +192,7 @@ onMounted(() => {
 .nav-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: var(--color-brand-primary);
+  border-color: var(--semantic-brand-primary);
 }
 
 .nav-content {
@@ -206,7 +206,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--color-brand-primary);
+  color: var(--semantic-brand-primary);
 }
 
 .prev-card .nav-header {
@@ -245,7 +245,7 @@ onMounted(() => {
   object-fit: cover;
   border-radius: 0.5rem;
   flex-shrink: 0;
-  background: var(--color-bg-muted);
+  background: var(--semantic-bg-muted);
 }
 
 .nav-info {
@@ -260,7 +260,7 @@ onMounted(() => {
 .nav-title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0 0 0.25rem 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -272,7 +272,7 @@ onMounted(() => {
 
 .nav-date {
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin: 0;
 }
 

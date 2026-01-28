@@ -42,7 +42,7 @@ const showLikersModal = ref(false);
 
 // JWT에서 현재 사용자 UUID 추출
 function getCurrentUserUuid(): string | null {
-  const token = window.__PORTAL_ACCESS_TOKEN__;
+  const token = (window as any).__PORTAL_ACCESS_TOKEN__;
   if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -172,8 +172,9 @@ async function loadPost() {
       // 시리즈 정보 조회
       try {
         const seriesList = await getSeriesByPostId(postId);
-        if (seriesList && seriesList.length > 0) {
-          seriesId.value = seriesList[0].id;
+        const firstSeries = seriesList?.[0];
+        if (firstSeries) {
+          seriesId.value = firstSeries.id;
         }
       } catch (seriesErr) {
         console.warn('Failed to load series info:', seriesErr);
@@ -435,7 +436,7 @@ function handleLikeChanged(liked: boolean, count: number) {
 :deep(.toastui-editor-contents) {
   font-size: 1.0625rem; /* 17px */
   line-height: 1.75;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 /* 제목 스타일 */
@@ -445,7 +446,7 @@ function handleLikeChanged(liked: boolean, count: number) {
 :deep(.toastui-editor-contents h4),
 :deep(.toastui-editor-contents h5),
 :deep(.toastui-editor-contents h6) {
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   font-weight: 600;
   margin-top: 2rem;
   margin-bottom: 1rem;
@@ -454,13 +455,13 @@ function handleLikeChanged(liked: boolean, count: number) {
 
 :deep(.toastui-editor-contents h1) {
   font-size: 2rem;
-  border-bottom: 2px solid var(--color-border-default);
+  border-bottom: 2px solid var(--semantic-border-default);
   padding-bottom: 0.5rem;
 }
 
 :deep(.toastui-editor-contents h2) {
   font-size: 1.75rem;
-  border-bottom: 1px solid var(--color-border-muted);
+  border-bottom: 1px solid var(--semantic-border-muted);
   padding-bottom: 0.5rem;
 }
 
@@ -475,27 +476,27 @@ function handleLikeChanged(liked: boolean, count: number) {
 /* 문단 */
 :deep(.toastui-editor-contents p) {
   margin-bottom: 1.25rem;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 /* 링크 */
 :deep(.toastui-editor-contents a) {
-  color: var(--color-text-link);
+  color: var(--semantic-text-link);
   text-decoration: underline;
-  text-decoration-color: var(--color-text-link);
+  text-decoration-color: var(--semantic-text-link);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 
 :deep(.toastui-editor-contents a:hover) {
-  color: var(--color-text-link-hover);
-  text-decoration-color: var(--color-text-link-hover);
+  color: var(--semantic-text-link-hover);
+  text-decoration-color: var(--semantic-text-link-hover);
 }
 
 /* 코드 블록 */
 :deep(.toastui-editor-contents pre) {
-  background: var(--color-bg-muted);
-  border: 1px solid var(--color-border-default);
+  background: var(--semantic-bg-muted);
+  border: 1px solid var(--semantic-border-default);
   border-radius: 0.5rem;
   padding: 1rem;
   overflow-x: auto;
@@ -503,8 +504,8 @@ function handleLikeChanged(liked: boolean, count: number) {
 }
 
 :deep(.toastui-editor-contents code) {
-  background: var(--color-bg-muted);
-  color: var(--color-brand-primary);
+  background: var(--semantic-bg-muted);
+  color: var(--semantic-brand-primary);
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -519,10 +520,10 @@ function handleLikeChanged(liked: boolean, count: number) {
 
 /* 인용구 */
 :deep(.toastui-editor-contents blockquote) {
-  border-left: 4px solid var(--color-brand-primary);
+  border-left: 4px solid var(--semantic-brand-primary);
   padding-left: 1rem;
   margin: 1.5rem 0;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   font-style: italic;
 }
 
@@ -539,11 +540,11 @@ function handleLikeChanged(liked: boolean, count: number) {
 
 :deep(.toastui-editor-contents li) {
   margin-bottom: 0.5rem;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 :deep(.toastui-editor-contents li::marker) {
-  color: var(--color-brand-primary);
+  color: var(--semantic-brand-primary);
 }
 
 /* 테이블 */
@@ -557,26 +558,26 @@ function handleLikeChanged(liked: boolean, count: number) {
 
 :deep(.toastui-editor-contents th),
 :deep(.toastui-editor-contents td) {
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--semantic-border-default);
   padding: 0.75rem;
   text-align: left;
 }
 
 :deep(.toastui-editor-contents th) {
-  background: var(--color-bg-muted);
+  background: var(--semantic-bg-muted);
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 :deep(.toastui-editor-contents td) {
-  background: var(--color-bg-card);
-  color: var(--color-text-body);
+  background: var(--semantic-bg-card);
+  color: var(--semantic-text-body);
 }
 
 /* 구분선 */
 :deep(.toastui-editor-contents hr) {
   border: none;
-  border-top: 2px solid var(--color-border-default);
+  border-top: 2px solid var(--semantic-border-default);
   margin: 2rem 0;
 }
 
@@ -604,7 +605,7 @@ function handleLikeChanged(liked: boolean, count: number) {
 
 /* 다크모드 컨테이너 */
 .toastui-editor-dark :deep(.toastui-editor-contents) {
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 /* 다크모드 제목 */
@@ -614,88 +615,88 @@ function handleLikeChanged(liked: boolean, count: number) {
 .toastui-editor-dark :deep(.toastui-editor-contents h4),
 .toastui-editor-dark :deep(.toastui-editor-contents h5),
 .toastui-editor-dark :deep(.toastui-editor-contents h6) {
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents h1) {
-  border-bottom-color: var(--color-border-default);
+  border-bottom-color: var(--semantic-border-default);
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents h2) {
-  border-bottom-color: var(--color-border-muted);
+  border-bottom-color: var(--semantic-border-muted);
 }
 
 /* 다크모드 문단 */
 .toastui-editor-dark :deep(.toastui-editor-contents p) {
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 /* 다크모드 링크 */
 .toastui-editor-dark :deep(.toastui-editor-contents a) {
-  color: var(--color-text-link);
+  color: var(--semantic-text-link);
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents a:hover) {
-  color: var(--color-text-link-hover);
+  color: var(--semantic-text-link-hover);
 }
 
 /* 다크모드 코드 블록 */
 .toastui-editor-dark :deep(.toastui-editor-contents pre) {
-  background: var(--color-bg-elevated);
-  border-color: var(--color-border-default);
+  background: var(--semantic-bg-elevated);
+  border-color: var(--semantic-border-default);
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents code) {
-  background: var(--color-bg-muted);
-  color: var(--color-brand-primary);
+  background: var(--semantic-bg-muted);
+  color: var(--semantic-brand-primary);
 }
 
 /* 다크모드 인용구 */
 .toastui-editor-dark :deep(.toastui-editor-contents blockquote) {
-  border-left-color: var(--color-brand-primary);
-  color: var(--color-text-meta);
+  border-left-color: var(--semantic-brand-primary);
+  color: var(--semantic-text-meta);
 }
 
 /* 다크모드 리스트 */
 .toastui-editor-dark :deep(.toastui-editor-contents li) {
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents li::marker) {
-  color: var(--color-brand-primary);
+  color: var(--semantic-brand-primary);
 }
 
 /* 다크모드 테이블 */
 .toastui-editor-dark :deep(.toastui-editor-contents th),
 .toastui-editor-dark :deep(.toastui-editor-contents td) {
-  border-color: var(--color-border-default);
+  border-color: var(--semantic-border-default);
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents th) {
-  background: var(--color-bg-muted);
-  color: var(--color-text-heading);
+  background: var(--semantic-bg-muted);
+  color: var(--semantic-text-heading);
 }
 
 .toastui-editor-dark :deep(.toastui-editor-contents td) {
-  background: var(--color-bg-card);
-  color: var(--color-text-body);
+  background: var(--semantic-bg-card);
+  color: var(--semantic-text-body);
 }
 
 /* 다크모드 구분선 */
 .toastui-editor-dark :deep(.toastui-editor-contents hr) {
-  border-top-color: var(--color-border-default);
+  border-top-color: var(--semantic-border-default);
 }
 
 /* 다크모드 강조 텍스트 */
 .toastui-editor-dark :deep(.toastui-editor-contents strong),
 .toastui-editor-dark :deep(.toastui-editor-contents b) {
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 /* 다크모드 기울임 텍스트 */
 .toastui-editor-dark :deep(.toastui-editor-contents em),
 .toastui-editor-dark :deep(.toastui-editor-contents i) {
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 /* ============================================
@@ -703,8 +704,8 @@ function handleLikeChanged(liked: boolean, count: number) {
    ============================================ */
 .like-section {
   padding: 2rem 0;
-  border-top: 1px solid var(--color-border-default);
-  border-bottom: 1px solid var(--color-border-default);
+  border-top: 1px solid var(--semantic-border-default);
+  border-bottom: 1px solid var(--semantic-border-default);
 }
 
 .like-container {
@@ -717,7 +718,7 @@ function handleLikeChanged(liked: boolean, count: number) {
 .like-message {
   font-size: 1rem;
   font-weight: 500;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0;
   text-align: center;
 }

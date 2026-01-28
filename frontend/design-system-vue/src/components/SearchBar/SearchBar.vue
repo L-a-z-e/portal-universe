@@ -138,27 +138,27 @@ function handleClear() {
   padding: 0.625rem 2.75rem 0.625rem 2.75rem;
   font-size: 0.9375rem;
   line-height: 1.5;
-  color: var(--color-text-body);
-  background-color: var(--color-bg-card);
-  border: 1px solid var(--color-border-default);
+  color: var(--semantic-text-body);
+  background-color: var(--semantic-bg-card);
+  border: 1px solid var(--semantic-border-default);
   border-radius: 0.5rem;
   transition: all 0.2s ease;
 }
 
 .search-bar__input:focus {
   outline: none;
-  border-color: var(--color-brand-primary);
+  border-color: var(--semantic-brand-primary);
   box-shadow: 0 0 0 3px rgba(18, 184, 134, 0.1);
 }
 
 .search-bar__input:disabled {
-  background-color: var(--color-bg-muted);
+  background-color: var(--semantic-bg-muted);
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .search-bar__input::placeholder {
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 /* 아이콘 공통 */
@@ -166,7 +166,7 @@ function handleClear() {
   position: absolute;
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   pointer-events: none;
 }
 
@@ -186,13 +186,13 @@ function handleClear() {
   padding: 0;
   background: none;
   border: none;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .search-bar__clear:hover {
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
 }
 
 .search-bar__clear svg {
@@ -212,8 +212,8 @@ function handleClear() {
 .spinner {
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid var(--color-border-default);
-  border-top-color: var(--color-brand-primary);
+  border: 2px solid var(--semantic-border-default);
+  border-top-color: var(--semantic-brand-primary);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }

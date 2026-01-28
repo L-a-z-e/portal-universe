@@ -156,7 +156,7 @@ const handleClick = () => {
   width: 100%;
   height: 200px;
   overflow: hidden;
-  background-color: var(--color-bg-muted);
+  background-color: var(--semantic-bg-muted);
   flex-shrink: 0;
 }
 
@@ -184,7 +184,7 @@ const handleClick = () => {
 .post-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -197,7 +197,7 @@ const handleClick = () => {
 .post-summary {
   font-size: 0.875rem;
   line-height: 1.6;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -213,7 +213,7 @@ const handleClick = () => {
   gap: 0.75rem;
   margin-top: auto;
   padding-top: 0.75rem;
-  border-top: 1px solid var(--color-border-muted);
+  border-top: 1px solid var(--semantic-border-muted);
 }
 
 /* 태그 영역 */
@@ -236,7 +236,7 @@ const handleClick = () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   min-width: 0;
   flex: 1;
 }
@@ -249,7 +249,7 @@ const handleClick = () => {
 }
 
 .separator {
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .relative-time {
@@ -268,7 +268,7 @@ const handleClick = () => {
   align-items: center;
   gap: 0.25rem;
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .stat-icon {

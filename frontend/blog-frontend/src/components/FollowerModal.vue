@@ -190,7 +190,7 @@ watch(() => props.type, () => {
   justify-content: center;
   padding: 3rem;
   text-align: center;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .empty-icon {
@@ -215,7 +215,7 @@ watch(() => props.type, () => {
 }
 
 .user-item:hover {
-  background: var(--color-surface-alt);
+  background: var(--semantic-surface-alt);
 }
 
 .user-info {
@@ -235,7 +235,7 @@ watch(() => props.type, () => {
 
 .nickname {
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -243,12 +243,12 @@ watch(() => props.type, () => {
 
 .username {
   font-size: 0.875rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .bio {
   font-size: 0.8125rem;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -395,7 +395,7 @@ onMounted(() => fetchSeries())
 .series-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0;
 }
 
@@ -421,13 +421,13 @@ onMounted(() => fetchSeries())
 .empty-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0 0 0.5rem;
 }
 
 .empty-desc {
   font-size: 0.875rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin: 0 0 1.5rem;
 }
 
@@ -454,7 +454,7 @@ onMounted(() => fetchSeries())
 .card-name {
   font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0 0 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -463,7 +463,7 @@ onMounted(() => fetchSeries())
 
 .card-desc {
   font-size: 0.875rem;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   margin: 0 0 0.75rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -475,7 +475,7 @@ onMounted(() => fetchSeries())
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .post-count {
@@ -486,17 +486,17 @@ onMounted(() => fetchSeries())
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  border-top: 1px solid var(--color-border-default);
-  background: var(--color-bg-muted);
+  border-top: 1px solid var(--semantic-border-default);
+  background: var(--semantic-bg-muted);
 }
 
 .delete-btn {
-  color: var(--color-status-error) !important;
-  border-color: var(--color-status-error) !important;
+  color: var(--semantic-status-error) !important;
+  border-color: var(--semantic-status-error) !important;
 }
 
 .delete-btn:hover {
-  background: var(--color-status-error-bg) !important;
+  background: var(--semantic-status-error-bg) !important;
 }
 
 .modal-form {
@@ -510,7 +510,7 @@ onMounted(() => fetchSeries())
 }
 
 .form-error {
-  color: var(--color-status-error);
+  color: var(--semantic-status-error);
   font-size: 0.875rem;
   margin: 0;
 }
@@ -523,12 +523,12 @@ onMounted(() => fetchSeries())
 }
 
 .delete-message {
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   margin: 0 0 0.5rem;
 }
 
 .delete-note {
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   font-size: 0.875rem;
   margin: 0;
 }
@@ -547,7 +547,7 @@ onMounted(() => fetchSeries())
 }
 
 .posts-section {
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--semantic-border-default);
   border-radius: 0.5rem;
   overflow: hidden;
 }
@@ -555,17 +555,17 @@ onMounted(() => fetchSeries())
 .section-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   padding: 0.75rem 1rem;
-  background: var(--color-bg-muted);
-  border-bottom: 1px solid var(--color-border-default);
+  background: var(--semantic-bg-muted);
+  border-bottom: 1px solid var(--semantic-border-default);
   margin: 0;
 }
 
 .section-empty {
   padding: 1.5rem 1rem;
   text-align: center;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   font-size: 0.875rem;
 }
 
@@ -579,7 +579,7 @@ onMounted(() => fetchSeries())
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--color-border-muted);
+  border-bottom: 1px solid var(--semantic-border-muted);
 }
 
 .post-item:last-child {
@@ -590,7 +590,7 @@ onMounted(() => fetchSeries())
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
-  background: var(--color-brand-primary);
+  background: var(--semantic-brand-primary);
   color: white;
   display: flex;
   align-items: center;
@@ -610,7 +610,7 @@ onMounted(() => fetchSeries())
 
 .post-title {
   font-size: 0.875rem;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -618,16 +618,16 @@ onMounted(() => fetchSeries())
 
 .post-date {
   font-size: 0.75rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .remove-btn {
-  color: var(--color-status-error) !important;
-  border-color: var(--color-status-error) !important;
+  color: var(--semantic-status-error) !important;
+  border-color: var(--semantic-status-error) !important;
   flex-shrink: 0;
 }
 
 .remove-btn:hover {
-  background: var(--color-status-error-bg) !important;
+  background: var(--semantic-status-error-bg) !important;
 }
 </style>

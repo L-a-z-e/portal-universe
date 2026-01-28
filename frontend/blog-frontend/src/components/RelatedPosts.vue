@@ -85,7 +85,7 @@ onMounted(() => {
   width: 100%;
   margin-top: 3rem;
   padding-top: 3rem;
-  border-top: 2px solid var(--color-border-default);
+  border-top: 2px solid var(--semantic-border-default);
 }
 
 /* Section Header */
@@ -97,13 +97,13 @@ onMounted(() => {
 .section-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0 0 0.5rem 0;
 }
 
 .section-description {
   font-size: 0.9375rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin: 0;
 }
 
@@ -134,14 +134,14 @@ onMounted(() => {
 .loading-container {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .loading-spinner {
   width: 2.5rem;
   height: 2.5rem;
-  border: 3px solid var(--color-border-muted);
-  border-top-color: var(--color-brand-primary);
+  border: 3px solid var(--semantic-border-muted);
+  border-top-color: var(--semantic-brand-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 1rem;
@@ -161,7 +161,7 @@ onMounted(() => {
 .error-container {
   text-align: center;
   padding: 2rem 1rem;
-  color: var(--color-status-error);
+  color: var(--semantic-status-error);
 }
 
 /* 반응형 - 타블릿 */

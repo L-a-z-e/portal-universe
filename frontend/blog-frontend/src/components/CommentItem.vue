@@ -239,7 +239,7 @@ const handleReplyCancel = () => {
 
 /* 호버 효과 */
 .comment-content:hover {
-  background-color: var(--color-bg-muted);
+  background-color: var(--semantic-bg-muted);
 }
 
 /* 버튼 호버 효과 */

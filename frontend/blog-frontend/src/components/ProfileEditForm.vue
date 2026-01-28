@@ -223,7 +223,7 @@ const handleCancel = () => {
 .form-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin-bottom: 1.5rem;
 }
 
@@ -242,13 +242,13 @@ const handleCancel = () => {
 .field-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 .field-hint {
   font-size: 0.75rem;
   font-weight: 400;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin-left: 0.5rem;
 }
 
@@ -258,15 +258,15 @@ const handleCancel = () => {
 }
 
 .field-message.loading {
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .field-message.success {
-  color: var(--color-success);
+  color: var(--semantic-success);
 }
 
 .field-message.error {
-  color: var(--color-error);
+  color: var(--semantic-error);
 }
 
 .form-actions {

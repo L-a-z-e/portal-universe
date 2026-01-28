@@ -189,14 +189,14 @@ onMounted(() => {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--semantic-border-default);
 }
 
 .tab {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 500;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -205,12 +205,12 @@ onMounted(() => {
 }
 
 .tab:hover:not(:disabled) {
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 .tab.active {
-  color: var(--color-brand-primary);
-  border-bottom-color: var(--color-brand-primary);
+  color: var(--semantic-brand-primary);
+  border-bottom-color: var(--semantic-brand-primary);
 }
 
 .tab:disabled {
@@ -240,6 +240,6 @@ onMounted(() => {
 
 .empty-message {
   font-size: 1rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 </style>

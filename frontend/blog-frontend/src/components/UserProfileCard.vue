@@ -163,7 +163,7 @@ function openFollowingModal() {
 }
 
 .profile-avatar {
-  border: 3px solid var(--color-border-default);
+  border: 3px solid var(--semantic-border-default);
 }
 
 .info-section {
@@ -184,7 +184,7 @@ function openFollowingModal() {
 .user-name {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0;
 }
 
@@ -209,29 +209,29 @@ function openFollowingModal() {
 }
 
 .stat-button:hover {
-  background: var(--color-surface-alt);
+  background: var(--semantic-surface-alt);
 }
 
 .stat-count {
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 .stat-label {
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   font-size: 0.875rem;
 }
 
 .username {
   font-size: 1rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin: 0;
 }
 
 .bio {
   font-size: 0.9375rem;
   line-height: 1.6;
-  color: var(--color-text-body);
+  color: var(--semantic-text-body);
   margin: 0;
   white-space: pre-wrap;
 }
@@ -241,7 +241,7 @@ function openFollowingModal() {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--color-brand-primary);
+  color: var(--semantic-brand-primary);
   text-decoration: none;
   transition: color 0.2s;
   width: fit-content;
@@ -249,7 +249,7 @@ function openFollowingModal() {
 }
 
 .website-link:hover {
-  color: var(--color-brand-primary-hover);
+  color: var(--semantic-brand-primary-hover);
   text-decoration: underline;
 }
 
@@ -265,7 +265,7 @@ function openFollowingModal() {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin-top: 0.5rem;
 }
 

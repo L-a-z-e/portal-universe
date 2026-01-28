@@ -144,7 +144,7 @@ watch(() => props.isOpen, (isOpen) => {
   justify-content: center;
   padding: 3rem;
   text-align: center;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .empty-icon {
@@ -169,7 +169,7 @@ watch(() => props.isOpen, (isOpen) => {
 }
 
 .user-item:hover {
-  background: var(--color-surface-alt);
+  background: var(--semantic-surface-alt);
 }
 
 .user-info {
@@ -186,12 +186,12 @@ watch(() => props.isOpen, (isOpen) => {
 
 .username {
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 .liked-at {
   font-size: 0.8125rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .load-more {

@@ -211,7 +211,7 @@ onMounted(() => {
 .section-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin-bottom: 1.5rem;
 }
 
@@ -247,13 +247,13 @@ onMounted(() => {
 .empty-icon {
   width: 4rem;
   height: 4rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin-bottom: 1rem;
 }
 
 .empty-message {
   font-size: 1rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 /* 로딩 (더 보기) */

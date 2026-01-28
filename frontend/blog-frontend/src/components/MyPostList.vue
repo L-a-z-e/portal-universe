@@ -254,14 +254,14 @@ onMounted(() => {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--semantic-border-default);
 }
 
 .filter-tab {
   padding: 0.75rem 1rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -270,12 +270,12 @@ onMounted(() => {
 }
 
 .filter-tab:hover {
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
 }
 
 .filter-tab.active {
-  color: var(--color-brand-primary);
-  border-bottom-color: var(--color-brand-primary);
+  color: var(--semantic-brand-primary);
+  border-bottom-color: var(--semantic-brand-primary);
 }
 
 /* 로딩 */
@@ -294,9 +294,9 @@ onMounted(() => {
 
 .post-item {
   padding: 1.25rem;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--semantic-border-default);
   border-radius: 0.5rem;
-  background: var(--color-bg-card);
+  background: var(--semantic-bg-card);
   transition: box-shadow 0.2s;
 }
 
@@ -315,7 +315,7 @@ onMounted(() => {
 .post-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--color-text-heading);
+  color: var(--semantic-text-heading);
   margin: 0;
   flex: 1;
 }
@@ -325,12 +325,12 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin-bottom: 1rem;
 }
 
 .meta-separator {
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
 }
 
 .post-actions {
@@ -359,13 +359,13 @@ onMounted(() => {
 .empty-icon {
   width: 4rem;
   height: 4rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin-bottom: 1rem;
 }
 
 .empty-message {
   font-size: 1rem;
-  color: var(--color-text-meta);
+  color: var(--semantic-text-meta);
   margin-bottom: 1.5rem;
 }
 </style>
