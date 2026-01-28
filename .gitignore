@@ -48,6 +48,7 @@ storybook-static
 
 # Local TLS certificates
 certs/
+certs
 
 # Claude Code
 .claude/

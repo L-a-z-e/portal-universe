@@ -51,12 +51,68 @@ safe_symlink() {
 
 echo "Creating symlinks..."
 
-# Symlink gitignored files/folders
-safe_symlink "$MAIN_REPO/.claude" ".claude"
-safe_symlink "$MAIN_REPO/certs" "certs"
-safe_symlink "$MAIN_REPO/.env" ".env"
-safe_symlink "$MAIN_REPO/.env.local" ".env.local"
-safe_symlink "$MAIN_REPO/.env.docker" ".env.docker"
-safe_symlink "$MAIN_REPO/.mcp.json" ".mcp.json"
+# Symlink 대상 목록 (gitignored files/folders)
+SYMLINK_TARGETS=(
+    ".claude"
+    "certs"
+    ".env"
+    ".env.local"
+    ".env.docker"
+    ".mcp.json"
+)
 
+for target in "${SYMLINK_TARGETS[@]}"; do
+    safe_symlink "$MAIN_REPO/$target" "$target"
+done
+
+# Worktree의 common git dir에 exclude 패턴 추가
+# Git worktree는 info/exclude를 common git dir에서 읽음 (worktree-specific dir 아님)
+# .gitignore의 trailing slash 패턴(예: certs/)은 디렉토리만 매칭하고
+# symlink는 매칭하지 않으므로 info/exclude로 보완
+GIT_COMMON_DIR=$(git rev-parse --git-common-dir)
+EXCLUDE_FILE="$GIT_COMMON_DIR/info/exclude"
+mkdir -p "$GIT_COMMON_DIR/info"
+
+# 기존 exclude 파일에 중복 없이 패턴 추가
+add_exclude_pattern() {
+    local pattern=$1
+    if ! grep -qxF "$pattern" "$EXCLUDE_FILE" 2>/dev/null; then
+        echo "$pattern" >> "$EXCLUDE_FILE"
+        echo "  - Added '$pattern' to info/exclude"
+    fi
+}
+
+# 헤더 추가 (최초 1회)
+if ! grep -q "setup-worktree.sh" "$EXCLUDE_FILE" 2>/dev/null; then
+    echo "" >> "$EXCLUDE_FILE"
+    echo "# Added by setup-worktree.sh - symlink 보호 패턴" >> "$EXCLUDE_FILE"
+fi
+
+for target in "${SYMLINK_TARGETS[@]}"; do
+    add_exclude_pattern "$target"
+done
+
+# 검증: symlink가 git에 의해 무시되는지 확인
+echo ""
+echo "Verifying symlinks are properly ignored..."
+LEAKED=""
+for target in "${SYMLINK_TARGETS[@]}"; do
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        STATUS=$(git status --porcelain "$target" 2>/dev/null)
+        if [ -n "$STATUS" ]; then
+            LEAKED="$LEAKED  ⚠ $target is NOT ignored by git\n"
+        fi
+    fi
+done
+
+if [ -n "$LEAKED" ]; then
+    echo -e "\n⚠ WARNING: 다음 symlink가 git에 의해 무시되지 않습니다:"
+    echo -e "$LEAKED"
+    echo "수동으로 확인해주세요."
+    exit 1
+else
+    echo "  ✓ All symlinks are properly ignored by git"
+fi
+
+echo ""
 echo "✓ Worktree 설정 완료: $WORKTREE_PATH ($BRANCH)"
