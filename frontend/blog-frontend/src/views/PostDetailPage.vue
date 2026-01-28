@@ -190,6 +190,20 @@ async function loadPost() {
   }
 }
 
+// Route param 변경 감지 (같은 컴포넌트가 재사용될 때 데이터 리로드)
+watch(
+  () => route.params.postId,
+  (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      seriesId.value = null;
+      likeCount.value = 0;
+      isLiked.value = false;
+      loadPost();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+);
+
 onMounted(async () => {
   console.log('📍 [MOUNTED] PostDetailPage mounted');
 

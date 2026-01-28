@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Card } from '@portal/design-system-vue';
 import { getPostNavigation } from '@/api/posts';
@@ -42,6 +42,11 @@ function navigateToPost(postId: string) {
 function getThumbnail(url?: string) {
   return url || DEFAULT_THUMBNAILS.write;
 }
+
+// postId prop 변경 감지 (부모에서 새 postId가 전달될 때 리로드)
+watch(() => props.postId, () => {
+  loadNavigation();
+});
 
 onMounted(() => {
   loadNavigation();
