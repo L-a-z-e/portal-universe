@@ -134,7 +134,25 @@ public enum AuthErrorCode implements ErrorCode {
     /**
      * 비밀번호에 연속된 문자를 사용할 수 없습니다.
      */
-    PASSWORD_CONTAINS_SEQUENTIAL(HttpStatus.BAD_REQUEST, "A026", "Password cannot contain sequential characters");
+    PASSWORD_CONTAINS_SEQUENTIAL(HttpStatus.BAD_REQUEST, "A026", "Password cannot contain sequential characters"),
+
+    // RBAC
+    ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "A030", "Role not found"),
+    ROLE_ALREADY_ASSIGNED(HttpStatus.CONFLICT, "A031", "Role already assigned to user"),
+    ROLE_NOT_ASSIGNED(HttpStatus.NOT_FOUND, "A032", "Role not assigned to user"),
+    SYSTEM_ROLE_CANNOT_BE_MODIFIED(HttpStatus.BAD_REQUEST, "A033", "System role cannot be modified or deleted"),
+    PERMISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "A034", "Permission not found"),
+
+    // Membership
+    MEMBERSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "A035", "Membership not found"),
+    MEMBERSHIP_TIER_NOT_FOUND(HttpStatus.NOT_FOUND, "A036", "Membership tier not found"),
+    MEMBERSHIP_ALREADY_EXISTS(HttpStatus.CONFLICT, "A037", "Membership already exists for this service"),
+    MEMBERSHIP_EXPIRED(HttpStatus.FORBIDDEN, "A038", "Membership has expired"),
+
+    // Seller
+    SELLER_APPLICATION_ALREADY_PENDING(HttpStatus.CONFLICT, "A040", "Seller application already pending"),
+    SELLER_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "A041", "Seller application not found"),
+    SELLER_APPLICATION_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "A042", "Seller application has already been processed");
 
     private final HttpStatus status;
     private final String code;
