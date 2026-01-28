@@ -10,6 +10,7 @@ import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById, deletePost } from "../api/posts";
+import { getSeriesByPostId } from "../api/series";
 import {Button, Tag, Avatar, Card, Modal} from "@portal/design-system-vue";
 import type { PostResponse } from "@/dto/post.ts";
 import LikeButton from "@/components/LikeButton.vue";
@@ -156,8 +157,15 @@ async function loadPost() {
       // 좋아요 정보 설정
       likeCount.value = post.value.likeCount || 0;
 
-      // 시리즈 정보 설정 (필요한 경우)
-      // seriesId.value = post.value.seriesId;
+      // 시리즈 정보 조회
+      try {
+        const seriesList = await getSeriesByPostId(postId);
+        if (seriesList && seriesList.length > 0) {
+          seriesId.value = seriesList[0].id;
+        }
+      } catch (seriesErr) {
+        console.warn('Failed to load series info:', seriesErr);
+      }
     }
 
   } catch (err) {

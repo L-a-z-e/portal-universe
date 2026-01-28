@@ -9,7 +9,9 @@ import Prism from 'prismjs';
 import { Button, Card, Input } from '@portal/design-system-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
+import { getMySeries, getSeriesByPostId, addPostToSeries, removePostFromSeries } from '../api/series';
 import type { PostUpdateRequest } from '@/dto/post';
+import type { SeriesListResponse } from '@/dto/series';
 import TagAutocomplete from '@/components/TagAutocomplete.vue';
 
 // CSS 임포트
@@ -62,6 +64,11 @@ const error = ref<string | null>(null);
 const isLoading = ref(true);
 const titleError = ref('');
 const postData = ref<any>(null);
+
+// 시리즈 선택
+const mySeriesList = ref<SeriesListResponse[]>([]);
+const selectedSeriesId = ref<string>('');
+const originalSeriesId = ref<string>('');
 
 // Editor 초기화 함수
 function initEditor(content: string) {
@@ -160,6 +167,21 @@ onMounted(async () => {
 
     postData.value = post;
 
+    // 시리즈 정보 로드
+    try {
+      const [seriesList, currentSeries] = await Promise.all([
+        getMySeries(),
+        getSeriesByPostId(props.postId)
+      ]);
+      mySeriesList.value = seriesList;
+      if (currentSeries && currentSeries.length > 0) {
+        selectedSeriesId.value = currentSeries[0].id;
+        originalSeriesId.value = currentSeries[0].id;
+      }
+    } catch {
+      // 시리즈 로드 실패는 무시
+    }
+
   } catch (err) {
     console.error('Failed to fetch post for editing:', err);
     error.value = 'Failed to load post data. Please try again.';
@@ -226,6 +248,23 @@ async function handleSubmit() {
     };
 
     const updatedPost = await updatePost(props.postId, payload);
+
+    // 시리즈 변경 처리
+    if (selectedSeriesId.value !== originalSeriesId.value) {
+      try {
+        // 기존 시리즈에서 제거
+        if (originalSeriesId.value) {
+          await removePostFromSeries(originalSeriesId.value, props.postId);
+        }
+        // 새 시리즈에 추가
+        if (selectedSeriesId.value) {
+          await addPostToSeries(selectedSeriesId.value, props.postId);
+        }
+      } catch (seriesErr) {
+        console.error('Failed to update series:', seriesErr);
+      }
+    }
+
     alert('게시글이 수정되었습니다!');
     await router.push(`/${updatedPost.id}`);
 
@@ -318,6 +357,21 @@ onBeforeUnmount(() => {
             @update:model-value="tags = $event"
           />
         </div>
+      </div>
+
+      <!-- 시리즈 선택 -->
+      <div v-if="mySeriesList.length > 0">
+        <label class="block text-sm font-medium text-text-body mb-1">시리즈</label>
+        <select
+          v-model="selectedSeriesId"
+          :disabled="isSubmitting"
+          class="w-full px-4 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+        >
+          <option value="">시리즈 없음</option>
+          <option v-for="s in mySeriesList" :key="s.id" :value="s.id">
+            {{ s.name }} ({{ s.postCount }}개)
+          </option>
+        </select>
       </div>
 
       <!-- Toast UI Editor -->

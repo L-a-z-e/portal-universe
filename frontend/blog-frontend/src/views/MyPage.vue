@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { Button, Spinner, Alert, Card } from '@portal/design-system-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import ProfileEditForm from '@/components/ProfileEditForm.vue';
@@ -8,12 +9,16 @@ import MySeriesList from '@/components/MySeriesList.vue';
 import type { UserProfileResponse } from '@/dto/user';
 import { getMyProfile } from '@/api/users';
 
+const route = useRoute();
+
 // 상태
 const user = ref<UserProfileResponse | null>(null);
 const loading = ref(false);
 const error = ref('');
 const isEditMode = ref(false);
-const activeTab = ref<'posts' | 'series'>('posts');
+const activeTab = ref<'posts' | 'series'>(
+  route.query.tab === 'series' ? 'series' : 'posts'
+);
 
 // 프로필 조회
 const fetchProfile = async () => {

@@ -107,6 +107,12 @@ onActivated(() => {
               📄 Posts
             </router-link>
             <router-link
+                to="/my?tab=series"
+                class="text-text-body hover:text-brand-primary font-medium transition-colors"
+            >
+              📚 Series
+            </router-link>
+            <router-link
                 to="/write"
                 class="text-text-body hover:text-brand-primary font-medium transition-colors"
                 active-class="text-brand-primary font-bold"

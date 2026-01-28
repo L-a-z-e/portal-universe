@@ -11,7 +11,9 @@ import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { createPost } from '../api/posts';
 import { uploadFile } from '../api/files';
+import { getMySeries, addPostToSeries } from '../api/series';
 import type { PostCreateRequest } from '@/types';
+import type { SeriesListResponse } from '@/dto/series';
 import TagAutocomplete from '@/components/TagAutocomplete.vue';
 
 const router = useRouter();
@@ -58,6 +60,10 @@ const form = ref<PostCreateRequest>({
 
 const isLoading = ref(false);
 const autoSaveTimer = ref<number | null>(null);
+
+// 시리즈 선택
+const mySeriesList = ref<SeriesListResponse[]>([]);
+const selectedSeriesId = ref<string>('');
 
 // ==================== 임시 저장 ====================
 
@@ -124,6 +130,15 @@ async function handleSubmit(publish: boolean) {
     };
 
     const newPost = await createPost(payload);
+
+    // 선택된 시리즈가 있으면 포스트 추가
+    if (selectedSeriesId.value && newPost.id) {
+      try {
+        await addPostToSeries(selectedSeriesId.value, newPost.id);
+      } catch (seriesErr) {
+        console.error('Failed to add post to series:', seriesErr);
+      }
+    }
 
     clearDraft();
     alert(publish ? '글이 발행되었습니다!' : '초안으로 저장되었습니다!');
@@ -193,6 +208,11 @@ onMounted(() => {
     loadDraft();
     updateEditorTheme();
   }
+
+  // 시리즈 목록 로드
+  getMySeries().then(list => {
+    mySeriesList.value = list;
+  }).catch(() => {});
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -270,6 +290,20 @@ onBeforeUnmount(() => {
             @update:model-value="form.tags = $event"
           />
         </div>
+      </div>
+
+      <!-- 시리즈 선택 -->
+      <div v-if="mySeriesList.length > 0" class="series-select-wrapper">
+        <label class="block text-sm font-medium text-text-body mb-1">시리즈</label>
+        <select
+          v-model="selectedSeriesId"
+          class="w-full px-4 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+        >
+          <option value="">시리즈 없음</option>
+          <option v-for="s in mySeriesList" :key="s.id" :value="s.id">
+            {{ s.name }} ({{ s.postCount }}개)
+          </option>
+        </select>
       </div>
 
       <!-- Toast UI Editor (순수 JavaScript 방식) -->

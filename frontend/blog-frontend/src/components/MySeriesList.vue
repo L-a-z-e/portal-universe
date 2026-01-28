@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getMySeries, createSeries, updateSeries, deleteSeries } from '@/api/series'
+import { getMySeries, createSeries, updateSeries, deleteSeries, getSeriesPosts, addPostToSeries, removePostFromSeries } from '@/api/series'
+import { getMyPosts } from '@/api/posts'
 import type { SeriesListResponse, SeriesCreateRequest, SeriesUpdateRequest } from '@/dto/series'
+import type { PostSummaryResponse } from '@/dto/post'
 import { Button, Card, Input, Textarea, Modal } from '@portal/design-system-vue'
 
 const router = useRouter()
@@ -21,6 +23,15 @@ const formData = ref({
   thumbnailUrl: ''
 })
 const formError = ref('')
+
+// 포스트 관리 상태
+const showPostsModal = ref(false)
+const manageSeries = ref<SeriesListResponse | null>(null)
+const seriesPosts = ref<PostSummaryResponse[]>([])
+const myPosts = ref<PostSummaryResponse[]>([])
+const postsLoading = ref(false)
+const addingPostId = ref<string | null>(null)
+const removingPostId = ref<string | null>(null)
 
 const fetchSeries = async () => {
   loading.value = true
@@ -120,6 +131,72 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('ko-KR')
 }
 
+// 포스트 관리 모달 열기
+const openPostsModal = async (series: SeriesListResponse) => {
+  manageSeries.value = series
+  showPostsModal.value = true
+  postsLoading.value = true
+  try {
+    const [postsData, myPostsData] = await Promise.all([
+      getSeriesPosts(series.id),
+      getMyPosts('PUBLISHED', 0, 100)
+    ])
+    seriesPosts.value = postsData
+    myPosts.value = myPostsData.content
+  } catch (error) {
+    console.error('Failed to load posts:', error)
+  } finally {
+    postsLoading.value = false
+  }
+}
+
+const closePostsModal = () => {
+  showPostsModal.value = false
+  manageSeries.value = null
+  seriesPosts.value = []
+  myPosts.value = []
+}
+
+// 시리즈에 포함되지 않은 내 게시글 필터링
+const availablePosts = () => {
+  const seriesPostIds = new Set(seriesPosts.value.map(p => p.id))
+  return myPosts.value.filter(p => !seriesPostIds.has(p.id))
+}
+
+// 포스트를 시리즈에 추가
+const handleAddPost = async (postId: string) => {
+  if (!manageSeries.value) return
+  addingPostId.value = postId
+  try {
+    await addPostToSeries(manageSeries.value.id, postId)
+    // 목록 갱신
+    const addedPost = myPosts.value.find(p => p.id === postId)
+    if (addedPost) {
+      seriesPosts.value.push(addedPost)
+    }
+    await fetchSeries()
+  } catch (error) {
+    console.error('Failed to add post to series:', error)
+  } finally {
+    addingPostId.value = null
+  }
+}
+
+// 시리즈에서 포스트 제거
+const handleRemovePost = async (postId: string) => {
+  if (!manageSeries.value) return
+  removingPostId.value = postId
+  try {
+    await removePostFromSeries(manageSeries.value.id, postId)
+    seriesPosts.value = seriesPosts.value.filter(p => p.id !== postId)
+    await fetchSeries()
+  } catch (error) {
+    console.error('Failed to remove post from series:', error)
+  } finally {
+    removingPostId.value = null
+  }
+}
+
 onMounted(() => fetchSeries())
 </script>
 
@@ -164,6 +241,7 @@ onMounted(() => fetchSeries())
           </div>
         </div>
         <div class="card-actions">
+          <Button variant="outline" size="sm" @click.stop="openPostsModal(series)">게시글 관리</Button>
           <Button variant="outline" size="sm" @click.stop="openEditModal(series)">수정</Button>
           <Button variant="outline" size="sm" class="delete-btn" @click.stop="openDeleteConfirm(series)">삭제</Button>
         </div>
@@ -228,6 +306,75 @@ onMounted(() => fetchSeries())
         <Button variant="primary" class="bg-status-error hover:bg-red-700" @click="handleDelete" :disabled="isSubmitting">
           {{ isSubmitting ? '삭제 중...' : '삭제' }}
         </Button>
+      </div>
+    </Modal>
+
+    <!-- Posts Management Modal -->
+    <Modal
+      :model-value="showPostsModal"
+      :title="`게시글 관리 - ${manageSeries?.name || ''}`"
+      size="lg"
+      @update:model-value="showPostsModal = $event"
+      @close="closePostsModal"
+    >
+      <div v-if="postsLoading" class="posts-loading">
+        <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+
+      <div v-else class="posts-manage">
+        <!-- 현재 시리즈에 포함된 게시글 -->
+        <div class="posts-section">
+          <h4 class="section-title">시리즈에 포함된 게시글 ({{ seriesPosts.length }}개)</h4>
+          <div v-if="seriesPosts.length === 0" class="section-empty">
+            아직 게시글이 없습니다. 아래에서 추가해주세요.
+          </div>
+          <div v-else class="posts-list">
+            <div v-for="(post, index) in seriesPosts" :key="post.id" class="post-item">
+              <div class="post-order">{{ index + 1 }}</div>
+              <div class="post-info">
+                <span class="post-title">{{ post.title }}</span>
+                <span class="post-date">{{ formatDate(post.publishedAt) }}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                class="remove-btn"
+                :disabled="removingPostId === post.id"
+                @click="handleRemovePost(post.id)"
+              >
+                {{ removingPostId === post.id ? '제거 중...' : '제거' }}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 추가 가능한 게시글 -->
+        <div class="posts-section">
+          <h4 class="section-title">추가 가능한 게시글</h4>
+          <div v-if="availablePosts().length === 0" class="section-empty">
+            추가할 수 있는 게시글이 없습니다.
+          </div>
+          <div v-else class="posts-list">
+            <div v-for="post in availablePosts()" :key="post.id" class="post-item">
+              <div class="post-info">
+                <span class="post-title">{{ post.title }}</span>
+                <span class="post-date">{{ formatDate(post.publishedAt) }}</span>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                :disabled="addingPostId === post.id"
+                @click="handleAddPost(post.id)"
+              >
+                {{ addingPostId === post.id ? '추가 중...' : '추가' }}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <Button variant="secondary" @click="closePostsModal">닫기</Button>
       </div>
     </Modal>
   </div>
@@ -384,5 +531,103 @@ onMounted(() => fetchSeries())
   color: var(--color-text-meta);
   font-size: 0.875rem;
   margin: 0;
+}
+
+/* Posts Management Modal */
+.posts-loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.posts-manage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.posts-section {
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-muted);
+  border-bottom: 1px solid var(--color-border-default);
+  margin: 0;
+}
+
+.section-empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--color-text-meta);
+  font-size: 0.875rem;
+}
+
+.posts-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.post-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border-muted);
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-order {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--color-brand-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.post-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.post-title {
+  font-size: 0.875rem;
+  color: var(--color-text-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-date {
+  font-size: 0.75rem;
+  color: var(--color-text-meta);
+}
+
+.remove-btn {
+  color: var(--color-status-error) !important;
+  border-color: var(--color-status-error) !important;
+  flex-shrink: 0;
+}
+
+.remove-btn:hover {
+  background: var(--color-status-error-bg) !important;
 }
 </style>
