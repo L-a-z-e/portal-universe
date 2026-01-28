@@ -8,6 +8,8 @@ import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.post.service.PostService;
 import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
+import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,10 +34,9 @@ public class PostController {
     @PostMapping
     public ApiResponse<PostResponse> createPost(
             @Valid @RequestBody PostCreateRequest request,
-            @AuthenticationPrincipal String authorId,
-            @RequestHeader(value = "X-User-Nickname", required = false) String authorName
+            @CurrentUser GatewayUser user
     ) {
-        PostResponse response = postService.createPost(request, authorId, authorName);
+        PostResponse response = postService.createPost(request, user.uuid(), user.nickname());
         return ApiResponse.success(response);
     }
 

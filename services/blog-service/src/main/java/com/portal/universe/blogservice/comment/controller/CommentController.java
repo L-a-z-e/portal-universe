@@ -3,6 +3,8 @@ package com.portal.universe.blogservice.comment.controller;
 import com.portal.universe.blogservice.comment.dto.*;
 import com.portal.universe.blogservice.comment.service.CommentService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
+import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,10 +27,9 @@ public class CommentController {
     @PostMapping
     public ApiResponse<CommentResponse> createComment(
             @Valid @RequestBody CommentCreateRequest request,
-            @AuthenticationPrincipal String authorId,
-            @RequestHeader(value = "X-User-Nickname", required = false) String authorName
+            @CurrentUser GatewayUser user
     ) {
-        CommentResponse response = commentService.createComment(request, authorId, authorName);
+        CommentResponse response = commentService.createComment(request, user.uuid(), user.nickname());
         return ApiResponse.success(response);
     }
 
