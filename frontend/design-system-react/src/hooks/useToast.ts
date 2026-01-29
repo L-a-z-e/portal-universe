@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { ToastItem, StatusVariant } from '@portal/design-types';
 
 let toastIdCounter = 0;
@@ -6,23 +6,17 @@ let toastIdCounter = 0;
 /**
  * Global toast state (module-level singleton)
  * All useToast() instances share the same toast list.
+ *
+ * useState+useEffect 기반으로 구현하여 Module Federation 환경에서
+ * cross-React 인스턴스 문제(#321 에러)를 방지합니다.
  */
 let globalToasts: ToastItem[] = [];
 const listeners = new Set<() => void>();
-
-function getSnapshot(): ToastItem[] {
-  return globalToasts;
-}
 
 function emitChange() {
   for (const listener of listeners) {
     listener();
   }
-}
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
 }
 
 function addToastGlobal(toast: Omit<ToastItem, 'id'>): string {
@@ -61,7 +55,13 @@ export interface UseToastReturn {
 }
 
 export function useToast(): UseToastReturn {
-  const toasts = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const [toasts, setToasts] = useState<ToastItem[]>(globalToasts);
+
+  useEffect(() => {
+    const listener = () => setToasts([...globalToasts]);
+    listeners.add(listener);
+    return () => { listeners.delete(listener); };
+  }, []);
 
   const createToastMethod = useCallback(
     (variant: StatusVariant) =>
