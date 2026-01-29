@@ -7,6 +7,7 @@ import com.portal.universe.authservice.oauth2.domain.SocialAccount;
 import com.portal.universe.authservice.oauth2.domain.SocialProvider;
 import com.portal.universe.authservice.oauth2.repository.SocialAccountRepository;
 import com.portal.universe.authservice.user.repository.UserRepository;
+import com.portal.universe.authservice.auth.service.RbacInitializationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -30,6 +31,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
+    private final RbacInitializationService rbacInitializationService;
 
     @Override
     @Transactional
@@ -112,6 +114,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         SocialAccount socialAccount = new SocialAccount(user, provider, providerId);
         user.getSocialAccounts().add(socialAccount);
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // RBAC 초기화 (ROLE_USER + FREE 멤버십)
+        rbacInitializationService.initializeNewUser(savedUser.getUuid(), savedUser.getRole());
+
+        return savedUser;
     }
 }

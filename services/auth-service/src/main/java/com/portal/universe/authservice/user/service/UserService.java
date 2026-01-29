@@ -11,6 +11,7 @@ import com.portal.universe.authservice.password.ValidationResult;
 import com.portal.universe.authservice.password.domain.PasswordHistory;
 import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;
 import com.portal.universe.authservice.user.repository.UserRepository;
+import com.portal.universe.authservice.auth.service.RbacInitializationService;
 import com.portal.universe.common.event.UserSignedUpEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class UserService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final PasswordValidator passwordValidator;
     private final PasswordHistoryRepository passwordHistoryRepository;
+    private final RbacInitializationService rbacInitializationService;
 
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-z0-9_]{3,20}$");
 
@@ -79,7 +81,10 @@ public class UserService {
         // 7. 비밀번호 히스토리 저장
         savePasswordHistory(savedUser.getId(), encodedPassword);
 
-        // 8. 이벤트 발행
+        // 8. RBAC 초기화 (ROLE_USER + FREE 멤버십)
+        rbacInitializationService.initializeNewUser(savedUser.getUuid(), savedUser.getRole());
+
+        // 9. 이벤트 발행
         // 주의: 트랜잭션 커밋 후 발행하는 것이 안전함 (TransactionalEventListener 고려 가능)
         // 현재는 단순성을 위해 직접 발행
         UserSignedUpEvent event = new UserSignedUpEvent(
