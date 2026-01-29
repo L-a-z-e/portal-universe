@@ -119,7 +119,8 @@ export interface Execution {
 
 export type ExecutionStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
-// API Response
+// API Response (axios interceptor에서 성공/실패 모두 파싱하기 위해 union 형태 유지)
+// Canonical API types: @portal/design-types의 ApiResponse, ApiErrorResponse 참조
 export interface ApiResponse<T> {
   success: boolean;
   data: T | null;
