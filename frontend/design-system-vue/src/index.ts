@@ -7,6 +7,7 @@
 import './styles/index.css';
 import './styles/themes/blog.css';
 import './styles/themes/shopping.css';
+import './styles/themes/prism.css';
 
 // Export all components
 export * from './components';

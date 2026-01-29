@@ -21,14 +21,10 @@ services:
       - ./infrastructure/postgresql/init-prism.sql:/docker-entrypoint-initdb.d/init-prism.sql
     env_file:
       - .env.docker
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-prism}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-prism}
-      - POSTGRES_DB=${POSTGRES_DB:-prism}
     networks:
       - portal-universe-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U prism -d prism"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -191,7 +187,6 @@ services:
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
-    restart: unless-stopped
 
   grafana:
     image: grafana/grafana-oss:11.4.0
@@ -224,7 +219,6 @@ services:
     networks:
       - portal-universe-net
     command: -config.file=/etc/loki/local-config.yaml
-    restart: unless-stopped
 
   promtail:
     image: grafana/promtail:2.9.0
@@ -238,7 +232,6 @@ services:
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
-    restart: unless-stopped
 
   zipkin:
     image: openzipkin/zipkin:3.4.2

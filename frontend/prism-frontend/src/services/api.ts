@@ -14,16 +14,6 @@ import type {
   Execution,
 } from '@/types';
 
-// Window 타입 확장 (Portal Shell 연동)
-declare global {
-  interface Window {
-    __POWERED_BY_PORTAL_SHELL__?: boolean;
-    __PORTAL_ACCESS_TOKEN__?: string;
-    __PORTAL_API_CLIENT__?: AxiosInstance;
-    __PORTAL_ON_AUTH_ERROR__?: () => void;
-  }
-}
-
 // API Base URL 설정 (환경별)
 const getBaseUrl = (): string => {
   if (import.meta.env.VITE_API_BASE_URL) {
@@ -54,7 +44,7 @@ class ApiService {
         // 1. Portal Shell에서 주입된 토큰 우선 확인
         const portalToken = window.__PORTAL_ACCESS_TOKEN__;
         // 2. localStorage에서 토큰 확인 (standalone 모드)
-        const localToken = localStorage.getItem('accessToken');
+        const localToken = localStorage.getItem('access_token');
 
         const token = portalToken || localToken;
 
