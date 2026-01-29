@@ -50,7 +50,6 @@ function App({
   userRole = 'guest',
   initialPath = '/',
   onNavigate,
-  ...otherProps
 }: AppProps) {
   // ============================================
   // State 정의

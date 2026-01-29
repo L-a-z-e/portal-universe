@@ -228,17 +228,4 @@ export function mountPrismApp(
   }
 }
 
-// Standalone mode - auto mount if not in Module Federation context
-if (!(window as any).__FEDERATION__ && !(window as any).__POWERED_BY_PORTAL_SHELL__) {
-  const container = document.getElementById('root');
-  if (container) {
-    const root = ReactDOM.createRoot(container);
-    root.render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    );
-  }
-}
-
 export default { mountPrismApp };

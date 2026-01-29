@@ -9,8 +9,6 @@ import {
   createBrowserRouter,
   createMemoryRouter,
   RouterProvider,
-  Outlet,
-  Navigate,
   useLocation
 } from 'react-router-dom'
 
@@ -24,8 +22,8 @@ const AgentsPage = lazy(() => import('@/pages/AgentsPage'))
 const ProvidersPage = lazy(() => import('@/pages/ProvidersPage'))
 const AppLayout = lazy(() => import('@/components/Layout'))
 
-// Guards
-import { RequireAuth } from '@/components/guards/RequireAuth'
+// Guards (lazy loaded like Shopping pattern)
+const RequireAuth = lazy(() => import('@/components/guards/RequireAuth'))
 
 // Loading fallback component
 const PageLoader: React.FC = () => (
@@ -102,7 +100,13 @@ const routes = [
     children: [
       {
         index: true,
-        element: <Navigate to="/boards" replace />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <RequireAuth>
+              <BoardListPage />
+            </RequireAuth>
+          </Suspense>
+        )
       },
       {
         path: 'boards',
@@ -147,7 +151,13 @@ const routes = [
       {
         // Fallback for unknown routes
         path: '*',
-        element: <Navigate to="/boards" replace />
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <RequireAuth>
+              <BoardListPage />
+            </RequireAuth>
+          </Suspense>
+        )
       }
     ]
   }

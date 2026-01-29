@@ -42,7 +42,7 @@ const initialState = {
 
 export const useAuthStore = create<AuthState>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       ...initialState,
 
       /**
