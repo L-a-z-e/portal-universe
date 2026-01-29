@@ -2,9 +2,11 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { signup, type SignupRequest } from '@/api/users';
-import { Button, Card, Input } from '@portal/design-system-vue';
+import { Button, Card, Input, useToast, useApiError } from '@portal/design-system-vue';
 
 const router = useRouter();
+const toast = useToast();
+const { handleError } = useApiError();
 
 const form = ref<SignupRequest>({
   email: '',
@@ -49,11 +51,11 @@ const handleSignup = async () => {
   loading.value = true;
   try {
     await signup(form.value);
-    alert('회원가입이 완료되었습니다.');
-    router.push('/'); // 현재 홈에 로그인이 있으므로 홈으로 이동
-  } catch (err: any) {
-    console.error('Signup failed:', err);
-    errors.value.submit = err.response?.data?.message || '회원가입 중 오류가 발생했습니다.';
+    toast.success('회원가입이 완료되었습니다.');
+    router.push('/');
+  } catch (err: unknown) {
+    const { message } = handleError(err, '회원가입 중 오류가 발생했습니다.');
+    errors.value.submit = message;
   } finally {
     loading.value = false;
   }

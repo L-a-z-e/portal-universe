@@ -7,6 +7,7 @@ import { useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
 import QuickActions from "./components/QuickActions.vue";
 import LoginModal from "./components/LoginModal.vue";
+import { ToastContainer } from "@portal/design-system-vue";
 
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
@@ -113,6 +114,9 @@ watch(() => themeStore.isDark, (newVal) => {
 
     <!-- Global Login Modal (triggered by navigation guard) -->
     <LoginModal v-model="authStore.showLoginModal" />
+
+    <!-- Global Toast -->
+    <ToastContainer />
 
     <!-- Main Content Area -->
     <div

@@ -3,9 +3,12 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useAuthStore } from '../store/auth';
 import { useRouter } from 'vue-router';
 import { profileService, type ProfileResponse, type UpdateProfileRequest } from '../services/profileService';
+import { useToast, useApiError } from '@portal/design-system-vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const toast = useToast();
+const { handleError } = useApiError();
 
 // Redirect if not authenticated
 if (!authStore.isAuthenticated) {
@@ -148,10 +151,10 @@ const fetchProfile = async () => {
 
   try {
     serverProfile.value = await profileService.getProfile();
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to fetch profile:', err);
-    error.value = err.message || 'Failed to load profile';
-    // Fall back to JWT profile data
+    const { message } = handleError(err, '프로필을 불러오는 데 실패했습니다.');
+    error.value = message;
   } finally {
     loading.value = false;
   }
@@ -188,9 +191,10 @@ const saveProfile = async () => {
     const updated = await profileService.updateProfile(editForm.value);
     serverProfile.value = updated;
     isEditing.value = false;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to save profile:', err);
-    error.value = err.message || 'Failed to save profile';
+    const { message } = handleError(err, '프로필 저장에 실패했습니다.');
+    error.value = message;
   } finally {
     saveLoading.value = false;
   }
@@ -226,10 +230,11 @@ const changePassword = async () => {
   try {
     await profileService.changePassword(passwordForm.value);
     showPasswordModal.value = false;
-    alert('비밀번호가 변경되었습니다');
-  } catch (err: any) {
+    toast.success('비밀번호가 변경되었습니다.');
+  } catch (err: unknown) {
     console.error('Failed to change password:', err);
-    passwordError.value = err.message || '비밀번호 변경에 실패했습니다';
+    const { message } = handleError(err, '비밀번호 변경에 실패했습니다.');
+    passwordError.value = message;
   } finally {
     passwordLoading.value = false;
   }
@@ -258,11 +263,12 @@ const deleteAccount = async () => {
     authStore.setAuthenticated(false);
     authStore.setUser(null);
 
-    alert('회원 탈퇴가 완료되었습니다');
+    toast.success('회원 탈퇴가 완료되었습니다.');
     router.push('/');
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to delete account:', err);
-    deleteError.value = err.message || '회원 탈퇴에 실패했습니다';
+    const { message } = handleError(err, '회원 탈퇴에 실패했습니다.');
+    deleteError.value = message;
   } finally {
     deleteLoading.value = false;
   }
