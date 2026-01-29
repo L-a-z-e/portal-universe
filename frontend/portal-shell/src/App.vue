@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { useThemeStore } from "./store/theme.ts";
 import { useSettingsStore } from "./store/settings.ts";
+import { useAuthStore } from "./store/auth.ts";
 import { onMounted, onBeforeUnmount, watch, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
 import QuickActions from "./components/QuickActions.vue";
+import LoginModal from "./components/LoginModal.vue";
 
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
+const authStore = useAuthStore();
 const route = useRoute();
 
 // Quick Actions modal state
@@ -63,6 +66,10 @@ onMounted(() => {
   syncDataService();
   updateDataTheme();
 
+  // Expose login modal trigger for remote apps
+  (window as any).__PORTAL_SHOW_LOGIN__ = () => authStore.requestLogin();
+  (window as any).__PORTAL_ON_AUTH_ERROR__ = () => authStore.requestLogin();
+
   // Listen for localStorage changes (sidebar state)
   window.addEventListener('storage', updateSidebarState);
 
@@ -103,6 +110,9 @@ watch(() => themeStore.isDark, (newVal) => {
 
     <!-- Quick Actions Modal (Cmd+K) -->
     <QuickActions v-model="showQuickActions" />
+
+    <!-- Global Login Modal (triggered by navigation guard) -->
+    <LoginModal v-model="authStore.showLoginModal" />
 
     <!-- Main Content Area -->
     <div

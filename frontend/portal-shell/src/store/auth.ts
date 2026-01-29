@@ -9,6 +9,7 @@ export const useAuthStore = defineStore('auth', () => {
   // ==================== State ====================
   const user = ref<PortalUser | null>(null);
   const loading = ref(false);
+  const showLoginModal = ref(false);
 
   // ==================== Getters ====================
 
@@ -240,11 +241,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * Request login modal to be shown (used by navigation guard)
+   */
+  function requestLogin(): void {
+    showLoginModal.value = true;
+  }
+
   // ==================== Return ====================
   return {
     // State
     user,
     loading,
+    showLoginModal,
 
     // Getters
     isAuthenticated,
@@ -265,5 +274,6 @@ export const useAuthStore = defineStore('auth', () => {
     checkAuth,
     setAuthenticated,
     setUser,
+    requestLogin,
   };
 });
