@@ -49,12 +49,12 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     >
-      <div className={`bg-white rounded-xl shadow-xl w-full ${sizeClasses[size]} mx-4 animate-in fade-in zoom-in-95 duration-200`}>
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <div className={`bg-bg-card rounded-xl shadow-xl w-full ${sizeClasses[size]} mx-4 animate-in fade-in zoom-in-95 duration-200`}>
+        <div className="flex items-center justify-between p-4 border-b border-border-default">
+          <h2 className="text-lg font-semibold text-text-heading">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-1 text-text-muted hover:text-text-body rounded-lg hover:bg-bg-hover transition-colors"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

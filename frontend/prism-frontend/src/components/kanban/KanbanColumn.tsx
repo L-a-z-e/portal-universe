@@ -33,15 +33,15 @@ export function KanbanColumn({
   return (
     <div
       className={`
-        flex-shrink-0 w-72 bg-gray-50 rounded-lg
+        flex-shrink-0 w-72 bg-bg-subtle rounded-lg
         border-t-4 ${statusColors[column.id]}
-        ${isOver ? 'bg-gray-100' : ''}
+        ${isOver ? 'bg-bg-muted' : ''}
       `}
     >
-      <div className="p-3 border-b border-gray-200">
+      <div className="p-3 border-b border-border-default">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-700">{column.title}</h3>
-          <span className="text-sm text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+          <h3 className="font-semibold text-text-body">{column.title}</h3>
+          <span className="text-sm text-text-meta bg-bg-muted px-2 py-0.5 rounded-full">
             {column.tasks.length}
           </span>
         </div>
@@ -70,7 +70,7 @@ export function KanbanColumn({
         {column.id === 'TODO' && (
           <button
             onClick={onAddTask}
-            className="w-full mt-2 p-2 text-sm text-gray-500 border-2 border-dashed border-gray-300 rounded-lg hover:border-prism-400 hover:text-prism-600 transition-colors"
+            className="w-full mt-2 p-2 text-sm text-text-meta border-2 border-dashed border-border-default rounded-lg hover:border-prism-400 hover:text-prism-600 transition-colors"
           >
             + Add Task
           </button>

@@ -70,7 +70,7 @@ function ProvidersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">AI Providers</h1>
+        <h1 className="text-2xl font-bold text-text-heading">AI Providers</h1>
         <Button onClick={handleOpenModal}>
           <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -88,12 +88,12 @@ function ProvidersPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-prism-500" />
         </div>
       ) : providers.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="text-center py-12 bg-bg-subtle rounded-xl">
+          <svg className="mx-auto h-12 w-12 text-text-placeholder" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
           </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No providers yet</h3>
-          <p className="mt-2 text-gray-500">Add an AI provider to start using agents.</p>
+          <h3 className="mt-4 text-lg font-medium text-text-heading">No providers yet</h3>
+          <p className="mt-2 text-text-body">Add an AI provider to start using agents.</p>
           <Button className="mt-4" onClick={handleOpenModal}>
             Add Provider
           </Button>
@@ -103,23 +103,23 @@ function ProvidersPage() {
           {providers.map((provider) => (
             <div
               key={provider.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+              className="bg-bg-card rounded-xl shadow-sm border border-border-default p-5"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{getProviderIcon(provider.type)}</span>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{provider.name}</h3>
-                    <p className="text-sm text-gray-500">{provider.type}</p>
+                    <h3 className="font-semibold text-text-heading">{provider.name}</h3>
+                    <p className="text-sm text-text-meta">{provider.type}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${provider.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${provider.isActive ? 'bg-green-100 text-green-700' : 'bg-bg-muted text-text-meta'}`}>
                     {provider.isActive ? 'Active' : 'Inactive'}
                   </span>
                   <button
                     onClick={() => handleDelete(provider.id)}
-                    className="p-1 text-gray-400 hover:text-red-500 rounded-lg hover:bg-gray-100"
+                    className="p-1 text-text-muted hover:text-red-500 rounded-lg hover:bg-bg-hover"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -128,11 +128,11 @@ function ProvidersPage() {
                 </div>
               </div>
               {provider.baseUrl && (
-                <p className="mt-3 text-xs text-gray-400 truncate">
+                <p className="mt-3 text-xs text-text-muted truncate">
                   Base URL: {provider.baseUrl}
                 </p>
               )}
-              <div className="mt-3 text-xs text-gray-400">
+              <div className="mt-3 text-xs text-text-muted">
                 Added {new Date(provider.createdAt).toLocaleDateString()}
               </div>
             </div>
@@ -180,7 +180,7 @@ function ProvidersPage() {
             helperText="Leave empty to use default provider URL"
           />
 
-          <div className="flex justify-end gap-2 pt-4 border-t">
+          <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>

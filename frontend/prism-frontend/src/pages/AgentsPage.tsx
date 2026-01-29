@@ -84,7 +84,7 @@ function AgentsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">AI Agents</h1>
+        <h1 className="text-2xl font-bold text-text-heading">AI Agents</h1>
         <Button onClick={() => handleOpenModal()}>
           <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -102,12 +102,12 @@ function AgentsPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-prism-500" />
         </div>
       ) : agents.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="text-center py-12 bg-bg-subtle rounded-xl">
+          <svg className="mx-auto h-12 w-12 text-text-placeholder" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No agents yet</h3>
-          <p className="mt-2 text-gray-500">Create your first AI agent to automate tasks.</p>
+          <h3 className="mt-4 text-lg font-medium text-text-heading">No agents yet</h3>
+          <p className="mt-2 text-text-body">Create your first AI agent to automate tasks.</p>
           <Button className="mt-4" onClick={() => handleOpenModal()}>
             Create Agent
           </Button>
@@ -117,22 +117,22 @@ function AgentsPage() {
           {agents.map((agent) => (
             <div
               key={agent.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+              className="bg-bg-card rounded-xl shadow-sm border border-border-default p-5"
             >
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-gray-900">{agent.name}</h3>
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${agent.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <h3 className="font-semibold text-text-heading">{agent.name}</h3>
+                    <span className={`px-2 py-0.5 text-xs rounded-full ${agent.isActive ? 'bg-green-100 text-green-700' : 'bg-bg-muted text-text-meta'}`}>
                       {agent.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{agent.providerName} / {agent.model}</p>
+                  <p className="text-sm text-text-meta mt-1">{agent.providerName} / {agent.model}</p>
                 </div>
                 <div className="flex gap-1">
                   <button
                     onClick={() => handleOpenModal(agent)}
-                    className="p-2 text-gray-400 hover:text-prism-600 rounded-lg hover:bg-gray-100"
+                    className="p-2 text-text-muted hover:text-prism-600 rounded-lg hover:bg-bg-hover"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -140,7 +140,7 @@ function AgentsPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(agent.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-gray-100"
+                    className="p-2 text-text-muted hover:text-red-500 rounded-lg hover:bg-bg-hover"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -149,9 +149,9 @@ function AgentsPage() {
                 </div>
               </div>
               {agent.description && (
-                <p className="mt-3 text-sm text-gray-600">{agent.description}</p>
+                <p className="mt-3 text-sm text-text-body">{agent.description}</p>
               )}
-              <div className="mt-4 flex gap-4 text-xs text-gray-500">
+              <div className="mt-4 flex gap-4 text-xs text-text-meta">
                 <span>Temp: {agent.temperature}</span>
                 <span>Max Tokens: {agent.maxTokens}</span>
               </div>
@@ -228,7 +228,7 @@ function AgentsPage() {
             required
           />
 
-          <div className="flex justify-end gap-2 pt-4 border-t">
+          <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>

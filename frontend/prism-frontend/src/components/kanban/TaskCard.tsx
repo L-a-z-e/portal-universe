@@ -59,13 +59,13 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
       {...attributes}
       {...listeners}
       className={`
-        bg-white rounded-lg shadow-sm border border-gray-200 p-3
+        bg-bg-card rounded-lg shadow-sm border border-border-default p-3
         hover:shadow-md transition-shadow cursor-grab
         ${isDragging ? 'shadow-lg' : ''}
       `}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <h4 className="font-medium text-gray-900 text-sm line-clamp-2">
+        <h4 className="font-medium text-text-heading text-sm line-clamp-2">
           {task.title}
         </h4>
         <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${priorityColors[task.priority]}`}>
@@ -74,7 +74,7 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
       </div>
 
       {task.description && (
-        <p className="text-xs text-gray-500 mb-2 line-clamp-2">
+        <p className="text-xs text-text-meta mb-2 line-clamp-2">
           {task.description}
         </p>
       )}
@@ -85,7 +85,7 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
             {task.agentName}
           </span>
         ) : (
-          <span className="text-xs text-gray-400">No agent</span>
+          <span className="text-xs text-text-muted">No agent</span>
         )}
 
         <div className="flex gap-1 items-center">
@@ -109,7 +109,7 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
               )}
               <button
                 onClick={handleEdit}
-                className="text-xs px-2 py-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                className="text-xs px-2 py-1 text-text-meta hover:text-text-heading hover:bg-bg-hover rounded transition-colors"
               >
                 Edit
               </button>
@@ -119,7 +119,7 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
       </div>
 
       {task.dueDate && (
-        <div className="mt-2 text-xs text-gray-400">
+        <div className="mt-2 text-xs text-text-muted">
           Due: {new Date(task.dueDate).toLocaleDateString()}
         </div>
       )}
