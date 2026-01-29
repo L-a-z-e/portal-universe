@@ -16,6 +16,8 @@ export * from './components';
 export { useTheme } from './composables/useTheme';
 export { useToast } from './composables/useToast';
 export type { UseToast } from './composables/useToast';
+export { useApiError } from './composables/useApiError';
+export type { UseApiError, ApiErrorInfo } from './composables/useApiError';
 
 // Export types
 export type { ServiceType, ThemeMode, ThemeConfig } from './types/theme';

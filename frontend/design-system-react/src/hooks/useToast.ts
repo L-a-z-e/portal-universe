@@ -1,7 +1,53 @@
-import { useState, useCallback } from 'react';
+import { useSyncExternalStore, useCallback } from 'react';
 import type { ToastItem, StatusVariant } from '@portal/design-types';
 
 let toastIdCounter = 0;
+
+/**
+ * Global toast state (module-level singleton)
+ * All useToast() instances share the same toast list.
+ */
+let globalToasts: ToastItem[] = [];
+const listeners = new Set<() => void>();
+
+function getSnapshot(): ToastItem[] {
+  return globalToasts;
+}
+
+function emitChange() {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function addToastGlobal(toast: Omit<ToastItem, 'id'>): string {
+  const id = `toast-${++toastIdCounter}`;
+  const newToast: ToastItem = {
+    id,
+    variant: 'info',
+    duration: 5000,
+    dismissible: true,
+    ...toast,
+  };
+  globalToasts = [...globalToasts, newToast];
+  emitChange();
+  return id;
+}
+
+function removeToastGlobal(id: string) {
+  globalToasts = globalToasts.filter((toast) => toast.id !== id);
+  emitChange();
+}
+
+function clearToastsGlobal() {
+  globalToasts = [];
+  emitChange();
+}
 
 export interface UseToastReturn {
   toasts: ToastItem[];
@@ -15,35 +61,14 @@ export interface UseToastReturn {
 }
 
 export function useToast(): UseToastReturn {
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
-
-  const addToast = useCallback((toast: Omit<ToastItem, 'id'>): string => {
-    const id = `toast-${++toastIdCounter}`;
-    const newToast: ToastItem = {
-      id,
-      variant: 'info',
-      duration: 5000,
-      dismissible: true,
-      ...toast,
-    };
-    setToasts((prev) => [...prev, newToast]);
-    return id;
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
-
-  const clearToasts = useCallback(() => {
-    setToasts([]);
-  }, []);
+  const toasts = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const createToastMethod = useCallback(
     (variant: StatusVariant) =>
       (message: string, options?: Partial<Omit<ToastItem, 'id' | 'message' | 'variant'>>): string => {
-        return addToast({ message, variant, ...options });
+        return addToastGlobal({ message, variant, ...options });
       },
-    [addToast]
+    []
   );
 
   const success = useCallback(createToastMethod('success'), [createToastMethod]);
@@ -53,9 +78,9 @@ export function useToast(): UseToastReturn {
 
   return {
     toasts,
-    addToast,
-    removeToast,
-    clearToasts,
+    addToast: addToastGlobal,
+    removeToast: removeToastGlobal,
+    clearToasts: clearToastsGlobal,
     success,
     error,
     warning,
