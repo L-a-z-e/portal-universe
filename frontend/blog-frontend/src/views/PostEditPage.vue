@@ -6,7 +6,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
-import { Button, Card, Input } from '@portal/design-system-vue';
+import { Button, Card, Input, useToast, useApiError } from '@portal/design-system-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import { getMySeries, getSeriesByPostId, addPostToSeries, removePostFromSeries } from '../api/series';
@@ -23,6 +23,8 @@ const props = defineProps<{
 }>();
 
 const router = useRouter();
+const toast = useToast();
+const { handleError } = useApiError();
 
 // 다크모드 감지
 const isDarkMode = ref(false);
@@ -121,7 +123,7 @@ function initEditor(content: string) {
           console.log('✅ 이미지 업로드 성공:', response.url);
         } catch (error) {
           console.error('❌ 이미지 업로드 실패:', error);
-          alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
+          handleError(error, '이미지 업로드에 실패했습니다.');
         }
       }
     }
@@ -266,7 +268,7 @@ async function handleSubmit() {
       }
     }
 
-    alert('게시글이 수정되었습니다!');
+    toast.success('게시글이 수정되었습니다!');
     await router.push(`/${updatedPost.id}`);
 
   } catch (err) {

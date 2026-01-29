@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, onActivated } from 'vue';
 import { useRoute } from 'vue-router';
-import { Button } from '@portal/design-system-vue';
+import { Button, ToastContainer } from '@portal/design-system-vue';
 
 const route = useRoute();
 const isEmbedded = computed(() => window.__POWERED_BY_PORTAL_SHELL__ === true);
@@ -81,6 +81,7 @@ onActivated(() => {
   <!-- ✅ data-service="blog" 자동으로 설정됨 (JS에서) -->
   <!-- ✅ Semantic Classes 사용 (bg-bg-page) -->
   <div class="min-h-screen bg-bg-page">
+    <ToastContainer />
 
     <!-- Header (Standalone 모드에서만 표시) -->
     <header

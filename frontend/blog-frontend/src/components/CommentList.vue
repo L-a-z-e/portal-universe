@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Card } from '@portal/design-system-vue'
+import { Card, useApiError } from '@portal/design-system-vue'
 import type { CommentResponse } from '@/dto/comment'
 import {
   getCommentsByPostId,
@@ -17,6 +17,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { handleError } = useApiError()
 
 // 상태 관리
 const comments = ref<CommentResponse[]>([])
@@ -87,7 +88,7 @@ async function handleCreateComment(content: string) {
     comments.value.push(newComment)
   } catch (e) {
     console.error('댓글 작성 실패:', e)
-    alert('댓글 작성에 실패했습니다.')
+    handleError(e, '댓글 작성에 실패했습니다.')
   }
 }
 
@@ -104,7 +105,7 @@ async function handleReplySubmit(parentCommentId: string, content: string) {
     comments.value.push(newComment)
   } catch (e) {
     console.error('답글 작성 실패:', e)
-    alert('답글 작성에 실패했습니다.')
+    handleError(e, '답글 작성에 실패했습니다.')
   }
 }
 
@@ -119,7 +120,7 @@ async function handleEditComment(commentId: string, content: string) {
     }
   } catch (e) {
     console.error('댓글 수정 실패:', e)
-    alert('댓글 수정에 실패했습니다.')
+    handleError(e, '댓글 수정에 실패했습니다.')
   }
 }
 
@@ -136,7 +137,7 @@ async function handleDeleteComment(commentId: string) {
     }
   } catch (e) {
     console.error('댓글 삭제 실패:', e)
-    alert('댓글 삭제에 실패했습니다.')
+    handleError(e, '댓글 삭제에 실패했습니다.')
   }
 }
 

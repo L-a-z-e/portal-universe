@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Input, Card, Textarea } from '@portal/design-system-vue';
+import { Button, Input, Card, Textarea, useToast, useApiError } from '@portal/design-system-vue';
 import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
@@ -17,6 +17,8 @@ import type { SeriesListResponse } from '@/dto/series';
 import TagAutocomplete from '@/components/TagAutocomplete.vue';
 
 const router = useRouter();
+const toast = useToast();
+const { handleError } = useApiError();
 const isDarkMode = ref(false);
 
 function detectTheme() {
@@ -111,13 +113,13 @@ function clearDraft() {
 
 async function handleSubmit(publish: boolean) {
   if (!form.value.title.trim()) {
-    alert('제목을 입력해주세요.');
+    toast.warning('제목을 입력해주세요.');
     return;
   }
 
   const content = editorInstance?.getMarkdown() || '';
   if (!content.trim()) {
-    alert('내용을 입력해주세요.');
+    toast.warning('내용을 입력해주세요.');
     return;
   }
 
@@ -143,11 +145,11 @@ async function handleSubmit(publish: boolean) {
 
     isSubmitted.value = true;
     clearDraft();
-    alert(publish ? '글이 발행되었습니다!' : '초안으로 저장되었습니다!');
+    toast.success(publish ? '글이 발행되었습니다!' : '초안으로 저장되었습니다!');
     router.push(`/${newPost.id}`);
   } catch (err) {
     console.error('❌ 게시물 저장 실패:', err);
-    alert('게시물 저장에 실패했습니다. 다시 시도해주세요.');
+    handleError(err, '게시물 저장에 실패했습니다.');
   } finally {
     isLoading.value = false;
   }
@@ -202,8 +204,7 @@ onMounted(() => {
           } catch (error) {
             console.error('❌ 이미지 업로드 실패:', error);
 
-            // 사용자에게 에러 알림
-            alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
+            handleError(error, '이미지 업로드에 실패했습니다.');
 
           }
         }

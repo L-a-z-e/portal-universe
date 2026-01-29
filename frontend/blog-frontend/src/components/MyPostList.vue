@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Tag, Alert, Spinner } from '@portal/design-system-vue';
+import { Button, Tag, Alert, Spinner, useApiError } from '@portal/design-system-vue';
 import type { PostSummaryResponse, PostStatus } from '@/dto/post';
 import { getMyPosts, deletePost, changePostStatus } from '@/api/posts';
 
@@ -9,6 +9,7 @@ import { getMyPosts, deletePost, changePostStatus } from '@/api/posts';
 type FilterStatus = 'ALL' | PostStatus;
 
 const router = useRouter();
+const { handleError } = useApiError();
 
 // 상태
 const posts = ref<PostSummaryResponse[]>([]);
@@ -46,8 +47,9 @@ const fetchPosts = async (page: number = 0) => {
     currentPage.value = response.number;
     totalPages.value = response.totalPages;
     hasMore.value = !response.last;
-  } catch (err: any) {
-    error.value = err.response?.data?.message || '게시글을 불러오는데 실패했습니다.';
+  } catch (err: unknown) {
+    const { message } = handleError(err, '게시글을 불러오는데 실패했습니다.');
+    error.value = message;
   } finally {
     loading.value = false;
   }
@@ -79,8 +81,8 @@ const handleDelete = async (postId: string) => {
   try {
     await deletePost(postId);
     posts.value = posts.value.filter((p) => p.id !== postId);
-  } catch (err: any) {
-    alert(err.response?.data?.message || '게시글 삭제에 실패했습니다.');
+  } catch (err: unknown) {
+    handleError(err, '게시글 삭제에 실패했습니다.');
   }
 };
 
@@ -90,8 +92,8 @@ const handleStatusChange = async (postId: string, newStatus: PostStatus) => {
     await changePostStatus(postId, { status: newStatus });
     // 게시글 목록 새로고침
     fetchPosts(0);
-  } catch (err: any) {
-    alert(err.response?.data?.message || '상태 변경에 실패했습니다.');
+  } catch (err: unknown) {
+    handleError(err, '상태 변경에 실패했습니다.');
   }
 };
 

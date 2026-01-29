@@ -10,7 +10,7 @@ import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById, deletePost } from "../api/posts";
 import { getSeriesByPostId } from "../api/series";
-import {Button, Tag, Avatar, Card, Modal} from "@portal/design-system-vue";
+import {Button, Tag, Avatar, Card, Modal, useApiError} from "@portal/design-system-vue";
 import type { PostResponse } from "@/dto/post.ts";
 import LikeButton from "@/components/LikeButton.vue";
 import LikersModal from "@/components/LikersModal.vue";
@@ -21,6 +21,7 @@ import CommentList from "@/components/CommentList.vue";
 
 const route = useRoute();
 const router = useRouter();
+const { handleError } = useApiError();
 const post = ref<PostResponse | null>(null);
 
 const isLoading = ref(true);
@@ -264,7 +265,7 @@ async function handleDelete() {
     router.push('/');
   } catch (err) {
     console.error('Failed to delete post:', err);
-    alert('게시글 삭제에 실패했습니다.');
+    handleError(err, '게시글 삭제에 실패했습니다.');
   } finally {
     isDeleting.value = false;
   }
