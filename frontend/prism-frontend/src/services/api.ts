@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type { ErrorDetails } from '@portal/design-types';
 import type {
   ApiResponse,
   Provider,
@@ -13,6 +14,21 @@ import type {
   MoveTaskRequest,
   Execution,
 } from '@/types';
+
+/**
+ * API 에러 클래스 - 에러 코드 정보를 보존
+ */
+export class ApiError extends Error {
+  code: string | null;
+  errorDetails: ErrorDetails | null;
+
+  constructor(message: string, code?: string, errorDetails?: ErrorDetails) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = code ?? null;
+    this.errorDetails = errorDetails ?? null;
+  }
+}
 
 // API Base URL 설정 (환경별)
 const getBaseUrl = (): string => {
@@ -76,6 +92,17 @@ class ApiService {
           console.warn('[Prism API] Forbidden - insufficient permissions');
         }
 
+        // 에러 응답에서 errorDetails 추출하여 보존
+        const errorData = error.response?.data?.error;
+        if (errorData) {
+          const apiError = new ApiError(
+            errorData.message || error.message,
+            errorData.code,
+            errorData,
+          );
+          return Promise.reject(apiError);
+        }
+
         return Promise.reject(error);
       }
     );
@@ -93,7 +120,12 @@ class ApiService {
     });
 
     if (!response.data.success) {
-      throw new Error(response.data.error?.message || 'Request failed');
+      const errorData = response.data.error;
+      throw new ApiError(
+        errorData?.message || 'Request failed',
+        errorData?.code,
+        errorData ?? undefined,
+      );
     }
 
     return response.data.data as T;

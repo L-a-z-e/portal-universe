@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { PrismRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
 import { usePortalTheme } from '@/hooks/usePortalStore';
+import { ToastContainer, useToast } from '@portal/design-system-react';
 
 declare global {
   interface Window {
@@ -54,6 +55,9 @@ function App({
   // ============================================
   // State 정의
   // ============================================
+
+  /** Toast 상태 (글로벌) */
+  const { toasts, removeToast } = useToast();
 
   /** Portal Shell과의 연동 여부 */
   const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
@@ -139,6 +143,7 @@ function App({
 
   return (
     <div className="min-h-screen bg-bg-page">
+      <ToastContainer toasts={toasts} onDismiss={removeToast} />
       {/* Header (Standalone 모드에서만 표시) */}
       {!isEmbedded && (
         <header className="bg-bg-card border-b border-border-default sticky top-0 z-50">
