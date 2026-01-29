@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAdminTimeDeals, useCancelTimeDeal } from '@/hooks/useAdminTimeDeals'
 import { TIMEDEAL_STATUS_LABELS } from '@/types'
-import { Button, Card, Badge, Spinner } from '@portal/design-system-react'
+import { Button, Card, Badge, Spinner, useApiError, useToast } from '@portal/design-system-react'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -23,6 +23,8 @@ function formatPrice(price: number): string {
 }
 
 export function AdminTimeDealListPage() {
+  const { handleError } = useApiError()
+  const { success } = useToast()
   const [page, setPage] = useState(0)
   const { data, isLoading, error, refetch } = useAdminTimeDeals({ page, size: 10 })
   const { mutateAsync: cancelTimeDeal, isPending: isCancelling } = useCancelTimeDeal()
@@ -32,11 +34,10 @@ export function AdminTimeDealListPage() {
 
     try {
       await cancelTimeDeal(id)
-      alert('타임딜이 취소되었습니다.')
+      success('타임딜이 취소되었습니다.')
       refetch()
     } catch (err) {
-      const message = err instanceof Error ? err.message : '취소에 실패했습니다'
-      alert(message)
+      handleError(err, '취소에 실패했습니다.')
     }
   }
 

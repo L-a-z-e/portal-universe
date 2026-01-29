@@ -4,7 +4,7 @@
  */
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Spinner, Button } from '@portal/design-system-react'
+import { Spinner, Button, useApiError, useToast } from '@portal/design-system-react'
 import { useTimeDeal, usePurchaseTimeDeal, calculateStockPercentage } from '@/hooks/useTimeDeals'
 import { CountdownTimer } from '@/components/timedeal/CountdownTimer'
 import { TIMEDEAL_STATUS_LABELS } from '@/types'
@@ -18,6 +18,8 @@ export function TimeDealDetailPage() {
   const navigate = useNavigate()
   const timeDealId = id ? parseInt(id) : null
 
+  const { handleError } = useApiError()
+  const { success } = useToast()
   const { data: timeDeal, isLoading, error } = useTimeDeal(timeDealId)
   const { mutateAsync: purchaseTimeDeal, isPending: isPurchasing } = usePurchaseTimeDeal()
 
@@ -71,11 +73,10 @@ export function TimeDealDetailPage() {
 
     try {
       const order = await purchaseTimeDeal(timeDeal.id, quantity)
-      alert('구매가 완료되었습니다!')
+      success('구매가 완료되었습니다!')
       navigate(`/orders/${order.orderNumber}`)
     } catch (err) {
-      const message = err instanceof Error ? err.message : '구매에 실패했습니다'
-      alert(message)
+      handleError(err, '구매에 실패했습니다.')
     }
   }
 

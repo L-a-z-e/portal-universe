@@ -8,11 +8,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { orderApi, deliveryApi } from '@/api/endpoints'
 import type { Order, Delivery, OrderStatus, DeliveryStatus } from '@/types'
 import { ORDER_STATUS_LABELS, DELIVERY_STATUS_LABELS } from '@/types'
-import { Button, Spinner, Alert, Badge } from '@portal/design-system-react'
+import { Button, Spinner, Alert, Badge, useApiError } from '@portal/design-system-react'
 
 const OrderDetailPage: React.FC = () => {
   const { orderNumber } = useParams<{ orderNumber: string }>()
   const navigate = useNavigate()
+  const { handleError } = useApiError()
 
   // State
   const [order, setOrder] = useState<Order | null>(null)
@@ -42,11 +43,12 @@ const OrderDetailPage: React.FC = () => {
             console.warn('Failed to fetch delivery:', deliveryErr)
           }
         }
-      } catch (err: any) {
-        if (err.response?.status === 404) {
-          setError('Order not found')
+      } catch (err: unknown) {
+        const axiosErr = err as { response?: { status?: number; data?: { error?: { message?: string } } }; message?: string };
+        if (axiosErr.response?.status === 404) {
+          setError('주문을 찾을 수 없습니다.')
         } else {
-          setError(err.response?.data?.error?.message || err.message || 'Failed to fetch order')
+          setError(axiosErr.response?.data?.error?.message || axiosErr.message || '주문 정보를 불러오는 데 실패했습니다.')
         }
       } finally {
         setLoading(false)
@@ -105,8 +107,8 @@ const OrderDetailPage: React.FC = () => {
         reason: 'Cancelled by customer'
       })
       setOrder(response.data)
-    } catch (err: any) {
-      alert(err.response?.data?.error?.message || err.message || 'Failed to cancel order')
+    } catch (err: unknown) {
+      handleError(err, '주문 취소에 실패했습니다.')
     } finally {
       setCancelling(false)
     }

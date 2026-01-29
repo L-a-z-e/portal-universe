@@ -7,7 +7,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useCreateTimeDeal } from '@/hooks/useAdminTimeDeals'
 import { adminProductApi } from '@/api/endpoints'
 import type { TimeDealCreateRequest, Product } from '@/types'
-import { Button, Card, Input, Select, Spinner } from '@portal/design-system-react'
+import { Button, Card, Input, Select, Spinner, useApiError, useToast } from '@portal/design-system-react'
 import type { SelectOption } from '@portal/design-types'
 
 function formatPrice(price: number): string {
@@ -16,6 +16,8 @@ function formatPrice(price: number): string {
 
 export function AdminTimeDealFormPage() {
   const navigate = useNavigate()
+  const { handleError } = useApiError()
+  const { success } = useToast()
   const { mutateAsync: createTimeDeal, isPending } = useCreateTimeDeal()
 
   const [products, setProducts] = useState<Product[]>([])
@@ -125,11 +127,10 @@ export function AdminTimeDealFormPage() {
         startsAt: new Date(formData.startsAt).toISOString(),
         endsAt: new Date(formData.endsAt).toISOString()
       })
-      alert('타임딜이 생성되었습니다!')
+      success('타임딜이 생성되었습니다!')
       navigate('/admin/time-deals')
     } catch (err) {
-      const message = err instanceof Error ? err.message : '타임딜 생성에 실패했습니다'
-      alert(message)
+      handleError(err, '타임딜 생성에 실패했습니다.')
     }
   }
 

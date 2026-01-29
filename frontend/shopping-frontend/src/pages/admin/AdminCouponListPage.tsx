@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAdminCoupons, useDeactivateCoupon } from '@/hooks/useAdminCoupons'
 import { COUPON_STATUS_LABELS, DISCOUNT_TYPE_LABELS } from '@/types'
-import { Button, Card, Badge, Spinner } from '@portal/design-system-react'
+import { Button, Card, Badge, Spinner, useApiError, useToast } from '@portal/design-system-react'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -21,6 +21,8 @@ function formatPrice(price: number): string {
 }
 
 export function AdminCouponListPage() {
+  const { handleError } = useApiError()
+  const { success } = useToast()
   const [page, setPage] = useState(0)
   const { data, isLoading, error, refetch } = useAdminCoupons({ page, size: 10 })
   const { mutateAsync: deactivateCoupon, isPending: isDeactivating } = useDeactivateCoupon()
@@ -30,11 +32,10 @@ export function AdminCouponListPage() {
 
     try {
       await deactivateCoupon(id)
-      alert('쿠폰이 비활성화되었습니다.')
+      success('쿠폰이 비활성화되었습니다.')
       refetch()
     } catch (err) {
-      const message = err instanceof Error ? err.message : '비활성화에 실패했습니다'
-      alert(message)
+      handleError(err, '비활성화에 실패했습니다.')
     }
   }
 

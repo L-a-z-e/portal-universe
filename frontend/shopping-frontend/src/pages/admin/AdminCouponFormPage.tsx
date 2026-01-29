@@ -7,11 +7,13 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useCreateCoupon } from '@/hooks/useAdminCoupons'
 import type { DiscountType, CouponCreateRequest } from '@/types'
 import { DISCOUNT_TYPE_LABELS } from '@/types'
-import { Button, Card, Input, Textarea, Select } from '@portal/design-system-react'
+import { Button, Card, Input, Textarea, Select, useApiError, useToast } from '@portal/design-system-react'
 import type { SelectOption } from '@portal/design-types'
 
 export function AdminCouponFormPage() {
   const navigate = useNavigate()
+  const { handleError } = useApiError()
+  const { success } = useToast()
   const { mutateAsync: createCoupon, isPending } = useCreateCoupon()
 
   const [formData, setFormData] = useState<CouponCreateRequest>({
@@ -77,11 +79,10 @@ export function AdminCouponFormPage() {
         startsAt: new Date(formData.startsAt).toISOString(),
         expiresAt: new Date(formData.expiresAt).toISOString()
       })
-      alert('쿠폰이 생성되었습니다!')
+      success('쿠폰이 생성되었습니다!')
       navigate('/admin/coupons')
     } catch (err) {
-      const message = err instanceof Error ? err.message : '쿠폰 생성에 실패했습니다'
-      alert(message)
+      handleError(err, '쿠폰 생성에 실패했습니다.')
     }
   }
 

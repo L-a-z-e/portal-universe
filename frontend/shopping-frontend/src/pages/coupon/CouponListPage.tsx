@@ -3,13 +3,15 @@
  * 쿠폰 목록 페이지 - 발급 가능한 쿠폰 및 내 쿠폰 관리
  */
 import { useState } from 'react'
-import { Spinner, Badge } from '@portal/design-system-react'
+import { Spinner, Badge, useApiError, useToast } from '@portal/design-system-react'
 import { useAvailableCoupons, useUserCoupons, useIssueCoupon } from '@/hooks/useCoupons'
 import { CouponCard } from '@/components/coupon/CouponCard'
 
 type TabType = 'available' | 'my'
 
 export function CouponListPage() {
+  const { handleError } = useApiError()
+  const { success } = useToast()
   const [activeTab, setActiveTab] = useState<TabType>('available')
   const [issuingCouponId, setIssuingCouponId] = useState<number | null>(null)
 
@@ -23,10 +25,9 @@ export function CouponListPage() {
       await issueCoupon(couponId)
       // 발급 성공 후 목록 갱신
       await Promise.all([refetchAvailable(), refetchMy()])
-      alert('쿠폰이 발급되었습니다!')
+      success('쿠폰이 발급되었습니다!')
     } catch (error) {
-      const message = error instanceof Error ? error.message : '쿠폰 발급에 실패했습니다.'
-      alert(message)
+      handleError(error, '쿠폰 발급에 실패했습니다.')
     } finally {
       setIssuingCouponId(null)
     }
