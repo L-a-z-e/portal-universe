@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
         },
-        shared: ['react', 'react-dom', 'react-router-dom'],
+        shared: ['react', 'react-dom', 'react-dom/client'],
       }),
     ],
 
@@ -44,6 +44,10 @@ export default defineConfig(({ mode }) => {
         '@portal/design-system-react/styles': resolve(
           __dirname,
           '../design-system-react/src/styles/index.css'
+        ),
+        '@portal/design-system-react': resolve(
+          __dirname,
+          '../design-system-react/src/index.ts'
         ),
         '@': path.resolve(__dirname, './src'),
         '@components': path.resolve(__dirname, './src/components'),
