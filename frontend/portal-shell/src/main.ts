@@ -33,17 +33,20 @@ window.addEventListener('unhandledrejection', (event) => {
   event.preventDefault();
 });
 
-app.use(router);
 app.use(pinia);
-app.mount('#app');
 
-// ✅ Auth initialization (Direct JWT)
+// ✅ Auth initialization (반드시 router 등록 전에 완료)
 const authStore = useAuthStore();
-
-authStore.checkAuth()
+const authReady = authStore.checkAuth()
   .then(() => {
     console.log('✅ Auth check completed');
   })
   .catch(err => {
     console.error('⚠️ Auth initialization failed:', err);
   });
+
+// Auth 초기화 Promise를 전역으로 노출 (router guard에서 사용)
+(window as any).__AUTH_READY__ = authReady;
+
+app.use(router);
+app.mount('#app');

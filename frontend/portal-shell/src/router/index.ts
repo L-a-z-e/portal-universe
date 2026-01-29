@@ -120,8 +120,14 @@ const router = createRouter({
 });
 
 // Navigation Guard: 인증 및 권한 체크
-router.beforeEach((to: RouteLocationNormalized, _from: RouteLocationNormalized) => {
+router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormalized) => {
   const authStore = useAuthStore();
+
+  // Auth 초기화 완료 대기 (첫 네비게이션에서만 실질적으로 대기)
+  const authReady = (window as any).__AUTH_READY__;
+  if (authReady) {
+    await authReady;
+  }
 
   // 인증 필요 라우트 체크
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
