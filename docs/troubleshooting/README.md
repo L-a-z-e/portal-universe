@@ -20,6 +20,7 @@ troubleshooting/
 
 | ID | 제목 | 심각도 | 상태 | 영향 서비스 |
 |----|------|--------|------|-------------|
+| [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md) | React Error #321 Module Federation 듀얼 인스턴스 | 🟠 High | 해결됨 | prism-frontend, shopping-frontend |
 | [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md) | 좋아요 기능 API 경로 불일치 오류 | 🟡 Medium | 해결됨 | blog-frontend, blog-service |
 | [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md) | Kubernetes 배포 중 발생한 복합 인프라 이슈 | 🟠 High | 진행 중 | notification-service, auth-service, all-services |
 | [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md) | Design System CSS Import 오류 | 🟠 High | 해결됨 | portal-shell, blog-frontend, shopping-frontend |
@@ -54,7 +55,8 @@ troubleshooting/
 - **notification-service**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **portal-shell**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **blog-frontend**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
-- **shopping-frontend**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
+- **prism-frontend**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md)
+- **shopping-frontend**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
 
 ### 태그별
 
@@ -68,9 +70,11 @@ troubleshooting/
 - **Image Pull**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **OAuth2**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **Spring Security**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **Vite**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **Vite**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **Design System**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **CSS**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
-- **Module Federation**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
-- **React**: [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
+- **Module Federation**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
+- **React**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
+- **React-DOM**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md)
+- **Shared Dependencies**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md)
 - **Vue**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
