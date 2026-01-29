@@ -49,6 +49,10 @@ spring:
           # 전역 필터
           default-filters:
             - name: PreserveHostHeader
+            - name: DedupeResponseHeader
+              args:
+                name: Access-Control-Allow-Origin Access-Control-Allow-Credentials Access-Control-Allow-Methods Access-Control-Allow-Headers
+                strategy: RETAIN_UNIQUE
 
           # X-Forwarded 헤더
           x-forwarded:
