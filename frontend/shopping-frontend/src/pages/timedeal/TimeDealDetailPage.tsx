@@ -72,7 +72,7 @@ export function TimeDealDetailPage() {
     if (!isActive || isSoldOut || isPurchasing) return
 
     try {
-      const order = await purchaseTimeDeal(timeDeal.id, quantity)
+      const order = await purchaseTimeDeal(timeDeal.id, quantity) as { orderNumber: string }
       success('구매가 완료되었습니다!')
       navigate(`/orders/${order.orderNumber}`)
     } catch (err) {
