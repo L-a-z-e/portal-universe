@@ -15,6 +15,34 @@ import CategoryListPage from '../views/CategoryListPage.vue';
 import AdvancedSearchPage from '../views/AdvancedSearchPage.vue';
 import StatsPage from '../views/StatsPage.vue';
 
+/**
+ * Navigation guard: requiresAuth 체크
+ * Embedded 모드에서는 Portal Shell의 authStore를 사용하고,
+ * Standalone 모드에서는 window.__PORTAL_ACCESS_TOKEN__ 존재 여부로 판단
+ */
+function addAuthGuard(router: Router): void {
+  router.beforeEach(async (to, _from) => {
+    if (!to.meta.requiresAuth) return true;
+
+    // Embedded 모드: Portal Shell의 store 사용
+    try {
+      const { useAuthStore } = await import('portal/stores');
+      const authStore = useAuthStore();
+      if (authStore.isAuthenticated.value) return true;
+    } catch {
+      // Standalone 모드: 글로벌 토큰으로 확인
+      if ((window as any).__PORTAL_ACCESS_TOKEN__) return true;
+    }
+
+    // 미인증 → Portal Shell에 로그인 모달 요청
+    console.log(`[Blog Router Guard] Auth required for ${to.path}`);
+    if (typeof (window as any).__PORTAL_SHOW_LOGIN__ === 'function') {
+      (window as any).__PORTAL_SHOW_LOGIN__();
+    }
+    return false;
+  });
+}
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -98,6 +126,8 @@ export function createBlogRouter(basePath: string = '/'): Router {
     routes
   });
 
+  addAuthGuard(router);
+
   // ✅ 초기 경로 설정
   router.push('/').catch(err => {
     console.error('❌ [Blog Router] Initial navigation failed:', err);
@@ -119,6 +149,8 @@ export function createStandaloneBlogRouter(): Router {
     history: createWebHistory('/'),
     routes
   });
+
+  addAuthGuard(router);
 
   console.log('✅ [Blog Router] Router created (Web History)');
   console.log(`   Current path: ${router.currentRoute.value.path}`);

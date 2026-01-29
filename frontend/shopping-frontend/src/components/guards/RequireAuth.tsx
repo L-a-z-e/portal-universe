@@ -58,9 +58,12 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     )
   }
 
-  // 인증되지 않은 경우 리다이렉트
+  // 인증되지 않은 경우: Embedded 모드에서는 로그인 모달 트리거, Standalone은 리다이렉트
   if (!isAuthenticated) {
-    console.warn('[RequireAuth] User not authenticated, redirecting to:', redirectTo)
+    if (window.__POWERED_BY_PORTAL_SHELL__) {
+      console.warn('[RequireAuth] User not authenticated, triggering login modal')
+      window.__PORTAL_SHOW_LOGIN__?.()
+    }
     return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 

@@ -32,9 +32,28 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    // Request에 user 정보 추가 (userId는 UUID 문자열)
+    // X-User-Roles 파싱 (comma-separated: "ROLE_USER,ROLE_SELLER")
+    const rolesHeader = request.headers['x-user-roles'];
+    const roles: string[] = typeof rolesHeader === 'string'
+      ? rolesHeader.split(',').map(r => r.trim()).filter(Boolean)
+      : [];
+
+    // X-User-Memberships 파싱 (Gateway에서 JSON 문자열로 전달: '{"shopping":"FREE","blog":"PREMIUM"}')
+    const membershipsHeader = request.headers['x-user-memberships'];
+    let memberships: Record<string, string> = {};
+    if (typeof membershipsHeader === 'string') {
+      try {
+        memberships = JSON.parse(membershipsHeader);
+      } catch {
+        // fallback: ignore invalid JSON
+      }
+    }
+
+    // Request에 user 정보 추가
     (request as RequestWithUser).user = {
       id: typeof userId === 'string' ? userId : userId[0],
+      roles,
+      memberships,
     };
 
     return true;
@@ -44,5 +63,7 @@ export class JwtAuthGuard implements CanActivate {
 export interface RequestWithUser extends Request {
   user: {
     id: string;
+    roles: string[];
+    memberships: Record<string, string>;
   };
 }
