@@ -1,5 +1,5 @@
 ---
-id: ADR-008
+id: ADR-014
 title: 마이프로필 단계별 구현 전략
 type: adr
 status: accepted
@@ -19,7 +19,7 @@ related:
   - ADR-004-jwt-rbac-auto-configuration
 ---
 
-# ADR-008: 마이프로필 단계별 구현 전략
+# ADR-014: 마이프로필 단계별 구현 전략
 
 ## 상태
 **Accepted**
@@ -351,7 +351,7 @@ export function useProfile() {
    - Phase 1에서는 "최신 정보는 재로그인 시 반영됩니다" 안내
 
 4. **문서화**
-   - ADR-008 및 SCENARIO-003로 Phase 전략 명확히 기록
+   - ADR-014 및 SCENARIO-003로 Phase 전략 명확히 기록
    - 팀 공유 및 코드 리뷰 시 참고
 
 ---

@@ -94,14 +94,4 @@ tags로 검색
 
 ## Quick Reference
 
-| 문서 유형 | 위치 | 명명 패턴 |
-|----------|------|----------|
-| PRD | `docs/prd/` | `PRD-XXX-[feature].md` |
-| ADR | `docs/adr/` | `ADR-XXX-[decision].md` |
-| Architecture | `docs/architecture/` | `[topic].md` |
-| API | `docs/api/` | `[resource]-api.md` |
-| Test Plan | `docs/testing/test-plan/` | `TP-XXX-YY-[feature].md` |
-| Troubleshooting | `docs/troubleshooting/YYYY/MM/` | `TS-YYYYMMDD-XXX-[title].md` |
-| Runbook | `docs/runbooks/` | `[action]-[target].md` |
-| Guide | `docs/guides/` | `[topic].md` |
-| Learning | `docs/learning/` | `[topic].md` |
+문서 유형별 위치, 명명 패턴, 템플릿 등은 [`.claude/skills/documentation-system.md`](../../../.claude/skills/documentation-system.md)를 참조하세요.

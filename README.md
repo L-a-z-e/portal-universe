@@ -24,13 +24,14 @@ docker compose up -d
 
 ## Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| API Gateway | 8080 | 라우팅, JWT 검증, Circuit Breaker |
-| Auth Service | 8081 | OAuth2 인증, JWT 발급, 소셜 로그인 |
-| Blog Service | 8082 | 게시글/시리즈/댓글, S3 파일 업로드 |
-| Shopping Service | 8083 | 상품/장바구니/주문/결제/재고, Saga 패턴 |
-| Notification Service | 8084 | Kafka 이벤트 소비, 실시간 알림 |
+| Service | Port | Description | API Docs |
+|---------|------|-------------|----------|
+| API Gateway | 8080 | 라우팅, JWT 검증, Circuit Breaker | - |
+| Auth Service | 8081 | OAuth2 인증, JWT 발급, 소셜 로그인 | [📖 API](https://www.notion.so/2f73df01028f81669b2be47305744d06) |
+| Blog Service | 8082 | 게시글/시리즈/댓글, S3 파일 업로드 | [📖 API](https://www.notion.so/2f73df01028f8101b7d5df00fa5aaf66) |
+| Shopping Service | 8083 | 상품/장바구니/주문/결제/재고, Saga 패턴 | [📖 API](https://www.notion.so/2f73df01028f81c493d6f311d889126f) |
+| Notification Service | 8084 | Kafka 이벤트 소비, 실시간 알림 | [📖 API](https://www.notion.so/2f73df01028f81b48dffeeb84d2c1b79) |
+| Prism Service | 8085 | AI 기반 작업 관리, 칸반 보드 | [📖 API](https://www.notion.so/2f73df01028f81868293f88213d1a69c) |
 
 ## Frontend (Micro-Frontend)
 
@@ -64,6 +65,16 @@ docker compose up -d
 | Infrastructure | Docker, Kubernetes, GitHub Actions |
 
 ## Documentation
+
+### 📚 Complete Documentation (Notion)
+**[→ Portal Universe 전체 문서](https://www.notion.so/l-a-z-e/Portal-Universe-2f73df01028f802cb03ff36054182571)**
+
+상세한 문서는 Notion에서 확인하실 수 있습니다:
+- **[API 문서](https://www.notion.so/l-a-z-e/Portal-Universe-2f73df01028f802cb03ff36054182571)**: Auth, Blog, Shopping, Notification, Prism 서비스 (150+ endpoints)
+- **[ADR](https://www.notion.so/2f73df01028f81159c7bc76326526359)**: 아키텍처 결정 기록 (15개 주요 결정사항)
+- **[실제 사용 시나리오](https://www.notion.so/2f73df01028f813dba5ccea2f8995bc9)**: 주문 플로우, Saga 패턴, 타임딜, AI 작업 등
+
+### GitHub Docs
 
 | Category | Links |
 |----------|-------|

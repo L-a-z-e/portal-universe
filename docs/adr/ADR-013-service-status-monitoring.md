@@ -1,5 +1,5 @@
 ---
-id: ADR-007
+id: ADR-013
 title: 서비스 상태 모니터링 전략
 type: adr
 status: accepted
@@ -18,7 +18,7 @@ related:
   - ADR-006-remove-config-service
 ---
 
-# ADR-007: 서비스 상태 모니터링 전략
+# ADR-013: 서비스 상태 모니터링 전략
 
 ## 상태
 Accepted

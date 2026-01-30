@@ -3,8 +3,8 @@ id: SCENARIO-001
 title: 선착순 쿠폰 발급
 type: scenario
 status: current
-created: 2025-01-21
-updated: 2025-01-21
+created: 2026-01-21
+updated: 2026-01-21
 author: Laze
 tags:
   - coupon

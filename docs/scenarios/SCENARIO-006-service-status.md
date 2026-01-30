@@ -12,7 +12,7 @@ tags:
   - devops
   - observability
 related:
-  - ADR-007-service-status-monitoring
+  - ADR-013-service-status-monitoring
 ---
 
 # SCENARIO-005: 서비스 상태 모니터링
@@ -450,7 +450,7 @@ public class CorsConfig {
 - Kubernetes Liveness/Readiness Probe도 인증 불가
 
 ### 관련 학습 문서
-- [ADR-007 서비스 상태 모니터링 전략](../adr/ADR-007-service-status-monitoring.md)
+- [ADR-013 서비스 상태 모니터링 전략](../adr/ADR-013-service-status-monitoring.md)
 
 ---
 
@@ -470,7 +470,7 @@ public class CorsConfig {
 
 ## Related
 
-- **ADR**: [ADR-007 서비스 상태 모니터링 전략](../adr/ADR-007-service-status-monitoring.md)
+- **ADR**: [ADR-013 서비스 상태 모니터링 전략](../adr/ADR-013-service-status-monitoring.md)
 - **Architecture**: [시스템 아키텍처 개요](../architecture/system-overview.md)
 - **CLAUDE.md**: [프로젝트 가이드](../../.claude/CLAUDE.md)
 

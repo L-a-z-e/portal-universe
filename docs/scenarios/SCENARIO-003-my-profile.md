@@ -12,7 +12,7 @@ tags:
   - user-management
   - phase-implementation
 related:
-  - ADR-008-my-profile-phased-approach
+  - ADR-014-my-profile-phased-approach
 ---
 
 # SCENARIO-003: 마이프로필 조회 및 관리
@@ -401,7 +401,7 @@ public record ProfileUpdateRequest(
 | 읽기 전용 | 기본 CRUD | 핵심 기능 우선 제공 |
 
 ### 관련 학습 문서
-- [ADR-008 마이프로필 단계별 구현 전략](../adr/ADR-008-my-profile-phased-approach.md)
+- [ADR-014 마이프로필 단계별 구현 전략](../adr/ADR-014-my-profile-phased-approach.md)
 
 ---
 
@@ -425,7 +425,7 @@ public record ProfileUpdateRequest(
 
 ## Related
 
-- **ADR**: [ADR-008 마이프로필 단계별 구현 전략](../adr/ADR-008-my-profile-phased-approach.md)
+- **ADR**: [ADR-014 마이프로필 단계별 구현 전략](../adr/ADR-014-my-profile-phased-approach.md)
 - **Architecture**: [Portal Shell 구조](../architecture/portal-shell-architecture.md)
 - **Types**: `frontend/portal-shell/src/types/user.ts`
 - **Store**: `frontend/portal-shell/src/store/auth.ts`
