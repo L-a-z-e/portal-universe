@@ -21,7 +21,7 @@ blog-frontend의 API 관련 문서 목록입니다.
 
 ### Base URL
 ```
-http://localhost:8080/api/blog
+http://localhost:8080/api/v1/blog
 ```
 
 ### 인증

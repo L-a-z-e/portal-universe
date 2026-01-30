@@ -19,7 +19,7 @@ Blog Frontend는 Vue 3 기반의 마이크로 프론트엔드로, API Gateway를
 
 **핵심 특징**:
 - Portal Shell에서 주입된 `apiClient` (axios 인스턴스) 사용
-- API Gateway를 통한 중앙집중식 라우팅 (`/api/blog/**`)
+- API Gateway를 통한 중앙집중식 라우팅 (`/api/v1/blog/**`)
 - Pinia를 활용한 반응형 상태 관리
 - 컴포넌트 레벨 에러 처리
 
@@ -54,7 +54,7 @@ graph TB
     BC -->|call| API
     BC -->|read/write| SS
     API -->|HTTP Request| GW
-    GW -->|route /api/blog/**| BS
+    GW -->|route /api/v1/blog/**| BS
     BS -->|query| DB
     DB -->|result| BS
     BS -->|response| GW
@@ -81,7 +81,7 @@ sequenceDiagram
     U->>C: 페이지 방문
     C->>C: onMounted()
     C->>A: getPublishedPosts(page=0, size=10)
-    A->>AC: GET /api/blog/posts?page=0&size=10
+    A->>AC: GET /api/v1/blog/posts?page=0&size=10
     Note over AC: Authorization: Bearer {JWT}
     AC->>G: HTTP Request
     G->>G: JWT 검증
@@ -99,7 +99,7 @@ sequenceDiagram
 **설명**:
 1. 사용자가 PostListPage 방문
 2. `onMounted()` 훅에서 `getPublishedPosts()` 호출
-3. API 함수가 `apiClient.get('/api/blog/posts')` 호출
+3. API 함수가 `apiClient.get('/api/v1/blog/posts')` 호출
 4. `apiClient`는 Portal Shell에서 주입된 axios 인스턴스 (JWT 자동 첨부)
 5. API Gateway가 JWT 검증 후 blog-service로 라우팅
 6. blog-service가 MongoDB 쿼리 후 PageResponse 반환
@@ -123,7 +123,7 @@ sequenceDiagram
     U->>C: /posts/:postId 방문
     C->>C: onMounted()
     C->>A: getPostById(postId)
-    A->>AC: GET /api/blog/posts/:postId
+    A->>AC: GET /api/v1/blog/posts/:postId
     AC->>G: HTTP Request + JWT
     G->>S: Forward
     S->>D: findById(postId)
@@ -164,7 +164,7 @@ sequenceDiagram
     U->>C: "저장" 버튼 클릭
     C->>C: 유효성 검사
     C->>A: createPost(payload)
-    A->>AC: POST /api/blog/posts
+    A->>AC: POST /api/v1/blog/posts
     Note over AC: Content-Type: application/json<br/>Authorization: Bearer {JWT}
     AC->>G: HTTP Request
     G->>S: Forward
@@ -202,7 +202,7 @@ sequenceDiagram
     participant D as MongoDB
 
     C->>A: getCommentsByPostId(postId)
-    A->>AC: GET /api/blog/comments/post/:postId
+    A->>AC: GET /api/v1/blog/comments/post/:postId
     AC->>G: HTTP Request + JWT
     G->>S: Forward
     S->>D: find({ postId })
@@ -227,7 +227,7 @@ sequenceDiagram
 
     U->>C: 댓글 입력 후 "등록" 클릭
     C->>A: createComment({ postId, content, parentCommentId })
-    A->>AC: POST /api/blog/comments
+    A->>AC: POST /api/v1/blog/comments
     AC->>G: HTTP Request + JWT
     G->>S: Forward
     S->>S: authorId = JWT.sub (인증된 사용자)
@@ -265,7 +265,7 @@ sequenceDiagram
     C->>SS: search(keyword)
     SS->>SS: results = []<br/>currentPage = 0<br/>isSearching = true
     SS->>A: searchPosts(keyword, page=0, size=10)
-    A->>AC: GET /api/blog/posts/search?keyword=...&page=0&size=10
+    A->>AC: GET /api/v1/blog/posts/search?keyword=...&page=0&size=10
     AC->>G: HTTP Request
     G->>S: Forward
     S-->>G: ApiResponse<PageResponse>
@@ -493,21 +493,21 @@ async function loadPosts() {
 
 | Frontend API 함수 | HTTP 메서드 | 경로 | blog-service 컨트롤러 |
 |-------------------|-------------|------|------------------------|
-| `getPublishedPosts()` | GET | `/api/blog/posts?page=0&size=10` | `PostController.getPublishedPosts()` |
-| `getPostById()` | GET | `/api/blog/posts/:postId` | `PostController.getPostById()` |
-| `createPost()` | POST | `/api/blog/posts` | `PostController.createPost()` |
-| `updatePost()` | PUT | `/api/blog/posts/:postId` | `PostController.updatePost()` |
-| `deletePost()` | DELETE | `/api/blog/posts/:postId` | `PostController.deletePost()` |
-| `searchPosts()` | GET | `/api/blog/posts/search?keyword=...` | `PostController.searchPosts()` |
-| `getCommentsByPostId()` | GET | `/api/blog/comments/post/:postId` | `CommentController.getCommentsByPostId()` |
-| `createComment()` | POST | `/api/blog/comments` | `CommentController.createComment()` |
-| `updateComment()` | PUT | `/api/blog/comments/:commentId` | `CommentController.updateComment()` |
-| `deleteComment()` | DELETE | `/api/blog/comments/:commentId` | `CommentController.deleteComment()` |
-| `uploadFile()` | POST | `/api/blog/file/upload` | `FileController.uploadFile()` |
+| `getPublishedPosts()` | GET | `/api/v1/blog/posts?page=0&size=10` | `PostController.getPublishedPosts()` |
+| `getPostById()` | GET | `/api/v1/blog/posts/:postId` | `PostController.getPostById()` |
+| `createPost()` | POST | `/api/v1/blog/posts` | `PostController.createPost()` |
+| `updatePost()` | PUT | `/api/v1/blog/posts/:postId` | `PostController.updatePost()` |
+| `deletePost()` | DELETE | `/api/v1/blog/posts/:postId` | `PostController.deletePost()` |
+| `searchPosts()` | GET | `/api/v1/blog/posts/search?keyword=...` | `PostController.searchPosts()` |
+| `getCommentsByPostId()` | GET | `/api/v1/blog/comments/post/:postId` | `CommentController.getCommentsByPostId()` |
+| `createComment()` | POST | `/api/v1/blog/comments` | `CommentController.createComment()` |
+| `updateComment()` | PUT | `/api/v1/blog/comments/:commentId` | `CommentController.updateComment()` |
+| `deleteComment()` | DELETE | `/api/v1/blog/comments/:commentId` | `CommentController.deleteComment()` |
+| `uploadFile()` | POST | `/api/v1/blog/file/upload` | `FileController.uploadFile()` |
 
 **API Gateway 라우팅 규칙**:
 ```yaml
-/api/blog/** → blog-service:8082/**
+/api/v1/blog/** → blog-service:8082/**
 ```
 
 ---

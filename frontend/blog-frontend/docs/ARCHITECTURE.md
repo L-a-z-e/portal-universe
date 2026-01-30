@@ -191,7 +191,7 @@ import { apiClient } from 'portal/api';
 export default apiClient;
 
 // Portal Shell의 apiClient를 재사용
-// - Base URL: /api/blog
+// - Base URL: /api/v1/blog
 // - 인증 토큰 자동 포함
 // - CORS/CSRF 처리됨
 ```
@@ -275,12 +275,12 @@ const routes = [
            │
            ▼
 ┌─────────────────────────────────────┐
-│ apiClient.get('/api/blog/posts')    │ HTTP GET
+│ apiClient.get('/api/v1/blog/posts')    │ HTTP GET
 └──────────┬──────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────┐
-│ API Gateway                         │ /api/blog/** 라우팅
+│ API Gateway                         │ /api/v1/blog/** 라우팅
 └──────────┬──────────────────────────┘
            │
            ▼
@@ -393,7 +393,7 @@ if (authStore.isAuthenticated) {
 
 // 2. API 클라이언트 사용
 import { apiClient } from 'portal/api';
-const { data } = await apiClient.get('/api/blog/posts');
+const { data } = await apiClient.get('/api/v1/blog/posts');
 
 // 3. 네비게이션 공유
 router.afterEach((to) => {

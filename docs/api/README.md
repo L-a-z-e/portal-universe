@@ -7,10 +7,10 @@ Portal Universe의 API 명세 문서 목록입니다.
 | 서비스 | 문서 | Base URL | 상태 |
 |--------|------|----------|------|
 | Auth | [Security & Authentication API](./security-api-reference.md) | `http://localhost:8080` | 완료 |
-| Shopping | [Shopping Service API](./shopping-api-reference.md) | `http://localhost:8080/api/shopping` | 완료 |
-| Shopping | [Coupon API](./coupon-api.md) | `http://localhost:8080/api/shopping/coupons` | 완료 |
-| Shopping | [TimeDeal API](./timedeal-api.md) | `http://localhost:8080/api/shopping/time-deals` | 완료 |
-| Shopping | [Admin Products API](./admin-products-api.md) | `http://localhost:8080/api/shopping/admin/products` | 통합됨 |
+| Shopping | [Shopping Service API](./shopping-api-reference.md) | `http://localhost:8080/api/v1/shopping` | 완료 |
+| Shopping | [Coupon API](./coupon-api.md) | `http://localhost:8080/api/v1/shopping/coupons` | 완료 |
+| Shopping | [TimeDeal API](./timedeal-api.md) | `http://localhost:8080/api/v1/shopping/time-deals` | 완료 |
+| Shopping | [Admin Products API](./admin-products-api.md) | `http://localhost:8080/api/v1/shopping/admin/products` | 통합됨 |
 
 ## 에러 코드 범위
 

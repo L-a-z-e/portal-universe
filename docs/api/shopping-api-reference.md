@@ -17,7 +17,7 @@
 
 ## 개요
 
-**Base URL**: `http://localhost:8080/api/shopping`
+**Base URL**: `http://localhost:8080/api/v1/shopping`
 
 **Scope**: Shopping Service의 모든 API 엔드포인트
 
@@ -27,7 +27,7 @@
 
 ### API 구조
 ```
-/api/shopping
+/api/v1/shopping
 ├── /admin/products          (ADMIN only)
 │   ├── POST                 - 상품 등록
 │   ├── PUT /{productId}     - 상품 수정
@@ -87,7 +87,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 1. **Auth Service에서 OAuth2 로그인**
    ```bash
-   POST http://localhost:8080/api/auth/login
+   POST http://localhost:8080/api/v1/auth/login
    ```
 
 2. **응답에서 access_token 추출**
@@ -101,7 +101,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 3. **다음 API 요청에 사용**
    ```bash
-   curl -H "Authorization: Bearer eyJhbGc..." http://localhost:8080/api/shopping/admin/products
+   curl -H "Authorization: Bearer eyJhbGc..." http://localhost:8080/api/v1/shopping/admin/products
    ```
 
 ### 권한 확인
@@ -190,7 +190,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 새로운 상품을 등록합니다.
 
-**Endpoint**: `POST /api/shopping/admin/products`
+**Endpoint**: `POST /api/v1/shopping/admin/products`
 
 **권한**: ADMIN
 
@@ -248,7 +248,7 @@ Content-Type: application/json
 
 **Example - cURL**:
 ```bash
-curl -X POST http://localhost:8080/api/shopping/admin/products \
+curl -X POST http://localhost:8080/api/v1/shopping/admin/products \
   -H "Authorization: Bearer eyJhbGc..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -261,7 +261,7 @@ curl -X POST http://localhost:8080/api/shopping/admin/products \
 
 **Example - JavaScript (Fetch)**:
 ```javascript
-const response = await fetch('http://localhost:8080/api/shopping/admin/products', {
+const response = await fetch('http://localhost:8080/api/v1/shopping/admin/products', {
   method: 'POST',
   headers: {
     'Authorization': `Bearer ${token}`,
@@ -283,7 +283,7 @@ const data = await response.json();
 
 기존 상품의 정보를 수정합니다.
 
-**Endpoint**: `PUT /api/shopping/admin/products/{productId}`
+**Endpoint**: `PUT /api/v1/shopping/admin/products/{productId}`
 
 **권한**: ADMIN
 
@@ -337,7 +337,7 @@ Content-Type: application/json
 
 **Example - cURL**:
 ```bash
-curl -X PUT http://localhost:8080/api/shopping/admin/products/1 \
+curl -X PUT http://localhost:8080/api/v1/shopping/admin/products/1 \
   -H "Authorization: Bearer eyJhbGc..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -354,7 +354,7 @@ curl -X PUT http://localhost:8080/api/shopping/admin/products/1 \
 
 상품을 삭제합니다.
 
-**Endpoint**: `DELETE /api/shopping/admin/products/{productId}`
+**Endpoint**: `DELETE /api/v1/shopping/admin/products/{productId}`
 
 **권한**: ADMIN
 
@@ -388,7 +388,7 @@ Authorization: Bearer <ADMIN_TOKEN>
 
 **Example - cURL**:
 ```bash
-curl -X DELETE http://localhost:8080/api/shopping/admin/products/1 \
+curl -X DELETE http://localhost:8080/api/v1/shopping/admin/products/1 \
   -H "Authorization: Bearer eyJhbGc..."
 ```
 
@@ -398,7 +398,7 @@ curl -X DELETE http://localhost:8080/api/shopping/admin/products/1 \
 
 특정 상품의 재고 수량을 수정합니다.
 
-**Endpoint**: `PATCH /api/shopping/admin/products/{productId}/stock`
+**Endpoint**: `PATCH /api/v1/shopping/admin/products/{productId}/stock`
 
 **권한**: ADMIN
 
@@ -446,7 +446,7 @@ Content-Type: application/json
 
 **Example - cURL**:
 ```bash
-curl -X PATCH http://localhost:8080/api/shopping/admin/products/1/stock \
+curl -X PATCH http://localhost:8080/api/v1/shopping/admin/products/1/stock \
   -H "Authorization: Bearer eyJhbGc..." \
   -H "Content-Type: application/json" \
   -d '{ "stock": 100 }'
@@ -460,7 +460,7 @@ curl -X PATCH http://localhost:8080/api/shopping/admin/products/1/stock \
 
 특정 상품의 상세 정보를 조회합니다.
 
-**Endpoint**: `GET /api/shopping/products/{productId}`
+**Endpoint**: `GET /api/v1/shopping/products/{productId}`
 
 **권한**: 없음 (Public)
 
@@ -493,7 +493,7 @@ curl -X PATCH http://localhost:8080/api/shopping/admin/products/1/stock \
 
 **Example - cURL**:
 ```bash
-curl -X GET http://localhost:8080/api/shopping/products/1
+curl -X GET http://localhost:8080/api/v1/shopping/products/1
 ```
 
 ---
@@ -502,7 +502,7 @@ curl -X GET http://localhost:8080/api/shopping/products/1
 
 상품 정보와 해당 상품의 리뷰를 함께 조회합니다.
 
-**Endpoint**: `GET /api/shopping/products/{productId}/with-reviews`
+**Endpoint**: `GET /api/v1/shopping/products/{productId}/with-reviews`
 
 **권한**: 없음 (Public)
 
@@ -547,7 +547,7 @@ curl -X GET http://localhost:8080/api/shopping/products/1
 
 **Example - cURL**:
 ```bash
-curl -X GET http://localhost:8080/api/shopping/products/1/with-reviews
+curl -X GET http://localhost:8080/api/v1/shopping/products/1/with-reviews
 ```
 
 ---
@@ -571,7 +571,7 @@ Postman Environment 변수로 설정:
 
 **Request**:
 ```
-POST {{base_url}}/api/shopping/admin/products
+POST {{base_url}}/api/v1/shopping/admin/products
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
@@ -605,7 +605,7 @@ pm.test("Product ID is returned", function () {
 
 **Request**:
 ```
-PUT {{base_url}}/api/shopping/admin/products/{{product_id}}
+PUT {{base_url}}/api/v1/shopping/admin/products/{{product_id}}
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
@@ -628,7 +628,7 @@ ADMIN_TOKEN="YOUR_JWT_TOKEN_HERE"
 
 # 1. 상품 생성
 echo "1. Creating product..."
-CREATE_RESPONSE=$(curl -s -X POST $BASE_URL/api/shopping/admin/products \
+CREATE_RESPONSE=$(curl -s -X POST $BASE_URL/api/v1/shopping/admin/products \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -643,11 +643,11 @@ PRODUCT_ID=$(echo $CREATE_RESPONSE | grep -o '"id":[0-9]*' | head -1 | grep -o '
 
 # 2. 상품 조회
 echo "\n2. Getting product..."
-curl -s -X GET $BASE_URL/api/shopping/products/$PRODUCT_ID | jq .
+curl -s -X GET $BASE_URL/api/v1/shopping/products/$PRODUCT_ID | jq .
 
 # 3. 상품 수정
 echo "\n3. Updating product..."
-curl -s -X PUT $BASE_URL/api/shopping/admin/products/$PRODUCT_ID \
+curl -s -X PUT $BASE_URL/api/v1/shopping/admin/products/$PRODUCT_ID \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -659,7 +659,7 @@ curl -s -X PUT $BASE_URL/api/shopping/admin/products/$PRODUCT_ID \
 
 # 4. 상품 삭제
 echo "\n4. Deleting product..."
-curl -s -X DELETE $BASE_URL/api/shopping/admin/products/$PRODUCT_ID \
+curl -s -X DELETE $BASE_URL/api/v1/shopping/admin/products/$PRODUCT_ID \
   -H "Authorization: Bearer $ADMIN_TOKEN" | jq .
 ```
 
@@ -669,7 +669,7 @@ curl -s -X DELETE $BASE_URL/api/shopping/admin/products/$PRODUCT_ID \
 
 ```bash
 # 1. 상품 등록
-curl -X POST http://localhost:8080/api/shopping/admin/products \
+curl -X POST http://localhost:8080/api/v1/shopping/admin/products \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -682,7 +682,7 @@ curl -X POST http://localhost:8080/api/shopping/admin/products \
 # Expected: 201 Created with product data
 
 # 2. 상품 조회
-curl -X GET http://localhost:8080/api/shopping/products/1
+curl -X GET http://localhost:8080/api/v1/shopping/products/1
 
 # Expected: 200 OK with product data
 ```
@@ -691,7 +691,7 @@ curl -X GET http://localhost:8080/api/shopping/products/1
 
 ```bash
 # 가격이 음수인 상품 등록
-curl -X POST http://localhost:8080/api/shopping/admin/products \
+curl -X POST http://localhost:8080/api/v1/shopping/admin/products \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -716,7 +716,7 @@ curl -X POST http://localhost:8080/api/shopping/admin/products \
 
 ```bash
 # ADMIN 권한 없이 상품 등록 시도
-curl -X POST http://localhost:8080/api/shopping/admin/products \
+curl -X POST http://localhost:8080/api/v1/shopping/admin/products \
   -H "Authorization: Bearer $USER_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

@@ -57,7 +57,7 @@ SCHEDULED ──(startsAt 도래)──> ACTIVE ──(endsAt 도래)──> END
 
 현재 진행중인 모든 타임딜을 조회합니다.
 
-**Endpoint**: `GET /api/shopping/time-deals`
+**Endpoint**: `GET /api/v1/shopping/time-deals`
 
 **권한**: 없음 (Public)
 
@@ -99,7 +99,7 @@ SCHEDULED ──(startsAt 도래)──> ACTIVE ──(endsAt 도래)──> END
 
 ### 2. 타임딜 상세 조회
 
-**Endpoint**: `GET /api/shopping/time-deals/{timeDealId}`
+**Endpoint**: `GET /api/v1/shopping/time-deals/{timeDealId}`
 
 **권한**: 없음 (Public)
 
@@ -160,7 +160,7 @@ SCHEDULED ──(startsAt 도래)──> ACTIVE ──(endsAt 도래)──> END
 
 타임딜 상품을 구매합니다. Redis Lua Script로 원자적 처리됩니다.
 
-**Endpoint**: `POST /api/shopping/time-deals/purchase`
+**Endpoint**: `POST /api/v1/shopping/time-deals/purchase`
 
 **권한**: USER (JWT 필수)
 
@@ -214,7 +214,7 @@ Content-Type: application/json
 
 **Example - cURL**:
 ```bash
-curl -X POST http://localhost:8080/api/shopping/time-deals/purchase \
+curl -X POST http://localhost:8080/api/v1/shopping/time-deals/purchase \
   -H "Authorization: Bearer eyJhbGc..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -244,7 +244,7 @@ curl -X POST http://localhost:8080/api/shopping/time-deals/purchase \
 
 사용자의 타임딜 구매 내역을 조회합니다.
 
-**Endpoint**: `GET /api/shopping/time-deals/my/purchases`
+**Endpoint**: `GET /api/v1/shopping/time-deals/my/purchases`
 
 **권한**: USER (JWT 필수)
 
@@ -280,7 +280,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 모든 타임딜을 페이징으로 조회합니다.
 
-**Endpoint**: `GET /api/shopping/admin/time-deals`
+**Endpoint**: `GET /api/v1/shopping/admin/time-deals`
 
 **권한**: ADMIN (ROLE_SHOPPING_ADMIN 또는 ROLE_SUPER_ADMIN)
 
@@ -328,7 +328,7 @@ Page<TimeDealResponse> 형태의 Spring Data 페이지 응답
 
 새로운 타임딜을 생성합니다.
 
-**Endpoint**: `POST /api/shopping/admin/time-deals`
+**Endpoint**: `POST /api/v1/shopping/admin/time-deals`
 
 **권한**: ADMIN
 
@@ -426,7 +426,7 @@ Content-Type: application/json
 
 타임딜을 취소하고 Redis 캐시를 삭제합니다.
 
-**Endpoint**: `DELETE /api/shopping/admin/time-deals/{timeDealId}`
+**Endpoint**: `DELETE /api/v1/shopping/admin/time-deals/{timeDealId}`
 
 **권한**: ADMIN
 

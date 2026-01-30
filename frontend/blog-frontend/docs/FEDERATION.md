@@ -86,7 +86,7 @@ const authStore = useAuthStore();
 
 // 2. Portal Shell의 apiClient 접근
 import { apiClient } from 'portal/api';
-const { data } = await apiClient.get('/api/blog/posts');
+const { data } = await apiClient.get('/api/v1/blog/posts');
 
 // 3. 공유 라이브러리 직접 사용
 import { ref, computed } from 'vue';
@@ -197,7 +197,7 @@ const authStore = useAuthStore();
 console.log(authStore.isAuthenticated);
 
 // apiClient (공유)
-const response = await apiClient.get('/api/blog/posts');
+const response = await apiClient.get('/api/v1/blog/posts');
 ```
 
 ### 2. Blog → Portal Shell 통신

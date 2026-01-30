@@ -22,7 +22,7 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **Base URL** | `http://localhost:8080/api/blog` |
+| **Base URL** | `http://localhost:8080/api/v1/blog` |
 | **인증** | Bearer Token (자동 첨부) |
 | **API Client** | `portal-shell`의 `apiClient` 공유 |
 | **응답 형식** | `ApiResponse<T>` 래퍼 |
@@ -58,7 +58,7 @@ export default apiClient;
 
 ### 경로 상수
 ```typescript
-const BASE_PATH = '/api/blog/posts';
+const BASE_PATH = '/api/v1/blog/posts';
 ```
 
 ### API 목록
@@ -450,7 +450,7 @@ const productPosts = await getPostsByProductId('product-456');
 
 ### 경로 상수
 ```typescript
-const BASE_PATH = '/api/blog/comments';
+const BASE_PATH = '/api/v1/blog/comments';
 ```
 
 ### API 목록
@@ -523,8 +523,8 @@ await deleteComment('comment-456');
 ## 🔹 Files API
 
 ### 경로
-- Upload: `/api/blog/file/upload`
-- Delete: `/api/blog/file/delete`
+- Upload: `/api/v1/blog/file/upload`
+- Delete: `/api/v1/blog/file/delete`
 
 ### API 목록
 

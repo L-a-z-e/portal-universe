@@ -98,14 +98,14 @@ tags:
 
 | 모듈 | 함수 수 | Base Path | 대상 서비스 |
 |------|---------|-----------|------------|
-| **posts.ts** | 30 | `/api/blog/posts` | blog-service |
-| **comments.ts** | 4 | `/api/blog/comments` | blog-service |
-| **likes.ts** | 3 | `/api/blog/likes` | blog-service |
-| **tags.ts** | 6 | `/api/blog/tags` | blog-service |
-| **series.ts** | 8 | `/api/blog/series` | blog-service |
-| **users.ts** | 6 | `/auth-api/users` | auth-service (via Gateway) |
-| **follow.ts** | 5 | `/auth-api/users/{username}/follow` | auth-service (via Gateway) |
-| **files.ts** | 2 | `/api/blog/file` | blog-service |
+| **posts.ts** | 30 | `/api/v1/blog/posts` | blog-service |
+| **comments.ts** | 4 | `/api/v1/blog/comments` | blog-service |
+| **likes.ts** | 3 | `/api/v1/blog/likes` | blog-service |
+| **tags.ts** | 6 | `/api/v1/blog/tags` | blog-service |
+| **series.ts** | 8 | `/api/v1/blog/series` | blog-service |
+| **users.ts** | 6 | `/api/v1/users` | auth-service (via Gateway) |
+| **follow.ts** | 5 | `/api/v1/users/{username}/follow` | auth-service (via Gateway) |
+| **files.ts** | 2 | `/api/v1/blog/file` | blog-service |
 
 ### posts.ts 주요 함수 (30개)
 - CRUD: `getPosts`, `getPostById`, `createPost`, `updatePost`, `deletePost`

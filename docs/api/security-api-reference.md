@@ -454,7 +454,7 @@ curl -X POST http://localhost:8080/oauth2/revoke \
 
 새로운 사용자를 등록합니다.
 
-**Endpoint**: `POST /api/users/signup`
+**Endpoint**: `POST /api/v1/users/signup`
 
 **권한**: 없음 (Public)
 
@@ -502,7 +502,7 @@ Content-Type: application/json
 
 **Example - cURL**:
 ```bash
-curl -X POST http://localhost:8080/api/users/signup \
+curl -X POST http://localhost:8080/api/v1/users/signup \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -515,7 +515,7 @@ curl -X POST http://localhost:8080/api/users/signup \
 
 **Example - JavaScript (Fetch)**:
 ```javascript
-const response = await fetch('http://localhost:8080/api/users/signup', {
+const response = await fetch('http://localhost:8080/api/v1/users/signup', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -598,7 +598,7 @@ curl -X POST http://localhost:8080/logout \
 
 현재 로그인한 사용자의 정보를 조회합니다.
 
-**Endpoint**: `GET /api/users/me`
+**Endpoint**: `GET /api/v1/users/me`
 
 **권한**: 인증 필요
 
@@ -631,7 +631,7 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 **Example - cURL**:
 ```bash
-curl -X GET http://localhost:8080/api/users/me \
+curl -X GET http://localhost:8080/api/v1/users/me \
   -H "Authorization: Bearer eyJhbGc..."
 ```
 
@@ -752,7 +752,7 @@ sessionStorage.removeItem('pkce_code_verifier');
 ```javascript
 const accessToken = sessionStorage.getItem('access_token');
 
-const response = await fetch('http://localhost:8080/api/users/me', {
+const response = await fetch('http://localhost:8080/api/v1/users/me', {
   headers: {
     'Authorization': `Bearer ${accessToken}`
   }
@@ -804,7 +804,7 @@ async function refreshAccessToken() {
 #### Step 1: 회원가입
 
 ```bash
-curl -X POST http://localhost:8080/api/users/signup \
+curl -X POST http://localhost:8080/api/v1/users/signup \
   -H "Content-Type: application/json" \
   -d '{
     "email": "newuser@example.com",

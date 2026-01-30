@@ -58,7 +58,7 @@
 
 현재 발급 가능한 모든 쿠폰을 조회합니다.
 
-**Endpoint**: `GET /api/shopping/coupons`
+**Endpoint**: `GET /api/v1/shopping/coupons`
 
 **권한**: 없음 (Public)
 
@@ -93,7 +93,7 @@
 
 ### 2. 쿠폰 상세 조회
 
-**Endpoint**: `GET /api/shopping/coupons/{couponId}`
+**Endpoint**: `GET /api/v1/shopping/coupons/{couponId}`
 
 **권한**: 없음 (Public)
 
@@ -130,7 +130,7 @@
 
 쿠폰을 선착순으로 발급받습니다. Redis Lua Script로 원자적 처리됩니다.
 
-**Endpoint**: `POST /api/shopping/coupons/{couponId}/issue`
+**Endpoint**: `POST /api/v1/shopping/coupons/{couponId}/issue`
 
 **권한**: USER (JWT 필수)
 
@@ -181,7 +181,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 **Example - cURL**:
 ```bash
-curl -X POST http://localhost:8080/api/shopping/coupons/1/issue \
+curl -X POST http://localhost:8080/api/v1/shopping/coupons/1/issue \
   -H "Authorization: Bearer eyJhbGc..."
 ```
 
@@ -191,7 +191,7 @@ curl -X POST http://localhost:8080/api/shopping/coupons/1/issue \
 
 사용자가 보유한 모든 쿠폰을 조회합니다.
 
-**Endpoint**: `GET /api/shopping/coupons/my`
+**Endpoint**: `GET /api/v1/shopping/coupons/my`
 
 **권한**: USER (JWT 필수)
 
@@ -229,7 +229,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 현재 사용 가능한 쿠폰만 조회합니다.
 
-**Endpoint**: `GET /api/shopping/coupons/my/available`
+**Endpoint**: `GET /api/v1/shopping/coupons/my/available`
 
 **권한**: USER (JWT 필수)
 
@@ -246,7 +246,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 모든 쿠폰을 페이징으로 조회합니다.
 
-**Endpoint**: `GET /api/shopping/admin/coupons`
+**Endpoint**: `GET /api/v1/shopping/admin/coupons`
 
 **권한**: ADMIN (ROLE_SHOPPING_ADMIN 또는 ROLE_SUPER_ADMIN)
 
@@ -295,7 +295,7 @@ Page<CouponResponse> 형태의 Spring Data 페이지 응답
 
 새로운 쿠폰을 생성합니다.
 
-**Endpoint**: `POST /api/shopping/admin/coupons`
+**Endpoint**: `POST /api/v1/shopping/admin/coupons`
 
 **권한**: ADMIN
 
@@ -370,7 +370,7 @@ Content-Type: application/json
 
 쿠폰을 비활성화하고 Redis 캐시를 삭제합니다.
 
-**Endpoint**: `DELETE /api/shopping/admin/coupons/{couponId}`
+**Endpoint**: `DELETE /api/v1/shopping/admin/coupons/{couponId}`
 
 **권한**: ADMIN
 

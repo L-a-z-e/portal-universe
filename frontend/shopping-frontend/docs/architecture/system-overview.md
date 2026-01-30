@@ -353,7 +353,7 @@ sequenceDiagram
 
     User->>PL: 상품 목록 요청
     PL->>API: getProducts(page, size)
-    API->>GW: GET /api/shopping/products
+    API->>GW: GET /api/v1/shopping/products
     GW->>SS: JWT 검증 후 라우팅
     SS-->>GW: PagedResponse<Product>
     GW-->>API: ApiResponse
@@ -374,7 +374,7 @@ sequenceDiagram
     User->>PD: 장바구니 담기
     PD->>CS: addItem(productId, quantity)
     CS->>API: addItem({ productId, quantity })
-    API->>SS: POST /api/shopping/cart/items
+    API->>SS: POST /api/v1/shopping/cart/items
     SS-->>API: Cart (updated)
     API-->>CS: ApiResponse<Cart>
     CS-->>PD: itemCount, totalAmount 업데이트

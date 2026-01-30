@@ -601,7 +601,7 @@ export const useQueue = (eventType: string, eventId: number) => {
   // SSE 구독
   const subscribeToQueueUpdates = (entryToken: string) => {
     const es = new EventSource(
-      `/api/shopping/queue/${eventType}/${eventId}/subscribe/${entryToken}`
+      `/api/v1/shopping/queue/${eventType}/${eventId}/subscribe/${entryToken}`
     )
 
     es.addEventListener('queue-status', (event) => {

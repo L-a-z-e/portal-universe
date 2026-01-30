@@ -19,7 +19,7 @@ Shopping Frontend는 React 18 기반의 마이크로 프론트엔드로, API Gat
 
 **핵심 특징**:
 - Portal Shell에서 주입된 `apiClient` (axios 인스턴스) 사용
-- API Gateway를 통한 중앙집중식 라우팅 (`/api/shopping/**`)
+- API Gateway를 통한 중앙집중식 라우팅 (`/api/v1/shopping/**`)
 - Zustand를 활용한 경량 상태 관리
 - LocalStorage를 통한 장바구니 영속성
 - Embedded/Standalone 듀얼 모드 지원
@@ -62,7 +62,7 @@ graph TB
     BC -->|read/write| ZS
     ZS -->|persist| LS
     API -->|HTTP Request| GW
-    GW -->|route /api/shopping/**| SS
+    GW -->|route /api/v1/shopping/**| SS
     SS -->|query| DB
     DB -->|result| SS
     SS -->|response| GW
@@ -135,7 +135,7 @@ sequenceDiagram
     C->>API: getProducts({ page: 0, size: 20 })
     API->>API: getApiClient()
     Note over API: Embedded: portal/api<br/>Standalone: local axios
-    API->>AC: GET /api/shopping/products?page=0&size=20
+    API->>AC: GET /api/v1/shopping/products?page=0&size=20
     Note over AC: Authorization: Bearer {JWT}
     AC->>G: HTTP Request
     G->>G: JWT 검증
@@ -179,7 +179,7 @@ sequenceDiagram
 
     alt Backend 연동 (로그인 상태)
         CS->>API: addToCart(productId, quantity)
-        API->>S: POST /api/shopping/cart/items
+        API->>S: POST /api/v1/shopping/cart/items
         S-->>API: CartResponse
         API-->>CS: Success
     end
@@ -199,7 +199,7 @@ sequenceDiagram
 
     alt Backend 동기화
         CS->>API: getCart()
-        API->>S: GET /api/shopping/cart
+        API->>S: GET /api/v1/shopping/cart
         S-->>API: CartResponse
         API-->>CS: Backend cart data
         CS->>CS: merge local + backend
@@ -268,7 +268,7 @@ sequenceDiagram
 
     U->>CHP: 배송지 입력 및 "결제하기" 클릭
     CHP->>OA: createOrder({ items, shippingAddress })
-    OA->>G: POST /api/shopping/orders
+    OA->>G: POST /api/v1/shopping/orders
     G->>S: Forward
     S->>D: INSERT INTO orders (...)
     D-->>S: Order created
@@ -279,7 +279,7 @@ sequenceDiagram
     OA-->>CHP: OrderResponse { orderNumber, ... }
 
     CHP->>PA: processPayment({ orderNumber, method: 'CARD' })
-    PA->>G: POST /api/shopping/payments
+    PA->>G: POST /api/v1/shopping/payments
     G->>S: Forward
     S->>S: 결제 처리 로직 (PG 연동)
     Note over S: 실제 구현 시 PG사 API 호출
@@ -477,14 +477,14 @@ import { getApiClient } from '../utils/apiClient';
 
 export async function getProducts(params: { page: number; size: number }) {
   const client = getApiClient();
-  const response = await client.get('/api/shopping/products', { params });
+  const response = await client.get('/api/v1/shopping/products', { params });
   return response.data;
 }
 
 // api/cart.ts
 export async function addToCart(productId: string, quantity: number) {
   const client = getApiClient();
-  const response = await client.post('/api/shopping/cart/items', {
+  const response = await client.post('/api/v1/shopping/cart/items', {
     productId,
     quantity,
   });
@@ -494,7 +494,7 @@ export async function addToCart(productId: string, quantity: number) {
 // api/orders.ts
 export async function createOrder(orderData: CreateOrderRequest) {
   const client = getApiClient();
-  const response = await client.post('/api/shopping/orders', orderData);
+  const response = await client.post('/api/v1/shopping/orders', orderData);
   return response.data;
 }
 ```

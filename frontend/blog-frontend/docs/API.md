@@ -24,7 +24,7 @@ export default apiClient;
 
 ```typescript
 // 요청
-GET /api/blog/posts?page=0&size=10
+GET /api/v1/blog/posts?page=0&size=10
 
 // 응답 (ApiResponse 래핑)
 {
@@ -467,7 +467,7 @@ export async function reorderSeriesPosts(
 
 ### Users API (`src/api/users.ts`)
 
-> auth-service 경로(`/auth-api/users/`)를 통해 사용자 정보에 접근합니다.
+> auth-service 경로(`/api/v1/users/`)를 통해 사용자 정보에 접근합니다.
 
 ```typescript
 // 공개 프로필 조회 (username 기반)
@@ -507,7 +507,7 @@ export async function getUserPosts(
 
 ### Follow API (`src/api/follow.ts`)
 
-> auth-service 경로(`/auth-api/users/`)를 통해 팔로우 기능에 접근합니다.
+> auth-service 경로(`/api/v1/users/`)를 통해 팔로우 기능에 접근합니다.
 
 ```typescript
 // 팔로우 토글 (팔로우/언팔로우)

@@ -4,7 +4,7 @@
 
 Shopping Service의 Admin 상품 관리 API 명세입니다. ADMIN 권한을 가진 사용자만 상품 등록/수정/삭제가 가능합니다.
 
-**Base URL**: `http://localhost:8080/api/shopping/product` (API Gateway 경유)
+**Base URL**: `http://localhost:8080/api/v1/shopping/product` (API Gateway 경유)
 
 **인증**: JWT Bearer Token (ADMIN 권한 필요)
 
@@ -61,7 +61,7 @@ Admin 기능 확장을 위해 다음 에러 코드 추가를 제안합니다:
 
 새로운 상품을 등록합니다.
 
-**Endpoint**: `POST /api/shopping/product`
+**Endpoint**: `POST /api/v1/shopping/product`
 
 **권한**: ADMIN
 
@@ -124,7 +124,7 @@ Content-Type: application/json
 
 **Example**:
 ```bash
-curl -X POST http://localhost:8080/api/shopping/product \
+curl -X POST http://localhost:8080/api/v1/shopping/product \
   -H "Authorization: Bearer eyJhbGc..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -141,7 +141,7 @@ curl -X POST http://localhost:8080/api/shopping/product \
 
 특정 상품의 상세 정보를 조회합니다.
 
-**Endpoint**: `GET /api/shopping/product/{productId}`
+**Endpoint**: `GET /api/v1/shopping/product/{productId}`
 
 **권한**: 인증 불필요 (Public)
 
@@ -171,7 +171,7 @@ curl -X POST http://localhost:8080/api/shopping/product \
 
 **Example**:
 ```bash
-curl -X GET http://localhost:8080/api/shopping/product/1
+curl -X GET http://localhost:8080/api/v1/shopping/product/1
 ```
 
 ---
@@ -180,7 +180,7 @@ curl -X GET http://localhost:8080/api/shopping/product/1
 
 기존 상품 정보를 수정합니다. 모든 필드를 전체 교체합니다 (PUT 방식).
 
-**Endpoint**: `PUT /api/shopping/product/{productId}`
+**Endpoint**: `PUT /api/v1/shopping/product/{productId}`
 
 **권한**: ADMIN
 
@@ -241,7 +241,7 @@ Content-Type: application/json
 
 **Example**:
 ```bash
-curl -X PUT http://localhost:8080/api/shopping/product/1 \
+curl -X PUT http://localhost:8080/api/v1/shopping/product/1 \
   -H "Authorization: Bearer eyJhbGc..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -258,7 +258,7 @@ curl -X PUT http://localhost:8080/api/shopping/product/1 \
 
 상품을 삭제합니다. 실제로는 Soft Delete 또는 Hard Delete를 구현할 수 있습니다.
 
-**Endpoint**: `DELETE /api/shopping/product/{productId}`
+**Endpoint**: `DELETE /api/v1/shopping/product/{productId}`
 
 **권한**: ADMIN
 
@@ -290,7 +290,7 @@ Authorization: Bearer {JWT_TOKEN}
 
 **Example**:
 ```bash
-curl -X DELETE http://localhost:8080/api/shopping/product/1 \
+curl -X DELETE http://localhost:8080/api/v1/shopping/product/1 \
   -H "Authorization: Bearer eyJhbGc..."
 ```
 
@@ -300,7 +300,7 @@ curl -X DELETE http://localhost:8080/api/shopping/product/1 \
 
 상품 정보와 해당 상품의 리뷰(블로그 게시물)를 함께 조회합니다. Blog Service와 Feign Client로 통신합니다.
 
-**Endpoint**: `GET /api/shopping/product/{productId}/with-reviews`
+**Endpoint**: `GET /api/v1/shopping/product/{productId}/with-reviews`
 
 **권한**: 인증 불필요 (Public)
 
@@ -342,7 +342,7 @@ curl -X DELETE http://localhost:8080/api/shopping/product/1 \
 
 **Example**:
 ```bash
-curl -X GET http://localhost:8080/api/shopping/product/1/with-reviews
+curl -X GET http://localhost:8080/api/v1/shopping/product/1/with-reviews
 ```
 
 ---
@@ -422,7 +422,7 @@ Admin 기능을 확장하기 위해 다음 API 추가를 제안합니다:
 
 ### 1. Admin 전용 상품 목록 조회 (페이징)
 
-**Endpoint**: `GET /api/shopping/product/admin/list`
+**Endpoint**: `GET /api/v1/shopping/product/admin/list`
 
 **권한**: ADMIN
 
@@ -467,7 +467,7 @@ Admin 기능을 확장하기 위해 다음 API 추가를 제안합니다:
 
 ### 2. 재고 일괄 수정 (Batch Update)
 
-**Endpoint**: `PATCH /api/shopping/product/admin/stock-batch`
+**Endpoint**: `PATCH /api/v1/shopping/product/admin/stock-batch`
 
 **권한**: ADMIN
 
@@ -501,7 +501,7 @@ Admin 기능을 확장하기 위해 다음 API 추가를 제안합니다:
 
 ### 3. 상품 상태 변경 (활성화/비활성화)
 
-**Endpoint**: `PATCH /api/shopping/product/{productId}/status`
+**Endpoint**: `PATCH /api/v1/shopping/product/{productId}/status`
 
 **권한**: ADMIN
 
@@ -532,7 +532,7 @@ Admin 기능을 확장하기 위해 다음 API 추가를 제안합니다:
 
 ### 4. 상품 통계 조회
 
-**Endpoint**: `GET /api/shopping/product/admin/statistics`
+**Endpoint**: `GET /api/v1/shopping/product/admin/statistics`
 
 **권한**: ADMIN
 
@@ -578,7 +578,7 @@ tags:
     description: 상품 관리 API (ADMIN 전용)
 
 paths:
-  /api/shopping/product:
+  /api/v1/shopping/product:
     post:
       tags:
         - Product Admin
@@ -619,7 +619,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/shopping/product/{productId}:
+  /api/v1/shopping/product/{productId}:
     get:
       tags:
         - Product Admin
@@ -741,7 +741,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/shopping/product/{productId}/with-reviews:
+  /api/v1/shopping/product/{productId}/with-reviews:
     get:
       tags:
         - Product Admin
@@ -1003,7 +1003,7 @@ components:
 
 **Test Scripts**:
 ```javascript
-// POST /api/shopping/product
+// POST /api/v1/shopping/product
 pm.test("Status code is 201", function () {
     pm.response.to.have.status(201);
 });
