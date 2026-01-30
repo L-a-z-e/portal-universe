@@ -2,6 +2,7 @@ package com.portal.universe.apigateway.filter;
 
 import com.portal.universe.apigateway.config.JwtProperties;
 import com.portal.universe.apigateway.config.PublicPathProperties;
+import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -41,11 +42,14 @@ public class JwtAuthenticationFilter implements WebFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtProperties jwtProperties;
+    private final TokenBlacklistChecker tokenBlacklistChecker;
     private final String[] skipJwtParsingPrefixes;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public JwtAuthenticationFilter(JwtProperties jwtProperties, PublicPathProperties publicPathProperties) {
+    public JwtAuthenticationFilter(JwtProperties jwtProperties, PublicPathProperties publicPathProperties,
+                                   TokenBlacklistChecker tokenBlacklistChecker) {
         this.jwtProperties = jwtProperties;
+        this.tokenBlacklistChecker = tokenBlacklistChecker;
         this.skipJwtParsingPrefixes = publicPathProperties.getSkipJwtParsing().toArray(String[]::new);
     }
 
@@ -121,68 +125,89 @@ public class JwtAuthenticationFilter implements WebFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
 
-        // 공개 경로는 JWT 검증 생략
+        // 외부에서 주입된 X-User-* 헤더를 strip (Header Injection 방어)
+        ServerHttpRequest sanitizedRequest = request.mutate()
+                .headers(h -> {
+                    h.remove("X-User-Id");
+                    h.remove("X-User-Roles");
+                    h.remove("X-User-Memberships");
+                    h.remove("X-User-Nickname");
+                    h.remove("X-User-Name");
+                }).build();
+        ServerWebExchange sanitizedExchange = exchange.mutate().request(sanitizedRequest).build();
+
+        // 공개 경로는 JWT 검증 생략 (sanitized exchange 사용)
         if (isPublicPath(path)) {
-            return chain.filter(exchange);
+            return chain.filter(sanitizedExchange);
         }
 
         // Authorization 헤더에서 토큰 추출
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String authHeader = sanitizedRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             // 토큰이 없으면 SecurityConfig의 접근 제어에 위임
-            return chain.filter(exchange);
+            return chain.filter(sanitizedExchange);
         }
 
         String token = authHeader.substring(BEARER_PREFIX.length());
 
+        // JWT 서명 검증
+        final Claims claims;
         try {
-            // JWT 검증
-            Claims claims = validateToken(token);
-            String userId = claims.getSubject();
-            String nickname = claims.get("nickname", String.class);
-            String username = claims.get("username", String.class);
-
-            // JWT v2: roles 파싱
-            List<String> rolesList = parseRoles(claims);
-            String rolesHeader = String.join(",", rolesList);
-
-            // JWT v2: memberships 파싱
-            String membershipsHeader = parseMemberships(claims);
-
-            log.debug("JWT validated for user: {}, roles: {}, memberships: {}", userId, rolesList, membershipsHeader);
-
-            // 복수 Authority 생성
-            List<SimpleGrantedAuthority> authorities = rolesList.stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
-
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
-
-            // 하위 서비스로 전달할 헤더 설정
-            ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("X-User-Id", userId)
-                    .header("X-User-Roles", rolesHeader)
-                    .header("X-User-Memberships", membershipsHeader)
-                    .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
-                    .header("X-User-Name", username != null ? URLEncoder.encode(username, StandardCharsets.UTF_8) : "")
-                    .build();
-
-            ServerWebExchange mutatedExchange = exchange.mutate()
-                    .request(mutatedRequest)
-                    .build();
-
-            return chain.filter(mutatedExchange)
-                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
-
+            claims = validateToken(token);
         } catch (ExpiredJwtException e) {
             log.warn("JWT token expired: {}", e.getMessage());
-            return handleUnauthorized(exchange, "Token expired");
+            return handleUnauthorized(sanitizedExchange, "Token expired");
         } catch (JwtException e) {
             log.warn("Invalid JWT token: {}", e.getMessage());
-            return handleUnauthorized(exchange, "Invalid token");
+            return handleUnauthorized(sanitizedExchange, "Invalid token");
         }
+
+        // 블랙리스트 체크 (reactive) → 인증 정보 설정
+        return tokenBlacklistChecker.isBlacklisted(token)
+                .flatMap(blacklisted -> {
+                    if (Boolean.TRUE.equals(blacklisted)) {
+                        log.warn("JWT token is blacklisted");
+                        return handleUnauthorized(sanitizedExchange, "Token revoked");
+                    }
+
+                    String userId = claims.getSubject();
+                    String nickname = claims.get("nickname", String.class);
+                    String username = claims.get("username", String.class);
+
+                    // JWT v2: roles 파싱
+                    List<String> rolesList = parseRoles(claims);
+                    String rolesHeader = String.join(",", rolesList);
+
+                    // JWT v2: memberships 파싱
+                    String membershipsHeader = parseMemberships(claims);
+
+                    log.debug("JWT validated for user: {}, roles: {}, memberships: {}", userId, rolesList, membershipsHeader);
+
+                    // 복수 Authority 생성
+                    List<SimpleGrantedAuthority> authorities = rolesList.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userId, null, authorities);
+
+                    // 하위 서비스로 전달할 헤더 설정 (sanitized request 기반)
+                    ServerHttpRequest mutatedRequest = sanitizedRequest.mutate()
+                            .header("X-User-Id", userId)
+                            .header("X-User-Roles", rolesHeader)
+                            .header("X-User-Memberships", membershipsHeader)
+                            .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
+                            .header("X-User-Name", username != null ? URLEncoder.encode(username, StandardCharsets.UTF_8) : "")
+                            .build();
+
+                    ServerWebExchange mutatedExchange = sanitizedExchange.mutate()
+                            .request(mutatedRequest)
+                            .build();
+
+                    return chain.filter(mutatedExchange)
+                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
+                });
     }
 
     /**
@@ -257,11 +282,25 @@ public class JwtAuthenticationFilter implements WebFilter {
     }
 
     /**
-     * 401 Unauthorized 응답을 반환합니다.
+     * 401 Unauthorized 응답을 ApiResponse JSON 형식으로 반환합니다.
      */
     private Mono<Void> handleUnauthorized(ServerWebExchange exchange, String message) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        exchange.getResponse().getHeaders().add(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
         exchange.getResponse().getHeaders().add("X-Auth-Error", message);
-        return exchange.getResponse().setComplete();
+
+        String errorCode = switch (message) {
+            case "Token expired" -> "A005";
+            case "Token revoked" -> "A005";
+            default -> "A005";
+        };
+
+        String body = "{\"success\":false,\"data\":null,\"error\":{\"code\":\"" + errorCode
+                + "\",\"message\":\"" + message + "\"}}";
+
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        org.springframework.core.io.buffer.DataBuffer buffer =
+                exchange.getResponse().bufferFactory().wrap(bytes);
+        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 }

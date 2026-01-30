@@ -3,6 +3,7 @@ package com.portal.universe.apigateway.config;
 import com.portal.universe.apigateway.filter.JwtAuthenticationFilter;
 import com.portal.universe.apigateway.security.CustomAccessDeniedHandler;
 import com.portal.universe.apigateway.security.CustomAuthenticationEntryPoint;
+import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -40,10 +41,11 @@ public class SecurityConfig {
     private final PublicPathProperties publicPathProperties;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final TokenBlacklistChecker tokenBlacklistChecker;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties);
+        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker);
     }
 
     /**
@@ -81,8 +83,11 @@ public class SecurityConfig {
                 "http://localhost:8080",
                 "https://portal-universe:30000"
                 ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization", "Content-Type", "Accept", "Origin",
+                "X-Requested-With", "Cache-Control"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L); // Preflight 요청 결과를 3600초(1시간) 동안 캐시
 
