@@ -153,8 +153,10 @@ public class TokenService {
         // JWT v2: roles를 배열로 저장 (RBAC 테이블 기반)
         List<String> roleKeys = userRoleRepository.findActiveRoleKeysByUserId(user.getUuid());
         if (roleKeys.isEmpty()) {
-            log.warn("No RBAC roles found for user: {}, defaulting to ROLE_USER", user.getUuid());
-            roleKeys = List.of("ROLE_USER");
+            log.error("No RBAC roles found for user: {}. This indicates RBAC initialization failure.", user.getUuid());
+            throw new IllegalStateException(
+                    "No roles assigned to user: " + user.getUuid()
+                            + ". RBAC data may not be properly initialized.");
         }
         claims.put("roles", roleKeys);
 
@@ -224,6 +226,18 @@ public class TokenService {
     }
 
     /**
+     * Refresh Token을 검증하고 Claims를 반환합니다.
+     * JWT 헤더의 kid를 확인하여 적절한 키로 서명을 검증합니다.
+     *
+     * @param token Refresh Token
+     * @return Claims
+     * @throws JwtException 토큰이 유효하지 않은 경우
+     */
+    public Claims validateRefreshToken(String token) {
+        return validateTokenInternal(token, "refresh");
+    }
+
+    /**
      * Access Token을 검증하고 Claims를 반환합니다.
      * JWT 헤더의 kid를 확인하여 적절한 키로 서명을 검증합니다.
      *
@@ -233,15 +247,22 @@ public class TokenService {
      * @throws IllegalArgumentException 키를 찾을 수 없거나 만료된 경우
      */
     public Claims validateAccessToken(String token) {
+        return validateTokenInternal(token, "access");
+    }
+
+    /**
+     * 토큰을 검증하고 Claims를 반환하는 공용 내부 메서드입니다.
+     */
+    private Claims validateTokenInternal(String token, String tokenType) {
         try {
             // 1. 헤더에서 kid 추출
             String keyId = extractKeyId(token);
             if (keyId == null || keyId.isBlank()) {
-                log.warn("JWT token does not contain kid header, using current key");
+                log.warn("JWT {} token does not contain kid header, using current key", tokenType);
                 keyId = getCurrentKeyId();
             }
 
-            log.debug("Validating access token with key ID: {}", keyId);
+            log.debug("Validating {} token with key ID: {}", tokenType, keyId);
 
             // 2. kid에 해당하는 키로 검증
             SecretKey signingKey = getSigningKeyById(keyId);
@@ -253,20 +274,38 @@ public class TokenService {
                     .getPayload();
 
         } catch (ExpiredJwtException e) {
-            log.warn("Access token expired: {}", e.getMessage());
+            log.warn("{} token expired: {}", tokenType, e.getMessage());
             throw e;
         } catch (UnsupportedJwtException e) {
-            log.warn("Unsupported JWT token: {}", e.getMessage());
+            log.warn("Unsupported JWT {} token: {}", tokenType, e.getMessage());
             throw e;
         } catch (MalformedJwtException e) {
-            log.warn("Malformed JWT token: {}", e.getMessage());
+            log.warn("Malformed JWT {} token: {}", tokenType, e.getMessage());
             throw e;
         } catch (SecurityException e) {
-            log.warn("Invalid JWT signature: {}", e.getMessage());
+            log.warn("Invalid JWT {} signature: {}", tokenType, e.getMessage());
             throw e;
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid JWT: {}", e.getMessage());
+            log.warn("Invalid JWT {}: {}", tokenType, e.getMessage());
             throw e;
+        }
+    }
+
+    /**
+     * 만료된 토큰에서도 Claims를 추출합니다.
+     * 서명은 여전히 검증되며, 만료 여부만 무시합니다.
+     * 로그아웃 시 만료된 토큰에서 userId를 추출하는 데 사용됩니다.
+     *
+     * @param token JWT Token
+     * @return Claims (만료 여부와 무관하게 반환)
+     * @throws JwtException 서명이 유효하지 않은 경우
+     */
+    public Claims parseClaimsAllowExpired(String token) {
+        try {
+            return validateAccessToken(token);
+        } catch (ExpiredJwtException e) {
+            // 만료된 토큰이지만 서명은 유효 → claims 반환
+            return e.getClaims();
         }
     }
 
@@ -285,12 +324,13 @@ public class TokenService {
      * 토큰의 남은 만료 시간(밀리초)을 계산합니다.
      *
      * @param token JWT Token
-     * @return 남은 만료 시간 (ms)
+     * @return 남은 만료 시간 (ms), 이미 만료된 경우 0
      */
     public long getRemainingExpiration(String token) {
-        Claims claims = validateAccessToken(token);
+        Claims claims = parseClaimsAllowExpired(token);
         Date expiration = claims.getExpiration();
         Date now = new Date();
-        return expiration.getTime() - now.getTime();
+        long remaining = expiration.getTime() - now.getTime();
+        return Math.max(remaining, 0);
     }
 }

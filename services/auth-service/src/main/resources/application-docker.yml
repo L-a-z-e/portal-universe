@@ -11,6 +11,8 @@ server:
 app:
   frontend:
     base-url: https://portal-shell:30000
+  cookie:
+    secure: true
 
 # 서비스 URL 정의 (Docker DNS)
 services:

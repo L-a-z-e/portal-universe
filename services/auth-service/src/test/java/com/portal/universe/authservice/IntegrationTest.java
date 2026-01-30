@@ -84,6 +84,11 @@ public abstract class IntegrationTest {
                     "jwt.access-token-expiration=900000",
                     "jwt.refresh-token-expiration=604800000",
 
+                    // --- 테스트용 JWT Key Rotation 설정 ---
+                    "jwt.current-key-id=test-key-1",
+                    "jwt.keys.test-key-1.secret-key=test-secret-key-for-unit-tests-must-be-at-least-256-bits-long-for-hmac-sha256",
+                    "jwt.keys.test-key-1.activated-at=2025-01-01T00:00:00",
+
                     // --- 테스트용 OAuth2 Client 설정 (더미) ---
                     "spring.security.oauth2.client.registration.google.client-id=test-client-id",
                     "spring.security.oauth2.client.registration.google.client-secret=test-client-secret",

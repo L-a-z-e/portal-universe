@@ -5,6 +5,7 @@ package com.portal.universe.authservice.auth.dto;
  */
 public record RefreshResponse(
         String accessToken,
+        String refreshToken,
         long expiresIn  // 초 단위
 ) {
 }

@@ -2,6 +2,7 @@ package com.portal.universe.authservice.auth.security;
 
 import com.portal.universe.authservice.auth.service.TokenBlacklistService;
 import com.portal.universe.authservice.auth.service.TokenService;
+import com.portal.universe.authservice.common.config.PublicPathProperties;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenService tokenService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final PublicPathProperties publicPathProperties;
 
     /**
      * JWT 토큰을 검증하고 인증 정보를 SecurityContext에 설정합니다.
@@ -102,18 +103,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * 공개 엔드포인트는 필터를 건너뜁니다.
+     * 경로 목록은 PublicPathProperties로 외부화되어 있습니다.
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/api/auth/") ||
-               path.startsWith("/oauth2/") ||
-               path.startsWith("/login/oauth2/") ||
-               path.startsWith("/.well-known/") ||
-               path.startsWith("/actuator/") ||
-               path.equals("/ping") ||
-               path.equals("/login") ||
-               path.equals("/logout") ||
-               path.startsWith("/api/users/signup");
+
+        // prefix 매칭
+        for (String prefix : publicPathProperties.getSkipJwtParsing()) {
+            if (path.startsWith(prefix)) {
+                return true;
+            }
+        }
+
+        // exact 매칭
+        for (String exactPath : publicPathProperties.getSkipJwtParsingExact()) {
+            if (path.equals(exactPath)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

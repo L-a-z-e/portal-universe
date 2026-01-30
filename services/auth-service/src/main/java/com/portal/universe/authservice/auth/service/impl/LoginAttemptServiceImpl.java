@@ -4,9 +4,11 @@ import com.portal.universe.authservice.auth.service.LoginAttemptService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,20 +50,26 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
     // 실패 카운트 유지 시간 (1시간)
     private static final long COUNT_EXPIRATION = 3600;
 
+    // Lua Script: INCR + 첫 실패 시 EXPIRE 원자적 실행
+    private static final String INCREMENT_WITH_EXPIRE_SCRIPT =
+            "local count = redis.call('INCR', KEYS[1]) " +
+            "if count == 1 then " +
+            "  redis.call('EXPIRE', KEYS[1], ARGV[1]) " +
+            "end " +
+            "return count";
+
     @Override
     public void recordFailure(String key) {
         String countKey = COUNT_PREFIX + key;
         String lockKey = LOCK_PREFIX + key;
 
-        // 현재 실패 횟수 증가
-        Long currentCount = redisTemplate.opsForValue().increment(countKey);
+        // 원자적으로 실패 횟수 증가 + 첫 실패 시 TTL 설정
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(INCREMENT_WITH_EXPIRE_SCRIPT, Long.class);
+        Long currentCount = redisTemplate.execute(script,
+                Collections.singletonList(countKey),
+                String.valueOf(COUNT_EXPIRATION));
         if (currentCount == null) {
             currentCount = 1L;
-        }
-
-        // 첫 실패 시 만료 시간 설정
-        if (currentCount == 1) {
-            redisTemplate.expire(countKey, COUNT_EXPIRATION, TimeUnit.SECONDS);
         }
 
         log.warn("Login failure recorded for key: {} (attempt: {})", key, currentCount);

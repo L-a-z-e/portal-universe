@@ -17,14 +17,18 @@ import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -44,6 +48,12 @@ public class AuthController {
     private final TokenBlacklistService tokenBlacklistService;
     private final LoginAttemptService loginAttemptService;
 
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
+
+    @Value("${app.cookie.same-site:Lax}")
+    private String cookieSameSite;
+
     /**
      * 일반 로그인 API
      * email/password로 인증 후 Access Token과 Refresh Token을 발급합니다.
@@ -55,7 +65,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
             @Valid @RequestBody LoginRequest request,
-            HttpServletRequest servletRequest) {
+            HttpServletRequest servletRequest,
+            HttpServletResponse servletResponse) {
 
         String clientIp = getClientIp(servletRequest);
         String loginKey = clientIp + ":" + request.email();
@@ -98,8 +109,12 @@ public class AuthController {
         String refreshToken = tokenService.generateRefreshToken(user);
         refreshTokenService.saveRefreshToken(user.getUuid(), refreshToken);
 
+        // 7. Refresh Token을 HttpOnly Cookie로 설정
+        setRefreshTokenCookie(servletResponse, refreshToken);
+
         log.info("Login successful for user: {} from IP: {}", user.getUuid(), clientIp);
 
+        // 응답 body에도 refreshToken 포함 (하위 호환)
         LoginResponse response = new LoginResponse(accessToken, refreshToken, 900);  // 15분 = 900초
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -112,30 +127,46 @@ public class AuthController {
      * @return 토큰 갱신 응답 (accessToken, expiresIn)
      */
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<RefreshResponse>> refresh(@Valid @RequestBody RefreshRequest request) {
+    public ResponseEntity<ApiResponse<RefreshResponse>> refresh(
+            @RequestBody(required = false) RefreshRequest request,
+            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String cookieRefreshToken,
+            HttpServletResponse servletResponse) {
         log.info("Token refresh attempt");
+
+        // Cookie 우선, Body fallback
+        String refreshToken = resolveRefreshToken(cookieRefreshToken, request);
+        if (refreshToken == null) {
+            throw new CustomBusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
 
         try {
             // 1. Refresh Token 검증 (JWT 서명 검증)
-            Claims claims = tokenService.validateAccessToken(request.refreshToken());
+            Claims claims = tokenService.validateRefreshToken(refreshToken);
             String userId = claims.getSubject();
 
-            // 2. Redis에 저장된 Refresh Token과 비교
-            if (!refreshTokenService.validateRefreshToken(userId, request.refreshToken())) {
-                throw new CustomBusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
-            }
-
-            // 3. 사용자 정보 조회 (프로필 포함 - JWT에 nickname 포함 위해)
+            // 2. 사용자 정보 조회 (프로필 포함 - JWT에 nickname 포함 위해)
             User user = userRepository.findByUuidWithProfile(userId)
                     .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
 
-            // 4. 새로운 Access Token 발급
+            // 3. 새로운 Access Token 발급
             String accessToken = tokenService.generateAccessToken(user);
+
+            // 4. Refresh Token Rotation: 새 refresh token 발급 + 원자적 교체
+            String newRefreshToken = tokenService.generateRefreshToken(user);
+            if (!refreshTokenService.rotateRefreshToken(userId, refreshToken, newRefreshToken)) {
+                // 원자적 교체 실패 (이미 다른 요청에서 교체됨)
+                throw new CustomBusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+            }
+
+            // 5. 새 Refresh Token을 HttpOnly Cookie로 설정
+            setRefreshTokenCookie(servletResponse, newRefreshToken);
 
             log.info("Token refresh successful for user: {}", user.getUuid());
 
-            RefreshResponse response = new RefreshResponse(accessToken, 900);  // 15분 = 900초
+            RefreshResponse response = new RefreshResponse(accessToken, newRefreshToken, 900);  // 15분 = 900초
             return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (CustomBusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Token refresh failed: {}", e.getMessage());
             throw new CustomBusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
@@ -153,7 +184,9 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Map<String, String>>> logout(
             @RequestHeader("Authorization") String authorization,
-            @Valid @RequestBody LogoutRequest request) {
+            @RequestBody(required = false) LogoutRequest request,
+            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String cookieRefreshToken,
+            HttpServletResponse servletResponse) {
 
         log.info("Logout attempt");
 
@@ -161,16 +194,21 @@ public class AuthController {
         String accessToken = TokenUtils.extractBearerToken(authorization);
 
         try {
-            // 2. Access Token 검증 및 userId 추출
-            Claims claims = tokenService.validateAccessToken(accessToken);
+            // 2. Access Token에서 userId 추출 (만료된 토큰도 허용, 서명은 검증)
+            Claims claims = tokenService.parseClaimsAllowExpired(accessToken);
             String userId = claims.getSubject();
 
-            // 3. Access Token 블랙리스트 추가
+            // 3. Access Token 블랙리스트 추가 (아직 유효한 경우에만)
             long remainingExpiration = tokenService.getRemainingExpiration(accessToken);
-            tokenBlacklistService.addToBlacklist(accessToken, remainingExpiration);
+            if (remainingExpiration > 0) {
+                tokenBlacklistService.addToBlacklist(accessToken, remainingExpiration);
+            }
 
-            // 4. Refresh Token Redis에서 삭제
+            // 4. Refresh Token Redis에서 삭제 (항상 실행)
             refreshTokenService.deleteRefreshToken(userId);
+
+            // 5. Refresh Token Cookie 삭제
+            clearRefreshTokenCookie(servletResponse);
 
             log.info("Logout successful for user: {}", userId);
 
@@ -180,6 +218,50 @@ public class AuthController {
             log.warn("Logout failed: {}", e.getMessage());
             throw new CustomBusinessException(AuthErrorCode.INVALID_TOKEN);
         }
+    }
+
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "portal_refresh_token";
+    private static final String REFRESH_TOKEN_COOKIE_PATH = "/";
+
+    /**
+     * Cookie 우선, Body fallback으로 Refresh Token을 결정합니다.
+     */
+    private String resolveRefreshToken(String cookieToken, RefreshRequest request) {
+        if (cookieToken != null && !cookieToken.isBlank()) {
+            return cookieToken;
+        }
+        if (request != null && request.refreshToken() != null && !request.refreshToken().isBlank()) {
+            return request.refreshToken();
+        }
+        return null;
+    }
+
+    /**
+     * Refresh Token을 HttpOnly Cookie로 설정합니다.
+     */
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path(REFRESH_TOKEN_COOKIE_PATH)
+                .maxAge(Duration.ofDays(7))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    /**
+     * Refresh Token Cookie를 삭제합니다.
+     */
+    private void clearRefreshTokenCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path(REFRESH_TOKEN_COOKIE_PATH)
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     /**

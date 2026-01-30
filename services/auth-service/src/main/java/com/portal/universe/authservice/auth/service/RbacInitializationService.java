@@ -44,13 +44,14 @@ public class RbacInitializationService {
     }
 
     private void assignDefaultRole(String userId) {
-        roleEntityRepository.findByRoleKey("ROLE_USER").ifPresent(userRole ->
-                userRoleRepository.save(UserRole.builder()
-                        .userId(userId)
-                        .role(userRole)
-                        .assignedBy("SYSTEM_REGISTRATION")
-                        .build())
-        );
+        RoleEntity userRole = roleEntityRepository.findByRoleKey("ROLE_USER")
+                .orElseThrow(() -> new IllegalStateException(
+                        "Required role ROLE_USER not found in database. Ensure RBAC data is properly initialized."));
+        userRoleRepository.save(UserRole.builder()
+                .userId(userId)
+                .role(userRole)
+                .assignedBy("SYSTEM_REGISTRATION")
+                .build());
     }
 
     private void createDefaultMemberships(String userId) {
@@ -63,13 +64,14 @@ public class RbacInitializationService {
             return;
         }
 
-        membershipTierRepository.findByServiceNameAndTierKey(serviceName, "FREE")
-                .ifPresent(freeTier ->
-                        userMembershipRepository.save(UserMembership.builder()
-                                .userId(userId)
-                                .serviceName(serviceName)
-                                .tier(freeTier)
-                                .build())
-                );
+        MembershipTier freeTier = membershipTierRepository.findByServiceNameAndTierKey(serviceName, "FREE")
+                .orElseThrow(() -> new IllegalStateException(
+                        "Required membership tier FREE not found for service: " + serviceName
+                                + ". Ensure RBAC data is properly initialized."));
+        userMembershipRepository.save(UserMembership.builder()
+                .userId(userId)
+                .serviceName(serviceName)
+                .tier(freeTier)
+                .build());
     }
 }

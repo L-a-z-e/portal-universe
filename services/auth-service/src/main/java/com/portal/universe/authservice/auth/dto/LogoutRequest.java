@@ -1,12 +1,10 @@
 package com.portal.universe.authservice.auth.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
 /**
  * 로그아웃 요청 DTO
+ * Cookie 우선, Body fallback이므로 refreshToken은 optional
  */
 public record LogoutRequest(
-        @NotBlank(message = "Refresh Token은 필수입니다")
         String refreshToken
 ) {
 }

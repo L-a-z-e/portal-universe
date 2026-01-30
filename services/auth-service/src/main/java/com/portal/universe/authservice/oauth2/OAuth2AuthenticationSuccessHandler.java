@@ -9,12 +9,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.Duration;
 
 /**
  * OAuth2 소셜 로그인 성공 시 처리하는 핸들러입니다.
@@ -30,6 +33,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     @Value("${app.frontend.base-url:http://localhost:30000}")
     private String frontendBaseUrl;
+
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
+
+    @Value("${app.cookie.same-site:Lax}")
+    private String cookieSameSite;
+
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "portal_refresh_token";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -51,11 +62,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // Refresh Token Redis 저장
         refreshTokenService.saveRefreshToken(user.getUuid(), refreshToken);
 
-        // URL Fragment로 토큰 전달
-        // 프론트엔드에서 #access_token=...&refresh_token=... 형태로 수신
+        // Refresh Token을 HttpOnly Cookie로 설정
+        setRefreshTokenCookie(response, refreshToken);
+
+        // URL Fragment로 Access Token만 전달 (Refresh Token은 cookie로 전달)
         String targetUrl = UriComponentsBuilder.fromUriString(frontendBaseUrl + "/oauth2/callback")
                 .fragment("access_token=" + accessToken +
-                         "&refresh_token=" + refreshToken +
                          "&expires_in=900")
                 .build().toUriString();
 
@@ -63,5 +75,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         // Stateless - 세션 사용 안 함
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

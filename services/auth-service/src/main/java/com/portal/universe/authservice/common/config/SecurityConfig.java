@@ -82,9 +82,9 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         // 인증 API는 누구나 접근 가능해야 합니다.
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
                         // 회원가입 API는 누구나 접근 가능해야 합니다.
-                        .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/signup", "/api/v1/users/signup").permitAll()
                         // OIDC Discovery, 로그인/로그아웃 등 인증이 필요 없는 경로들을 지정합니다.
                         .requestMatchers(
                                 "/css/**",           // CSS 파일
@@ -107,19 +107,19 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()  // 내부망에서만 접근 (Gateway에서 차단)
                         .requestMatchers("/actuator/**").denyAll()  // 나머지는 차단
                         // 멤버십 티어 목록은 공개
-                        .requestMatchers(HttpMethod.GET, "/api/memberships/tiers/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/memberships/tiers/**", "/api/v1/memberships/tiers/**").permitAll()
                         // 관리자 경로: RBAC 기반 접근 제어
-                        .requestMatchers("/api/admin/rbac/**").hasAuthority("ROLE_SUPER_ADMIN")
-                        .requestMatchers("/api/admin/memberships/**").hasAuthority("ROLE_SUPER_ADMIN")
-                        .requestMatchers("/api/admin/seller/**")
+                        .requestMatchers("/api/admin/rbac/**", "/api/v1/admin/rbac/**").hasAuthority("ROLE_SUPER_ADMIN")
+                        .requestMatchers("/api/admin/memberships/**", "/api/v1/admin/memberships/**").hasAuthority("ROLE_SUPER_ADMIN")
+                        .requestMatchers("/api/admin/seller/**", "/api/v1/admin/seller/**")
                             .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
+                        .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
                         // /api/profile 경로는 인증된 사용자만 접근 가능합니다.
-                        .requestMatchers("/api/profile/**").authenticated()
+                        .requestMatchers("/api/profile/**", "/api/v1/profile/**").authenticated()
                         // 셀러/멤버십/권한 셀프서비스는 인증 필요
-                        .requestMatchers("/api/seller/**").authenticated()
-                        .requestMatchers("/api/memberships/**").authenticated()
-                        .requestMatchers("/api/permissions/**").authenticated()
+                        .requestMatchers("/api/seller/**", "/api/v1/seller/**").authenticated()
+                        .requestMatchers("/api/memberships/**", "/api/v1/memberships/**").authenticated()
+                        .requestMatchers("/api/permissions/**", "/api/v1/permissions/**").authenticated()
                         // 위에서 지정한 경로 외의 모든 요청은 인증이 필요합니다.
                         .anyRequest().authenticated()
                 )

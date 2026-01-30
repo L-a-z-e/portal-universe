@@ -11,6 +11,8 @@ server:
 app:
   frontend:
     base-url: http://localhost:30000
+  cookie:
+    secure: false       # HTTP localhost 환경
 
 # 서비스 URL 정의 (IntelliJ 개발용 - localhost)
 services:

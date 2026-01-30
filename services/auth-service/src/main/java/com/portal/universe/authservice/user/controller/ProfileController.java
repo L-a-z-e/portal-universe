@@ -57,18 +57,29 @@ public class ProfileController {
 
     /**
      * 프로필 수정 API
+     * 프로필 변경 시 새 Access Token을 함께 반환하여 JWT의 stale data를 방지합니다.
      *
      * @param request 수정 요청 DTO
-     * @return 수정된 프로필 응답 DTO
+     * @return 수정된 프로필 응답 DTO (새 accessToken 포함)
      */
     @PatchMapping
-    public ResponseEntity<ApiResponse<ProfileResponse>> updateProfile(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request) {
         Long userId = getCurrentUserId();
+        String userUuid = getCurrentUserUuid();
         log.info("Profile update for user: {}", userId);
 
         ProfileResponse response = profileService.updateProfile(userId, request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        // 프로필 변경 후 새 Access Token 발급 (JWT에 닉네임 등이 포함되므로)
+        User user = userRepository.findByUuidWithProfile(userUuid)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
+        String newAccessToken = tokenService.generateAccessToken(user);
+
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "profile", response,
+                "accessToken", newAccessToken
+        )));
     }
 
     /**

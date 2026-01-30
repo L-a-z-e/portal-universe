@@ -79,6 +79,12 @@ security:
     prevent-sequential: true  # 연속 문자/숫자 금지
     prevent-user-info: true  # 사용자 정보 포함 금지
 
+# Cookie 설정
+app:
+  cookie:
+    secure: true        # default: production용
+    same-site: Lax      # OAuth redirect 지원
+
 # Actuator 설정
 management:
   endpoints:

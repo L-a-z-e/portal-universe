@@ -6,29 +6,29 @@ FROM gradle:8.9-jdk17 AS builder
 
 WORKDIR /app
 
-# build.gradle, settings.gradle을 먼저 복사하여 Gradle 종속성을 별도 레이어에 캐싱합니다.
-# 소스 코드가 변경되어도 종속성은 다시 다운로드하지 않도록 최적화합니다.
-COPY build.gradle settings.gradle ./
-COPY gradlew ./gradlew
-COPY gradle ./gradle
-RUN ./gradlew dependencies --no-daemon
-
-# 전체 소스 코드 복사
 COPY . .
 
-# Gradle 빌드 실행. 테스트는 제외하여 빌드 속도를 높입니다.
-RUN ./gradlew :services:auth-service:build --no-daemon -x test
+# Gradle 캐시 마운트로 의존성 재다운로드 방지
+RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
+--mount=type=cache,target=/home/gradle/.gradle/wrapper \
+./gradlew :services:auth-service:build --no-daemon -x test
 
 # =================================================================
 # Stage 2: Runtime Stage
 # 역할: 빌드된 JAR 파일을 최소한의 환경에서 실행합니다.
 # =================================================================
-FROM eclipse-temurin:17-jdk-jammy
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
+# 비루트 사용자 생성 및 전환
+RUN addgroup --system appgroup && adduser --system -ingroup appgroup appuser
+
 # Build Stage에서 생성된 JAR 파일을 Runtime Stage로 복사합니다.
 COPY --from=builder /app/services/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar app.jar
+
+# 비루트 사용자로 전환
+USER appuser
 
 # 컨테이너 시작 시 JAR 파일을 직접 실행합니다.
 ENTRYPOINT ["java", "-jar", "app.jar"]

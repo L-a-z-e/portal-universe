@@ -17,7 +17,7 @@ public interface UserMembershipRepository extends JpaRepository<UserMembership, 
 
     List<UserMembership> findByUserIdAndStatus(String userId, MembershipStatus status);
 
-    @Query("SELECT um FROM UserMembership um JOIN FETCH um.tier WHERE um.userId = :userId AND um.status = 'ACTIVE'")
+    @Query("SELECT um FROM UserMembership um JOIN FETCH um.tier t WHERE um.userId = :userId AND um.status = 'ACTIVE' AND t.active = true")
     List<UserMembership> findActiveByUserId(@Param("userId") String userId);
 
     boolean existsByUserIdAndServiceName(String userId, String serviceName);

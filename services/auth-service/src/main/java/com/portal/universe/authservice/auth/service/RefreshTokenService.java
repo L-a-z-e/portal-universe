@@ -4,8 +4,10 @@ import com.portal.universe.authservice.common.config.JwtConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -83,5 +85,41 @@ public class RefreshTokenService {
             log.warn("Refresh token mismatch for user: {}", userId);
         }
         return isValid;
+    }
+
+    /**
+     * Refresh Token을 원자적으로 교체합니다 (Rotation).
+     * 기존 토큰이 일치하는 경우에만 새 토큰으로 교체합니다.
+     *
+     * @param userId 사용자 UUID
+     * @param oldToken 기존 Refresh Token
+     * @param newToken 새로운 Refresh Token
+     * @return 교체 성공 여부
+     */
+    public boolean rotateRefreshToken(String userId, String oldToken, String newToken) {
+        String key = REFRESH_TOKEN_PREFIX + userId;
+        long ttlMillis = jwtConfig.getRefreshTokenExpiration();
+
+        // Lua Script: 기존 토큰이 일치하면 새 토큰으로 원자적 교체
+        String luaScript =
+                "local stored = redis.call('GET', KEYS[1]) " +
+                "if stored == ARGV[1] then " +
+                "  redis.call('SET', KEYS[1], ARGV[2], 'PX', ARGV[3]) " +
+                "  return 1 " +
+                "end " +
+                "return 0";
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(luaScript, Long.class);
+        Long result = redisTemplate.execute(script,
+                Collections.singletonList(key),
+                oldToken, newToken, String.valueOf(ttlMillis));
+
+        boolean rotated = result != null && result == 1L;
+        if (rotated) {
+            log.info("Refresh token rotated for user: {}", userId);
+        } else {
+            log.warn("Refresh token rotation failed for user: {} (token mismatch)", userId);
+        }
+        return rotated;
     }
 }
