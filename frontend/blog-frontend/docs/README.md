@@ -1,3 +1,14 @@
+---
+id: blog-frontend-docs
+title: Blog Frontend Documentation
+type: index
+status: current
+created: 2026-01-18
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [blog-frontend, documentation, index]
+---
+
 # Blog Frontend 문서
 
 Portal Universe의 Vue 3 기반 블로그 마이크로 프론트엔드 모듈 문서입니다.
@@ -93,7 +104,7 @@ npm run build       # 전체 빌드
 
 ### 외부 참조
 - [Portal Shell 문서](../../portal-shell/docs/README.md)
-- [Design System 문서](../../design-system/docs/README.md)
+- [Design System 문서](../../design-system-vue/docs/README.md)
 - [Blog Service API](../../../services/blog-service/docs/api/README.md)
 
 ---

@@ -394,7 +394,7 @@ onMounted(() => {
 ### Dark Mode Sync
 ```typescript
 // Embedded Mode: Portal Shell의 themeStore 연동
-import { useThemeStore } from 'portal/themeStore';
+import { useThemeStore } from 'portal/stores';
 const themeStore = useThemeStore();
 
 watch(() => themeStore.isDark, (isDark) => {

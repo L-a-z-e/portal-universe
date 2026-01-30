@@ -18,6 +18,9 @@ src/components/
 ├── FollowerModal.vue     # 팔로워/팔로잉 목록 모달
 ├── UserProfileCard.vue   # 사용자 프로필 카드
 ├── ProfileEditForm.vue   # 프로필 수정 폼
+├── MySeriesList.vue      # 내 시리즈 목록 관리 (CRUD)
+├── LikersModal.vue       # 좋아요 사용자 목록 모달
+├── TagAutocomplete.vue   # 태그 자동완성 입력
 └── HelloWorld.vue        # 데모 컴포넌트
 
 src/views/
@@ -778,6 +781,103 @@ interface Props {
 - Username 변경 감시 및 리로드
 - 하위 컴포넌트: UserProfileCard, PostCard
 - API: `getPublicProfile`, `getPostsByAuthor`
+
+### 23. MySeriesList.vue
+
+**역할**: 내 시리즈 목록 관리 (CRUD + 게시글 관리)
+
+#### Props
+
+None (자체 데이터 로드)
+
+#### Events
+
+None (내부에서 라우팅 처리)
+
+#### 상태
+
+```typescript
+const seriesList = ref<SeriesListResponse[]>([])
+const showModal = ref(false)              // 생성/수정 모달
+const showDeleteConfirm = ref(false)      // 삭제 확인 모달
+const showPostsModal = ref(false)         // 게시글 관리 모달
+const modalMode = ref<'create' | 'edit'>('create')
+const formData = ref({
+  name: '',
+  description: '',
+  thumbnailUrl: ''
+})
+```
+
+#### 주요 기능
+
+- **시리즈 CRUD**: 생성/수정/삭제 모달 기반 관리
+- **게시글 관리 모달**: 시리즈에 포함된 게시글 목록 + 추가 가능한 게시글 목록 표시, 게시글 추가/제거
+- 시리즈 카드 그리드 표시 (auto-fill, minmax 300px)
+- 시리즈별 게시글 수 + 최종 업데이트 날짜 표시
+- 카드 클릭 시 시리즈 상세 페이지 이동
+- API: `getMySeries`, `createSeries`, `updateSeries`, `deleteSeries`, `getSeriesPosts`, `addPostToSeries`, `removePostFromSeries`, `getMyPosts`
+- Design System 컴포넌트: Button, Card, Input, Textarea, Modal
+
+### 24. LikersModal.vue
+
+**역할**: 게시글 좋아요 사용자 목록 모달
+
+#### Props
+
+```typescript
+interface Props {
+  postId: string;       // 게시글 ID
+  isOpen: boolean;      // 모달 열림 여부
+}
+```
+
+#### Events
+
+```typescript
+emit('close')  // 모달 닫힘
+```
+
+#### 주요 기능
+
+- `isOpen` watch를 통해 모달 열릴 때 자동으로 데이터 로드 (페이지 초기화)
+- 좋아요를 누른 사용자 목록 표시 (Avatar + username + 좋아요 날짜)
+- 페이지네이션 지원 (더 보기 버튼, 페이지당 20건)
+- 사용자 클릭 시 `/@{username}` 프로필 페이지 이동
+- 빈 상태 / 로딩 상태 UI 처리
+- API: `getLikers`
+- Design System 컴포넌트: Modal, Avatar, Button, Spinner
+
+### 25. TagAutocomplete.vue
+
+**역할**: 태그 자동완성 입력 (v-model 지원)
+
+#### Props
+
+```typescript
+interface Props {
+  modelValue: string[];  // v-model 바인딩, 선택된 태그 배열
+}
+```
+
+#### Events
+
+```typescript
+emit('update:modelValue', tags: string[])  // 태그 목록 업데이트
+```
+
+#### 주요 기능
+
+- 태그 입력 시 자동완성 드롭다운 제안 (API 연동)
+- Debounce 검색 (300ms) - 입력이 1자 이상일 때 검색 실행
+- 이미 선택된 태그는 자동완성 목록에서 제외
+- Enter 키로 태그 추가 / Escape 키로 드롭다운 닫기
+- 추가 버튼 클릭으로도 태그 추가 가능
+- 선택된 태그는 closable Tag 컴포넌트로 표시 (삭제 가능)
+- 중복 태그 방지
+- blur 시 드롭다운 자동 닫힘 (200ms 딜레이로 클릭 이벤트 보장)
+- API: `searchTags`
+- Design System 컴포넌트: Input, Tag
 
 ## Design System 컴포넌트 사용
 

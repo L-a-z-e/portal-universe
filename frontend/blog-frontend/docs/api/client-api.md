@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-30
 author: Claude
 tags: [api, axios, typescript, frontend]
 related:
@@ -820,8 +820,8 @@ const createPostWithImage = async (
 
 - [아키텍처: 데이터 흐름](../architecture/data-flow.md)
 - [Backend: Blog Service API 명세](../../../services/blog-service/docs/api/README.md)
-- [Design System: API 클라이언트 패턴](../../../frontend/design-system/docs/api/README.md)
+- [Design System: API 클라이언트 패턴](../../../frontend/design-system-vue/docs/api/README.md)
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30

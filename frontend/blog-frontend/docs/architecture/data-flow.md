@@ -305,7 +305,7 @@ sequenceDiagram
     PS->>PS: axios interceptor 설정<br/>Authorization: Bearer {JWT}
     PS->>BS: mountBlogApp(el, options)
     BS->>BS: import { apiClient } from 'portal/api'
-    BS->>BS: import authStore from 'portal/authStore'
+    BS->>BS: import authStore from 'portal/stores'
     Note over BS: Module Federation을 통해<br/>Portal의 apiClient와<br/>authStore를 참조
     BS->>API: API 함수에서 apiClient 사용
     API->>AC: apiClient.get/post/put/delete
@@ -332,7 +332,7 @@ sequenceDiagram
 | 모듈 | 소스 | 설명 |
 |------|------|------|
 | `apiClient` | `portal/api` | axios 인스턴스 (JWT 자동 첨부) |
-| `authStore` | `portal/authStore` | Pinia Store (인증 상태, 사용자 정보) |
+| `authStore` | `portal/stores` | Pinia Store (인증 상태, 사용자 정보) |
 
 **사용 예시**:
 
@@ -342,7 +342,7 @@ import { apiClient } from 'portal/api';
 export default apiClient;
 
 // src/views/PostListPage.vue
-import { useAuthStore } from 'portal/authStore';
+import { useAuthStore } from 'portal/stores';
 const authStore = useAuthStore();
 const isAuthenticated = authStore.isAuthenticated;
 ```

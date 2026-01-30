@@ -81,7 +81,7 @@ dist/
 
 ```typescript
 // 1. Portal Shell의 authStore 접근
-import { useAuthStore } from 'portal/authStore';
+import { useAuthStore } from 'portal/stores';
 const authStore = useAuthStore();
 
 // 2. Portal Shell의 apiClient 접근
@@ -495,3 +495,7 @@ const remoteURL = 'http://localhost:30001/remoteEntry.js?v=' + Date.now();
 - [README.md](./README.md) - 모듈 개요
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - 아키텍처 상세
 - [COMPONENTS.md](./COMPONENTS.md) - 컴포넌트 가이드
+
+---
+
+**최종 업데이트**: 2026-01-30

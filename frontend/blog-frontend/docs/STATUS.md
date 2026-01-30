@@ -4,7 +4,7 @@ title: Blog Frontend 프로젝트 현황
 type: guide
 status: current
 created: 2026-01-26
-updated: 2026-01-26
+updated: 2026-01-30
 author: Laze
 tags:
   - blog-frontend
@@ -71,7 +71,7 @@ tags:
 | `/my` | MyPage | ✅ | 내 페이지 (프로필/게시물) |
 | `/@:username` | UserBlogPage | ❌ | 사용자 블로그 |
 
-## 🧩 컴포넌트 현황 (24개)
+## 🧩 컴포넌트 현황 (27개)
 
 ### Views (9개)
 - **PostListPage**: 게시물 목록 (feed/trending/recent 탭 시스템)
@@ -84,13 +84,14 @@ tags:
 - **MyPage**: 내 페이지
 - **UserBlogPage**: 사용자 블로그
 
-### Components (15개)
+### Components (18개)
 - **Post**: PostCard, PostNavigation, RelatedPosts, MyPostList
 - **Comment**: CommentList, CommentForm, CommentItem
-- **Interaction**: LikeButton
-- **Series**: SeriesCard, SeriesBox
+- **Interaction**: LikeButton, LikersModal
+- **Series**: SeriesCard, SeriesBox, MySeriesList
 - **Social**: FollowButton, FollowerModal
 - **User**: UserProfileCard, ProfileEditForm
+- **Tag**: TagAutocomplete
 - **Legacy**: HelloWorld (미사용)
 
 ## 🔌 API 연동 현황 (8개 모듈, 64개 함수)
@@ -233,9 +234,9 @@ tags:
 - ❌ **users.ts**: 문서 없음 (6개 함수)
 - ❌ **follow.ts**: 문서 없음 (5개 함수)
 
-### 컴포넌트 문서 커버리지: 25% (24개 중 6개만 완료)
-- ✅ PostCard, PostDetailPage, CommentList, LikeButton, SeriesBox, MyPage
-- ❌ **18개 컴포넌트 미문서화**: PostListPage, PostWritePage, PostEditPage, TagListPage, TagDetailPage, SeriesDetailPage, UserBlogPage, PostNavigation, RelatedPosts, MyPostList, CommentForm, CommentItem, SeriesCard, FollowButton, FollowerModal, UserProfileCard, ProfileEditForm, HelloWorld
+### 컴포넌트 문서 커버리지: 33% (27개 중 9개 완료)
+- ✅ **완료 (9개)**: PostCard, PostDetailPage, CommentList, LikeButton, SeriesBox, MyPage, MySeriesList, LikersModal, TagAutocomplete
+- ❌ **미문서화 (18개)**: PostListPage, PostWritePage, PostEditPage, TagListPage, TagDetailPage, SeriesDetailPage, UserBlogPage, PostNavigation, RelatedPosts, MyPostList, CommentForm, CommentItem, SeriesCard, FollowButton, FollowerModal, UserProfileCard, ProfileEditForm, HelloWorld
 
 ### 라우트 문서 커버리지: 44% (9개 중 4개만 완료)
 - ✅ `/`, `/:postId`, `/write`, `/edit/:postId`
@@ -295,7 +296,7 @@ npm run test:e2e         # Playwright E2E 테스트 (9개 spec)
 frontend/blog-frontend/
 ├── src/
 │   ├── api/              # API 클라이언트 (8개 모듈)
-│   ├── components/       # 재사용 컴포넌트 (15개)
+│   ├── components/       # 재사용 컴포넌트 (18개)
 │   ├── views/            # 페이지 컴포넌트 (9개)
 │   ├── stores/           # Pinia stores (2개)
 │   ├── router/           # Vue Router 설정
@@ -322,10 +323,11 @@ frontend/blog-frontend/
 
 ## 📝 업데이트 이력
 
+- **2026-01-30**: 컴포넌트 3개 추가 (MySeriesList, LikersModal, TagAutocomplete)
 - **2026-01-26**: 초기 작성 (Phase 2 코드 분석 결과 기반)
 
 ---
 
-**Last Updated**: 2026-01-26
+**Last Updated**: 2026-01-30
 **Maintainer**: Laze
 **Status**: 🟡 In Progress (문서화 진행 중)
