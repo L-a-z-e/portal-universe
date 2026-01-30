@@ -53,6 +53,12 @@ Notification Service는 Kafka 컨슈머 기반 알림 서비스로, 이벤트 �
 |------|------|
 | [시스템 아키텍처](./architecture/system-overview.md) | Kafka Consumer 구조, 이벤트 처리 흐름, 재시도 전략 |
 
+### API Reference (API 명세)
+
+| 문서 | 설명 |
+|------|------|
+| [Notification API](./api/notification-api.md) | 알림 조회, 읽음 처리, 삭제 API |
+
 ### Guides (가이드)
 
 | 문서 | 설명 |
