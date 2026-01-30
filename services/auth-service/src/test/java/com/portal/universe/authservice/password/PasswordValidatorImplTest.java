@@ -1,6 +1,5 @@
 package com.portal.universe.authservice.password;
 
-import com.portal.universe.authservice.user.domain.Role;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.password.config.PasswordPolicyProperties;
@@ -162,7 +161,7 @@ class PasswordValidatorImplTest {
     @DisplayName("사용자 이메일이 포함되면 검증에 실패한다")
     void validate_ContainsEmail_Failure() {
         // given
-        User user = new User("john@example.com", "encodedPassword", Role.USER);
+        User user = new User("john@example.com", "encodedPassword");
         UserProfile profile = new UserProfile(user, "TestNick", "TestReal", false);
         user.setProfile(profile);
 
@@ -185,7 +184,7 @@ class PasswordValidatorImplTest {
     @DisplayName("최근 사용한 비밀번호를 재사용하면 검증에 실패한다")
     void validate_RecentlyUsed_Failure() {
         // given
-        User user = new User("uniqueuser@example.com", "encodedPassword", Role.USER);
+        User user = new User("uniqueuser@example.com", "encodedPassword");
         UserProfile profile = new UserProfile(user, "UniqueNick", "UniqueReal", false);
         user.setProfile(profile);
 
@@ -209,7 +208,7 @@ class PasswordValidatorImplTest {
     @DisplayName("비밀번호 만료 확인 - 만료되지 않은 경우")
     void isExpired_NotExpired_ReturnsFalse() {
         // given
-        User user = new User("user@example.com", "encodedPassword", Role.USER);
+        User user = new User("user@example.com", "encodedPassword");
         UserProfile profile = new UserProfile(user, "UserNick", "UserReal", false);
         user.setProfile(profile);
 
@@ -227,7 +226,7 @@ class PasswordValidatorImplTest {
     @DisplayName("소셜 로그인 사용자는 비밀번호 만료 체크를 하지 않는다")
     void isExpired_SocialUser_ReturnsFalse() {
         // given
-        User user = new User("user@example.com", null, Role.USER); // 비밀번호 null
+        User user = new User("user@example.com", null); // 비밀번호 null
         UserProfile profile = new UserProfile(user, "UserNick", "UserReal", false);
         user.setProfile(profile);
 
