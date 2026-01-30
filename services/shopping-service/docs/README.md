@@ -1,3 +1,14 @@
+---
+id: shopping-service-docs
+title: Shopping Service Documentation
+type: index
+status: current
+created: 2026-01-18
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [shopping-service, documentation, index]
+---
+
 # Shopping Service Documentation
 
 > Shopping Service의 모든 문서를 한 곳에서 확인할 수 있습니다.

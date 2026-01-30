@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-30
 author: Claude
 tags: [api, shopping-service, product]
 related:
@@ -22,7 +22,7 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **Base URL** | `/api/shopping/product` |
+| **Base URL** | `/api/shopping/products` |
 | **인증** | Bearer Token 필요 |
 | **버전** | v1 |
 
@@ -32,22 +32,93 @@ related:
 
 | Method | Endpoint | 설명 | 인증 | 권한 |
 |--------|----------|------|------|------|
-| POST | `/` | 상품 생성 | ✅ | ADMIN |
-| GET | `/{productId}` | 상품 조회 | ✅ | - |
-| PUT | `/{productId}` | 상품 수정 | ✅ | ADMIN |
-| DELETE | `/{productId}` | 상품 삭제 | ✅ | ADMIN |
-| GET | `/{productId}/with-reviews` | 상품 + 리뷰 조회 | ✅ | - |
+| GET | `/` | 상품 목록 조회 | ❌ | - |
+| POST | `/` | 상품 생성 (deprecated) | ✅ | SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
+| GET | `/{productId}` | 상품 조회 | ❌ | - |
+| PUT | `/{productId}` | 상품 수정 (deprecated) | ✅ | SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
+| DELETE | `/{productId}` | 상품 삭제 (deprecated) | ✅ | SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
+| GET | `/{productId}/with-reviews` | 상품 + 리뷰 조회 | ❌ | - |
+
+> **Note**: POST, PUT, DELETE 엔드포인트는 deprecated 상태입니다. Admin 전용 API는 `AdminProductController`를 사용하세요.
+
+---
+
+## 🔹 상품 목록 조회
+
+페이징된 상품 목록을 조회합니다. (공개 API - 인증 불필요)
+
+### Request
+
+```http
+GET /api/shopping/products?page=0&size=12
+```
+
+### Query Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 | 기본값 |
+|----------|------|------|------|--------|
+| `page` | integer | ❌ | 페이지 번호 (0부터 시작) | 0 |
+| `size` | integer | ❌ | 페이지 크기 | 12 |
+
+### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "name": "Spring Boot 완벽 가이드",
+        "description": "Spring Boot 3.0 기반 마이크로서비스 구축",
+        "price": 35000.0,
+        "stock": 100
+      },
+      {
+        "id": 2,
+        "name": "Kotlin In Action",
+        "description": "Kotlin 프로그래밍 언어 가이드",
+        "price": 40000.0,
+        "stock": 50
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 12,
+      "sort": {
+        "sorted": false,
+        "unsorted": true,
+        "empty": true
+      },
+      "offset": 0,
+      "paged": true,
+      "unpaged": false
+    },
+    "totalElements": 45,
+    "totalPages": 4,
+    "last": false,
+    "first": true,
+    "size": 12,
+    "number": 0,
+    "numberOfElements": 2,
+    "empty": false
+  },
+  "timestamp": "2026-01-30T10:30:00Z"
+}
+```
 
 ---
 
 ## 🔹 상품 생성
 
-새로운 상품을 등록합니다. (관리자 전용)
+> **Deprecated**: Admin 전용 API는 `AdminProductController`를 사용하세요.
+
+새로운 상품을 등록합니다. (SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
 
 ### Request
 
 ```http
-POST /api/shopping/product
+POST /api/shopping/products
 Content-Type: application/json
 Authorization: Bearer {token}
 
@@ -79,11 +150,8 @@ Authorization: Bearer {token}
     "id": 1,
     "name": "Spring Boot 완벽 가이드",
     "description": "Spring Boot 3.0 기반 마이크로서비스 구축",
-    "price": 35000,
-    "stockQuantity": 100,
-    "category": "BOOK",
-    "createdAt": "2026-01-18T10:30:00Z",
-    "updatedAt": "2026-01-18T10:30:00Z"
+    "price": 35000.0,
+    "stock": 100
   },
   "timestamp": "2026-01-18T10:30:00Z"
 }
@@ -93,13 +161,12 @@ Authorization: Bearer {token}
 
 ## 🔹 상품 조회
 
-특정 ID를 가진 상품을 조회합니다.
+특정 ID를 가진 상품을 조회합니다. (공개 API - 인증 불필요)
 
 ### Request
 
 ```http
-GET /api/shopping/product/{productId}
-Authorization: Bearer {token}
+GET /api/shopping/products/{productId}
 ```
 
 ### Path Parameters
@@ -117,11 +184,8 @@ Authorization: Bearer {token}
     "id": 1,
     "name": "Spring Boot 완벽 가이드",
     "description": "Spring Boot 3.0 기반 마이크로서비스 구축",
-    "price": 35000,
-    "stockQuantity": 100,
-    "category": "BOOK",
-    "createdAt": "2026-01-18T10:30:00Z",
-    "updatedAt": "2026-01-18T10:30:00Z"
+    "price": 35000.0,
+    "stock": 100
   },
   "timestamp": "2026-01-18T10:30:00Z"
 }
@@ -142,12 +206,14 @@ Authorization: Bearer {token}
 
 ## 🔹 상품 수정
 
-특정 상품 정보를 수정합니다. (관리자 전용)
+> **Deprecated**: Admin 전용 API는 `AdminProductController`를 사용하세요.
+
+특정 상품 정보를 수정합니다. (SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
 
 ### Request
 
 ```http
-PUT /api/shopping/product/{productId}
+PUT /api/shopping/products/{productId}
 Content-Type: application/json
 Authorization: Bearer {token}
 
@@ -183,11 +249,8 @@ Authorization: Bearer {token}
     "id": 1,
     "name": "Spring Boot 완벽 가이드 [개정판]",
     "description": "Spring Boot 3.5 기반 마이크로서비스 구축",
-    "price": 38000,
-    "stockQuantity": 150,
-    "category": "BOOK",
-    "createdAt": "2026-01-18T10:30:00Z",
-    "updatedAt": "2026-01-18T11:00:00Z"
+    "price": 38000.0,
+    "stock": 150
   },
   "timestamp": "2026-01-18T11:00:00Z"
 }
@@ -197,12 +260,14 @@ Authorization: Bearer {token}
 
 ## 🔹 상품 삭제
 
-특정 상품을 삭제합니다. (관리자 전용)
+> **Deprecated**: Admin 전용 API는 `AdminProductController`를 사용하세요.
+
+특정 상품을 삭제합니다. (SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
 
 ### Request
 
 ```http
-DELETE /api/shopping/product/{productId}
+DELETE /api/shopping/products/{productId}
 Authorization: Bearer {token}
 ```
 
@@ -227,13 +292,12 @@ Authorization: Bearer {token}
 ## 🔹 상품 + 리뷰 조회
 
 상품 정보와 해당 상품에 대한 리뷰(블로그 게시물) 목록을 함께 조회합니다.
-Blog Service와의 Feign 통신을 통해 데이터를 조합합니다.
+Blog Service와의 Feign 통신을 통해 데이터를 조합합니다. (공개 API - 인증 불필요)
 
 ### Request
 
 ```http
-GET /api/shopping/product/{productId}/with-reviews
-Authorization: Bearer {token}
+GET /api/shopping/products/{productId}/with-reviews
 ```
 
 ### Path Parameters
@@ -279,7 +343,7 @@ Authorization: Bearer {token}
 | `S001` | 404 | 상품을 찾을 수 없습니다 |
 | `S002` | 400 | 유효성 검증 실패 |
 | `C001` | 401 | 인증 필요 |
-| `C002` | 403 | 권한 없음 (ADMIN 전용) |
+| `C002` | 403 | 권한 없음 (SELLER, SHOPPING_ADMIN, SUPER_ADMIN 전용) |
 
 ---
 
@@ -290,4 +354,4 @@ Authorization: Bearer {token}
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30
