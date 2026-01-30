@@ -68,6 +68,24 @@ JWT 기반 역할 기반 접근 제어(RBAC) 설정 방법을 상세히 설명�
 
 ---
 
+#### Swagger/Actuator 보안 설정 가이드
+**파일**: [swagger-actuator-security.md](./swagger-actuator-security.md) | **작성일**: 2026-01-23
+
+환경별 Swagger UI 및 Actuator 엔드포인트 보안 정책과 접근 방법을 설명합니다.
+
+**주요 내용**:
+- 환경별 보안 정책 (Local/Docker/Kubernetes)
+- 서비스별 포트 및 접근 경로
+- Spring Security 필터 체인 구조
+- API Gateway 라우팅 정책
+- Prometheus 메트릭 수집 설정
+
+**관련 문서**:
+- [JWT RBAC 설정 가이드](./jwt-rbac-setup.md)
+- [보안 강화 구현 명세서](./security-implementation-spec.md)
+
+---
+
 #### 보안 강화 구현 명세서
 **파일**: [security-implementation-spec.md](./security-implementation-spec.md) | **작성일**: 2026-01-23
 
@@ -120,7 +138,7 @@ Admin 페이지에서 상품을 관리하는 방법을 설명합니다.
 ---
 
 #### Shopping Frontend-Backend Gap 구현 완료 보고서
-**파일**: [../shopping-frontend-gap-implementation.md](../shopping-frontend-gap-implementation.md) | **작성일**: 2026-01-28
+**파일**: [shopping-frontend-gap-implementation.md](./shopping-frontend-gap-implementation.md) | **작성일**: 2026-01-28
 
 shopping-service 백엔드 API와 shopping-frontend 간 10개 Gap 구현 완료 보고서입니다.
 
@@ -136,6 +154,22 @@ shopping-service 백엔드 API와 shopping-frontend 간 10개 Gap 구현 완료 
 **관련 문서**:
 - [Admin 상품 관리 가이드](./admin-product-guide.md)
 - [ADR-002: API 엔드포인트 설계](../adr/ADR-002-api-endpoint-design.md)
+
+---
+
+### 온보딩
+
+#### 문서 읽기 순서 가이드
+**파일**: [onboarding-path.md](./onboarding-path.md) | **작성일**: 2026-01-30
+
+프로젝트를 빠르게 파악하고, 기존 서비스 개발이나 신규 서비스 추가 시 어떤 문서를 읽어야 하는지 단계별로 안내합니다.
+
+**주요 내용**:
+- A: 프로젝트 전체 이해
+- B: 백엔드 서비스 개발 (서비스별 경로)
+- C: 프론트엔드 개발 (프레임워크별 경로)
+- D: 신규 백엔드 서비스 추가
+- E: 신규 프론트엔드 Remote 추가
 
 ---
 

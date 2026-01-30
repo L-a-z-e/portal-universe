@@ -1,3 +1,17 @@
+---
+id: guide-swagger-actuator-security
+title: Swagger/Actuator 보안 설정 가이드
+type: guide
+status: current
+created: 2026-01-23
+updated: 2026-01-30
+author: Claude
+tags: [swagger, actuator, security, spring-boot, prometheus]
+related:
+  - guide-jwt-rbac-setup
+  - guide-security-implementation-spec
+---
+
 # Swagger/Actuator 보안 설정 가이드
 
 ## 개요
