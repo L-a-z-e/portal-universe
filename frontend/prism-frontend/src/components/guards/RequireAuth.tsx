@@ -6,8 +6,9 @@
  * 1. Embedded 모드: Portal Shell의 authStore 동기화 완료 대기
  * 2. Standalone 모드: 로컬 인증 상태 확인
  * 3. 동기화 완료 후 인증 검사 수행
+ * 4. Portal Shell의 auth 변경 이벤트 구독 (로그인/로그아웃 자동 반영)
  */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -29,6 +30,9 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     !window.__POWERED_BY_PORTAL_SHELL__
   )
 
+  // 로그인 모달 중복 호출 방지
+  const loginRequestedRef = useRef(false)
+
   // Embedded 모드에서 Portal Shell 인증 상태 동기화
   useEffect(() => {
     const init = async () => {
@@ -46,6 +50,36 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     init()
   }, [syncFromPortal])
 
+  // Portal Shell auth 변경 이벤트 구독 (로그인/로그아웃 시 자동 재동기화)
+  useEffect(() => {
+    if (!window.__POWERED_BY_PORTAL_SHELL__) return
+
+    const handleAuthChanged = () => {
+      console.log('[RequireAuth] Auth state changed, re-syncing...')
+      loginRequestedRef.current = false
+      syncFromPortal()
+    }
+
+    window.addEventListener('portal:auth-changed', handleAuthChanged)
+    return () => window.removeEventListener('portal:auth-changed', handleAuthChanged)
+  }, [syncFromPortal])
+
+  // 인증되지 않은 경우 로그인 모달 트리거 (side effect를 useEffect로 분리)
+  useEffect(() => {
+    if (!isInitialized || loading) return
+    if (isAuthenticated) {
+      loginRequestedRef.current = false
+      return
+    }
+
+    // Embedded 모드에서 한 번만 로그인 모달 요청
+    if (window.__POWERED_BY_PORTAL_SHELL__ && !loginRequestedRef.current) {
+      console.warn('[RequireAuth] User not authenticated, triggering login modal')
+      loginRequestedRef.current = true
+      window.__PORTAL_SHOW_LOGIN__?.()
+    }
+  }, [isInitialized, loading, isAuthenticated])
+
   // 동기화 대기 중 또는 로딩 중
   if (!isInitialized || loading) {
     return (
@@ -58,12 +92,8 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     )
   }
 
-  // 인증되지 않은 경우: Embedded 모드에서는 로그인 모달 트리거, Standalone은 리다이렉트
+  // 인증되지 않은 경우: 리다이렉트
   if (!isAuthenticated) {
-    if (window.__POWERED_BY_PORTAL_SHELL__) {
-      console.warn('[RequireAuth] User not authenticated, triggering login modal')
-      window.__PORTAL_SHOW_LOGIN__?.()
-    }
     return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 
