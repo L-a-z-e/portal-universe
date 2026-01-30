@@ -370,7 +370,7 @@ test.describe('Feed Features', () => {
 
     test('should show error message on feed load failure', async ({ page }) => {
       // Simulate network failure
-      await page.route('**/api/blog/posts/feed*', route => route.abort())
+      await page.route('**/api/v1/blog/posts/feed*', route => route.abort())
 
       await mockLogin(page)
       await page.goto('/blog?tab=feed')
@@ -391,7 +391,7 @@ test.describe('Feed Features', () => {
       let failCount = 0
 
       // First request fails, subsequent succeed
-      await page.route('**/api/blog/posts/feed*', route => {
+      await page.route('**/api/v1/blog/posts/feed*', route => {
         failCount++
         if (failCount === 1) {
           route.abort()

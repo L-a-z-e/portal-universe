@@ -24,9 +24,9 @@ async function getAccessToken(username, password) {
 }
 
 test.describe('Role-based Authorization', () => {
-    test('USER should not access /api/admin', async ({ request }) => {
+    test('USER should not access /api/v1/admin', async ({ request }) => {
         const accessToken = await getAccessToken('finaltest@example.com', 'password123');
-        const response = await request.get(`${AUTH_SERVER_URL}/api/admin`, {
+        const response = await request.get(`${AUTH_SERVER_URL}/api/v1/admin`, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
             },
@@ -34,9 +34,9 @@ test.describe('Role-based Authorization', () => {
         expect(response.status()).toBe(403);
     });
 
-    test('ADMIN should access /api/admin', async ({ request }) => {
+    test('ADMIN should access /api/v1/admin', async ({ request }) => {
         const accessToken = await getAccessToken('test@example.com', 'password123');
-        const response = await request.get(`${AUTH_SERVER_URL}/api/admin`, {
+        const response = await request.get(`${AUTH_SERVER_URL}/api/v1/admin`, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
             },
