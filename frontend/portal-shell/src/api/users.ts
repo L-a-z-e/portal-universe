@@ -8,7 +8,7 @@ export interface SignupRequest {
   marketingAgree: boolean;
 }
 
-const BASE_PATH = '/api/users';
+const BASE_PATH = '/api/v1/users';
 
 export function signup(payload: SignupRequest) {
   return apiClient.post(`${BASE_PATH}/signup`, payload);

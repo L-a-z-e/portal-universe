@@ -11,7 +11,7 @@ import type {
 } from '@/types';
 
 // ==================== 경로 상수 ====================
-const BASE_PATH = '/api/blog/series';
+const BASE_PATH = '/api/v1/blog/series';
 
 // ==================== 시리즈 조회 ====================
 

@@ -11,7 +11,7 @@ import type {
 
 // ==================== 경로 상수 ====================
 // LikeController는 /posts/{postId} 하위에 매핑됨
-const BASE_PATH = '/api/blog/posts';
+const BASE_PATH = '/api/v1/blog/posts';
 
 // ==================== 좋아요 기능 ====================
 

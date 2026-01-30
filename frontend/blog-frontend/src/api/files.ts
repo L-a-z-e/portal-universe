@@ -39,7 +39,7 @@ export async function uploadFile(file: File | Blob): Promise<FileUploadResponse>
 
   // API 호출
   const response = await apiClient.post<FileUploadResponse>(
-    '/api/blog/file/upload',  // Gateway를 통한 라우팅: /api/blog/** -> blog-service/**
+    '/api/v1/blog/file/upload',  // Gateway를 통한 라우팅: /api/v1/blog/** -> blog-service/**
     formData,
     {
       headers: {
@@ -60,7 +60,7 @@ export async function uploadFile(file: File | Blob): Promise<FileUploadResponse>
  * await deleteFile('http://localhost:4566/blog-bucket/abc123_image.jpg');
  */
 export async function deleteFile(url: string): Promise<void> {
-  await apiClient.delete('/api/blog/file/delete', {
+  await apiClient.delete('/api/v1/blog/file/delete', {
     data: { url },  // DELETE 요청의 body
   });
 }

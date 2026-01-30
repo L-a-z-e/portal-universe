@@ -10,7 +10,7 @@ import type {
 } from '@/dto/follow';
 
 // ==================== 경로 상수 ====================
-const AUTH_API_BASE = '/auth-api/users'; // Gateway를 통한 auth-service 경로
+const AUTH_API_BASE = '/api/v1/users'; // Gateway를 통한 auth-service 경로
 
 // ==================== 팔로우 토글 ====================
 

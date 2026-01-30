@@ -85,7 +85,7 @@ class ProfileServiceClass {
       console.log('[Profile] Fetching profile...');
 
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${apiBase}/auth-service/api/profile/me`, {
+      const response = await fetch(`${apiBase}/auth-service/api/v1/profile/me`, {
         method: 'GET',
         headers,
       });
@@ -116,7 +116,7 @@ class ProfileServiceClass {
       console.log('[Profile] Updating profile...');
 
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${apiBase}/auth-service/api/profile`, {
+      const response = await fetch(`${apiBase}/auth-service/api/v1/profile`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify(request),
@@ -148,7 +148,7 @@ class ProfileServiceClass {
       console.log('[Profile] Changing password...');
 
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${apiBase}/auth-service/api/profile/password`, {
+      const response = await fetch(`${apiBase}/auth-service/api/v1/profile/password`, {
         method: 'POST',
         headers,
         body: JSON.stringify(request),
@@ -176,7 +176,7 @@ class ProfileServiceClass {
       console.log('[Profile] Deleting account...');
 
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${apiBase}/auth-service/api/profile/account`, {
+      const response = await fetch(`${apiBase}/auth-service/api/v1/profile/account`, {
         method: 'DELETE',
         headers,
         body: JSON.stringify(request),

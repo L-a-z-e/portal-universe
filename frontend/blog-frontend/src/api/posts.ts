@@ -18,7 +18,7 @@ import type {
 } from '@/types';
 
 // ==================== 경로 상수 ====================
-const BASE_PATH = '/api/blog/posts';
+const BASE_PATH = '/api/v1/blog/posts';
 
 // ==================== 기본 CRUD ====================
 

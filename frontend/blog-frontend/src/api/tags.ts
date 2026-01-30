@@ -10,7 +10,7 @@ import type {
 } from '@/types';
 
 // ==================== 경로 상수 ====================
-const BASE_PATH = '/api/blog/tags';
+const BASE_PATH = '/api/v1/blog/tags';
 
 // ==================== 태그 조회 ====================
 
@@ -52,7 +52,7 @@ export async function getPostsByTag(
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
-    '/api/blog/posts/tags',
+    '/api/v1/blog/posts/tags',
     {
       params: { tags: tagName, page, size },
     }

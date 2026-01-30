@@ -31,7 +31,7 @@ import type {
   TimeDealPurchase
 } from '@/types'
 
-const API_PREFIX = '/api/shopping'
+const API_PREFIX = '/api/v1/shopping'
 
 // ============================================
 // Product API

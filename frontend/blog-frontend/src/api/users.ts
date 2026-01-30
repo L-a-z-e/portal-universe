@@ -14,8 +14,8 @@ import type {
 } from '@/dto/user';
 
 // ==================== 경로 상수 ====================
-const AUTH_API_BASE = '/api/users'; // Gateway를 통한 auth-service 경로
-const BLOG_API_BASE = '/api/blog/posts';
+const AUTH_API_BASE = '/api/v1/users'; // Gateway를 통한 auth-service 경로
+const BLOG_API_BASE = '/api/v1/blog/posts';
 
 // ==================== 프로필 조회 ====================
 

@@ -90,7 +90,7 @@ class AuthenticationService {
     try {
       console.log('[Auth] Attempting login:', email);
 
-      const response = await fetch(`${apiBase}/auth-service/api/auth/login`, {
+      const response = await fetch(`${apiBase}/auth-service/api/v1/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +143,7 @@ class AuthenticationService {
     try {
       console.log('[Auth] Refreshing access token...');
 
-      const response = await fetch(`${apiBase}/auth-service/api/auth/refresh`, {
+      const response = await fetch(`${apiBase}/auth-service/api/v1/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ class AuthenticationService {
       console.log('[Auth] Logging out...');
 
       if (this.accessToken && this.refreshToken) {
-        await fetch(`${apiBase}/auth-service/api/auth/logout`, {
+        await fetch(`${apiBase}/auth-service/api/v1/auth/logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

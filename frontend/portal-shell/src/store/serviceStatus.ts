@@ -32,17 +32,17 @@ const SERVICE_CONFIGS: { key: string; displayName: string; healthUrl: string }[]
   {
     key: 'auth-service',
     displayName: 'Auth Service',
-    healthUrl: '/api/auth/actuator/health',
+    healthUrl: '/api/v1/auth/actuator/health',
   },
   {
     key: 'blog-service',
     displayName: 'Blog Service',
-    healthUrl: '/api/blog/actuator/health',
+    healthUrl: '/api/v1/blog/actuator/health',
   },
   {
     key: 'shopping-service',
     displayName: 'Shopping Service',
-    healthUrl: '/api/shopping/actuator/health',
+    healthUrl: '/api/v1/shopping/actuator/health',
   },
 ];
 

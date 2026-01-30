@@ -8,7 +8,7 @@ import type {
 import type { ApiResponse } from '@/types';
 import apiClient from './index';
 
-const BASE_PATH = '/api/blog/comments';
+const BASE_PATH = '/api/v1/blog/comments';
 
 /**
  * 특정 게시글의 모든 댓글 조회
