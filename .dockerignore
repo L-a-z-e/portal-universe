@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Frontend (백엔드 빌드에 불필요)
+frontend/
+
+# Build outputs
+**/build/
+**/dist/
+**/node_modules/
+
+# Docker
+docker-compose*.yml
+.env*
+
+# Monitoring/Infra (빌드에 불필요)
+monitoring/
+infrastructure/
+certs/
+localstack*/
