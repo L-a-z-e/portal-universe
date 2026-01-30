@@ -1,3 +1,14 @@
+---
+id: design-system-vue-components
+title: Design System Vue 컴포넌트 카탈로그
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [design-system-vue, components, vue, catalog]
+---
+
 # Component Catalog
 
 Design System에서 제공하는 모든 Vue 3 컴포넌트의 카탈로그 및 사용 가이드입니다.

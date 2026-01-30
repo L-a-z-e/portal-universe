@@ -1,3 +1,14 @@
+---
+id: design-system-vue-usage
+title: Design System 사용 가이드
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [design-system-vue, usage, integration, vue]
+---
+
 # Usage Guide
 
 Design System을 프로젝트에 통합하고 효과적으로 사용하는 방법을 설명합니다.

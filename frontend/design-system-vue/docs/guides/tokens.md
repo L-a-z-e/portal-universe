@@ -1,3 +1,14 @@
+---
+id: design-system-vue-tokens
+title: Design System 디자인 토큰
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [design-system-vue, design-tokens, css-variables]
+---
+
 # Design Tokens
 
 Portal Universe 디자인 시스템의 토큰 체계를 상세히 설명합니다.
