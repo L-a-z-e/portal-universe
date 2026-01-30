@@ -36,7 +36,13 @@ export interface UserInfo {
 // ====================================================================
 
 function getApiBaseUrl(): string {
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8080';
+  }
+  return '';
 }
 
 // ====================================================================
