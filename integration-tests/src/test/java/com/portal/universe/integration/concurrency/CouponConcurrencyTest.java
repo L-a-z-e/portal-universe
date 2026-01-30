@@ -93,7 +93,7 @@ class CouponConcurrencyTest extends IntegrationTestBase {
         Response response = givenAuthenticatedAdmin()
                 .body(couponRequest)
                 .when()
-                .post("/api/shopping/admin/coupons");
+                .post("/api/v1/shopping/admin/coupons");
 
         // Then
         response.then()
@@ -141,7 +141,7 @@ class CouponConcurrencyTest extends IntegrationTestBase {
 
                     Response response = givenWithToken(token)
                             .when()
-                            .post("/api/shopping/coupons/" + testCouponId + "/issue");
+                            .post("/api/v1/shopping/coupons/" + testCouponId + "/issue");
 
                     int status = response.statusCode();
                     if (status == 200 || status == 201) {
@@ -210,7 +210,7 @@ class CouponConcurrencyTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedAdmin()
                 .when()
-                .get("/api/shopping/admin/coupons/" + testCouponId);
+                .get("/api/v1/shopping/admin/coupons/" + testCouponId);
 
         // Then
         response.then()
@@ -240,7 +240,7 @@ class CouponConcurrencyTest extends IntegrationTestBase {
         // When - Try to issue exhausted coupon
         Response response = givenWithToken(newUserToken)
                 .when()
-                .post("/api/shopping/coupons/" + testCouponId + "/issue");
+                .post("/api/v1/shopping/coupons/" + testCouponId + "/issue");
 
         // Then
         response.then()
@@ -268,7 +268,7 @@ class CouponConcurrencyTest extends IntegrationTestBase {
         Response createResponse = givenAuthenticatedAdmin()
                 .body(couponRequest)
                 .when()
-                .post("/api/shopping/admin/coupons");
+                .post("/api/v1/shopping/admin/coupons");
 
         Long dupCouponId = createResponse.jsonPath().getLong("data.id");
 
@@ -285,7 +285,7 @@ class CouponConcurrencyTest extends IntegrationTestBase {
                 try {
                     Response response = givenWithToken(singleUserToken)
                             .when()
-                            .post("/api/shopping/coupons/" + dupCouponId + "/issue");
+                            .post("/api/v1/shopping/coupons/" + dupCouponId + "/issue");
 
                     if (response.statusCode() == 200 || response.statusCode() == 201) {
                         successCount.incrementAndGet();
@@ -329,7 +329,7 @@ class CouponConcurrencyTest extends IntegrationTestBase {
         Response createResponse = givenAuthenticatedAdmin()
                 .body(couponRequest)
                 .when()
-                .post("/api/shopping/admin/coupons");
+                .post("/api/v1/shopping/admin/coupons");
 
         Long stressCouponId = createResponse.jsonPath().getLong("data.id");
 
@@ -387,7 +387,7 @@ class CouponConcurrencyTest extends IntegrationTestBase {
 
                     Response response = givenWithToken(token)
                             .when()
-                            .post("/api/shopping/coupons/" + stressCouponId + "/issue");
+                            .post("/api/v1/shopping/coupons/" + stressCouponId + "/issue");
 
                     if (response.statusCode() == 200 || response.statusCode() == 201) {
                         successCount.incrementAndGet();

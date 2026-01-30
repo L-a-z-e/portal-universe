@@ -47,7 +47,7 @@ class NotificationPushTest extends IntegrationTestBase {
         // Get a product for testing
         Response response = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products");
+                .get("/api/v1/shopping/products");
 
         if (response.statusCode() == 200) {
             List<Map<String, Object>> products = response.jsonPath().getList("data.content");
@@ -171,7 +171,7 @@ class NotificationPushTest extends IntegrationTestBase {
                 Response cartResponse = givenWithToken(userToken)
                         .body(cartItem)
                         .when()
-                        .post("/api/shopping/cart/items");
+                        .post("/api/v1/shopping/cart/items");
 
                 Long cartId = cartResponse.jsonPath().getLong("data.cartId");
 
@@ -188,7 +188,7 @@ class NotificationPushTest extends IntegrationTestBase {
                 Response orderResponse = givenWithToken(userToken)
                         .body(orderRequest)
                         .when()
-                        .post("/api/shopping/orders");
+                        .post("/api/v1/shopping/orders");
 
                 Long orderId = orderResponse.jsonPath().getLong("data.id");
 
@@ -206,7 +206,7 @@ class NotificationPushTest extends IntegrationTestBase {
                 givenWithToken(userToken)
                         .body(paymentRequest)
                         .when()
-                        .post("/api/shopping/payments");
+                        .post("/api/v1/shopping/payments");
             }
         };
 
@@ -283,7 +283,7 @@ class NotificationPushTest extends IntegrationTestBase {
                     Response cartResponse = givenWithToken(userToken)
                             .body(cartItem)
                             .when()
-                            .post("/api/shopping/cart/items");
+                            .post("/api/v1/shopping/cart/items");
 
                     Long cartId = cartResponse.jsonPath().getLong("data.cartId");
 
@@ -299,7 +299,7 @@ class NotificationPushTest extends IntegrationTestBase {
                     Response orderResponse = givenWithToken(userToken)
                             .body(orderRequest)
                             .when()
-                            .post("/api/shopping/orders");
+                            .post("/api/v1/shopping/orders");
 
                     Long orderId = orderResponse.jsonPath().getLong("data.id");
 
@@ -319,7 +319,7 @@ class NotificationPushTest extends IntegrationTestBase {
                     givenWithToken(userToken)
                             .body(paymentRequest)
                             .when()
-                            .post("/api/shopping/payments");
+                            .post("/api/v1/shopping/payments");
 
                 } catch (Exception e) {
                     log.error("Checkout flow failed", e);
@@ -396,7 +396,7 @@ class NotificationPushTest extends IntegrationTestBase {
                 try {
                     Response couponsResponse = givenWithToken(userToken)
                             .when()
-                            .get("/api/shopping/coupons");
+                            .get("/api/v1/shopping/coupons");
 
                     List<Map<String, Object>> coupons = couponsResponse.jsonPath().getList("data.content");
                     if (coupons != null && !coupons.isEmpty()) {
@@ -404,7 +404,7 @@ class NotificationPushTest extends IntegrationTestBase {
 
                         givenWithToken(userToken)
                                 .when()
-                                .post("/api/shopping/coupons/" + couponId + "/issue");
+                                .post("/api/v1/shopping/coupons/" + couponId + "/issue");
                     }
                 } catch (Exception e) {
                     log.error("Coupon issue failed", e);
@@ -480,7 +480,7 @@ class NotificationPushTest extends IntegrationTestBase {
         Response cartResponse = givenWithToken(newUserToken)
                 .body(cartItem)
                 .when()
-                .post("/api/shopping/cart/items");
+                .post("/api/v1/shopping/cart/items");
 
         Long cartId = cartResponse.jsonPath().getLong("data.cartId");
 
@@ -496,7 +496,7 @@ class NotificationPushTest extends IntegrationTestBase {
         Response orderResponse = givenWithToken(newUserToken)
                 .body(orderRequest)
                 .when()
-                .post("/api/shopping/orders");
+                .post("/api/v1/shopping/orders");
 
         Long orderId = orderResponse.jsonPath().getLong("data.id");
 
@@ -514,7 +514,7 @@ class NotificationPushTest extends IntegrationTestBase {
         givenWithToken(newUserToken)
                 .body(paymentRequest)
                 .when()
-                .post("/api/shopping/payments");
+                .post("/api/v1/shopping/payments");
 
         // Wait a bit for notification to be stored
         Thread.sleep(2000);

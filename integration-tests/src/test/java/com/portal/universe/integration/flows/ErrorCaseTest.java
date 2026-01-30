@@ -46,7 +46,7 @@ class ErrorCaseTest extends IntegrationTestBase {
                 .contentType("application/json")
                 .body(credentials)
                 .when()
-                .post("/api/auth/login");
+                .post("/api/v1/auth/login");
 
         // Then
         response.then()
@@ -67,7 +67,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When
         Response response = givenWithToken(expiredToken)
                 .when()
-                .get("/api/auth/me");
+                .get("/api/v1/auth/me");
 
         // Then
         response.then()
@@ -83,7 +83,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When
         Response response = givenUnauthenticated()
                 .when()
-                .get("/api/auth/me");
+                .get("/api/v1/auth/me");
 
         // Then
         response.then()
@@ -102,7 +102,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When
         Response response = givenWithToken(malformedToken)
                 .when()
-                .get("/api/auth/me");
+                .get("/api/v1/auth/me");
 
         // Then
         response.then()
@@ -122,7 +122,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When - Regular user tries to access admin endpoint
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/admin/products");
+                .get("/api/v1/shopping/admin/products");
 
         // Then
         response.then()
@@ -147,7 +147,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(couponRequest)
                 .when()
-                .post("/api/shopping/admin/coupons");
+                .post("/api/v1/shopping/admin/coupons");
 
         // Then
         response.then()
@@ -163,7 +163,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // First, create an order for the test user
         Response productsResponse = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products");
+                .get("/api/v1/shopping/products");
 
         if (productsResponse.statusCode() != 200) {
             log.warn("No products available for test");
@@ -180,7 +180,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response cartResponse = givenAuthenticatedUser()
                 .body(cartItem)
                 .when()
-                .post("/api/shopping/cart/items");
+                .post("/api/v1/shopping/cart/items");
 
         Long cartId = cartResponse.jsonPath().getLong("data.cartId");
 
@@ -196,7 +196,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response orderResponse = givenAuthenticatedUser()
                 .body(orderRequest)
                 .when()
-                .post("/api/shopping/orders");
+                .post("/api/v1/shopping/orders");
 
         if (orderResponse.statusCode() != 200 && orderResponse.statusCode() != 201) {
             log.warn("Order creation failed for test");
@@ -212,7 +212,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When - Other user tries to access the order
         Response response = givenWithToken(otherToken)
                 .when()
-                .get("/api/shopping/orders/" + orderId);
+                .get("/api/v1/shopping/orders/" + orderId);
 
         // Then - Should be 403 or 404
         response.then()
@@ -232,7 +232,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When
         Response response = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products/999999999");
+                .get("/api/v1/shopping/products/999999999");
 
         // Then
         response.then()
@@ -250,7 +250,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/orders/999999999");
+                .get("/api/v1/shopping/orders/999999999");
 
         // Then
         response.then()
@@ -268,7 +268,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .post("/api/shopping/coupons/999999999/issue");
+                .post("/api/v1/shopping/coupons/999999999/issue");
 
         // Then
         response.then()
@@ -292,7 +292,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(purchaseRequest)
                 .when()
-                .post("/api/shopping/time-deals/purchase");
+                .post("/api/v1/shopping/time-deals/purchase");
 
         // Then
         response.then()
@@ -323,7 +323,7 @@ class ErrorCaseTest extends IntegrationTestBase {
                 .contentType("application/json")
                 .body(signupData)
                 .when()
-                .post("/api/users/signup");
+                .post("/api/v1/users/signup");
 
         // Then
         response.then()
@@ -348,7 +348,7 @@ class ErrorCaseTest extends IntegrationTestBase {
                 .contentType("application/json")
                 .body(signupData)
                 .when()
-                .post("/api/users/signup");
+                .post("/api/v1/users/signup");
 
         // Then
         response.then()
@@ -370,7 +370,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(cartItem)
                 .when()
-                .post("/api/shopping/cart/items");
+                .post("/api/v1/shopping/cart/items");
 
         // Then
         response.then()
@@ -392,7 +392,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(cartItem)
                 .when()
-                .post("/api/shopping/cart/items");
+                .post("/api/v1/shopping/cart/items");
 
         // Then
         response.then()
@@ -421,7 +421,7 @@ class ErrorCaseTest extends IntegrationTestBase {
                 .contentType("application/json")
                 .body(signupData)
                 .when()
-                .post("/api/users/signup")
+                .post("/api/v1/users/signup")
                 .then()
                 .statusCode(anyOf(is(200), is(201)));
 
@@ -433,7 +433,7 @@ class ErrorCaseTest extends IntegrationTestBase {
                 .contentType("application/json")
                 .body(signupData)
                 .when()
-                .post("/api/users/signup");
+                .post("/api/v1/users/signup");
 
         // Then
         response.then()
@@ -453,7 +453,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // Get a product
         Response productsResponse = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products");
+                .get("/api/v1/shopping/products");
 
         Long productId = productsResponse.jsonPath().getLong("data.content[0].id");
 
@@ -466,7 +466,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(cartItem)
                 .when()
-                .post("/api/shopping/cart/items");
+                .post("/api/v1/shopping/cart/items");
 
         // Then - Should fail due to insufficient stock
         response.then()
@@ -495,7 +495,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(paymentRequest)
                 .when()
-                .post("/api/shopping/payments");
+                .post("/api/v1/shopping/payments");
 
         // Then
         response.then()
@@ -512,7 +512,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // Get a valid order first (if exists)
         Response ordersResponse = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/orders/my");
+                .get("/api/v1/shopping/orders/my");
 
         if (ordersResponse.jsonPath().getList("data.content") == null ||
             ordersResponse.jsonPath().getList("data.content").isEmpty()) {
@@ -531,7 +531,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(paymentRequest)
                 .when()
-                .post("/api/shopping/payments");
+                .post("/api/v1/shopping/payments");
 
         // Then
         response.then()
@@ -555,7 +555,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         for (int i = 0; i < requestCount; i++) {
             Response response = givenAuthenticatedUser()
                     .when()
-                    .get("/api/shopping/products");
+                    .get("/api/v1/shopping/products");
 
             if (response.statusCode() == 429) {
                 tooManyRequestsCount++;
@@ -580,7 +580,7 @@ class ErrorCaseTest extends IntegrationTestBase {
         // When - Request non-existent resource
         Response response = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products/999999999");
+                .get("/api/v1/shopping/products/999999999");
 
         // Then - Verify ApiResponse format
         response.then()

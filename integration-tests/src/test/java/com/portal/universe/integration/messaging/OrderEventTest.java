@@ -52,7 +52,7 @@ class OrderEventTest extends IntegrationTestBase {
         // Get a product for order testing
         Response response = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products");
+                .get("/api/v1/shopping/products");
 
         if (response.statusCode() == 200) {
             List<Map<String, Object>> products = response.jsonPath().getList("data.content");
@@ -81,7 +81,7 @@ class OrderEventTest extends IntegrationTestBase {
                     .contentType("application/json")
                     .body(signupData)
                     .when()
-                    .post("/api/users/signup");
+                    .post("/api/v1/users/signup");
 
             signupResponse.then().statusCode(anyOf(is(200), is(201)));
 
@@ -124,7 +124,7 @@ class OrderEventTest extends IntegrationTestBase {
             Response cartResponse = givenAuthenticatedUser()
                     .body(cartItem)
                     .when()
-                    .post("/api/shopping/cart/items");
+                    .post("/api/v1/shopping/cart/items");
 
             Long cartId = cartResponse.jsonPath().getLong("data.cartId");
 
@@ -142,7 +142,7 @@ class OrderEventTest extends IntegrationTestBase {
             Response orderResponse = givenAuthenticatedUser()
                     .body(orderRequest)
                     .when()
-                    .post("/api/shopping/orders");
+                    .post("/api/v1/shopping/orders");
 
             orderResponse.then().statusCode(anyOf(is(200), is(201)));
 
@@ -200,7 +200,7 @@ class OrderEventTest extends IntegrationTestBase {
             Response paymentResponse = givenAuthenticatedUser()
                     .body(paymentRequest)
                     .when()
-                    .post("/api/shopping/payments");
+                    .post("/api/v1/shopping/payments");
 
             paymentResponse.then().statusCode(anyOf(is(200), is(201)));
 
@@ -245,7 +245,7 @@ class OrderEventTest extends IntegrationTestBase {
             Response cartResponse = givenAuthenticatedUser()
                     .body(cartItem)
                     .when()
-                    .post("/api/shopping/cart/items");
+                    .post("/api/v1/shopping/cart/items");
 
             Long cartId = cartResponse.jsonPath().getLong("data.cartId");
 
@@ -263,7 +263,7 @@ class OrderEventTest extends IntegrationTestBase {
             Response orderResponse = givenAuthenticatedUser()
                     .body(orderRequest)
                     .when()
-                    .post("/api/shopping/orders");
+                    .post("/api/v1/shopping/orders");
 
             Long orderId = orderResponse.jsonPath().getLong("data.id");
 
@@ -281,7 +281,7 @@ class OrderEventTest extends IntegrationTestBase {
             givenAuthenticatedUser()
                     .body(paymentRequest)
                     .when()
-                    .post("/api/shopping/payments");
+                    .post("/api/v1/shopping/payments");
 
             // Collect events for 10 seconds
             List<ConsumerRecord<String, String>> allRecords = new ArrayList<>();
@@ -324,7 +324,7 @@ class OrderEventTest extends IntegrationTestBase {
             Response cartResponse = givenAuthenticatedUser()
                     .body(cartItem)
                     .when()
-                    .post("/api/shopping/cart/items");
+                    .post("/api/v1/shopping/cart/items");
 
             Long cartId = cartResponse.jsonPath().getLong("data.cartId");
 
@@ -340,7 +340,7 @@ class OrderEventTest extends IntegrationTestBase {
             givenAuthenticatedUser()
                     .body(orderRequest)
                     .when()
-                    .post("/api/shopping/orders");
+                    .post("/api/v1/shopping/orders");
 
             // Consume and validate structure
             Optional<ConsumerRecord<String, String>> record = consumeMessage(
@@ -395,7 +395,7 @@ class OrderEventTest extends IntegrationTestBase {
             Response cartResponse = givenAuthenticatedUser()
                     .body(cartItem)
                     .when()
-                    .post("/api/shopping/cart/items");
+                    .post("/api/v1/shopping/cart/items");
 
             Long cartId = cartResponse.jsonPath().getLong("data.cartId");
 
@@ -411,7 +411,7 @@ class OrderEventTest extends IntegrationTestBase {
             Response orderResponse = givenAuthenticatedUser()
                     .body(orderRequest)
                     .when()
-                    .post("/api/shopping/orders");
+                    .post("/api/v1/shopping/orders");
 
             Long orderId = orderResponse.jsonPath().getLong("data.id");
 
@@ -431,7 +431,7 @@ class OrderEventTest extends IntegrationTestBase {
             givenAuthenticatedUser()
                     .body(paymentRequest)
                     .when()
-                    .post("/api/shopping/payments");
+                    .post("/api/v1/shopping/payments");
 
             // Collect events and verify order
             List<ConsumerRecord<String, String>> events = new ArrayList<>();

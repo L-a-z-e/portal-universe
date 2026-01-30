@@ -57,7 +57,7 @@ class CouponFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedAdmin()
                 .body(couponRequest)
                 .when()
-                .post("/api/shopping/admin/coupons");
+                .post("/api/v1/shopping/admin/coupons");
 
         // Then
         response.then()
@@ -79,7 +79,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/coupons");
+                .get("/api/v1/shopping/coupons");
 
         // Then
         response.then()
@@ -112,7 +112,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // When - Issue coupon by ID
         Response response = givenAuthenticatedUser()
                 .when()
-                .post("/api/shopping/coupons/" + testCouponId + "/issue");
+                .post("/api/v1/shopping/coupons/" + testCouponId + "/issue");
 
         // Then
         response.then()
@@ -131,7 +131,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/coupons/my");
+                .get("/api/v1/shopping/coupons/my");
 
         // Then
         response.then()
@@ -160,7 +160,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // When - Try to issue same coupon again
         Response response = givenAuthenticatedUser()
                 .when()
-                .post("/api/shopping/coupons/" + testCouponId + "/issue");
+                .post("/api/v1/shopping/coupons/" + testCouponId + "/issue");
 
         // Then - Should fail with duplicate error
         response.then()
@@ -176,7 +176,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // When - Try to issue non-existent coupon
         Response response = givenAuthenticatedUser()
                 .when()
-                .post("/api/shopping/coupons/999999/issue");
+                .post("/api/v1/shopping/coupons/999999/issue");
 
         // Then
         response.then()
@@ -195,7 +195,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedAdmin()
                 .when()
-                .get("/api/shopping/admin/coupons/" + testCouponId);
+                .get("/api/v1/shopping/admin/coupons/" + testCouponId);
 
         // Then
         response.then()
@@ -224,7 +224,7 @@ class CouponFlowTest extends IntegrationTestBase {
         Response createResponse = givenAuthenticatedAdmin()
                 .body(couponRequest)
                 .when()
-                .post("/api/shopping/admin/coupons");
+                .post("/api/v1/shopping/admin/coupons");
 
         createResponse.then().statusCode(anyOf(is(200), is(201)));
         Long limitedCouponId = createResponse.jsonPath().getLong("data.id");
@@ -232,7 +232,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // First user issues it
         givenAuthenticatedUser()
                 .when()
-                .post("/api/shopping/coupons/" + limitedCouponId + "/issue")
+                .post("/api/v1/shopping/coupons/" + limitedCouponId + "/issue")
                 .then()
                 .statusCode(anyOf(is(200), is(201)));
 
@@ -243,7 +243,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // When - Second user tries to issue exhausted coupon
         Response response = givenWithToken(otherToken)
                 .when()
-                .post("/api/shopping/coupons/" + limitedCouponId + "/issue");
+                .post("/api/v1/shopping/coupons/" + limitedCouponId + "/issue");
 
         // Then - Should fail with exhausted error
         response.then()
@@ -272,7 +272,7 @@ class CouponFlowTest extends IntegrationTestBase {
         Response createResponse = givenAuthenticatedAdmin()
                 .body(couponRequest)
                 .when()
-                .post("/api/shopping/admin/coupons");
+                .post("/api/v1/shopping/admin/coupons");
 
         // Admin might reject expired coupon creation
         if (createResponse.statusCode() != 200 && createResponse.statusCode() != 201) {
@@ -284,7 +284,7 @@ class CouponFlowTest extends IntegrationTestBase {
         // When - Try to issue expired coupon
         Response response = givenAuthenticatedUser()
                 .when()
-                .post("/api/shopping/coupons/" + expiredCouponId + "/issue");
+                .post("/api/v1/shopping/coupons/" + expiredCouponId + "/issue");
 
         // Then - Should fail
         response.then()
@@ -312,7 +312,7 @@ class CouponFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(couponRequest)
                 .when()
-                .post("/api/shopping/admin/coupons");
+                .post("/api/v1/shopping/admin/coupons");
 
         // Then - Should fail with 403
         response.then()

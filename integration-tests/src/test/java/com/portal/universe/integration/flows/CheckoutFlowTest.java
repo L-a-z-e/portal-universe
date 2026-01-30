@@ -47,7 +47,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When
         Response response = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products");
+                .get("/api/v1/shopping/products");
 
         // Then
         response.then()
@@ -74,7 +74,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When
         Response response = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products/" + testProductId);
+                .get("/api/v1/shopping/products/" + testProductId);
 
         // Then
         response.then()
@@ -102,7 +102,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(cartItem)
                 .when()
-                .post("/api/shopping/cart/items");
+                .post("/api/v1/shopping/cart/items");
 
         // Then
         response.then()
@@ -124,7 +124,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/cart");
+                .get("/api/v1/shopping/cart");
 
         // Then
         response.then()
@@ -162,7 +162,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(orderRequest)
                 .when()
-                .post("/api/shopping/orders");
+                .post("/api/v1/shopping/orders");
 
         // Then
         response.then()
@@ -212,7 +212,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/orders/" + testOrderId);
+                .get("/api/v1/shopping/orders/" + testOrderId);
 
         // Then
         response.then()
@@ -246,7 +246,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(paymentRequest)
                 .when()
-                .post("/api/shopping/payments");
+                .post("/api/v1/shopping/payments");
 
         // Then
         response.then()
@@ -290,7 +290,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/orders/" + testOrderId);
+                .get("/api/v1/shopping/orders/" + testOrderId);
 
         // Then
         response.then()
@@ -309,7 +309,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When - Get order to find tracking number
         Response orderResponse = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/orders/" + testOrderId);
+                .get("/api/v1/shopping/orders/" + testOrderId);
 
         testTrackingNumber = orderResponse.jsonPath().getString("data.delivery.trackingNumber");
 
@@ -319,7 +319,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // Then - Get delivery details
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/deliveries/" + testTrackingNumber);
+                .get("/api/v1/shopping/deliveries/" + testTrackingNumber);
 
         response.then()
                 .statusCode(200)
@@ -335,7 +335,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/orders/my");
+                .get("/api/v1/shopping/orders/my");
 
         // Then
         response.then()
@@ -360,7 +360,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/products/" + testProductId);
+                .get("/api/v1/shopping/products/" + testProductId);
 
         // Then - Just verify the product still exists and has stock info
         response.then()
@@ -382,7 +382,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // First clear the cart
         givenAuthenticatedUser()
                 .when()
-                .delete("/api/shopping/cart");
+                .delete("/api/v1/shopping/cart");
 
         // Given
         Map<String, Object> orderRequest = new HashMap<>();
@@ -399,7 +399,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(orderRequest)
                 .when()
-                .post("/api/shopping/orders");
+                .post("/api/v1/shopping/orders");
 
         // Then
         response.then()
@@ -419,7 +419,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(paymentRequest)
                 .when()
-                .post("/api/shopping/payments");
+                .post("/api/v1/shopping/payments");
 
         // Then
         response.then()
@@ -439,7 +439,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(cartItem)
                 .when()
-                .post("/api/shopping/cart/items");
+                .post("/api/v1/shopping/cart/items");
 
         // Then - Should fail due to insufficient stock
         response.then()
@@ -460,7 +460,7 @@ class CheckoutFlowTest extends IntegrationTestBase {
         // When - Try to access test user's order with other user's token
         Response response = givenWithToken(otherUserToken)
                 .when()
-                .get("/api/shopping/orders/" + testOrderId);
+                .get("/api/v1/shopping/orders/" + testOrderId);
 
         // Then - Should fail with 403 or 404
         response.then()

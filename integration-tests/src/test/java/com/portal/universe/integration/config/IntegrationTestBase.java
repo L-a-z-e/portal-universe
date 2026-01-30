@@ -102,7 +102,7 @@ public abstract class IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .body(credentials)
                 .when()
-                .post("/api/auth/login");
+                .post("/api/v1/auth/login");
 
         if (response.statusCode() == 200) {
             return response.jsonPath().getString("data.accessToken");
@@ -126,7 +126,7 @@ public abstract class IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .body(signupData)
                 .when()
-                .post("/api/users/signup");
+                .post("/api/v1/users/signup");
 
         if (signupResponse.statusCode() == 201 || signupResponse.statusCode() == 200) {
             return authenticate(email, password);

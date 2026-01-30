@@ -42,7 +42,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         // Get a product for time-deal
         Response productResponse = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products");
+                .get("/api/v1/shopping/products");
 
         if (productResponse.statusCode() == 200) {
             List<Map<String, Object>> products = productResponse.jsonPath().getList("data.content");
@@ -110,7 +110,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         Response response = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
-                .post("/api/shopping/admin/time-deals");
+                .post("/api/v1/shopping/admin/time-deals");
 
         // Then
         response.then()
@@ -164,7 +164,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                     Response response = givenWithToken(token)
                             .body(purchaseRequest)
                             .when()
-                            .post("/api/shopping/time-deals/purchase");
+                            .post("/api/v1/shopping/time-deals/purchase");
 
                     int status = response.statusCode();
                     String code = response.jsonPath().getString("code");
@@ -232,7 +232,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/time-deals/" + testTimeDealId);
+                .get("/api/v1/shopping/time-deals/" + testTimeDealId);
 
         // Then
         response.then()
@@ -266,7 +266,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         Response createResponse = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
-                .post("/api/shopping/admin/time-deals");
+                .post("/api/v1/shopping/admin/time-deals");
 
         Long maxPerUserTimeDealId = createResponse.jsonPath().getLong("data.id");
 
@@ -290,7 +290,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                     Response response = givenWithToken(singleUserToken)
                             .body(purchaseRequest)
                             .when()
-                            .post("/api/shopping/time-deals/purchase");
+                            .post("/api/v1/shopping/time-deals/purchase");
 
                     int status = response.statusCode();
                     String code = response.jsonPath().getString("code");
@@ -345,7 +345,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         Response createResponse = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
-                .post("/api/shopping/admin/time-deals");
+                .post("/api/v1/shopping/admin/time-deals");
 
         Long timeDealId = createResponse.jsonPath().getLong("data.id");
 
@@ -367,7 +367,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                     Response response = givenWithToken(singleUserToken)
                             .body(purchaseRequest)
                             .when()
-                            .post("/api/shopping/time-deals/purchase");
+                            .post("/api/v1/shopping/time-deals/purchase");
 
                     if (response.statusCode() == 200 || response.statusCode() == 201) {
                         successCount.incrementAndGet();
@@ -414,7 +414,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         Response createResponse = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
-                .post("/api/shopping/admin/time-deals");
+                .post("/api/v1/shopping/admin/time-deals");
 
         Long stressTimeDealId = createResponse.jsonPath().getLong("data.id");
 
@@ -476,7 +476,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                     Response response = givenWithToken(token)
                             .body(purchaseRequest)
                             .when()
-                            .post("/api/shopping/time-deals/purchase");
+                            .post("/api/v1/shopping/time-deals/purchase");
 
                     if (response.statusCode() == 200 || response.statusCode() == 201) {
                         successCount.incrementAndGet();

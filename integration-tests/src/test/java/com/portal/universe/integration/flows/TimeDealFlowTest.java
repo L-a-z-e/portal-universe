@@ -39,7 +39,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         // Get a product for time-deal
         Response response = givenUnauthenticated()
                 .when()
-                .get("/api/shopping/products");
+                .get("/api/v1/shopping/products");
 
         if (response.statusCode() == 200) {
             List<Map<String, Object>> products = response.jsonPath().getList("data.content");
@@ -73,7 +73,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
-                .post("/api/shopping/admin/time-deals");
+                .post("/api/v1/shopping/admin/time-deals");
 
         // Then
         response.then()
@@ -95,7 +95,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/time-deals");
+                .get("/api/v1/shopping/time-deals");
 
         // Then
         response.then()
@@ -127,7 +127,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/time-deals/" + testTimeDealId);
+                .get("/api/v1/shopping/time-deals/" + testTimeDealId);
 
         // Then
         response.then()
@@ -154,7 +154,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(purchaseRequest)
                 .when()
-                .post("/api/shopping/time-deals/purchase");
+                .post("/api/v1/shopping/time-deals/purchase");
 
         // Then - Success or already purchased
         if (response.statusCode() == 200 || response.statusCode() == 201) {
@@ -177,7 +177,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         // When
         Response response = givenAuthenticatedUser()
                 .when()
-                .get("/api/shopping/time-deals/" + testTimeDealId);
+                .get("/api/v1/shopping/time-deals/" + testTimeDealId);
 
         // Then
         response.then()
@@ -207,7 +207,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(purchaseRequest)
                 .when()
-                .post("/api/shopping/time-deals/purchase");
+                .post("/api/v1/shopping/time-deals/purchase");
 
         // Then - Should fail with max per user error
         response.then()
@@ -236,7 +236,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response response = givenWithToken(newUserToken)
                 .body(purchaseRequest)
                 .when()
-                .post("/api/shopping/time-deals/purchase");
+                .post("/api/v1/shopping/time-deals/purchase");
 
         // Then - Should succeed (if time-deal is active)
         if (response.statusCode() == 200 || response.statusCode() == 201) {
@@ -258,7 +258,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(purchaseRequest)
                 .when()
-                .post("/api/shopping/time-deals/purchase");
+                .post("/api/v1/shopping/time-deals/purchase");
 
         // Then
         response.then()
@@ -291,7 +291,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
-                .post("/api/shopping/admin/time-deals");
+                .post("/api/v1/shopping/admin/time-deals");
 
         // Then
         response.then()
@@ -309,7 +309,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response purchaseResponse = givenAuthenticatedUser()
                 .body(purchaseRequest)
                 .when()
-                .post("/api/shopping/time-deals/purchase");
+                .post("/api/v1/shopping/time-deals/purchase");
 
         // Should fail - time-deal not active
         purchaseResponse.then()
@@ -341,7 +341,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response createResponse = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
-                .post("/api/shopping/admin/time-deals");
+                .post("/api/v1/shopping/admin/time-deals");
 
         // Admin might reject past time-deal creation
         if (createResponse.statusCode() != 200 && createResponse.statusCode() != 201) {
@@ -358,7 +358,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(purchaseRequest)
                 .when()
-                .post("/api/shopping/time-deals/purchase");
+                .post("/api/v1/shopping/time-deals/purchase");
 
         // Then
         response.then()
@@ -390,7 +390,7 @@ class TimeDealFlowTest extends IntegrationTestBase {
         Response response = givenAuthenticatedUser()
                 .body(timeDealRequest)
                 .when()
-                .post("/api/shopping/admin/time-deals");
+                .post("/api/v1/shopping/admin/time-deals");
 
         // Then - Should fail with 403
         response.then()

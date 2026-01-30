@@ -62,7 +62,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .body(signupData)
                 .when()
-                .post("/api/users/signup");
+                .post("/api/v1/users/signup");
 
         // Then
         response.then()
@@ -93,7 +93,7 @@ class AuthFlowTest extends IntegrationTestBase {
                     .contentType(ContentType.JSON)
                     .body(signupData)
                     .when()
-                    .post("/api/users/signup")
+                    .post("/api/v1/users/signup")
                     .then()
                     .statusCode(anyOf(is(200), is(201)));
 
@@ -124,7 +124,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .body(loginData)
                 .when()
-                .post("/api/auth/login");
+                .post("/api/v1/auth/login");
 
         // Then
         response.then()
@@ -153,7 +153,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + testUserToken)
                 .when()
-                .get("/api/auth/me");
+                .get("/api/v1/auth/me");
 
         // Then
         response.then()
@@ -171,7 +171,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .baseUri(gatewayUrl)
                 .contentType(ContentType.JSON)
                 .when()
-                .get("/api/auth/me");
+                .get("/api/v1/auth/me");
 
         // Then
         response.then()
@@ -191,7 +191,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + invalidToken)
                 .when()
-                .get("/api/auth/me");
+                .get("/api/v1/auth/me");
 
         // Then
         response.then()
@@ -216,7 +216,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .body(refreshData)
                 .when()
-                .post("/api/auth/refresh");
+                .post("/api/v1/auth/refresh");
 
         // Then
         response.then()
@@ -244,7 +244,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .body(loginData)
                 .when()
-                .post("/api/auth/login");
+                .post("/api/v1/auth/login");
 
         // Then
         response.then()
@@ -266,7 +266,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .body(loginData)
                 .when()
-                .post("/api/auth/login");
+                .post("/api/v1/auth/login");
 
         // Then
         response.then()
@@ -289,7 +289,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .body(signupData)
                 .when()
-                .post("/api/users/signup");
+                .post("/api/v1/users/signup");
 
         // Then
         response.then()
@@ -309,7 +309,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + adminToken)
                 .when()
-                .get("/api/auth/me");
+                .get("/api/v1/auth/me");
 
         // Then
         response.then()
@@ -331,7 +331,7 @@ class AuthFlowTest extends IntegrationTestBase {
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + testUserToken)
                 .when()
-                .get("/api/shopping/admin/products");
+                .get("/api/v1/shopping/admin/products");
 
         // Then
         response.then()
