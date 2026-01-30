@@ -206,7 +206,7 @@ export function usePortalTheme(): PortalTheme {
 
     try {
       // Module Federation으로 Portal Shell의 themeStore import
-      import('portal/themeStore').then((module) => {
+      import('portal/stores').then((module) => {
         const themeStore = module.useThemeStore.getState()
 
         // 초기 테마 설정

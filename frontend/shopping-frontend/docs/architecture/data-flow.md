@@ -93,7 +93,7 @@ sequenceDiagram
     APP->>APP: mode detection (Embedded/Standalone)
 
     alt Embedded Mode
-        APP->>TS: import('portal/themeStore')
+        APP->>TS: import('portal/stores')
         TS-->>APP: Portal themeStore
         APP->>APP: watch isDark changes
     else Standalone Mode
@@ -134,7 +134,7 @@ sequenceDiagram
     C->>C: useEffect()
     C->>API: getProducts({ page: 0, size: 20 })
     API->>API: getApiClient()
-    Note over API: Embedded: portal/apiClient<br/>Standalone: local axios
+    Note over API: Embedded: portal/api<br/>Standalone: local axios
     API->>AC: GET /api/shopping/products?page=0&size=20
     Note over AC: Authorization: Bearer {JWT}
     AC->>G: HTTP Request

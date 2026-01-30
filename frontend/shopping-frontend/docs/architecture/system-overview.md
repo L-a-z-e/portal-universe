@@ -4,7 +4,7 @@ title: Shopping Frontend System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-30
 author: Laze
 tags: [architecture, react, module-federation, micro-frontend]
 related:
@@ -122,7 +122,7 @@ export function mountShoppingApp(
 | **책임** | Portal Shell과의 통신, data-service 속성 설정, themeStore 연동 |
 
 **테마 동기화 방식**:
-1. **Embedded 모드**: `import('portal/themeStore')`로 Pinia store 연동
+1. **Embedded 모드**: `import('portal/stores')`로 Pinia store 연동
 2. **Standalone 모드**: MutationObserver로 `<html class="dark">` 감지
 3. `data-theme` 속성 업데이트: `[data-service="shopping"][data-theme="dark"]` CSS 활성화
 
@@ -170,7 +170,7 @@ export function mountShoppingApp(
 const globalToken = window.__PORTAL_ACCESS_TOKEN__
 
 // 2. Pinia store 직접 호출 (함수로 호출!)
-const portalAuthModule = await import('portal/authStore')
+const portalAuthModule = await import('portal/stores')
 const usePortalAuthStore = portalAuthModule.useAuthStore
 const portalStore = usePortalAuthStore() // ✅ 함수 호출
 
@@ -184,7 +184,7 @@ set({ user: mappedUser, accessToken: globalToken })
 |------|------|
 | **역할** | Backend API 호출 래퍼 |
 | **엔드포인트** | productApi, cartApi, orderApi, paymentApi, deliveryApi, adminProductApi |
-| **클라이언트** | `getApiClient()` - Portal Shell의 apiClient 또는 로컬 axios |
+| **클라이언트** | `getApiClient()` - Portal Shell의 axios 또는 로컬 axios |
 
 ---
 
@@ -196,10 +196,15 @@ set({ user: mappedUser, accessToken: globalToken })
 federation({
   name: 'shopping-frontend',
   filename: 'remoteEntry.js',
+  remotes: {
+    portal: env.VITE_PORTAL_SHELL_REMOTE_URL || 'http://localhost:30000/assets/shellEntry.js',
+    blog: env.VITE_BLOG_REMOTE_URL || 'http://localhost:30001/assets/remoteEntry.js',
+    shopping: env.VITE_SHOPPING_REMOTE_URL || 'http://localhost:30002/assets/remoteEntry.js',
+  },
   exposes: {
     './bootstrap': './src/bootstrap.tsx'
   },
-  shared: ['react', 'react-dom']
+  shared: ['react', 'react-dom', 'react-dom/client']
 })
 ```
 
@@ -230,7 +235,7 @@ shoppingApp.unmount()
 | **라우터** | MemoryRouter | BrowserRouter |
 | **authStore** | Portal Shell Pinia에서 동기화 | 로컬 상태 (미구현) |
 | **apiClient** | Portal Shell axios 공유 | 로컬 axios 생성 |
-| **테마 동기화** | `import('portal/themeStore')` | MutationObserver |
+| **테마 동기화** | `import('portal/stores')` | MutationObserver |
 | **Header/Footer** | 숨김 | 표시 |
 | **CSS 범위** | `[data-service="shopping"]` | 전역 |
 
@@ -243,7 +248,7 @@ shoppingApp.unmount()
 **Embedded 모드**:
 ```typescript
 // App.tsx
-import('portal/themeStore').then(({ useThemeStore }) => {
+import('portal/stores').then(({ useThemeStore }) => {
   const store = useThemeStore()
   // Pinia store의 isDark 값 감지
   updateDataTheme(store.isDark)
@@ -268,7 +273,7 @@ syncFromPortal: async () => {
   const globalToken = window.__PORTAL_ACCESS_TOKEN__
 
   // Step 2: Pinia store에서 사용자 정보 가져오기
-  const portalAuthModule = await import('portal/authStore')
+  const portalAuthModule = await import('portal/stores')
   const usePortalAuthStore = portalAuthModule.useAuthStore
   const portalStore = usePortalAuthStore()
 
@@ -288,14 +293,14 @@ syncFromPortal: async () => {
 
 ```typescript
 // api/client.ts
-export const getApiClient = () => {
-  if (window.__POWERED_BY_PORTAL_SHELL__) {
-    // Portal Shell의 apiClient 사용 (JWT 토큰 자동 첨부)
-    return import('portal/apiClient').then(module => module.default)
+export const getApiClient = (): AxiosInstance => {
+  // Portal Shell에서 주입된 apiClient가 있으면 사용
+  if (window.__PORTAL_API_CLIENT__) {
+    return window.__PORTAL_API_CLIENT__ as AxiosInstance
   }
 
-  // Standalone 모드: 로컬 axios 생성
-  return createLocalAxios()
+  // Standalone 모드: 로컬 axios 사용
+  return apiClient
 }
 ```
 
@@ -481,4 +486,4 @@ npm run dev
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30

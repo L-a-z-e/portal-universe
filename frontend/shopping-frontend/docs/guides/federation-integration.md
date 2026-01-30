@@ -4,7 +4,7 @@ title: Module Federation 통합 가이드
 type: guide
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-30
 author: Documenter Agent
 tags: [module-federation, integration, portal-shell, react]
 related:
@@ -38,46 +38,48 @@ Shopping Frontend는 두 가지 모드로 실행됩니다:
 **파일**: `vite.config.ts`
 
 ```typescript
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import federation from '@originjs/vite-plugin-federation'
 
-export default defineConfig({
-  plugins: [
-    react(),
-    federation({
-      name: 'shopping-frontend',
-      filename: 'remoteEntry.js',
-      exposes: {
-        './bootstrap': './src/bootstrap.tsx'
-      },
-      shared: {
-        react: {
-          singleton: true,
-          requiredVersion: '^18.3.1',
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
+    plugins: [
+      react(),
+      federation({
+        name: 'shopping-frontend',
+        filename: 'remoteEntry.js',
+        remotes: {
+          portal: env.VITE_PORTAL_SHELL_REMOTE_URL || 'http://localhost:30000/assets/shellEntry.js',
+          blog: env.VITE_BLOG_REMOTE_URL || 'http://localhost:30001/assets/remoteEntry.js',
+          shopping: env.VITE_SHOPPING_REMOTE_URL || 'http://localhost:30002/assets/remoteEntry.js',
         },
-        'react-dom': {
-          singleton: true,
-          requiredVersion: '^18.3.1',
-        }
-      },
-    })
-  ],
-  build: {
-    target: 'esnext',
-    minify: false,
-    cssCodeSplit: false,
-  },
-  server: {
-    port: 30002,
-    cors: true,
+        exposes: {
+          './bootstrap': './src/bootstrap.tsx'
+        },
+        shared: ['react', 'react-dom', 'react-dom/client'],
+      })
+    ],
+    build: {
+      target: 'esnext',
+      minify: false,
+      cssCodeSplit: true,
+    },
+    server: {
+      port: 30002,
+      host: '0.0.0.0',
+      cors: true,
+    }
   }
 })
 ```
 
 **핵심 포인트**:
+- `remotes`: Portal Shell(Host), Blog, Shopping 원격 모듈 등록
 - `exposes`: `./bootstrap` 진입점 노출
-- `shared`: React 싱글톤 보장 (버전 충돌 방지)
+- `shared`: React 싱글톤 보장 (`react-dom/client` 포함 필수, 누락 시 Error #321 발생)
 - `filename`: Portal Shell이 로드할 파일명
 
 ---
@@ -200,7 +202,7 @@ export function mountShoppingApp(
   const syncTheme = async () => {
     try {
       // Portal Shell의 themeStore 동적 임포트
-      const { useThemeStore } = await import('portal/themeStore')
+      const { useThemeStore } = await import('portal/stores')
       const themeStore = useThemeStore()
 
       const updateDataTheme = (isDark: boolean) => {
@@ -284,7 +286,7 @@ export function mountShoppingApp(
 
 ```typescript
 // bootstrap.tsx에서 자동 처리
-const { useThemeStore } = await import('portal/themeStore')
+const { useThemeStore } = await import('portal/stores')
 const themeStore = useThemeStore()
 
 themeStore.$subscribe(() => {
@@ -405,7 +407,7 @@ function App({ onNavigate }: { onNavigate?: (path: string) => void }) {
 | **진입점** | `bootstrap.tsx` | `main.tsx` |
 | **테마** | Portal Shell themeStore | MutationObserver |
 | **인증** | Portal Shell authStore | 로컬 Mock |
-| **API 클라이언트** | Portal Shell apiClient | 로컬 axios |
+| **API 클라이언트** | Portal Shell axios | 로컬 axios |
 | **URL** | `/shopping/*` (Portal 내) | `http://localhost:30002` |
 
 ---
@@ -504,13 +506,8 @@ Error: Invalid hook call. Hooks can only be called inside of the body of a funct
 
 **해결 방법**:
 ```typescript
-// vite.config.ts - shared 설정 확인
-shared: {
-  react: {
-    singleton: true,  // 반드시 true
-    requiredVersion: '^18.3.1',
-  }
-}
+// vite.config.ts - shared 설정 확인 (react-dom/client 필수 포함)
+shared: ['react', 'react-dom', 'react-dom/client']
 ```
 
 ---
@@ -543,12 +540,12 @@ Failed to load module script: Expected a JavaScript module script but the server
 Portal Shell에서 다크모드 전환해도 Shopping이 반응하지 않음
 
 **해결 방법**:
-1. Portal Shell이 `themeStore`를 expose하는지 확인
+1. Portal Shell이 stores를 expose하는지 확인
    ```typescript
    // portal-shell/vite.config.ts
    federation({
      exposes: {
-       './themeStore': './src/stores/themeStore.ts'
+       './stores': './src/stores/index.ts'
      }
    })
    ```
@@ -558,7 +555,7 @@ Portal Shell에서 다크모드 전환해도 Shopping이 반응하지 않음
    // shopping-frontend/vite.config.ts (없으면 추가)
    build: {
      rollupOptions: {
-       external: ['portal/themeStore']
+       external: ['portal/stores']
      }
    }
    ```
@@ -624,7 +621,7 @@ console.log('Available remotes:', Object.keys(__FEDERATION__))
 
 ```typescript
 // Shopping bootstrap.tsx에서
-const { useThemeStore } = await import('portal/themeStore')
+const { useThemeStore } = await import('portal/stores')
 const themeStore = useThemeStore()
 console.log('Current theme:', themeStore.isDark ? 'dark' : 'light')
 ```
@@ -657,7 +654,7 @@ sequenceDiagram
     PortalShell->>ShoppingRemote: import('shopping/bootstrap')
     ShoppingRemote-->>PortalShell: mountShoppingApp(el, options)
 
-    ShoppingRemote->>ThemeStore: import('portal/themeStore')
+    ShoppingRemote->>ThemeStore: import('portal/stores')
     ThemeStore-->>ShoppingRemote: useThemeStore()
     ShoppingRemote->>ShoppingRemote: $subscribe(theme changes)
 
@@ -678,7 +675,7 @@ sequenceDiagram
 - [ ] `vite.config.ts`에 Shopping remote 등록
 - [ ] `router/index.ts`에 `/shopping` 경로 추가
 - [ ] `ShoppingView.vue` 컴포넌트 생성
-- [ ] `themeStore`, `authStore` expose 확인
+- [ ] `stores` expose 확인
 
 ### Shopping Frontend
 - [ ] `vite.config.ts` Federation 설정
@@ -699,7 +696,7 @@ sequenceDiagram
 
 ## ➡️ 다음 단계
 
-1. **API 통합**: Portal Shell의 apiClient 사용 ([API 클라이언트 가이드](./api-client-integration.md))
+1. **API 통합**: Portal Shell의 axios 사용 ([API 클라이언트 가이드](./api-client-integration.md))
 2. **인증 연동**: authStore와 연동하여 보호된 라우트 구현
 3. **상태 관리**: Portal Shell과 데이터 공유 전략
 4. **성능 최적화**: Code Splitting, Lazy Loading
@@ -714,4 +711,4 @@ sequenceDiagram
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30

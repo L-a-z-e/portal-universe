@@ -178,7 +178,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   syncFromPortal: async () => {
     try {
       // Module Federation으로 Portal의 authStore import
-      const { useAuthStore: usePortalAuthStore } = await import('portal/authStore')
+      const { useAuthStore: usePortalAuthStore } = await import('portal/stores')
       const portalAuth = usePortalAuthStore.getState()
 
       set({
@@ -225,7 +225,7 @@ useEffect(() => {
 
   let unsubscribe: (() => void) | undefined
 
-  import('portal/authStore')
+  import('portal/stores')
     .then((module) => {
       // Portal authStore 구독
       unsubscribe = module.useAuthStore.subscribe((portalState) => {
@@ -274,7 +274,7 @@ export function usePortalTheme(): PortalTheme {
 
     try {
       // Module Federation으로 Portal Shell의 themeStore import
-      import('portal/themeStore').then((module) => {
+      import('portal/stores').then((module) => {
         const themeStore = module.useThemeStore.getState()
 
         // 초기 테마 설정
@@ -486,7 +486,7 @@ function usePortalApiClient() {
     const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__
 
     if (isEmbedded) {
-      import('portal/apiClient')
+      import('portal/api')
         .then((module) => {
           setApiClient(module.default)
           console.log('[Shopping] Using Portal apiClient')
@@ -514,7 +514,7 @@ useEffect(() => {
 
   const syncStores = async () => {
     try {
-      const { useAuthStore: usePortalAuthStore } = await import('portal/authStore')
+      const { useAuthStore: usePortalAuthStore } = await import('portal/stores')
       // ...
     } catch (error) {
       console.warn('[Shopping] Portal modules not available:', error)
@@ -558,8 +558,8 @@ try {
 ```tsx
 // 1. Module Federation 연결 확인
 console.log('Portal modules:', {
-  authStore: await import('portal/authStore'),
-  themeStore: await import('portal/themeStore')
+  authStore: await import('portal/stores'),
+  themeStore: await import('portal/stores')
 })
 
 // 2. Router 동기화 로그
