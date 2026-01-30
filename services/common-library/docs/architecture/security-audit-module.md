@@ -1,3 +1,14 @@
+---
+id: common-library-security-audit-module
+title: 보안 감사 로깅 모듈 아키텍처
+type: architecture
+status: current
+created: 2026-01-23
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [common-library, security, audit, logging, architecture]
+---
+
 # 보안 감사 로깅 모듈
 
 ## 개요
@@ -67,22 +78,13 @@ public class AuthController {
 
         try {
             LoginResponse response = authService.login(request);
-
-            // 성공 로그
             securityAuditService.logLoginSuccess(
-                response.getUserId(),
-                request.getUsername(),
-                ipAddress,
-                userAgent
+                response.getUserId(), request.getUsername(), ipAddress, userAgent
             );
-
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (BadCredentialsException e) {
-            // 실패 로그
             securityAuditService.logLoginFailure(
-                request.getUsername(),
-                ipAddress,
-                "Invalid credentials"
+                request.getUsername(), ipAddress, "Invalid credentials"
             );
             throw e;
         }
@@ -100,8 +102,7 @@ public class UserAdminService {
         description = "사용자 권한 변경"
     )
     public void updateUserRole(String userId, String newRole) {
-        // 권한 변경 로직
-        // 메서드 실행 전후 자동 로깅됨
+        // 권한 변경 로직 - 메서드 실행 전후 자동 로깅됨
     }
 }
 ```
@@ -140,50 +141,15 @@ securityAuditService.log(event);
 }
 ```
 
-## 설정 가이드
-
-### 1. 의존성 확인
-서비스의 `build.gradle`에 common-library 의존성 확인:
-
-```gradle
-dependencies {
-    implementation project(':common-library')
-}
-```
-
-### 2. Logback 설정
-별도 로그 파일로 분리하려면 `logback-spring.xml` 설정:
-
-```xml
-<appender name="SECURITY_AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>logs/security-audit.log</file>
-    <encoder>
-        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %msg%n</pattern>
-    </encoder>
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>logs/security-audit.%d{yyyy-MM-dd}.log</fileNamePattern>
-        <maxHistory>90</maxHistory>
-    </rollingPolicy>
-</appender>
-
-<logger name="com.portal.universe.commonlibrary.security.audit.SecurityAuditServiceImpl"
-        level="INFO"
-        additivity="false">
-    <appender-ref ref="SECURITY_AUDIT_FILE"/>
-</logger>
-```
-
-상세한 설정 방법은 [SECURITY_AUDIT_LOG_SETUP.md](./SECURITY_AUDIT_LOG_SETUP.md)를 참조하세요.
-
 ## 보안 고려사항
 
-### ✅ DO
+### DO
 - 로그인/로그아웃 이벤트 기록
 - 권한 변경 및 관리자 작업 기록
 - 민감 데이터 접근 기록
 - 반복적인 실패 시도 기록 (무차별 대입 공격 탐지)
 
-### ❌ DON'T
+### DON'T
 - 비밀번호, JWT 토큰 원문 기록
 - 신용카드 번호, 주민등록번호 전체 기록 (마스킹 필수)
 - 과도하게 많은 이벤트 기록 (성능 및 스토리지 고려)
@@ -205,28 +171,8 @@ event.addDetail("email", maskEmail(email)); // "jo**@example.com"
 // SecurityAuditEventType.java
 public enum SecurityAuditEventType {
     // 기존 이벤트들...
-
-    // 새로운 이벤트
     DATA_EXPORT,
     TWO_FACTOR_AUTH_ENABLED
-}
-
-// SecurityAuditService.java
-void logDataExport(String userId, String dataType, int recordCount);
-
-// SecurityAuditServiceImpl.java
-@Override
-public void logDataExport(String userId, String dataType, int recordCount) {
-    SecurityAuditEvent event = SecurityAuditEvent.builder()
-        .eventType(SecurityAuditEventType.DATA_EXPORT)
-        .userId(userId)
-        .success(true)
-        .build();
-
-    event.addDetail("dataType", dataType);
-    event.addDetail("recordCount", recordCount);
-
-    log(event);
 }
 ```
 
@@ -264,12 +210,9 @@ public class SecurityMetricsCollector {
 | 로그 파일이 너무 큼 | Rolling 정책 조정, 보관 기간 단축 |
 | IP 주소가 잘못 기록됨 | X-Forwarded-For 헤더 확인, Proxy 설정 확인 |
 
-상세한 문제 해결은 [SECURITY_AUDIT_LOG_SETUP.md](./SECURITY_AUDIT_LOG_SETUP.md)를 참조하세요.
-
 ## 관련 문서
-- [상세 설정 가이드](./SECURITY_AUDIT_LOG_SETUP.md)
-- [Spring Security 통합](../../docs/security.md)
-- [로깅 아키텍처](../../docs/logging.md)
+- [설정 가이드](../guides/security-audit-log-setup.md)
+- [Security Module 가이드](../guides/security-module.md)
 
 ## 버전 히스토리
 - **v1.0.0** (2026-01-23): 초기 릴리스

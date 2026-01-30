@@ -1,3 +1,14 @@
+---
+id: common-library-security-audit-log-setup
+title: 보안 감사 로그 설정 가이드
+type: guide
+status: current
+created: 2026-01-23
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [common-library, security, audit, logging, logback]
+---
+
 # 보안 감사 로그 설정 가이드
 
 ## 개요
