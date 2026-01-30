@@ -1,9 +1,9 @@
 package com.portal.universe.apigateway.filter;
 
 import com.portal.universe.apigateway.config.JwtProperties;
+import com.portal.universe.apigateway.config.PublicPathProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -36,13 +36,18 @@ import java.util.stream.Collectors;
  * <p>JWT 헤더의 kid(Key ID)를 확인하여 적절한 키로 서명을 검증합니다.</p>
  */
 @Slf4j
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter implements WebFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtProperties jwtProperties;
+    private final String[] skipJwtParsingPrefixes;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public JwtAuthenticationFilter(JwtProperties jwtProperties, PublicPathProperties publicPathProperties) {
+        this.jwtProperties = jwtProperties;
+        this.skipJwtParsingPrefixes = publicPathProperties.getSkipJwtParsing().toArray(String[]::new);
+    }
 
     /**
      * 특정 키 ID에 해당하는 서명용 키를 생성합니다.
@@ -138,7 +143,7 @@ public class JwtAuthenticationFilter implements WebFilter {
             String nickname = claims.get("nickname", String.class);
             String username = claims.get("username", String.class);
 
-            // JWT v1/v2 dual format 지원: roles 파싱
+            // JWT v2: roles 파싱
             List<String> rolesList = parseRoles(claims);
             String rolesHeader = String.join(",", rolesList);
 
@@ -205,18 +210,18 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     /**
      * JWT claims에서 roles를 파싱합니다.
-     * v1 (String): "ROLE_USER" → ["ROLE_USER"]
      * v2 (List): ["ROLE_USER", "ROLE_SELLER"] → 그대로 반환
      */
     @SuppressWarnings("unchecked")
     private List<String> parseRoles(Claims claims) {
         Object rolesClaim = claims.get("roles");
-        if (rolesClaim instanceof String rolesStr) {
-            return List.of(rolesStr);
-        } else if (rolesClaim instanceof List<?> rolesArr) {
+        if (rolesClaim instanceof List<?> rolesArr) {
             return ((List<Object>) rolesArr).stream()
                     .map(Object::toString)
                     .toList();
+        }
+        if (rolesClaim != null) {
+            log.warn("Unexpected roles claim type: {}", rolesClaim.getClass().getName());
         }
         return Collections.emptyList();
     }
@@ -239,24 +244,16 @@ public class JwtAuthenticationFilter implements WebFilter {
     }
 
     /**
-     * 공개 경로인지 확인합니다.
+     * JWT 파싱을 skip하는 공개 경로인지 확인합니다.
+     * PublicPathProperties.skipJwtParsing 기반으로 판단합니다.
      */
     private boolean isPublicPath(String path) {
-        return path.startsWith("/auth-service/") ||
-               path.startsWith("/api/auth/") ||
-               path.startsWith("/api/users/") ||
-               path.startsWith("/actuator/") ||
-               // Shopping 공개 경로 (인증 불필요 조회)
-               path.equals("/api/shopping/products") ||
-               path.startsWith("/api/shopping/products/") ||
-               path.equals("/api/shopping/categories") ||
-               path.startsWith("/api/shopping/categories/") ||
-               // Prism 공개 경로
-               path.startsWith("/api/prism/health") ||
-               path.startsWith("/api/prism/ready") ||
-               path.startsWith("/api/prism/sse/");  // SSE는 EventSource가 Auth 헤더 미지원
-        // Note: /coupons, /time-deals는 하위 경로에 인증 필요 엔드포인트가 있으므로
-        // Gateway에서 public 처리하지 않고 shopping-service SecurityConfig에서 관리
+        for (String prefix : skipJwtParsingPrefixes) {
+            if (path.startsWith(prefix) || path.equals(prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

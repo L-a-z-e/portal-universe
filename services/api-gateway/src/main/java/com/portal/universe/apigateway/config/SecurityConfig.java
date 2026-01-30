@@ -37,12 +37,13 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtProperties jwtProperties;
+    private final PublicPathProperties publicPathProperties;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProperties);
+        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties);
     }
 
     /**
@@ -101,34 +102,17 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
+        // PublicPathProperties 기반 동적 경로 구성
+        String[] permitAllPaths = publicPathProperties.getPermitAll().toArray(String[]::new);
+        String[] permitAllGetPaths = publicPathProperties.getPermitAllGet().toArray(String[]::new);
+
         return http
                 .authorizeExchange(authorize -> authorize
                         // ========================================
-                        // [공개] 인증 없이 접근 가능
+                        // [공개] 인증 없이 접근 가능 (PublicPathProperties 기반)
                         // ========================================
-                        // Auth Service 경로 (자체 검증)
-                        .pathMatchers("/auth-service/**", "/api/auth/**", "/api/users/**").permitAll()
-
-                        // Blog Service - GET 요청은 공개 (조회)
-                        .pathMatchers(org.springframework.http.HttpMethod.GET, "/api/blog/**").permitAll()
-
-                        // Shopping Service - 상품/카테고리 조회는 공개
-                        .pathMatchers("/api/shopping/products", "/api/shopping/products/**").permitAll()
-                        .pathMatchers("/api/shopping/categories", "/api/shopping/categories/**").permitAll()
-                        // 쿠폰/타임딜 목록 조회도 공개
-                        .pathMatchers("/api/shopping/coupons", "/api/shopping/time-deals").permitAll()
-                        .pathMatchers("/api/shopping/time-deals/**").permitAll()
-
-                        // Prism Service - SSE, Health 공개 (EventSource는 Authorization 헤더 미지원)
-                        .pathMatchers("/api/prism/sse/**").permitAll()
-                        .pathMatchers("/api/prism/health", "/api/prism/ready").permitAll()
-
-                        // Actuator Health Check (Status Page용)
-                        .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/api/*/actuator/**").permitAll()
-
-                        // 멤버십 티어 목록 조회는 공개
-                        .pathMatchers(org.springframework.http.HttpMethod.GET, "/api/memberships/tiers/**").permitAll()
+                        .pathMatchers(permitAllPaths).permitAll()
+                        .pathMatchers(org.springframework.http.HttpMethod.GET, permitAllGetPaths).permitAll()
 
                         // ========================================
                         // [시스템 관리자] SUPER_ADMIN 전용

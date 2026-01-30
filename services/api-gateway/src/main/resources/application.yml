@@ -399,6 +399,40 @@ resilience4j:
         base-config: default
         timeout-duration: 60s  # AI 응답 대기를 위해 타임아웃 늘림
 
+# 공개 경로 설정 (PublicPathProperties)
+# Java 기본값과 동일하며, 필요 시 여기서 override 가능
+gateway:
+  public-paths:
+    permit-all:
+      - "/auth-service/**"
+      - "/api/auth/**"
+      - "/api/users/**"
+      - "/api/shopping/products"
+      - "/api/shopping/products/**"
+      - "/api/shopping/categories"
+      - "/api/shopping/categories/**"
+      - "/api/shopping/coupons"
+      - "/api/shopping/time-deals"
+      - "/api/shopping/time-deals/**"
+      - "/api/prism/sse/**"
+      - "/api/prism/health"
+      - "/api/prism/ready"
+      - "/actuator/**"
+      - "/api/*/actuator/**"
+    permit-all-get:
+      - "/api/blog/**"
+      - "/api/memberships/tiers/**"
+    skip-jwt-parsing:
+      - "/auth-service/"
+      - "/api/auth/"
+      - "/api/users/"
+      - "/actuator/"
+      - "/api/shopping/products"
+      - "/api/shopping/categories"
+      - "/api/prism/health"
+      - "/api/prism/ready"
+      - "/api/prism/sse/"
+
 # JWT 설정 (Auth Service와 동일한 설정 사용, 다중 키 지원)
 jwt:
   # 현재 키 ID
