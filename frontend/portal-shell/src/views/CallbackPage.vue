@@ -15,11 +15,10 @@ onMounted(async () => {
     const params = new URLSearchParams(hash);
 
     const accessToken = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
 
-    if (accessToken && refreshToken) {
-      // 토큰 저장
-      authService.setTokens(accessToken, refreshToken);
+    if (accessToken) {
+      // Access Token만 설정 (Refresh Token은 이미 HttpOnly cookie에 있음)
+      authService.setTokens(accessToken);
 
       // store 업데이트
       const userInfo = authService.getUserInfo();

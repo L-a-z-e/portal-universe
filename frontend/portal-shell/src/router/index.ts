@@ -132,14 +132,14 @@ router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormal
   // 인증 필요 라우트 체크
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     console.log(`[Router Guard] Auth required for ${to.path}, showing login modal`);
-    authStore.requestLogin();
+    authStore.requestLogin(to.fullPath);
     return false; // 이동 차단
   }
 
   // 역할 기반 접근 제어
   if (to.meta.requiresRoles && to.meta.requiresRoles.length > 0) {
     if (!authStore.isAuthenticated) {
-      authStore.requestLogin();
+      authStore.requestLogin(to.fullPath);
       return false;
     }
 

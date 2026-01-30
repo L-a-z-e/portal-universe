@@ -4,12 +4,14 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { authService, type UserInfo } from '../services/authService';
 import type { PortalUser, UserProfile, UserAuthority } from '../types/user';
+import router from '../router';
 
 export const useAuthStore = defineStore('auth', () => {
   // ==================== State ====================
   const user = ref<PortalUser | null>(null);
   const loading = ref(false);
   const showLoginModal = ref(false);
+  const redirectPath = ref<string | null>(null);
 
   // ==================== Getters ====================
 
@@ -91,6 +93,13 @@ export const useAuthStore = defineStore('auth', () => {
 
       showLoginModal.value = false;
       console.log('✅ [Auth Store] Login successful');
+
+      // Redirect to the originally requested path if any
+      if (redirectPath.value) {
+        const path = redirectPath.value;
+        redirectPath.value = null;
+        router.push(path);
+      }
 
       // Notify Remote apps (React Zustand) of auth state change
       window.dispatchEvent(new CustomEvent('portal:auth-changed'));
@@ -250,9 +259,34 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
+   * Update access token after profile/membership change.
+   * Called when backend returns a new token in the API response.
+   */
+  function updateAccessToken(newAccessToken: string): void {
+    const userInfo = (() => {
+      // Temporarily set new token to extract user info
+      const prevToken = authService.getAccessToken();
+      authService.setAccessTokenOnly(newAccessToken);
+      const info = authService.getUserInfo();
+      if (!info && prevToken) {
+        // Rollback on failure
+        authService.setAccessTokenOnly(prevToken);
+      }
+      return info;
+    })();
+
+    if (userInfo) {
+      setUserFromInfo(userInfo, newAccessToken);
+    }
+
+    console.log('✅ [Auth Store] Access token updated after profile/membership change');
+  }
+
+  /**
    * Request login modal to be shown (used by navigation guard)
    */
-  function requestLogin(): void {
+  function requestLogin(path?: string): void {
+    redirectPath.value = path ?? null;
     showLoginModal.value = true;
   }
 
@@ -282,6 +316,7 @@ export const useAuthStore = defineStore('auth', () => {
     checkAuth,
     setAuthenticated,
     setUser,
+    updateAccessToken,
     requestLogin,
   };
 });

@@ -4,6 +4,7 @@
  * - No OIDC dependency
  * - Token-based authentication
  * - Social login (Google, Naver, Kakao)
+ * - Refresh Token은 HttpOnly Cookie로 관리 (XSS 방어)
  */
 
 import { parseJwtPayload } from '../utils/jwt';
@@ -44,41 +45,15 @@ function getApiBaseUrl(): string {
 
 class AuthenticationService {
   private accessToken: string | null = null;
-  private refreshToken: string | null = null;
-  private refreshTokenKey = 'portal_refresh_token';
+  private hasRefreshToken = false;
+  private refreshPromise: Promise<string> | null = null;
 
   constructor() {
-    // Load refresh token from localStorage on init
-    this.loadRefreshToken();
-  }
+    // 기존 localStorage의 refresh token 제거 (마이그레이션)
+    localStorage.removeItem('portal_refresh_token');
 
-  /**
-   * Load refresh token from localStorage
-   */
-  private loadRefreshToken(): void {
-    const stored = localStorage.getItem(this.refreshTokenKey);
-    if (stored) {
-      this.refreshToken = stored;
-      console.log('✅ Refresh token loaded from localStorage');
-    }
-  }
-
-  /**
-   * Save refresh token to localStorage
-   */
-  private saveRefreshToken(token: string): void {
-    this.refreshToken = token;
-    localStorage.setItem(this.refreshTokenKey, token);
-    console.log('✅ Refresh token saved to localStorage');
-  }
-
-  /**
-   * Clear refresh token from localStorage
-   */
-  private clearRefreshToken(): void {
-    this.refreshToken = null;
-    localStorage.removeItem(this.refreshTokenKey);
-    console.log('✅ Refresh token cleared from localStorage');
+    // Register getter function for remote apps
+    window.__PORTAL_GET_ACCESS_TOKEN__ = () => this.accessToken;
   }
 
   /**
@@ -96,6 +71,7 @@ class AuthenticationService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -108,13 +84,16 @@ class AuthenticationService {
       // Backend returns { success, data: { accessToken, refreshToken, expiresIn } }
       const data: AuthResponse = result.data || result;
 
-      // Store tokens
-      this.setTokens(data.accessToken, data.refreshToken);
+      // Store access token in memory, refresh token is in HttpOnly cookie
+      this.accessToken = data.accessToken;
+      this.hasRefreshToken = true;
+      window.__PORTAL_ACCESS_TOKEN__ = data.accessToken;
+      window.__PORTAL_GET_ACCESS_TOKEN__ = () => this.accessToken;
 
-      console.log('✅ Login successful');
+      console.log('[Auth] Login successful');
       return data;
     } catch (error) {
-      console.error('❌ Login error:', error);
+      console.error('[Auth] Login error:', error);
       throw error;
     }
   }
@@ -131,24 +110,33 @@ class AuthenticationService {
   }
 
   /**
-   * Refresh access token using refresh token
+   * Refresh access token using refresh token (HttpOnly cookie).
+   * Deduplicates concurrent refresh requests by reusing the same promise.
    */
   async refresh(): Promise<string> {
-    const apiBase = getApiBaseUrl();
-
-    if (!this.refreshToken) {
-      throw new Error('No refresh token available');
+    if (this.refreshPromise) {
+      return this.refreshPromise;
     }
+
+    this.refreshPromise = this._doRefresh().finally(() => {
+      this.refreshPromise = null;
+    });
+
+    return this.refreshPromise;
+  }
+
+  /**
+   * Internal refresh implementation
+   */
+  private async _doRefresh(): Promise<string> {
+    const apiBase = getApiBaseUrl();
 
     try {
       console.log('[Auth] Refreshing access token...');
 
       const response = await fetch(`${apiBase}/auth-service/api/v1/auth/refresh`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken: this.refreshToken }),
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -157,17 +145,18 @@ class AuthenticationService {
 
       const result = await response.json();
 
-      // Backend returns { success, data: { accessToken, expiresIn } }
+      // Backend returns { success, data: { accessToken, refreshToken, expiresIn } }
       const data = result.data || result;
 
-      // Update access token (refresh token stays the same)
+      // Update access token
       this.accessToken = data.accessToken;
+      this.hasRefreshToken = true;
       window.__PORTAL_ACCESS_TOKEN__ = data.accessToken;
 
-      console.log('✅ Token refreshed successfully');
+      console.log('[Auth] Token refreshed successfully');
       return data.accessToken;
     } catch (error) {
-      console.error('❌ Token refresh error:', error);
+      console.error('[Auth] Token refresh error:', error);
       // Clear tokens on refresh failure
       this.clearTokens();
       throw error;
@@ -183,20 +172,20 @@ class AuthenticationService {
     try {
       console.log('[Auth] Logging out...');
 
-      if (this.accessToken && this.refreshToken) {
+      if (this.accessToken) {
         await fetch(`${apiBase}/auth-service/api/v1/auth/logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.accessToken}`,
           },
-          body: JSON.stringify({ refreshToken: this.refreshToken }),
+          credentials: 'include',
         }).catch((err) => {
           console.warn('Logout API call failed (ignored):', err);
         });
       }
 
-      console.log('✅ Logout successful');
+      console.log('[Auth] Logout successful');
     } finally {
       // Always clear tokens locally
       this.clearTokens();
@@ -211,15 +200,26 @@ class AuthenticationService {
   }
 
   /**
-   * Set tokens (access + refresh)
+   * Set only the access token (without changing refresh token).
+   * Used when backend returns a new token after profile/membership changes.
    */
-  setTokens(accessToken: string, refreshToken: string): void {
-    this.accessToken = accessToken;
-    this.saveRefreshToken(refreshToken);
+  setAccessTokenOnly(token: string): void {
+    this.accessToken = token;
+    window.__PORTAL_ACCESS_TOKEN__ = token;
+  }
 
-    // Set global token for remote apps
+  /**
+   * Set tokens from external source (e.g., OAuth2 callback).
+   * Access token is stored in memory.
+   * Refresh token is already in HttpOnly cookie - just track its existence.
+   */
+  setTokens(accessToken: string, _refreshToken?: string): void {
+    this.accessToken = accessToken;
+    this.hasRefreshToken = true;
+
+    // Set global token for remote apps (legacy + getter function)
     window.__PORTAL_ACCESS_TOKEN__ = accessToken;
-    console.log('✅ Tokens set (access token in memory, refresh token in localStorage)');
+    window.__PORTAL_GET_ACCESS_TOKEN__ = () => this.accessToken;
   }
 
   /**
@@ -227,11 +227,11 @@ class AuthenticationService {
    */
   clearTokens(): void {
     this.accessToken = null;
-    this.clearRefreshToken();
+    this.hasRefreshToken = false;
 
     // Clear global token
     delete window.__PORTAL_ACCESS_TOKEN__;
-    console.log('✅ All tokens cleared');
+    delete window.__PORTAL_GET_ACCESS_TOKEN__;
   }
 
   /**
@@ -298,13 +298,22 @@ class AuthenticationService {
   }
 
   /**
-   * Auto-refresh if token is about to expire
+   * Auto-refresh if token is about to expire.
+   * On page reload, hasRefreshToken is false but HttpOnly cookie may exist.
+   * When no access token exists, always attempt refresh (cookie-based).
    */
   async autoRefreshIfNeeded(): Promise<void> {
-    if (this.isTokenExpired() && this.refreshToken) {
+    const shouldRefresh = this.accessToken === null || (this.isTokenExpired() && this.hasRefreshToken);
+
+    if (shouldRefresh) {
       try {
-        await this.refresh();
+        await this._doRefresh();
       } catch (error) {
+        // If no cookie exists, refresh will fail silently on page load
+        if (this.accessToken === null) {
+          console.log('[Auth] No refresh cookie available');
+          return;
+        }
         console.error('Auto-refresh failed:', error);
         throw error;
       }
@@ -342,7 +351,7 @@ export function getAccessToken(): string | null {
   return authService.getAccessToken();
 }
 
-export function setTokens(accessToken: string, refreshToken: string): void {
+export function setTokens(accessToken: string, refreshToken?: string): void {
   authService.setTokens(accessToken, refreshToken);
 }
 

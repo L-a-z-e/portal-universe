@@ -38,8 +38,8 @@ const createApiClient = (): AxiosInstance => {
   // Request Interceptor: 토큰 자동 첨부
   client.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-      // 1. Host에서 주입된 토큰 확인
-      const portalToken = window.__PORTAL_ACCESS_TOKEN__
+      // 1. Host에서 주입된 토큰 확인 (getter 함수 우선)
+      const portalToken = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__
 
       // 2. localStorage에서 토큰 확인
       const localToken = localStorage.getItem('access_token')
@@ -75,9 +75,13 @@ const createApiClient = (): AxiosInstance => {
         // 인증 만료 - 토큰 갱신 또는 로그인 페이지로 이동
         console.warn('[API] Unauthorized - token may be expired')
 
-        // Host에게 인증 만료 알림
         if (window.__PORTAL_ON_AUTH_ERROR__) {
+          // Host(Portal Shell)에게 인증 만료 알림
           window.__PORTAL_ON_AUTH_ERROR__()
+        } else {
+          // Standalone 모드: 로그인 페이지로 redirect
+          console.warn('[API] Standalone mode - redirecting to login')
+          window.location.href = '/login'
         }
       } else if (status === 403) {
         console.warn('[API] Forbidden - insufficient permissions')

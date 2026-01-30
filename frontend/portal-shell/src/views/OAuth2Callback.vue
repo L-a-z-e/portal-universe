@@ -23,21 +23,19 @@ async function handleOAuth2Callback() {
     const params = new URLSearchParams(hash);
 
     const accessToken = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
     const expiresIn = params.get('expires_in');
 
     console.log('[OAuth2 Callback] Received tokens:', {
       hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
       expiresIn,
     });
 
-    if (!accessToken || !refreshToken) {
-      throw new Error('Missing tokens in callback URL');
+    if (!accessToken) {
+      throw new Error('Missing access token in callback URL');
     }
 
-    // Store tokens in authService
-    authService.setTokens(accessToken, refreshToken);
+    // Access Token만 설정 (Refresh Token은 이미 HttpOnly cookie에 있음)
+    authService.setTokens(accessToken);
 
     // Extract user info from JWT
     const userInfo = authService.getUserInfo();
