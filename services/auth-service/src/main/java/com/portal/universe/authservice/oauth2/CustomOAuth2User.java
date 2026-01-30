@@ -7,7 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,11 +21,15 @@ public class CustomOAuth2User implements OAuth2User {
     private final User user;
     private final Map<String, Object> attributes;
     private final String nameAttributeKey;
+    private final List<SimpleGrantedAuthority> authorities;
 
-    public CustomOAuth2User(User user, Map<String, Object> attributes, String nameAttributeKey) {
+    public CustomOAuth2User(User user, Map<String, Object> attributes, String nameAttributeKey, List<String> roleKeys) {
         this.user = user;
         this.attributes = attributes;
         this.nameAttributeKey = nameAttributeKey;
+        this.authorities = roleKeys.stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
     }
 
     @Override
@@ -35,7 +39,7 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getKey()));
+        return authorities;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.portal.universe.authservice.common.config;
 
-import com.portal.universe.authservice.user.domain.Role;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.user.repository.UserRepository;
@@ -31,16 +30,15 @@ public class DataInitializer {
             createTestUser(
                     "test@example.com",
                     "password123",
-                    Role.USER,
                     "테스트유저",
                     "홍길동"
             );
 
             // Admin 테스트 유저 생성
+            // RBAC 역할은 RbacDataMigrationRunner에서 할당됩니다.
             createTestUser(
                     "admin@example.com",
                     "admin123",
-                    Role.ADMIN,
                     "관리자",
                     "김관리"
             );
@@ -51,14 +49,13 @@ public class DataInitializer {
      * 테스트 유저를 생성하는 헬퍼 메서드입니다.
      * 이미 존재하는 이메일이면 스킵합니다.
      */
-    private void createTestUser(String email, String password, Role role, String nickname, String realName) {
+    private void createTestUser(String email, String password, String nickname, String realName) {
         if (userRepository.findByEmail(email).isEmpty()) {
-            log.info("Creating test user: email={}, role={}", email, role);
+            log.info("Creating test user: email={}", email);
 
             User user = new User(
                     email,
-                    passwordEncoder.encode(password),
-                    role
+                    passwordEncoder.encode(password)
             );
 
             UserProfile profile = new UserProfile(
@@ -71,7 +68,7 @@ public class DataInitializer {
 
             userRepository.save(user);
 
-            log.info("Test user created: email={}, role={}", email, role);
+            log.info("Test user created: email={}", email);
         } else {
             log.info("Test user already exists: email={}", email);
         }

@@ -41,15 +41,6 @@ public class User {
     @Column // 소셜 로그인의 경우 null 가능
     private String password;
 
-    /**
-     * @deprecated Phase 5에서 제거 예정. 새로운 RBAC 시스템은 user_roles 테이블을 사용합니다.
-     * @see com.portal.universe.authservice.auth.domain.UserRole
-     */
-    @Deprecated
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
@@ -73,10 +64,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SocialAccount> socialAccounts = new ArrayList<>();
 
-    public User(String email, String password, Role role) {
+    public User(String email, String password) {
         this.email = email;
         this.password = password;
-        this.role = role;
         this.status = UserStatus.ACTIVE;
     }
 

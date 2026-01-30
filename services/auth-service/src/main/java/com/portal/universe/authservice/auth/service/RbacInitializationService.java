@@ -2,7 +2,6 @@ package com.portal.universe.authservice.auth.service;
 
 import com.portal.universe.authservice.auth.domain.*;
 import com.portal.universe.authservice.auth.repository.*;
-import com.portal.universe.authservice.user.domain.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,23 +28,22 @@ public class RbacInitializationService {
      * - shopping FREE, blog FREE 멤버십 생성
      *
      * @param userId 사용자 UUID
-     * @param legacyRole 기존 enum Role (ADMIN인 경우 ROLE_SUPER_ADMIN 추가 할당)
      */
     @Transactional
-    public void initializeNewUser(String userId, Role legacyRole) {
+    public void initializeNewUser(String userId) {
         // 이미 초기화된 사용자는 스킵
         if (!userRoleRepository.findByUserId(userId).isEmpty()) {
             log.debug("RBAC already initialized for user: {}", userId);
             return;
         }
 
-        assignDefaultRole(userId, legacyRole);
+        assignDefaultRole(userId);
         createDefaultMemberships(userId);
 
         log.info("RBAC initialized for new user: {}", userId);
     }
 
-    private void assignDefaultRole(String userId, Role legacyRole) {
+    private void assignDefaultRole(String userId) {
         roleEntityRepository.findByRoleKey("ROLE_USER").ifPresent(userRole ->
                 userRoleRepository.save(UserRole.builder()
                         .userId(userId)
@@ -53,16 +51,6 @@ public class RbacInitializationService {
                         .assignedBy("SYSTEM_REGISTRATION")
                         .build())
         );
-
-        if (legacyRole == Role.ADMIN) {
-            roleEntityRepository.findByRoleKey("ROLE_SUPER_ADMIN").ifPresent(adminRole ->
-                    userRoleRepository.save(UserRole.builder()
-                            .userId(userId)
-                            .role(adminRole)
-                            .assignedBy("SYSTEM_REGISTRATION")
-                            .build())
-            );
-        }
     }
 
     private void createDefaultMemberships(String userId) {

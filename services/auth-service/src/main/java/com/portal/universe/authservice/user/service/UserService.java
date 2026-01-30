@@ -2,7 +2,6 @@ package com.portal.universe.authservice.user.service;
 
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.user.dto.UserProfileResponse;
-import com.portal.universe.authservice.user.domain.Role;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.follow.repository.FollowRepository;
@@ -64,7 +63,7 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(command.password());
 
         // 4. User 엔티티 생성
-        User newUser = new User(command.email(), encodedPassword, Role.USER);
+        User newUser = new User(command.email(), encodedPassword);
 
         // 5. UserProfile 엔티티 생성 및 연결
         UserProfile profile = new UserProfile(
@@ -82,7 +81,7 @@ public class UserService {
         savePasswordHistory(savedUser.getId(), encodedPassword);
 
         // 8. RBAC 초기화 (ROLE_USER + FREE 멤버십)
-        rbacInitializationService.initializeNewUser(savedUser.getUuid(), savedUser.getRole());
+        rbacInitializationService.initializeNewUser(savedUser.getUuid());
 
         // 9. 이벤트 발행
         // 주의: 트랜잭션 커밋 후 발행하는 것이 안전함 (TransactionalEventListener 고려 가능)

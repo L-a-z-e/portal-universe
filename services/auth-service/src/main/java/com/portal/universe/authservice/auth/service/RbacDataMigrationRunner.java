@@ -2,7 +2,6 @@ package com.portal.universe.authservice.auth.service;
 
 import com.portal.universe.authservice.auth.domain.*;
 import com.portal.universe.authservice.auth.repository.*;
-import com.portal.universe.authservice.user.domain.Role;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -301,7 +300,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
         log.info("Migrating existing users to RBAC...");
 
         RoleEntity userRoleEntity = roleEntityRepository.findByRoleKey("ROLE_USER").orElseThrow();
-        RoleEntity superAdminEntity = roleEntityRepository.findByRoleKey("ROLE_SUPER_ADMIN").orElseThrow();
         MembershipTier shoppingFree = membershipTierRepository.findByServiceNameAndTierKey("shopping", "FREE").orElseThrow();
         MembershipTier blogFree = membershipTierRepository.findByServiceNameAndTierKey("blog", "FREE").orElseThrow();
 
@@ -322,15 +320,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                     .role(userRoleEntity)
                     .assignedBy("SYSTEM_MIGRATION")
                     .build());
-
-            // If user was ADMIN, also assign ROLE_SUPER_ADMIN
-            if (user.getRole() == Role.ADMIN) {
-                userRoleRepository.save(UserRole.builder()
-                        .userId(uuid)
-                        .role(superAdminEntity)
-                        .assignedBy("SYSTEM_MIGRATION")
-                        .build());
-            }
 
             // Create default FREE memberships
             if (!userMembershipRepository.existsByUserIdAndServiceName(uuid, "shopping")) {

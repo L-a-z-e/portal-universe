@@ -153,8 +153,8 @@ public class TokenService {
         // JWT v2: roles를 배열로 저장 (RBAC 테이블 기반)
         List<String> roleKeys = userRoleRepository.findActiveRoleKeysByUserId(user.getUuid());
         if (roleKeys.isEmpty()) {
-            // Fallback: RBAC 마이그레이션 전 사용자는 기존 enum 사용
-            roleKeys = List.of(user.getRole().getKey());
+            log.warn("No RBAC roles found for user: {}, defaulting to ROLE_USER", user.getUuid());
+            roleKeys = List.of("ROLE_USER");
         }
         claims.put("roles", roleKeys);
 

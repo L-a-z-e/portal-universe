@@ -1,12 +1,12 @@
 package com.portal.universe.authservice.oauth2;
 
-import com.portal.universe.authservice.user.domain.Role;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.oauth2.domain.SocialAccount;
 import com.portal.universe.authservice.oauth2.domain.SocialProvider;
 import com.portal.universe.authservice.oauth2.repository.SocialAccountRepository;
 import com.portal.universe.authservice.user.repository.UserRepository;
+import com.portal.universe.authservice.auth.repository.UserRoleRepository;
 import com.portal.universe.authservice.auth.service.RbacInitializationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,6 +32,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
+    private final UserRoleRepository userRoleRepository;
     private final RbacInitializationService rbacInitializationService;
 
     @Override
@@ -50,7 +52,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         User user = processOAuth2User(registrationId, userInfo);
 
-        return new CustomOAuth2User(user, oAuth2User.getAttributes(), userNameAttributeName);
+        // RBAC 테이블 기반 roleKeys 조회
+        List<String> roleKeys = userRoleRepository.findActiveRoleKeysByUserId(user.getUuid());
+
+        return new CustomOAuth2User(user, oAuth2User.getAttributes(), userNameAttributeName, roleKeys);
     }
 
     /**
@@ -103,7 +108,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
      */
     private User createNewUser(SocialProvider provider, String providerId, OAuth2UserInfo userInfo) {
         // User 생성 (password는 null - 소셜 로그인 사용자)
-        User user = new User(userInfo.getEmail(), null, Role.USER);
+        User user = new User(userInfo.getEmail(), null);
 
         // UserProfile 생성
         String nickname = userInfo.getName() != null ? userInfo.getName() : "User_" + providerId.substring(0, 8);
@@ -117,7 +122,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User savedUser = userRepository.save(user);
 
         // RBAC 초기화 (ROLE_USER + FREE 멤버십)
-        rbacInitializationService.initializeNewUser(savedUser.getUuid(), savedUser.getRole());
+        rbacInitializationService.initializeNewUser(savedUser.getUuid());
 
         return savedUser;
     }

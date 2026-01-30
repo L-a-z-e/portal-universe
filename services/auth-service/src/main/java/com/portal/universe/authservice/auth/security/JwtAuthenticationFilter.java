@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = tokenService.validateAccessToken(token);
                 String userId = claims.getSubject();
 
-                // JWT v1/v2 dual format: roles 파싱
+                // JWT v2: roles 파싱
                 List<SimpleGrantedAuthority> authorities = parseAuthorities(claims);
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userId, null, authorities);
@@ -83,19 +83,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * JWT claims에서 roles를 복수 Authority로 파싱합니다.
-     * v1 (String): "ROLE_USER" → [ROLE_USER]
      * v2 (List): ["ROLE_USER", "ROLE_SELLER"] → 복수 Authority
      */
     @SuppressWarnings("unchecked")
     private List<SimpleGrantedAuthority> parseAuthorities(Claims claims) {
         Object rolesClaim = claims.get("roles");
-        if (rolesClaim instanceof String rolesStr) {
-            return List.of(new SimpleGrantedAuthority(rolesStr));
-        } else if (rolesClaim instanceof List<?> rolesArr) {
+        if (rolesClaim instanceof List<?> rolesArr) {
             return ((List<Object>) rolesArr).stream()
                     .map(Object::toString)
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
+        }
+        if (rolesClaim != null) {
+            log.warn("Unexpected roles claim type: {}", rolesClaim.getClass().getName());
         }
         return Collections.emptyList();
     }
