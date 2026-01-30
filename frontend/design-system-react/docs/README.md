@@ -101,9 +101,9 @@ function MyComponent() {
 }
 ```
 
-## 컴포넌트 목록
+## 컴포넌트 목록 (30개)
 
-### Form Components
+### Form Components (9개)
 | Component | Description |
 |-----------|-------------|
 | `Button` | 버튼 |
@@ -116,18 +116,17 @@ function MyComponent() {
 | `FormField` | 폼 필드 래퍼 |
 | `SearchBar` | 검색 바 |
 
-### Feedback Components
+### Feedback Components (6개)
 | Component | Description |
 |-----------|-------------|
 | `Alert` | 알림 메시지 |
-| `Toast` | 토스트 알림 |
-| `ToastContainer` | 토스트 컨테이너 |
+| `Toast` | 토스트 알림 (ToastContainer 포함) |
 | `Modal` | 모달 다이얼로그 |
 | `Spinner` | 로딩 스피너 |
 | `Skeleton` | 스켈레톤 로더 |
 | `Progress` | 프로그레스 바 |
 
-### Layout Components
+### Layout Components (4개)
 | Component | Description |
 |-----------|-------------|
 | `Card` | 카드 컨테이너 |
@@ -135,7 +134,7 @@ function MyComponent() {
 | `Stack` | Flexbox 스택 |
 | `Divider` | 구분선 |
 
-### Navigation Components
+### Navigation Components (5개)
 | Component | Description |
 |-----------|-------------|
 | `Breadcrumb` | 브레드크럼 |
@@ -144,7 +143,7 @@ function MyComponent() {
 | `Dropdown` | 드롭다운 메뉴 |
 | `Pagination` | 페이지네이션 |
 
-### Data Display Components
+### Data Display Components (5개)
 | Component | Description |
 |-----------|-------------|
 | `Badge` | 뱃지 |
@@ -153,7 +152,7 @@ function MyComponent() {
 | `Table` | 테이블 |
 | `Tooltip` | 툴팁 |
 
-### Overlay Components
+### Overlay Components (1개)
 | Component | Description |
 |-----------|-------------|
 | `Popover` | 팝오버 |

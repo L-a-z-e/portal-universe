@@ -130,6 +130,81 @@ import { Badge } from '@portal/design-system'
 
 ## 입력 컴포넌트
 
+### SearchBar (검색 입력)
+
+검색 기능을 제공하는 입력 필드입니다. 검색 아이콘, 클리어 버튼, 로딩 스피너, 반응형 지원을 포함합니다.
+
+**Props:**
+- `modelValue`: string (기본: '')
+- `placeholder`: string (기본: '검색...')
+- `loading`: boolean (기본: false)
+- `disabled`: boolean (기본: false)
+- `autofocus`: boolean (기본: false)
+
+**이벤트:**
+- `update:modelValue`: 입력값 변경 시 발생
+- `search`: 검색 실행 시 발생 (Enter 키 또는 검색 버튼 클릭)
+- `clear`: 클리어 버튼 클릭 시 발생
+
+**사용 예제:**
+
+```vue
+<template>
+  <div class="space-y-4">
+    <!-- 기본 검색 -->
+    <SearchBar
+      v-model="searchKeyword"
+      placeholder="상품을 검색하세요"
+      @search="handleSearch"
+    />
+
+    <!-- 로딩 상태 -->
+    <SearchBar
+      v-model="searchKeyword"
+      :loading="isSearching"
+      @search="handleSearch"
+    />
+
+    <!-- 비활성화 -->
+    <SearchBar
+      v-model="searchKeyword"
+      disabled
+      placeholder="검색 비활성화"
+    />
+
+    <!-- 자동 포커스 -->
+    <SearchBar
+      v-model="searchKeyword"
+      autofocus
+      @search="handleSearch"
+      @clear="handleClear"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { SearchBar } from '@portal/design-system'
+
+const searchKeyword = ref('')
+const isSearching = ref(false)
+
+const handleSearch = (keyword: string) => {
+  console.log('Searching for:', keyword)
+  isSearching.value = true
+  // API 호출
+  setTimeout(() => {
+    isSearching.value = false
+  }, 1000)
+}
+
+const handleClear = () => {
+  console.log('Search cleared')
+  searchKeyword.value = ''
+}
+</script>
+```
+
 ### Input (텍스트 입력)
 
 텍스트 입력 필드입니다.
