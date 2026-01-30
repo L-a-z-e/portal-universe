@@ -62,6 +62,8 @@ API Gateway는 Spring Cloud Gateway 기반의 중앙 진입점으로, 모든 클
 | 문서 | 설명 |
 |------|------|
 | [로컬 개발 가이드](./guides/local-development.md) | 로컬 환경 설정, 빌드, 실행, 테스트 방법 |
+| [Rate Limiting](./guides/rate-limiting.md) | Redis 기반 Rate Limiting 설정 가이드 |
+| [보안 헤더 테스트](./guides/security-headers-testing.md) | CSP, HSTS 등 보안 헤더 테스트 가이드 |
 
 ### Runbooks (운영 절차서)
 

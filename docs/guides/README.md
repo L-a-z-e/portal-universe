@@ -157,6 +157,25 @@ shopping-service 백엔드 API와 shopping-frontend 간 10개 Gap 구현 완료 
 
 ---
 
+### 크로스 서비스
+
+#### RBAC 리팩토링 가이드
+**파일**: [rbac-refactoring.md](./rbac-refactoring.md) | **작성일**: 2026-01-30
+
+전체 서비스(8개)의 RBAC(Role-Based Access Control) 리팩토링 가이드를 통합한 문서입니다.
+
+**주요 내용**:
+- Auth Service: DB 스키마, TokenService, 관리 API, Kafka 이벤트
+- Common Library: GatewayAuthenticationFilter, PermissionResolver
+- API Gateway: JwtAuthenticationFilter, SecurityConfig
+- Blog/Shopping Service: 도메인별 권한 설정
+- Frontend (Portal Shell, Blog, Shopping): Store 확장, 네비게이션 가드
+
+**관련 문서**:
+- [JWT RBAC 설정 가이드](./jwt-rbac-setup.md)
+
+---
+
 ### 온보딩
 
 #### 문서 읽기 순서 가이드

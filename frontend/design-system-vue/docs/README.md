@@ -55,7 +55,11 @@ Portal Universe Design System은 마이크로 프론트엔드 아키텍처 환�
 | [Guides Index](./guides/README.md) | 가이드 문서 인덱스 |
 | [Getting Started](./guides/getting-started.md) | 빠른 시작 가이드 |
 | [Using Components](./guides/using-components.md) | 컴포넌트 사용 가이드 |
+| [Components Catalog](./guides/components.md) | 전체 Vue 컴포넌트 카탈로그 |
 | [Theming Guide](./guides/theming-guide.md) | 테마 적용 가이드 |
+| [Theming 상세](./guides/theming.md) | 서비스별 커스터마이징 및 다크 모드 관리 |
+| [Design Tokens](./guides/tokens.md) | 3계층 디자인 토큰 체계 상세 |
+| [Usage Guide](./guides/usage.md) | 프로젝트 통합 및 효과적 사용법 |
 | [Contributing](./guides/contributing.md) | 기여 가이드 |
 
 ---

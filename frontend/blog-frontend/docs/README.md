@@ -39,25 +39,16 @@ Portal Universe의 Vue 3 기반 블로그 마이크로 프론트엔드 모듈 �
 
 | 문서 | 설명 | 상태 |
 |------|------|------|
-| [ARCHITECTURE](./ARCHITECTURE.md) | 계층 구조, 상태 관리, 데이터 플로우, Module Federation | ✅ |
 | [System Overview](./architecture/system-overview.md) | 시스템 전체 구조, Dual Mode, Module Federation | ✅ |
 | [Data Flow](./architecture/data-flow.md) | 데이터 흐름, API 통신, 상태 관리 | ✅ |
+| [Module Federation](./architecture/module-federation.md) | Module Federation 설정, 통신, KeepAlive | ✅ |
 
 ### 📡 API (API 명세)
 API 클라이언트 및 통신 관련 문서
 
 | 문서 | 설명 | 상태 |
 |------|------|------|
-| [API Guide](./API.md) | API 클라이언트 가이드 (8개 모듈, 64개 함수) | ✅ |
-| [Client API](./api/client-api.md) | axios 기반 API 클라이언트 상세 명세 | ✅ |
-
-### 🧩 Components & Federation
-컴포넌트 및 Module Federation 관련 문서
-
-| 문서 | 설명 | 상태 |
-|------|------|------|
-| [COMPONENTS](./COMPONENTS.md) | 컴포넌트 가이드 (14개 컴포넌트 + 9개 페이지) | ✅ |
-| [FEDERATION](./FEDERATION.md) | Module Federation 설정, 통신, KeepAlive | ✅ |
+| [Client API](./api/client-api.md) | axios 기반 API 클라이언트 상세 명세 (8개 모듈, 64개 함수) | ✅ |
 
 ### 📖 Guides (가이드)
 개발자 가이드 및 튜토리얼
@@ -65,6 +56,8 @@ API 클라이언트 및 통신 관련 문서
 | 문서 | 설명 | 상태 |
 |------|------|------|
 | [Getting Started](./guides/getting-started.md) | 개발 환경 설정 및 실행 방법 | ✅ |
+| [Components](./guides/components.md) | 컴포넌트 가이드 (14개 컴포넌트 + 9개 페이지) | ✅ |
+| [API-UI Gap 구현](./guides/api-ui-gap-implementation.md) | API-UI 갭 9개 기능 구현 가이드 | ✅ |
 
 ---
 
@@ -120,4 +113,4 @@ npm run build       # 전체 빌드
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30

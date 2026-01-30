@@ -42,10 +42,17 @@ tags: [common-library, index, documentation]
 |----|--------|------|
 | API-001 | [Common Library API Reference](api/API-001-common-library.md) | 공개 API 및 클래스 상세 명세 |
 
+### 📐 보안 감사 아키텍처
+| 문서명 | 설명 |
+|--------|------|
+| [보안 감사 로깅 모듈](architecture/security-audit-module.md) | 보안 감사 로깅 모듈 아키텍처, 13가지 이벤트 유형, AOP 기반 @AuditLog |
+
 ### 📖 개발 가이드
 | ID | 문서명 | 설명 |
 |----|--------|------|
 | GUIDE-001 | [Common Library Usage Guide](guides/GUIDE-001-common-library-usage.md) | 각 서비스별 사용 방법 및 예제 |
+| - | [보안 감사 로그 설정](guides/security-audit-log-setup.md) | Logback 설정, 사용 방법, 모니터링 연동 |
+| - | [보안 모듈 가이드](guides/security-module.md) | XSS/SQL Injection 방지, 보안 헤더 설정 |
 
 ---
 
