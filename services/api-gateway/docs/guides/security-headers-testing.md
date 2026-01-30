@@ -1,3 +1,14 @@
+---
+id: api-gateway-security-headers-testing
+title: Security Headers Filter 테스트 가이드
+type: guide
+status: current
+created: 2026-01-23
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [api-gateway, security, headers, testing]
+---
+
 # Security Headers Filter - 테스트 가이드
 
 ## 구현 내용

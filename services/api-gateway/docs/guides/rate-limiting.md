@@ -1,3 +1,14 @@
+---
+id: api-gateway-rate-limiting
+title: API Gateway Redis Rate Limiting
+type: guide
+status: current
+created: 2026-01-23
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [api-gateway, rate-limiting, redis, security]
+---
+
 # API Gateway - Redis Rate Limiting
 
 ## 개요

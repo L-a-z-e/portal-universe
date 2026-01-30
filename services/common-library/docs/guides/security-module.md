@@ -1,3 +1,14 @@
+---
+id: common-library-security-module
+title: Security Module 가이드
+type: guide
+status: current
+created: 2026-01-23
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [common-library, security, xss, sql-injection]
+---
+
 # Security Module
 
 common-library의 보안 모듈은 XSS(Cross-Site Scripting) 및 SQL Injection 공격을 방어하기 위한 유틸리티와 Bean Validation 어노테이션을 제공합니다.
