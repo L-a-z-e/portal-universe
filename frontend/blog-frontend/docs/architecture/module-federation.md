@@ -1,3 +1,14 @@
+---
+id: blog-frontend-module-federation
+title: Blog Frontend Module Federation 설정
+type: architecture
+status: current
+created: 2026-01-23
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [blog-frontend, module-federation, vue, architecture]
+---
+
 # Module Federation Configuration
 
 ## 개요

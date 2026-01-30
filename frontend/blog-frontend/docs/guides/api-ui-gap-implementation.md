@@ -1,3 +1,14 @@
+---
+id: blog-frontend-api-ui-gap-implementation
+title: API-UI Gap 구현 보고서
+type: guide
+status: current
+created: 2026-01-28
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [blog-frontend, api, ui, implementation]
+---
+
 # API-UI Gap Implementation
 
 ## 개요

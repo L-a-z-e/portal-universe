@@ -1,3 +1,14 @@
+---
+id: blog-frontend-components
+title: Blog Frontend 컴포넌트 가이드
+type: guide
+status: current
+created: 2026-01-23
+updated: 2026-01-30
+author: Portal Universe Team
+tags: [blog-frontend, vue, components, guide]
+---
+
 # Components Guide
 
 ## 컴포넌트 구조
@@ -1008,6 +1019,6 @@ try {
 
 ## 관련 문서
 
-- [README.md](./README.md) - 모듈 개요
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - 아키텍처
-- [API.md](./API.md) - API 사용법
+- [README.md](../README.md) - 모듈 개요
+- [Module Federation](../architecture/module-federation.md) - 아키텍처
+- [Client API](../api/client-api.md) - API 사용법
