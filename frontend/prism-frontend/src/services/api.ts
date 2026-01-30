@@ -133,105 +133,105 @@ class ApiService {
 
   // Provider APIs
   async getProviders(): Promise<Provider[]> {
-    return this.request<Provider[]>('get', '/prism/providers');
+    return this.request<Provider[]>('get', '/api/v1/prism/providers');
   }
 
   async getProvider(id: number): Promise<Provider> {
-    return this.request<Provider>('get', `/prism/providers/${id}`);
+    return this.request<Provider>('get', `/api/v1/prism/providers/${id}`);
   }
 
   async createProvider(data: CreateProviderRequest): Promise<Provider> {
-    return this.request<Provider>('post', '/prism/providers', data);
+    return this.request<Provider>('post', '/api/v1/prism/providers', data);
   }
 
   async deleteProvider(id: number): Promise<void> {
-    return this.request<void>('delete', `/prism/providers/${id}`);
+    return this.request<void>('delete', `/api/v1/prism/providers/${id}`);
   }
 
   // Agent APIs
   async getAgents(): Promise<Agent[]> {
-    return this.request<Agent[]>('get', '/prism/agents');
+    return this.request<Agent[]>('get', '/api/v1/prism/agents');
   }
 
   async getAgent(id: number): Promise<Agent> {
-    return this.request<Agent>('get', `/prism/agents/${id}`);
+    return this.request<Agent>('get', `/api/v1/prism/agents/${id}`);
   }
 
   async createAgent(data: CreateAgentRequest): Promise<Agent> {
-    return this.request<Agent>('post', '/prism/agents', data);
+    return this.request<Agent>('post', '/api/v1/prism/agents', data);
   }
 
   async updateAgent(id: number, data: Partial<CreateAgentRequest>): Promise<Agent> {
-    return this.request<Agent>('put', `/prism/agents/${id}`, data);
+    return this.request<Agent>('put', `/api/v1/prism/agents/${id}`, data);
   }
 
   async deleteAgent(id: number): Promise<void> {
-    return this.request<void>('delete', `/prism/agents/${id}`);
+    return this.request<void>('delete', `/api/v1/prism/agents/${id}`);
   }
 
   // Board APIs
   async getBoards(): Promise<Board[]> {
-    return this.request<Board[]>('get', '/prism/boards');
+    return this.request<Board[]>('get', '/api/v1/prism/boards');
   }
 
   async getBoard(id: number): Promise<Board> {
-    return this.request<Board>('get', `/prism/boards/${id}`);
+    return this.request<Board>('get', `/api/v1/prism/boards/${id}`);
   }
 
   async createBoard(data: CreateBoardRequest): Promise<Board> {
-    return this.request<Board>('post', '/prism/boards', data);
+    return this.request<Board>('post', '/api/v1/prism/boards', data);
   }
 
   async updateBoard(id: number, data: Partial<CreateBoardRequest>): Promise<Board> {
-    return this.request<Board>('put', `/prism/boards/${id}`, data);
+    return this.request<Board>('put', `/api/v1/prism/boards/${id}`, data);
   }
 
   async deleteBoard(id: number): Promise<void> {
-    return this.request<void>('delete', `/prism/boards/${id}`);
+    return this.request<void>('delete', `/api/v1/prism/boards/${id}`);
   }
 
   // Task APIs
   async getTasks(boardId: number): Promise<Task[]> {
-    return this.request<Task[]>('get', `/prism/boards/${boardId}/tasks`);
+    return this.request<Task[]>('get', `/api/v1/prism/boards/${boardId}/tasks`);
   }
 
   async getTask(id: number): Promise<Task> {
-    return this.request<Task>('get', `/prism/tasks/${id}`);
+    return this.request<Task>('get', `/api/v1/prism/tasks/${id}`);
   }
 
   async createTask(data: CreateTaskRequest): Promise<Task> {
     const { boardId, ...taskData } = data;
-    return this.request<Task>('post', `/prism/boards/${boardId}/tasks`, taskData);
+    return this.request<Task>('post', `/api/v1/prism/boards/${boardId}/tasks`, taskData);
   }
 
   async updateTask(id: number, data: UpdateTaskRequest): Promise<Task> {
-    return this.request<Task>('put', `/prism/tasks/${id}`, data);
+    return this.request<Task>('put', `/api/v1/prism/tasks/${id}`, data);
   }
 
   async moveTask(id: number, data: MoveTaskRequest): Promise<Task> {
-    return this.request<Task>('patch', `/prism/tasks/${id}/position`, data);
+    return this.request<Task>('patch', `/api/v1/prism/tasks/${id}/position`, data);
   }
 
   async assignAgent(taskId: number, agentId: number): Promise<Task> {
     // Backend uses UpdateTaskDto for agent assignment via PUT /tasks/:id
-    return this.request<Task>('put', `/prism/tasks/${taskId}`, { agentId });
+    return this.request<Task>('put', `/api/v1/prism/tasks/${taskId}`, { agentId });
   }
 
   async deleteTask(id: number): Promise<void> {
-    return this.request<void>('delete', `/prism/tasks/${id}`);
+    return this.request<void>('delete', `/api/v1/prism/tasks/${id}`);
   }
 
   // Execution APIs
   async executeTask(taskId: number): Promise<Execution> {
-    return this.request<Execution>('post', `/prism/tasks/${taskId}/execute`);
+    return this.request<Execution>('post', `/api/v1/prism/tasks/${taskId}/execute`);
   }
 
   async getExecutions(taskId: number): Promise<Execution[]> {
-    return this.request<Execution[]>('get', `/prism/tasks/${taskId}/executions`);
+    return this.request<Execution[]>('get', `/api/v1/prism/tasks/${taskId}/executions`);
   }
 
   async getExecution(id: number): Promise<Execution> {
-    return this.request<Execution>('get', `/prism/executions/${id}`);
+    return this.request<Execution>('get', `/api/v1/prism/executions/${id}`);
   }
 }
 
