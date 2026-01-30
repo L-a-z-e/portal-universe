@@ -72,6 +72,12 @@ k8s/base/secret.yaml
 localstack_data/
 logs/
 test-results/
+playwright-report/
+blob-report/
+.auth/
+.playwright/
+*.trace
+storageState*.json
 
 # Monitoring Data (Prometheus, Grafana)
 monitoring/grafana-data/
@@ -86,6 +92,9 @@ monitoring/prometheus-data/
 CLAUDE.md
 /docs/learning/mentor-desktop-prompt.md
 /docs/learning/learner-profile.md
+
+# Spring Boot auto-generated help
+HELP.md
 
 # Playwright MCP (브라우저 테스트 캐시)
 .playwright-mcp/
