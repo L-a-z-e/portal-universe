@@ -18,7 +18,7 @@ import java.util.List;
  * 역할 조회, 사용자 역할 할당/해제, 사용자 권한 조회를 제공합니다.
  */
 @RestController
-@RequestMapping("/api/admin/rbac")
+@RequestMapping("/api/v1/admin/rbac")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN')")
 public class RbacAdminController {

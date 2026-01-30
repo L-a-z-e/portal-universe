@@ -23,44 +23,44 @@ public class PublicPathProperties {
      */
     private List<String> permitAll = List.of(
             "/auth-service/**",
-            "/api/auth/**",
-            "/api/users/**",
-            "/api/shopping/products",
-            "/api/shopping/products/**",
-            "/api/shopping/categories",
-            "/api/shopping/categories/**",
-            "/api/shopping/coupons",
-            "/api/shopping/time-deals",
-            "/api/shopping/time-deals/**",
-            "/api/prism/sse/**",
-            "/api/prism/health",
-            "/api/prism/ready",
+            "/api/v1/auth/**",
+            "/api/v1/users/**",
+            "/api/v1/shopping/products",
+            "/api/v1/shopping/products/**",
+            "/api/v1/shopping/categories",
+            "/api/v1/shopping/categories/**",
+            "/api/v1/shopping/coupons",
+            "/api/v1/shopping/time-deals",
+            "/api/v1/shopping/time-deals/**",
+            "/api/v1/prism/sse/**",
+            "/api/v1/prism/health",
+            "/api/v1/prism/ready",
             "/actuator/**",
-            "/api/*/actuator/**"
+            "/api/v1/*/actuator/**"
     );
 
     /**
      * GET method에 대해서만 인증 없이 접근 가능한 경로 (SecurityConfig permitAll GET)
      */
     private List<String> permitAllGet = List.of(
-            "/api/blog/**",
-            "/api/memberships/tiers/**"
+            "/api/v1/blog/**",
+            "/api/v1/memberships/tiers/**"
     );
 
     /**
      * JWT 파싱 자체를 skip하는 경로 prefix (JwtAuthenticationFilter용).
      * SecurityConfig의 permitAll과는 별도로 관리됩니다.
-     * 예: /api/blog/** GET은 permitAll이지만 JWT가 있으면 파싱하여 사용자 정보를 추출합니다.
+     * 예: /api/v1/blog/** GET은 permitAll이지만 JWT가 있으면 파싱하여 사용자 정보를 추출합니다.
      */
     private List<String> skipJwtParsing = List.of(
             "/auth-service/",
-            "/api/auth/",
-            "/api/users/",
+            "/api/v1/auth/",
+            "/api/v1/users/",
             "/actuator/",
-            "/api/shopping/products",
-            "/api/shopping/categories",
-            "/api/prism/health",
-            "/api/prism/ready",
-            "/api/prism/sse/"
+            "/api/v1/shopping/products",
+            "/api/v1/shopping/categories",
+            "/api/v1/prism/health",
+            "/api/v1/prism/ready",
+            "/api/v1/prism/sse/"
     );
 }

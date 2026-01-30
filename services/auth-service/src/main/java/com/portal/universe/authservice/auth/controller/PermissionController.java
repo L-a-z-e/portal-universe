@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 하위 서비스에서도 이 API를 호출하여 세밀한 권한 체크를 수행할 수 있습니다.
  */
 @RestController
-@RequestMapping("/api/permissions")
+@RequestMapping("/api/v1/permissions")
 @RequiredArgsConstructor
 public class PermissionController {
 

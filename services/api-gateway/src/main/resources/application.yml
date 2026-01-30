@@ -68,27 +68,27 @@ spring:
             - id: auth-service-actuator-health
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/auth/actuator/health,/api/auth/actuator/info
+                - Path=/api/v1/auth/actuator/health,/api/v1/auth/actuator/info
               filters:
-                - RewritePath=/api/auth/actuator/(?<segment>.*), /actuator/${segment}
+                - RewritePath=/api/v1/auth/actuator/(?<segment>.*), /actuator/${segment}
               order: 0
 
             # Blog Service Actuator - health, info만 허용
             - id: blog-service-actuator-health
               uri: ${services.blog.url}
               predicates:
-                - Path=/api/blog/actuator/health,/api/blog/actuator/info
+                - Path=/api/v1/blog/actuator/health,/api/v1/blog/actuator/info
               filters:
-                - RewritePath=/api/blog/actuator/(?<segment>.*), /actuator/${segment}
+                - RewritePath=/api/v1/blog/actuator/(?<segment>.*), /actuator/${segment}
               order: 0
 
             # Shopping Service Actuator - health, info만 허용
             - id: shopping-service-actuator-health
               uri: ${services.shopping.url}
               predicates:
-                - Path=/api/shopping/actuator/health,/api/shopping/actuator/info
+                - Path=/api/v1/shopping/actuator/health,/api/v1/shopping/actuator/info
               filters:
-                - RewritePath=/api/shopping/actuator/(?<segment>.*), /actuator/${segment}
+                - RewritePath=/api/v1/shopping/actuator/(?<segment>.*), /actuator/${segment}
               order: 0
 
             # ========== Auth Service ==========
@@ -96,7 +96,7 @@ spring:
             - id: auth-service-login
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/auth/login
+                - Path=/api/v1/auth/login
                 - Method=POST
               filters:
                 - name: RequestRateLimiter
@@ -113,7 +113,7 @@ spring:
             - id: auth-service-signup
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/users/signup
+                - Path=/api/v1/users/signup
                 - Method=POST
               filters:
                 - name: RequestRateLimiter
@@ -148,7 +148,7 @@ spring:
             - id: auth-service-api-prefixed
               uri: ${services.auth.url}
               predicates:
-                - Path=/auth-service/api/auth/**
+                - Path=/auth-service/api/v1/auth/**
               filters:
                 - StripPrefix=1
                 - name: RequestRateLimiter
@@ -165,7 +165,7 @@ spring:
             - id: auth-service-profile
               uri: ${services.auth.url}
               predicates:
-                - Path=/auth-service/api/profile/**
+                - Path=/auth-service/api/v1/profile/**
               filters:
                 - StripPrefix=1
                 - name: RequestRateLimiter
@@ -183,7 +183,7 @@ spring:
             - id: auth-service-users
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/users/**
+                - Path=/api/v1/users/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -198,7 +198,7 @@ spring:
             - id: auth-service-api
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/auth/**
+                - Path=/api/v1/auth/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -215,7 +215,7 @@ spring:
             - id: auth-service-admin
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/admin/rbac/**,/api/admin/memberships/**,/api/admin/seller/**
+                - Path=/api/v1/admin/rbac/**,/api/v1/admin/memberships/**,/api/v1/admin/seller/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -231,7 +231,7 @@ spring:
             - id: auth-service-memberships
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/memberships/**
+                - Path=/api/v1/memberships/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -247,7 +247,7 @@ spring:
             - id: auth-service-seller
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/seller/**
+                - Path=/api/v1/seller/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -263,7 +263,7 @@ spring:
             - id: auth-service-permissions
               uri: ${services.auth.url}
               predicates:
-                - Path=/api/permissions/**
+                - Path=/api/v1/permissions/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -279,9 +279,9 @@ spring:
             - id: blog-service-file-route
               uri: ${services.blog.url}
               predicates:
-                - Path=/api/blog/file/**
+                - Path=/api/v1/blog/file/**
               filters:
-                - StripPrefix=2
+                - StripPrefix=3
                 - name: RequestRateLimiter
                   args:
                     rate-limiter: "#{@authenticatedRedisRateLimiter}"
@@ -298,9 +298,9 @@ spring:
             - id: blog-service-route
               uri: ${services.blog.url}
               predicates:
-                - Path=/api/blog/**
+                - Path=/api/v1/blog/**
               filters:
-                - StripPrefix=2
+                - StripPrefix=3
                 - name: RequestRateLimiter
                   args:
                     rate-limiter: "#{@unauthenticatedRedisRateLimiter}"
@@ -315,9 +315,9 @@ spring:
             - id: shopping-service-route
               uri: ${services.shopping.url}
               predicates:
-                - Path=/api/shopping/**
+                - Path=/api/v1/shopping/**
               filters:
-                - StripPrefix=2
+                - StripPrefix=3
                 - name: RequestRateLimiter
                   args:
                     rate-limiter: "#{@unauthenticatedRedisRateLimiter}"
@@ -332,27 +332,27 @@ spring:
             - id: prism-service-health
               uri: ${services.prism.url:http://localhost:8085}
               predicates:
-                - Path=/api/prism/health,/api/prism/ready
+                - Path=/api/v1/prism/health,/api/v1/prism/ready
               filters:
-                - RewritePath=/api/prism/(?<segment>.*), /api/v1/${segment}
+                - RewritePath=/api/v1/prism/(?<segment>.*), /api/v1/${segment}
               order: 0
 
             # Prism Service SSE - long-lived connections (no rate limit)
             - id: prism-service-sse
               uri: ${services.prism.url:http://localhost:8085}
               predicates:
-                - Path=/api/prism/sse/**
+                - Path=/api/v1/prism/sse/**
               filters:
-                - RewritePath=/api/prism/(?<segment>.*), /api/v1/${segment}
+                - RewritePath=/api/v1/prism/(?<segment>.*), /api/v1/${segment}
               order: 1
 
             # Prism Service API - authenticated
             - id: prism-service-route
               uri: ${services.prism.url:http://localhost:8085}
               predicates:
-                - Path=/api/prism/**
+                - Path=/api/v1/prism/**
               filters:
-                - RewritePath=/api/prism/(?<segment>.*), /api/v1/${segment}
+                - RewritePath=/api/v1/prism/(?<segment>.*), /api/v1/${segment}
                 - name: RequestRateLimiter
                   args:
                     rate-limiter: "#{@authenticatedRedisRateLimiter}"
@@ -405,33 +405,33 @@ gateway:
   public-paths:
     permit-all:
       - "/auth-service/**"
-      - "/api/auth/**"
-      - "/api/users/**"
-      - "/api/shopping/products"
-      - "/api/shopping/products/**"
-      - "/api/shopping/categories"
-      - "/api/shopping/categories/**"
-      - "/api/shopping/coupons"
-      - "/api/shopping/time-deals"
-      - "/api/shopping/time-deals/**"
-      - "/api/prism/sse/**"
-      - "/api/prism/health"
-      - "/api/prism/ready"
+      - "/api/v1/auth/**"
+      - "/api/v1/users/**"
+      - "/api/v1/shopping/products"
+      - "/api/v1/shopping/products/**"
+      - "/api/v1/shopping/categories"
+      - "/api/v1/shopping/categories/**"
+      - "/api/v1/shopping/coupons"
+      - "/api/v1/shopping/time-deals"
+      - "/api/v1/shopping/time-deals/**"
+      - "/api/v1/prism/sse/**"
+      - "/api/v1/prism/health"
+      - "/api/v1/prism/ready"
       - "/actuator/**"
-      - "/api/*/actuator/**"
+      - "/api/v1/*/actuator/**"
     permit-all-get:
-      - "/api/blog/**"
-      - "/api/memberships/tiers/**"
+      - "/api/v1/blog/**"
+      - "/api/v1/memberships/tiers/**"
     skip-jwt-parsing:
       - "/auth-service/"
-      - "/api/auth/"
-      - "/api/users/"
+      - "/api/v1/auth/"
+      - "/api/v1/users/"
       - "/actuator/"
-      - "/api/shopping/products"
-      - "/api/shopping/categories"
-      - "/api/prism/health"
-      - "/api/prism/ready"
-      - "/api/prism/sse/"
+      - "/api/v1/shopping/products"
+      - "/api/v1/shopping/categories"
+      - "/api/v1/prism/health"
+      - "/api/v1/prism/ready"
+      - "/api/v1/prism/sse/"
 
 # JWT 설정 (Auth Service와 동일한 설정 사용, 다중 키 지원)
 jwt:
@@ -472,9 +472,9 @@ security:
     cache-control:
       auth-paths: true
       no-cache-paths:
-        - "/api/auth/**"
+        - "/api/v1/auth/**"
         - "/auth-service/**"
-        - "/api/users/**"
-        - "/api/*/profile/**"
+        - "/api/v1/users/**"
+        - "/api/v1/*/profile/**"
 
 # 로깅 설정은 logback-spring.xml에서 관리

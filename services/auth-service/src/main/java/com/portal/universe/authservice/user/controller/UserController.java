@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * 사용자 관련 API를 처리하는 컨트롤러입니다.
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 

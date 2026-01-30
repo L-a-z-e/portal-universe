@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * 관리자가 셀러 신청을 조회하고 승인/거절할 수 있습니다.
  */
 @RestController
-@RequestMapping("/api/admin/seller")
+@RequestMapping("/api/v1/admin/seller")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyAuthority('ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN')")
 public class SellerAdminController {

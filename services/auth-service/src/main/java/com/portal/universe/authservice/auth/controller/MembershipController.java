@@ -16,7 +16,7 @@ import java.util.List;
  * 인증된 사용자가 자신의 멤버십을 조회/변경/취소할 수 있습니다.
  */
 @RestController
-@RequestMapping("/api/memberships")
+@RequestMapping("/api/v1/memberships")
 @RequiredArgsConstructor
 public class MembershipController {
 

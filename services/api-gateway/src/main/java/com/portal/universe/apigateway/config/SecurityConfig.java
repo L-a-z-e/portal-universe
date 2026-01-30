@@ -117,22 +117,22 @@ public class SecurityConfig {
                         // ========================================
                         // [시스템 관리자] SUPER_ADMIN 전용
                         // ========================================
-                        .pathMatchers("/api/admin/seller/**")
+                        .pathMatchers("/api/v1/admin/seller/**")
                             .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-                        .pathMatchers("/api/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
+                        .pathMatchers("/api/v1/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
 
                         // ========================================
                         // [서비스 관리자] 서비스별 Admin 권한
                         // ========================================
-                        .pathMatchers("/api/shopping/admin/**")
+                        .pathMatchers("/api/v1/shopping/admin/**")
                             .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-                        .pathMatchers("/api/blog/admin/**")
+                        .pathMatchers("/api/v1/blog/admin/**")
                             .hasAnyAuthority("ROLE_BLOG_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // ========================================
                         // [판매자] Seller 권한
                         // ========================================
-                        .pathMatchers("/api/shopping/seller/**")
+                        .pathMatchers("/api/v1/shopping/seller/**")
                             .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // ========================================

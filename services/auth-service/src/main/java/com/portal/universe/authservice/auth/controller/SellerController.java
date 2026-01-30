@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * 인증된 사용자가 셀러 신청을 제출하고 상태를 확인할 수 있습니다.
  */
 @RestController
-@RequestMapping("/api/seller")
+@RequestMapping("/api/v1/seller")
 @RequiredArgsConstructor
 public class SellerController {
 

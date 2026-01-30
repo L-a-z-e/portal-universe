@@ -17,7 +17,7 @@ import java.util.List;
  * 관리자가 사용자의 멤버십을 조회/변경할 수 있습니다.
  */
 @RestController
-@RequestMapping("/api/admin/memberships")
+@RequestMapping("/api/v1/admin/memberships")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN')")
 public class MembershipAdminController {
