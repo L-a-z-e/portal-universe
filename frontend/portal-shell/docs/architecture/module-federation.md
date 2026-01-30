@@ -27,9 +27,8 @@ graph TB
         HOST[Host App<br/>shellEntry.js]
 
         subgraph "Exposed Modules"
-            E1[./apiClient]
-            E2[./authStore]
-            E3[./themeStore]
+            E1[./api]
+            E2[./stores]
         end
 
         subgraph "Shared Dependencies"
@@ -53,15 +52,25 @@ graph TB
         SRE --> SR
     end
 
+    subgraph "Prism Remote"
+        PR[prism/bootstrap]
+        PRE[remoteEntry.js]
+
+        PRE --> PR
+    end
+
     HOST -.->|Consumes| BRE
     HOST -.->|Consumes| SRE
+    HOST -.->|Consumes| PRE
 
     BR -.->|Uses| E1
     BR -.->|Uses| E2
-    BR -.->|Uses| E3
 
     SR -.->|Uses| E1
     SR -.->|Uses| E2
+
+    PR -.->|Uses| E1
+    PR -.->|Uses| E2
 
     BR -.->|Shares| S1
     BR -.->|Shares| S2
@@ -70,11 +79,14 @@ graph TB
     SR -.->|Shares| S1
     SR -.->|Shares| S2
 
+    PR -.->|Shares| S1
+    PR -.->|Shares| S2
+
     classDef host fill:#e1f5ff,stroke:#0288d1
     classDef remote fill:#fff9c4,stroke:#fbc02d
 
-    class HOST,E1,E2,E3,S1,S2,S3 host
-    class BR,BRE,SR,SRE remote
+    class HOST,E1,E2,S1,S2,S3 host
+    class BR,BRE,SR,SRE,PR,PRE remote
 ```
 
 ---
@@ -90,13 +102,13 @@ federation({
   remotes: {
     blog: env.VITE_BLOG_REMOTE_URL,
     shopping: env.VITE_SHOPPING_REMOTE_URL,
+    prism: env.VITE_PRISM_REMOTE_URL,
   },
 
   // 모듈 노출
   exposes: {
-    './apiClient': './src/api/apiClient.ts',
-    './authStore': './src/store/auth.ts',
-    './themeStore': './src/store/theme.ts',
+    './api': './src/api/index.ts',
+    './stores': './src/store/index.ts',
   },
 
   // 공유 의존성
@@ -135,6 +147,22 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'blog/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
+    },
+    {
+      name: 'Shopping',
+      key: 'shopping',
+      url: 'http://localhost:30002/assets/remoteEntry.js',
+      module: 'shopping/bootstrap',
+      mountFn: 'mountShoppingApp',
+      basePath: '/shopping',
+    },
+    {
+      name: 'Prism',
+      key: 'prism',
+      url: 'http://localhost:30004/assets/remoteEntry.js',
+      module: 'prism/bootstrap',
+      mountFn: 'mountPrismApp',
+      basePath: '/prism',
     },
   ],
   docker: [...],
@@ -244,6 +272,7 @@ onBeforeUnmount(() => {
 ```bash
 VITE_BLOG_REMOTE_URL=http://localhost:30001/assets/remoteEntry.js
 VITE_SHOPPING_REMOTE_URL=http://localhost:30002/assets/remoteEntry.js
+VITE_PRISM_REMOTE_URL=http://localhost:30004/assets/remoteEntry.js
 ```
 
 ### Docker Compose
@@ -251,6 +280,7 @@ VITE_SHOPPING_REMOTE_URL=http://localhost:30002/assets/remoteEntry.js
 environment:
   VITE_BLOG_REMOTE_URL: http://blog-frontend:30001/assets/remoteEntry.js
   VITE_SHOPPING_REMOTE_URL: http://shopping-frontend:30002/assets/remoteEntry.js
+  VITE_PRISM_REMOTE_URL: http://prism-frontend:30004/assets/remoteEntry.js
 ```
 
 ### Kubernetes
@@ -260,6 +290,8 @@ env:
     value: "http://blog-frontend-service/assets/remoteEntry.js"
   - name: VITE_SHOPPING_REMOTE_URL
     value: "http://shopping-frontend-service/assets/remoteEntry.js"
+  - name: VITE_PRISM_REMOTE_URL
+    value: "http://prism-frontend-service/assets/remoteEntry.js"
 ```
 
 ---
@@ -268,9 +300,12 @@ env:
 
 Portal Shell이 Remote 모듈에 제공하는 모듈입니다.
 
-### 1. apiClient
+### 1. api
 
 ```typescript
+// src/api/index.ts
+export { default as apiClient } from './apiClient';
+
 // src/api/apiClient.ts
 export const apiClient = axios.create({
   baseURL: '/api',
@@ -289,14 +324,18 @@ apiClient.interceptors.request.use((config) => {
 
 **Remote 모듈 사용 예시:**
 ```typescript
-import { apiClient } from 'portal/apiClient';
+import { apiClient } from 'portal/api';
 
 const response = await apiClient.get('/blog/posts');
 ```
 
-### 2. authStore
+### 2. stores
 
 ```typescript
+// src/store/index.ts
+export { useAuthStore } from './auth';
+export { useThemeStore } from './theme';
+
 // src/store/auth.ts
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<PortalUser | null>(null);
@@ -309,20 +348,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return { user, isAuthenticated, displayName, hasRole, setUser, logout };
 });
-```
 
-**Remote 모듈 사용 예시:**
-```typescript
-import { useAuthStore } from 'portal/authStore';
-
-const authStore = useAuthStore();
-console.log(authStore.displayName); // "사용자 닉네임"
-console.log(authStore.hasRole('ROLE_ADMIN')); // true/false
-```
-
-### 3. themeStore
-
-```typescript
 // src/store/theme.ts
 export const useThemeStore = defineStore('theme', {
   state: () => ({ isDark: false }),
@@ -335,7 +361,11 @@ export const useThemeStore = defineStore('theme', {
 
 **Remote 모듈 사용 예시:**
 ```typescript
-import { useThemeStore } from 'portal/themeStore';
+import { useAuthStore, useThemeStore } from 'portal/stores';
+
+const authStore = useAuthStore();
+console.log(authStore.displayName); // "사용자 닉네임"
+console.log(authStore.hasRole('ROLE_ADMIN')); // true/false
 
 const themeStore = useThemeStore();
 themeStore.toggle(); // Light ↔ Dark 전환
@@ -374,7 +404,7 @@ export function mountBlogApp(container: HTMLElement, config?: ShellConfig) {
     app.use(createPinia());
   } else {
     // Integrated 모드: Shell의 리소스 사용
-    const authStore = useAuthStore(); // portal/authStore
+    const authStore = useAuthStore(); // portal/stores
   }
 
   app.mount(container);
@@ -389,6 +419,7 @@ Remote 모듈은 basePath 내에서만 라우팅합니다.
 - Portal Shell: `/`, `/signup`, `/callback`
 - Blog Remote: `/blog/*` (내부적으로는 `/`, `/posts`, `/posts/:id`)
 - Shopping Remote: `/shopping/*`
+- Prism Remote: `/prism/*`
 
 ### 3. 순환 의존성 방지
 
@@ -479,4 +510,4 @@ build: {
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30

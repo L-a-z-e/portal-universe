@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-30
 author: Documenter Agent
 tags: [api, portal-shell, pinia, auth, module-federation]
 related:
@@ -22,7 +22,7 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **Module Federation Path** | `portal-shell/authStore` |
+| **Module Federation Path** | `portal/stores` |
 | **Store 라이브러리** | Pinia |
 | **Store ID** | `auth` |
 | **주요 기능** | 로그인 상태, 사용자 정보, 권한 확인 |
@@ -126,7 +126,7 @@ isAuthenticated: ComputedRef<boolean>
 **예시:**
 
 ```typescript
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 
 const authStore = useAuthStore();
 
@@ -154,7 +154,7 @@ displayName: ComputedRef<string>
 **예시:**
 
 ```typescript
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 
 const authStore = useAuthStore();
 
@@ -177,7 +177,7 @@ Admin 역할 여부를 반환합니다.
 **예시:**
 
 ```typescript
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 
 const authStore = useAuthStore();
 
@@ -209,7 +209,7 @@ hasRole(role: string): boolean
 **예시:**
 
 ```typescript
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 
 const authStore = useAuthStore();
 
@@ -248,7 +248,7 @@ OIDC 클라이언트에서 받은 사용자 정보로 Store를 설정합니다.
 **예시:**
 
 ```typescript
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 import { UserManager } from 'oidc-client-ts';
 
 const authStore = useAuthStore();
@@ -273,7 +273,7 @@ logout(): void
 **예시:**
 
 ```typescript
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 
 const authStore = useAuthStore();
 
@@ -289,7 +289,7 @@ console.log('로그아웃되었습니다.');
 
 ```vue
 <script setup lang="ts">
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 import { computed } from 'vue';
 
 const authStore = useAuthStore();
@@ -315,7 +315,7 @@ const canEdit = computed(() => authStore.hasRole('ROLE_EDITOR'));
 
 ```typescript
 // blog-frontend/src/composables/usePostPermission.ts
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 import { computed } from 'vue';
 
 export const usePostPermission = () => {
@@ -348,7 +348,7 @@ export const usePostPermission = () => {
 ```typescript
 // blog-frontend/src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router';
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -383,7 +383,7 @@ export default router;
 
 ```vue
 <script setup lang="ts">
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 
 const authStore = useAuthStore();
 </script>
@@ -422,7 +422,7 @@ const authStore = useAuthStore();
 
 ```vue
 <script setup lang="ts">
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 import { computed } from 'vue';
 
 const authStore = useAuthStore();
@@ -464,7 +464,7 @@ export const useMyAuthStore = defineStore('myAuth', {
 });
 
 // ✅ 좋은 예: Shell의 authStore 사용
-import { useAuthStore } from 'portal-shell/authStore';
+import { useAuthStore } from 'portal/stores';
 ```
 
 **이유**: Shell의 authStore를 사용해야 인증 상태가 전역적으로 동기화됨
@@ -479,7 +479,7 @@ const authStore = useAuthStore();
 const token = authStore.user?._accessToken;
 
 // ✅ 좋은 예: apiClient 사용 (자동으로 토큰 주입)
-import apiClient from 'portal-shell/apiClient';
+import { apiClient } from 'portal/api';
 await apiClient.get('/api/v1/posts');
 ```
 
@@ -511,4 +511,4 @@ if (authStore.isAuthenticated) {
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30

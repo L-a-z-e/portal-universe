@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-30
 author: Documenter Agent
 tags: [api, portal-shell, axios, module-federation]
 related:
@@ -22,7 +22,7 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **Module Federation Path** | `portal-shell/apiClient` |
+| **Module Federation Path** | `portal/api` |
 | **Base URL** | `VITE_API_BASE_URL` (환경변수) |
 | **Timeout** | 10000ms (10초) |
 | **인증** | Bearer Token 자동 주입 |
@@ -62,7 +62,7 @@ const apiClient: AxiosInstance;
 
 ```typescript
 // blog-frontend/src/api/blogApi.ts
-import apiClient from 'portal-shell/apiClient';
+import apiClient from 'portal/api';
 ```
 
 ### 2. GET 요청
@@ -114,7 +114,7 @@ export const deletePost = async (id: string) => {
 ### 기본 에러 처리
 
 ```typescript
-import apiClient from 'portal-shell/apiClient';
+import apiClient from 'portal/api';
 
 try {
   const response = await apiClient.get('/api/v1/blog/posts');
@@ -149,7 +149,7 @@ await apiClient.get('/api/v1/blog/posts');
 
 ```typescript
 // blog-frontend/src/api/blogApi.ts
-import apiClient from 'portal-shell/apiClient';
+import apiClient from 'portal/api';
 import type { AxiosError } from 'axios';
 
 export interface Post {
@@ -263,7 +263,7 @@ import axios from 'axios';
 const myClient = axios.create({ baseURL: '...' });
 
 // ✅ 좋은 예: Shell의 apiClient 사용
-import apiClient from 'portal-shell/apiClient';
+import apiClient from 'portal/api';
 ```
 
 **이유**: Shell의 apiClient를 사용해야 인증 토큰이 자동으로 주입됨
@@ -305,4 +305,4 @@ await apiClient.get('/api/v1/large-data', {
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30

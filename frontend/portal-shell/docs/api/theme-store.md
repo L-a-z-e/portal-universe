@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-01-30
 author: Documenter Agent
 tags: [api, portal-shell, pinia, theme, dark-mode, module-federation]
 related:
@@ -22,7 +22,7 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **Module Federation Path** | `portal-shell/themeStore` |
+| **Module Federation Path** | `portal/stores` |
 | **Store 라이브러리** | Pinia |
 | **Store ID** | `theme` |
 | **주요 기능** | Light/Dark 모드 전환, 테마 설정 저장 |
@@ -92,7 +92,7 @@ Light/Dark 모드를 전환합니다.
 **예시:**
 
 ```typescript
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 
 const themeStore = useThemeStore();
 
@@ -120,7 +120,7 @@ initialize(): void
 **예시:**
 
 ```typescript
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 
 const themeStore = useThemeStore();
 
@@ -136,7 +136,7 @@ themeStore.initialize();
 
 ```vue
 <script setup lang="ts">
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 import { onMounted } from 'vue';
 
 const themeStore = useThemeStore();
@@ -166,7 +166,7 @@ const toggleTheme = () => {
 
 ```vue
 <script setup lang="ts">
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 import { computed } from 'vue';
 
 const themeStore = useThemeStore();
@@ -211,7 +211,7 @@ const label = computed(() => themeStore.isDark ? 'Dark' : 'Light');
 
 ```typescript
 // blog-frontend/src/composables/useTheme.ts
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 import { computed } from 'vue';
 
 export const useTheme = () => {
@@ -282,7 +282,7 @@ const pinia = createPinia();
 app.use(pinia);
 
 // 앱 시작 시 테마 초기화
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 const themeStore = useThemeStore();
 themeStore.initialize();
 
@@ -295,7 +295,7 @@ app.mount('#app');
 
 ```vue
 <script setup lang="ts">
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 import { computed } from 'vue';
 
 const themeStore = useThemeStore();
@@ -328,7 +328,7 @@ const textColor = computed(() =>
 
 ```vue
 <script setup lang="ts">
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 
 const themeStore = useThemeStore();
 </script>
@@ -394,7 +394,7 @@ module.exports = {
 
 ```vue
 <script setup lang="ts">
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 
 const themeStore = useThemeStore();
 </script>
@@ -430,7 +430,7 @@ onMounted(() => themeStore.initialize());
 
 // ✅ 좋은 예: 앱 초기화 시 한 번만 호출
 // main.ts
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 const themeStore = useThemeStore();
 themeStore.initialize();
 ```
@@ -470,7 +470,7 @@ export const useMyThemeStore = defineStore('myTheme', {
 });
 
 // ✅ 좋은 예: Shell의 themeStore 사용
-import { useThemeStore } from 'portal-shell/themeStore';
+import { useThemeStore } from 'portal/stores';
 ```
 
 **이유**: Shell의 themeStore를 사용해야 테마 상태가 전역적으로 동기화됨
@@ -484,4 +484,4 @@ import { useThemeStore } from 'portal-shell/themeStore';
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-01-30

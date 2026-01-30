@@ -162,7 +162,7 @@ portal-shell/
 ### 연관 모듈 문서
 - [Blog Frontend](/frontend/blog-frontend/docs/) - Blog Remote 모듈
 - [Shopping Frontend](/frontend/shopping-frontend/docs/) - Shopping Remote 모듈
-- [Design System](/frontend/design-system/docs/) - 공유 컴포넌트
+- [Design System](/frontend/design-system-vue/docs/) - 공유 컴포넌트
 
 ### 백엔드 서비스 문서
 - [API Gateway](/services/api-gateway/docs/) - 라우팅 및 인증
