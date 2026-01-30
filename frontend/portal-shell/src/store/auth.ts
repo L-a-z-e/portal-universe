@@ -89,7 +89,11 @@ export const useAuthStore = defineStore('auth', () => {
         setUserFromInfo(userInfo, response.accessToken);
       }
 
+      showLoginModal.value = false;
       console.log('✅ [Auth Store] Login successful');
+
+      // Notify Remote apps (React Zustand) of auth state change
+      window.dispatchEvent(new CustomEvent('portal:auth-changed'));
     } catch (error) {
       console.error('❌ [Auth Store] Login failed:', error);
       throw error;
@@ -121,11 +125,15 @@ export const useAuthStore = defineStore('auth', () => {
       delete window.__PORTAL_ACCESS_TOKEN__;
 
       console.log('✅ [Auth Store] Logout successful');
+
+      // Notify Remote apps (React Zustand) of auth state change
+      window.dispatchEvent(new CustomEvent('portal:auth-changed'));
     } catch (error) {
       console.error('❌ [Auth Store] Logout error:', error);
       // Still clear user on error
       user.value = null;
       delete window.__PORTAL_ACCESS_TOKEN__;
+      window.dispatchEvent(new CustomEvent('portal:auth-changed'));
     } finally {
       loading.value = false;
     }

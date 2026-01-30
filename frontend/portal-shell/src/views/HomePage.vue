@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Button, Badge } from '@portal/design-system-vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
-import LoginModal from '../components/LoginModal.vue';
 import DashboardPage from './DashboardPage.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
-const showLoginModal = ref(false);
 
 const services = [
   {
@@ -100,7 +97,7 @@ function handleStartClick() {
   if (authStore.isAuthenticated) {
     router.push('/blog');
   } else {
-    showLoginModal.value = true;
+    authStore.requestLogin();
   }
 }
 </script>
@@ -280,7 +277,5 @@ function handleStartClick() {
       </div>
     </section>
 
-    <!-- Login Modal -->
-    <LoginModal v-model="showLoginModal" />
   </div>
 </template>

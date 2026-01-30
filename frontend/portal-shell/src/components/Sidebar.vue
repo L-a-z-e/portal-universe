@@ -3,10 +3,6 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import { authService } from '../services/authService';
-import LoginModal from './LoginModal.vue';
-
-// Login Modal state
-const showLoginModal = ref(false);
 
 // Screen size detection for mobile header
 const isMobile = ref(false);
@@ -27,8 +23,8 @@ onUnmounted(() => {
 
 // Login/Logout 함수 정의
 const handleLogin = () => {
-  // Open Login Modal instead of redirecting to social login
-  showLoginModal.value = true;
+  // App.vue의 글로벌 LoginModal을 사용 (authStore.requestLogin)
+  authStore.requestLogin();
 };
 
 const handleLogout = async () => {
@@ -327,6 +323,5 @@ const navigate = (path: string) => {
     </div>
   </aside>
 
-  <!-- Login Modal -->
-  <LoginModal v-model="showLoginModal" />
+
 </template>
