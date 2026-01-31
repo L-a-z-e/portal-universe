@@ -260,7 +260,7 @@ services:
         BUILD_MODE: docker
     container_name: portal-shell
     ports:
-      - "30000:443"
+      - "30000:8443"
     volumes:
       - ./certs:/etc/nginx/certs:ro
     depends_on:
@@ -277,7 +277,7 @@ services:
         BUILD_MODE: docker
     container_name: blog-frontend
     ports:
-      - "30001:80"
+      - "30001:8080"
     depends_on:
       portal-shell:
         condition: service_started
@@ -292,7 +292,7 @@ services:
         BUILD_MODE: docker
     container_name: shopping-frontend
     ports:
-      - "30002:80"
+      - "30002:8080"
     depends_on:
       portal-shell:
         condition: service_started
@@ -336,7 +336,7 @@ services:
         BUILD_MODE: docker
     container_name: prism-frontend
     ports:
-      - "30003:80"
+      - "30003:8080"
     depends_on:
       portal-shell:
         condition: service_started

@@ -25,7 +25,7 @@ COPY shopping-frontend/package.json ./shopping-frontend/
 COPY shopping-frontend/ ./shopping-frontend/
 
 # 6. 의존성 설치
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 # 7. design-tokens 빌드
 WORKDIR /workspace/design-tokens
@@ -47,11 +47,10 @@ RUN npm run build:${BUILD_MODE}
 # ============================================
 # Stage 2: Nginx
 # ============================================
-FROM nginx:stable-alpine
+FROM nginxinc/nginx-unprivileged:stable-alpine
 WORKDIR /usr/share/nginx/html
 
 COPY --from=build /workspace/shopping-frontend/dist ./
 COPY shopping-frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 8080

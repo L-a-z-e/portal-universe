@@ -25,7 +25,7 @@ COPY portal-shell/package.json ./portal-shell/
 COPY portal-shell/ ./portal-shell/
 
 # 6. 의존성 설치
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 # 7. design-tokens 빌드
 WORKDIR /workspace/design-tokens
@@ -47,13 +47,21 @@ RUN npm run build:${BUILD_MODE}
 # ============================================
 # Stage 2: Nginx
 # ============================================
-FROM nginx:stable-alpine
+FROM nginxinc/nginx-unprivileged:stable-alpine
 WORKDIR /usr/share/nginx/html
+
+ARG BUILD_MODE=docker
 
 COPY --from=build /workspace/portal-shell/dist ./
 COPY portal-shell/nginx.conf /etc/nginx/nginx.conf
 COPY portal-shell/default.conf /etc/nginx/conf.d/default.conf
+COPY portal-shell/default.k8s.conf /tmp/default.k8s.conf
 
-EXPOSE 80
-EXPOSE 443
-CMD ["nginx", "-g", "daemon off;"]
+# K8s 모드에서는 SSL 없는 HTTP-only 설정 사용
+# nginx-unprivileged 이미지에서는 /tmp 파일 삭제가 불가하므로 그대로 둠
+RUN if [ "$BUILD_MODE" = "k8s" ]; then \
+      cp /tmp/default.k8s.conf /etc/nginx/conf.d/default.conf; \
+    fi
+
+EXPOSE 8080
+EXPOSE 8443

@@ -24,6 +24,9 @@ WORKDIR /app
 # 비루트 사용자 생성 및 전환
 RUN addgroup --system appgroup && adduser --system -ingroup appgroup appuser
 
+# 로그 디렉토리 생성 및 권한 설정
+RUN mkdir -p /app/logs && chown appuser:appgroup /app/logs
+
 # Build Stage에서 생성된 JAR 파일을 Runtime Stage로 복사합니다.
 COPY --from=builder /app/services/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar app.jar
 
