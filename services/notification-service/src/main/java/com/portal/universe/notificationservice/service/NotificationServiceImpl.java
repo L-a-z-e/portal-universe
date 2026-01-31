@@ -4,7 +4,9 @@ import com.portal.universe.notificationservice.domain.Notification;
 import com.portal.universe.notificationservice.domain.NotificationStatus;
 import com.portal.universe.notificationservice.domain.NotificationType;
 import com.portal.universe.notificationservice.dto.NotificationResponse;
+import com.portal.universe.notificationservice.common.exception.NotificationErrorCode;
 import com.portal.universe.notificationservice.repository.NotificationRepository;
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -63,7 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public NotificationResponse markAsRead(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
+                .orElseThrow(() -> new CustomBusinessException(NotificationErrorCode.NOTIFICATION_NOT_FOUND));
 
         notification.markAsRead();
         return NotificationResponse.from(notification);

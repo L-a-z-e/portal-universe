@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
  * - S4XX: Inventory (S401-S410)
  * - S5XX: Delivery (S501-S510)
  * - S9XX: Saga/System (S901-S910)
+ * - S10XX: Search (S1001-S1010) — 4자리 코드, S9XX와 충돌 없음
  */
 @Getter
 public enum ShoppingErrorCode implements ErrorCode {
