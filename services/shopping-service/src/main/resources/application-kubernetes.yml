@@ -5,18 +5,18 @@
 server:
   forward-headers-strategy: framework
 
-# 서비스 URL 정의 (K8s DNS)
+# 서비스 URL 정의 (K8s DNS - 각 서비스 포트 명시)
 services:
   gateway:
-    url: "http://api-gateway"
+    url: "http://api-gateway:8080"
   auth:
-    url: "http://auth-service"
+    url: "http://auth-service:8081"
   blog:
-    url: "http://blog-service"
+    url: "http://blog-service:8082"
   shopping:
-    url: "http://shopping-service"
+    url: "http://shopping-service:8083"
   notification:
-    url: "http://notification-service"
+    url: "http://notification-service:8084"
 
 # Feign Client 설정
 feign:
