@@ -80,6 +80,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:30000",
+                "https://localhost:30000",
                 "http://localhost:8080",
                 "https://portal-universe:30000"
                 ));

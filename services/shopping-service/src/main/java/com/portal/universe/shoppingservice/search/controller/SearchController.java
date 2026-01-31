@@ -63,6 +63,9 @@ public class SearchController {
     public ResponseEntity<ApiResponse<List<String>>> getRecentKeywords(
             @CurrentUser GatewayUser user,
             @RequestParam(required = false, defaultValue = "10") int size) {
+        if (user == null) {
+            return ResponseEntity.ok(ApiResponse.success(List.of()));
+        }
         List<String> keywords = suggestService.getRecentKeywords(user.uuid(), size);
         return ResponseEntity.ok(ApiResponse.success(keywords));
     }
@@ -71,6 +74,9 @@ public class SearchController {
     public ResponseEntity<ApiResponse<Void>> addRecentKeyword(
             @CurrentUser GatewayUser user,
             @RequestParam String keyword) {
+        if (user == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.success(null));
+        }
         suggestService.addRecentKeyword(user.uuid(), keyword);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -79,6 +85,9 @@ public class SearchController {
     public ResponseEntity<ApiResponse<Void>> deleteRecentKeyword(
             @CurrentUser GatewayUser user,
             @PathVariable String keyword) {
+        if (user == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.success(null));
+        }
         suggestService.deleteRecentKeyword(user.uuid(), keyword);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -86,6 +95,9 @@ public class SearchController {
     @DeleteMapping("/recent")
     public ResponseEntity<ApiResponse<Void>> clearRecentKeywords(
             @CurrentUser GatewayUser user) {
+        if (user == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.success(null));
+        }
         suggestService.clearRecentKeywords(user.uuid());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
