@@ -174,6 +174,9 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null;
       authService.clearTokens();
     }
+
+    // Remote 앱(React Zustand)에 auth 상태 변경 알림
+    window.dispatchEvent(new CustomEvent('portal:auth-changed'));
   }
 
   /**

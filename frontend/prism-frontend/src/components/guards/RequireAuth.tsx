@@ -44,6 +44,28 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
         } catch (err) {
           console.warn('[RequireAuth] Auth sync failed:', err)
         }
+
+        // sync 후 미인증이면 portal:auth-changed 이벤트를 대기 후 재시도
+        const currentState = useAuthStore.getState()
+        if (!currentState.isAuthenticated) {
+          console.log('[RequireAuth] Not authenticated after sync, waiting for auth-changed...')
+          await new Promise<void>((resolve) => {
+            const timeout = setTimeout(() => {
+              window.removeEventListener('portal:auth-changed', handler)
+              resolve()
+            }, 5000)
+            const handler = async () => {
+              clearTimeout(timeout)
+              window.removeEventListener('portal:auth-changed', handler)
+              try {
+                await syncFromPortal()
+              } catch { /* ignore */ }
+              resolve()
+            }
+            window.addEventListener('portal:auth-changed', handler, { once: true })
+          })
+        }
+
         setIsInitialized(true)
       }
     }
