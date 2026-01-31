@@ -10,6 +10,12 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 알림 서비스 REST 컨트롤러입니다.
+ *
+ * <p>모든 엔드포인트는 X-User-Id 헤더를 요구합니다. 이 헤더는 API Gateway에서
+ * JWT 검증 후 자동으로 추가되므로, 컨트롤러 레벨에서 별도의 인증 검사가 필요하지 않습니다.</p>
+ */
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor

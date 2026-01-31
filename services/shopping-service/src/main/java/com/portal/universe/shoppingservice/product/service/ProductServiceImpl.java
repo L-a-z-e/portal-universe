@@ -75,9 +75,8 @@ public class ProductServiceImpl implements ProductService {
                 request.stock()
         );
 
-        // 3. 수정된 상품을 저장하고 응답 DTO로 변환하여 반환합니다.
-        Product updatedProduct = productRepository.save(product);
-        return convertToResponse(updatedProduct);
+        // 3. Dirty Checking으로 자동 저장 (save 호출 생략)
+        return convertToResponse(product);
     }
 
     @Override

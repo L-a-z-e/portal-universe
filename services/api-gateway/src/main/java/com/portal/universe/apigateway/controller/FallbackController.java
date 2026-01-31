@@ -15,9 +15,24 @@ import java.util.Map;
 @RestController
 public class FallbackController {
 
+    @GetMapping(value = "/fallback/auth", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<Map<String, Object>> authServiceFallback() {
+        return Mono.just(buildFallbackResponse("GW001", "인증 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."));
+    }
+
     @GetMapping(value = "/fallback/blog", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<Map<String, Object>> blogServiceFallback() {
-        return Mono.just(buildFallbackResponse("GW001", "블로그 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."));
+        return Mono.just(buildFallbackResponse("GW002", "블로그 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."));
+    }
+
+    @GetMapping(value = "/fallback/shopping", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<Map<String, Object>> shoppingServiceFallback() {
+        return Mono.just(buildFallbackResponse("GW003", "쇼핑 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."));
+    }
+
+    @GetMapping(value = "/fallback/notification", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<Map<String, Object>> notificationServiceFallback() {
+        return Mono.just(buildFallbackResponse("GW004", "알림 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."));
     }
 
     private Map<String, Object> buildFallbackResponse(String code, String message) {
