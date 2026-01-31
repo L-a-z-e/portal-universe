@@ -45,6 +45,13 @@ spec:
           ports:
             - containerPort: 3306
               name: mysql
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           env:
             # Secret 리소스로부터 데이터베이스 비밀번호를 안전하게 주입받습니다.
             - name: MYSQL_ROOT_PASSWORD

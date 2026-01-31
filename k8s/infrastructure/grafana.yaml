@@ -26,6 +26,13 @@ spec:
           ports:
             - containerPort: 3000
               name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
           env:
             # Grafana 초기 관리자 계정의 비밀번호를 설정합니다.
             - name: GF_SECURITY_ADMIN_PASSWORD

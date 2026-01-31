@@ -440,6 +440,7 @@ jwt:
   # 여러 키를 관리 (Auth Service와 동일하게 설정)
   keys:
     key-default:
+      # ⚠️ PRODUCTION: 반드시 환경변수 JWT_SECRET_KEY를 설정하세요. 기본값은 개발 전용입니다.
       secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
       activated-at: 2026-01-01T00:00:00
       # expires-at은 null이면 만료되지 않음

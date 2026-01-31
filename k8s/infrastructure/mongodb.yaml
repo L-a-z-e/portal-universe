@@ -45,6 +45,13 @@ spec:
           ports:
             - containerPort: 27017
               name: mongodb
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           env:
             # MongoDB 초기 루트 사용자 이름을 설정합니다.
             - name: MONGO_INITDB_ROOT_USERNAME

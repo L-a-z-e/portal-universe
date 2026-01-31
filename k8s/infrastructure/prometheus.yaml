@@ -26,6 +26,13 @@ spec:
           ports:
             - containerPort: 9090
               name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
           volumeMounts:
             # ConfigMap에 정의된 prometheus.yml 설정을 컨테이너 내부 경로에 마운트합니다.
             - name: prometheus-config
