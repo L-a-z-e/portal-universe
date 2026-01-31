@@ -33,8 +33,8 @@ export default defineConfig({
   // Shared settings for all projects
   use: {
     // Base URL for portal-shell (Module Federation host)
-    // Docker: https://portal-universe:30000, Local: http://localhost:30000
-    baseURL: process.env.BASE_URL || 'http://localhost:30000',
+    // Docker: https://portal-universe:30000, Local: https://localhost:30000
+    baseURL: process.env.BASE_URL || 'https://localhost:30000',
 
     // Ignore HTTPS errors (Docker uses self-signed certificates)
     ignoreHTTPSErrors: true,
@@ -65,21 +65,45 @@ export default defineConfig({
 
   // Configure projects for browsers
   projects: [
-    // Setup project for authentication
+    // Setup project for user authentication
     {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/,
+      testMatch: /auth\.setup\.ts/,
     },
 
-    // Main test project with authentication state
+    // Setup project for admin authentication
+    {
+      name: 'admin-setup',
+      testMatch: /auth-admin\.setup\.ts/,
+    },
+
+    // Seed test data via Admin API (products, coupons, time-deals)
+    {
+      name: 'data-seed',
+      testMatch: /data-seed\.setup\.ts/,
+      dependencies: ['admin-setup'],
+    },
+
+    // Main test project with user authentication state (excludes admin/ and noauth)
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // Use authenticated state from setup
         storageState: './tests/.auth/user.json',
       },
+      testIgnore: [/tests\/admin\//, /.*\.noauth\.spec\.ts/],
       dependencies: ['setup'],
+    },
+
+    // Admin test project with admin authentication state
+    {
+      name: 'chromium-admin',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: './tests/.auth/admin.json',
+      },
+      testMatch: /tests\/admin\//,
+      dependencies: ['admin-setup', 'data-seed'],
     },
 
     // Tests that don't require authentication
