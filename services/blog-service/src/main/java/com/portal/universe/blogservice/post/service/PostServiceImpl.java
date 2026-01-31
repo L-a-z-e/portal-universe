@@ -343,52 +343,6 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * Phase 3: 트렌딩 점수 계산
-     * 공식: score = (views * 1 + likes * 3 + comments * 5) * timeDecay
-     * - 조회수: 기본 참여 지표 (가중치 1)
-     * - 좋아요: 적극적 참여 지표 (가중치 3)
-     * - 댓글: 최고 참여 지표 (가중치 5)
-     * - 시간 감쇠: 오래된 게시물은 점수 감소
-     */
-    private double calculateTrendingScore(Post post, String period) {
-        // 기본 점수 (가중치 적용)
-        double viewScore = post.getViewCount() * 1.0;
-        double likeScore = post.getLikeCount() * 3.0;
-        double commentScore = (post.getCommentCount() != null ? post.getCommentCount() : 0L) * 5.0;
-
-        double baseScore = viewScore + likeScore + commentScore;
-
-        // 시간 감쇠 계산
-        double timeDecay = calculateTimeDecay(post.getPublishedAt(), period);
-
-        return baseScore * timeDecay;
-    }
-
-    /**
-     * 시간 감쇠 계수 계산
-     * 최근 게시물일수록 높은 점수, 기간에 따라 감쇠 속도 조절
-     */
-    private double calculateTimeDecay(LocalDateTime publishedAt, String period) {
-        if (publishedAt == null) {
-            return 0.1; // 발행일이 없으면 최소 점수
-        }
-
-        long hoursElapsed = java.time.Duration.between(publishedAt, LocalDateTime.now()).toHours();
-
-        // 기간별 반감기 설정 (시간 단위)
-        double halfLife = switch (period) {
-            case "today" -> 6.0;    // 6시간마다 점수 반감
-            case "week" -> 48.0;    // 48시간(2일)마다 점수 반감
-            case "month" -> 168.0;  // 168시간(7일)마다 점수 반감
-            case "year" -> 720.0;   // 720시간(30일)마다 점수 반감
-            default -> 48.0;        // 기본값: 2일
-        };
-
-        // 지수 감쇠: decay = 2^(-hoursElapsed / halfLife)
-        return Math.pow(2, -hoursElapsed / halfLife);
-    }
-
-    /**
      * 기간 문자열을 기준으로 시작 날짜 계산
      */
     private LocalDateTime calculateStartDateByPeriod(String period) {
@@ -683,17 +637,9 @@ public class PostServiceImpl implements PostService {
 
     private String resolveAuthorName(String authorId, String authorName) {
         if (authorName != null && !authorName.isBlank()) {
-            return decodeHeaderValue(authorName);
+            return authorName;
         }
         return authorId;
-    }
-
-    private String decodeHeaderValue(String value) {
-        try {
-            return java.net.URLDecoder.decode(value, java.nio.charset.StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            return value;
-        }
     }
 
     // ===== 피드 기능 =====
