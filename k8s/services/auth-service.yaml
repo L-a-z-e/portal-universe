@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: portal-universe-auth-service:v1.0.2
+          image: portal-universe-auth-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8081

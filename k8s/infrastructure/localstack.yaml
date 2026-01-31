@@ -1,0 +1,77 @@
+# ===================================================================
+# LocalStack: Deployment
+# 역할: Blog Service S3 에뮬레이션용 LocalStack을 배포합니다.
+# ===================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+  namespace: portal-universe
+  labels:
+    app: localstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localstack
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+        - name: localstack
+          image: localstack/localstack:4.3.0
+          ports:
+            - containerPort: 4566
+              name: edge
+          env:
+            - name: SERVICES
+              value: "s3"
+            - name: AWS_DEFAULT_REGION
+              value: "ap-northeast-2"
+            - name: EAGER_SERVICE_LOADING
+              value: "1"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /_localstack/health
+              port: 4566
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /_localstack/health
+              port: 4566
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+# ===================================================================
+# LocalStack: Service
+# 역할: 클러스터 내 다른 서비스들이 LocalStack에 접근할 수 있도록
+#       고정된 주소(localstack:4566)를 제공합니다.
+# ===================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localstack
+  namespace: portal-universe
+  labels:
+    app: localstack
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4566
+      targetPort: 4566
+      protocol: TCP
+      name: edge
+  selector:
+    app: localstack

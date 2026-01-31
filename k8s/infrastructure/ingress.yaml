@@ -8,11 +8,15 @@ metadata:
   namespace: portal-universe
   annotations:
     # NGINX Ingress Controller를 사용하기 위한 설정들입니다.
-    nginx.ingress.kubernetes.io/ssl-redirect: "false" # HTTPS로 강제 리다이렉트하지 않음 (로컬 환경)
+    nginx.ingress.kubernetes.io/ssl-redirect: "true" # HTTPS로 리다이렉트 (mkcert 인증서 사용)
 spec:
   # 이 Ingress 리소스가 사용할 IngressClass의 이름입니다.
   # ingress-controller.yaml에 정의된 'nginx' IngressClass를 사용합니다.
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - portal-universe
+      secretName: portal-tls-secret
   rules:
     # 'portal-universe'라는 호스트 이름으로 들어오는 요청에 대한 규칙입니다.
     # 로컬에서 /etc/hosts 파일에 '127.0.0.1 portal-universe'를 추가하여 사용할 수 있습니다.
@@ -74,4 +78,4 @@ spec:
               service:
                 name: portal-shell
                 port:
-                  number: 80
+                  number: 8080

@@ -1,0 +1,73 @@
+# ===================================================================
+# Prism Frontend: Deployment
+# 역할: Prism Frontend (React 18) 정적 파일을 Nginx로 서빙합니다.
+# ===================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prism-frontend
+  namespace: portal-universe
+  labels:
+    app: prism-frontend
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prism-frontend
+  template:
+    metadata:
+      labels:
+        app: prism-frontend
+    spec:
+      containers:
+        - name: prism-frontend
+          image: portal-universe-prism-frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
+
+# ===================================================================
+# Prism Frontend: Service
+# ===================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prism-frontend
+  namespace: portal-universe
+  labels:
+    app: prism-frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: prism-frontend

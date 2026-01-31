@@ -31,4 +31,4 @@ spec:
               service:
                 name: portal-shell
                 port:
-                  number: 80
+                  number: 8080
