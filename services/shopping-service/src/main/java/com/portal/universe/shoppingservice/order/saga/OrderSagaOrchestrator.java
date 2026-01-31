@@ -2,6 +2,7 @@ package com.portal.universe.shoppingservice.order.saga;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
+import com.portal.universe.shoppingservice.delivery.service.DeliveryService;
 import com.portal.universe.shoppingservice.inventory.service.InventoryService;
 import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderItem;
@@ -37,6 +38,7 @@ public class OrderSagaOrchestrator {
     private final SagaStateRepository sagaStateRepository;
     private final OrderRepository orderRepository;
     private final InventoryService inventoryService;
+    private final DeliveryService deliveryService;
 
     private static final int MAX_COMPENSATION_ATTEMPTS = 3;
 
@@ -97,7 +99,8 @@ public class OrderSagaOrchestrator {
             executeDeductInventory(order, sagaState);
             sagaState.proceedToNextStep();
 
-            // Step 4: Create Delivery - 별도 서비스에서 처리하므로 여기서는 skip
+            // Step 4: Create Delivery
+            executeCreateDelivery(order, sagaState);
             sagaState.proceedToNextStep();
 
             // Step 5: Confirm Order
@@ -139,6 +142,11 @@ public class OrderSagaOrchestrator {
 
         try {
             // 완료된 단계들을 역순으로 보상
+            if (sagaState.isStepCompleted(SagaStep.CREATE_DELIVERY)) {
+                deliveryService.cancelDelivery(order.getId());
+                log.info("Saga {} - Delivery cancelled for order {}", sagaState.getSagaId(), order.getOrderNumber());
+            }
+
             if (sagaState.isStepCompleted(SagaStep.DEDUCT_INVENTORY)) {
                 // 재고 차감 보상: 이미 차감된 재고는 복원 불가 (반품 처리 필요)
                 log.warn("Saga {} - Deducted inventory cannot be auto-restored, requires manual intervention",
@@ -214,6 +222,14 @@ public class OrderSagaOrchestrator {
                 order.getOrderNumber(),
                 order.getUserId()
         );
+    }
+
+    /**
+     * Step 4: 배송 생성 실행
+     */
+    private void executeCreateDelivery(Order order, SagaState sagaState) {
+        log.debug("Saga {} - Executing step: CREATE_DELIVERY", sagaState.getSagaId());
+        deliveryService.createDelivery(order);
     }
 
     /**

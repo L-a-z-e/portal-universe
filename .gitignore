@@ -103,3 +103,7 @@ HELP.md
 frontend/portal-shell/public/blog/
 frontend/portal-shell/public/shopping/
 frontend/portal-shell/public/prism/
+
+# bkit (AI Development Toolkit)
+.bkit-memory.json
+docs/pdca/.pdca-status.json

@@ -72,6 +72,8 @@ const navItems = [
       { name: 'Products', path: '/shopping' },
       { name: 'Cart', path: '/shopping/cart' },
       { name: 'Orders', path: '/shopping/orders' },
+      { name: 'Coupons', path: '/shopping/coupons' },
+      { name: 'Time Deals', path: '/shopping/time-deals' },
     ],
   },
   {
