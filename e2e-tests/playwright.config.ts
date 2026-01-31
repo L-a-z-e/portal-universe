@@ -33,7 +33,11 @@ export default defineConfig({
   // Shared settings for all projects
   use: {
     // Base URL for portal-shell (Module Federation host)
-    baseURL: 'http://localhost:30000',
+    // Docker: https://portal-universe:30000, Local: http://localhost:30000
+    baseURL: process.env.BASE_URL || 'http://localhost:30000',
+
+    // Ignore HTTPS errors (Docker uses self-signed certificates)
+    ignoreHTTPSErrors: true,
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
