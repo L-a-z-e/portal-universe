@@ -20,6 +20,8 @@ troubleshooting/
 
 | ID | 제목 | 심각도 | 상태 | 영향 서비스 |
 |----|------|--------|------|-------------|
+| [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md) | K8s 환경 Service Status 페이지 전체 서비스 Down 표시 | 🟠 High | 해결됨 | portal-shell, api-gateway |
+| [TS-20260130-006](./2026/01/TS-20260130-006-prism-404-api-versioning.md) | Prism 404 - API 경로 버저닝 누락 | 🟡 Medium | 해결됨 | prism-frontend |
 | [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md) | React Error #321 Module Federation 듀얼 인스턴스 | 🟠 High | 해결됨 | prism-frontend, shopping-frontend |
 | [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md) | 좋아요 기능 API 경로 불일치 오류 | 🟡 Medium | 해결됨 | blog-frontend, blog-service |
 | [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md) | Kubernetes 배포 중 발생한 복합 인프라 이슈 | 🟠 High | 진행 중 | notification-service, auth-service, all-services |
@@ -50,20 +52,26 @@ troubleshooting/
 
 ### 서비스별
 
+- **api-gateway**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
 - **auth-service**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **blog-service**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
 - **notification-service**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **portal-shell**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **portal-shell**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **prism-frontend**: [TS-20260130-006](./2026/01/TS-20260130-006-prism-404-api-versioning.md), [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md)
 - **blog-frontend**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
-- **prism-frontend**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md)
 - **shopping-frontend**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
 
 ### 태그별
 
-- **API**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
-- **API Gateway**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
-- **Route Mismatch**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
-- **Kubernetes**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **API**: [TS-20260130-006](./2026/01/TS-20260130-006-prism-404-api-versioning.md), [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
+- **API Gateway**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md), [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
+- **Health Check**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **NetworkPolicy**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **WebFlux**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **fabric8**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **RBAC**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **Route Mismatch**: [TS-20260130-006](./2026/01/TS-20260130-006-prism-404-api-versioning.md), [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
+- **Kubernetes**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md), [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **Redis**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **Kind**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **Docker**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
