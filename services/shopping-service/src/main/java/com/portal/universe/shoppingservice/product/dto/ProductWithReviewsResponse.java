@@ -20,5 +20,7 @@ public record ProductWithReviewsResponse(
         String description,
         Double price,
         Integer stock,
+        String imageUrl,
+        String category,
         List<BlogResponse> reviews
 ) {}

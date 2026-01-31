@@ -44,12 +44,24 @@ public class Product {
     @Column(nullable = false)
     private Integer stock;
 
+    /**
+     * 상품 이미지 URL
+     */
+    private String imageUrl;
+
+    /**
+     * 상품 카테고리
+     */
+    private String category;
+
     @Builder
-    public Product(String name, String description, Double price, Integer stock) {
+    public Product(String name, String description, Double price, Integer stock, String imageUrl, String category) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.stock = stock;
+        this.imageUrl = imageUrl;
+        this.category = category;
     }
 
     /**
@@ -58,11 +70,15 @@ public class Product {
      * @param description 새로운 상품 설명
      * @param price 새로운 가격
      * @param stock 새로운 재고 수량
+     * @param imageUrl 새로운 이미지 URL
+     * @param category 새로운 카테고리
      */
-    public void update(String name, String description, Double price, Integer stock) {
+    public void update(String name, String description, Double price, Integer stock, String imageUrl, String category) {
             this.name = name;
             this.description = description;
             this.price = price;
             this.stock = stock;
+            this.imageUrl = imageUrl;
+            this.category = category;
     }
 }

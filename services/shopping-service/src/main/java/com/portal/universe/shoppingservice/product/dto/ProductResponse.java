@@ -9,5 +9,5 @@ package com.portal.universe.shoppingservice.product.dto;
  * @param price 가격
  * @param stock 재고
  */
-public record ProductResponse(Long id, String name, String description, Double price, Integer stock) {
+public record ProductResponse(Long id, String name, String description, Double price, Integer stock, String imageUrl, String category) {
 }

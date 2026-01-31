@@ -25,6 +25,10 @@ public record AdminProductRequest(
 
         @NotNull(message = "Product stock is required")
         @Min(value = 0, message = "Product stock must be non-negative")
-        Integer stock
+        Integer stock,
+
+        String imageUrl,
+
+        String category
 ) {
 }

@@ -54,6 +54,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getProductById(Long id) {
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
 
@@ -72,7 +73,9 @@ public class ProductServiceImpl implements ProductService {
                 request.name(),
                 request.description(),
                 request.price(),
-                request.stock()
+                request.stock(),
+                product.getImageUrl(),
+                product.getCategory()
         );
 
         // 3. Dirty Checking으로 자동 저장 (save 호출 생략)
@@ -109,6 +112,8 @@ public class ProductServiceImpl implements ProductService {
                 product.getDescription(),
                 product.getPrice(),
                 product.getStock(),
+                product.getImageUrl(),
+                product.getCategory(),
                 reviews
         );
     }
@@ -132,6 +137,8 @@ public class ProductServiceImpl implements ProductService {
                 .description(request.description())
                 .price(request.price())
                 .stock(request.stock())
+                .imageUrl(request.imageUrl())
+                .category(request.category())
                 .build();
 
         Product savedProduct = productRepository.save(newProduct);
@@ -168,7 +175,9 @@ public class ProductServiceImpl implements ProductService {
                 request.name(),
                 request.description(),
                 request.price(),
-                request.stock()
+                request.stock(),
+                request.imageUrl(),
+                request.category()
         );
 
         // Dirty Checking으로 자동 저장 (save 호출 생략 가능하나 명시적으로 호출)
@@ -187,7 +196,9 @@ public class ProductServiceImpl implements ProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
-                request.stock()
+                request.stock(),
+                product.getImageUrl(),
+                product.getCategory()
         );
 
         return convertToResponse(product);
@@ -199,7 +210,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 변환된 ProductResponse DTO
      */
     private ProductResponse convertToResponse(Product product) {
-        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(), product.getStock());
+        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(), product.getStock(), product.getImageUrl(), product.getCategory());
     }
 
 }
