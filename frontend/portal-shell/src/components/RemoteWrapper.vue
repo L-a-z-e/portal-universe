@@ -62,6 +62,10 @@ let mountFn: MountFn | null = null;
 // CSS Lifecycle Management
 // Remote app의 CSS를 Portal Shell에서 중앙 관리
 // module-level cssRegistry를 사용하여 인스턴스 간 공유
+//
+// MutationObserver는 Remote app이 동적으로 <link>/<style>을 document.head에
+// 삽입할 때 이를 추적하기 위해 사용됩니다. 추적된 CSS 요소는 Remote app이
+// unmount될 때 함께 정리되어 CSS 누수를 방지합니다.
 // -------------------------
 let cssObserver: MutationObserver | null = null;
 

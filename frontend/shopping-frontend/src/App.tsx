@@ -3,6 +3,7 @@ import { ShoppingRouter } from '@/router'
 import { useAuthStore } from '@/stores/authStore'
 import { usePortalTheme } from '@/hooks/usePortalStore'
 import { ToastContainer, useToast } from '@portal/design-system-react'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import './styles/index.css'
 
 /**
@@ -142,6 +143,7 @@ function App({
   // ============================================
 
   return (
+    <ErrorBoundary>
     <div className="min-h-screen bg-bg-page">
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
       {/* Header (Standalone 모드에서만 표시) */}
@@ -222,6 +224,7 @@ function App({
         </footer>
       )}
     </div>
+    </ErrorBoundary>
   )
 }
 
