@@ -19,15 +19,44 @@ Docker Compose를 사용한 로컬 개발 환경 구성 방법을 설명합니�
 
 ---
 
-#### Kubernetes 배포 가이드
+#### Kubernetes 배포 가이드 (간단 버전)
 **파일**: [kubernetes.md](./kubernetes.md)
 
-Kubernetes 환경에서 Portal Universe를 배포하는 방법을 설명합니다.
+Kubernetes 환경에서 Portal Universe를 배포하는 기본 방법을 설명합니다.
 
 **주요 내용**:
 - 클러스터 설정
 - 배포 방법
 - 서비스 관리
+
+---
+
+#### Kubernetes 배포 가이드 (상세 버전) ⭐
+**파일**: [k8s-deployment-guide.md](./k8s-deployment-guide.md) | **작성일**: 2026-01-31
+
+Kind(Kubernetes) 환경에서 Portal Universe 전체를 배포하는 완전한 가이드입니다. 실제 배포 과정에서 발생한 모든 이슈와 해결 방법을 포함합니다.
+
+**주요 내용**:
+- 원래 계획 vs 실제 수행 내용 (8가지 추가 이슈 해결)
+- 아키텍처 다이어그램 (21개 Pod)
+- 단계별 배포 가이드 (사전 준비 → TLS 인증서 → 빌드 → 배포 → 접속)
+- 상태 확인 및 에러 대처 (CrashLoopBackOff, ImagePullBackOff, 503 등)
+- 서비스 관리 (개별/전체 재시작, 스케일링, 이미지 업데이트)
+- 서비스 포트 매핑 테이블 (21개 서비스)
+- 파일 변경 목록 (31개 파일)
+- FAQ 및 트러블슈팅 체크리스트
+
+**해결한 주요 이슈**:
+- nginx DNS resolve 실패 → resolver + set variable 패턴
+- nginx URI 미전달 → rewrite 지시문
+- Mixed Content 에러 → relative path 변경
+- HSTS HTTP 차단 → mkcert TLS 인증서
+- prism-service DB 연결 실패 → 환경변수명 수정
+- probe 403 Forbidden → 경로 수정
+
+**관련 문서**:
+- [계획 파일](.claude/plans/cheerful-giggling-hedgehog.md)
+- [Docker Compose 배포 가이드](./docker-compose.md)
 
 ---
 
@@ -265,5 +294,5 @@ related:
 
 ---
 
-**최종 업데이트**: 2026-01-28
+**최종 업데이트**: 2026-01-31
 **관리자**: Documenter Agent
