@@ -2,6 +2,8 @@ package com.portal.universe.blogservice.post.repository;
 
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.domain.PostStatus;
+import com.portal.universe.blogservice.post.dto.stats.AuthorStats;
+import com.portal.universe.blogservice.post.dto.stats.BlogStats;
 import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import org.springframework.data.domain.Page;
@@ -66,4 +68,21 @@ public interface PostRepositoryCustom {
      */
     Page<Post> aggregateTrendingPosts(PostStatus status, LocalDateTime startDate,
                                        double halfLifeHours, int page, int size);
+
+    /**
+     * 블로그 전체 통계 조회 (Aggregation 사용)
+     *
+     * 기존 방식: findAll() 후 메모리에서 viewCount/likeCount 합산 (OOM 위험)
+     * 개선 방식: $group으로 DB에서 합산 = 1번 쿼리
+     */
+    BlogStats aggregateBlogStats(PostStatus publishedStatus, List<String> topCategories,
+                                  List<String> topTags, LocalDateTime lastPostDate);
+
+    /**
+     * 작성자별 통계 조회 (Aggregation 사용)
+     *
+     * 기존 방식: Pageable.unpaged()로 전체 로드 후 메모리 합산
+     * 개선 방식: $match + $group으로 DB에서 합산 = 1번 쿼리
+     */
+    AuthorStats aggregateAuthorStats(String authorId);
 }

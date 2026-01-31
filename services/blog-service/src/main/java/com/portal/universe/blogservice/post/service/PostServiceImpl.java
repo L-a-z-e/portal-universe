@@ -465,56 +465,21 @@ public class PostServiceImpl implements PostService {
     @Override
     public AuthorStats getAuthorStats(String authorId) {
         log.info("Fetching author statistics for authorId: {}", authorId);
-
-        long totalPosts = postRepository.countByAuthorIdAndStatus(authorId, PostStatus.PUBLISHED)
-                + postRepository.countByAuthorIdAndStatus(authorId, PostStatus.DRAFT);
-        long publishedPosts = postRepository.countByAuthorIdAndStatus(authorId, PostStatus.PUBLISHED);
-
-        // 작성자의 모든 게시물 조회
-        List<Post> authorPosts = postRepository.findByAuthorIdOrderByCreatedAtDesc(
-                authorId, Pageable.unpaged()).getContent();
-
-        long totalViews = authorPosts.stream().mapToLong(Post::getViewCount).sum();
-        long totalLikes = authorPosts.stream().mapToLong(Post::getLikeCount).sum();
-
-        LocalDateTime firstPostDate = authorPosts.isEmpty() ? null
-                : authorPosts.get(authorPosts.size() - 1).getCreatedAt();
-        LocalDateTime lastPostDate = authorPosts.isEmpty() ? null
-                : authorPosts.get(0).getCreatedAt();
-
-        String authorName = authorPosts.isEmpty() ? null : authorPosts.get(0).getAuthorName();
-
-        return new AuthorStats(
-                authorId,
-                authorName,
-                totalPosts,
-                publishedPosts,
-                totalViews,
-                totalLikes,
-                firstPostDate,
-                lastPostDate
-        );
+        return postRepository.aggregateAuthorStats(authorId);
     }
 
     @Override
     public BlogStats getBlogStats() {
         log.info("Fetching blog statistics");
 
-        long totalPosts = postRepository.count();
-        long publishedPosts = postRepository.countByStatus(PostStatus.PUBLISHED);
-
-        List<Post> allPosts = postRepository.findAll();
-        long totalViews = allPosts.stream().mapToLong(Post::getViewCount).sum();
-        long totalLikes = allPosts.stream().mapToLong(Post::getLikeCount).sum();
-
-        // 상위 카테고리 (상위 5개)
+        // 상위 카테고리 (상위 5개) — 이미 aggregation 사용
         List<String> topCategories = getCategoryStats().stream()
                 .sorted(Comparator.comparing(CategoryStats::postCount).reversed())
                 .limit(5)
                 .map(CategoryStats::categoryName)
                 .collect(Collectors.toList());
 
-        // 상위 태그 (상위 10개)
+        // 상위 태그 (상위 10개) — 이미 aggregation 사용
         List<String> topTags = getPopularTags(10).stream()
                 .map(com.portal.universe.blogservice.tag.dto.TagStatsResponse::name)
                 .collect(Collectors.toList());
@@ -527,15 +492,8 @@ public class PostServiceImpl implements PostService {
                 .map(Post::getPublishedAt)
                 .orElse(null);
 
-        return new BlogStats(
-                totalPosts,
-                publishedPosts,
-                totalViews,
-                totalLikes,
-                topCategories,
-                topTags,
-                lastPostDate
-        );
+        // totalViews, totalLikes를 aggregation으로 합산 (findAll() 대신)
+        return postRepository.aggregateBlogStats(PostStatus.PUBLISHED, topCategories, topTags, lastPostDate);
     }
 
     @Override

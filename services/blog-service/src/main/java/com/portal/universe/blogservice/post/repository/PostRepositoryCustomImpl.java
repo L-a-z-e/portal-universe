@@ -2,6 +2,8 @@ package com.portal.universe.blogservice.post.repository;
 
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.domain.PostStatus;
+import com.portal.universe.blogservice.post.dto.stats.AuthorStats;
+import com.portal.universe.blogservice.post.dto.stats.BlogStats;
 import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * MongoDB Aggregation Pipeline 구현체
@@ -299,5 +302,78 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         );
 
         return new PageImpl<>(posts, PageRequest.of(page, size), total);
+    }
+
+    @Override
+    public BlogStats aggregateBlogStats(PostStatus publishedStatus, List<String> topCategories,
+                                         List<String> topTags, LocalDateTime lastPostDate) {
+        log.debug("Aggregating blog stats");
+
+        long totalPosts = mongoTemplate.count(new Query(), Post.class);
+        long publishedPosts = mongoTemplate.count(
+                Query.query(Criteria.where("status").is(publishedStatus.name())),
+                Post.class);
+
+        // viewCount, likeCount 합산을 aggregation으로 처리
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.group()
+                        .sum("viewCount").as("totalViews")
+                        .sum("likeCount").as("totalLikes")
+        );
+
+        AggregationResults<Document> results = mongoTemplate.aggregate(
+                aggregation, Post.class, Document.class);
+
+        Document stats = results.getUniqueMappedResult();
+        long totalViews = 0L;
+        long totalLikes = 0L;
+        if (stats != null) {
+            totalViews = stats.get("totalViews", Number.class).longValue();
+            totalLikes = stats.get("totalLikes", Number.class).longValue();
+        }
+
+        return new BlogStats(totalPosts, publishedPosts, totalViews, totalLikes,
+                topCategories, topTags, lastPostDate);
+    }
+
+    @Override
+    public AuthorStats aggregateAuthorStats(String authorId) {
+        log.debug("Aggregating author stats for authorId: {}", authorId);
+
+        // 전체 게시물 수 (모든 상태)와 발행된 게시물 수를 하나의 aggregation으로 조회
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("authorId").is(authorId)),
+                Aggregation.group()
+                        .count().as("totalPosts")
+                        .sum("viewCount").as("totalViews")
+                        .sum("likeCount").as("totalLikes")
+                        .min("createdAt").as("firstPostDate")
+                        .max("createdAt").as("lastPostDate")
+                        .first("authorName").as("authorName")
+        );
+
+        AggregationResults<Document> results = mongoTemplate.aggregate(
+                aggregation, Post.class, Document.class);
+
+        Document stats = results.getUniqueMappedResult();
+        if (stats == null) {
+            return new AuthorStats(authorId, null, 0L, 0L, 0L, 0L, null, null);
+        }
+
+        long publishedPosts = mongoTemplate.count(
+                Query.query(Criteria.where("authorId").is(authorId)
+                        .and("status").is(PostStatus.PUBLISHED.name())),
+                Post.class);
+
+        return new AuthorStats(
+                authorId,
+                stats.getString("authorName"),
+                stats.get("totalPosts", Number.class).longValue(),
+                publishedPosts,
+                stats.get("totalViews", Number.class).longValue(),
+                stats.get("totalLikes", Number.class).longValue(),
+                stats.get("firstPostDate", LocalDateTime.class),
+                stats.get("lastPostDate", LocalDateTime.class)
+        );
     }
 }
