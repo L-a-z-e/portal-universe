@@ -24,6 +24,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -37,6 +38,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductResponse createProduct(ProductCreateRequest request) {
         Product newProduct = Product.builder()
                 .name(request.name())
@@ -59,6 +61,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductResponse updateProduct(Long productId, ProductUpdateRequest request) {
         // 1. 수정할 상품을 ID로 조회합니다.
         Product product = productRepository.findById(productId)
@@ -78,6 +81,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long productId) {
         // 삭제할 상품이 존재하는지 먼저 확인합니다.
         if (!productRepository.existsById(productId)) {
