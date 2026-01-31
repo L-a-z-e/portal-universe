@@ -35,6 +35,7 @@ public class PublicPathProperties {
             "/api/v1/prism/sse/**",
             "/api/v1/prism/health",
             "/api/v1/prism/ready",
+            "/api/health/**",
             "/actuator/**",
             "/api/v1/*/actuator/**"
     );
@@ -56,6 +57,7 @@ public class PublicPathProperties {
             "/auth-service/",
             "/api/v1/auth/",
             "/api/v1/users/",
+            "/api/health/",
             "/actuator/",
             "/api/v1/shopping/products",
             "/api/v1/shopping/categories",

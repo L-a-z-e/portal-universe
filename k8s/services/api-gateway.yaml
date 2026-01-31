@@ -26,6 +26,7 @@ spec:
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port: "8080"
     spec:
+      serviceAccountName: api-gateway-sa
       containers:
         - name: api-gateway
           # 로컬 Kind 클러스터에 미리 로드된 이미지를 사용합니다.
@@ -107,3 +108,56 @@ spec:
       name: http
   selector:
     app: api-gateway
+
+# ===================================================================
+# API Gateway: ServiceAccount
+# 역할: Health Aggregation에서 K8s API 접근을 위한 서비스 계정
+# ===================================================================
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-gateway-sa
+  namespace: portal-universe
+  labels:
+    app: api-gateway
+
+# ===================================================================
+# API Gateway: Role
+# 역할: pods, deployments 조회 권한 (health endpoint용)
+# ===================================================================
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-gateway-health-reader
+  namespace: portal-universe
+  labels:
+    app: api-gateway
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list"]
+
+# ===================================================================
+# API Gateway: RoleBinding
+# ===================================================================
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-gateway-health-reader-binding
+  namespace: portal-universe
+  labels:
+    app: api-gateway
+subjects:
+  - kind: ServiceAccount
+    name: api-gateway-sa
+    namespace: portal-universe
+roleRef:
+  kind: Role
+  name: api-gateway-health-reader
+  apiGroup: rbac.authorization.k8s.io

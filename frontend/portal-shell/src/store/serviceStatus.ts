@@ -1,9 +1,16 @@
 // portal-shell/src/store/serviceStatus.ts
-// Service health status store with polling
+// Service health status store — fetches from /api/health/services
 
 import { defineStore } from 'pinia';
 
 export type ServiceStatus = 'up' | 'down' | 'degraded' | 'unknown';
+
+export interface PodInfo {
+  name: string;
+  phase: string;
+  ready: boolean;
+  restarts: number;
+}
 
 export interface ServiceHealth {
   name: string;
@@ -12,59 +19,24 @@ export interface ServiceHealth {
   responseTime?: number;
   lastChecked: Date | null;
   error?: string;
-  details?: Record<string, unknown>;
+  replicas?: number;
+  readyReplicas?: number;
+  pods?: PodInfo[];
 }
 
 export interface ServiceStatusState {
   services: Record<string, ServiceHealth>;
   isPolling: boolean;
-  pollInterval: number; // in milliseconds
+  pollInterval: number;
   lastGlobalCheck: Date | null;
 }
 
-// Service configurations
-const SERVICE_CONFIGS: { key: string; displayName: string; healthUrl: string }[] = [
-  {
-    key: 'api-gateway',
-    displayName: 'API Gateway',
-    healthUrl: '/actuator/health',
-  },
-  {
-    key: 'auth-service',
-    displayName: 'Auth Service',
-    healthUrl: '/api/v1/auth/actuator/health',
-  },
-  {
-    key: 'blog-service',
-    displayName: 'Blog Service',
-    healthUrl: '/api/v1/blog/actuator/health',
-  },
-  {
-    key: 'shopping-service',
-    displayName: 'Shopping Service',
-    healthUrl: '/api/v1/shopping/actuator/health',
-  },
-];
-
-const TIMEOUT_MS = 5000;
-const DEFAULT_POLL_INTERVAL = 10000; // 10 seconds
-
-function createInitialServices(): Record<string, ServiceHealth> {
-  const services: Record<string, ServiceHealth> = {};
-  for (const config of SERVICE_CONFIGS) {
-    services[config.key] = {
-      name: config.key,
-      displayName: config.displayName,
-      status: 'unknown',
-      lastChecked: null,
-    };
-  }
-  return services;
-}
+const DEFAULT_POLL_INTERVAL = 10000;
+const TIMEOUT_MS = 8000;
 
 export const useServiceStatusStore = defineStore('serviceStatus', {
   state: (): ServiceStatusState => ({
-    services: createInitialServices(),
+    services: {},
     isPolling: false,
     pollInterval: DEFAULT_POLL_INTERVAL,
     lastGlobalCheck: null,
@@ -81,6 +53,7 @@ export const useServiceStatusStore = defineStore('serviceStatus', {
 
     overallStatus: (state): ServiceStatus => {
       const services = Object.values(state.services);
+      if (services.length === 0) return 'unknown';
       if (services.every((s) => s.status === 'up')) return 'up';
       if (services.every((s) => s.status === 'down')) return 'down';
       if (services.some((s) => s.status === 'down' || s.status === 'degraded')) return 'degraded';
@@ -91,68 +64,67 @@ export const useServiceStatusStore = defineStore('serviceStatus', {
   },
 
   actions: {
-    async checkServiceHealth(serviceKey: string): Promise<void> {
-      const config = SERVICE_CONFIGS.find((c) => c.key === serviceKey);
-      if (!config) return;
-
-      const service = this.services[serviceKey];
-      if (!service) return;
-
-      const startTime = Date.now();
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+    async checkAllServices(): Promise<void> {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-        const response = await fetch(`${baseUrl}${config.healthUrl}`, {
+        const response = await fetch(`${baseUrl}/api/health/services`, {
           method: 'GET',
           signal: controller.signal,
-          headers: {
-            Accept: 'application/json',
-          },
+          headers: { Accept: 'application/json' },
         });
 
         clearTimeout(timeoutId);
-        const responseTime = Date.now() - startTime;
 
-        if (response.ok) {
-          const data = await response.json();
-          service.status = data.status?.toLowerCase() === 'up' ? 'up' : 'degraded';
-          service.details = data;
-          service.error = undefined;
-        } else {
-          service.status = response.status >= 500 ? 'down' : 'degraded';
-          service.error = `HTTP ${response.status}`;
+        if (!response.ok) {
+          this.markAllDown(`HTTP ${response.status}`);
+          return;
         }
 
-        service.responseTime = responseTime;
+        const data = await response.json();
+        const now = new Date();
+
+        const updatedServices: Record<string, ServiceHealth> = {};
+        for (const svc of data.services ?? []) {
+          updatedServices[svc.name] = {
+            name: svc.name,
+            displayName: svc.displayName,
+            status: (svc.status as ServiceStatus) ?? 'unknown',
+            responseTime: svc.responseTime,
+            lastChecked: now,
+            replicas: svc.replicas ?? undefined,
+            readyReplicas: svc.readyReplicas ?? undefined,
+            pods: svc.pods ?? undefined,
+          };
+        }
+
+        this.services = updatedServices;
       } catch (error) {
-        service.status = 'down';
-        service.responseTime = Date.now() - startTime;
-
-        if (error instanceof Error) {
-          if (error.name === 'AbortError') {
-            service.error = 'Timeout';
-          } else {
-            service.error = error.message;
-          }
-        } else {
-          service.error = 'Unknown error';
-        }
+        const msg = error instanceof Error
+          ? (error.name === 'AbortError' ? 'Timeout' : error.message)
+          : 'Unknown error';
+        this.markAllDown(msg);
       }
 
-      service.lastChecked = new Date();
-    },
-
-    async checkAllServices(): Promise<void> {
-      const checks = SERVICE_CONFIGS.map((config) => this.checkServiceHealth(config.key));
-      await Promise.allSettled(checks);
       this.lastGlobalCheck = new Date();
     },
 
+    markAllDown(errorMessage: string) {
+      const now = new Date();
+      for (const key of Object.keys(this.services)) {
+        const service = this.services[key];
+        if (!service) continue;
+        service.status = 'down';
+        service.error = errorMessage;
+        service.lastChecked = now;
+      }
+    },
+
     setPollInterval(interval: number): void {
-      this.pollInterval = Math.max(5000, Math.min(60000, interval)); // 5s to 60s
+      this.pollInterval = Math.max(5000, Math.min(60000, interval));
     },
 
     startPolling(): void {

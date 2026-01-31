@@ -285,7 +285,7 @@ onMounted(async () => {
     }
 
     // ✅ mountFn 저장 (나중에 watch에서 사용)
-    mountFn = result.mountFn;
+    mountFn = result.mountFn as MountFn;
 
     console.log(`🎨 [RemoteWrapper] Tracked ${getTrackedCss(props.config.key).length} CSS elements for ${props.config.name}`);
 
@@ -357,7 +357,7 @@ async function retry() {
     const result = await remoteLoader.loadRemote(props.config);
 
     if (result.success && result.mountFn) {
-      mountFn = result.mountFn;
+      mountFn = result.mountFn as MountFn;
       loading.value = false;  // watch가 mountRemote() 호출
     } else {
       error.value = result.error;

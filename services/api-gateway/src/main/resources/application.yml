@@ -417,6 +417,7 @@ gateway:
       - "/api/v1/prism/sse/**"
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
+      - "/api/health/**"
       - "/actuator/**"
       - "/api/v1/*/actuator/**"
     permit-all-get:
@@ -426,6 +427,7 @@ gateway:
       - "/auth-service/"
       - "/api/v1/auth/"
       - "/api/v1/users/"
+      - "/api/health/"
       - "/actuator/"
       - "/api/v1/shopping/products"
       - "/api/v1/shopping/categories"
@@ -477,5 +479,39 @@ security:
         - "/auth-service/**"
         - "/api/v1/users/**"
         - "/api/v1/*/profile/**"
+
+# Health Aggregation 설정
+health-check:
+  services:
+    - name: api-gateway
+      display-name: API Gateway
+      url: ${services.gateway.url:http://localhost:8080}
+      health-path: /actuator/health
+      k8s-deployment-name: api-gateway
+    - name: auth-service
+      display-name: Auth Service
+      url: ${services.auth.url:http://localhost:8081}
+      health-path: /actuator/health
+      k8s-deployment-name: auth-service
+    - name: blog-service
+      display-name: Blog Service
+      url: ${services.blog.url:http://localhost:8082}
+      health-path: /actuator/health
+      k8s-deployment-name: blog-service
+    - name: shopping-service
+      display-name: Shopping Service
+      url: ${services.shopping.url:http://localhost:8083}
+      health-path: /actuator/health
+      k8s-deployment-name: shopping-service
+    - name: notification-service
+      display-name: Notification Service
+      url: ${services.notification.url:http://localhost:8084}
+      health-path: /actuator/health
+      k8s-deployment-name: notification-service
+    - name: prism-service
+      display-name: Prism Service
+      url: ${services.prism.url:http://localhost:8085}
+      health-path: /api/v1/health
+      k8s-deployment-name: prism-service
 
 # 로깅 설정은 logback-spring.xml에서 관리
