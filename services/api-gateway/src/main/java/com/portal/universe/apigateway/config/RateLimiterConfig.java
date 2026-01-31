@@ -1,13 +1,16 @@
 package com.portal.universe.apigateway.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -27,6 +30,15 @@ import java.util.Objects;
 @Slf4j
 @Configuration
 public class RateLimiterConfig {
+
+    private final boolean isDockerProfile;
+
+    public RateLimiterConfig(Environment environment) {
+        this.isDockerProfile = Arrays.asList(environment.getActiveProfiles()).contains("docker");
+        if (isDockerProfile) {
+            log.info("Docker profile detected - using relaxed rate limits for development/testing");
+        }
+    }
 
     /**
      * IP 주소 기반 KeyResolver (기본값)
@@ -98,7 +110,9 @@ public class RateLimiterConfig {
     @Bean
     @Primary
     public RedisRateLimiter defaultRedisRateLimiter() {
-        return new RedisRateLimiter(10, 20, 1);
+        return isDockerProfile
+            ? new RedisRateLimiter(50, 200, 1)
+            : new RedisRateLimiter(10, 20, 1);
     }
 
     /**
@@ -107,11 +121,13 @@ public class RateLimiterConfig {
      *
      * replenishRate: 5 req/min (초당 0.083)
      * burstCapacity: 5
+     * Docker: 20 req/sec, burst 50
      */
     @Bean
     public RedisRateLimiter strictRedisRateLimiter() {
-        // 5 requests per minute = 5/60 = 0.083 per second
-        return new RedisRateLimiter(1, 5, 1);
+        return isDockerProfile
+            ? new RedisRateLimiter(20, 50, 1)
+            : new RedisRateLimiter(1, 5, 1);
     }
 
     /**
@@ -119,11 +135,13 @@ public class RateLimiterConfig {
      *
      * replenishRate: 3 req/min (초당 0.05)
      * burstCapacity: 3
+     * Docker: 20 req/sec, burst 50
      */
     @Bean
     public RedisRateLimiter signupRedisRateLimiter() {
-        // 3 requests per minute = 3/60 = 0.05 per second
-        return new RedisRateLimiter(1, 3, 1);
+        return isDockerProfile
+            ? new RedisRateLimiter(20, 50, 1)
+            : new RedisRateLimiter(1, 3, 1);
     }
 
     /**
@@ -131,11 +149,13 @@ public class RateLimiterConfig {
      *
      * replenishRate: 100 req/min (초당 1.67)
      * burstCapacity: 100
+     * Docker: 50 req/sec, burst 500
      */
     @Bean
     public RedisRateLimiter authenticatedRedisRateLimiter() {
-        // 100 requests per minute = 100/60 = 1.67 per second
-        return new RedisRateLimiter(2, 100, 1);
+        return isDockerProfile
+            ? new RedisRateLimiter(50, 500, 1)
+            : new RedisRateLimiter(2, 100, 1);
     }
 
     /**
@@ -143,10 +163,12 @@ public class RateLimiterConfig {
      *
      * replenishRate: 30 req/min (초당 0.5)
      * burstCapacity: 30
+     * Docker: 50 req/sec, burst 200
      */
     @Bean
     public RedisRateLimiter unauthenticatedRedisRateLimiter() {
-        // 30 requests per minute = 30/60 = 0.5 per second
-        return new RedisRateLimiter(1, 30, 1);
+        return isDockerProfile
+            ? new RedisRateLimiter(50, 200, 1)
+            : new RedisRateLimiter(1, 30, 1);
     }
 }
