@@ -60,13 +60,10 @@ export const useAuthStore = create<AuthState>()(
        */
       setAccessToken: (token: string | null) => {
         set({ accessToken: token })
-        // 전역 토큰도 업데이트
         if (token) {
           window.__PORTAL_ACCESS_TOKEN__ = token
-          localStorage.setItem('access_token', token)
         } else {
           delete window.__PORTAL_ACCESS_TOKEN__
-          localStorage.removeItem('access_token')
         }
       },
 
@@ -76,7 +73,6 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         set(initialState)
         delete window.__PORTAL_ACCESS_TOKEN__
-        localStorage.removeItem('access_token')
       },
 
       /**
