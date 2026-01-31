@@ -63,6 +63,8 @@ spring:
         # Gateway(8080)를 통해 접근하므로 Issuer를 Gateway 주소로 고정
         issuer: http://localhost:8080/auth-service
       client:
+        # ⚠️ Production: 실제 OAuth Client ID/Secret을 환경변수로 설정하세요.
+        # dummy 값은 개발 환경 전용입니다.
         registration:
           google:
             client-id: ${GOOGLE_CLIENT_ID:dummy}

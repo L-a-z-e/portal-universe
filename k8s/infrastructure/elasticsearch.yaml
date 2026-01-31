@@ -26,6 +26,8 @@ spec:
         env:
         - name: discovery.type
           value: single-node
+        # ⚠️ Production: X-Pack security를 활성화하고 TLS/인증을 설정하세요.
+        # 참고: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-minimal-setup.html
         - name: xpack.security.enabled
           value: "false"
         - name: ES_JAVA_OPTS

@@ -24,6 +24,9 @@ WORKDIR /app
 # 비루트 사용자 생성 및 전환
 RUN addgroup --system appgroup && adduser --system -ingroup appgroup appuser
 
+# curl 설치 (HEALTHCHECK용)
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # 로그 디렉토리 생성 및 권한 설정
 RUN mkdir -p /app/logs && chown appuser:appgroup /app/logs
 
@@ -32,6 +35,10 @@ COPY --from=builder /app/services/auth-service/build/libs/auth-service-0.0.1-SNA
 
 # 비루트 사용자로 전환
 USER appuser
+
+# Health Check 설정
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:8081/actuator/health || exit 1
 
 # 컨테이너 시작 시 JAR 파일을 직접 실행합니다.
 ENTRYPOINT ["java", "-jar", "app.jar"]

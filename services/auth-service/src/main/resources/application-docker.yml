@@ -73,6 +73,8 @@ spring:
         issuer: https://portal-universe:30000/auth-service
       # Google OAuth - 비활성화 (임의 도메인 불가)
       # Naver/Kakao는 임의 hosts 도메인 허용
+      # ⚠️ Production: 실제 OAuth Client ID/Secret을 환경변수로 설정하세요.
+      # dummy 값은 개발 환경 전용입니다.
       client:
         registration:
           naver:

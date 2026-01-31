@@ -34,6 +34,8 @@ spec:
               memory: "256Mi"
               cpu: "250m"
           env:
+            # ⚠️ Production: 기본 admin 계정 대신 Secret으로 관리하세요.
+            # kubectl create secret generic grafana-admin --from-literal=user=<사용자명> --from-literal=password=<강력한비밀번호>
             # Grafana 초기 관리자 계정의 비밀번호를 설정합니다.
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: "admin"
