@@ -37,7 +37,7 @@ feign:
 spring:
   data:
     mongodb:
-      uri: mongodb://laze:password@mongodb:27017/blog_db?authSource=admin
+      uri: mongodb://laze:${MONGO_PASSWORD:password}@mongodb:27017/blog_db?authSource=admin
 
   kafka:
     bootstrap-servers: kafka:29092
