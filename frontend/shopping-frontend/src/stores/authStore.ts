@@ -4,6 +4,12 @@
  * 인증 상태 관리
  * - Embedded 모드: Portal Shell의 authStore 연동
  * - Standalone 모드: 로컬 상태 관리
+ *
+ * ⚠️ 이 파일은 prism-frontend/src/stores/authStore.ts와 동일 구조입니다.
+ * 변경 시 양쪽 모두 반영이 필요합니다.
+ * TODO: frontend/common/ 패키지로 공통 추출 예정
+ * @see frontend/prism-frontend/src/stores/authStore.ts
+ * @see frontend/common/react-mf-bootstrap.ts
  */
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
