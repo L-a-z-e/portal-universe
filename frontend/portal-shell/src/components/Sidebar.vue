@@ -98,6 +98,7 @@ const isActive = (path: string, exact = false) => {
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
   localStorage.setItem('sidebar-collapsed', String(isCollapsed.value));
+  window.dispatchEvent(new CustomEvent('sidebar-toggle', { detail: { collapsed: isCollapsed.value } }));
 };
 
 // Toggle mobile menu

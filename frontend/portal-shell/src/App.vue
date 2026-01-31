@@ -17,15 +17,20 @@ const route = useRoute();
 // Quick Actions modal state
 const showQuickActions = ref(false);
 
-// Sidebar collapsed state (synced with Sidebar component via localStorage)
+// Sidebar collapsed state (synced with Sidebar component via CustomEvent)
 const sidebarCollapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true');
 
-// Interval ID for cleanup
-let sidebarCheckInterval: ReturnType<typeof setInterval> | null = null;
+// Handle sidebar toggle event from Sidebar component
+const handleSidebarToggle = (e: Event) => {
+  const detail = (e as CustomEvent<{ collapsed: boolean }>).detail;
+  sidebarCollapsed.value = detail.collapsed;
+};
 
-// Watch localStorage changes
-const updateSidebarState = () => {
-  sidebarCollapsed.value = localStorage.getItem('sidebar-collapsed') === 'true';
+// Handle cross-tab localStorage changes
+const handleStorageChange = (e: StorageEvent) => {
+  if (e.key === 'sidebar-collapsed') {
+    sidebarCollapsed.value = e.newValue === 'true';
+  }
 };
 
 // Computed class for main content margin
@@ -71,22 +76,15 @@ onMounted(() => {
   (window as any).__PORTAL_SHOW_LOGIN__ = () => authStore.requestLogin();
   (window as any).__PORTAL_ON_AUTH_ERROR__ = () => authStore.requestLogin();
 
-  // Listen for localStorage changes (sidebar state)
-  window.addEventListener('storage', updateSidebarState);
-
-  // Periodic check for sidebar state (same-tab changes)
-  sidebarCheckInterval = setInterval(updateSidebarState, 100);
+  // Listen for sidebar toggle events (same-tab)
+  window.addEventListener('sidebar-toggle', handleSidebarToggle);
+  // Listen for cross-tab localStorage changes
+  window.addEventListener('storage', handleStorageChange);
 });
 
 onBeforeUnmount(() => {
-  // Cleanup event listener
-  window.removeEventListener('storage', updateSidebarState);
-
-  // Cleanup interval
-  if (sidebarCheckInterval) {
-    clearInterval(sidebarCheckInterval);
-    sidebarCheckInterval = null;
-  }
+  window.removeEventListener('sidebar-toggle', handleSidebarToggle);
+  window.removeEventListener('storage', handleStorageChange);
 });
 
 watch(() => route.path, () => {
