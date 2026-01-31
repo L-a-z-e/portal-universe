@@ -1,6 +1,7 @@
 package com.portal.universe.authservice.user.service;
 
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
+import com.portal.universe.authservice.user.dto.SignupCommand;
 import com.portal.universe.authservice.user.dto.UserProfileResponse;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
@@ -35,12 +36,6 @@ public class UserService {
     private final RbacInitializationService rbacInitializationService;
 
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-z0-9_]{3,20}$");
-
-    /**
-     * 회원가입 요청 DTO
-     * (Controller와 공유하거나 별도로 분리할 수 있음. 현재는 Service 내부에 정의하거나 별도 패키지로 분리 권장)
-     */
-    public record SignupCommand(String email, String password, String nickname, String realName, boolean marketingAgree) {}
 
     /**
      * 일반 이메일 회원가입 처리

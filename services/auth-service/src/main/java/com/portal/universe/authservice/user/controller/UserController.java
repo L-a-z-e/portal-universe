@@ -1,6 +1,7 @@
 package com.portal.universe.authservice.user.controller;
 
 import com.portal.universe.authservice.user.dto.PasswordChangeRequest;
+import com.portal.universe.authservice.user.dto.SignupCommand;
 import com.portal.universe.authservice.user.dto.UserProfileResponse;
 import com.portal.universe.authservice.user.dto.UserProfileUpdateRequest;
 import com.portal.universe.authservice.user.dto.UsernameCheckResponse;
@@ -35,7 +36,7 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<String>> signup(@RequestBody UserSignupRequest request) {
-        UserService.SignupCommand command = new UserService.SignupCommand(
+        SignupCommand command = new SignupCommand(
                 request.email(),
                 request.password(),
                 request.nickname(),

@@ -15,6 +15,7 @@ import com.portal.universe.authservice.auth.service.TokenBlacklistService;
 import com.portal.universe.authservice.auth.service.TokenService;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.util.IpUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -68,7 +69,7 @@ public class AuthController {
             HttpServletRequest servletRequest,
             HttpServletResponse servletResponse) {
 
-        String clientIp = getClientIp(servletRequest);
+        String clientIp = IpUtils.getClientIp(servletRequest);
         String loginKey = clientIp + ":" + request.email();
 
         log.info("Login attempt for email: {} from IP: {}", request.email(), clientIp);
@@ -262,40 +263,6 @@ public class AuthController {
                 .maxAge(0)
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    }
-
-    /**
-     * 클라이언트 IP 주소를 추출합니다.
-     * 프록시나 로드 밸런서를 거친 경우 X-Forwarded-For 헤더를 우선 확인합니다.
-     *
-     * @param request HTTP 요청
-     * @return 클라이언트 IP 주소
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_CLIENT_IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-
-        // X-Forwarded-For에 여러 IP가 있는 경우 첫 번째 IP 사용
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-
-        return ip;
     }
 
 }
