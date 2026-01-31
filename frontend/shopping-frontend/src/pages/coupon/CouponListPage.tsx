@@ -36,7 +36,7 @@ export function CouponListPage() {
   const isLoading = activeTab === 'available' ? loadingAvailable : loadingMy
 
   // 이미 발급받은 쿠폰 ID 목록
-  const issuedCouponIds = userCoupons.map((uc) => uc.coupon.id)
+  const issuedCouponIds = userCoupons.map((uc) => uc.couponId)
 
   // 발급 가능한 쿠폰 중 아직 발급받지 않은 것만 필터링
   const filteredAvailableCoupons = availableCoupons.filter(
@@ -149,7 +149,6 @@ export function CouponListPage() {
                     .map((userCoupon) => (
                       <CouponCard
                         key={userCoupon.id}
-                        coupon={userCoupon.coupon}
                         userCoupon={userCoupon}
                       />
                     ))}
@@ -171,7 +170,6 @@ export function CouponListPage() {
                       .map((userCoupon) => (
                         <CouponCard
                           key={userCoupon.id}
-                          coupon={userCoupon.coupon}
                           userCoupon={userCoupon}
                         />
                       ))}

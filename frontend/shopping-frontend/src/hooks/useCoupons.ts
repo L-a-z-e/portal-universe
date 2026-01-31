@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { couponApi } from '@/api/endpoints'
 import type { Coupon, UserCoupon } from '@/types'
+export type { UserCoupon }
 
 /**
  * 발급 가능한 쿠폰 목록 조회
@@ -122,7 +123,7 @@ export function useIssueCoupon() {
 }
 
 /**
- * 할인 금액 계산 (클라이언트 측)
+ * 할인 금액 계산 (클라이언트 측) - Coupon 기반
  */
 export function calculateDiscount(coupon: Coupon, orderAmount: number): number {
   // 최소 주문 금액 검증
@@ -152,10 +153,46 @@ export function calculateDiscount(coupon: Coupon, orderAmount: number): number {
 }
 
 /**
- * 쿠폰 적용 가능 여부 확인
+ * 할인 금액 계산 - UserCoupon (flat 구조) 기반
+ */
+export function calculateDiscountFromUserCoupon(uc: UserCoupon, orderAmount: number): number {
+  if (uc.minimumOrderAmount && orderAmount < uc.minimumOrderAmount) {
+    return 0
+  }
+
+  let discount: number
+  if (uc.discountType === 'FIXED') {
+    discount = uc.discountValue
+  } else {
+    discount = Math.round(orderAmount * uc.discountValue / 100)
+  }
+
+  if (uc.maximumDiscountAmount && discount > uc.maximumDiscountAmount) {
+    discount = uc.maximumDiscountAmount
+  }
+
+  if (discount > orderAmount) {
+    discount = orderAmount
+  }
+
+  return discount
+}
+
+/**
+ * 쿠폰 적용 가능 여부 확인 - Coupon 기반
  */
 export function canApplyCoupon(coupon: Coupon, orderAmount: number): boolean {
   if (coupon.minimumOrderAmount && orderAmount < coupon.minimumOrderAmount) {
+    return false
+  }
+  return true
+}
+
+/**
+ * 쿠폰 적용 가능 여부 확인 - UserCoupon (flat 구조) 기반
+ */
+export function canApplyUserCoupon(uc: UserCoupon, orderAmount: number): boolean {
+  if (uc.minimumOrderAmount && orderAmount < uc.minimumOrderAmount) {
     return false
   }
   return true

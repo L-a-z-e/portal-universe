@@ -4,8 +4,7 @@
  */
 import { useState } from 'react'
 import { Spinner } from '@portal/design-system-react'
-import { useAvailableUserCoupons, calculateDiscount, canApplyCoupon } from '@/hooks/useCoupons'
-import { CouponCard } from './CouponCard'
+import { useAvailableUserCoupons, calculateDiscountFromUserCoupon, canApplyUserCoupon } from '@/hooks/useCoupons'
 import type { UserCoupon } from '@/types'
 
 interface CouponSelectorProps {
@@ -24,7 +23,7 @@ export function CouponSelector({
 
   // 적용 가능한 쿠폰만 필터링
   const applicableCoupons = availableCoupons.filter((uc) =>
-    canApplyCoupon(uc.coupon, orderAmount)
+    canApplyUserCoupon(uc, orderAmount)
   )
 
   const handleSelectCoupon = (coupon: UserCoupon) => {
@@ -37,7 +36,7 @@ export function CouponSelector({
   }
 
   const discountAmount = selectedCoupon
-    ? calculateDiscount(selectedCoupon.coupon, orderAmount)
+    ? calculateDiscountFromUserCoupon(selectedCoupon, orderAmount)
     : 0
 
   return (
@@ -60,12 +59,12 @@ export function CouponSelector({
           <div className="flex justify-between items-start">
             <div>
               <span className="text-sm font-medium text-brand-primary">
-                {selectedCoupon.coupon.name}
+                {selectedCoupon.couponName}
               </span>
               <p className="text-xs text-text-body mt-1">
-                {selectedCoupon.coupon.discountType === 'FIXED'
-                  ? `${selectedCoupon.coupon.discountValue.toLocaleString()}원 할인`
-                  : `${selectedCoupon.coupon.discountValue}% 할인`}
+                {selectedCoupon.discountType === 'FIXED'
+                  ? `${selectedCoupon.discountValue.toLocaleString()}원 할인`
+                  : `${selectedCoupon.discountValue}% 할인`}
               </p>
             </div>
             <button
@@ -106,7 +105,7 @@ export function CouponSelector({
           ) : (
             <div className="space-y-3 max-h-80 overflow-y-auto">
               {applicableCoupons.map((userCoupon) => {
-                const discount = calculateDiscount(userCoupon.coupon, orderAmount)
+                const discount = calculateDiscountFromUserCoupon(userCoupon, orderAmount)
                 return (
                   <div
                     key={userCoupon.id}
@@ -123,14 +122,14 @@ export function CouponSelector({
                     <div className="flex justify-between items-center">
                       <div>
                         <span className="font-medium text-text-heading">
-                          {userCoupon.coupon.name}
+                          {userCoupon.couponName}
                         </span>
                         <p className="text-xs text-text-meta mt-1">
-                          {userCoupon.coupon.discountType === 'FIXED'
-                            ? `${userCoupon.coupon.discountValue.toLocaleString()}원`
-                            : `${userCoupon.coupon.discountValue}%`}
-                          {userCoupon.coupon.maximumDiscountAmount &&
-                            ` (최대 ${userCoupon.coupon.maximumDiscountAmount.toLocaleString()}원)`}
+                          {userCoupon.discountType === 'FIXED'
+                            ? `${userCoupon.discountValue.toLocaleString()}원`
+                            : `${userCoupon.discountValue}%`}
+                          {userCoupon.maximumDiscountAmount &&
+                            ` (최대 ${userCoupon.maximumDiscountAmount.toLocaleString()}원)`}
                         </p>
                       </div>
                       <span className="text-brand-primary font-semibold">

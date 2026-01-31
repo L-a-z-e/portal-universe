@@ -373,13 +373,18 @@ export interface Coupon {
 
 export interface UserCoupon {
   id: number
-  userId: number
-  coupon: Coupon
+  couponId: number
+  couponCode: string
+  couponName: string
+  discountType: DiscountType
+  discountValue: number
+  minimumOrderAmount?: number
+  maximumDiscountAmount?: number
   status: UserCouponStatus
-  usedOrderId?: number
   issuedAt: string
-  usedAt?: string
   expiresAt: string
+  usedAt?: string
+  usedOrderId?: number
 }
 
 export interface CouponCreateRequest {
@@ -419,28 +424,44 @@ export const USER_COUPON_STATUS_LABELS: Record<UserCouponStatus, string> = {
 
 export type TimeDealStatus = 'SCHEDULED' | 'ACTIVE' | 'ENDED' | 'SOLD_OUT' | 'CANCELLED'
 
-export interface TimeDeal {
+export interface TimeDealProduct {
   id: number
-  product: Product
+  productId: number
+  productName: string
+  originalPrice: number
   dealPrice: number
   discountRate: number
-  totalStock: number
-  remainingStock: number
-  soldCount: number
-  purchaseLimit: number
+  dealQuantity: number
+  soldQuantity: number
+  remainingQuantity: number
+  maxPerUser: number
+  available: boolean
+}
+
+export interface TimeDeal {
+  id: number
+  name: string
+  description: string
   status: TimeDealStatus
   startsAt: string
   endsAt: string
+  products: TimeDealProduct[]
   createdAt: string
 }
 
-export interface TimeDealCreateRequest {
+export interface TimeDealProductCreateRequest {
   productId: number
   dealPrice: number
-  totalStock: number
-  purchaseLimit: number
+  dealQuantity: number
+  maxPerUser: number
+}
+
+export interface TimeDealCreateRequest {
+  name: string
+  description?: string
   startsAt: string
   endsAt: string
+  products: TimeDealProductCreateRequest[]
 }
 
 export const TIMEDEAL_STATUS_LABELS: Record<TimeDealStatus, string> = {

@@ -53,13 +53,27 @@ export function TimeDealDetailPage() {
     )
   }
 
-  const { product, dealPrice, discountRate, totalStock, soldCount, purchaseLimit, status, endsAt } = timeDeal
-  const remainingStock = totalStock - soldCount
-  const stockPercentage = calculateStockPercentage(soldCount, totalStock)
+  const product = timeDeal.products?.[0]
+  if (!product) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <p className="text-text-body mb-4">타임딜 상품 정보가 없습니다</p>
+          <Link to="/time-deals" className="text-status-error font-medium">
+            타임딜 목록으로 돌아가기
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const { status, endsAt } = timeDeal
+  const remainingStock = product.remainingQuantity
+  const stockPercentage = calculateStockPercentage(product.soldQuantity, product.dealQuantity)
   const isSoldOut = status === 'SOLD_OUT' || remainingStock <= 0
   const isActive = status === 'ACTIVE'
-  const maxQuantity = Math.min(remainingStock, purchaseLimit)
-  const totalPrice = dealPrice * quantity
+  const maxQuantity = Math.min(remainingStock, product.maxPerUser)
+  const totalPrice = product.dealPrice * quantity
 
   const handleQuantityChange = (delta: number) => {
     const newQuantity = quantity + delta
@@ -72,7 +86,7 @@ export function TimeDealDetailPage() {
     if (!isActive || isSoldOut || isPurchasing) return
 
     try {
-      const order = await purchaseTimeDeal(timeDeal.id, quantity) as { orderNumber: string }
+      const order = await purchaseTimeDeal(product.id, quantity) as { orderNumber: string }
       success('구매가 완료되었습니다!')
       navigate(`/orders/${order.orderNumber}`)
     } catch (err) {
@@ -96,24 +110,16 @@ export function TimeDealDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 상품 이미지 */}
         <div className="relative aspect-square bg-bg-muted rounded-lg overflow-hidden">
-          {product.imageUrl ? (
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-text-meta">
-              <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          )}
+          <div className="w-full h-full flex items-center justify-center text-text-meta">
+            <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
 
           {/* 할인율 배지 */}
           <div className="absolute top-4 left-4 bg-status-error text-white px-4 py-2 rounded-lg text-lg font-bold">
-            {discountRate}% OFF
+            {product.discountRate}% OFF
           </div>
 
           {/* 품절/종료 오버레이 */}
@@ -139,27 +145,27 @@ export function TimeDealDetailPage() {
           )}
 
           {/* 상품명 */}
-          <h1 className="text-2xl font-bold text-text-heading mb-4">{product.name}</h1>
+          <h1 className="text-2xl font-bold text-text-heading mb-4">{product.productName}</h1>
 
           {/* 가격 */}
           <div className="mb-6">
             <div className="flex items-baseline gap-3 mb-2">
               <span className="text-3xl font-bold text-status-error">
-                {formatPrice(dealPrice)}원
+                {formatPrice(product.dealPrice)}원
               </span>
               <span className="text-lg text-text-meta line-through">
-                {formatPrice(product.price)}원
+                {formatPrice(product.originalPrice)}원
               </span>
             </div>
             <p className="text-sm text-text-meta">
-              {formatPrice(product.price - dealPrice)}원 할인
+              {formatPrice(product.originalPrice - product.dealPrice)}원 할인
             </p>
           </div>
 
           {/* 재고 현황 */}
           <div className="mb-6">
             <div className="flex justify-between text-sm text-text-body mb-2">
-              <span>{soldCount}개 판매</span>
+              <span>{product.soldQuantity}개 판매</span>
               <span>{remainingStock}개 남음</span>
             </div>
             <div className="h-3 bg-bg-muted rounded-full overflow-hidden">
@@ -173,16 +179,9 @@ export function TimeDealDetailPage() {
             </div>
           </div>
 
-          {/* 상품 설명 */}
-          {product.description && (
-            <div className="mb-6 p-4 bg-bg-muted rounded-lg">
-              <p className="text-text-body">{product.description}</p>
-            </div>
-          )}
-
           {/* 구매 제한 안내 */}
           <div className="mb-6 text-sm text-text-meta">
-            <p>1인당 최대 {purchaseLimit}개 구매 가능</p>
+            <p>1인당 최대 {product.maxPerUser}개 구매 가능</p>
           </div>
 
           {/* 수량 선택 */}

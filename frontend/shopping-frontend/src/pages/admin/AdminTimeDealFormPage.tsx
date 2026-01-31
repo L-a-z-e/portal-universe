@@ -6,12 +6,23 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCreateTimeDeal } from '@/hooks/useAdminTimeDeals'
 import { adminProductApi } from '@/api/endpoints'
-import type { TimeDealCreateRequest, Product } from '@/types'
+import type { Product } from '@/types'
 import { Button, Card, Input, Select, Spinner, useApiError, useToast } from '@portal/design-system-react'
 import type { SelectOption } from '@portal/design-types'
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('ko-KR').format(price)
+}
+
+interface FormData {
+  name: string
+  description: string
+  productId: number
+  dealPrice: number
+  dealQuantity: number
+  maxPerUser: number
+  startsAt: string
+  endsAt: string
 }
 
 export function AdminTimeDealFormPage() {
@@ -24,11 +35,13 @@ export function AdminTimeDealFormPage() {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
-  const [formData, setFormData] = useState<TimeDealCreateRequest>({
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    description: '',
     productId: 0,
     dealPrice: 0,
-    totalStock: 100,
-    purchaseLimit: 1,
+    dealQuantity: 100,
+    maxPerUser: 1,
     startsAt: '',
     endsAt: ''
   })
@@ -59,12 +72,13 @@ export function AdminTimeDealFormPage() {
     setFormData((prev) => ({
       ...prev,
       productId,
-      dealPrice: product ? Math.floor(product.price * 0.8) : 0 // Default 20% discount
+      dealPrice: product ? Math.floor(product.price * 0.8) : 0,
+      name: product ? `${product.name} 타임딜` : prev.name
     }))
     setErrors((prev) => ({ ...prev, productId: '' }))
   }
 
-  const handleChange = (field: keyof TimeDealCreateRequest, value: number | string) => {
+  const handleChange = (field: keyof FormData, value: number | string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setErrors((prev) => ({ ...prev, [field]: '' }))
   }
@@ -84,6 +98,9 @@ export function AdminTimeDealFormPage() {
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
 
+    if (!formData.name.trim()) {
+      newErrors.name = '타임딜 이름을 입력해주세요'
+    }
     if (!formData.productId) {
       newErrors.productId = '상품을 선택해주세요'
     }
@@ -93,14 +110,14 @@ export function AdminTimeDealFormPage() {
     if (selectedProduct && formData.dealPrice >= selectedProduct.price) {
       newErrors.dealPrice = '딜 가격은 정가보다 낮아야 합니다'
     }
-    if (formData.totalStock <= 0) {
-      newErrors.totalStock = '재고 수량을 입력해주세요'
+    if (formData.dealQuantity <= 0) {
+      newErrors.dealQuantity = '재고 수량을 입력해주세요'
     }
-    if (formData.purchaseLimit <= 0) {
-      newErrors.purchaseLimit = '구매 제한을 입력해주세요'
+    if (formData.maxPerUser <= 0) {
+      newErrors.maxPerUser = '구매 제한을 입력해주세요'
     }
-    if (formData.purchaseLimit > formData.totalStock) {
-      newErrors.purchaseLimit = '구매 제한은 재고보다 작아야 합니다'
+    if (formData.maxPerUser > formData.dealQuantity) {
+      newErrors.maxPerUser = '구매 제한은 재고보다 작아야 합니다'
     }
     if (!formData.startsAt) {
       newErrors.startsAt = '시작 시간을 선택해주세요'
@@ -123,9 +140,16 @@ export function AdminTimeDealFormPage() {
 
     try {
       await createTimeDeal({
-        ...formData,
+        name: formData.name,
+        description: formData.description || undefined,
         startsAt: new Date(formData.startsAt).toISOString(),
-        endsAt: new Date(formData.endsAt).toISOString()
+        endsAt: new Date(formData.endsAt).toISOString(),
+        products: [{
+          productId: formData.productId,
+          dealPrice: formData.dealPrice,
+          dealQuantity: formData.dealQuantity,
+          maxPerUser: formData.maxPerUser
+        }]
       })
       success('타임딜이 생성되었습니다!')
       navigate('/admin/time-deals')
@@ -152,6 +176,30 @@ export function AdminTimeDealFormPage() {
 
       {/* 폼 */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 타임딜 기본 정보 */}
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-lg font-medium text-text-heading mb-4">기본 정보</h2>
+
+          <div className="space-y-4">
+            <Input
+              label="타임딜 이름"
+              required
+              value={formData.name}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('name', e.target.value)}
+              placeholder="예: 겨울 특가 타임딜"
+              error={!!errors.name}
+              errorMessage={errors.name}
+            />
+
+            <Input
+              label="설명"
+              value={formData.description}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('description', e.target.value)}
+              placeholder="타임딜 설명 (선택)"
+            />
+          </div>
+        </Card>
+
         {/* 상품 선택 */}
         <Card variant="elevated" padding="lg">
           <h2 className="text-lg font-medium text-text-heading mb-4">상품 선택</h2>
@@ -176,24 +224,16 @@ export function AdminTimeDealFormPage() {
           {selectedProduct && (
             <div className="mt-4 p-4 bg-bg-hover light:bg-gray-50 rounded-lg">
               <div className="flex items-center gap-4">
-                {selectedProduct.imageUrl ? (
-                  <img
-                    src={selectedProduct.imageUrl}
-                    alt={selectedProduct.name}
-                    className="w-20 h-20 object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-20 h-20 bg-bg-muted light:bg-gray-200 rounded flex items-center justify-center">
-                    <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                )}
+                <div className="w-20 h-20 bg-bg-muted light:bg-gray-200 rounded flex items-center justify-center">
+                  <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
                 <div>
                   <h3 className="font-medium text-text-heading">{selectedProduct.name}</h3>
                   <p className="text-text-meta">정가: {formatPrice(selectedProduct.price)}원</p>
-                  <p className="text-text-muted text-sm">재고: {selectedProduct.stockQuantity}개</p>
+                  <p className="text-text-muted text-sm">재고: {selectedProduct.stockQuantity ?? '-'}개</p>
                 </div>
               </div>
             </div>
@@ -251,24 +291,24 @@ export function AdminTimeDealFormPage() {
               label="총 재고"
               required
               type="number"
-              value={formData.totalStock || ''}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('totalStock', parseInt(e.target.value) || 0)}
+              value={formData.dealQuantity || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('dealQuantity', parseInt(e.target.value) || 0)}
               placeholder="100"
               min={1}
-              error={!!errors.totalStock}
-              errorMessage={errors.totalStock}
+              error={!!errors.dealQuantity}
+              errorMessage={errors.dealQuantity}
             />
 
             <Input
               label="1인당 구매 제한"
               required
               type="number"
-              value={formData.purchaseLimit || ''}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('purchaseLimit', parseInt(e.target.value) || 0)}
+              value={formData.maxPerUser || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('maxPerUser', parseInt(e.target.value) || 0)}
               placeholder="1"
               min={1}
-              error={!!errors.purchaseLimit}
-              errorMessage={errors.purchaseLimit}
+              error={!!errors.maxPerUser}
+              errorMessage={errors.maxPerUser}
             />
           </div>
         </Card>

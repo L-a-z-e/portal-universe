@@ -29,8 +29,8 @@ export function AdminTimeDealListPage() {
   const { data, isLoading, error, refetch } = useAdminTimeDeals({ page, size: 10 })
   const { mutateAsync: cancelTimeDeal, isPending: isCancelling } = useCancelTimeDeal()
 
-  const handleCancel = async (id: number, productName: string) => {
-    if (!confirm(`"${productName}" 타임딜을 취소하시겠습니까?`)) return
+  const handleCancel = async (id: number, name: string) => {
+    if (!confirm(`"${name}" 타임딜을 취소하시겠습니까?`)) return
 
     try {
       await cancelTimeDeal(id)
@@ -78,6 +78,7 @@ export function AdminTimeDealListPage() {
             <table className="w-full">
               <thead className="bg-bg-hover light:bg-gray-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">타임딜</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">상품</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-text-meta">정가</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-text-meta">딜가</th>
@@ -91,78 +92,76 @@ export function AdminTimeDealListPage() {
               <tbody className="divide-y divide-border-default">
                 {data.content.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-text-muted">
+                    <td colSpan={9} className="px-4 py-8 text-center text-text-muted">
                       등록된 타임딜이 없습니다
                     </td>
                   </tr>
                 ) : (
-                  data.content.map((timeDeal) => (
-                    <tr key={timeDeal.id} className="hover:bg-bg-hover transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          {timeDeal.product.imageUrl ? (
-                            <img
-                              src={timeDeal.product.imageUrl}
-                              alt={timeDeal.product.name}
-                              className="w-10 h-10 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-bg-muted light:bg-gray-200 rounded flex items-center justify-center">
-                              <svg className="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                          )}
-                          <span className="text-sm text-text-body">{timeDeal.product.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right text-text-meta">
-                        {formatPrice(timeDeal.product.price)}원
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right font-medium text-status-error">
-                        {formatPrice(timeDeal.dealPrice)}원
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <Badge variant="error">
-                          {timeDeal.discountRate}% OFF
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center text-text-meta">
-                        {timeDeal.soldCount} / {timeDeal.totalStock}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <Badge
-                          variant={
-                            timeDeal.status === 'ACTIVE' ? 'success' :
-                            timeDeal.status === 'SCHEDULED' ? 'info' :
-                            timeDeal.status === 'ENDED' ? 'neutral' :
-                            timeDeal.status === 'SOLD_OUT' ? 'warning' :
-                            'error'
-                          }
-                        >
-                          {TIMEDEAL_STATUS_LABELS[timeDeal.status]}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-text-meta">
-                        <div className="text-xs">
-                          <div>{formatDate(timeDeal.startsAt)}</div>
-                          <div className="text-text-muted">~ {formatDate(timeDeal.endsAt)}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {(timeDeal.status === 'ACTIVE' || timeDeal.status === 'SCHEDULED') && (
-                          <button
-                            onClick={() => handleCancel(timeDeal.id, timeDeal.product.name)}
-                            disabled={isCancelling}
-                            className="text-sm text-status-error hover:text-[#C92A2A] disabled:opacity-50 transition-colors"
-                          >
-                            취소
-                          </button>
+                  data.content.map((timeDeal) =>
+                    (timeDeal.products ?? []).map((product, idx) => (
+                      <tr key={`${timeDeal.id}-${product.id}`} className="hover:bg-bg-hover transition-colors">
+                        {idx === 0 && (
+                          <td className="px-4 py-3 text-sm text-text-body" rowSpan={timeDeal.products?.length || 1}>
+                            <div className="font-medium">{timeDeal.name}</div>
+                            {timeDeal.description && (
+                              <div className="text-xs text-text-muted mt-1">{timeDeal.description}</div>
+                            )}
+                          </td>
                         )}
-                      </td>
-                    </tr>
-                  ))
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-text-body">{product.productName}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-right text-text-meta">
+                          {formatPrice(product.originalPrice)}원
+                        </td>
+                        <td className="px-4 py-3 text-sm text-right font-medium text-status-error">
+                          {formatPrice(product.dealPrice)}원
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Badge variant="error">
+                            {product.discountRate}% OFF
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center text-text-meta">
+                          {product.soldQuantity} / {product.dealQuantity}
+                        </td>
+                        {idx === 0 && (
+                          <>
+                            <td className="px-4 py-3 text-center" rowSpan={timeDeal.products?.length || 1}>
+                              <Badge
+                                variant={
+                                  timeDeal.status === 'ACTIVE' ? 'success' :
+                                  timeDeal.status === 'SCHEDULED' ? 'info' :
+                                  timeDeal.status === 'ENDED' ? 'neutral' :
+                                  timeDeal.status === 'SOLD_OUT' ? 'warning' :
+                                  'error'
+                                }
+                              >
+                                {TIMEDEAL_STATUS_LABELS[timeDeal.status]}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-text-meta" rowSpan={timeDeal.products?.length || 1}>
+                              <div className="text-xs">
+                                <div>{formatDate(timeDeal.startsAt)}</div>
+                                <div className="text-text-muted">~ {formatDate(timeDeal.endsAt)}</div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center" rowSpan={timeDeal.products?.length || 1}>
+                              {(timeDeal.status === 'ACTIVE' || timeDeal.status === 'SCHEDULED') && (
+                                <button
+                                  onClick={() => handleCancel(timeDeal.id, timeDeal.name)}
+                                  disabled={isCancelling}
+                                  className="text-sm text-status-error hover:text-[#C92A2A] disabled:opacity-50 transition-colors"
+                                >
+                                  취소
+                                </button>
+                              )}
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))
+                  )
                 )}
               </tbody>
             </table>

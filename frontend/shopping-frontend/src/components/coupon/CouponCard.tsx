@@ -1,13 +1,15 @@
 /**
  * CouponCard Component
  * 쿠폰 카드 UI 컴포넌트
+ * - coupon prop: 발급 가능한 쿠폰 (CouponResponse)
+ * - userCoupon prop: 사용자가 보유한 쿠폰 (UserCouponResponse, flat 구조)
  */
 import { Button, Badge } from '@portal/design-system-react'
 import type { Coupon, UserCoupon } from '@/types'
 import { DISCOUNT_TYPE_LABELS, USER_COUPON_STATUS_LABELS } from '@/types'
 
 interface CouponCardProps {
-  coupon: Coupon
+  coupon?: Coupon
   userCoupon?: UserCoupon
   onIssue?: (couponId: number) => void
   onSelect?: (userCoupon: UserCoupon) => void
@@ -24,11 +26,11 @@ function formatDate(dateString: string): string {
   })
 }
 
-function formatDiscountValue(coupon: Coupon): string {
-  if (coupon.discountType === 'FIXED') {
-    return `${coupon.discountValue.toLocaleString()}원`
+function formatDiscountValue(discountType: string, discountValue: number): string {
+  if (discountType === 'FIXED') {
+    return `${discountValue.toLocaleString()}원`
   }
-  return `${coupon.discountValue}%`
+  return `${discountValue}%`
 }
 
 export function CouponCard({
@@ -42,6 +44,15 @@ export function CouponCard({
 }: CouponCardProps) {
   const isOwned = !!userCoupon
   const isUsable = userCoupon?.status === 'AVAILABLE'
+
+  // 표시용 데이터: coupon(발급가능) 또는 userCoupon(보유) 에서 추출
+  const name = coupon?.name ?? userCoupon?.couponName ?? ''
+  const description = coupon?.description
+  const discountType = coupon?.discountType ?? userCoupon?.discountType ?? 'FIXED'
+  const discountValue = coupon?.discountValue ?? userCoupon?.discountValue ?? 0
+  const minimumOrderAmount = coupon?.minimumOrderAmount ?? userCoupon?.minimumOrderAmount
+  const maximumDiscountAmount = coupon?.maximumDiscountAmount ?? userCoupon?.maximumDiscountAmount
+  const expiresAt = coupon?.expiresAt ?? userCoupon?.expiresAt ?? ''
 
   const handleClick = () => {
     if (selectable && userCoupon && isUsable && onSelect) {
@@ -63,37 +74,39 @@ export function CouponCard({
       <div className="flex justify-between items-start mb-3">
         <div>
           <Badge variant="brand" className="mb-2">
-            {DISCOUNT_TYPE_LABELS[coupon.discountType]}
+            {DISCOUNT_TYPE_LABELS[discountType]}
           </Badge>
-          <h3 className="text-lg font-semibold text-text-heading">{coupon.name}</h3>
+          <h3 className="text-lg font-semibold text-text-heading">{name}</h3>
         </div>
         <div className="text-right">
           <span className="text-2xl font-bold text-brand-primary">
-            {formatDiscountValue(coupon)}
+            {formatDiscountValue(discountType, discountValue)}
           </span>
           <span className="block text-sm text-text-meta">할인</span>
         </div>
       </div>
 
       {/* 쿠폰 설명 */}
-      {coupon.description && (
-        <p className="text-sm text-text-body mb-3">{coupon.description}</p>
+      {description && (
+        <p className="text-sm text-text-body mb-3">{description}</p>
       )}
 
       {/* 쿠폰 조건 */}
       <div className="text-xs text-text-meta space-y-1 mb-3">
-        {coupon.minimumOrderAmount && (
-          <p>{coupon.minimumOrderAmount.toLocaleString()}원 이상 구매 시 사용 가능</p>
+        {minimumOrderAmount != null && minimumOrderAmount > 0 && (
+          <p>{minimumOrderAmount.toLocaleString()}원 이상 구매 시 사용 가능</p>
         )}
-        {coupon.maximumDiscountAmount && (
-          <p>최대 {coupon.maximumDiscountAmount.toLocaleString()}원 할인</p>
+        {maximumDiscountAmount != null && maximumDiscountAmount > 0 && (
+          <p>최대 {maximumDiscountAmount.toLocaleString()}원 할인</p>
         )}
-        <p>유효기간: {formatDate(coupon.expiresAt)}까지</p>
+        {expiresAt && (
+          <p>유효기간: {formatDate(expiresAt)}까지</p>
+        )}
       </div>
 
       {/* 상태 표시 및 버튼 */}
       <div className="flex justify-between items-center pt-3 border-t border-border-default">
-        {isOwned ? (
+        {isOwned && userCoupon ? (
           <>
             <span
               className={`text-sm font-medium ${
@@ -108,7 +121,7 @@ export function CouponCard({
               </span>
             )}
           </>
-        ) : (
+        ) : coupon ? (
           <>
             <span className="text-sm text-text-meta">
               {coupon.remainingQuantity > 0
@@ -129,7 +142,7 @@ export function CouponCard({
               </Button>
             )}
           </>
-        )}
+        ) : null}
       </div>
     </div>
   )
