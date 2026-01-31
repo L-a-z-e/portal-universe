@@ -8,7 +8,7 @@
  * - Handle expired sessions
  * - Queue status component
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test-fixtures'
 
 test.describe('Queue Management', () => {
   test.beforeEach(async ({ page }) => {

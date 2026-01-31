@@ -7,7 +7,7 @@
  * - Tracking number display
  * - Pre-delivery status messages
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test-fixtures'
 
 test.describe('Delivery Tracking', () => {
   test.beforeEach(async ({ page }) => {

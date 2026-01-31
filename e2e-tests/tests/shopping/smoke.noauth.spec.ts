@@ -19,8 +19,8 @@ test.describe('Smoke Tests', () => {
   test('should navigate to shopping section', async ({ page }) => {
     await page.goto('/')
 
-    // Wait for navigation to be ready
-    await page.waitForLoadState('networkidle')
+    // Wait for navigation to be ready (use domcontentloaded instead of networkidle to avoid SSE/HMR timeouts)
+    await page.waitForLoadState('domcontentloaded')
 
     // Try to navigate to shopping section
     await page.goto('/shopping')

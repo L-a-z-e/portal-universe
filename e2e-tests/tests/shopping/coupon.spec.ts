@@ -7,7 +7,7 @@
  * - View available and my coupons
  * - Display coupon status
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test-fixtures'
 
 test.describe('Coupon Management', () => {
   test.beforeEach(async ({ page }) => {
@@ -19,16 +19,17 @@ test.describe('Coupon Management', () => {
     // Navigate to coupons page
     await page.goto('/shopping/coupons')
 
-    // Wait for loading
+    // Wait for Module Federation remote to load
+    await page.locator('h1:has-text("쿠폰")').waitFor({ timeout: 15000 }).catch(() => {})
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    // Check for page title
-    const pageTitle = page.locator('h1:has-text("Coupons")')
-    await expect(pageTitle).toBeVisible({ timeout: 5000 })
+    // Check for page title (Korean UI)
+    const pageTitle = page.locator('h1:has-text("쿠폰")')
+    await expect(pageTitle).toBeVisible({ timeout: 15000 })
 
-    // Tabs should be visible
-    const availableTab = page.locator('button:has-text("Available Coupons")')
-    const myCouponsTab = page.locator('button:has-text("My Coupons")')
+    // Tabs should be visible (Korean UI)
+    const availableTab = page.locator('button:has-text("발급 가능한 쿠폰")')
+    const myCouponsTab = page.locator('button:has-text("내 쿠폰함")')
 
     const hasAvailableTab = await availableTab.isVisible()
     const hasMyCouponsTab = await myCouponsTab.isVisible()
@@ -44,7 +45,7 @@ test.describe('Coupon Management', () => {
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
     // Click Available Coupons tab
-    const availableTab = page.locator('button:has-text("Available Coupons")')
+    const availableTab = page.locator('button:has-text("발급 가능한 쿠폰")')
     const isTabVisible = await availableTab.isVisible()
 
     if (isTabVisible) {
@@ -55,7 +56,7 @@ test.describe('Coupon Management', () => {
 
       // Either coupons or empty state should be shown
       const couponList = page.locator('[class*="coupon"], .grid')
-      const emptyState = page.locator('text="No available coupons"')
+      const emptyState = page.locator('text="현재 발급 가능한 쿠폰이 없습니다"')
 
       const hasCoupons = await couponList.isVisible()
       const isEmpty = await emptyState.isVisible()
@@ -103,7 +104,7 @@ test.describe('Coupon Management', () => {
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
     // Click My Coupons tab
-    const myCouponsTab = page.locator('button:has-text("My Coupons")')
+    const myCouponsTab = page.locator('button:has-text("내 쿠폰함")')
     const isTabVisible = await myCouponsTab.isVisible()
 
     if (isTabVisible) {
@@ -112,9 +113,9 @@ test.describe('Coupon Management', () => {
       // Wait for content to load
       await page.waitForTimeout(500)
 
-      // Tab should be active
+      // Tab should be active (indicated by brand-primary text color)
       const isActive = await myCouponsTab.getAttribute('class')
-      expect(isActive).toContain('active')
+      expect(isActive).toContain('brand-primary')
     }
   })
 
@@ -125,7 +126,7 @@ test.describe('Coupon Management', () => {
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
     // Navigate to My Coupons tab
-    const myCouponsTab = page.locator('button:has-text("My Coupons")')
+    const myCouponsTab = page.locator('button:has-text("내 쿠폰함")')
     const isTabVisible = await myCouponsTab.isVisible()
 
     if (isTabVisible) {
@@ -134,7 +135,7 @@ test.describe('Coupon Management', () => {
 
       // Check for coupons or empty state
       const couponCard = page.locator('[class*="coupon"]')
-      const emptyState = page.locator('text="You have no coupons"')
+      const emptyState = page.locator('text="보유한 쿠폰이 없습니다"')
 
       const hasCoupons = await couponCard.first().isVisible()
       const isEmpty = await emptyState.isVisible()
@@ -156,7 +157,7 @@ test.describe('Coupon Management', () => {
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
     // Navigate to My Coupons tab
-    const myCouponsTab = page.locator('button:has-text("My Coupons")')
+    const myCouponsTab = page.locator('button:has-text("내 쿠폰함")')
     const isTabVisible = await myCouponsTab.isVisible()
 
     if (isTabVisible) {
@@ -202,7 +203,7 @@ test.describe('Coupon Management', () => {
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
     // Navigate to My Coupons tab
-    const myCouponsTab = page.locator('button:has-text("My Coupons")')
+    const myCouponsTab = page.locator('button:has-text("내 쿠폰함")')
     const isTabVisible = await myCouponsTab.isVisible()
 
     if (isTabVisible) {

@@ -11,7 +11,7 @@
  * NOTE: Most tests require ADMIN role. If the test user doesn't have admin access,
  * only access control tests will run, and others will be skipped.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test-fixtures'
 
 // Global flag to track admin access
 let hasAdminAccess = false
@@ -55,7 +55,7 @@ test.describe('Admin Time Deal Management', () => {
       const currentUrl = page.url()
 
       const adminHeader = page.locator('h1:has-text("Time Deals")')
-      const forbiddenMessage = page.locator('text=/Access Denied|Forbidden|You don\'t have permission/')
+      const forbiddenMessage = page.locator('h1:has-text("Access Denied")')
       const goBackButton = page.locator('button:has-text("Go Back")')
 
       const hasHeader = await adminHeader.isVisible()

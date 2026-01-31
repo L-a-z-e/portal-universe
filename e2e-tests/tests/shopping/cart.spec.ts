@@ -8,20 +8,18 @@
  * - Remove items
  * - Cart summary calculation
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test-fixtures'
+import { gotoShoppingPage } from '../helpers/auth'
 
 test.describe('Shopping Cart', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to shopping section
-    await page.goto('/shopping')
+    await gotoShoppingPage(page, '/shopping', 'h1:has-text("Products")')
   })
 
   test('should display empty cart message when no items', async ({ page }) => {
     // Navigate to cart page
-    await page.goto('/shopping/cart')
-
-    // Wait for loading
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/cart', 'h1:has-text("Shopping Cart"), text="Your cart is empty"')
 
     // Check for empty cart or cart with items
     const emptyCartMessage = page.locator('text="Your cart is empty"')
@@ -53,7 +51,8 @@ test.describe('Shopping Cart', () => {
     // Navigate to a product detail page
     await page.goto('/shopping/products/1')
 
-    // Wait for loading
+    // Wait for Module Federation remote to load
+    await page.locator('h1, [class*="alert"]').first().waitFor({ timeout: 15000 }).catch(() => {})
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
     // Check if product exists and is in stock
@@ -166,8 +165,7 @@ test.describe('Shopping Cart', () => {
 
   test('should display order summary with correct totals', async ({ page }) => {
     // First add a product to cart
-    await page.goto('/shopping/products/1')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/products/1', 'h1')
 
     const addToCartButton = page.locator('button:has-text("Add to Cart")')
     const isInStock = await addToCartButton.isEnabled().catch(() => false)
@@ -178,8 +176,7 @@ test.describe('Shopping Cart', () => {
     }
 
     // Navigate to cart
-    await page.goto('/shopping/cart')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/cart', 'h1:has-text("Shopping Cart"), text="Your cart is empty"')
 
     const emptyCartMessage = page.locator('text="Your cart is empty"')
     const isEmpty = await emptyCartMessage.isVisible()
@@ -201,8 +198,7 @@ test.describe('Shopping Cart', () => {
 
   test('should navigate to checkout from cart', async ({ page }) => {
     // First add a product to cart
-    await page.goto('/shopping/products/1')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/products/1', 'h1')
 
     const addToCartButton = page.locator('button:has-text("Add to Cart")')
     const isInStock = await addToCartButton.isEnabled().catch(() => false)
@@ -213,8 +209,7 @@ test.describe('Shopping Cart', () => {
     }
 
     // Navigate to cart
-    await page.goto('/shopping/cart')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/cart', 'h1:has-text("Shopping Cart"), text="Your cart is empty"')
 
     const emptyCartMessage = page.locator('text="Your cart is empty"')
     const isEmpty = await emptyCartMessage.isVisible()
@@ -270,8 +265,7 @@ test.describe('Shopping Cart', () => {
   })
 
   test('should show Continue Shopping link', async ({ page }) => {
-    await page.goto('/shopping/cart')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/cart', 'h1:has-text("Shopping Cart"), text="Your cart is empty"')
 
     // Continue Shopping link should be visible
     const continueLink = page.locator('a:has-text("Continue Shopping"), a:has-text("Start Shopping")')

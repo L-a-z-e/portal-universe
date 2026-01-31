@@ -8,13 +8,16 @@
  * - Order completion (Happy Path)
  * - Error handling (Payment failure)
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test-fixtures'
+import { gotoShoppingPage } from '../helpers/auth'
 
 test.describe('Checkout Flow', () => {
   // Helper function to add product to cart and navigate to checkout
   async function setupCheckout(page: any) {
     // Add a product to cart
     await page.goto('/shopping/products/1')
+    // Wait for Module Federation remote to load
+    await page.locator('h1, [class*="alert"]').first().waitFor({ timeout: 15000 }).catch(() => {})
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
     const addToCartButton = page.locator('button:has-text("Add to Cart")')
@@ -268,10 +271,10 @@ test.describe('Checkout Flow', () => {
 
   test('should redirect to cart if cart is empty', async ({ page }) => {
     // Try to access checkout directly without items in cart
-    await page.goto('/shopping/checkout')
+    await gotoShoppingPage(page, '/shopping/checkout')
 
-    // Wait for redirect
-    await page.waitForURL(/\/shopping\/cart/, { timeout: 10000 }).catch(() => {})
+    // Wait for redirect to cart
+    await page.waitForURL(/\/shopping\/cart/, { timeout: 20000 }).catch(() => {})
 
     // Should be redirected to cart page
     const currentUrl = page.url()

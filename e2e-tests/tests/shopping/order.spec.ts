@@ -8,12 +8,12 @@
  * - Delivery tracking
  * - Order cancellation
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/test-fixtures'
+import { gotoShoppingPage } from '../helpers/auth'
 
 test.describe('Order List Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/orders', 'h1:has-text("My Orders")')
   })
 
   test('should display My Orders title', async ({ page }) => {
@@ -301,11 +301,10 @@ test.describe('Order Detail Page', () => {
 
   test('should handle non-existent order gracefully', async ({ page }) => {
     // Navigate to a non-existent order
-    await page.goto('/shopping/orders/ORD-NONEXISTENT-123')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/orders/ORD-NONEXISTENT-123')
 
-    // Error message should be displayed
-    await expect(page.locator('text="Order not found"')).toBeVisible()
+    // Error message should be displayed (Korean UI for 404 errors)
+    await expect(page.locator('text="주문을 찾을 수 없습니다."')).toBeVisible({ timeout: 15000 })
 
     // View All Orders link should be available
     await expect(page.locator('a:has-text("View All Orders")')).toBeVisible()
