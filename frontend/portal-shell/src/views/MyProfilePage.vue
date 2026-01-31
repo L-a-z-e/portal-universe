@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/auth';
 import { useRouter } from 'vue-router';
 import { profileService, type ProfileResponse, type UpdateProfileRequest } from '../services/profileService';
 import { useToast, useApiError } from '@portal/design-system-vue';
+import { ROLES, ROLE_PREFIX } from '../constants/roles';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -107,8 +108,8 @@ const initials = computed(() => {
 // Role badges
 const roleBadges = computed(() => {
   return authority.value?.roles.map((role) => {
-    const displayName = role.replace('ROLE_', '');
-    const isAdmin = role === 'ROLE_ADMIN';
+    const displayName = role.replace(ROLE_PREFIX, '');
+    const isAdmin = role === ROLES.ADMIN;
     return {
       name: displayName,
       color: isAdmin ? 'bg-status-error' : 'bg-brand-primary',

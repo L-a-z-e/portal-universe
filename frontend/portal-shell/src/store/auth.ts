@@ -4,6 +4,7 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { authService, type UserInfo } from '../services/authService';
 import type { PortalUser, UserProfile, UserAuthority } from '../types/user';
+import { ROLES, serviceAdminRole as buildServiceAdminRole } from '../constants/roles';
 import router from '../router';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -50,21 +51,20 @@ export const useAuthStore = defineStore('auth', () => {
    * 하위 호환: ROLE_ADMIN도 허용
    */
   const isAdmin = computed(() =>
-    hasAnyRole(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN'])
+    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.ADMIN])
   );
 
   /**
    * Check if user is a service-specific admin
    */
   const isServiceAdmin = (service: string): boolean => {
-    const serviceAdminRole = `ROLE_${service.toUpperCase()}_ADMIN`;
-    return hasAnyRole([serviceAdminRole, 'ROLE_SUPER_ADMIN']);
+    return hasAnyRole([buildServiceAdminRole(service.toUpperCase()), ROLES.SUPER_ADMIN]);
   };
 
   /**
    * Check if user is a seller
    */
-  const isSeller = computed(() => hasRole('ROLE_SELLER'));
+  const isSeller = computed(() => hasRole(ROLES.SELLER));
 
   /**
    * Get user's membership tier for a service
