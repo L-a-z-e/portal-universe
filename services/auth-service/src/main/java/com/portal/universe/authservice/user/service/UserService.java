@@ -14,7 +14,7 @@ import com.portal.universe.authservice.auth.service.RbacInitializationService;
 import com.portal.universe.common.event.UserSignedUpEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
     private final PasswordEncoder passwordEncoder;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final ApplicationEventPublisher eventPublisher;
     private final PasswordValidator passwordValidator;
     private final PasswordHistoryRepository passwordHistoryRepository;
     private final RbacInitializationService rbacInitializationService;
@@ -83,15 +83,13 @@ public class UserService {
         // 8. RBAC 초기화 (ROLE_USER + FREE 멤버십)
         rbacInitializationService.initializeNewUser(savedUser.getUuid());
 
-        // 9. 이벤트 발행
-        // 주의: 트랜잭션 커밋 후 발행하는 것이 안전함 (TransactionalEventListener 고려 가능)
-        // 현재는 단순성을 위해 직접 발행
+        // 9. 이벤트 발행 (트랜잭션 커밋 후 Kafka로 전송됨)
         UserSignedUpEvent event = new UserSignedUpEvent(
-                savedUser.getUuid(), // UUID 사용
+                savedUser.getUuid(),
                 savedUser.getEmail(),
-                savedUser.getProfile().getNickname() // Name 대신 Nickname 사용
+                savedUser.getProfile().getNickname()
         );
-        kafkaTemplate.send("user-signup", event);
+        eventPublisher.publishEvent(event);
 
         return savedUser.getId();
     }
