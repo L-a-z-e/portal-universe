@@ -40,8 +40,9 @@ BACKEND_SERVICES=(
 
 FRONTEND_SERVICES=(
     "portal-shell"
-    # "blog-frontend"      # 추후 추가
-    # "shopping-frontend"  # 추후 추가
+    "blog-frontend"
+    "shopping-frontend"
+    "prism-frontend"
 )
 
 CLUSTER_NAME="portal-universe"
@@ -103,7 +104,16 @@ for SERVICE in "${FRONTEND_SERVICES[@]}"; do
     cd "$PROJECT_ROOT"
 done
 
-# --- 3. Docker 이미지 빌드 (백엔드) ---
+# --- 2.5. NestJS (Prism Service) 빌드 ---
+echo ""
+echo -e "${YELLOW}📦 Step 2.5: NestJS Build (Prism Service)${NC}"
+cd "$PROJECT_ROOT/services/prism-service"
+npm ci
+npm run build
+echo -e "${GREEN}✅ prism-service built${NC}"
+cd "$PROJECT_ROOT"
+
+# --- 3. Docker 이미지 빌드 (백엔드 - Spring Boot) ---
 echo ""
 echo -e "${YELLOW}🐳 Step 3: Docker Build (Backend Services)${NC}"
 
@@ -123,6 +133,22 @@ for SERVICE in "${BACKEND_SERVICES[@]}"; do
     fi
 done
 
+# --- 3.5. Docker 이미지 빌드 (NestJS - Prism Service) ---
+echo ""
+echo -e "${YELLOW}🐳 Step 3.5: Docker Build (Prism Service)${NC}"
+
+docker build \
+    -t portal-universe-prism-service:latest \
+    -f services/prism-service/Dockerfile \
+    services/prism-service/
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ prism-service image built${NC}"
+else
+    echo -e "${RED}❌ prism-service image build failed${NC}"
+    exit 1
+fi
+
 # --- 4. Docker 이미지 빌드 (프론트엔드) ---
 echo ""
 echo -e "${YELLOW}🐳 Step 4: Docker Build (Frontend Services)${NC}"
@@ -130,14 +156,12 @@ echo -e "${YELLOW}🐳 Step 4: Docker Build (Frontend Services)${NC}"
 for SERVICE in "${FRONTEND_SERVICES[@]}"; do
     echo -e "${BLUE}Building Docker image: ${SERVICE}...${NC}"
 
-    # frontend/${SERVICE} 디렉토리로 이동
-    cd "$PROJECT_ROOT/frontend/${SERVICE}"
-
+    # frontend/ 디렉토리를 빌드 컨텍스트로 사용 (workspace 루트 기준 COPY)
     docker build \
         --build-arg BUILD_MODE=k8s \
         -t portal-universe-${SERVICE}:latest \
-        -f Dockerfile \
-        .
+        -f frontend/${SERVICE}/Dockerfile \
+        frontend/
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ ${SERVICE} image built${NC}"
@@ -145,16 +169,29 @@ for SERVICE in "${FRONTEND_SERVICES[@]}"; do
         echo -e "${RED}❌ ${SERVICE} image build failed${NC}"
         exit 1
     fi
-
-    # 프로젝트 루트로 돌아가기
-    cd "$PROJECT_ROOT"
 done
+
+# --- 4.5 Docker 이미지 빌드 (Elasticsearch custom) ---
+echo ""
+echo -e "${YELLOW}🐳 Step 4.5: Docker Build (Elasticsearch)${NC}"
+
+docker build \
+    -t portal-universe-elasticsearch:v1.0.0 \
+    -f infrastructure/elasticsearch/Dockerfile \
+    infrastructure/elasticsearch/
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ elasticsearch image built${NC}"
+else
+    echo -e "${RED}❌ elasticsearch image build failed${NC}"
+    exit 1
+fi
 
 # --- 5. Kind 클러스터에 이미지 로드 ---
 echo ""
 echo -e "${YELLOW}📥 Step 5: Load Images to Kind Cluster${NC}"
 
-ALL_SERVICES=("${BACKEND_SERVICES[@]}" "${FRONTEND_SERVICES[@]}")
+ALL_SERVICES=("${BACKEND_SERVICES[@]}" "prism-service" "${FRONTEND_SERVICES[@]}")
 
 for SERVICE in "${ALL_SERVICES[@]}"; do
     echo -e "${BLUE}Loading ${SERVICE} to Kind...${NC}"
@@ -168,6 +205,11 @@ for SERVICE in "${ALL_SERVICES[@]}"; do
         exit 1
     fi
 done
+
+# Elasticsearch (다른 태그)
+echo -e "${BLUE}Loading elasticsearch to Kind...${NC}"
+kind load docker-image portal-universe-elasticsearch:v1.0.0 --name ${CLUSTER_NAME}
+echo -e "${GREEN}✅ elasticsearch loaded to Kind${NC}"
 
 echo ""
 echo -e "${GREEN}════════════════════════════════════════${NC}"

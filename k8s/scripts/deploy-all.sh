@@ -55,6 +55,7 @@ echo -e "${YELLOW}📦 Step 1: Apply Base Configuration${NC}"
 
 kubectl apply -f "$PROJECT_ROOT/k8s/base/namespace.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/base/secret.yaml"
+kubectl apply -f "$PROJECT_ROOT/k8s/base/jwt-secrets.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/configmap.yaml"
 echo -e "${GREEN}✅ Base configuration applied${NC}"
 
@@ -67,6 +68,10 @@ INFRA_SERVICES=(
     "mongodb"
     "kafka"
     "zipkin"
+    "redis"
+    "elasticsearch"
+    "postgresql"
+    "localstack"
 )
 
 for SERVICE in "${INFRA_SERVICES[@]}"; do
@@ -88,6 +93,15 @@ kubectl wait --for=condition=ready pod -l app=mongodb -n portal-universe --timeo
 echo "Waiting for Kafka..."
 kubectl wait --for=condition=ready pod -l app=kafka -n portal-universe --timeout=120s
 
+echo "Waiting for Redis..."
+kubectl wait --for=condition=ready pod -l app=redis -n portal-universe --timeout=120s
+
+echo "Waiting for PostgreSQL..."
+kubectl wait --for=condition=ready pod -l app=postgresql -n portal-universe --timeout=120s
+
+echo "Waiting for Elasticsearch..."
+kubectl wait --for=condition=ready pod -l app=elasticsearch -n portal-universe --timeout=180s
+
 echo "Waiting for Zipkin..."
 kubectl wait --for=condition=ready pod -l app=zipkin -n portal-universe --timeout=120s
 
@@ -102,6 +116,7 @@ BUSINESS_SERVICES=(
     "blog-service"
     "shopping-service"
     "notification-service"
+    "prism-service"
 )
 
 for SERVICE in "${BUSINESS_SERVICES[@]}"; do
@@ -114,13 +129,26 @@ done
 echo ""
 echo -e "${YELLOW}🌐 Step 4: Deploy API Gateway${NC}"
 kubectl apply -f "$PROJECT_ROOT/k8s/services/api-gateway.yaml"
-kubectl rollout status deployment/api-gateway -n portal-universe
+kubectl rollout status deployment/api-gateway -n portal-universe --timeout=300s
 
 # --- 5. Frontend 배포 (상태 확인) ---
 echo ""
 echo -e "${YELLOW}🎨 Step 5: Deploy Frontend${NC}"
-kubectl apply -f "$PROJECT_ROOT/k8s/services/portal-shell.yaml"
-kubectl rollout status deployment/portal-shell -n portal-universe
+
+FRONTEND_SERVICES=(
+    "blog-frontend"
+    "shopping-frontend"
+    "prism-frontend"
+    "portal-shell"
+)
+
+for SERVICE in "${FRONTEND_SERVICES[@]}"; do
+    echo -e "${BLUE}Deploying ${SERVICE}...${NC}"
+    kubectl apply -f "$PROJECT_ROOT/k8s/services/${SERVICE}.yaml"
+    echo -e "${GREEN}✅ ${SERVICE} deployed${NC}"
+done
+
+kubectl rollout status deployment/portal-shell -n portal-universe --timeout=120s
 
 # --- 6. Monitoring Services 배포 ---
 echo ""
