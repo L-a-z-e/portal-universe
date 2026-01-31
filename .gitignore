@@ -108,3 +108,4 @@ frontend/portal-shell/public/prism/
 .bkit-memory.json
 docs/pdca/
 docs/.pdca-status.json
+docs/.pdca-snapshots/
