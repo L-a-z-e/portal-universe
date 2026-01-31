@@ -107,3 +107,4 @@ frontend/portal-shell/public/prism/
 # bkit (AI Development Toolkit)
 .bkit-memory.json
 docs/pdca/
+docs/.pdca-status.json
