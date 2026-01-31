@@ -12,43 +12,20 @@
  * NOTE: Most tests require ADMIN role. If the test user doesn't have admin access,
  * only access control tests will run, and others will be skipped.
  */
-import { test, expect } from '../helpers/test-fixtures'
+import { test, expect, handleLoginModalIfVisible, navigateToAdminPage } from '../helpers/test-fixtures-admin'
 
 // Global flag to track admin access
 let hasAdminAccess = false
 
 test.describe('Admin Product Management', () => {
-  test.beforeAll(async ({ browser }) => {
-    // Check if user has admin access before running tests
-    const context = await browser.newContext({ storageState: './tests/.auth/user.json' })
-    const page = await context.newPage()
-
-    try {
-      await page.goto('/shopping/admin/products')
-      await page.waitForTimeout(3000)
-
-      const adminHeader = page.locator('h1:has-text("Products")')
-      hasAdminAccess = await adminHeader.isVisible()
-
-      console.log(`🔐 Admin Access Check: ${hasAdminAccess ? '✅ HAS ACCESS' : '❌ NO ACCESS'}`)
-    } catch (error) {
-      console.error('Error checking admin access:', error)
-      hasAdminAccess = false
-    } finally {
-      await page.close()
-      await context.close()
-    }
+  test.beforeAll(async () => {
+    // Admin access is confirmed by auth-admin.setup.ts (admin@example.com / ROLE_SUPER_ADMIN)
+    // Individual tests handle auth timing via handleLoginModalIfVisible in beforeEach
+    hasAdminAccess = true
   })
 
   test.beforeEach(async ({ page }) => {
-    // Navigate to admin products page
-    await page.goto('/shopping/admin/products')
-
-    // Wait for loading spinner to disappear
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    // Wait for page to render
-    await page.waitForTimeout(2000)
+    await navigateToAdminPage(page, '/shopping/admin/products')
   })
 
   test.describe('Access Control', () => {
@@ -218,8 +195,7 @@ test.describe('Admin Product Management', () => {
       const accessDenied = page.locator('h1:has-text("Access Denied")')
       if (await accessDenied.isVisible()) return
 
-      await page.goto('/shopping/admin/products/new')
-      await page.waitForTimeout(2000)
+      await navigateToAdminPage(page, '/shopping/admin/products/new')
 
       // Check for form fields
       const inputs = page.locator('input')
@@ -238,8 +214,7 @@ test.describe('Admin Product Management', () => {
       const accessDenied = page.locator('h1:has-text("Access Denied")')
       if (await accessDenied.isVisible()) return
 
-      await page.goto('/shopping/admin/products/new')
-      await page.waitForTimeout(2000)
+      await navigateToAdminPage(page, '/shopping/admin/products/new')
 
       const submitButton = page.locator('button:has-text("Save"), button:has-text("Create"), button[type="submit"]')
       await submitButton.first().click()
@@ -330,7 +305,7 @@ test.describe('Admin Product Management', () => {
         await page.waitForTimeout(500)
 
         // Confirmation modal should appear
-        const modalTitle = page.locator('text=/Delete Product|Are you sure|Confirm/i')
+        const modalTitle = page.locator('text=/Delete Product|Are you sure|Confirm/i').first()
         const isModalVisible = await modalTitle.isVisible()
 
         expect(isModalVisible).toBeTruthy()
@@ -443,8 +418,7 @@ test.describe('Admin Product Management', () => {
       const accessDenied = page.locator('h1:has-text("Access Denied")')
       if (await accessDenied.isVisible()) return
 
-      await page.goto('/shopping/admin/products/new')
-      await page.waitForTimeout(2000)
+      await navigateToAdminPage(page, '/shopping/admin/products/new')
 
       const backButton = page.locator('button:has-text("Back"), button:has-text("Cancel"), a:has-text("Back")')
       const hasBackButton = await backButton.first().isVisible()
