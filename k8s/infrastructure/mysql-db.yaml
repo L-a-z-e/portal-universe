@@ -113,10 +113,8 @@ data:
     CREATE DATABASE IF NOT EXISTS shopping_db;
     CREATE DATABASE IF NOT EXISTS notification_db;
 
-    -- 'laze' 사용자 명시적 생성 (MySQL 8.0 호환)
-    CREATE USER IF NOT EXISTS 'laze'@'%' IDENTIFIED BY 'test-password';
-
-    -- 'laze' 사용자에게 모든 권한을 부여합니다.
+    -- 'laze' 사용자는 MYSQL_USER + MYSQL_PASSWORD 환경변수로 자동 생성됩니다.
+    -- 추가 데이터베이스에 대한 권한만 부여합니다.
     GRANT ALL PRIVILEGES ON auth_db.* TO 'laze'@'%';
     GRANT ALL PRIVILEGES ON shopping_db.* TO 'laze'@'%';
     GRANT ALL PRIVILEGES ON notification_db.* TO 'laze'@'%';
