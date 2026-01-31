@@ -22,6 +22,16 @@ import { remoteLoader } from "../services/remoteLoader";
 import { useThemeStore } from "../store/theme";
 import { Spinner, Button, Card } from '@portal/design-system-vue';
 
+interface RemoteAppInstance {
+  unmount?: () => void;
+  onParentNavigate?: (path: string) => void;
+  onActivated?: () => void;
+  onDeactivated?: () => void;
+  onThemeChange?: (theme: string) => void;
+}
+
+type MountFn = (container: HTMLElement, options: Record<string, unknown>) => RemoteAppInstance;
+
 // 간단한 debounce 유틸리티 (외부 의존성 없음)
 function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -45,8 +55,8 @@ const loading = ref(true);
 const error = ref<Error | null>(null);
 const isDev = computed(() => import.meta.env.DEV);
 
-let remoteApp: any = null;
-let mountFn: any = null; // load 결과 저장 (중복 load 방지)
+let remoteApp: RemoteAppInstance | null = null;
+let mountFn: MountFn | null = null;
 
 // -------------------------
 // CSS Lifecycle Management
@@ -113,7 +123,12 @@ const onRemoteNavigate = (path: string) => {
     lastNavigatedPath = newPath;
     console.log(`📤 [RemoteWrapper] Remote navigated to: ${path}, updating shell to: ${newPath}`);
     shellRouter.push(newPath)
-        .catch(() => {})
+        .catch((err: unknown) => {
+          // NavigationDuplicated 등 Vue Router 내부 에러는 무시 가능
+          if (err instanceof Error && !err.message.includes('Avoided redundant navigation')) {
+            console.warn('[RemoteWrapper] Navigation error:', err.message);
+          }
+        })
         .finally(() => {
           setTimeout(() => { isNavigating = false; }, 100);
         });
