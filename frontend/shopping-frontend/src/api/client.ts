@@ -71,6 +71,12 @@ const createApiClient = (): AxiosInstance => {
     (error: AxiosError) => {
       const status = error.response?.status
 
+      // ApiResponse 에러 형식 파싱: { success: false, error: { code, message } }
+      const apiError = (error.response?.data as any)?.error
+      if (apiError?.message) {
+        error.message = apiError.message
+      }
+
       if (status === 401) {
         // 인증 만료 - 토큰 갱신 또는 로그인 페이지로 이동
         console.warn('[API] Unauthorized - token may be expired')

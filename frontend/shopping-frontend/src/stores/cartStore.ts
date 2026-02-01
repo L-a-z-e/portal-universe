@@ -4,7 +4,8 @@
  * 장바구니 상태 관리
  */
 import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
+import { devtools } from 'zustand/middleware'
+import { AxiosError } from 'axios'
 import { cartApi } from '@/api/endpoints'
 import type { Cart, CartItem, AddCartItemRequest } from '@/types'
 
@@ -35,132 +36,38 @@ const initialState = {
   totalAmount: 0
 }
 
+const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof AxiosError) {
+    return error.message || fallback
+  }
+  if (error instanceof Error) {
+    return error.message || fallback
+  }
+  return fallback
+}
+
 export const useCartStore = create<CartState>()(
   devtools(
-    persist(
-      (set, get) => ({
-        ...initialState,
+    (set, get) => ({
+      ...initialState,
 
-        /**
-         * 장바구니 조회
-         */
-        fetchCart: async () => {
-          set({ loading: true, error: null })
-          try {
-            const response = await cartApi.getCart()
-            const cart = response.data
-            set({
-              cart,
-              itemCount: cart.itemCount,
-              totalAmount: cart.totalAmount,
-              loading: false
-            })
-          } catch (error: any) {
-            // 장바구니가 없는 경우 (신규 사용자)
-            if (error.response?.status === 404) {
-              set({
-                cart: {
-                  id: 0,
-                  userId: '',
-                  status: 'ACTIVE',
-                  items: [],
-                  totalAmount: 0,
-                  itemCount: 0,
-                  totalQuantity: 0,
-                  createdAt: new Date().toISOString()
-                },
-                itemCount: 0,
-                totalAmount: 0,
-                loading: false
-              })
-            } else {
-              set({
-                error: error.message || 'Failed to fetch cart',
-                loading: false
-              })
-            }
-          }
-        },
-
-        /**
-         * 상품 추가
-         */
-        addItem: async (productId: number, productName: string, price: number, quantity: number) => {
-          set({ loading: true, error: null })
-          try {
-            const response = await cartApi.addItem({
-              productId,
-              quantity
-            })
-            const cart = response.data
-            set({
-              cart,
-              itemCount: cart.itemCount,
-              totalAmount: cart.totalAmount,
-              loading: false
-            })
-          } catch (error: any) {
-            set({
-              error: error.response?.data?.error?.message || error.message || 'Failed to add item',
-              loading: false
-            })
-            throw error
-          }
-        },
-
-        /**
-         * 수량 변경
-         */
-        updateItemQuantity: async (itemId: number, quantity: number) => {
-          set({ loading: true, error: null })
-          try {
-            const response = await cartApi.updateItem(itemId, { quantity })
-            const cart = response.data
-            set({
-              cart,
-              itemCount: cart.itemCount,
-              totalAmount: cart.totalAmount,
-              loading: false
-            })
-          } catch (error: any) {
-            set({
-              error: error.response?.data?.error?.message || error.message || 'Failed to update item',
-              loading: false
-            })
-            throw error
-          }
-        },
-
-        /**
-         * 상품 제거
-         */
-        removeItem: async (itemId: number) => {
-          set({ loading: true, error: null })
-          try {
-            const response = await cartApi.removeItem(itemId)
-            const cart = response.data
-            set({
-              cart,
-              itemCount: cart.itemCount,
-              totalAmount: cart.totalAmount,
-              loading: false
-            })
-          } catch (error: any) {
-            set({
-              error: error.response?.data?.error?.message || error.message || 'Failed to remove item',
-              loading: false
-            })
-            throw error
-          }
-        },
-
-        /**
-         * 장바구니 비우기
-         */
-        clearCart: async () => {
-          set({ loading: true, error: null })
-          try {
-            await cartApi.clearCart()
+      /**
+       * 장바구니 조회
+       */
+      fetchCart: async () => {
+        set({ loading: true, error: null })
+        try {
+          const response = await cartApi.getCart()
+          const cart = response.data
+          set({
+            cart,
+            itemCount: cart.itemCount,
+            totalAmount: cart.totalAmount,
+            loading: false
+          })
+        } catch (error) {
+          // 장바구니가 없는 경우 (신규 사용자)
+          if (error instanceof AxiosError && error.response?.status === 404) {
             set({
               cart: {
                 id: 0,
@@ -176,31 +83,125 @@ export const useCartStore = create<CartState>()(
               totalAmount: 0,
               loading: false
             })
-          } catch (error: any) {
+          } else {
             set({
-              error: error.response?.data?.message || error.message || 'Failed to clear cart',
+              error: getErrorMessage(error, 'Failed to fetch cart'),
               loading: false
             })
-            throw error
           }
-        },
-
-        /**
-         * 스토어 초기화
-         */
-        reset: () => {
-          set(initialState)
         }
-      }),
-      {
-        name: 'shopping-cart-storage',
-        // 로컬 스토리지에 일부 상태만 저장
-        partialize: (state) => ({
-          itemCount: state.itemCount,
-          totalAmount: state.totalAmount
-        })
+      },
+
+      /**
+       * 상품 추가
+       */
+      addItem: async (productId: number, productName: string, price: number, quantity: number) => {
+        set({ loading: true, error: null })
+        try {
+          const response = await cartApi.addItem({
+            productId,
+            quantity
+          })
+          const cart = response.data
+          set({
+            cart,
+            itemCount: cart.itemCount,
+            totalAmount: cart.totalAmount,
+            loading: false
+          })
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, 'Failed to add item'),
+            loading: false
+          })
+          throw error
+        }
+      },
+
+      /**
+       * 수량 변경
+       */
+      updateItemQuantity: async (itemId: number, quantity: number) => {
+        set({ loading: true, error: null })
+        try {
+          const response = await cartApi.updateItem(itemId, { quantity })
+          const cart = response.data
+          set({
+            cart,
+            itemCount: cart.itemCount,
+            totalAmount: cart.totalAmount,
+            loading: false
+          })
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, 'Failed to update item'),
+            loading: false
+          })
+          throw error
+        }
+      },
+
+      /**
+       * 상품 제거
+       */
+      removeItem: async (itemId: number) => {
+        set({ loading: true, error: null })
+        try {
+          const response = await cartApi.removeItem(itemId)
+          const cart = response.data
+          set({
+            cart,
+            itemCount: cart.itemCount,
+            totalAmount: cart.totalAmount,
+            loading: false
+          })
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, 'Failed to remove item'),
+            loading: false
+          })
+          throw error
+        }
+      },
+
+      /**
+       * 장바구니 비우기
+       */
+      clearCart: async () => {
+        set({ loading: true, error: null })
+        try {
+          await cartApi.clearCart()
+          set({
+            cart: {
+              id: 0,
+              userId: '',
+              status: 'ACTIVE',
+              items: [],
+              totalAmount: 0,
+              itemCount: 0,
+              totalQuantity: 0,
+              createdAt: new Date().toISOString()
+            },
+            itemCount: 0,
+            totalAmount: 0,
+            loading: false
+          })
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, 'Failed to clear cart'),
+            loading: false
+          })
+          throw error
+        }
+      },
+
+      /**
+       * 스토어 초기화
+       */
+      reset: () => {
+        set(initialState)
       }
-    ),
+    }),
     { name: 'CartStore' }
   )
 )

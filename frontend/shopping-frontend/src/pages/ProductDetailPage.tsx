@@ -58,11 +58,11 @@ const ProductDetailPage: React.FC = () => {
         if (inventoryRes) {
           setInventory(inventoryRes.data)
         }
-      } catch (err: any) {
-        if (err.response?.status === 404) {
-          setError('Product not found')
+      } catch (err) {
+        if (err instanceof Error && err.message) {
+          setError(err.message)
         } else {
-          setError(err.response?.data?.message || err.message || 'Failed to fetch product')
+          setError('Failed to fetch product')
         }
       } finally {
         setLoading(false)
@@ -339,7 +339,7 @@ const ProductDetailPage: React.FC = () => {
       </div>
       {/* Reviews Section */}
       <div className="pt-6 border-t border-border-default">
-        <ProductReviews productId={parseInt(productId!)} />
+        <ProductReviews productId={parsedId} />
       </div>
     </div>
   )

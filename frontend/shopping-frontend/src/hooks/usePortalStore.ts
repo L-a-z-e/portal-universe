@@ -64,6 +64,8 @@ export function usePortalTheme() {
       return
     }
 
+    let unsubscribe: (() => void) | undefined
+
     // Portal Shell에서 storeAdapter 동적 import
     import('portal/stores')
       .then((module) => {
@@ -81,19 +83,21 @@ export function usePortalTheme() {
         setTheme(themeAdapter.getState())
 
         // 변경 구독
-        const unsubscribe = themeAdapter.subscribe((newState) => {
+        unsubscribe = themeAdapter.subscribe((newState) => {
           setTheme(newState)
         })
 
         setLoading(false)
-
-        return () => unsubscribe()
       })
       .catch((err) => {
         console.error('[usePortalTheme] Failed to load storeAdapter:', err)
         setError(err)
         setLoading(false)
       })
+
+    return () => {
+      unsubscribe?.()
+    }
   }, [])
 
   const toggle = useCallback(() => {
@@ -136,6 +140,8 @@ export function usePortalAuth() {
       return
     }
 
+    let unsubscribe: (() => void) | undefined
+
     // Portal Shell에서 storeAdapter 동적 import
     import('portal/stores')
       .then((module) => {
@@ -153,19 +159,21 @@ export function usePortalAuth() {
         setAuth(authAdapter.getState())
 
         // 변경 구독
-        const unsubscribe = authAdapter.subscribe((newState) => {
+        unsubscribe = authAdapter.subscribe((newState) => {
           setAuth(newState)
         })
 
         setLoading(false)
-
-        return () => unsubscribe()
       })
       .catch((err) => {
         console.error('[usePortalAuth] Failed to load storeAdapter:', err)
         setError(err)
         setLoading(false)
       })
+
+    return () => {
+      unsubscribe?.()
+    }
   }, [])
 
   const hasRole = useCallback((role: string): boolean => {
