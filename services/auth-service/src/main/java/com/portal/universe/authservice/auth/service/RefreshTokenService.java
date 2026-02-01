@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.auth.service;
 
-import com.portal.universe.authservice.common.config.JwtConfig;
+import com.portal.universe.authservice.common.config.JwtProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class RefreshTokenService {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final JwtConfig jwtConfig;
+    private final JwtProperties jwtProperties;
 
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
 
@@ -36,7 +36,7 @@ public class RefreshTokenService {
         redisTemplate.opsForValue().set(
                 key,
                 token,
-                jwtConfig.getRefreshTokenExpiration(),
+                jwtProperties.getRefreshTokenExpiration(),
                 TimeUnit.MILLISECONDS
         );
         log.info("Refresh token saved for user: {}", userId);
@@ -98,7 +98,7 @@ public class RefreshTokenService {
      */
     public boolean rotateRefreshToken(String userId, String oldToken, String newToken) {
         String key = REFRESH_TOKEN_PREFIX + userId;
-        long ttlMillis = jwtConfig.getRefreshTokenExpiration();
+        long ttlMillis = jwtProperties.getRefreshTokenExpiration();
 
         // Lua Script: 기존 토큰이 일치하면 새 토큰으로 원자적 교체
         String luaScript =
