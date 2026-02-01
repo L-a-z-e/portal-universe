@@ -6,11 +6,14 @@ import com.portal.universe.shoppingservice.delivery.dto.UpdateDeliveryStatusRequ
 import com.portal.universe.shoppingservice.delivery.service.DeliveryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * 배송 API를 제공하는 컨트롤러입니다.
  */
+@Slf4j
 @RestController
 @RequestMapping("/deliveries")
 @RequiredArgsConstructor
@@ -22,10 +25,13 @@ public class DeliveryController {
      * 운송장 번호로 배송을 조회합니다.
      *
      * @param trackingNumber 운송장 번호
+     * @param userId 사용자 ID
      * @return 배송 정보
      */
     @GetMapping("/{trackingNumber}")
-    public ApiResponse<DeliveryResponse> getDelivery(@PathVariable String trackingNumber) {
+    public ApiResponse<DeliveryResponse> getDelivery(
+            @PathVariable String trackingNumber,
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(deliveryService.getDeliveryByTrackingNumber(trackingNumber));
     }
 
@@ -33,10 +39,13 @@ public class DeliveryController {
      * 주문 번호로 배송을 조회합니다.
      *
      * @param orderNumber 주문 번호
+     * @param userId 사용자 ID
      * @return 배송 정보
      */
     @GetMapping("/order/{orderNumber}")
-    public ApiResponse<DeliveryResponse> getDeliveryByOrder(@PathVariable String orderNumber) {
+    public ApiResponse<DeliveryResponse> getDeliveryByOrder(
+            @PathVariable String orderNumber,
+            @AuthenticationPrincipal String userId) {
         return ApiResponse.success(deliveryService.getDeliveryByOrderNumber(orderNumber));
     }
 
@@ -45,13 +54,16 @@ public class DeliveryController {
      *
      * @param trackingNumber 운송장 번호
      * @param request 상태 변경 요청
+     * @param adminId 관리자 ID
      * @return 업데이트된 배송 정보
      */
     @PutMapping("/{trackingNumber}/status")
     public ApiResponse<DeliveryResponse> updateDeliveryStatus(
             @PathVariable String trackingNumber,
-            @Valid @RequestBody UpdateDeliveryStatusRequest request) {
-
+            @Valid @RequestBody UpdateDeliveryStatusRequest request,
+            @AuthenticationPrincipal String adminId) {
+        log.info("Delivery status update requested: trackingNumber={}, newStatus={}, adminId={}",
+                trackingNumber, request.status(), adminId);
         return ApiResponse.success(deliveryService.updateDeliveryStatus(trackingNumber, request));
     }
 }

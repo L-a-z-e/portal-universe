@@ -6,12 +6,14 @@ import com.portal.universe.shoppingservice.payment.dto.ProcessPaymentRequest;
 import com.portal.universe.shoppingservice.payment.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * 결제 API를 제공하는 컨트롤러입니다.
  */
+@Slf4j
 @RestController
 @RequestMapping("/payments")
 @RequiredArgsConstructor
@@ -65,10 +67,14 @@ public class PaymentController {
      * 결제를 환불합니다 (관리자 전용).
      *
      * @param paymentNumber 결제 번호
+     * @param adminId 관리자 ID
      * @return 환불된 결제 정보
      */
     @PostMapping("/{paymentNumber}/refund")
-    public ApiResponse<PaymentResponse> refundPayment(@PathVariable String paymentNumber) {
+    public ApiResponse<PaymentResponse> refundPayment(
+            @PathVariable String paymentNumber,
+            @AuthenticationPrincipal String adminId) {
+        log.info("Payment refund requested: paymentNumber={}, adminId={}", paymentNumber, adminId);
         return ApiResponse.success(paymentService.refundPayment(paymentNumber));
     }
 }
