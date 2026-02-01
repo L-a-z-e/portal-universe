@@ -29,7 +29,7 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
       eventSourceRef.current.close();
     }
 
-    const url = `${SSE_BASE_URL}/prism/sse/boards/${boardId}`;
+    const url = `${SSE_BASE_URL}/api/v1/prism/sse/boards/${boardId}`;
     const eventSource = new EventSource(url, { withCredentials: true });
     eventSourceRef.current = eventSource;
 

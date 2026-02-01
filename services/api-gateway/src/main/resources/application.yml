@@ -414,6 +414,8 @@ gateway:
       - "/api/v1/shopping/coupons"
       - "/api/v1/shopping/time-deals"
       - "/api/v1/shopping/time-deals/**"
+      - "/api/v1/shopping/inventory/batch"
+      - "/api/v1/shopping/inventory/stream"
       - "/api/v1/prism/sse/**"
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
