@@ -113,6 +113,14 @@ public interface InventoryService {
     InventoryResponse addStock(Long productId, int quantity, String reason, String userId);
 
     /**
+     * 여러 상품의 재고 정보를 일괄 조회합니다.
+     *
+     * @param productIds 상품 ID 목록
+     * @return 재고 정보 목록
+     */
+    List<InventoryResponse> getInventories(List<Long> productIds);
+
+    /**
      * 재고 이동 이력을 조회합니다.
      *
      * @param productId 상품 ID

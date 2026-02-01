@@ -125,8 +125,11 @@ public class SecurityConfig {
                         // 배송 조회
                         .requestMatchers(HttpMethod.GET, "/deliveries/**").hasAnyRole("USER", "ADMIN")
 
-                        // 재고 조회
-                        .requestMatchers(HttpMethod.GET, "/inventory/**").hasAnyRole("USER", "ADMIN")
+                        // 재고 조회 (상품 목록/상세에서 비인증 사용자도 확인 필요)
+                        .requestMatchers(HttpMethod.POST, "/inventory/batch").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/inventory/stream").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/inventory/*/movements").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/inventory/*").permitAll()
 
                         // ========================================
                         // [관리자] SHOPPING_ADMIN / SUPER_ADMIN 역할 필요

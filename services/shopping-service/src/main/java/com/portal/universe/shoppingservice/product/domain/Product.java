@@ -4,12 +4,18 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 /**
  * 상품 정보를 나타내는 JPA 엔티티 클래스입니다.
  */
 @Entity
 @Table(name = "products") // 데이터베이스의 'products' 테이블과 매핑
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor // JPA 프록시 생성을 위한 기본 생성자
 public class Product {
@@ -53,6 +59,14 @@ public class Product {
      * 상품 카테고리
      */
     private String category;
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @Builder
     public Product(String name, String description, Double price, Integer stock, String imageUrl, String category) {

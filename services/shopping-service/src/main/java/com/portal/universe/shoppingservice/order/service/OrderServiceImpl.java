@@ -48,8 +48,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse createOrder(String userId, CreateOrderRequest request) {
         // 1. 체크아웃된 장바구니 조회
-        Cart cart = cartRepository.findByUserIdAndStatusWithItems(userId, CartStatus.CHECKED_OUT)
-                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.CART_NOT_FOUND));
+        var checkedOutCarts = cartRepository.findByUserIdAndStatusWithItems(userId, CartStatus.CHECKED_OUT);
+        if (checkedOutCarts.isEmpty()) {
+            throw new CustomBusinessException(ShoppingErrorCode.CART_NOT_FOUND);
+        }
+        Cart cart = checkedOutCarts.get(0);
 
         if (cart.getItems().isEmpty()) {
             throw new CustomBusinessException(ShoppingErrorCode.CART_EMPTY);

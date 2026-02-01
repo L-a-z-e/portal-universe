@@ -103,7 +103,13 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
 
         // 2. Feign 클라이언트를 통해 Blog 서비스의 API를 호출하여 리뷰 목록을 가져옵니다.
-        List<BlogResponse> reviews = blogServiceClient.getPostByProductId(String.valueOf(productId));
+        List<BlogResponse> reviews;
+        try {
+            reviews = blogServiceClient.getPostByProductId(String.valueOf(productId));
+        } catch (Exception e) {
+            log.warn("Failed to fetch reviews from blog service for productId={}: {}", productId, e.getMessage());
+            reviews = List.of();
+        }
 
         // 3. 두 데이터를 조합하여 최종 응답 DTO를 생성하고 반환합니다.
         return new ProductWithReviewsResponse(
@@ -210,7 +216,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 변환된 ProductResponse DTO
      */
     private ProductResponse convertToResponse(Product product) {
-        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(), product.getStock(), product.getImageUrl(), product.getCategory());
+        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(), product.getStock(), product.getImageUrl(), product.getCategory(), product.getCreatedAt(), product.getUpdatedAt());
     }
 
 }

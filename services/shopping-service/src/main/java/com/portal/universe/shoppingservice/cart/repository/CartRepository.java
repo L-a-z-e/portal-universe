@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,38 +17,26 @@ import java.util.Optional;
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
     /**
-     * 사용자 ID와 상태로 장바구니를 조회합니다.
-     *
-     * @param userId 사용자 ID
-     * @param status 장바구니 상태
-     * @return 장바구니
+     * 사용자 ID와 상태로 장바구니를 조회합니다 (가장 최근 1건).
      */
-    Optional<Cart> findByUserIdAndStatus(String userId, CartStatus status);
+    Optional<Cart> findFirstByUserIdAndStatusOrderByIdDesc(String userId, CartStatus status);
 
     /**
      * 사용자 ID와 상태로 장바구니를 조회합니다 (항목과 함께 Fetch Join).
-     *
-     * @param userId 사용자 ID
-     * @param status 장바구니 상태
-     * @return 장바구니 (항목 포함)
+     * 중복 카트가 있을 수 있으므로 List로 반환하고 호출측에서 첫 번째를 사용합니다.
      */
-    @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.userId = :userId AND c.status = :status")
-    Optional<Cart> findByUserIdAndStatusWithItems(@Param("userId") String userId, @Param("status") CartStatus status);
+    @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.userId = :userId AND c.status = :status ORDER BY c.id DESC")
+    List<Cart> findByUserIdAndStatusWithItems(@Param("userId") String userId, @Param("status") CartStatus status);
 
     /**
      * 사용자 ID로 활성 장바구니를 조회합니다 (항목과 함께 Fetch Join).
-     *
-     * @param userId 사용자 ID
-     * @return 활성 장바구니 (항목 포함)
+     * 중복 카트가 있을 수 있으므로 List로 반환하고 호출측에서 첫 번째를 사용합니다.
      */
-    @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.userId = :userId AND c.status = 'ACTIVE'")
-    Optional<Cart> findActiveCartWithItems(@Param("userId") String userId);
+    @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.userId = :userId AND c.status = 'ACTIVE' ORDER BY c.id DESC")
+    List<Cart> findActiveCartWithItems(@Param("userId") String userId);
 
     /**
      * 사용자에게 활성 장바구니가 있는지 확인합니다.
-     *
-     * @param userId 사용자 ID
-     * @return 존재 여부
      */
     boolean existsByUserIdAndStatus(String userId, CartStatus status);
 }

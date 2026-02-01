@@ -136,21 +136,25 @@ public class CartServiceImpl implements CartService {
      */
     @Transactional
     protected Cart getOrCreateActiveCart(String userId) {
-        return cartRepository.findActiveCartWithItems(userId)
-                .orElseGet(() -> {
-                    Cart newCart = Cart.builder()
-                            .userId(userId)
-                            .build();
-                    return cartRepository.save(newCart);
-                });
+        var carts = cartRepository.findActiveCartWithItems(userId);
+        if (!carts.isEmpty()) {
+            return carts.get(0);
+        }
+        Cart newCart = Cart.builder()
+                .userId(userId)
+                .build();
+        return cartRepository.save(newCart);
     }
 
     /**
      * 사용자의 활성 장바구니를 조회합니다 (항목 포함).
      */
     private Cart getActiveCartWithItems(String userId) {
-        return cartRepository.findActiveCartWithItems(userId)
-                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.CART_NOT_FOUND));
+        var carts = cartRepository.findActiveCartWithItems(userId);
+        if (carts.isEmpty()) {
+            throw new CustomBusinessException(ShoppingErrorCode.CART_NOT_FOUND);
+        }
+        return carts.get(0);
     }
 
     /**

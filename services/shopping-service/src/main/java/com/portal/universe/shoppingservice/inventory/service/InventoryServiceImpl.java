@@ -51,6 +51,13 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public List<InventoryResponse> getInventories(List<Long> productIds) {
+        return inventoryRepository.findByProductIds(productIds).stream()
+                .map(InventoryResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public InventoryResponse initializeInventory(Long productId, int initialStock, String userId) {
         if (inventoryRepository.existsByProductId(productId)) {

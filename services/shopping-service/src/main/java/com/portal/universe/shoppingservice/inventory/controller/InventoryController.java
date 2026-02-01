@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.inventory.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.shoppingservice.inventory.dto.InventoryBatchRequest;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryResponse;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryUpdateRequest;
 import com.portal.universe.shoppingservice.inventory.dto.StockMovementResponse;
@@ -14,6 +15,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 재고 관리 API를 제공하는 컨트롤러입니다.
  */
@@ -23,6 +26,17 @@ import org.springframework.web.bind.annotation.*;
 public class InventoryController {
 
     private final InventoryService inventoryService;
+
+    /**
+     * 여러 상품의 재고 정보를 일괄 조회합니다.
+     *
+     * @param request productIds가 포함된 요청 본문
+     * @return 재고 정보 목록
+     */
+    @PostMapping("/batch")
+    public ApiResponse<List<InventoryResponse>> getInventories(@Valid @RequestBody InventoryBatchRequest request) {
+        return ApiResponse.success(inventoryService.getInventories(request.productIds()));
+    }
 
     /**
      * 상품의 재고 정보를 조회합니다.
