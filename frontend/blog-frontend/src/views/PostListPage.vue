@@ -5,7 +5,8 @@ import { useRouter, useRoute } from "vue-router";
 import { getPublishedPosts, getTrendingPosts, getFeed } from "../api/posts";
 import type { PostSummaryResponse } from "../dto/post";
 import type { PageResponse } from "@/types";
-import { Button, Card, SearchBar } from '@portal/design-system-vue';
+import { Button, Card, SearchBar, Tabs, Spinner } from '@portal/design-system-vue';
+import type { TabItem } from '@portal/design-system-vue';
 import PostCard from '../components/PostCard.vue';
 import { useSearchStore } from '../stores/searchStore';
 import { useFollowStore } from '../stores/followStore';
@@ -22,6 +23,19 @@ type PeriodType = 'today' | 'week' | 'month' | 'year';
 
 const currentTab = ref<TabType>('trending');
 const currentPeriod = ref<PeriodType>('week');
+
+// Tab items for DS Tabs component
+const tabItems = computed<TabItem[]>(() => {
+  const items: TabItem[] = [];
+  if (authStore.isAuthenticated) {
+    items.push({ label: '📬 피드', value: 'feed' });
+  }
+  items.push(
+    { label: '🔥 트렌딩', value: 'trending' },
+    { label: '🕐 최신', value: 'recent' },
+  );
+  return items;
+});
 
 // 일반 목록 상태
 const posts = ref<PostSummaryResponse[]>([]);
@@ -329,55 +343,13 @@ onBeforeUnmount(() => {
       <!-- 탭 시스템 (검색 모드가 아닐 때만 표시) -->
       <div v-if="!isSearchMode" class="mb-6">
         <!-- 탭 버튼 -->
-        <div class="flex items-center gap-2 border-b border-border mb-4" data-testid="post-list-tabs">
-          <!-- 피드 탭 (로그인 시에만 표시) -->
-          <button
-              v-if="authStore.isAuthenticated"
-              @click="changeTab('feed')"
-              class="px-4 py-3 font-medium text-sm relative transition-colors"
-              :class="currentTab === 'feed'
-                ? 'text-brand-primary'
-                : 'text-text-meta hover:text-text-body'"
-              :data-active="currentTab === 'feed'"
-              data-testid="feed-tab"
-          >
-            📬 피드
-            <div
-                v-if="currentTab === 'feed'"
-                class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary"
-            ></div>
-          </button>
-          <button
-              @click="changeTab('trending')"
-              class="px-4 py-3 font-medium text-sm relative transition-colors"
-              :class="currentTab === 'trending'
-                ? 'text-brand-primary'
-                : 'text-text-meta hover:text-text-body'"
-              :data-active="currentTab === 'trending'"
-              data-testid="trending-tab"
-          >
-            🔥 트렌딩
-            <div
-                v-if="currentTab === 'trending'"
-                class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary"
-            ></div>
-          </button>
-          <button
-              @click="changeTab('recent')"
-              class="px-4 py-3 font-medium text-sm relative transition-colors"
-              :class="currentTab === 'recent'
-                ? 'text-brand-primary'
-                : 'text-text-meta hover:text-text-body'"
-              :data-active="currentTab === 'recent'"
-              data-testid="recent-tab"
-          >
-            🕐 최신
-            <div
-                v-if="currentTab === 'recent'"
-                class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary"
-            ></div>
-          </button>
-        </div>
+        <Tabs
+          v-model="currentTab"
+          :items="tabItems"
+          class="mb-4"
+          data-testid="post-list-tabs"
+          @change="(tab: string) => changeTab(tab as TabType)"
+        />
 
         <!-- 기간 필터 (트렌딩 탭일 때만 표시) -->
         <div v-if="currentTab === 'trending'" class="flex items-center gap-2">
@@ -397,7 +369,7 @@ onBeforeUnmount(() => {
 
       <!-- Loading State (초기 로드) -->
       <Card v-if="isInitialLoad && isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none" data-testid="feed-loading">
-        <div class="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-5"></div>
+        <Spinner size="lg" class="mx-auto mb-5" />
         <p class="text-text-meta text-lg">게시글을 불러오는 중...</p>
       </Card>
 
@@ -470,7 +442,7 @@ onBeforeUnmount(() => {
             class="min-h-[100px] flex items-center justify-center mt-8"
         >
           <div v-if="isLoadingMore || searchStore.isSearching" class="text-center py-8" data-testid="loading-more">
-            <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <Spinner size="md" class="mx-auto mb-3" />
             <p class="text-text-meta text-sm">더 많은 게시글을 불러오는 중...</p>
           </div>
         </div>

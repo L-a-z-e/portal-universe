@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import {ref, onMounted, onBeforeUnmount, watch, nextTick} from 'vue';
+import {ref, computed, onMounted, onBeforeUnmount, watch, nextTick} from 'vue';
 import { useRouter } from 'vue-router';
 import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
-import { Button, Card, Input, useToast, useApiError } from '@portal/design-system-vue';
+import { Button, Card, Input, Select, useToast, useApiError } from '@portal/design-system-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import { getMySeries, getSeriesByPostId, addPostToSeries, removePostFromSeries } from '../api/series';
@@ -71,6 +71,11 @@ const postData = ref<any>(null);
 const mySeriesList = ref<SeriesListResponse[]>([]);
 const selectedSeriesId = ref<string>('');
 const originalSeriesId = ref<string>('');
+
+const seriesOptions = computed(() => [
+  { label: '시리즈 없음', value: '' },
+  ...mySeriesList.value.map(s => ({ label: `${s.name} (${s.postCount}개)`, value: String(s.id) })),
+]);
 
 // Editor 초기화 함수
 function initEditor(content: string) {
@@ -363,19 +368,14 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- 시리즈 선택 -->
-      <div v-if="mySeriesList.length > 0">
-        <label class="block text-sm font-medium text-text-body mb-1">시리즈</label>
-        <select
-          v-model="selectedSeriesId"
-          :disabled="isSubmitting"
-          class="w-full px-4 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-        >
-          <option value="">시리즈 없음</option>
-          <option v-for="s in mySeriesList" :key="s.id" :value="s.id">
-            {{ s.name }} ({{ s.postCount }}개)
-          </option>
-        </select>
-      </div>
+      <Select
+        v-if="mySeriesList.length > 0"
+        v-model="selectedSeriesId"
+        :options="seriesOptions"
+        :disabled="isSubmitting"
+        label="시리즈"
+        placeholder="시리즈 없음"
+      />
 
       <!-- Toast UI Editor -->
       <Card>

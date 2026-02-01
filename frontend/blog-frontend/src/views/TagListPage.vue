@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllTags } from '../api/tags';
 import type { TagResponse } from '@/types';
-import { Card, Button } from '@portal/design-system-vue';
+import { Card, Button, Input, Spinner } from '@portal/design-system-vue';
 
 const router = useRouter();
 
@@ -133,13 +133,9 @@ onMounted(() => {
       <div class="mb-8 flex flex-col sm:flex-row gap-4">
         <!-- 검색 -->
         <div class="flex-1">
-          <input
+          <Input
             v-model="searchKeyword"
-            type="text"
             placeholder="태그 검색..."
-            class="w-full px-4 py-2 border border-border-default rounded-lg
-                   focus:outline-none focus:ring-2 focus:ring-brand-primary
-                   bg-bg-default text-text-body"
           />
         </div>
 
@@ -171,7 +167,7 @@ onMounted(() => {
 
       <!-- Loading State -->
       <Card v-if="isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none">
-        <div class="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-5"></div>
+        <Spinner size="lg" class="mx-auto mb-5" />
         <p class="text-text-meta text-lg">태그 목록을 불러오는 중...</p>
       </Card>
 

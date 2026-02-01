@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { Button, Spinner, Alert, Card } from '@portal/design-system-vue';
+import { Button, Spinner, Alert, Card, Tabs } from '@portal/design-system-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import ProfileEditForm from '@/components/ProfileEditForm.vue';
 import MyPostList from '@/components/MyPostList.vue';
@@ -95,20 +95,14 @@ onMounted(() => {
       <!-- 콘텐츠 섹션 -->
       <section class="content-section">
         <!-- 탭 네비게이션 -->
-        <div class="tabs">
-          <button
-            :class="['tab', { active: activeTab === 'posts' }]"
-            @click="activeTab = 'posts'"
-          >
-            내 게시글
-          </button>
-          <button
-            :class="['tab', { active: activeTab === 'series' }]"
-            @click="activeTab = 'series'"
-          >
-            내 시리즈
-          </button>
-        </div>
+        <Tabs
+          v-model="activeTab"
+          :items="[
+            { label: '내 게시글', value: 'posts' },
+            { label: '내 시리즈', value: 'series' },
+          ]"
+          class="mb-8"
+        />
 
         <!-- 탭 콘텐츠 -->
         <div class="tab-content">
@@ -182,40 +176,6 @@ onMounted(() => {
 /* 콘텐츠 섹션 */
 .content-section {
   width: 100%;
-}
-
-/* 탭 네비게이션 */
-.tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--semantic-border-default);
-}
-
-.tab {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--semantic-text-meta);
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.tab:hover:not(:disabled) {
-  color: var(--semantic-text-heading);
-}
-
-.tab.active {
-  color: var(--semantic-brand-primary);
-  border-bottom-color: var(--semantic-brand-primary);
-}
-
-.tab:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
 }
 
 /* 탭 콘텐츠 */

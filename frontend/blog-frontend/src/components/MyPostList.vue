@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Tag, Alert, Spinner, useApiError } from '@portal/design-system-vue';
+import { Button, Tag, Alert, Spinner, Tabs, useApiError } from '@portal/design-system-vue';
+import type { TabItem } from '@portal/design-system-vue';
 import type { PostSummaryResponse, PostStatus } from '@/dto/post';
 import { getMyPosts, deletePost, changePostStatus } from '@/api/posts';
 
@@ -55,9 +56,16 @@ const fetchPosts = async (page: number = 0) => {
   }
 };
 
+// 탭 아이템
+const filterTabs: TabItem[] = [
+  { label: '전체', value: 'ALL' },
+  { label: '발행됨', value: 'PUBLISHED' },
+  { label: '임시저장', value: 'DRAFT' },
+];
+
 // 필터 변경
-const handleFilterChange = (filter: FilterStatus) => {
-  currentFilter.value = filter;
+const handleFilterChange = (filter: string | number) => {
+  currentFilter.value = filter as FilterStatus;
   currentPage.value = 0;
   fetchPosts(0);
 };
@@ -134,25 +142,14 @@ onMounted(() => {
 <template>
   <div class="my-post-list">
     <!-- 필터 탭 -->
-    <div class="filter-tabs">
-      <button
-        :class="['filter-tab', { active: currentFilter === 'ALL' }]"
-        @click="handleFilterChange('ALL')"
-      >
-        전체
-      </button>
-      <button
-        :class="['filter-tab', { active: currentFilter === 'PUBLISHED' }]"
-        @click="handleFilterChange('PUBLISHED')"
-      >
-        발행됨
-      </button>
-      <button
-        :class="['filter-tab', { active: currentFilter === 'DRAFT' }]"
-        @click="handleFilterChange('DRAFT')"
-      >
-        임시저장
-      </button>
+    <div class="filter-tabs-wrapper">
+      <Tabs
+        :model-value="currentFilter"
+        @update:model-value="handleFilterChange"
+        :items="filterTabs"
+        variant="underline"
+        size="sm"
+      />
     </div>
 
     <!-- 에러 메시지 -->

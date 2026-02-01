@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Avatar, Card } from '@portal/design-system-vue';
+import { Avatar, Button, Card } from '@portal/design-system-vue';
 import type { UserProfileResponse } from '@/dto/user';
 import FollowButton from './FollowButton.vue';
 import FollowerModal from './FollowerModal.vue';
@@ -91,14 +91,14 @@ function openFollowingModal() {
 
         <!-- 팔로워/팔로잉 수 -->
         <div class="follow-stats">
-          <button class="stat-button" @click="openFollowerModal">
+          <Button variant="ghost" class="stat-button" @click="openFollowerModal">
             <span class="stat-count">{{ followerCount }}</span>
             <span class="stat-label">팔로워</span>
-          </button>
-          <button class="stat-button" @click="openFollowingModal">
+          </Button>
+          <Button variant="ghost" class="stat-button" @click="openFollowingModal">
             <span class="stat-count">{{ followingCount }}</span>
             <span class="stat-label">팔로잉</span>
-          </button>
+          </Button>
         </div>
 
         <!-- Bio -->

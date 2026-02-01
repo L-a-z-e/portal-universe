@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { Input, Tag } from '@portal/design-system-vue';
+import { Button, Input, Tag } from '@portal/design-system-vue';
 import { searchTags } from '@/api/tags';
 import type { TagResponse } from '@/types';
 
@@ -112,14 +112,16 @@ function handleBlur() {
           </button>
         </div>
       </div>
-      <button
+      <Button
         type="button"
+        variant="secondary"
+        size="sm"
         class="add-btn"
         @click="addTag(tagInput)"
         :disabled="!tagInput.trim()"
       >
         추가
-      </button>
+      </Button>
     </div>
 
     <!-- 선택된 태그 목록 -->

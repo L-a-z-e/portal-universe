@@ -156,21 +156,25 @@ const handleReplyCancel = () => {
           <!-- 액션 버튼 -->
           <div class="flex items-center gap-3 text-xs">
             <!-- 답글 버튼 -->
-            <button
-              class="text-text-meta hover:text-brand-primary transition-colors font-medium"
+            <Button
+              variant="ghost"
+              size="sm"
+              class="text-text-meta hover:text-brand-primary font-medium !p-0 !h-auto !min-h-0"
               @click="toggleReplyForm"
             >
               답글
-            </button>
+            </Button>
 
             <!-- 답글 개수 표시 (답글이 있을 때) -->
-            <button
+            <Button
               v-if="replyCount > 0"
-              class="text-brand-primary hover:text-brand-primary-hover transition-colors font-medium"
+              variant="ghost"
+              size="sm"
+              class="text-brand-primary hover:text-brand-primary-hover font-medium !p-0 !h-auto !min-h-0"
               @click="toggleReplies"
             >
               {{ isRepliesExpanded ? '답글 접기' : `답글 ${replyCount}개` }}
-            </button>
+            </Button>
           </div>
         </div>
 

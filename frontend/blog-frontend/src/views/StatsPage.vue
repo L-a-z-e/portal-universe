@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from 'portal/stores'
-import { Card, Spinner } from '@portal/design-system-vue'
+import { Card, Spinner, Button } from '@portal/design-system-vue'
 import { getBlogStats, getCategoryStats, getPopularTags, getAuthorStats } from '@/api/posts'
 import type { BlogStats, CategoryStats, TagStatsResponse, AuthorStats } from '@/types'
 
@@ -103,7 +103,7 @@ onMounted(() => {
 
     <div v-else-if="error" class="error-container">
       <p class="error-message">{{ error }}</p>
-      <button class="retry-button" @click="fetchAllStats">다시 시도</button>
+      <Button variant="secondary" @click="fetchAllStats">다시 시도</Button>
     </div>
 
     <div v-else class="stats-content">

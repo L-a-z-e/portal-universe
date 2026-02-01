@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Input, Card, Textarea, useToast, useApiError } from '@portal/design-system-vue';
+import { Button, Input, Card, Textarea, Select, useToast, useApiError } from '@portal/design-system-vue';
 import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
@@ -67,6 +67,11 @@ const autoSaveTimer = ref<number | null>(null);
 // 시리즈 선택
 const mySeriesList = ref<SeriesListResponse[]>([]);
 const selectedSeriesId = ref<string>('');
+
+const seriesOptions = computed(() => [
+  { label: '시리즈 없음', value: '' },
+  ...mySeriesList.value.map(s => ({ label: `${s.name} (${s.postCount}개)`, value: String(s.id) })),
+]);
 
 // ==================== 임시 저장 ====================
 
@@ -301,18 +306,13 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- 시리즈 선택 -->
-      <div v-if="mySeriesList.length > 0" class="series-select-wrapper">
-        <label class="block text-sm font-medium text-text-body mb-1">시리즈</label>
-        <select
-          v-model="selectedSeriesId"
-          class="w-full px-4 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-        >
-          <option value="">시리즈 없음</option>
-          <option v-for="s in mySeriesList" :key="s.id" :value="s.id">
-            {{ s.name }} ({{ s.postCount }}개)
-          </option>
-        </select>
-      </div>
+      <Select
+        v-if="mySeriesList.length > 0"
+        v-model="selectedSeriesId"
+        :options="seriesOptions"
+        label="시리즈"
+        placeholder="시리즈 없음"
+      />
 
       <!-- Toast UI Editor (순수 JavaScript 방식) -->
       <Card>
