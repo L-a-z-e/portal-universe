@@ -104,12 +104,10 @@ public class JwtAuthenticationFilter implements WebFilter {
             }
 
             String header = new String(java.util.Base64.getUrlDecoder().decode(parts[0]));
-            // Simple JSON parsing for kid
-            if (header.contains("\"kid\"")) {
-                int kidStart = header.indexOf("\"kid\"") + 6;
-                int valueStart = header.indexOf("\"", kidStart) + 1;
-                int valueEnd = header.indexOf("\"", valueStart);
-                return header.substring(valueStart, valueEnd);
+            var headerNode = objectMapper.readTree(header);
+            var kidNode = headerNode.get("kid");
+            if (kidNode != null && !kidNode.isNull()) {
+                return kidNode.asText();
             }
 
             log.warn("JWT token does not contain kid header, using current key");
@@ -290,7 +288,8 @@ public class JwtAuthenticationFilter implements WebFilter {
         exchange.getResponse().getHeaders().add("X-Auth-Error", message);
 
         String errorCode = switch (message) {
-            case "Token expired" -> "A005";
+            case "Token expired" -> "A006";
+            case "Invalid token" -> "A007";
             case "Token revoked" -> "A005";
             default -> "A005";
         };
