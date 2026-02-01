@@ -1,0 +1,85 @@
+/* Toast UI Viewer - Dark Mode Styles */
+.toastui-editor-dark .toastui-editor-contents {
+  color: var(--semantic-text-body);
+}
+
+.toastui-editor-dark .toastui-editor-contents h1,
+.toastui-editor-dark .toastui-editor-contents h2,
+.toastui-editor-dark .toastui-editor-contents h3,
+.toastui-editor-dark .toastui-editor-contents h4,
+.toastui-editor-dark .toastui-editor-contents h5,
+.toastui-editor-dark .toastui-editor-contents h6 {
+  color: var(--semantic-text-heading);
+}
+
+.toastui-editor-dark .toastui-editor-contents h1 {
+  border-bottom-color: var(--semantic-border-default);
+}
+
+.toastui-editor-dark .toastui-editor-contents h2 {
+  border-bottom-color: var(--semantic-border-muted);
+}
+
+.toastui-editor-dark .toastui-editor-contents p {
+  color: var(--semantic-text-body);
+}
+
+.toastui-editor-dark .toastui-editor-contents a {
+  color: var(--semantic-text-link);
+}
+
+.toastui-editor-dark .toastui-editor-contents a:hover {
+  color: var(--semantic-text-link-hover);
+}
+
+.toastui-editor-dark .toastui-editor-contents pre {
+  background: var(--semantic-bg-elevated);
+  border-color: var(--semantic-border-default);
+}
+
+.toastui-editor-dark .toastui-editor-contents code {
+  background: var(--semantic-bg-muted);
+  color: var(--semantic-brand-primary);
+}
+
+.toastui-editor-dark .toastui-editor-contents blockquote {
+  border-left-color: var(--semantic-brand-primary);
+  color: var(--semantic-text-meta);
+}
+
+.toastui-editor-dark .toastui-editor-contents li {
+  color: var(--semantic-text-body);
+}
+
+.toastui-editor-dark .toastui-editor-contents li::marker {
+  color: var(--semantic-brand-primary);
+}
+
+.toastui-editor-dark .toastui-editor-contents th,
+.toastui-editor-dark .toastui-editor-contents td {
+  border-color: var(--semantic-border-default);
+}
+
+.toastui-editor-dark .toastui-editor-contents th {
+  background: var(--semantic-bg-muted);
+  color: var(--semantic-text-heading);
+}
+
+.toastui-editor-dark .toastui-editor-contents td {
+  background: var(--semantic-bg-card);
+  color: var(--semantic-text-body);
+}
+
+.toastui-editor-dark .toastui-editor-contents hr {
+  border-top-color: var(--semantic-border-default);
+}
+
+.toastui-editor-dark .toastui-editor-contents strong,
+.toastui-editor-dark .toastui-editor-contents b {
+  color: var(--semantic-text-heading);
+}
+
+.toastui-editor-dark .toastui-editor-contents em,
+.toastui-editor-dark .toastui-editor-contents i {
+  color: var(--semantic-text-body);
+}

@@ -2,6 +2,7 @@ package com.portal.universe.blogservice.series.service;
 
 import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.post.domain.Post;
+import com.portal.universe.blogservice.post.dto.PostMapper;
 import com.portal.universe.blogservice.post.dto.PostSummaryResponse;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.blogservice.series.domain.Series;
@@ -172,7 +173,7 @@ public class SeriesService {
         return postIds.stream()
                 .map(postMap::get)
                 .filter(post -> post != null)
-                .map(this::convertToPostSummary)
+                .map(PostMapper::toSummary)
                 .toList();
     }
 
@@ -218,30 +219,4 @@ public class SeriesService {
         );
     }
 
-    private PostSummaryResponse convertToPostSummary(Post post) {
-        int estimatedReadTime = calculateReadTime(post.getContent());
-        return new PostSummaryResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getSummary(),
-                post.getAuthorId(),
-                post.getAuthorName(),
-                post.getTags(),
-                post.getCategory(),
-                post.getThumbnailUrl(),
-                post.getImages(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                post.getCommentCount() != null ? post.getCommentCount() : 0L,
-                post.getPublishedAt(),
-                estimatedReadTime
-        );
-    }
-
-    private int calculateReadTime(String content) {
-        if (content == null || content.isEmpty()) return 1;
-        int charCount = content.length();
-        int readTime = (int) Math.ceil(charCount / 200.0);
-        return Math.max(1, readTime);
-    }
 }

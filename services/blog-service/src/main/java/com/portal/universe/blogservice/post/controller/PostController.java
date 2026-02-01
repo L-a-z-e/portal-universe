@@ -44,8 +44,11 @@ public class PostController {
     @Operation(summary = "전체 게시물 조회(관리자용)")
     @GetMapping("/all")
     @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ApiResponse<List<PostResponse>> getAllPosts() {
-        List<PostResponse> posts = postService.getAllPosts();
+    public ApiResponse<Page<PostResponse>> getAllPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Page<PostResponse> posts = postService.getAllPosts(page, size);
         return ApiResponse.success(posts);
     }
 

@@ -21,6 +21,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,14 +44,9 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final SeriesRepository seriesRepository;
+    private final MongoTemplate mongoTemplate;
 
     // ===== 기존 메서드 구현 (하위 호환성) =====
-
-    @Override
-    @Transactional
-    public PostResponse createPost(PostCreateRequest request, String authorId) {
-        return createPost(request, authorId, null);
-    }
 
     @Override
     @Transactional
@@ -80,12 +79,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostResponse> getAllPosts() {
-        log.info("Fetching all posts");
-        List<Post> posts = postRepository.findAll();
-        return posts.stream()
-                .map(this::convertToPostResponse)
-                .collect(Collectors.toList());
+    public Page<PostResponse> getAllPosts(int page, int size) {
+        log.info("Fetching all posts - page: {}, size: {}", page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        return postRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(this::convertToPostResponse);
     }
 
     @Override
@@ -257,9 +255,13 @@ public class PostServiceImpl implements PostService {
             throw new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND);
         }
 
-        // 조회수 증가
-        post.incrementViewCount();
-        postRepository.save(post);
+        // 조회수 증가 (atomic $inc — race condition 방지)
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("id").is(postId)),
+                new Update().inc("viewCount", 1),
+                Post.class
+        );
+        post.incrementViewCount(); // 응답용 메모리 동기화
 
         return convertToPostResponse(post);
     }
@@ -591,32 +593,7 @@ public class PostServiceImpl implements PostService {
     }
 
     private PostSummaryResponse convertToPostListResponse(Post post) {
-        // 읽기 시간 계산 (평균 200자/분 기준)
-        int estimatedReadTime = calculateReadTime(post.getContent());
-
-        return new PostSummaryResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getSummary(),
-                post.getAuthorId(),
-                resolveAuthorName(post.getAuthorId(), post.getAuthorName()),
-                post.getTags(),
-                post.getCategory(),
-                post.getThumbnailUrl(),
-                post.getImages(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                post.getCommentCount() != null ? post.getCommentCount() : 0L,  // Phase 3: 댓글 수 추가
-                post.getPublishedAt(),
-                estimatedReadTime
-        );
-    }
-
-    private int calculateReadTime(String content) {
-        if (content == null || content.isEmpty()) return 1;
-        int wordCount = content.length();
-        int readTime = (int) Math.ceil(wordCount / 200.0);
-        return Math.max(1, readTime); // 최소 1분
+        return PostMapper.toSummary(post);
     }
 
     private Sort createSort(PostSortType sortBy, SortDirection direction) {
@@ -636,19 +613,10 @@ public class PostServiceImpl implements PostService {
     }
 
     private String resolveAuthorName(String authorId, String authorName) {
-        if (authorName != null && !authorName.isBlank()
-                && !isUuid(authorName) && !isCorrupted(authorName)) {
+        if (authorName != null && !authorName.isBlank()) {
             return authorName;
         }
         return "사용자";
-    }
-
-    private boolean isUuid(String value) {
-        return value.length() == 36 && value.charAt(8) == '-' && value.charAt(13) == '-';
-    }
-
-    private boolean isCorrupted(String value) {
-        return value.chars().allMatch(c -> c == '?');
     }
 
     // ===== 피드 기능 =====

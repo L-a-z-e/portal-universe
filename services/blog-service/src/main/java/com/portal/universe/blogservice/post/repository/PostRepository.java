@@ -108,26 +108,6 @@ public interface PostRepository extends MongoRepository<Post, String>, PostRepos
     @Query(value = "{ status: ?0 }", fields = "{ category: 1 }")
     List<String> findDistinctCategoriesByStatus(PostStatus status);
 
-    /**
-     * PRD Phase 1: 인기 태그 조회 (발행된 글 기준)
-     * 태그 클라우드 구성용
-     */
-    @Query("{ status: ?0 }")
-    List<Post> findByStatusForTagAggregation(PostStatus status);
-
-    // ===== PRD Phase 2 대비: 고급 쿼리 =====
-
-    /**
-     * 특정 기간 내 인기 게시물 (조회수 + 좋아요 수 복합)
-     */
-    @Query("{ status: ?0, publishedAt: { $gte: ?1, $lte: ?2 } }")
-    Page<Post> findPopularPostsInPeriod(PostStatus status, LocalDateTime start, LocalDateTime end, Pageable pageable);
-
-    /**
-     * 시리즈/연재 기능 대비: 동일 태그 그룹의 연속 게시물
-     */
-    Page<Post> findByTagsContainingAndStatusOrderByPublishedAtAsc(String seriesTag, PostStatus status, Pageable pageable);
-
     // ===== 피드 기능 =====
 
     /**

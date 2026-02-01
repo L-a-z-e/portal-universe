@@ -13,6 +13,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,7 @@ public class LikeService {
 
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
+    private final MongoTemplate mongoTemplate;
 
     /**
      * 좋아요 토글 (추가/취소)
@@ -47,10 +52,11 @@ public class LikeService {
         boolean liked;
         Like existingLike = likeRepository.findByPostIdAndUserId(postId, userId).orElse(null);
 
+        int increment;
         if (existingLike != null) {
             // 좋아요 취소
             likeRepository.delete(existingLike);
-            post.decrementLikeCount();
+            increment = -1;
             liked = false;
             log.info("Like removed: postId={}, userId={}", postId, userId);
         } else {
@@ -61,15 +67,19 @@ public class LikeService {
                     .userName(userName)
                     .build();
             likeRepository.save(newLike);
-            post.incrementLikeCount();
+            increment = 1;
             liked = true;
             log.info("Like added: postId={}, userId={}", postId, userId);
         }
 
-        // 3. Post 저장 (likeCount 반영)
-        postRepository.save(post);
+        // 3. likeCount atomic 업데이트 (race condition 방지)
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("id").is(postId)),
+                new Update().inc("likeCount", increment),
+                Post.class
+        );
 
-        return LikeToggleResponse.of(liked, post.getLikeCount());
+        return LikeToggleResponse.of(liked, post.getLikeCount() + increment);
     }
 
     /**

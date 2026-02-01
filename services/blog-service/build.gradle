@@ -43,11 +43,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation
 
     // =======================================
-    // Security (OAuth2 Resource Server)
+    // Security
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server' // JWT 토큰 검증
-    implementation 'org.springframework.security:spring-security-oauth2-jose' // JOSE (Javascript Object Signing and Encryption)
 
     // =======================================
     // Observability (Monitoring & Tracing)

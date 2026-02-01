@@ -259,19 +259,17 @@ public class Post {
      * 내용에서 요약 자동 생성 (PRD: AI 보조 기능 대비)
      */
     private String generateSummary(String content) {
-        if (content == null || content.isEmpty()) return "";
-        // HTML 태그 제거 후 요약 생성
-        String clean = content.replaceAll("<[^>]*>", "");
-        return clean.length() > 200 ? clean.substring(0, 200) + "..." : clean;
+        return truncateContent(content, 200);
     }
 
-    /**
-     * SEO 메타 설명 자동 생성
-     */
     private String generateMetaDescription(String content) {
+        return truncateContent(content, 160);
+    }
+
+    private String truncateContent(String content, int maxLength) {
         if (content == null || content.isEmpty()) return "";
         String clean = content.replaceAll("<[^>]*>", "");
-        return clean.length() > 160 ? clean.substring(0, 160) + "..." : clean;
+        return clean.length() > maxLength ? clean.substring(0, maxLength) + "..." : clean;
     }
 
     /**

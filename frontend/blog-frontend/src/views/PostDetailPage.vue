@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
+import '@/assets/styles/toastui-dark-viewer.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
@@ -19,6 +20,7 @@ import SeriesBox from "@/components/SeriesBox.vue";
 import RelatedPosts from "@/components/RelatedPosts.vue";
 import PostNavigation from "@/components/PostNavigation.vue";
 import CommentList from "@/components/CommentList.vue";
+import { useThemeDetection } from "@/composables/useThemeDetection";
 
 const route = useRoute();
 const router = useRouter();
@@ -66,17 +68,13 @@ const viewerElement = ref<HTMLDivElement | null>(null);
 let viewerInstance: Viewer | null = null;
 
 // 다크모드 감지
-const isDarkMode = ref(false);
+const { isDarkMode } = useThemeDetection();
 
-// 테마 감지 함수
-function detectTheme() {
-  const theme = document.documentElement.getAttribute('data-theme');
-  isDarkMode.value = theme === 'dark';
-
+watch(isDarkMode, () => {
   if (viewerInstance) {
     updateViewerTheme();
   }
-}
+});
 
 // Viewer 테마 업데이트
 function updateViewerTheme() {
@@ -89,42 +87,28 @@ function updateViewerTheme() {
   }
 }
 
-// ✅ Viewer 초기화 함수 (안전하게)
 function initViewer(content: string) {
-  console.log('🔍 [VIEWER] initViewer called');
+  if (!viewerElement.value) return;
 
-  if (!viewerElement.value) {
-    console.warn('⚠️ [VIEWER] viewerElement is null, skipping');
-    return;
-  }
-
-  // ✅ 기존 인스턴스가 있으면 제거
   if (viewerInstance) {
-    console.log('🔄 [VIEWER] Destroying existing instance');
     try {
       viewerInstance.destroy();
-    } catch (err) {
-      console.error('⚠️ [VIEWER] Destroy error:', err);
+    } catch {
+      // ignore destroy errors
     }
     viewerInstance = null;
   }
 
   try {
-    console.log('✅ [VIEWER] Creating new instance');
-
-    // 새 Viewer 인스턴스 생성
     viewerInstance = new Viewer({
       el: viewerElement.value,
       initialValue: content,
       plugins: [[codeSyntaxHighlight, { highlighter: Prism }]],
     });
 
-    // 초기 테마 적용
     updateViewerTheme();
-
-    console.log('✅ [VIEWER] Initialization complete');
-  } catch (err) {
-    console.error('❌ [VIEWER] Initialization failed:', err);
+  } catch {
+    // viewer initialization failed
   }
 }
 
@@ -132,14 +116,7 @@ function initViewer(content: string) {
 watch(
     [() => post.value, viewerElement],
     async ([newPost, newElement]) => {
-      console.log('👀 [WATCH] Triggered:', {
-        hasPost: !!newPost,
-        hasContent: !!newPost?.content,
-        hasElement: !!newElement
-      });
-
       if (newPost?.content && newElement) {
-        console.log('✅ [WATCH] Both ready, initializing viewer');
         await nextTick();
         initViewer(newPost.content);
       }
@@ -161,7 +138,6 @@ async function loadPost() {
   }
 
   try {
-    console.log('📍 [LOAD] Loading post:', postId);
     isLoading.value = true;
     error.value = null;
 
@@ -178,17 +154,15 @@ async function loadPost() {
         if (firstSeries) {
           seriesId.value = firstSeries.id;
         }
-      } catch (seriesErr) {
-        console.warn('Failed to load series info:', seriesErr);
+      } catch {
+        // series info load failed - non-critical
       }
     }
 
-  } catch (err) {
-    console.error('❌ [ERROR] Failed to load post:', err);
+  } catch {
     error.value = "게시글을 가져오지 못했습니다.";
   } finally {
     isLoading.value = false;
-    console.log('✅ [LOAD] Post loaded, watch will handle viewer init');
   }
 }
 
@@ -207,43 +181,15 @@ watch(
 );
 
 onMounted(async () => {
-  console.log('📍 [MOUNTED] PostDetailPage mounted');
-
-  // 초기 테마 감지
-  detectTheme();
-
-  // 데이터 로드 (watch가 viewer 초기화 처리)
   await loadPost();
-
-  // 테마 변경 감지 (MutationObserver)
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
-        detectTheme();
-      }
-    });
-  });
-
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-theme']
-  });
-
-  // cleanup 시 observer 정리
-  onBeforeUnmount(() => {
-    observer.disconnect();
-  });
 });
 
 onBeforeUnmount(() => {
-  console.log('🔄 [CLEANUP] Destroying viewer instance');
-
-  // Viewer 인스턴스 정리
   if (viewerInstance) {
     try {
       viewerInstance.destroy();
-    } catch (err) {
-      console.error('⚠️ [CLEANUP] Destroy error:', err);
+    } catch {
+      // ignore destroy errors
     }
     viewerInstance = null;
   }
@@ -265,7 +211,6 @@ async function handleDelete() {
     showDeleteConfirm.value = false;
     router.push('/');
   } catch (err) {
-    console.error('Failed to delete post:', err);
     handleError(err, '게시글 삭제에 실패했습니다.');
   } finally {
     isDeleting.value = false;
@@ -282,10 +227,8 @@ async function handleHeaderLikeToggle() {
     if (post.value) {
       post.value.likeCount = response.likeCount;
     }
-  } catch (err: any) {
-    if (err.response?.status === 401) {
-      console.warn('좋아요: 로그인이 필요합니다');
-    }
+  } catch {
+    // 401 등 에러 무시 (로그인 필요)
   }
 }
 
@@ -640,102 +583,6 @@ function handleLikeChanged(liked: boolean, count: number) {
 /* ============================================
    다크모드 스타일
    ============================================ */
-
-/* 다크모드 컨테이너 */
-.toastui-editor-dark :deep(.toastui-editor-contents) {
-  color: var(--semantic-text-body);
-}
-
-/* 다크모드 제목 */
-.toastui-editor-dark :deep(.toastui-editor-contents h1),
-.toastui-editor-dark :deep(.toastui-editor-contents h2),
-.toastui-editor-dark :deep(.toastui-editor-contents h3),
-.toastui-editor-dark :deep(.toastui-editor-contents h4),
-.toastui-editor-dark :deep(.toastui-editor-contents h5),
-.toastui-editor-dark :deep(.toastui-editor-contents h6) {
-  color: var(--semantic-text-heading);
-}
-
-.toastui-editor-dark :deep(.toastui-editor-contents h1) {
-  border-bottom-color: var(--semantic-border-default);
-}
-
-.toastui-editor-dark :deep(.toastui-editor-contents h2) {
-  border-bottom-color: var(--semantic-border-muted);
-}
-
-/* 다크모드 문단 */
-.toastui-editor-dark :deep(.toastui-editor-contents p) {
-  color: var(--semantic-text-body);
-}
-
-/* 다크모드 링크 */
-.toastui-editor-dark :deep(.toastui-editor-contents a) {
-  color: var(--semantic-text-link);
-}
-
-.toastui-editor-dark :deep(.toastui-editor-contents a:hover) {
-  color: var(--semantic-text-link-hover);
-}
-
-/* 다크모드 코드 블록 */
-.toastui-editor-dark :deep(.toastui-editor-contents pre) {
-  background: var(--semantic-bg-elevated);
-  border-color: var(--semantic-border-default);
-}
-
-.toastui-editor-dark :deep(.toastui-editor-contents code) {
-  background: var(--semantic-bg-muted);
-  color: var(--semantic-brand-primary);
-}
-
-/* 다크모드 인용구 */
-.toastui-editor-dark :deep(.toastui-editor-contents blockquote) {
-  border-left-color: var(--semantic-brand-primary);
-  color: var(--semantic-text-meta);
-}
-
-/* 다크모드 리스트 */
-.toastui-editor-dark :deep(.toastui-editor-contents li) {
-  color: var(--semantic-text-body);
-}
-
-.toastui-editor-dark :deep(.toastui-editor-contents li::marker) {
-  color: var(--semantic-brand-primary);
-}
-
-/* 다크모드 테이블 */
-.toastui-editor-dark :deep(.toastui-editor-contents th),
-.toastui-editor-dark :deep(.toastui-editor-contents td) {
-  border-color: var(--semantic-border-default);
-}
-
-.toastui-editor-dark :deep(.toastui-editor-contents th) {
-  background: var(--semantic-bg-muted);
-  color: var(--semantic-text-heading);
-}
-
-.toastui-editor-dark :deep(.toastui-editor-contents td) {
-  background: var(--semantic-bg-card);
-  color: var(--semantic-text-body);
-}
-
-/* 다크모드 구분선 */
-.toastui-editor-dark :deep(.toastui-editor-contents hr) {
-  border-top-color: var(--semantic-border-default);
-}
-
-/* 다크모드 강조 텍스트 */
-.toastui-editor-dark :deep(.toastui-editor-contents strong),
-.toastui-editor-dark :deep(.toastui-editor-contents b) {
-  color: var(--semantic-text-heading);
-}
-
-/* 다크모드 기울임 텍스트 */
-.toastui-editor-dark :deep(.toastui-editor-contents em),
-.toastui-editor-dark :deep(.toastui-editor-contents i) {
-  color: var(--semantic-text-body);
-}
 
 /* ============================================
    Like Section Styles

@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +29,7 @@ import java.util.List;
 public class TagService {
 
     private final TagRepository tagRepository;
+    private final MongoTemplate mongoTemplate;
 
     /**
      * 태그 생성 (수동)
@@ -96,17 +101,33 @@ public class TagService {
     }
 
     /**
-     * 여러 태그의 포스트 카운트 일괄 증가
+     * 여러 태그의 포스트 카운트 일괄 증가 (bulk $inc)
      */
     public void incrementTagPostCounts(List<String> tagNames) {
-        tagNames.forEach(this::incrementTagPostCount);
+        if (tagNames == null || tagNames.isEmpty()) return;
+        List<String> normalized = tagNames.stream()
+                .map(Tag::normalizeName)
+                .toList();
+        mongoTemplate.updateMulti(
+                Query.query(Criteria.where("name").in(normalized)),
+                new Update().inc("postCount", 1).set("lastUsedAt", LocalDateTime.now()),
+                Tag.class
+        );
     }
 
     /**
-     * 여러 태그의 포스트 카운트 일괄 감소
+     * 여러 태그의 포스트 카운트 일괄 감소 (bulk $inc)
      */
     public void decrementTagPostCounts(List<String> tagNames) {
-        tagNames.forEach(this::decrementTagPostCount);
+        if (tagNames == null || tagNames.isEmpty()) return;
+        List<String> normalized = tagNames.stream()
+                .map(Tag::normalizeName)
+                .toList();
+        mongoTemplate.updateMulti(
+                Query.query(Criteria.where("name").in(normalized)),
+                new Update().inc("postCount", -1),
+                Tag.class
+        );
     }
 
     /**

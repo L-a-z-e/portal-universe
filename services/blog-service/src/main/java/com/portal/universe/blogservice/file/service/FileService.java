@@ -49,15 +49,15 @@ public class FileService {
             s3Client.headBucket(HeadBucketRequest.builder()
                     .bucket(bucketName)
                     .build());
-            log.info("✅ S3 버킷 존재 확인: {}", bucketName);
+            log.info("S3 bucket verified: {}", bucketName);
         } catch (NoSuchBucketException e) {
-            log.warn("⚠️ S3 버킷이 존재하지 않습니다. 생성 중: {}", bucketName);
+            log.warn("S3 bucket not found, creating: {}", bucketName);
             s3Client.createBucket(CreateBucketRequest.builder()
                     .bucket(bucketName)
                     .build());
-            log.info("✅ S3 버킷 생성 완료: {}", bucketName);
+            log.info("S3 bucket created: {}", bucketName);
         } catch (Exception e) {
-            log.error("❌ S3 버킷 확인 중 오류 발생: {}", e.getMessage());
+            log.error("S3 bucket check failed: {}", e.getMessage());
         }
     }
 
@@ -90,14 +90,14 @@ public class FileService {
                     .getUrl(builder -> builder.bucket(bucketName).key(key))
                     .toString();
 
-            log.info("✅ 파일 업로드 완료 - Key: {}, URL: {}", key, url);
+            log.info("File uploaded - key: {}, url: {}", key, url);
             return url;
 
         } catch (IOException e) {
-            log.error("❌ 파일 읽기 실패: {}", e.getMessage());
+            log.error("File read failed: {}", e.getMessage());
             throw new CustomBusinessException(BlogErrorCode.FILE_UPLOAD_FAILED);
         } catch (S3Exception e) {
-            log.error("❌ S3 업로드 실패: {}", e.getMessage());
+            log.error("S3 upload failed: {}", e.getMessage());
             throw new CustomBusinessException(BlogErrorCode.FILE_UPLOAD_FAILED);
         }
     }
@@ -117,10 +117,10 @@ public class FileService {
                     .build();
 
             s3Client.deleteObject(deleteObjectRequest);
-            log.info("✅ 파일 삭제 완료 - Key: {}", key);
+            log.info("File deleted - key: {}", key);
 
         } catch (S3Exception e) {
-            log.error("❌ S3 파일 삭제 실패: {}", e.getMessage());
+            log.error("S3 file delete failed: {}", e.getMessage());
             throw new CustomBusinessException(BlogErrorCode.FILE_DELETE_FAILED);
         }
     }
@@ -128,7 +128,7 @@ public class FileService {
     /**
      * 파일 유효성 검증
      * - 파일 크기 제한
-     * - 확장자 검증 (이미지만 허용하려면 주석 해제)
+     * - 이미지 확장자 검증 (jpg, jpeg, png, gif, webp, svg)
      */
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
@@ -141,10 +141,9 @@ public class FileService {
 
         String extension = getFileExtension(file.getOriginalFilename());
 
-        // 이미지만 허용하려면 아래 주석 해제
-        // if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
-        //     throw new FileUploadException("허용되지 않는 파일 형식입니다: " + extension);
-        // }
+        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
+            throw new CustomBusinessException(BlogErrorCode.FILE_TYPE_NOT_ALLOWED);
+        }
     }
 
     /**

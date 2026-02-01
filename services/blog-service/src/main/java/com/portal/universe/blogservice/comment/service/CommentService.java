@@ -4,11 +4,15 @@ import com.portal.universe.blogservice.comment.domain.Comment;
 import com.portal.universe.blogservice.comment.dto.*;
 import com.portal.universe.blogservice.comment.repository.CommentRepository;
 import com.portal.universe.blogservice.common.exception.BlogErrorCode;
-import com.portal.universe.blogservice.post.repository.PostRepository;
+import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +25,16 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final PostRepository postRepository;
+    private final MongoTemplate mongoTemplate;
 
     /**
      * 댓글 생성
      */
+    @Transactional
     public CommentResponse createComment(CommentCreateRequest request, String authorId, String authorName) {
         Comment comment = Comment.builder()
                 .postId(request.postId())
@@ -52,6 +57,7 @@ public class CommentService {
     /**
      * 댓글 수정
      */
+    @Transactional
     public CommentResponse updateComment(String commentId, CommentUpdateRequest request, String authorId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
@@ -69,6 +75,7 @@ public class CommentService {
     /**
      * 댓글 삭제 (soft delete)
      */
+    @Transactional
     public void deleteComment(String commentId, String authorId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
@@ -86,24 +93,20 @@ public class CommentService {
     }
 
     /**
-     * 게시물의 댓글 수 업데이트 (Phase 3: 트렌딩 점수 계산용)
+     * 게시물의 댓글 수 업데이트 (atomic $inc — race condition 방지)
      */
     private void updatePostCommentCount(String postId, boolean increment) {
-        postRepository.findById(postId).ifPresent(post -> {
-            if (increment) {
-                post.incrementCommentCount();
-            } else {
-                post.decrementCommentCount();
-            }
-            postRepository.save(post);
-            log.debug("Updated comment count for post {}: increment={}", postId, increment);
-        });
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("id").is(postId)),
+                new Update().inc("commentCount", increment ? 1 : -1),
+                Post.class
+        );
+        log.debug("Updated comment count for post {}: increment={}", postId, increment);
     }
 
     /**
      * 특정 게시물의 모든 댓글 조회
      */
-    @Transactional(readOnly = true)
     public List<CommentResponse> getCommentsByPostId(String postId) {
         List<Comment> comments = commentRepository
                 .findByPostIdAndIsDeletedFalseOrderByCreatedAtAsc(postId);

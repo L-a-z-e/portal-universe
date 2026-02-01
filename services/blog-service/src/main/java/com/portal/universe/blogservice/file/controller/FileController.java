@@ -40,7 +40,7 @@ public class FileController {
     public ResponseEntity<FileUploadResponse> uploadFile(
             @RequestParam("file") MultipartFile file
     ) {
-        log.info("📤 파일 업로드 요청 - 파일명: {}, 크기: {}bytes",
+        log.info("File upload request - name: {}, size: {}bytes",
                 file.getOriginalFilename(), file.getSize());
 
         String url = fileService.uploadFile(file);
@@ -67,7 +67,7 @@ public class FileController {
     @DeleteMapping("/delete")
     @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<Void> deleteFile(@RequestBody FileDeleteRequest request) {
-        log.info("🗑️ 파일 삭제 요청 - URL: {}", request.getUrl());
+        log.info("File delete request - url: {}", request.getUrl());
 
         fileService.deleteFile(request.getUrl());
 
