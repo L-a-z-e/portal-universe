@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
-        '@portal/design-system-react/styles': resolve(
+        '@portal/design-system-react/style.css': resolve(
           __dirname,
           '../design-system-react/src/styles/index.css'
         ),
