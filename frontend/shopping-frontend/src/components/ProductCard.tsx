@@ -17,6 +17,7 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, inventory }) => {
   const { addItem, loading: cartLoading } = useCartStore()
   const [adding, setAdding] = React.useState(false)
+  const [imgError, setImgError] = React.useState(false)
 
   const isInStock = inventory ? inventory.availableQuantity > 0 : true
   const stockLevel = inventory?.availableQuantity ?? 0
@@ -53,11 +54,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, inventory }) => {
     >
       {/* Product Image */}
       <div className="aspect-square bg-bg-subtle relative overflow-hidden">
-        {product.imageUrl ? (
+        {product.imageUrl && !imgError ? (
           <img
             src={product.imageUrl}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-text-placeholder">

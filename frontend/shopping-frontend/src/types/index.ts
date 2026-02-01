@@ -195,13 +195,11 @@ export type PaymentStatus =
   | 'REFUNDED'
 
 export type PaymentMethod =
-  | 'CREDIT_CARD'
-  | 'DEBIT_CARD'
+  | 'CARD'
   | 'BANK_TRANSFER'
   | 'VIRTUAL_ACCOUNT'
-  | 'KAKAO_PAY'
-  | 'NAVER_PAY'
-  | 'TOSS_PAY'
+  | 'MOBILE'
+  | 'POINTS'
 
 export interface Payment {
   id: number
@@ -220,10 +218,10 @@ export interface Payment {
 
 export interface ProcessPaymentRequest {
   orderNumber: string
-  method: PaymentMethod
+  paymentMethod: PaymentMethod
   cardNumber?: string
-  expiryDate?: string
-  cvv?: string
+  cardExpiry?: string
+  cardCvv?: string
 }
 
 // ============================================
@@ -254,7 +252,7 @@ export interface Delivery {
   carrier: string
   status: DeliveryStatus
   shippingAddress: Address
-  history: DeliveryHistory[]
+  histories: DeliveryHistory[]
   estimatedDeliveryDate?: string
   actualDeliveryDate?: string
   createdAt: string
@@ -336,13 +334,11 @@ export const DELIVERY_STATUS_LABELS: Record<DeliveryStatus, string> = {
 }
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  CREDIT_CARD: '신용카드',
-  DEBIT_CARD: '체크카드',
+  CARD: '카드',
   BANK_TRANSFER: '계좌이체',
   VIRTUAL_ACCOUNT: '가상계좌',
-  KAKAO_PAY: '카카오페이',
-  NAVER_PAY: '네이버페이',
-  TOSS_PAY: '토스페이'
+  MOBILE: '휴대폰',
+  POINTS: '포인트'
 }
 
 // ============================================

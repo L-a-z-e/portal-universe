@@ -222,7 +222,7 @@ const OrderDetailPage: React.FC = () => {
             <h2 className="text-lg font-bold text-text-heading mb-4">Order Items</h2>
 
             <div className="divide-y divide-border-default">
-              {order.items.map((item) => (
+              {(order.items || []).map((item) => (
                 <div key={item.id} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-bg-subtle rounded-lg flex items-center justify-center text-text-placeholder">
@@ -284,17 +284,17 @@ const OrderDetailPage: React.FC = () => {
               </div>
 
               {/* Timeline */}
-              {delivery.history.length > 0 && (
+              {delivery.histories.length > 0 && (
                 <div className="border-t border-border-default pt-4">
                   <h3 className="text-sm font-medium text-text-heading mb-4">Tracking History</h3>
                   <div className="space-y-4">
-                    {delivery.history.map((event, index) => (
+                    {delivery.histories.map((event, index) => (
                       <div key={event.id} className="flex gap-4">
                         <div className="relative">
                           <div className={`w-3 h-3 rounded-full ${
                             index === 0 ? 'bg-brand-primary' : 'bg-border-default'
                           }`} />
-                          {index < delivery.history.length - 1 && (
+                          {index < delivery.histories.length - 1 && (
                             <div className="absolute top-3 left-1/2 -translate-x-1/2 w-0.5 h-full bg-border-default" />
                           )}
                         </div>

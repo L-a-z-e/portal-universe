@@ -114,7 +114,6 @@ function App({
     console.group('🔧 [Shopping] App mounted with props:')
     console.log('  theme:', theme)
     console.log('  locale:', locale)
-    console.log('  userRole:', userRole)
     console.log('  isEmbedded:', isEmbedded)
     console.log('  portalTheme.isConnected:', portalTheme.isConnected)
     console.groupEnd()

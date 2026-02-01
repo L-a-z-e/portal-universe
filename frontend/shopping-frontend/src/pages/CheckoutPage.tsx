@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCartStore } from '@/stores/cartStore'
-import { orderApi, paymentApi } from '@/api/endpoints'
+import { cartApi, orderApi, paymentApi } from '@/api/endpoints'
 import type { AddressRequest, PaymentMethod, Order, UserCoupon } from '@/types'
 import { PAYMENT_METHOD_LABELS } from '@/types'
 import { CouponSelector } from '@/components/coupon/CouponSelector'
@@ -34,7 +34,7 @@ const CheckoutPage: React.FC = () => {
     address2: ''
   })
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CREDIT_CARD')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CARD')
   const [selectedCoupon, setSelectedCoupon] = useState<UserCoupon | null>(null)
 
   // Fetch cart on mount
@@ -89,6 +89,9 @@ const CheckoutPage: React.FC = () => {
     setError(null)
 
     try {
+      // 장바구니를 CHECKED_OUT 상태로 전환
+      await cartApi.checkout()
+
       const response = await orderApi.createOrder({
         shippingAddress: address,
         userCouponId: selectedCoupon?.id
@@ -112,10 +115,10 @@ const CheckoutPage: React.FC = () => {
     try {
       await paymentApi.processPayment({
         orderNumber: order.orderNumber,
-        method: paymentMethod
+        paymentMethod: paymentMethod
       })
-      // Clear cart after successful payment
-      await clearCart()
+      // Clear cart after successful payment (ignore errors - cart may already be consumed)
+      try { await clearCart() } catch { /* cart already checked out */ }
       setStep('complete')
     } catch (err: any) {
       setError(err.response?.data?.error?.message || err.message || 'Payment failed')

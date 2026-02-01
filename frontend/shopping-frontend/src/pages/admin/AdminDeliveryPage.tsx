@@ -153,13 +153,13 @@ const AdminDeliveryPage: React.FC = () => {
           {/* History */}
           <div className="bg-bg-card border border-border-default rounded-lg p-5">
             <h2 className="text-lg font-semibold text-text-heading mb-4">Delivery History</h2>
-            {delivery.history.length === 0 ? (
+            {delivery.histories.length === 0 ? (
               <p className="text-sm text-text-meta text-center py-6">No history records</p>
             ) : (
               <div className="space-y-0">
-                {delivery.history.map((entry, index) => (
+                {delivery.histories.map((entry, index) => (
                   <div key={entry.id} className="relative pl-6 pb-6 last:pb-0">
-                    {index < delivery.history.length - 1 && (
+                    {index < delivery.histories.length - 1 && (
                       <div className="absolute left-[9px] top-4 bottom-0 w-0.5 bg-border-default" />
                     )}
                     <div className={`absolute left-0 top-1 w-[18px] h-[18px] rounded-full border-2 ${

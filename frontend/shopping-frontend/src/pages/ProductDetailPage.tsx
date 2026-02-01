@@ -25,6 +25,7 @@ const ProductDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [addSuccess, setAddSuccess] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   // SSE for real-time inventory updates
   const parsedId = productId ? parseInt(productId) : 0
@@ -170,11 +171,12 @@ const ProductDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Image */}
         <div className="aspect-square bg-bg-subtle rounded-lg overflow-hidden">
-          {product.imageUrl ? (
+          {product.imageUrl && !imgError ? (
             <img
               src={product.imageUrl}
               alt={product.name}
               className="w-full h-full object-cover"
+              onError={() => setImgError(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-text-placeholder">
@@ -330,7 +332,7 @@ const ProductDetailPage: React.FC = () => {
             </p>
             <p>
               <span className="font-medium text-text-body">Added:</span>{' '}
-              {new Date(product.createdAt).toLocaleDateString('ko-KR')}
+              {product.createdAt ? new Date(product.createdAt).toLocaleDateString('ko-KR') : '-'}
             </p>
           </div>
         </div>

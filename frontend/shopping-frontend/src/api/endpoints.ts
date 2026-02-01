@@ -217,6 +217,16 @@ export const cartApi = {
       `${API_PREFIX}/cart`
     )
     return response.data
+  },
+
+  /**
+   * 장바구니 체크아웃 (ACTIVE → CHECKED_OUT)
+   */
+  checkout: async () => {
+    const response = await getApiClient().post<ApiResponse<Cart>>(
+      `${API_PREFIX}/cart/checkout`
+    )
+    return response.data
   }
 }
 
