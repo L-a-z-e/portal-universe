@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { SpinnerProps } from './Spinner.types';
+import type { SpinnerProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<SpinnerProps>(), {
   size: 'md',

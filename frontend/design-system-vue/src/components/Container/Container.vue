@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { ContainerProps } from './Container.types';
+import type { ContainerProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<ContainerProps>(), {
   maxWidth: 'lg',

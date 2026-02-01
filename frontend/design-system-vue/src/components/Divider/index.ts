@@ -1,2 +1,2 @@
 export { default as Divider } from './Divider.vue';
-export type { DividerProps } from './Divider.types';
+export type { DividerProps } from '@portal/design-types';

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { StackProps } from './Stack.types';
+import type { StackProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<StackProps>(), {
   direction: 'vertical',

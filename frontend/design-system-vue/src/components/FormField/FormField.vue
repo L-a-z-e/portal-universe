@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, provide } from 'vue';
-import type { FormFieldProps } from './FormField.types';
+import type { FormFieldProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<FormFieldProps>(), {
   required: false,

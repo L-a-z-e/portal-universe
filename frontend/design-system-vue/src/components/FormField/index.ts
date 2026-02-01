@@ -1,2 +1,2 @@
 export { default as FormField } from './FormField.vue';
-export type { FormFieldProps } from './FormField.types';
+export type { FormFieldProps } from '@portal/design-types';

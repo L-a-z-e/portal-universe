@@ -1,53 +1,13 @@
 import type { RouteLocationRaw } from 'vue-router';
+import type {
+  BreadcrumbItem as BaseBreadcrumbItem,
+  BreadcrumbProps as BaseBreadcrumbProps,
+} from '@portal/design-types';
 
-/**
- * Breadcrumb item
- */
-export interface BreadcrumbItem {
-  /**
-   * Item label
-   */
-  label: string;
-
-  /**
-   * URL for external links
-   */
-  href?: string;
-
-  /**
-   * Vue Router to prop
-   */
+export interface BreadcrumbItem extends BaseBreadcrumbItem {
   to?: RouteLocationRaw;
-
-  /**
-   * Icon name or component
-   */
-  icon?: string;
 }
 
-/**
- * Breadcrumb component props
- */
-export interface BreadcrumbProps {
-  /**
-   * Breadcrumb items
-   */
+export interface BreadcrumbProps extends Omit<BaseBreadcrumbProps, 'items'> {
   items: BreadcrumbItem[];
-
-  /**
-   * Separator character
-   * @default '/'
-   */
-  separator?: string;
-
-  /**
-   * Max items before collapse
-   */
-  maxItems?: number;
-
-  /**
-   * Size variant
-   * @default 'md'
-   */
-  size?: 'sm' | 'md' | 'lg';
 }

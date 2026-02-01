@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { DividerProps } from './Divider.types';
+import type { DividerProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<DividerProps>(), {
   orientation: 'horizontal',

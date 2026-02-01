@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { SkeletonProps } from './Skeleton.types';
+import type { SkeletonProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<SkeletonProps>(), {
   variant: 'text',

@@ -12,11 +12,10 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles": "./src/styles/index.css"
+    "./style.css": "./dist/design-system.css"
   },
   "files": [
-    "dist",
-    "src/styles"
+    "dist"
   ],
   "scripts": {
     "dev": "vite",

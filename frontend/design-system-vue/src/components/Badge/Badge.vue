@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BadgeProps } from './Badge.types';
+import type { BadgeProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<BadgeProps>(), {
   variant: 'default',

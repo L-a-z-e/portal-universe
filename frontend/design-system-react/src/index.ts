@@ -3,6 +3,9 @@
  * React component library for Portal Universe Design System
  */
 
+// Styles
+import './styles/index.css';
+
 // Export all components
 export * from './components';
 

@@ -1,2 +1,2 @@
 export { default as Container } from './Container.vue';
-export type { ContainerProps } from './Container.types';
+export type { ContainerProps } from '@portal/design-types';

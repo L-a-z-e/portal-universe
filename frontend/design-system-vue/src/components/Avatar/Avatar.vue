@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import type { AvatarProps } from './Avatar.types';
+import type { AvatarProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<AvatarProps>(), {
   src: '',

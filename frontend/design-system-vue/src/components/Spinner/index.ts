@@ -1,2 +1,2 @@
 export { default as Spinner } from './Spinner.vue';
-export type { SpinnerProps } from './Spinner.types';
+export type { SpinnerProps } from '@portal/design-types';

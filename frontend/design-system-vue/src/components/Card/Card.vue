@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CardProps } from './Card.types';
+import type { CardProps } from '@portal/design-types';
 
 const props = withDefaults(defineProps<CardProps>(), {
   variant: 'elevated',

@@ -1,64 +1,10 @@
-/**
- * Tab item
- */
-export interface TabItem {
-  /**
-   * Tab label
-   */
-  label: string;
+import type { TabsProps as BaseTabsProps } from '@portal/design-types';
+export type { TabItem } from '@portal/design-types';
 
-  /**
-   * Tab value (unique identifier)
-   */
-  value: string;
-
-  /**
-   * Disabled state
-   */
-  disabled?: boolean;
-
-  /**
-   * Icon name or component
-   */
-  icon?: string;
-}
-
-/**
- * Tabs component props
- */
-export interface TabsProps {
-  /**
-   * Active tab value (v-model)
-   */
+export type TabsProps = Omit<BaseTabsProps, 'value'> & {
   modelValue: string;
+};
 
-  /**
-   * Tab items
-   */
-  items: TabItem[];
-
-  /**
-   * Visual variant
-   * @default 'default'
-   */
-  variant?: 'default' | 'pills' | 'underline';
-
-  /**
-   * Size
-   * @default 'md'
-   */
-  size?: 'sm' | 'md' | 'lg';
-
-  /**
-   * Full width tabs
-   * @default false
-   */
-  fullWidth?: boolean;
-}
-
-/**
- * Tabs component emits
- */
 export interface TabsEmits {
   (e: 'update:modelValue', value: string): void;
   (e: 'change', value: string): void;

@@ -267,10 +267,6 @@ function buildTokens() {
    Linear-inspired theme - DO NOT EDIT MANUALLY
    ============================================ */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 :root {
 `;
 
