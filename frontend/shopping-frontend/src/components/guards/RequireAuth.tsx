@@ -11,6 +11,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import { Spinner } from '@portal/design-system-react'
 
 interface RequireAuthProps {
   children: React.ReactNode
@@ -107,7 +108,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          <Spinner size="md" />
           <p className="text-text-meta text-sm">Checking authentication...</p>
         </div>
       </div>

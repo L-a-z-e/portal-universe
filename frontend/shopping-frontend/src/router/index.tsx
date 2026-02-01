@@ -13,6 +13,7 @@ import {
   Navigate,
   useLocation
 } from 'react-router-dom'
+import { Spinner } from '@portal/design-system-react'
 
 // React Router v7 Router 타입
 type RouterInstance = ReturnType<typeof createBrowserRouter>
@@ -59,7 +60,7 @@ const RequireRole = lazy(() => import('@/components/guards/RequireRole'))
 const PageLoader: React.FC = () => (
   <div className="min-h-[400px] flex items-center justify-center">
     <div className="flex flex-col items-center gap-4">
-      <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+      <Spinner size="md" />
       <p className="text-text-meta text-sm">Loading...</p>
     </div>
   </div>

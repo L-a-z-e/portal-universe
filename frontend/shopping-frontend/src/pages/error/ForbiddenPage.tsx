@@ -4,6 +4,7 @@
  */
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Button } from '@portal/design-system-react'
 
 export const ForbiddenPage: React.FC = () => {
   const navigate = useNavigate()
@@ -43,18 +44,18 @@ export const ForbiddenPage: React.FC = () => {
 
         {/* Actions */}
         <div className="flex items-center justify-center gap-3">
-          <button
+          <Button
+            variant="secondary"
             onClick={() => navigate(-1)}
-            className="px-6 py-3 rounded-lg font-medium bg-bg-subtle text-text-body hover:bg-bg-hover transition-colors"
           >
             Go Back
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => navigate('/')}
-            className="px-6 py-3 rounded-lg font-medium bg-brand-primary text-white hover:bg-brand-primaryHover transition-colors shadow-sm hover:shadow-md"
           >
             Go to Home
-          </button>
+          </Button>
         </div>
       </div>
     </div>

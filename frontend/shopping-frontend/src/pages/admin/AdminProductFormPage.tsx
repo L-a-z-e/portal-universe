@@ -8,9 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAdminProduct, useCreateProduct, useUpdateProduct } from '@/hooks/useAdminProducts'
-import { Button } from '@/components/common/Button'
-import { Input } from '@/components/form/Input'
-import { TextArea } from '@/components/form/TextArea'
+import { Button, Input, Textarea } from '@portal/design-system-react'
 import type { ProductFormData } from '@/types/admin'
 
 // Zod 스키마 정의
@@ -116,17 +114,19 @@ export const AdminProductFormPage: React.FC = () => {
           <Input
             label="Product Name"
             required
-            error={errors.name?.message}
+            error={!!errors.name}
+            errorMessage={errors.name?.message}
             {...register('name')}
             placeholder="Enter product name"
           />
 
           {/* Description */}
-          <TextArea
+          <Textarea
             label="Description"
             required
             rows={5}
-            error={errors.description?.message}
+            error={!!errors.description}
+            errorMessage={errors.description?.message}
             {...register('description')}
             placeholder="Enter product description"
           />
@@ -137,8 +137,8 @@ export const AdminProductFormPage: React.FC = () => {
               label="Price"
               type="number"
               required
-              step="0.01"
-              error={errors.price?.message}
+              error={!!errors.price}
+              errorMessage={errors.price?.message}
               {...register('price', { valueAsNumber: true })}
               placeholder="0.00"
             />
@@ -147,7 +147,8 @@ export const AdminProductFormPage: React.FC = () => {
               label="Stock"
               type="number"
               required
-              error={errors.stock?.message}
+              error={!!errors.stock}
+              errorMessage={errors.stock?.message}
               {...register('stock', { valueAsNumber: true })}
               placeholder="0"
             />
@@ -156,19 +157,19 @@ export const AdminProductFormPage: React.FC = () => {
           {/* Image URL */}
           <Input
             label="Image URL"
-            error={errors.imageUrl?.message}
+            error={!!errors.imageUrl}
+            errorMessage={errors.imageUrl?.message}
             {...register('imageUrl')}
             placeholder="https://example.com/image.jpg"
-            helpText="Optional: URL of the product image"
           />
 
           {/* Category */}
           <Input
             label="Category"
-            error={errors.category?.message}
+            error={!!errors.category}
+            errorMessage={errors.category?.message}
             {...register('category')}
             placeholder="Electronics, Clothing, etc."
-            helpText="Optional: Product category"
           />
 
           {/* Actions */}

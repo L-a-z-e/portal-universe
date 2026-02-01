@@ -5,9 +5,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdminProducts, useDeleteProduct } from '@/hooks/useAdminProducts'
-import { Button } from '@/components/common/Button'
-import { ConfirmModal } from '@/components/common/ConfirmModal'
-import { Pagination } from '@/components/common/Pagination'
+import { Button, Pagination, Modal } from '@portal/design-system-react'
 import type { ProductFilters } from '@/types/admin'
 import type { Product } from '@/types'
 
@@ -65,12 +63,10 @@ export const AdminProductListPage: React.FC = () => {
         <Button
           variant="primary"
           onClick={() => navigate('/admin/products/new')}
-          icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          }
         >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
           New Product
         </Button>
       </div>
@@ -165,9 +161,9 @@ export const AdminProductListPage: React.FC = () => {
             {/* Pagination */}
             {data?.data.totalPages && data.data.totalPages > 1 && (
               <Pagination
-                currentPage={filters.page}
+                page={filters.page + 1}
                 totalPages={data.data.totalPages}
-                onPageChange={handlePageChange}
+                onChange={(p) => handlePageChange(p - 1)}
               />
             )}
           </>
@@ -175,17 +171,24 @@ export const AdminProductListPage: React.FC = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        isOpen={!!deleteTarget}
-        variant="danger"
+      <Modal
+        open={!!deleteTarget}
         title="Delete Product?"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-        loading={deleteMutation.isPending}
-      />
+        onClose={() => setDeleteTarget(null)}
+        size="sm"
+      >
+        <p className="mb-6">
+          Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-3 pt-4 border-t border-border-default">
+          <Button variant="ghost" onClick={() => setDeleteTarget(null)} disabled={deleteMutation.isPending}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDelete} loading={deleteMutation.isPending}>
+            Delete
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }
