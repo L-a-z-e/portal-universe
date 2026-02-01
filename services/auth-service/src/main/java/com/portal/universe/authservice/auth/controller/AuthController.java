@@ -3,11 +3,15 @@ package com.portal.universe.authservice.auth.controller;
 import com.portal.universe.authservice.auth.dto.LoginRequest;
 import com.portal.universe.authservice.auth.dto.LoginResponse;
 import com.portal.universe.authservice.auth.dto.LogoutRequest;
+import com.portal.universe.authservice.auth.dto.PasswordPolicyResponse;
 import com.portal.universe.authservice.auth.dto.RefreshRequest;
 import com.portal.universe.authservice.auth.dto.RefreshResponse;
+import com.portal.universe.authservice.common.config.JwtProperties;
+import com.portal.universe.authservice.password.config.PasswordPolicyProperties;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.user.repository.UserRepository;
+import com.portal.universe.authservice.common.util.RefreshTokenCookieHelper;
 import com.portal.universe.authservice.common.util.TokenUtils;
 import com.portal.universe.authservice.auth.service.LoginAttemptService;
 import com.portal.universe.authservice.auth.service.RefreshTokenService;
@@ -22,14 +26,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -48,12 +48,9 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final TokenBlacklistService tokenBlacklistService;
     private final LoginAttemptService loginAttemptService;
-
-    @Value("${app.cookie.secure:true}")
-    private boolean cookieSecure;
-
-    @Value("${app.cookie.same-site:Lax}")
-    private String cookieSameSite;
+    private final JwtProperties jwtProperties;
+    private final PasswordPolicyProperties passwordPolicyProperties;
+    private final RefreshTokenCookieHelper cookieHelper;
 
     /**
      * 일반 로그인 API
@@ -111,12 +108,13 @@ public class AuthController {
         refreshTokenService.saveRefreshToken(user.getUuid(), refreshToken);
 
         // 7. Refresh Token을 HttpOnly Cookie로 설정
-        setRefreshTokenCookie(servletResponse, refreshToken);
+        cookieHelper.setCookie(servletResponse, refreshToken);
 
         log.info("Login successful for user: {} from IP: {}", user.getUuid(), clientIp);
 
         // 응답 body에도 refreshToken 포함 (하위 호환)
-        LoginResponse response = new LoginResponse(accessToken, refreshToken, 900);  // 15분 = 900초
+        long expiresIn = jwtProperties.getAccessTokenExpiration() / 1000;
+        LoginResponse response = new LoginResponse(accessToken, refreshToken, expiresIn);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -130,7 +128,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshResponse>> refresh(
             @RequestBody(required = false) RefreshRequest request,
-            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String cookieRefreshToken,
+            @CookieValue(name = RefreshTokenCookieHelper.COOKIE_NAME, required = false) String cookieRefreshToken,
             HttpServletResponse servletResponse) {
         log.info("Token refresh attempt");
 
@@ -160,11 +158,12 @@ public class AuthController {
             }
 
             // 5. 새 Refresh Token을 HttpOnly Cookie로 설정
-            setRefreshTokenCookie(servletResponse, newRefreshToken);
+            cookieHelper.setCookie(servletResponse, newRefreshToken);
 
             log.info("Token refresh successful for user: {}", user.getUuid());
 
-            RefreshResponse response = new RefreshResponse(accessToken, newRefreshToken, 900);  // 15분 = 900초
+            long expiresIn = jwtProperties.getAccessTokenExpiration() / 1000;
+            RefreshResponse response = new RefreshResponse(accessToken, newRefreshToken, expiresIn);
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (CustomBusinessException e) {
             throw e;
@@ -186,7 +185,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Map<String, String>>> logout(
             @RequestHeader("Authorization") String authorization,
             @RequestBody(required = false) LogoutRequest request,
-            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String cookieRefreshToken,
+            @CookieValue(name = RefreshTokenCookieHelper.COOKIE_NAME, required = false) String cookieRefreshToken,
             HttpServletResponse servletResponse) {
 
         log.info("Logout attempt");
@@ -209,7 +208,7 @@ public class AuthController {
             refreshTokenService.deleteRefreshToken(userId);
 
             // 5. Refresh Token Cookie 삭제
-            clearRefreshTokenCookie(servletResponse);
+            cookieHelper.clearCookie(servletResponse);
 
             log.info("Logout successful for user: {}", userId);
 
@@ -221,8 +220,18 @@ public class AuthController {
         }
     }
 
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "portal_refresh_token";
-    private static final String REFRESH_TOKEN_COOKIE_PATH = "/";
+    /**
+     * 비밀번호 정책 조회 API
+     * 회원가입/비밀번호 변경 시 프론트엔드에서 요구사항을 표시하는 데 사용합니다.
+     * 인증 없이 접근 가능합니다.
+     *
+     * @return 비밀번호 정책 응답
+     */
+    @GetMapping("/password-policy")
+    public ResponseEntity<ApiResponse<PasswordPolicyResponse>> getPasswordPolicy() {
+        return ResponseEntity.ok(
+                ApiResponse.success(PasswordPolicyResponse.from(passwordPolicyProperties)));
+    }
 
     /**
      * Cookie 우선, Body fallback으로 Refresh Token을 결정합니다.
@@ -235,34 +244,6 @@ public class AuthController {
             return request.refreshToken();
         }
         return null;
-    }
-
-    /**
-     * Refresh Token을 HttpOnly Cookie로 설정합니다.
-     */
-    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
-                .httpOnly(true)
-                .secure(cookieSecure)
-                .sameSite(cookieSameSite)
-                .path(REFRESH_TOKEN_COOKIE_PATH)
-                .maxAge(Duration.ofDays(7))
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    }
-
-    /**
-     * Refresh Token Cookie를 삭제합니다.
-     */
-    private void clearRefreshTokenCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
-                .httpOnly(true)
-                .secure(cookieSecure)
-                .sameSite(cookieSameSite)
-                .path(REFRESH_TOKEN_COOKIE_PATH)
-                .maxAge(0)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
 }

@@ -3,21 +3,20 @@ package com.portal.universe.authservice.oauth2;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.auth.service.RefreshTokenService;
 import com.portal.universe.authservice.auth.service.TokenService;
+import com.portal.universe.authservice.common.config.JwtProperties;
+import com.portal.universe.authservice.common.util.RefreshTokenCookieHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.time.Duration;
 
 /**
  * OAuth2 소셜 로그인 성공 시 처리하는 핸들러입니다.
@@ -30,17 +29,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final TokenService tokenService;
     private final RefreshTokenService refreshTokenService;
+    private final JwtProperties jwtProperties;
+    private final RefreshTokenCookieHelper cookieHelper;
 
     @Value("${app.frontend.base-url:http://localhost:30000}")
     private String frontendBaseUrl;
-
-    @Value("${app.cookie.secure:true}")
-    private boolean cookieSecure;
-
-    @Value("${app.cookie.same-site:Lax}")
-    private String cookieSameSite;
-
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "portal_refresh_token";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -63,28 +56,18 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         refreshTokenService.saveRefreshToken(user.getUuid(), refreshToken);
 
         // Refresh Token을 HttpOnly Cookie로 설정
-        setRefreshTokenCookie(response, refreshToken);
+        cookieHelper.setCookie(response, refreshToken);
 
         // URL Fragment로 Access Token만 전달 (Refresh Token은 cookie로 전달)
+        long expiresIn = jwtProperties.getAccessTokenExpiration() / 1000;
         String targetUrl = UriComponentsBuilder.fromUriString(frontendBaseUrl + "/oauth2/callback")
                 .fragment("access_token=" + accessToken +
-                         "&expires_in=900")
+                         "&expires_in=" + expiresIn)
                 .build().toUriString();
 
         clearAuthenticationAttributes(request);
 
         // Stateless - 세션 사용 안 함
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
-    }
-
-    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
-                .httpOnly(true)
-                .secure(cookieSecure)
-                .sameSite(cookieSameSite)
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }
