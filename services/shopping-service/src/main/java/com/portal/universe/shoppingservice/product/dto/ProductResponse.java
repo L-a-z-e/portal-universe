@@ -1,5 +1,6 @@
 package com.portal.universe.shoppingservice.product.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
  * @param createdAt 생성 일시
  * @param updatedAt 수정 일시
  */
-public record ProductResponse(Long id, String name, String description, Double price, Integer stock,
+public record ProductResponse(Long id, String name, String description, BigDecimal price, Integer stock,
                               String imageUrl, String category,
                               LocalDateTime createdAt, LocalDateTime updatedAt) {
 }

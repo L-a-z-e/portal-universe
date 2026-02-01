@@ -62,7 +62,7 @@ public class TimeDealProduct {
     }
 
     public BigDecimal getDiscountRate() {
-        BigDecimal originalPrice = BigDecimal.valueOf(product.getPrice());
+        BigDecimal originalPrice = product.getPrice();
         if (originalPrice.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }

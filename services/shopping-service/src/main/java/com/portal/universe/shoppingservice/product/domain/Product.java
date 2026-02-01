@@ -8,6 +8,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -42,7 +43,7 @@ public class Product {
      * 상품 가격
      */
     @Column(nullable = false)
-    private Double price;
+    private BigDecimal price;
 
     /**
      * 상품 재고 수량
@@ -69,7 +70,7 @@ public class Product {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Product(String name, String description, Double price, Integer stock, String imageUrl, String category) {
+    public Product(String name, String description, BigDecimal price, Integer stock, String imageUrl, String category) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -87,7 +88,7 @@ public class Product {
      * @param imageUrl 새로운 이미지 URL
      * @param category 새로운 카테고리
      */
-    public void update(String name, String description, Double price, Integer stock, String imageUrl, String category) {
+    public void update(String name, String description, BigDecimal price, Integer stock, String imageUrl, String category) {
             this.name = name;
             this.description = description;
             this.price = price;

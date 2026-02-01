@@ -39,7 +39,7 @@ public record TimeDealResponse(
                     .id(tdp.getId())
                     .productId(tdp.getProduct().getId())
                     .productName(tdp.getProduct().getName())
-                    .originalPrice(BigDecimal.valueOf(tdp.getProduct().getPrice()))
+                    .originalPrice(tdp.getProduct().getPrice())
                     .dealPrice(tdp.getDealPrice())
                     .discountRate(tdp.getDiscountRate())
                     .dealQuantity(tdp.getDealQuantity())

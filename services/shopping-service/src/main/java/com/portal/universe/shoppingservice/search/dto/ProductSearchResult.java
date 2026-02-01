@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @Getter
@@ -17,7 +18,7 @@ public class ProductSearchResult {
     private Long id;
     private String name;
     private String description;
-    private Double price;
+    private BigDecimal price;
     private Integer stock;
 
     // Highlighted fields (검색어 강조)

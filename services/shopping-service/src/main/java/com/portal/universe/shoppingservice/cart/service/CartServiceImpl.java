@@ -16,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-
 /**
  * 장바구니 관리 서비스 구현체입니다.
  */
@@ -60,7 +58,7 @@ public class CartServiceImpl implements CartService {
                             cart.addItem(
                                     request.productId(),
                                     product.getName(),
-                                    BigDecimal.valueOf(product.getPrice()),
+                                    product.getPrice(),
                                     request.quantity()
                             );
                         }

@@ -2,6 +2,8 @@ package com.portal.universe.shoppingservice.search.document;
 
 import com.portal.universe.shoppingservice.product.domain.Product;
 import lombok.AllArgsConstructor;
+
+import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +16,7 @@ public class ProductDocument {
     private Long id;
     private String name;
     private String description;
-    private Double price;
+    private BigDecimal price;
     private Integer stock;
 
     public static ProductDocument from(Product product) {

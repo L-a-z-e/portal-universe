@@ -2,6 +2,8 @@ package com.portal.universe.shoppingservice.product.dto;
 
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
+
 /**
  * Admin 상품 생성/수정 요청 DTO입니다.
  * Jakarta Validation을 통해 입력값 검증을 수행합니다.
@@ -21,7 +23,7 @@ public record AdminProductRequest(
 
         @NotNull(message = "Product price is required")
         @Positive(message = "Product price must be greater than 0")
-        Double price,
+        BigDecimal price,
 
         @NotNull(message = "Product stock is required")
         @Min(value = 0, message = "Product stock must be non-negative")
