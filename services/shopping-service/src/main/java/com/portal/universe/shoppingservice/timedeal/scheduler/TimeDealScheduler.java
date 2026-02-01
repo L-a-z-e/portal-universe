@@ -38,12 +38,14 @@ public class TimeDealScheduler {
 
     private void activateScheduledDeals(LocalDateTime now) {
         List<TimeDeal> dealsToStart = timeDealRepository.findDealsToStart(now);
+        if (dealsToStart.isEmpty()) return;
 
+        // DB 일괄 저장
+        dealsToStart.forEach(TimeDeal::activate);
+        timeDealRepository.saveAll(dealsToStart);
+
+        // Redis 재고 초기화 (DB 저장 이후)
         for (TimeDeal deal : dealsToStart) {
-            deal.activate();
-            timeDealRepository.save(deal);
-
-            // Redis에 재고 초기화
             deal.getProducts().forEach(product ->
                     timeDealRedisService.initializeStock(
                             deal.getId(),
@@ -51,26 +53,26 @@ public class TimeDealScheduler {
                             product.getDealQuantity()
                     )
             );
-
             log.info("Activated time deal: id={}, name={}", deal.getId(), deal.getName());
         }
     }
 
     private void endActiveDeals(LocalDateTime now) {
         List<TimeDeal> dealsToEnd = timeDealRepository.findDealsToEnd(now);
+        if (dealsToEnd.isEmpty()) return;
 
+        // DB 일괄 저장
+        dealsToEnd.forEach(TimeDeal::end);
+        timeDealRepository.saveAll(dealsToEnd);
+
+        // Redis 캐시 정리 (DB 저장 이후)
         for (TimeDeal deal : dealsToEnd) {
-            deal.end();
-            timeDealRepository.save(deal);
-
-            // Redis 캐시 정리
             deal.getProducts().forEach(product ->
                     timeDealRedisService.deleteTimeDealCache(
                             deal.getId(),
                             product.getProduct().getId()
                     )
             );
-
             log.info("Ended time deal: id={}, name={}", deal.getId(), deal.getName());
         }
     }

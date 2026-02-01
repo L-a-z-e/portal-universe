@@ -25,6 +25,7 @@ export function useQueue(options: UseQueueOptions) {
 
   const eventSourceRef = useRef<EventSource | null>(null)
   const entryTokenRef = useRef<string | null>(null)
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
   // 대기열 진입
   const enterQueue = useCallback(async () => {
@@ -126,7 +127,7 @@ export function useQueue(options: UseQueueOptions) {
       setIsConnected(false)
 
       // 재연결 시도 (5초 후)
-      setTimeout(() => {
+      reconnectTimeoutRef.current = setTimeout(() => {
         if (entryTokenRef.current && status?.status === 'WAITING') {
           connectSSE()
         }
@@ -148,6 +149,9 @@ export function useQueue(options: UseQueueOptions) {
       if (eventSourceRef.current) {
         eventSourceRef.current.close()
         eventSourceRef.current = null
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
       }
     }
   }, [autoEnter, enterQueue, connectSSE])

@@ -27,9 +27,7 @@ public class QueueScheduler {
      */
     @Scheduled(fixedDelay = 5000)
     public void processActiveQueues() {
-        List<WaitingQueue> activeQueues = waitingQueueRepository.findAll().stream()
-            .filter(WaitingQueue::getIsActive)
-            .toList();
+        List<WaitingQueue> activeQueues = waitingQueueRepository.findByIsActiveTrue();
 
         for (WaitingQueue queue : activeQueues) {
             try {

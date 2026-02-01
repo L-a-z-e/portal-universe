@@ -11,12 +11,16 @@ interface UseInventoryStreamOptions {
   enabled?: boolean
 }
 
+const MAX_RECONNECT_ATTEMPTS = 5
+const BASE_RECONNECT_DELAY = 3000
+
 export function useInventoryStream({ productIds, enabled = true }: UseInventoryStreamOptions) {
   const [updates, setUpdates] = useState<Map<number, InventoryUpdate>>(new Map())
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const reconnectCountRef = useRef(0)
 
   const connect = useCallback(() => {
     if (!enabled || productIds.length === 0) return
@@ -33,12 +37,17 @@ export function useInventoryStream({ productIds, enabled = true }: UseInventoryS
     eventSource.onopen = () => {
       setIsConnected(true)
       setError(null)
+      reconnectCountRef.current = 0
     }
 
     eventSource.onmessage = (event) => {
       try {
         const update: InventoryUpdate = JSON.parse(event.data)
         setUpdates(prev => {
+          const existing = prev.get(update.productId)
+          if (existing && existing.available === update.available && existing.reserved === update.reserved) {
+            return prev
+          }
           const next = new Map(prev)
           next.set(update.productId, update)
           return next
@@ -51,10 +60,17 @@ export function useInventoryStream({ productIds, enabled = true }: UseInventoryS
     eventSource.onerror = () => {
       setIsConnected(false)
       eventSource.close()
-      // Auto-reconnect after 5 seconds
+
+      if (reconnectCountRef.current >= MAX_RECONNECT_ATTEMPTS) {
+        setError(new Error('SSE connection failed after max retries'))
+        return
+      }
+
+      const delay = BASE_RECONNECT_DELAY * Math.pow(2, reconnectCountRef.current)
+      reconnectCountRef.current++
       reconnectTimeoutRef.current = setTimeout(() => {
         connect()
-      }, 5000)
+      }, delay)
     }
   }, [productIds, enabled])
 
