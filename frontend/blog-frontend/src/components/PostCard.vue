@@ -112,10 +112,10 @@ const handleClick = () => {
           <div class="author-stats-wrapper">
             <div class="author-info">
               <Avatar
-                  :name="post.authorName || post.authorId"
+                  :name="post.authorName || '사용자'"
                   size="xs"
               />
-              <span class="author-name">{{ post.authorName || post.authorId }}</span>
+              <span class="author-name">{{ post.authorName || '사용자' }}</span>
               <span class="separator">·</span>
               <span class="relative-time">{{ relativeTime }}</span>
             </div>

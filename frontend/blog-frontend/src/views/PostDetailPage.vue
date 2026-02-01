@@ -13,6 +13,7 @@ import { getSeriesByPostId } from "../api/series";
 import {Button, Tag, Avatar, Card, Modal, useApiError} from "@portal/design-system-vue";
 import type { PostResponse } from "@/dto/post.ts";
 import LikeButton from "@/components/LikeButton.vue";
+import { toggleLike } from '@/api/likes';
 import LikersModal from "@/components/LikersModal.vue";
 import SeriesBox from "@/components/SeriesBox.vue";
 import RelatedPosts from "@/components/RelatedPosts.vue";
@@ -271,6 +272,23 @@ async function handleDelete() {
   }
 }
 
+// 상단 좋아요 토글 (헤더 영역)
+async function handleHeaderLikeToggle() {
+  if (!post.value) return;
+  try {
+    const response = await toggleLike(post.value.id);
+    isLiked.value = response.liked;
+    likeCount.value = response.likeCount;
+    if (post.value) {
+      post.value.likeCount = response.likeCount;
+    }
+  } catch (err: any) {
+    if (err.response?.status === 401) {
+      console.warn('좋아요: 로그인이 필요합니다');
+    }
+  }
+}
+
 // 좋아요 변경 핸들러
 function handleLikeChanged(liked: boolean, count: number) {
   isLiked.value = liked;
@@ -313,10 +331,10 @@ function handleLikeChanged(liked: boolean, count: number) {
         <!-- Author & Metadata -->
         <div class="flex items-center justify-between flex-wrap gap-4">
           <div class="flex items-center gap-3">
-            <Avatar :name="post.authorName || post.authorId" size="md" />
+            <Avatar :name="post.authorName || '사용자'" size="md" />
             <div class="flex flex-col">
               <span class="font-semibold text-text-heading">
-                {{ post.authorName || post.authorId }}
+                {{ post.authorName || '사용자' }}
               </span>
               <span class="text-sm text-text-meta">
                 {{ new Date(post.createdAt).toLocaleString('ko-KR') }}
@@ -329,9 +347,14 @@ function handleLikeChanged(liked: boolean, count: number) {
             <span class="flex items-center gap-1 text-sm text-text-meta">
               <span>👁</span>{{ post.viewCount || 0 }}
             </span>
-            <button class="flex items-center gap-1 text-sm text-text-meta hover:text-brand-primary transition-colors cursor-pointer" @click="showLikersModal = true">
-              <span>❤️</span>{{ post.likeCount || 0 }}
-            </button>
+            <span class="flex items-center gap-1 text-sm text-text-meta">
+              <button class="hover:scale-125 transition-transform cursor-pointer" :class="{ 'opacity-80': isLiked }" @click="handleHeaderLikeToggle">
+                {{ isLiked ? '❤️' : '🤍' }}
+              </button>
+              <button class="hover:text-brand-primary transition-colors cursor-pointer" @click="showLikersModal = true">
+                {{ likeCount }}
+              </button>
+            </span>
           </div>
         </div>
 

@@ -574,7 +574,7 @@ public class PostServiceImpl implements PostService {
                 post.getContent(),
                 post.getSummary(),
                 post.getAuthorId(),
-                post.getAuthorName(),
+                resolveAuthorName(post.getAuthorId(), post.getAuthorName()),
                 post.getStatus(),
                 post.getTags(),
                 post.getCategory(),
@@ -599,7 +599,7 @@ public class PostServiceImpl implements PostService {
                 post.getTitle(),
                 post.getSummary(),
                 post.getAuthorId(),
-                post.getAuthorName(),
+                resolveAuthorName(post.getAuthorId(), post.getAuthorName()),
                 post.getTags(),
                 post.getCategory(),
                 post.getThumbnailUrl(),
@@ -636,10 +636,19 @@ public class PostServiceImpl implements PostService {
     }
 
     private String resolveAuthorName(String authorId, String authorName) {
-        if (authorName != null && !authorName.isBlank()) {
+        if (authorName != null && !authorName.isBlank()
+                && !isUuid(authorName) && !isCorrupted(authorName)) {
             return authorName;
         }
-        return authorId;
+        return "사용자";
+    }
+
+    private boolean isUuid(String value) {
+        return value.length() == 36 && value.charAt(8) == '-' && value.charAt(13) == '-';
+    }
+
+    private boolean isCorrupted(String value) {
+        return value.chars().allMatch(c -> c == '?');
     }
 
     // ===== 피드 기능 =====

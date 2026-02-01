@@ -36,7 +36,8 @@ public class PostController {
             @Valid @RequestBody PostCreateRequest request,
             @CurrentUser GatewayUser user
     ) {
-        PostResponse response = postService.createPost(request, user.uuid(), user.nickname());
+        String authorName = resolveDisplayName(user);
+        PostResponse response = postService.createPost(request, user.uuid(), authorName);
         return ApiResponse.success(response);
     }
 
@@ -281,5 +282,15 @@ public class PostController {
     ) {
         Page<PostSummaryResponse> posts = postService.getFeed(followingIds, page, size);
         return ApiResponse.success(posts);
+    }
+
+    private String resolveDisplayName(GatewayUser user) {
+        if (user.nickname() != null && !user.nickname().isBlank()) {
+            return user.nickname();
+        }
+        if (user.name() != null && !user.name().isBlank()) {
+            return user.name();
+        }
+        return null;
     }
 }
