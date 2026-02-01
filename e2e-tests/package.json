@@ -8,6 +8,7 @@
     "test:debug": "playwright test --debug",
     "test:ui": "playwright test --ui",
     "test:shopping": "playwright test tests/shopping/",
+    "test:blog": "playwright test tests/blog/",
     "test:auth": "playwright test tests/auth.setup.ts",
     "report": "playwright show-report",
     "codegen": "playwright codegen http://localhost:30000"

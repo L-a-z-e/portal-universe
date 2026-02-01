@@ -10,12 +10,23 @@ import { test as setup } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
 
-const TOKEN_FILE = path.resolve(__dirname, '.auth/admin-access-token.json')
+const ADMIN_TOKEN_FILE = path.resolve(__dirname, '.auth/admin-access-token.json')
+const USER_TOKEN_FILE = path.resolve(__dirname, '.auth/access-token.json')
 
 function getAdminAccessToken(): string | null {
   try {
-    if (!fs.existsSync(TOKEN_FILE)) return null
-    const data = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf-8'))
+    if (!fs.existsSync(ADMIN_TOKEN_FILE)) return null
+    const data = JSON.parse(fs.readFileSync(ADMIN_TOKEN_FILE, 'utf-8'))
+    return data.accessToken || null
+  } catch {
+    return null
+  }
+}
+
+function getUserAccessToken(): string | null {
+  try {
+    if (!fs.existsSync(USER_TOKEN_FILE)) return null
+    const data = JSON.parse(fs.readFileSync(USER_TOKEN_FILE, 'utf-8'))
     return data.accessToken || null
   } catch {
     return null
@@ -196,5 +207,151 @@ setup('seed test data', async () => {
     }
   }
 
+  console.log('Data seed: Shopping seed completed')
+
+  // ===============================
+  // Blog Data Seed
+  // ===============================
+  const userToken = getUserAccessToken()
+  if (!userToken) {
+    console.log('Data seed: No user token available, skipping blog seed')
+    console.log('Data seed: Completed')
+    return
+  }
+
+  const BLOG_API = `${BASE_URL}/api/v1/blog`
+
+  console.log('Data seed: Starting blog data seeding...')
+
+  // Check existing blog posts
+  const existingPosts = await apiGet<{ content: { id: string; title: string }[] }>(
+    `${BLOG_API}/posts?page=0&size=100`,
+    userToken,
+  )
+  const existingPostTitles = new Set(
+    existingPosts?.content?.map((p) => p.title) ?? [],
+  )
+
+  const TEST_BLOG_TAGS = ['e2e-test', 'playwright', 'automation', 'blog', 'tutorial']
+
+  const TEST_BLOG_POSTS = [
+    {
+      title: 'E2E Test Blog Post 1',
+      content: '# First Test Post\n\nThis is the first E2E test blog post with some content for testing purposes.\n\n## Section 1\n\nLorem ipsum dolor sit amet.',
+      summary: 'First E2E test blog post',
+      tags: ['e2e-test', 'playwright'],
+      category: 'Testing',
+      publishImmediately: true,
+    },
+    {
+      title: 'E2E Test Blog Post 2',
+      content: '# Second Test Post\n\nThis is the second E2E test blog post about automation testing.\n\n## Getting Started\n\nLearn how to write automated tests.',
+      summary: 'Second E2E test blog post about automation',
+      tags: ['e2e-test', 'automation', 'tutorial'],
+      category: 'Testing',
+      publishImmediately: true,
+    },
+    {
+      title: 'E2E Test Blog Post 3',
+      content: '# Third Test Post\n\nA blog post about technology trends and development best practices.\n\n## Tech Stack\n\nModern development tools.',
+      summary: 'Third E2E test blog post about tech',
+      tags: ['blog', 'tutorial'],
+      category: 'Technology',
+      publishImmediately: true,
+    },
+    {
+      title: 'E2E Test Draft Post',
+      content: '# Draft Post\n\nThis is a draft post that should not be visible to other users.',
+      summary: 'A draft post for testing',
+      tags: ['e2e-test'],
+      category: 'Testing',
+      publishImmediately: false,
+    },
+  ]
+
+  const createdPostIds: string[] = []
+
+  for (const post of TEST_BLOG_POSTS) {
+    if (existingPostTitles.has(post.title)) {
+      console.log(`  Blog post "${post.title}" already exists, skipping`)
+      const existing = existingPosts?.content?.find((p) => p.title === post.title)
+      if (existing) createdPostIds.push(existing.id)
+      continue
+    }
+
+    const created = await apiPost<{ id: string }>(
+      `${BLOG_API}/posts`,
+      userToken,
+      post,
+    )
+    if (created) {
+      console.log(`  Blog post "${post.title}" created (id: ${created.id})`)
+      createdPostIds.push(created.id)
+    }
+  }
+
+  // Create comments on the first published post
+  if (createdPostIds.length > 0) {
+    const firstPostId = createdPostIds[0]
+
+    const TEST_COMMENTS = [
+      { postId: firstPostId, content: 'E2E Test Comment - Great article!' },
+      { postId: firstPostId, content: 'E2E Test Comment - Very helpful, thanks for sharing.' },
+    ]
+
+    for (const comment of TEST_COMMENTS) {
+      const created = await apiPost<{ id: string }>(
+        `${BLOG_API}/comments`,
+        userToken,
+        comment,
+      )
+      if (created) {
+        console.log(`  Blog comment created on post ${firstPostId} (id: ${created.id})`)
+
+        // Create a reply to the first comment
+        if (TEST_COMMENTS.indexOf(comment) === 0) {
+          await apiPost(
+            `${BLOG_API}/comments`,
+            userToken,
+            { postId: firstPostId, parentCommentId: created.id, content: 'E2E Test Reply - Thanks for the feedback!' },
+          )
+        }
+      }
+    }
+
+    // Like the first post
+    await apiPost(
+      `${BLOG_API}/posts/${firstPostId}/like`,
+      userToken,
+      {},
+    )
+    console.log(`  Blog like toggled on post ${firstPostId}`)
+  }
+
+  // Create a series with posts
+  if (createdPostIds.length >= 2) {
+    const seriesResult = await apiPost<{ id: string }>(
+      `${BLOG_API}/series`,
+      userToken,
+      {
+        name: 'E2E Test Series',
+        description: 'A test series for E2E testing with multiple posts',
+      },
+    )
+    if (seriesResult) {
+      console.log(`  Blog series "E2E Test Series" created (id: ${seriesResult.id})`)
+      // Add published posts to series
+      for (const postId of createdPostIds.slice(0, 3)) {
+        await apiPost(
+          `${BLOG_API}/series/${seriesResult.id}/posts/${postId}`,
+          userToken,
+          {},
+        )
+      }
+      console.log(`  Added ${Math.min(3, createdPostIds.length)} posts to series`)
+    }
+  }
+
+  console.log('Data seed: Blog seed completed')
   console.log('Data seed: Completed')
 })

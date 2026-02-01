@@ -77,11 +77,11 @@ export default defineConfig({
       testMatch: /auth-admin\.setup\.ts/,
     },
 
-    // Seed test data via Admin API (products, coupons, time-deals)
+    // Seed test data via Admin & User API (products, coupons, time-deals, blog posts)
     {
       name: 'data-seed',
       testMatch: /data-seed\.setup\.ts/,
-      dependencies: ['admin-setup'],
+      dependencies: ['setup', 'admin-setup'],
     },
 
     // Main test project with user authentication state (excludes admin/ and noauth)
