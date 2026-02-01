@@ -1,5 +1,10 @@
 package com.portal.universe.authservice.common.config;
 
+import com.portal.universe.authservice.auth.domain.RoleEntity;
+import com.portal.universe.authservice.auth.domain.UserRole;
+import com.portal.universe.authservice.auth.repository.RoleEntityRepository;
+import com.portal.universe.authservice.auth.repository.UserRoleRepository;
+import com.portal.universe.authservice.auth.service.RbacInitializationService;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.user.repository.UserRepository;
@@ -9,10 +14,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * 로컬 개발 환경에서 테스트 데이터를 자동으로 생성하는 설정 클래스입니다.
+ * RbacDataMigrationRunner(@Order(1)) 이후에 실행되어야 합니다.
  */
 @Slf4j
 @Configuration
@@ -21,26 +28,31 @@ public class DataInitializer {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RbacInitializationService rbacInitializationService;
+    private final RoleEntityRepository roleEntityRepository;
+    private final UserRoleRepository userRoleRepository;
 
     @Bean
-    @Profile({"default", "dev", "local", "docker"}) // 특정 프로필에서만 작동하도록 설정
+    @Order(2)
+    @Profile({"local", "docker"})
     public CommandLineRunner initData() {
         return args -> {
-            // 일반 테스트 유저 생성
+            // 일반 테스트 유저 생성 (ROLE_USER + FREE 멤버십)
             createTestUser(
                     "test@example.com",
                     "password123",
                     "테스트유저",
-                    "홍길동"
+                    "홍길동",
+                    false
             );
 
-            // Admin 테스트 유저 생성
-            // RBAC 역할은 RbacDataMigrationRunner에서 할당됩니다.
+            // Admin 테스트 유저 생성 (ROLE_USER + ROLE_SUPER_ADMIN + FREE 멤버십)
             createTestUser(
                     "admin@example.com",
                     "admin123",
                     "관리자",
-                    "김관리"
+                    "김관리",
+                    true
             );
         };
     }
@@ -48,29 +60,39 @@ public class DataInitializer {
     /**
      * 테스트 유저를 생성하는 헬퍼 메서드입니다.
      * 이미 존재하는 이메일이면 스킵합니다.
+     * RBAC 초기화(ROLE_USER + FREE 멤버십)를 함께 수행합니다.
+     *
+     * @param isAdmin true이면 ROLE_SUPER_ADMIN 추가 할당
      */
-    private void createTestUser(String email, String password, String nickname, String realName) {
-        if (userRepository.findByEmail(email).isEmpty()) {
-            log.info("Creating test user: email={}", email);
-
-            User user = new User(
-                    email,
-                    passwordEncoder.encode(password)
-            );
-
-            UserProfile profile = new UserProfile(
-                    user,
-                    nickname,
-                    realName,
-                    true
-            );
-            user.setProfile(profile);
-
-            userRepository.save(user);
-
-            log.info("Test user created: email={}", email);
-        } else {
+    private void createTestUser(String email, String password, String nickname,
+                                String realName, boolean isAdmin) {
+        if (userRepository.findByEmail(email).isPresent()) {
             log.info("Test user already exists: email={}", email);
+            return;
         }
+
+        log.info("Creating test user: email={}, admin={}", email, isAdmin);
+
+        User user = new User(email, passwordEncoder.encode(password));
+        UserProfile profile = new UserProfile(user, nickname, realName, true);
+        user.setProfile(profile);
+        User savedUser = userRepository.save(user);
+
+        // RBAC 초기화 (ROLE_USER + shopping/blog FREE 멤버십)
+        rbacInitializationService.initializeNewUser(savedUser.getUuid());
+
+        // 관리자인 경우 ROLE_SUPER_ADMIN 추가 할당
+        if (isAdmin) {
+            roleEntityRepository.findByRoleKey("ROLE_SUPER_ADMIN").ifPresent(adminRole -> {
+                userRoleRepository.save(UserRole.builder()
+                        .userId(savedUser.getUuid())
+                        .role(adminRole)
+                        .assignedBy("SYSTEM_INIT")
+                        .build());
+                log.info("ROLE_SUPER_ADMIN assigned to: {}", email);
+            });
+        }
+
+        log.info("Test user created: email={}, uuid={}", email, savedUser.getUuid());
     }
 }
