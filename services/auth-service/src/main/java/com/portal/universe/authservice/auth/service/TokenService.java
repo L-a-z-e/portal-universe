@@ -1,5 +1,7 @@
 package com.portal.universe.authservice.auth.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.authservice.auth.domain.UserMembership;
 import com.portal.universe.authservice.auth.repository.UserMembershipRepository;
 import com.portal.universe.authservice.auth.repository.UserRoleRepository;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TokenService {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final JwtProperties jwtProperties;
     private final UserRoleRepository userRoleRepository;
@@ -113,23 +117,23 @@ public class TokenService {
      */
     private String extractKeyId(String token) {
         try {
-            // 서명 검증 없이 헤더만 파싱
             String[] parts = token.split("\\.");
             if (parts.length < 2) {
                 throw new MalformedJwtException("Invalid JWT token structure");
             }
 
-            String header = new String(java.util.Base64.getUrlDecoder().decode(parts[0]));
-            // Simple JSON parsing for kid
-            if (header.contains("\"kid\"")) {
-                int kidStart = header.indexOf("\"kid\"") + 6;
-                int valueStart = header.indexOf("\"", kidStart) + 1;
-                int valueEnd = header.indexOf("\"", valueStart);
-                return header.substring(valueStart, valueEnd);
+            String header = new String(Base64.getUrlDecoder().decode(parts[0]), StandardCharsets.UTF_8);
+            JsonNode headerNode = objectMapper.readTree(header);
+            JsonNode kidNode = headerNode.get("kid");
+
+            if (kidNode == null || kidNode.isNull()) {
+                log.warn("JWT token does not contain kid header");
+                return null;
             }
 
-            log.warn("JWT token does not contain kid header");
-            return null;
+            return kidNode.asText();
+        } catch (MalformedJwtException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to extract kid from JWT token", e);
             throw new MalformedJwtException("Failed to extract kid from JWT token", e);
