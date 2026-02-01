@@ -11,12 +11,11 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.annotation.PreDestroy;
+
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * QueueStreamController
@@ -34,6 +33,7 @@ public class QueueStreamController {
 
     // 활성 SSE 연결 관리
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     @GetMapping(value = "/{eventType}/{eventId}/subscribe/{entryToken}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -53,18 +53,23 @@ public class QueueStreamController {
         }
 
         // 연결 완료/에러/타임아웃 시 정리
-        emitter.onCompletion(() -> {
+        Runnable cleanup = () -> {
             emitters.remove(emitterKey);
+            cancelScheduledTask(emitterKey);
+        };
+
+        emitter.onCompletion(() -> {
+            cleanup.run();
             log.debug("SSE connection completed for token: {}", entryToken);
         });
 
         emitter.onError(ex -> {
-            emitters.remove(emitterKey);
+            cleanup.run();
             log.debug("SSE connection error for token: {}", entryToken);
         });
 
         emitter.onTimeout(() -> {
-            emitters.remove(emitterKey);
+            cleanup.run();
             emitter.complete();
             log.debug("SSE connection timed out for token: {}", entryToken);
         });
@@ -73,11 +78,12 @@ public class QueueStreamController {
         sendStatusUpdate(emitter, eventType, eventId, entryToken);
 
         // 주기적 업데이트 스케줄링 (3초마다)
-        scheduler.scheduleAtFixedRate(() -> {
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
             if (emitters.containsKey(emitterKey)) {
                 sendStatusUpdate(emitter, eventType, eventId, entryToken);
             }
         }, 3, 3, TimeUnit.SECONDS);
+        scheduledTasks.put(emitterKey, future);
 
         return emitter;
     }
@@ -107,6 +113,13 @@ public class QueueStreamController {
         }
     }
 
+    private void cancelScheduledTask(String key) {
+        ScheduledFuture<?> future = scheduledTasks.remove(key);
+        if (future != null) {
+            future.cancel(false);
+        }
+    }
+
     /**
      * 특정 토큰에 대한 연결 상태 확인
      */
@@ -117,7 +130,10 @@ public class QueueStreamController {
     /**
      * 모든 연결 종료 (서버 종료 시)
      */
+    @PreDestroy
     public void closeAllConnections() {
+        scheduledTasks.values().forEach(f -> f.cancel(false));
+        scheduledTasks.clear();
         emitters.values().forEach(SseEmitter::complete);
         emitters.clear();
         scheduler.shutdown();

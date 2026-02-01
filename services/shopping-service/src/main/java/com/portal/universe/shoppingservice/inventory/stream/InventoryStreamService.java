@@ -14,6 +14,7 @@ import reactor.core.publisher.Sinks;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -24,6 +25,8 @@ public class InventoryStreamService {
     private final ObjectMapper objectMapper;
 
     private final Map<Long, Sinks.Many<InventoryUpdate>> productSinks = new ConcurrentHashMap<>();
+    private final Map<Long, MessageListener> productListeners = new ConcurrentHashMap<>();
+    private final Map<Long, AtomicInteger> subscriberCounts = new ConcurrentHashMap<>();
 
     public Flux<InventoryUpdate> subscribe(List<Long> productIds) {
         return Flux.merge(
@@ -43,6 +46,8 @@ public class InventoryStreamService {
                 }
         );
 
+        subscriberCounts.computeIfAbsent(productId, id -> new AtomicInteger(0)).incrementAndGet();
+
         return sink.asFlux()
                 .doOnCancel(() -> handleClientDisconnect(productId));
     }
@@ -60,12 +65,33 @@ public class InventoryStreamService {
             }
         };
 
+        productListeners.put(productId, listener);
         redisMessageListenerContainer.addMessageListener(listener, new ChannelTopic(channel));
         log.debug("Registered Redis listener for inventory channel: {}", channel);
     }
 
     private void handleClientDisconnect(Long productId) {
+        AtomicInteger count = subscriberCounts.get(productId);
+        if (count != null && count.decrementAndGet() <= 0) {
+            cleanupProduct(productId);
+        }
         log.debug("Client disconnected from inventory stream for product {}", productId);
+    }
+
+    private void cleanupProduct(Long productId) {
+        subscriberCounts.remove(productId);
+
+        Sinks.Many<InventoryUpdate> sink = productSinks.remove(productId);
+        if (sink != null) {
+            sink.tryEmitComplete();
+        }
+
+        MessageListener listener = productListeners.remove(productId);
+        if (listener != null) {
+            String channel = "inventory:" + productId;
+            redisMessageListenerContainer.removeMessageListener(listener, new ChannelTopic(channel));
+            log.debug("Removed Redis listener for inventory channel: {}", channel);
+        }
     }
 
     public void publishInventoryUpdate(InventoryUpdate update) {
