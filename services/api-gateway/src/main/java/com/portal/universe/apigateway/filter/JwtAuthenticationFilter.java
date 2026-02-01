@@ -288,10 +288,10 @@ public class JwtAuthenticationFilter implements WebFilter {
         exchange.getResponse().getHeaders().add("X-Auth-Error", message);
 
         String errorCode = switch (message) {
-            case "Token expired" -> "A006";
-            case "Invalid token" -> "A007";
-            case "Token revoked" -> "A005";
-            default -> "A005";
+            case "Token expired" -> "GW-A006";
+            case "Invalid token" -> "GW-A007";
+            case "Token revoked" -> "GW-A005";
+            default -> "GW-A005";
         };
 
         String body = "{\"success\":false,\"data\":null,\"error\":{\"code\":\"" + errorCode
