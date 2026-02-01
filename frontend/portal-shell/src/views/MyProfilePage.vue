@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useAuthStore } from '../store/auth';
 import { useRouter } from 'vue-router';
 import { profileService, type ProfileResponse, type UpdateProfileRequest } from '../services/profileService';
-import { useToast, useApiError } from '@portal/design-system-vue';
+import { useToast, useApiError, Input, Checkbox, Modal, Button, Spinner, Alert, Textarea } from '@portal/design-system-vue';
 import { ROLES, ROLE_PREFIX } from '../constants/roles';
 
 const authStore = useAuthStore();
@@ -313,16 +313,13 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
 
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
+      <Spinner size="lg" />
     </div>
 
     <!-- Error Alert -->
-    <div v-if="error" class="mb-6 p-4 bg-status-error/10 border border-status-error/30 rounded-lg">
-      <p class="text-status-error">{{ error }}</p>
-      <button @click="fetchProfile" class="mt-2 text-sm text-brand-primary hover:underline">
-        Retry
-      </button>
-    </div>
+    <Alert v-if="error" variant="error" :title="error" dismissible class="mb-6">
+      <Button variant="ghost" size="sm" @click="fetchProfile">Retry</Button>
+    </Alert>
 
     <template v-if="!loading && (displayProfile.email || jwtProfile)">
       <!-- Profile Card -->
@@ -377,13 +374,14 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
               <h3 class="text-sm font-semibold text-text-meta uppercase tracking-wider">
                 Basic Information
               </h3>
-              <button
+              <Button
                 v-if="!isEditing"
+                variant="ghost"
+                size="sm"
                 @click="startEditing"
-                class="px-3 py-1 text-sm text-brand-primary hover:bg-brand-primary/10 rounded-lg transition-colors"
               >
                 Edit
-              </button>
+              </Button>
             </div>
 
             <!-- View Mode -->
@@ -409,71 +407,51 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
             <!-- Edit Mode -->
             <div v-else class="space-y-4">
               <div class="grid gap-4 md:grid-cols-2">
-                <div class="space-y-1">
-                  <label class="text-xs text-text-meta">Email (cannot be changed)</label>
-                  <input
-                    type="email"
-                    :value="displayProfile.email"
-                    disabled
-                    class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-elevated text-text-meta"
-                  />
-                </div>
-                <div class="space-y-1">
-                  <label class="text-xs text-text-meta">Nickname</label>
-                  <input
-                    v-model="editForm.nickname"
-                    type="text"
-                    class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-base text-text-body focus:border-brand-primary focus:outline-none"
-                    placeholder="Enter nickname"
-                  />
-                </div>
-                <div class="space-y-1">
-                  <label class="text-xs text-text-meta">Real Name</label>
-                  <input
-                    v-model="editForm.realName"
-                    type="text"
-                    class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-base text-text-body focus:border-brand-primary focus:outline-none"
-                    placeholder="Enter real name"
-                  />
-                </div>
-                <div class="space-y-1">
-                  <label class="text-xs text-text-meta">Phone Number</label>
-                  <input
-                    v-model="editForm.phoneNumber"
-                    type="tel"
-                    class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-base text-text-body focus:border-brand-primary focus:outline-none"
-                    placeholder="Enter phone number"
-                  />
-                </div>
+                <Input
+                  type="email"
+                  label="Email (cannot be changed)"
+                  :model-value="displayProfile.email"
+                  disabled
+                />
+                <Input
+                  v-model="editForm.nickname"
+                  label="Nickname"
+                  placeholder="Enter nickname"
+                />
+                <Input
+                  v-model="editForm.realName"
+                  label="Real Name"
+                  placeholder="Enter real name"
+                />
+                <Input
+                  v-model="editForm.phoneNumber"
+                  type="tel"
+                  label="Phone Number"
+                  placeholder="Enter phone number"
+                />
               </div>
 
-              <div class="flex items-center gap-2">
-                <input
-                  v-model="editForm.marketingAgree"
-                  type="checkbox"
-                  id="marketingAgree"
-                  class="rounded border-border-default text-brand-primary focus:ring-brand-primary"
-                />
-                <label for="marketingAgree" class="text-sm text-text-body">
-                  I agree to receive marketing information
-                </label>
-              </div>
+              <Checkbox
+                v-model="editForm.marketingAgree"
+                label="I agree to receive marketing information"
+              />
 
               <div class="flex gap-3 pt-2">
-                <button
+                <Button
+                  variant="primary"
+                  :loading="saveLoading"
+                  :disabled="saveLoading"
                   @click="saveProfile"
-                  :disabled="saveLoading"
-                  class="px-4 py-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors disabled:opacity-50"
                 >
-                  {{ saveLoading ? 'Saving...' : 'Save Changes' }}
-                </button>
-                <button
-                  @click="cancelEditing"
+                  Save Changes
+                </Button>
+                <Button
+                  variant="secondary"
                   :disabled="saveLoading"
-                  class="px-4 py-2 rounded-lg border border-border-default text-text-body hover:bg-bg-elevated transition-colors"
+                  @click="cancelEditing"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </section>
@@ -546,20 +524,15 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
       <!-- Account Actions -->
       <div class="bg-bg-card rounded-xl border border-border-default p-6 mb-6">
         <h3 class="text-lg font-semibold text-text-heading mb-4">Account Actions</h3>
-        <div class="flex gap-3 flex-wrap">
-          <button
-            @click="openPasswordModal"
+        <div class="flex gap-3 flex-wrap items-center">
+          <Button
+            variant="primary"
             :disabled="!canChangePassword"
-            :class="[
-              'px-4 py-2 rounded-lg transition-colors',
-              canChangePassword
-                ? 'bg-brand-primary text-white hover:bg-brand-primary/90'
-                : 'bg-brand-primary/50 text-white cursor-not-allowed'
-            ]"
+            @click="openPasswordModal"
           >
             Change Password
-          </button>
-          <p v-if="!canChangePassword" class="text-sm text-text-meta self-center">
+          </Button>
+          <p v-if="!canChangePassword" class="text-sm text-text-meta">
             (Social login users cannot change password)
           </p>
         </div>
@@ -571,12 +544,9 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
         <p class="text-text-meta mb-4">
           Account deletion is a permanent action and cannot be undone.
         </p>
-        <button
-          @click="openDeleteModal"
-          class="px-4 py-2 rounded-lg border border-status-error text-status-error hover:bg-status-error hover:text-white transition-colors"
-        >
+        <Button variant="danger" @click="openDeleteModal">
           Delete Account
-        </button>
+        </Button>
       </div>
     </template>
 
@@ -586,136 +556,99 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
         <div class="text-5xl mb-4">🔒</div>
         <h2 class="text-xl font-semibold text-text-heading mb-2">Not Authenticated</h2>
         <p class="text-text-meta mb-6">Please log in to view your profile.</p>
-        <router-link
-          to="/"
-          class="inline-block px-6 py-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors"
-        >
+        <Button variant="primary" size="lg" @click="router.push('/')">
           Go to Home
-        </router-link>
+        </Button>
       </div>
     </template>
 
     <!-- Password Change Modal -->
-    <Teleport to="body">
-      <div
-        v-if="showPasswordModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="showPasswordModal = false"
-      >
-        <div class="bg-bg-card rounded-xl border border-border-default p-6 w-full max-w-md mx-4">
-          <h3 class="text-lg font-semibold text-text-heading mb-4">Change Password</h3>
+    <Modal v-model="showPasswordModal" title="Change Password" size="sm">
+      <Alert v-if="passwordError" variant="error" :title="passwordError" class="mb-4" />
 
-          <div v-if="passwordError" class="mb-4 p-3 bg-status-error/10 border border-status-error/30 rounded-lg">
-            <p class="text-status-error text-sm">{{ passwordError }}</p>
-          </div>
-
-          <div class="space-y-4">
-            <div class="space-y-1">
-              <label class="text-sm text-text-meta">Current Password</label>
-              <input
-                v-model="passwordForm.currentPassword"
-                type="password"
-                class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-base text-text-body focus:border-brand-primary focus:outline-none"
-                placeholder="Enter current password"
-              />
-            </div>
-            <div class="space-y-1">
-              <label class="text-sm text-text-meta">New Password</label>
-              <input
-                v-model="passwordForm.newPassword"
-                type="password"
-                class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-base text-text-body focus:border-brand-primary focus:outline-none"
-                placeholder="Enter new password (min 8 characters)"
-              />
-            </div>
-            <div class="space-y-1">
-              <label class="text-sm text-text-meta">Confirm New Password</label>
-              <input
-                v-model="passwordForm.confirmPassword"
-                type="password"
-                class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-base text-text-body focus:border-brand-primary focus:outline-none"
-                placeholder="Confirm new password"
-              />
-            </div>
-          </div>
-
-          <div class="flex gap-3 mt-6">
-            <button
-              @click="changePassword"
-              :disabled="passwordLoading"
-              class="flex-1 px-4 py-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors disabled:opacity-50"
-            >
-              {{ passwordLoading ? 'Changing...' : 'Change Password' }}
-            </button>
-            <button
-              @click="showPasswordModal = false"
-              :disabled="passwordLoading"
-              class="px-4 py-2 rounded-lg border border-border-default text-text-body hover:bg-bg-elevated transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+      <div class="space-y-4">
+        <Input
+          v-model="passwordForm.currentPassword"
+          type="password"
+          label="Current Password"
+          placeholder="Enter current password"
+        />
+        <Input
+          v-model="passwordForm.newPassword"
+          type="password"
+          label="New Password"
+          placeholder="Enter new password (min 8 characters)"
+        />
+        <Input
+          v-model="passwordForm.confirmPassword"
+          type="password"
+          label="Confirm New Password"
+          placeholder="Confirm new password"
+        />
       </div>
-    </Teleport>
+
+      <div class="flex gap-3 mt-6">
+        <Button
+          variant="primary"
+          :loading="passwordLoading"
+          :disabled="passwordLoading"
+          full-width
+          @click="changePassword"
+        >
+          Change Password
+        </Button>
+        <Button
+          variant="secondary"
+          :disabled="passwordLoading"
+          @click="showPasswordModal = false"
+        >
+          Cancel
+        </Button>
+      </div>
+    </Modal>
 
     <!-- Delete Account Modal -->
-    <Teleport to="body">
-      <div
-        v-if="showDeleteModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="showDeleteModal = false"
-      >
-        <div class="bg-bg-card rounded-xl border border-status-error/30 p-6 w-full max-w-md mx-4">
-          <h3 class="text-lg font-semibold text-status-error mb-4">Delete Account</h3>
+    <Modal v-model="showDeleteModal" title="Delete Account" size="sm">
+      <p class="text-text-body mb-4">
+        Are you sure you want to delete your account? This action cannot be undone.
+      </p>
 
-          <p class="text-text-body mb-4">
-            Are you sure you want to delete your account? This action cannot be undone.
-          </p>
+      <Alert v-if="deleteError" variant="error" :title="deleteError" class="mb-4" />
 
-          <div v-if="deleteError" class="mb-4 p-3 bg-status-error/10 border border-status-error/30 rounded-lg">
-            <p class="text-status-error text-sm">{{ deleteError }}</p>
-          </div>
-
-          <div class="space-y-4">
-            <div v-if="!displayProfile.hasSocialAccount" class="space-y-1">
-              <label class="text-sm text-text-meta">Password</label>
-              <input
-                v-model="deleteForm.password"
-                type="password"
-                class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-base text-text-body focus:border-status-error focus:outline-none"
-                placeholder="Enter your password to confirm"
-              />
-            </div>
-            <div class="space-y-1">
-              <label class="text-sm text-text-meta">Reason (Optional)</label>
-              <textarea
-                v-model="deleteForm.reason"
-                class="w-full px-3 py-2 rounded-lg border border-border-default bg-bg-base text-text-body focus:border-brand-primary focus:outline-none resize-none"
-                rows="3"
-                placeholder="Why are you leaving?"
-              />
-            </div>
-          </div>
-
-          <div class="flex gap-3 mt-6">
-            <button
-              @click="deleteAccount"
-              :disabled="deleteLoading || (!displayProfile.hasSocialAccount && !deleteForm.password)"
-              class="flex-1 px-4 py-2 rounded-lg bg-status-error text-white hover:bg-status-error/90 transition-colors disabled:opacity-50"
-            >
-              {{ deleteLoading ? 'Deleting...' : 'Delete Account' }}
-            </button>
-            <button
-              @click="showDeleteModal = false"
-              :disabled="deleteLoading"
-              class="px-4 py-2 rounded-lg border border-border-default text-text-body hover:bg-bg-elevated transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+      <div class="space-y-4">
+        <Input
+          v-if="!displayProfile.hasSocialAccount"
+          v-model="deleteForm.password"
+          type="password"
+          label="Password"
+          placeholder="Enter your password to confirm"
+        />
+        <Textarea
+          v-model="deleteForm.reason"
+          label="Reason (Optional)"
+          :rows="3"
+          placeholder="Why are you leaving?"
+        />
       </div>
-    </Teleport>
+
+      <div class="flex gap-3 mt-6">
+        <Button
+          variant="danger"
+          :loading="deleteLoading"
+          :disabled="deleteLoading || (!displayProfile.hasSocialAccount && !deleteForm.password)"
+          full-width
+          @click="deleteAccount"
+        >
+          Delete Account
+        </Button>
+        <Button
+          variant="secondary"
+          :disabled="deleteLoading"
+          @click="showDeleteModal = false"
+        >
+          Cancel
+        </Button>
+      </div>
+    </Modal>
   </div>
 </template>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { Button, Switch } from '@portal/design-system-vue';
 import { useHealthCheck } from '../composables/useHealthCheck';
 import type { ServiceStatus, ServiceHealth } from '../store/serviceStatus';
 
-const { services, overallStatus, lastChecked, isLoading, isPolling, refresh, startPolling, stopPolling } = useHealthCheck();
+const { services, overallStatus, lastChecked, isLoading, refresh, startPolling, stopPolling } = useHealthCheck();
 
 // Pod detail expansion state
 const expandedService = ref<string | null>(null);
@@ -57,9 +58,8 @@ const hasK8sInfo = computed(() => services.value.some((s: ServiceHealth) => s.re
 // Auto refresh toggle
 const autoRefresh = ref(true);
 
-const toggleAutoRefresh = () => {
-  autoRefresh.value = !autoRefresh.value;
-  if (autoRefresh.value) {
+const toggleAutoRefresh = (value: boolean) => {
+  if (value) {
     startPolling();
   } else {
     stopPolling();
@@ -100,56 +100,18 @@ const toggleAutoRefresh = () => {
 
         <div class="flex items-center gap-3">
           <!-- Auto Refresh Toggle -->
-          <button
-            @click="toggleAutoRefresh"
-            :class="[
-              'flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
-              autoRefresh
-                ? 'bg-brand-primary/10 text-brand-primary'
-                : 'bg-bg-elevated text-text-meta hover:text-text-body'
-            ]"
-          >
-            <svg
-              :class="['w-4 h-4', isPolling ? 'animate-spin' : '']"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            <span>{{ autoRefresh ? 'Auto' : 'Manual' }}</span>
-          </button>
+          <Switch v-model="autoRefresh" label="Auto Refresh" @update:model-value="toggleAutoRefresh" />
 
           <!-- Manual Refresh Button -->
-          <button
-            @click="refresh"
+          <Button
+            variant="primary"
+            size="sm"
+            :loading="isLoading"
             :disabled="isLoading"
-            :class="[
-              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-              'bg-brand-primary text-white hover:bg-brand-primary/90',
-              'disabled:opacity-50 disabled:cursor-not-allowed'
-            ]"
+            @click="refresh"
           >
-            <svg
-              :class="['w-4 h-4', isLoading ? 'animate-spin' : '']"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            <span>Refresh</span>
-          </button>
+            Refresh
+          </Button>
         </div>
       </div>
     </div>

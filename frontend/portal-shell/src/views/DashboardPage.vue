@@ -103,22 +103,21 @@ function navigateTo(path: string) {
               빠른 작업
             </h2>
             <div class="space-y-2">
-              <button
+              <Button
                 v-for="action in quickActions"
                 :key="action.id"
+                variant="ghost"
                 @click="navigateTo(action.path)"
-                class="w-full flex items-center justify-between p-3 rounded-lg bg-bg-elevated hover:bg-brand-primary/10 transition-colors group"
+                class="w-full flex items-center justify-between p-3"
               >
-                <div class="flex items-center gap-3">
+                <span class="flex items-center gap-3">
                   <span class="text-xl">{{ action.icon }}</span>
-                  <span class="text-text-body group-hover:text-text-heading transition-colors">
-                    {{ action.label }}
-                  </span>
-                </div>
+                  <span>{{ action.label }}</span>
+                </span>
                 <kbd class="hidden sm:inline-block px-2 py-1 text-xs bg-bg-card border border-border-default rounded text-text-meta">
                   {{ action.shortcut }}
                 </kbd>
-              </button>
+              </Button>
             </div>
           </div>
         </section>

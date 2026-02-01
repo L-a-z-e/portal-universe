@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useThemeStore, type ThemeMode } from '../store/theme';
 import { useSettingsStore, type Language } from '../store/settings';
 import { useAuthStore } from '../store/auth';
+import { Switch, Button } from '@portal/design-system-vue';
 
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
@@ -119,20 +120,10 @@ const handleResetSettings = () => {
             <p class="font-medium text-text-body">Compact Mode</p>
             <p class="text-sm text-text-meta">Reduce spacing and padding</p>
           </div>
-          <button
-            @click="handleCompactModeChange(!settingsStore.compactMode)"
-            :class="[
-              'relative w-12 h-6 rounded-full transition-colors',
-              settingsStore.compactMode ? 'bg-brand-primary' : 'bg-border-default'
-            ]"
-          >
-            <span
-              :class="[
-                'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm',
-                settingsStore.compactMode ? 'translate-x-6' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch
+            :model-value="settingsStore.compactMode"
+            @update:model-value="handleCompactModeChange"
+          />
         </div>
       </section>
 
@@ -177,20 +168,10 @@ const handleResetSettings = () => {
               <p class="font-medium text-text-body">Email Notifications</p>
               <p class="text-sm text-text-meta">Receive important updates via email</p>
             </div>
-            <button
-              @click="handleNotificationChange('email', !settingsStore.notifications.email)"
-              :class="[
-                'relative w-12 h-6 rounded-full transition-colors',
-                settingsStore.notifications.email ? 'bg-brand-primary' : 'bg-border-default'
-              ]"
-            >
-              <span
-                :class="[
-                  'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm',
-                  settingsStore.notifications.email ? 'translate-x-6' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch
+              :model-value="settingsStore.notifications.email"
+              @update:model-value="(v: boolean) => handleNotificationChange('email', v)"
+            />
           </div>
 
           <!-- Push Notifications -->
@@ -199,20 +180,10 @@ const handleResetSettings = () => {
               <p class="font-medium text-text-body">Push Notifications</p>
               <p class="text-sm text-text-meta">Get real-time updates in your browser</p>
             </div>
-            <button
-              @click="handleNotificationChange('push', !settingsStore.notifications.push)"
-              :class="[
-                'relative w-12 h-6 rounded-full transition-colors',
-                settingsStore.notifications.push ? 'bg-brand-primary' : 'bg-border-default'
-              ]"
-            >
-              <span
-                :class="[
-                  'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm',
-                  settingsStore.notifications.push ? 'translate-x-6' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch
+              :model-value="settingsStore.notifications.push"
+              @update:model-value="(v: boolean) => handleNotificationChange('push', v)"
+            />
           </div>
 
           <!-- Marketing Notifications -->
@@ -221,20 +192,10 @@ const handleResetSettings = () => {
               <p class="font-medium text-text-body">Marketing Emails</p>
               <p class="text-sm text-text-meta">News, promotions, and product updates</p>
             </div>
-            <button
-              @click="handleNotificationChange('marketing', !settingsStore.notifications.marketing)"
-              :class="[
-                'relative w-12 h-6 rounded-full transition-colors',
-                settingsStore.notifications.marketing ? 'bg-brand-primary' : 'bg-border-default'
-              ]"
-            >
-              <span
-                :class="[
-                  'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm',
-                  settingsStore.notifications.marketing ? 'translate-x-6' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch
+              :model-value="settingsStore.notifications.marketing"
+              @update:model-value="(v: boolean) => handleNotificationChange('marketing', v)"
+            />
           </div>
         </div>
       </section>
@@ -280,12 +241,9 @@ const handleResetSettings = () => {
           This will reset all settings to their default values. This action cannot be undone.
         </p>
 
-        <button
-          @click="handleResetSettings"
-          class="px-4 py-2 rounded-lg border border-status-error text-status-error hover:bg-status-error hover:text-white transition-colors"
-        >
+        <Button variant="danger" @click="handleResetSettings">
           Reset to Defaults
-        </button>
+        </Button>
       </section>
     </div>
   </div>

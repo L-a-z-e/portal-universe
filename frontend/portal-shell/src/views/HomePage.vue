@@ -137,13 +137,9 @@ function handleStartClick() {
           </p>
 
           <div class="flex flex-wrap gap-3">
-            <button
-                @click="handleStartClick"
-                class="px-6 py-3 bg-white/90 text-gray-900 font-semibold rounded-lg hover:bg-white transition-all duration-normal flex items-center gap-2 dark:bg-brand-primary dark:text-white dark:hover:bg-brand-primaryHover"
-            >
-              {{ authStore.isAuthenticated ? '블로그 시작하기' : '시작하기' }}
-              <span>→</span>
-            </button>
+            <Button variant="primary" size="lg" @click="handleStartClick">
+              {{ authStore.isAuthenticated ? '블로그 시작하기' : '시작하기' }} →
+            </Button>
 
             <Button variant="secondary" size="lg">
               라이브 데모
@@ -264,15 +260,12 @@ function handleStartClick() {
           무료로 시작하고, 언제든지 업그레이드할 수 있습니다
         </p>
         <div class="flex flex-wrap gap-3 justify-center">
-          <button
-              @click="handleStartClick"
-              class="px-6 py-3 bg-white text-brand-primary font-semibold rounded-lg hover:bg-white/90 transition-all duration-normal"
-          >
+          <Button variant="secondary" size="lg" @click="handleStartClick">
             {{ authStore.isAuthenticated ? '블로그 시작하기' : '무료로 시작하기' }}
-          </button>
-          <button class="px-6 py-3 bg-white/10 text-white font-semibold rounded-lg border border-white/20 hover:bg-white/20 transition-all duration-normal">
+          </Button>
+          <Button variant="ghost" size="lg" class="text-white border border-white/20 hover:bg-white/20">
             가격 보기
-          </button>
+          </Button>
         </div>
       </div>
     </section>

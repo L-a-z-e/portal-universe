@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Modal, Input, Button } from '@portal/design-system-vue';
+import { Modal, Input, Button, Alert } from '@portal/design-system-vue';
 import { useAuthStore } from '../store/auth';
 import { socialLogin } from '../services/authService';
 
@@ -137,19 +137,18 @@ function handleClose() {
       />
 
       <!-- Error Message -->
-      <div v-if="error" class="p-3 bg-status-errorBg border border-status-error/20 rounded-lg">
-        <p class="text-sm text-status-error">{{ error }}</p>
-      </div>
+      <Alert v-if="error" variant="error" :title="error" />
 
       <!-- Forgot Password -->
       <div class="text-right">
-        <button
+        <Button
             type="button"
-            class="text-sm text-brand-primary hover:text-brand-primaryHover hover:underline"
+            variant="ghost"
+            size="sm"
             :disabled="isLoading"
         >
           비밀번호를 잊으셨나요?
-        </button>
+        </Button>
       </div>
 
       <!-- Login Button -->

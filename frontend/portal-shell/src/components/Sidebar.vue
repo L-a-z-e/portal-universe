@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import { authService } from '../services/authService';
+import { Button } from '@portal/design-system-vue';
 
 // Screen size detection for mobile header
 const isMobile = ref(false);
@@ -183,13 +184,14 @@ const navigate = (path: string) => {
       <div class="space-y-1">
         <template v-for="item in navItems" :key="item.path">
           <!-- Main nav item -->
-          <button
+          <Button
+            variant="ghost"
             @click="navigate(item.path)"
             :class="[
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left',
+              'w-full justify-start gap-3',
               isActive(item.path, item.exact)
                 ? 'bg-brand-primary/10 text-brand-primary'
-                : 'text-text-body hover:bg-bg-elevated hover:text-text-heading'
+                : ''
             ]"
           >
             <span class="text-lg shrink-0">{{ item.icon }}</span>
@@ -199,26 +201,28 @@ const navigate = (path: string) => {
             >
               {{ item.name }}
             </span>
-          </button>
+          </Button>
 
           <!-- Sub items (only when expanded and parent is active) -->
           <div
             v-if="!isCollapsed && item.children && isActive(item.path)"
             class="ml-9 space-y-0.5 mt-1"
           >
-            <button
+            <Button
               v-for="child in item.children"
               :key="child.path"
+              variant="ghost"
+              size="sm"
               @click="navigate(child.path)"
               :class="[
-                'w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors',
+                'w-full justify-start',
                 route.path === child.path
                   ? 'text-brand-primary font-medium'
-                  : 'text-text-meta hover:text-text-body hover:bg-bg-elevated'
+                  : 'text-text-meta'
               ]"
             >
               {{ child.name }}
-            </button>
+            </Button>
           </div>
         </template>
       </div>
@@ -231,14 +235,13 @@ const navigate = (path: string) => {
     <div class="border-t border-border-default p-3 space-y-2 shrink-0">
       <!-- User Section (최상단) -->
       <template v-if="authStore.isAuthenticated">
-        <button
+        <Button
           v-if="!isCollapsed"
+          variant="ghost"
           @click="navigate('/profile')"
           :class="[
-            'w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
-            isActive('/profile', true)
-              ? 'bg-brand-primary/10'
-              : 'bg-bg-elevated hover:bg-bg-elevated/80'
+            'w-full justify-start gap-2',
+            isActive('/profile', true) ? 'bg-brand-primary/10' : 'bg-bg-elevated'
           ]"
         >
           <div class="w-8 h-8 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
@@ -252,66 +255,61 @@ const navigate = (path: string) => {
             </p>
             <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">ADMIN</span>
           </div>
-        </button>
+        </Button>
       </template>
       <template v-else>
-        <button
+        <Button
+          variant="primary"
           @click="handleLogin"
-          :class="[
-            'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-            'bg-blue-600 text-white hover:bg-blue-700'
-          ]"
+          class="w-full justify-start gap-3"
         >
           <span class="text-lg shrink-0">🔐</span>
           <span v-if="!isCollapsed" class="font-medium">Login</span>
-        </button>
+        </Button>
       </template>
 
       <!-- Service Status -->
-      <button
+      <Button
+        variant="ghost"
         @click="navigate('/status')"
         :class="[
-          'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-          isActive('/status', true)
-            ? 'bg-brand-primary/10 text-brand-primary'
-            : 'text-text-body hover:bg-bg-elevated hover:text-text-heading'
+          'w-full justify-start gap-3',
+          isActive('/status', true) ? 'bg-brand-primary/10 text-brand-primary' : ''
         ]"
       >
         <span class="text-lg shrink-0">📊</span>
         <span v-if="!isCollapsed" class="font-medium whitespace-nowrap">Status</span>
-      </button>
+      </Button>
 
       <!-- Settings -->
-      <button
+      <Button
+        variant="ghost"
         @click="navigate('/settings')"
         :class="[
-          'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-          isActive('/settings', true)
-            ? 'bg-brand-primary/10 text-brand-primary'
-            : 'text-text-body hover:bg-bg-elevated hover:text-text-heading'
+          'w-full justify-start gap-3',
+          isActive('/settings', true) ? 'bg-brand-primary/10 text-brand-primary' : ''
         ]"
       >
         <span class="text-lg shrink-0">⚙️</span>
         <span v-if="!isCollapsed" class="font-medium whitespace-nowrap">Settings</span>
-      </button>
+      </Button>
 
       <!-- Logout (로그인된 경우) -->
-      <button
+      <Button
         v-if="authStore.isAuthenticated"
+        variant="ghost"
         @click="handleLogout"
-        :class="[
-          'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-          'text-red-500 hover:bg-red-500/10'
-        ]"
+        class="w-full justify-start gap-3 text-red-500 hover:bg-red-500/10"
       >
         <span class="text-lg shrink-0">🚪</span>
         <span v-if="!isCollapsed" class="font-medium">Logout</span>
-      </button>
+      </Button>
 
       <!-- Collapse Toggle (Desktop only) -->
-      <button
+      <Button
+        variant="ghost"
         @click="toggleSidebar"
-        class="hidden lg:flex w-full items-center gap-3 px-3 py-2 rounded-lg text-text-meta hover:bg-bg-elevated hover:text-text-body transition-colors"
+        class="hidden lg:flex w-full justify-start gap-3"
       >
         <svg
           :class="['w-5 h-5 transition-transform', isCollapsed ? 'rotate-180' : '']"
@@ -322,7 +320,7 @@ const navigate = (path: string) => {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
         </svg>
         <span v-if="!isCollapsed" class="text-sm">Collapse</span>
-      </button>
+      </Button>
     </div>
   </aside>
 
