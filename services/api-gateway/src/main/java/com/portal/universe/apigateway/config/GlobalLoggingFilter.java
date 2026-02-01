@@ -13,11 +13,17 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 @Component
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE + 2)
 public class GlobalLoggingFilter implements GlobalFilter {
+
+    private static final Set<String> SENSITIVE_HEADERS = Set.of("authorization", "cookie");
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -28,7 +34,7 @@ public class GlobalLoggingFilter implements GlobalFilter {
         String clientIp = getClientIp(request, exchange);
 
         log.info("API_REQUEST - Method: {}, Path: {}, IP: {}, Headers: {}",
-                method, requestPath, clientIp, request.getHeaders().toSingleValueMap());
+                method, requestPath, clientIp, maskSensitiveHeaders(request.getHeaders().toSingleValueMap()));
 
         return chain.filter(exchange).then(
                 Mono.fromRunnable(() -> {
@@ -39,6 +45,13 @@ public class GlobalLoggingFilter implements GlobalFilter {
                             requestPath, response.getStatusCode(), duration);
                 })
         );
+    }
+
+    private Map<String, String> maskSensitiveHeaders(Map<String, String> headers) {
+        Map<String, String> masked = new LinkedHashMap<>(headers);
+        masked.replaceAll((key, value) ->
+                SENSITIVE_HEADERS.contains(key.toLowerCase()) ? "***" : value);
+        return masked;
     }
 
     private String getClientIp(ServerHttpRequest request, ServerWebExchange exchange) {
