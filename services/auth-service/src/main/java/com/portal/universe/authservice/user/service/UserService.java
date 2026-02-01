@@ -50,8 +50,8 @@ public class UserService {
         // 2. 비밀번호 정책 검증
         ValidationResult validationResult = passwordValidator.validate(command.password());
         if (!validationResult.isValid()) {
-            throw new CustomBusinessException(AuthErrorCode.PASSWORD_TOO_WEAK,
-                    validationResult.getFirstError());
+            String allErrors = String.join("; ", validationResult.getErrors());
+            throw new CustomBusinessException(AuthErrorCode.PASSWORD_TOO_WEAK, allErrors);
         }
 
         // 3. 비밀번호 암호화
@@ -101,35 +101,12 @@ public class UserService {
     }
 
     /**
-     * 내 프로필 조회
-     */
-    public UserProfileResponse getMyProfile(Long userId) {
-        User user = findUserByIdOrThrow(userId);
-        FollowCounts counts = getFollowCounts(user);
-
-        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
-    }
-
-    /**
      * 내 프로필 조회 (UUID 기반)
      */
     public UserProfileResponse getMyProfileByUuid(String uuid) {
         User user = findUserByUuidOrThrow(uuid);
         FollowCounts counts = getFollowCounts(user);
 
-        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
-    }
-
-    /**
-     * 프로필 수정
-     */
-    @Transactional
-    public UserProfileResponse updateProfile(Long userId, String nickname, String bio,
-                                            String profileImageUrl, String website) {
-        User user = findUserByIdOrThrow(userId);
-        user.getProfile().updateProfile(nickname, bio, profileImageUrl, website);
-
-        FollowCounts counts = getFollowCounts(user);
         return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
     }
 
@@ -141,34 +118,6 @@ public class UserService {
                                                    String profileImageUrl, String website) {
         User user = findUserByUuidOrThrow(uuid);
         user.getProfile().updateProfile(nickname, bio, profileImageUrl, website);
-
-        FollowCounts counts = getFollowCounts(user);
-        return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
-    }
-
-    /**
-     * Username 설정 (최초 1회)
-     */
-    @Transactional
-    public UserProfileResponse setUsername(Long userId, String username) {
-        // Username 형식 검증
-        if (!USERNAME_PATTERN.matcher(username).matches()) {
-            throw new CustomBusinessException(AuthErrorCode.INVALID_USERNAME_FORMAT);
-        }
-
-        User user = findUserByIdOrThrow(userId);
-
-        // 이미 설정된 경우
-        if (user.getProfile().getUsername() != null) {
-            throw new CustomBusinessException(AuthErrorCode.USERNAME_ALREADY_SET);
-        }
-
-        // 중복 확인
-        if (userRepository.existsByUsername(username)) {
-            throw new CustomBusinessException(AuthErrorCode.USERNAME_ALREADY_EXISTS);
-        }
-
-        user.getProfile().setUsername(username);
 
         FollowCounts counts = getFollowCounts(user);
         return UserProfileResponse.from(user, counts.followerCount(), counts.followingCount());
@@ -212,15 +161,6 @@ public class UserService {
     }
 
     /**
-     * 비밀번호 변경
-     */
-    @Transactional
-    public void changePassword(Long userId, String currentPassword, String newPassword) {
-        User user = findUserByIdOrThrow(userId);
-        doChangePassword(user, currentPassword, newPassword);
-    }
-
-    /**
      * 비밀번호 변경 (UUID 기반)
      */
     @Transactional
@@ -240,8 +180,8 @@ public class UserService {
 
         ValidationResult validationResult = passwordValidator.validate(newPassword, user);
         if (!validationResult.isValid()) {
-            throw new CustomBusinessException(AuthErrorCode.PASSWORD_TOO_WEAK,
-                    validationResult.getFirstError());
+            String allErrors = String.join("; ", validationResult.getErrors());
+            throw new CustomBusinessException(AuthErrorCode.PASSWORD_TOO_WEAK, allErrors);
         }
 
         String encodedPassword = passwordEncoder.encode(newPassword);
@@ -251,22 +191,6 @@ public class UserService {
     }
 
     // ==================== Private Helper Methods ====================
-
-    /**
-     * ID로 사용자를 조회하고, 없으면 예외를 발생시킵니다.
-     *
-     * <p>이 메서드는 반복되는 "조회 후 예외 처리" 패턴을 추출한 것입니다.
-     * 여러 메서드에서 동일한 로직이 중복되면 버그 수정이나 변경 시
-     * 모든 위치를 찾아 수정해야 하는 문제가 발생합니다.</p>
-     *
-     * @param userId 조회할 사용자 ID
-     * @return 조회된 User 엔티티
-     * @throws CustomBusinessException 사용자를 찾을 수 없는 경우
-     */
-    private User findUserByIdOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
-    }
 
     private User findUserByUuidOrThrow(String uuid) {
         return userRepository.findByUuid(uuid)

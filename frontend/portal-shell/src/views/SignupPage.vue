@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { signup, type SignupRequest } from '@/api/users';
+import { signup, getPasswordPolicy, type SignupRequest, type PasswordPolicyResponse } from '@/api/users';
 import { Button, Card, Input, Checkbox, Alert, useToast, useApiError } from '@portal/design-system-vue';
 
 const router = useRouter();
@@ -24,6 +24,21 @@ const errors = ref({
 });
 
 const loading = ref(false);
+const showPasswordPolicy = ref(false);
+const passwordPolicy = ref<PasswordPolicyResponse | null>(null);
+
+onMounted(async () => {
+  try {
+    passwordPolicy.value = await getPasswordPolicy();
+  } catch {
+    // 정책 로드 실패 시 기본값 사용
+    passwordPolicy.value = {
+      minLength: 8,
+      maxLength: 128,
+      requirements: ['8자 이상 입력해주세요']
+    };
+  }
+});
 
 const validateForm = () => {
   let isValid = true;
@@ -33,10 +48,13 @@ const validateForm = () => {
     errors.value.email = '유효한 이메일 주소를 입력해주세요.';
     isValid = false;
   }
-  if (!form.value.password || form.value.password.length < 8) {
-    errors.value.password = '비밀번호는 8자 이상이어야 합니다.';
+
+  const minLen = passwordPolicy.value?.minLength ?? 8;
+  if (!form.value.password || form.value.password.length < minLen) {
+    errors.value.password = `비밀번호는 ${minLen}자 이상이어야 합니다.`;
     isValid = false;
   }
+
   if (!form.value.nickname) {
     errors.value.nickname = '닉네임을 입력해주세요.';
     isValid = false;
@@ -81,15 +99,68 @@ const handleSignup = async () => {
           :error-message="errors.email"
         />
 
-        <Input
-          label="비밀번호"
-          type="password"
-          v-model="form.password"
-          placeholder="8자 이상 입력해주세요"
-          required
-          :error="!!errors.password"
-          :error-message="errors.password"
-        />
+        <div>
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <label class="block text-sm font-medium text-text-body">
+              비밀번호
+              <span class="text-status-error ml-0.5">*</span>
+            </label>
+            <button
+              type="button"
+              @click="showPasswordPolicy = !showPasswordPolicy"
+              class="inline-flex items-center justify-center w-4 h-4 rounded-full
+                     text-[10px] font-bold leading-none
+                     border border-border-default text-text-muted
+                     hover:bg-bg-elevated hover:text-text-body
+                     transition-colors cursor-pointer"
+              title="비밀번호 조건 보기"
+            >
+              ?
+            </button>
+          </div>
+
+          <!-- 비밀번호 정책 안내 -->
+          <div
+            v-if="showPasswordPolicy && passwordPolicy"
+            class="mb-2 p-3 rounded-md bg-bg-elevated border border-border-default text-sm"
+          >
+            <p class="font-medium text-text-body mb-1.5">비밀번호 조건</p>
+            <ul class="space-y-0.5 text-text-meta">
+              <li
+                v-for="(req, idx) in passwordPolicy.requirements"
+                :key="idx"
+                class="flex items-start gap-1.5"
+              >
+                <span class="text-text-muted mt-0.5 shrink-0">&#8226;</span>
+                <span>{{ req }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <input
+            type="password"
+            :value="form.password"
+            @input="(e) => form.password = (e.target as HTMLInputElement).value"
+            :placeholder="`${passwordPolicy?.minLength ?? 8}자 이상 입력해주세요`"
+            :class="[
+              'w-full rounded-md h-9 px-3 text-sm',
+              'bg-bg-card text-text-body placeholder:text-text-muted',
+              'border border-border-default',
+              'transition-all duration-150 ease-out',
+              'focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary',
+              'hover:border-border-hover',
+              errors.password
+                ? 'border-status-error focus:border-status-error focus:ring-status-error/30'
+                : ''
+            ]"
+          />
+          <p
+            v-if="errors.password"
+            class="mt-1.5 text-sm text-status-error"
+          >
+            {{ errors.password }}
+          </p>
+        </div>
 
         <Input
           label="닉네임"
@@ -127,7 +198,7 @@ const handleSignup = async () => {
 
         <div class="mt-8 pt-6 border-t border-border-default text-center">
           <p class="text-sm text-text-meta">
-            이미 계정이 있으신가요? 
+            이미 계정이 있으신가요?
             <router-link to="/" class="text-brand-primary font-bold hover:text-brand-primaryHover ml-1">
               로그인하기
             </router-link>
