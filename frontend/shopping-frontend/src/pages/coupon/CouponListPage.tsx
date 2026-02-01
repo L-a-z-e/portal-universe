@@ -3,7 +3,7 @@
  * 쿠폰 목록 페이지 - 발급 가능한 쿠폰 및 내 쿠폰 관리
  */
 import { useState } from 'react'
-import { Spinner, Badge, useApiError, useToast } from '@portal/design-system-react'
+import { Button, Spinner, Badge, useApiError, useToast } from '@portal/design-system-react'
 import { useAvailableCoupons, useUserCoupons, useIssueCoupon } from '@/hooks/useCoupons'
 import { CouponCard } from '@/components/coupon/CouponCard'
 
@@ -54,10 +54,11 @@ export function CouponListPage() {
       {/* 탭 네비게이션 */}
       <div className="border-b border-border-default mb-6">
         <nav className="-mb-px flex space-x-8">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setActiveTab('available')}
             className={`
-              py-4 px-1 border-b-2 font-medium text-sm transition-colors
+              py-4 px-1 rounded-none border-b-2 font-medium text-sm
               ${activeTab === 'available'
                 ? 'border-brand-primary text-brand-primary'
                 : 'border-transparent text-text-meta hover:text-text-body hover:border-border-default'
@@ -70,11 +71,12 @@ export function CouponListPage() {
                 {filteredAvailableCoupons.length}
               </Badge>
             )}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => setActiveTab('my')}
             className={`
-              py-4 px-1 border-b-2 font-medium text-sm transition-colors
+              py-4 px-1 rounded-none border-b-2 font-medium text-sm
               ${activeTab === 'my'
                 ? 'border-brand-primary text-brand-primary'
                 : 'border-transparent text-text-meta hover:text-text-body hover:border-border-default'
@@ -87,7 +89,7 @@ export function CouponListPage() {
                 {userCoupons.filter((uc) => uc.status === 'AVAILABLE').length}
               </Badge>
             )}
-          </button>
+          </Button>
         </nav>
       </div>
 
@@ -129,12 +131,13 @@ export function CouponListPage() {
             <div className="text-center py-12">
               <div className="text-text-meta text-5xl mb-4">🎫</div>
               <p className="text-text-body mb-4">보유한 쿠폰이 없습니다</p>
-              <button
+              <Button
                 onClick={() => setActiveTab('available')}
+                variant="ghost"
                 className="text-brand-primary hover:text-brand-primaryHover font-medium"
               >
                 쿠폰 받으러 가기 →
-              </button>
+              </Button>
             </div>
           ) : (
             <div>

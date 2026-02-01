@@ -88,12 +88,14 @@ const CartPage: React.FC = () => {
         </h1>
 
         {!isEmpty && (
-          <button
+          <Button
             onClick={handleClearCart}
-            className="text-sm text-status-error hover:underline"
+            variant="ghost"
+            size="sm"
+            className="text-status-error hover:text-status-error"
           >
             Clear Cart
-          </button>
+          </Button>
         )}
       </div>
 
@@ -173,12 +175,9 @@ const CartPage: React.FC = () => {
                 Proceed to Checkout
               </Button>
 
-              <Link
-                to="/"
-                className="block text-center mt-4 text-sm text-brand-primary hover:underline"
-              >
-                Continue Shopping
-              </Link>
+              <Button asChild variant="ghost" className="w-full mt-4">
+                <Link to="/">Continue Shopping</Link>
+              </Button>
             </div>
           </div>
         </div>

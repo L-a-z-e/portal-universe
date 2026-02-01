@@ -5,6 +5,7 @@
  */
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Button } from '@portal/design-system-react'
 import { useCartStore } from '@/stores/cartStore'
 import type { CartItem } from '@/types'
 
@@ -89,11 +90,13 @@ const CartItemComponent: React.FC<CartItemComponentProps> = ({ item }) => {
             </div>
 
             {/* Remove Button */}
-            <button
+            <Button
               onClick={handleRemove}
               disabled={removing}
-              className="flex-shrink-0 p-2 text-text-meta hover:text-status-error transition-colors"
-              title="Remove item"
+              variant="ghost"
+              size="sm"
+              className="flex-shrink-0 text-text-meta hover:text-status-error"
+              aria-label="Remove item"
             >
               {removing ? (
                 <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
@@ -122,7 +125,7 @@ const CartItemComponent: React.FC<CartItemComponentProps> = ({ item }) => {
                   />
                 </svg>
               )}
-            </button>
+            </Button>
           </div>
 
           {/* Quantity & Subtotal */}

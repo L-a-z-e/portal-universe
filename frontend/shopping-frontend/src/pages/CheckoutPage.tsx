@@ -181,68 +181,47 @@ const CheckoutPage: React.FC = () => {
       <h2 className="text-lg font-bold text-text-heading">Shipping Address</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-text-heading mb-1">
-            Receiver Name *
-          </label>
-          <input
-            type="text"
-            value={address.receiverName}
-            onChange={(e) => handleAddressChange('receiverName', e.target.value)}
-            placeholder="Enter receiver name"
-            className="w-full px-4 py-3 border border-border-default rounded-lg bg-bg-input text-text-body placeholder:text-text-placeholder focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
-          />
-        </div>
+        <Input
+          label="Receiver Name *"
+          type="text"
+          value={address.receiverName}
+          onChange={(e) => handleAddressChange('receiverName', e.target.value)}
+          placeholder="Enter receiver name"
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-text-heading mb-1">
-            Phone Number *
-          </label>
-          <input
-            type="tel"
-            value={address.receiverPhone}
-            onChange={(e) => handleAddressChange('receiverPhone', e.target.value)}
-            placeholder="010-0000-0000"
-            className="w-full px-4 py-3 border border-border-default rounded-lg bg-bg-input text-text-body placeholder:text-text-placeholder focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
-          />
-        </div>
+        <Input
+          label="Phone Number *"
+          type="tel"
+          value={address.receiverPhone}
+          onChange={(e) => handleAddressChange('receiverPhone', e.target.value)}
+          placeholder="010-0000-0000"
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-text-heading mb-1">
-            Zip Code *
-          </label>
-          <input
-            type="text"
-            value={address.zipCode}
-            onChange={(e) => handleAddressChange('zipCode', e.target.value)}
-            placeholder="12345"
-            className="w-full px-4 py-3 border border-border-default rounded-lg bg-bg-input text-text-body placeholder:text-text-placeholder focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
-          />
-        </div>
+        <Input
+          label="Zip Code *"
+          type="text"
+          value={address.zipCode}
+          onChange={(e) => handleAddressChange('zipCode', e.target.value)}
+          placeholder="12345"
+        />
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-text-heading mb-1">
-            Address *
-          </label>
-          <input
+          <Input
+            label="Address *"
             type="text"
             value={address.address1}
             onChange={(e) => handleAddressChange('address1', e.target.value)}
             placeholder="Street address"
-            className="w-full px-4 py-3 border border-border-default rounded-lg bg-bg-input text-text-body placeholder:text-text-placeholder focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-text-heading mb-1">
-            Detail Address
-          </label>
-          <input
+          <Input
+            label="Detail Address"
             type="text"
             value={address.address2}
             onChange={(e) => handleAddressChange('address2', e.target.value)}
             placeholder="Apartment, suite, etc. (optional)"
-            className="w-full px-4 py-3 border border-border-default rounded-lg bg-bg-input text-text-body placeholder:text-text-placeholder focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
           />
         </div>
       </div>
