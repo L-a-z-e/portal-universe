@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -83,13 +84,15 @@ public class TagController {
 
     @Operation(summary = "사용되지 않는 태그 일괄 삭제 (관리자)")
     @DeleteMapping("/unused")
+    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ApiResponse<Void> deleteUnusedTags() {
         tagService.deleteUnusedTags();
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "태그 강제 삭제")
+    @Operation(summary = "태그 강제 삭제 (관리자)")
     @DeleteMapping("/{tagName}")
+    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ApiResponse<Void> deleteTag(
             @Parameter(description = "태그 이름") @PathVariable String tagName
     ) {
