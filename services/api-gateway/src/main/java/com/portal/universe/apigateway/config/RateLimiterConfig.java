@@ -11,7 +11,6 @@ import org.springframework.core.env.Environment;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * Redis 기반 Rate Limiting 설정을 담당하는 클래스입니다.
@@ -55,9 +54,10 @@ public class RateLimiterConfig {
                 // X-Forwarded-For: client, proxy1, proxy2
                 clientIp = forwardedFor.split(",")[0].trim();
             } else {
-                clientIp = Objects.requireNonNull(
-                    exchange.getRequest().getRemoteAddress()
-                ).getAddress().getHostAddress();
+                var remoteAddress = exchange.getRequest().getRemoteAddress();
+                clientIp = (remoteAddress != null)
+                    ? remoteAddress.getAddress().getHostAddress()
+                    : "unknown";
             }
 
             log.debug("Rate Limit Key (IP): {}", clientIp);
