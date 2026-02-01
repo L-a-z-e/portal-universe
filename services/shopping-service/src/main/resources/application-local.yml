@@ -9,19 +9,6 @@ app:
   frontend:
     base-url: http://localhost:30000
 
-# 서비스 URL 정의 (IntelliJ 개발용 - localhost)
-services:
-  gateway:
-    url: "http://localhost:8080"
-  auth:
-    url: "http://localhost:8081"
-  blog:
-    url: "http://localhost:8082"
-  shopping:
-    url: "http://localhost:8083"
-  notification:
-    url: "http://localhost:8084"
-
 # Feign Client 설정
 feign:
   client:
@@ -29,14 +16,8 @@ feign:
       default:
         connectTimeout: 5000
         readTimeout: 5000
-  auth-service:
-    url: "${services.auth.url}"
   blog-service:
-    url: "${services.blog.url}"
-  shopping-service:
-    url: "${services.shopping.url}"
-  notification-service:
-    url: "${services.notification.url}"
+    url: "http://localhost:8082"
 
 spring:
   datasource:

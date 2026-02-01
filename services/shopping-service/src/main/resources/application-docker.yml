@@ -9,19 +9,6 @@ app:
   frontend:
     base-url: https://portal-shell:30000
 
-# 서비스 URL 정의 (Docker DNS)
-services:
-  gateway:
-    url: "http://api-gateway:8080"
-  auth:
-    url: "http://auth-service:8081"
-  blog:
-    url: "http://blog-service:8082"
-  shopping:
-    url: "http://shopping-service:8083"
-  notification:
-    url: "http://notification-service:8084"
-
 # Feign Client 설정
 feign:
   client:
@@ -29,14 +16,8 @@ feign:
       default:
         connectTimeout: 5000
         readTimeout: 5000
-  auth-service:
-    url: "${services.auth.url}"
   blog-service:
-    url: "${services.blog.url}"
-  shopping-service:
-    url: "${services.shopping.url}"
-  notification-service:
-    url: "${services.notification.url}"
+    url: "http://blog-service:8082"
 
 spring:
   data:
