@@ -2,6 +2,7 @@ import { ProviderType } from '../provider/provider.entity';
 import { LLMProvider } from './providers/llm-provider.interface';
 import { OpenAIProvider } from './providers/openai.provider';
 import { AnthropicProvider } from './providers/anthropic.provider';
+import { OllamaProvider } from './providers/ollama.provider';
 import { BusinessException } from '../../common/filters/business.exception';
 
 export class AIProviderFactory {
@@ -19,10 +20,7 @@ export class AIProviderFactory {
         // Azure uses OpenAI SDK with different base URL
         return new OpenAIProvider(apiKey, baseUrl);
       case ProviderType.OLLAMA:
-        // TODO: Implement Ollama provider
-        throw BusinessException.providerConnectionFailed(
-          'Ollama provider not yet implemented',
-        );
+        return new OllamaProvider(baseUrl);
       default: {
         const exhaustiveCheck: never = type;
         throw BusinessException.providerConnectionFailed(

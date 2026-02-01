@@ -35,7 +35,7 @@ export class ProviderService {
       userId,
       providerType: dto.providerType,
       name: dto.name,
-      apiKeyEncrypted: this.encryptionUtil.encrypt(dto.apiKey),
+      apiKeyEncrypted: this.encryptionUtil.encrypt(dto.apiKey || ''),
       baseUrl: dto.baseUrl || this.getDefaultBaseUrl(dto.providerType),
       isActive: true,
     });
