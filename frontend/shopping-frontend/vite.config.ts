@@ -85,10 +85,14 @@ export default defineConfig(({ mode }) => {
 
     build: {
       target: 'esnext',
-      minify: false,
+      minify: 'esbuild',
       cssCodeSplit: true,
       sourcemap: false,
       outDir: 'dist',
+    },
+
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
     },
   }
 })
