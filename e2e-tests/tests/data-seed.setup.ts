@@ -353,5 +353,65 @@ setup('seed test data', async () => {
   }
 
   console.log('Data seed: Blog seed completed')
+
+  // ===============================
+  // Prism Data Seed
+  // ===============================
+  const PRISM_API = `${BASE_URL}/api/v1/prism`
+
+  console.log('Data seed: Starting prism data seeding...')
+
+  // Check existing boards
+  const existingBoards = await apiGet<{ id: number; name: string }[]>(
+    `${PRISM_API}/boards`,
+    userToken,
+  )
+  const existingBoardNames = new Set(
+    (existingBoards ?? []).map((b) => b.name),
+  )
+
+  // Create a board
+  let testBoardId: number | null = null
+  if (existingBoardNames.has('E2E Test Board')) {
+    const existing = (existingBoards ?? []).find((b) => b.name === 'E2E Test Board')
+    testBoardId = existing?.id ?? null
+    console.log(`  Prism board "E2E Test Board" already exists (id: ${testBoardId}), skipping`)
+  } else {
+    const board = await apiPost<{ id: number }>(
+      `${PRISM_API}/boards`,
+      userToken,
+      { name: 'E2E Test Board', description: 'Board for E2E testing' },
+    )
+    if (board) {
+      testBoardId = board.id
+      console.log(`  Prism board "E2E Test Board" created (id: ${board.id})`)
+    }
+  }
+
+  // Create a task in the board
+  if (testBoardId) {
+    const existingTasks = await apiGet<{ id: number; title: string }[]>(
+      `${PRISM_API}/boards/${testBoardId}/tasks`,
+      userToken,
+    )
+    const existingTaskTitles = new Set(
+      (existingTasks ?? []).map((t) => t.title),
+    )
+
+    if (!existingTaskTitles.has('E2E Test Task')) {
+      const task = await apiPost<{ id: number }>(
+        `${PRISM_API}/boards/${testBoardId}/tasks`,
+        userToken,
+        { title: 'E2E Test Task', description: 'Task for E2E testing', priority: 'MEDIUM' },
+      )
+      if (task) {
+        console.log(`  Prism task "E2E Test Task" created (id: ${task.id})`)
+      }
+    } else {
+      console.log(`  Prism task "E2E Test Task" already exists, skipping`)
+    }
+  }
+
+  console.log('Data seed: Prism seed completed')
   console.log('Data seed: Completed')
 })

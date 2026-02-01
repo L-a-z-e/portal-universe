@@ -90,6 +90,27 @@ export async function gotoBlogPage(page: Page, urlPath: string, contentSelector?
   await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 }
 
+export async function gotoPrismPage(page: Page, urlPath: string, contentSelector?: string): Promise<void> {
+  await page.goto(urlPath)
+
+  // Wait for auth state to resolve
+  await waitForAuthReady(page)
+
+  // If not authenticated, try to login
+  await ensureAuthenticated(page)
+
+  // Wait a moment for the page to re-render after auth change
+  await page.waitForTimeout(1000)
+
+  // Wait for Module Federation content
+  if (contentSelector) {
+    await page.locator(contentSelector).first().waitFor({ timeout: 15000 }).catch(() => {})
+  }
+
+  // Wait for spinners to finish
+  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+}
+
 export async function gotoShoppingPage(page: Page, urlPath: string, contentSelector?: string): Promise<void> {
   await page.goto(urlPath)
 
