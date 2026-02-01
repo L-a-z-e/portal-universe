@@ -2,7 +2,7 @@ package com.portal.universe.shoppingservice.timedeal.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +17,7 @@ public class TimeDealRedisService {
     private static final String TIMEDEAL_STOCK_KEY = "timedeal:stock:";
     private static final String TIMEDEAL_PURCHASED_KEY = "timedeal:purchased:";
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     private final DefaultRedisScript<Long> timeDealPurchaseScript;
 
     /**
@@ -25,7 +25,7 @@ public class TimeDealRedisService {
      */
     public void initializeStock(Long timeDealId, Long productId, int quantity) {
         String stockKey = buildStockKey(timeDealId, productId);
-        redisTemplate.opsForValue().set(stockKey, quantity);
+        stringRedisTemplate.opsForValue().set(stockKey, String.valueOf(quantity));
         log.info("Initialized timedeal stock: dealId={}, productId={}, quantity={}",
                 timeDealId, productId, quantity);
     }
@@ -40,7 +40,7 @@ public class TimeDealRedisService {
         String stockKey = buildStockKey(timeDealId, productId);
         String purchasedKey = buildPurchasedKey(timeDealId, productId, userId);
 
-        Long result = redisTemplate.execute(
+        Long result = stringRedisTemplate.execute(
                 timeDealPurchaseScript,
                 Arrays.asList(stockKey, purchasedKey),
                 String.valueOf(requestedQuantity),
@@ -57,11 +57,11 @@ public class TimeDealRedisService {
      */
     public int getStock(Long timeDealId, Long productId) {
         String stockKey = buildStockKey(timeDealId, productId);
-        Object stock = redisTemplate.opsForValue().get(stockKey);
+        String stock = stringRedisTemplate.opsForValue().get(stockKey);
         if (stock == null) {
             return 0;
         }
-        return Integer.parseInt(stock.toString());
+        return Integer.parseInt(stock);
     }
 
     /**
@@ -69,11 +69,11 @@ public class TimeDealRedisService {
      */
     public int getUserPurchasedQuantity(Long timeDealId, Long productId, String userId) {
         String purchasedKey = buildPurchasedKey(timeDealId, productId, userId);
-        Object purchased = redisTemplate.opsForValue().get(purchasedKey);
+        String purchased = stringRedisTemplate.opsForValue().get(purchasedKey);
         if (purchased == null) {
             return 0;
         }
-        return Integer.parseInt(purchased.toString());
+        return Integer.parseInt(purchased);
     }
 
     /**
@@ -83,8 +83,8 @@ public class TimeDealRedisService {
         String stockKey = buildStockKey(timeDealId, productId);
         String purchasedKey = buildPurchasedKey(timeDealId, productId, userId);
 
-        redisTemplate.opsForValue().increment(stockKey, quantity);
-        redisTemplate.opsForValue().decrement(purchasedKey, quantity);
+        stringRedisTemplate.opsForValue().increment(stockKey, quantity);
+        stringRedisTemplate.opsForValue().decrement(purchasedKey, quantity);
 
         log.info("Rolled back timedeal stock: dealId={}, productId={}, userId={}, quantity={}",
                 timeDealId, productId, userId, quantity);
@@ -95,7 +95,7 @@ public class TimeDealRedisService {
      */
     public void deleteTimeDealCache(Long timeDealId, Long productId) {
         String pattern = TIMEDEAL_STOCK_KEY + timeDealId + ":" + productId;
-        redisTemplate.delete(pattern);
+        stringRedisTemplate.delete(pattern);
         log.info("Deleted timedeal cache: dealId={}, productId={}", timeDealId, productId);
     }
 
@@ -104,7 +104,7 @@ public class TimeDealRedisService {
      */
     public void setExpiration(Long timeDealId, Long productId, long timeout, TimeUnit unit) {
         String stockKey = buildStockKey(timeDealId, productId);
-        redisTemplate.expire(stockKey, timeout, unit);
+        stringRedisTemplate.expire(stockKey, timeout, unit);
     }
 
     private String buildStockKey(Long timeDealId, Long productId) {

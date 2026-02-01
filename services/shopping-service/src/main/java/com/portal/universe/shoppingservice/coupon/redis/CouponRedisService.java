@@ -2,7 +2,7 @@ package com.portal.universe.shoppingservice.coupon.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +17,7 @@ public class CouponRedisService {
     private static final String COUPON_STOCK_KEY = "coupon:stock:";
     private static final String COUPON_ISSUED_KEY = "coupon:issued:";
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     private final DefaultRedisScript<Long> couponIssueScript;
 
     /**
@@ -25,7 +25,7 @@ public class CouponRedisService {
      */
     public void initializeCouponStock(Long couponId, int quantity) {
         String stockKey = COUPON_STOCK_KEY + couponId;
-        redisTemplate.opsForValue().set(stockKey, quantity);
+        stringRedisTemplate.opsForValue().set(stockKey, String.valueOf(quantity));
         log.info("Initialized coupon stock: couponId={}, quantity={}", couponId, quantity);
     }
 
@@ -38,7 +38,7 @@ public class CouponRedisService {
         String stockKey = COUPON_STOCK_KEY + couponId;
         String issuedKey = COUPON_ISSUED_KEY + couponId;
 
-        Long result = redisTemplate.execute(
+        Long result = stringRedisTemplate.execute(
                 couponIssueScript,
                 Arrays.asList(stockKey, issuedKey),
                 String.valueOf(userId),
@@ -54,7 +54,7 @@ public class CouponRedisService {
      */
     public boolean isAlreadyIssued(Long couponId, String userId) {
         String issuedKey = COUPON_ISSUED_KEY + couponId;
-        Boolean isMember = redisTemplate.opsForSet().isMember(issuedKey, userId);
+        Boolean isMember = stringRedisTemplate.opsForSet().isMember(issuedKey, userId);
         return Boolean.TRUE.equals(isMember);
     }
 
@@ -63,7 +63,7 @@ public class CouponRedisService {
      */
     public int getStock(Long couponId) {
         String stockKey = COUPON_STOCK_KEY + couponId;
-        Object stock = redisTemplate.opsForValue().get(stockKey);
+        Object stock = stringRedisTemplate.opsForValue().get(stockKey);
         if (stock == null) {
             return 0;
         }
@@ -75,7 +75,7 @@ public class CouponRedisService {
      */
     public long getIssuedCount(Long couponId) {
         String issuedKey = COUPON_ISSUED_KEY + couponId;
-        Long size = redisTemplate.opsForSet().size(issuedKey);
+        Long size = stringRedisTemplate.opsForSet().size(issuedKey);
         return size != null ? size : 0;
     }
 
@@ -84,7 +84,7 @@ public class CouponRedisService {
      */
     public void incrementStock(Long couponId) {
         String stockKey = COUPON_STOCK_KEY + couponId;
-        redisTemplate.opsForValue().increment(stockKey);
+        stringRedisTemplate.opsForValue().increment(stockKey);
     }
 
     /**
@@ -92,7 +92,15 @@ public class CouponRedisService {
      */
     public void removeIssuedUser(Long couponId, String userId) {
         String issuedKey = COUPON_ISSUED_KEY + couponId;
-        redisTemplate.opsForSet().remove(issuedKey, userId);
+        stringRedisTemplate.opsForSet().remove(issuedKey, userId);
+    }
+
+    /**
+     * 발급된 사용자를 Redis Set에 추가합니다 (bootstrap 용).
+     */
+    public void addIssuedUser(Long couponId, String userId) {
+        String issuedKey = COUPON_ISSUED_KEY + couponId;
+        stringRedisTemplate.opsForSet().add(issuedKey, userId);
     }
 
     /**
@@ -101,7 +109,7 @@ public class CouponRedisService {
     public void deleteCouponCache(Long couponId) {
         String stockKey = COUPON_STOCK_KEY + couponId;
         String issuedKey = COUPON_ISSUED_KEY + couponId;
-        redisTemplate.delete(Arrays.asList(stockKey, issuedKey));
+        stringRedisTemplate.delete(Arrays.asList(stockKey, issuedKey));
         log.info("Deleted coupon cache: couponId={}", couponId);
     }
 
@@ -111,7 +119,7 @@ public class CouponRedisService {
     public void setCouponExpiration(Long couponId, long timeout, TimeUnit unit) {
         String stockKey = COUPON_STOCK_KEY + couponId;
         String issuedKey = COUPON_ISSUED_KEY + couponId;
-        redisTemplate.expire(stockKey, timeout, unit);
-        redisTemplate.expire(issuedKey, timeout, unit);
+        stringRedisTemplate.expire(stockKey, timeout, unit);
+        stringRedisTemplate.expire(issuedKey, timeout, unit);
     }
 }
