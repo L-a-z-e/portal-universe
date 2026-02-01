@@ -5,6 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,7 +39,7 @@ public class TokenBlacklistService {
             return;
         }
 
-        String key = BLACKLIST_PREFIX + token;
+        String key = BLACKLIST_PREFIX + hashToken(token);
         redisTemplate.opsForValue().set(
                 key,
                 "blacklisted",
@@ -52,8 +56,23 @@ public class TokenBlacklistService {
      * @return 블랙리스트에 있으면 true, 그렇지 않으면 false
      */
     public boolean isBlacklisted(String token) {
-        String key = BLACKLIST_PREFIX + token;
+        String key = BLACKLIST_PREFIX + hashToken(token);
         Boolean exists = redisTemplate.hasKey(key);
         return Boolean.TRUE.equals(exists);
+    }
+
+    /**
+     * JWT 토큰을 SHA-256으로 해시하여 Redis key 크기를 고정(64 chars)합니다.
+     * JWT 원문(~500-1000 bytes)을 그대로 key로 사용하면 Redis 메모리 낭비.
+     */
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            // SHA-256은 JVM 필수 지원 알고리즘이므로 발생하지 않음
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
     }
 }
