@@ -27,22 +27,6 @@ services:
   prism:
     url: "http://localhost:8085"
 
-# Feign Client 설정
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 5000
-        readTimeout: 5000
-  auth-service:
-    url: "${services.auth.url}"
-  blog-service:
-    url: "${services.blog.url}"
-  shopping-service:
-    url: "${services.shopping.url}"
-  notification-service:
-    url: "${services.notification.url}"
-
 spring:
   kafka:
     bootstrap-servers: localhost:9092
