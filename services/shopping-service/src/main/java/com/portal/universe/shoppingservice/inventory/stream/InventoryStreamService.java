@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.inventory.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -92,6 +93,12 @@ public class InventoryStreamService {
             redisMessageListenerContainer.removeMessageListener(listener, new ChannelTopic(channel));
             log.debug("Removed Redis listener for inventory channel: {}", channel);
         }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        log.info("Shutting down InventoryStreamService: cleaning up {} sinks and listeners", productSinks.size());
+        productSinks.keySet().forEach(this::cleanupProduct);
     }
 
     public void publishInventoryUpdate(InventoryUpdate update) {
