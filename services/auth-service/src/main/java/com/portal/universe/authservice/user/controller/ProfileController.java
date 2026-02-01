@@ -6,7 +6,6 @@ import com.portal.universe.authservice.user.dto.profile.ProfileResponse;
 import com.portal.universe.authservice.user.dto.profile.UpdateProfileRequest;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
-import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.authservice.common.util.TokenUtils;
 import com.portal.universe.authservice.user.service.ProfileService;
 import com.portal.universe.authservice.auth.service.RefreshTokenService;
@@ -36,7 +35,6 @@ import java.util.Map;
 public class ProfileController {
 
     private final ProfileService profileService;
-    private final UserRepository userRepository;
     private final TokenService tokenService;
     private final TokenBlacklistService tokenBlacklistService;
     private final RefreshTokenService refreshTokenService;
@@ -48,10 +46,10 @@ public class ProfileController {
      */
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<ProfileResponse>> getMyProfile() {
-        Long userId = getCurrentUserId();
-        log.info("Profile fetch for user: {}", userId);
+        String uuid = getCurrentUserUuid();
+        log.info("Profile fetch for user: {}", uuid);
 
-        ProfileResponse response = profileService.getProfile(userId);
+        ProfileResponse response = profileService.getProfile(uuid);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -65,15 +63,14 @@ public class ProfileController {
     @PatchMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request) {
-        Long userId = getCurrentUserId();
-        String userUuid = getCurrentUserUuid();
-        log.info("Profile update for user: {}", userId);
+        String uuid = getCurrentUserUuid();
+        log.info("Profile update for user: {}", uuid);
 
-        ProfileResponse response = profileService.updateProfile(userId, request);
+        // updateProfile이 User 엔티티를 반환하므로 추가 DB 조회 불필요
+        User user = profileService.updateProfile(uuid, request);
+        ProfileResponse response = ProfileResponse.from(user);
 
         // 프로필 변경 후 새 Access Token 발급 (JWT에 닉네임 등이 포함되므로)
-        User user = userRepository.findByUuidWithProfile(userUuid)
-                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
         String newAccessToken = tokenService.generateAccessToken(user);
 
         return ResponseEntity.ok(ApiResponse.success(Map.of(
@@ -91,10 +88,10 @@ public class ProfileController {
     @PostMapping("/password")
     public ResponseEntity<ApiResponse<Map<String, String>>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request) {
-        Long userId = getCurrentUserId();
-        log.info("Password change for user: {}", userId);
+        String uuid = getCurrentUserUuid();
+        log.info("Password change for user: {}", uuid);
 
-        profileService.changePassword(userId, request);
+        profileService.changePassword(uuid, request);
         return ResponseEntity.ok(
                 ApiResponse.success(Map.of("message", "비밀번호가 변경되었습니다")));
     }
@@ -111,12 +108,11 @@ public class ProfileController {
     public ResponseEntity<ApiResponse<Map<String, String>>> deleteAccount(
             @RequestHeader("Authorization") String authorization,
             @Valid @RequestBody DeleteAccountRequest request) {
-        Long userId = getCurrentUserId();
-        String userUuid = getCurrentUserUuid();
-        log.info("Account deletion for user: {}", userId);
+        String uuid = getCurrentUserUuid();
+        log.info("Account deletion for user: {}", uuid);
 
         // 1. 회원 탈퇴 처리
-        profileService.deleteAccount(userId, request);
+        profileService.deleteAccount(uuid, request);
 
         // 2. 현재 Access Token 블랙리스트에 추가
         String accessToken = TokenUtils.extractBearerToken(authorization);
@@ -124,24 +120,11 @@ public class ProfileController {
         tokenBlacklistService.addToBlacklist(accessToken, remainingExpiration);
 
         // 3. Refresh Token 삭제
-        refreshTokenService.deleteRefreshToken(userUuid);
+        refreshTokenService.deleteRefreshToken(uuid);
 
-        log.info("Account deletion completed for user: {}", userId);
+        log.info("Account deletion completed for user: {}", uuid);
         return ResponseEntity.ok(
                 ApiResponse.success(Map.of("message", "회원 탈퇴가 완료되었습니다")));
-    }
-
-    /**
-     * SecurityContext에서 현재 인증된 사용자의 ID(Long)를 가져옵니다.
-     * JWT의 subject는 UUID이므로, UUID로 사용자를 조회하여 ID를 반환합니다.
-     *
-     * @return 사용자 ID
-     */
-    private Long getCurrentUserId() {
-        String uuid = getCurrentUserUuid();
-        User user = userRepository.findByUuid(uuid)
-                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.USER_NOT_FOUND));
-        return user.getId();
     }
 
     /**
