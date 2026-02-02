@@ -62,6 +62,9 @@ jwt:
       secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
       activated-at: 2026-01-01T00:00:00
       # expires-at은 null이면 만료되지 않음
+    key-2026-01:
+      secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
+      activated-at: 2026-01-01T00:00:00
   access-token-expiration: 900000  # 15분 (ms)
   refresh-token-expiration: 604800000  # 7일 (ms)
 

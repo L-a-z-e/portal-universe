@@ -42,7 +42,7 @@ public class Product {
     /**
      * 상품 가격
      */
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal price;
 
     /**
