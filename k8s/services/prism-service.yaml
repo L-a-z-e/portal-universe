@@ -54,6 +54,8 @@ spec:
               value: "6379"
             - name: KAFKA_BROKERS
               value: "kafka:29092"
+            - name: ENCRYPTION_KEY
+              value: "k8s-prism-encryption-key-32bytes!"
           resources:
             requests:
               cpu: "100m"

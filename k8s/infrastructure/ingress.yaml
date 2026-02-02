@@ -8,7 +8,7 @@ metadata:
   namespace: portal-universe
   annotations:
     # NGINX Ingress Controller를 사용하기 위한 설정들입니다.
-    nginx.ingress.kubernetes.io/ssl-redirect: "true" # HTTPS로 리다이렉트 (mkcert 인증서 사용)
+    nginx.ingress.kubernetes.io/ssl-redirect: "false" # HTTPS 리다이렉트 비활성화 (테스트용)
 spec:
   # 이 Ingress 리소스가 사용할 IngressClass의 이름입니다.
   # ingress-controller.yaml에 정의된 'nginx' IngressClass를 사용합니다.

@@ -46,6 +46,9 @@ spec:
         values:
           - api-gateway
           - portal-shell
+          - blog-frontend
+          - shopping-frontend
+          - prism-frontend
           - grafana
           - prometheus
           - zipkin
