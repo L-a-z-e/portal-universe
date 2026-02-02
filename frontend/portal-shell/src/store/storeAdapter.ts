@@ -44,13 +44,22 @@ export type UnsubscribeFn = () => void
 // Theme Store Adapter
 // ============================================
 
+// 스냅샷 캐시: useSyncExternalStore는 Object.is로 비교하므로
+// 값이 동일하면 같은 참조를 반환해야 무한 렌더링을 방지함
+let _themeSnapshot: ThemeState | null = null
+
 export const themeAdapter = {
   /**
-   * 현재 테마 상태 반환
+   * 현재 테마 상태 반환 (참조 안정성 보장)
    */
   getState: (): ThemeState => {
     const store = useThemeStore()
-    return { isDark: store.isDark }
+    const isDark = store.isDark
+    if (_themeSnapshot && _themeSnapshot.isDark === isDark) {
+      return _themeSnapshot
+    }
+    _themeSnapshot = { isDark }
+    return _themeSnapshot
   },
 
   /**
@@ -61,10 +70,15 @@ export const themeAdapter = {
   subscribe: (callback: (state: ThemeState) => void): UnsubscribeFn => {
     const store = useThemeStore()
 
+    // NOTE: immediate: false 필수 — useSyncExternalStore는
+    // subscribe 중 동기 콜백 호출을 허용하지 않음 (React Error #185)
+    // React는 getState()로 초기값을 읽음
     const unwatch = watch(
       () => store.isDark,
-      (isDark) => callback({ isDark }),
-      { immediate: true }
+      (isDark) => {
+        _themeSnapshot = { isDark }
+        callback(_themeSnapshot)
+      },
     )
 
     return unwatch
@@ -91,29 +105,50 @@ export const themeAdapter = {
 // Auth Store Adapter
 // ============================================
 
+// 스냅샷 캐시: 참조 안정성 보장
+let _authSnapshot: AuthState | null = null
+let _authUserRef: unknown = undefined // Pinia store.user 참조 추적
+
+function buildAuthState(store: ReturnType<typeof useAuthStore>): AuthState {
+  return {
+    isAuthenticated: store.isAuthenticated,
+    displayName: store.displayName,
+    isAdmin: store.isAdmin,
+    isSeller: store.isSeller,
+    roles: store.user?.authority.roles || [],
+    memberships: store.user?.authority.memberships || {},
+    user: store.user ? {
+      uuid: store.user.profile.sub,
+      email: store.user.profile.email,
+      username: store.user.profile.username,
+      name: store.user.profile.name,
+      nickname: store.user.profile.nickname,
+      picture: store.user.profile.picture
+    } : null
+  }
+}
+
 export const authAdapter = {
   /**
-   * 현재 인증 상태 반환
+   * 현재 인증 상태 반환 (참조 안정성 보장)
    */
   getState: (): AuthState => {
     const store = useAuthStore()
 
-    return {
-      isAuthenticated: store.isAuthenticated,
-      displayName: store.displayName,
-      isAdmin: store.isAdmin,
-      isSeller: store.isSeller,
-      roles: store.user?.authority.roles || [],
-      memberships: store.user?.authority.memberships || {},
-      user: store.user ? {
-        uuid: store.user.profile.sub,
-        email: store.user.profile.email,
-        username: store.user.profile.username,
-        name: store.user.profile.name,
-        nickname: store.user.profile.nickname,
-        picture: store.user.profile.picture
-      } : null
+    // 주요 primitive 필드로 변경 감지 (Object.is 비교 대응)
+    if (_authSnapshot &&
+      _authSnapshot.isAuthenticated === store.isAuthenticated &&
+      _authSnapshot.displayName === store.displayName &&
+      _authSnapshot.isAdmin === store.isAdmin &&
+      _authSnapshot.isSeller === store.isSeller &&
+      _authUserRef === store.user
+    ) {
+      return _authSnapshot
     }
+
+    _authUserRef = store.user
+    _authSnapshot = buildAuthState(store)
+    return _authSnapshot
   },
 
   /**
@@ -124,10 +159,17 @@ export const authAdapter = {
   subscribe: (callback: (state: AuthState) => void): UnsubscribeFn => {
     const store = useAuthStore()
 
+    // NOTE: immediate: false 필수 — useSyncExternalStore는
+    // subscribe 중 동기 콜백 호출을 허용하지 않음 (React Error #185)
+    // React는 getState()로 초기값을 읽음
     const unwatch = watch(
       () => store.user,
-      () => callback(authAdapter.getState()),
-      { immediate: true, deep: true }
+      () => {
+        _authUserRef = store.user
+        _authSnapshot = buildAuthState(store)
+        callback(_authSnapshot)
+      },
+      { deep: true }
     )
 
     return unwatch
