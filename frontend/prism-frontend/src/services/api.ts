@@ -179,7 +179,8 @@ class ApiService {
 
   // Board APIs
   async getBoards(): Promise<Board[]> {
-    return this.request<Board[]>('get', '/api/v1/prism/boards');
+    const result = await this.request<{ items: Board[] }>('get', '/api/v1/prism/boards');
+    return result.items ?? result as unknown as Board[];
   }
 
   async getBoard(id: number): Promise<Board> {

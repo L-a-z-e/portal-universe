@@ -188,7 +188,7 @@ const CheckoutPage: React.FC = () => {
           label="Receiver Name *"
           type="text"
           value={address.receiverName}
-          onChange={(e) => handleAddressChange('receiverName', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressChange('receiverName', e.target.value)}
           placeholder="Enter receiver name"
         />
 
@@ -196,7 +196,7 @@ const CheckoutPage: React.FC = () => {
           label="Phone Number *"
           type="tel"
           value={address.receiverPhone}
-          onChange={(e) => handleAddressChange('receiverPhone', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressChange('receiverPhone', e.target.value)}
           placeholder="010-0000-0000"
         />
 
@@ -204,7 +204,7 @@ const CheckoutPage: React.FC = () => {
           label="Zip Code *"
           type="text"
           value={address.zipCode}
-          onChange={(e) => handleAddressChange('zipCode', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressChange('zipCode', e.target.value)}
           placeholder="12345"
         />
 
@@ -213,7 +213,7 @@ const CheckoutPage: React.FC = () => {
             label="Address *"
             type="text"
             value={address.address1}
-            onChange={(e) => handleAddressChange('address1', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressChange('address1', e.target.value)}
             placeholder="Street address"
           />
         </div>
@@ -223,7 +223,7 @@ const CheckoutPage: React.FC = () => {
             label="Detail Address"
             type="text"
             value={address.address2}
-            onChange={(e) => handleAddressChange('address2', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressChange('address2', e.target.value)}
             placeholder="Apartment, suite, etc. (optional)"
           />
         </div>

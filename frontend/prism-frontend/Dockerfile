@@ -20,7 +20,11 @@ COPY design-types/ ./design-types/
 COPY design-system-react/package.json ./design-system-react/
 COPY design-system-react/ ./design-system-react/
 
-# 5. prism-frontend 복사
+# 5. react-bridge 복사
+COPY react-bridge/package.json ./react-bridge/
+COPY react-bridge/ ./react-bridge/
+
+# 6. prism-frontend 복사
 COPY prism-frontend/package.json ./prism-frontend/
 COPY prism-frontend/ ./prism-frontend/
 

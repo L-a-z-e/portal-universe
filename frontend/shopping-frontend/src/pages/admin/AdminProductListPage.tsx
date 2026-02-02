@@ -163,7 +163,7 @@ export const AdminProductListPage: React.FC = () => {
               <Pagination
                 page={filters.page + 1}
                 totalPages={data.data.totalPages}
-                onChange={(p) => handlePageChange(p - 1)}
+                onChange={(p: number) => handlePageChange(p - 1)}
               />
             )}
           </>

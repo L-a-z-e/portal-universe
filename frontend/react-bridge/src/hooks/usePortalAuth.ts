@@ -81,7 +81,7 @@ export function usePortalAuth(): AuthState & {
       isServiceAdmin: adapter.isServiceAdmin,
       logout: adapter.logout,
       getAccessToken: adapter.getAccessToken ?? (() => window.__PORTAL_ACCESS_TOKEN__ ?? null),
-      requestLogin: adapter.requestLogin ?? ((path?: string) => {
+      requestLogin: adapter.requestLogin ?? ((_path?: string) => {
         window.__PORTAL_SHOW_LOGIN__?.()
       }),
     }
