@@ -7,6 +7,7 @@ import { useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
 import QuickActions from "./components/QuickActions.vue";
 import LoginModal from "./components/LoginModal.vue";
+import ChatWidget from "./components/chat/ChatWidget.vue";
 import { ToastContainer } from "@portal/design-system-vue";
 
 const themeStore = useThemeStore();
@@ -115,6 +116,9 @@ watch(() => themeStore.isDark, (newVal) => {
 
     <!-- Global Toast -->
     <ToastContainer />
+
+    <!-- Chat Widget -->
+    <ChatWidget />
 
     <!-- Main Content Area -->
     <div
