@@ -26,6 +26,8 @@ services:
     url: "http://notification-service:8084"
   prism:
     url: "http://prism-service:8085"
+  chatbot:
+    url: "http://chatbot-service:8086"
 
 spring:
   kafka:

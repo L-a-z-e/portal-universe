@@ -347,6 +347,42 @@ services:
       - portal-universe-net
 
   # ========================================
+  # Chatbot Service (Python/FastAPI)
+  # ========================================
+  chatbot-service:
+    build:
+      context: ./services/chatbot-service
+      dockerfile: Dockerfile
+    container_name: chatbot-service
+    ports:
+      - "8086:8086"
+    environment:
+      - AI_PROVIDER=${AI_PROVIDER:-ollama}
+      - AI_MODEL=${AI_MODEL:-llama3}
+      - AI_API_KEY=${AI_API_KEY:-}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-ollama}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-nomic-embed-text}
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - REDIS_URL=redis://redis:6379/1
+      - CHROMA_PERSIST_DIR=/app/data/chroma
+      - DOCUMENTS_DIR=/app/documents
+      - SERVICE_PORT=8086
+      - LOG_LEVEL=INFO
+    volumes:
+      - chatbot-data:/app/data
+      - chatbot-docs:/app/documents
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8086/api/v1/chat/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
   # Monitoring Stack
   # ========================================
   prometheus:
@@ -480,6 +516,8 @@ volumes:
   grafana-data:
   loki-data:
   localstack-data:
+  chatbot-data:
+  chatbot-docs:
 
 networks:
   portal-universe-net:

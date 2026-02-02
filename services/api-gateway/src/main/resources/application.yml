@@ -339,6 +339,63 @@ spring:
                     key-resolver: "#{@userKeyResolver}"
               order: 50
 
+            # ========== Chatbot Service (RAG Q&A) ==========
+            # Chatbot Health - public
+            - id: chatbot-service-health
+              uri: ${services.chatbot.url:http://localhost:8086}
+              predicates:
+                - Path=/api/v1/chat/health
+              order: 0
+
+            # Chatbot SSE Stream - authenticated, long-lived
+            - id: chatbot-service-stream
+              uri: ${services.chatbot.url:http://localhost:8086}
+              predicates:
+                - Path=/api/v1/chat/stream
+                - Method=POST
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: chatbotCircuitBreaker
+                    fallbackUri: forward:/fallback/chatbot
+              order: 1
+
+            # Chatbot Document API - authenticated (admin)
+            - id: chatbot-service-documents
+              uri: ${services.chatbot.url:http://localhost:8086}
+              predicates:
+                - Path=/api/v1/chat/documents/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: chatbotCircuitBreaker
+                    fallbackUri: forward:/fallback/chatbot
+              order: 2
+
+            # Chatbot API - authenticated
+            - id: chatbot-service-route
+              uri: ${services.chatbot.url:http://localhost:8086}
+              predicates:
+                - Path=/api/v1/chat/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: chatbotCircuitBreaker
+                    fallbackUri: forward:/fallback/chatbot
+              order: 3
+
             # ========== Prism Service (AI Orchestration) ==========
             # Prism Service Health/Ready - public
             - id: prism-service-health
@@ -395,6 +452,8 @@ resilience4j:
         base-config: default
       prismCircuitBreaker:
         base-config: default
+      chatbotCircuitBreaker:
+        base-config: default
 
   timelimiter:
     configs:
@@ -410,6 +469,9 @@ resilience4j:
       prismCircuitBreaker:
         base-config: default
         timeout-duration: 60s  # AI 응답 대기를 위해 타임아웃 늘림
+      chatbotCircuitBreaker:
+        base-config: default
+        timeout-duration: 120s  # RAG + AI 응답 대기
 
 # 공개 경로 설정 (PublicPathProperties)
 # Java 기본값과 동일하며, 필요 시 여기서 override 가능
@@ -431,6 +493,7 @@ gateway:
       - "/api/v1/prism/sse/**"
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
+      - "/api/v1/chat/health"
       - "/api/health/**"
       - "/actuator/**"
       - "/api/v1/*/actuator/**"
@@ -451,6 +514,7 @@ gateway:
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
       - "/api/v1/prism/sse/"
+      - "/api/v1/chat/health"
 
 # JWT 설정 (Auth Service와 동일한 설정 사용, 다중 키 지원)
 jwt:
@@ -530,5 +594,10 @@ health-check:
       url: ${services.prism.url:http://localhost:8085}
       health-path: /api/v1/health
       k8s-deployment-name: prism-service
+    - name: chatbot-service
+      display-name: Chatbot Service
+      url: ${services.chatbot.url:http://localhost:8086}
+      health-path: /api/v1/chat/health
+      k8s-deployment-name: chatbot-service
 
 # 로깅 설정은 logback-spring.xml에서 관리

@@ -1,0 +1,178 @@
+# ===================================================================
+# Chatbot Service: Deployment
+# Python/FastAPI RAG 기반 Q&A Chatbot
+# ===================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatbot-service
+  namespace: portal-universe
+  labels:
+    app: chatbot-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatbot-service
+  template:
+    metadata:
+      labels:
+        app: chatbot-service
+    spec:
+      containers:
+        - name: chatbot-service
+          image: portal-universe-chatbot-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8086
+              name: http
+          envFrom:
+            - configMapRef:
+                name: chatbot-config
+          env:
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: chatbot-secret
+                  key: AI_API_KEY
+                  optional: true
+            - name: REDIS_URL
+              value: "redis://redis:6379/1"
+            - name: CHROMA_PERSIST_DIR
+              value: "/app/data/chroma"
+            - name: DOCUMENTS_DIR
+              value: "/app/documents"
+            - name: SERVICE_PORT
+              value: "8086"
+          volumeMounts:
+            - name: chatbot-data
+              mountPath: /app/data
+            - name: chatbot-docs
+              mountPath: /app/documents
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          startupProbe:
+            httpGet:
+              path: /api/v1/chat/health
+              port: 8086
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /api/v1/chat/health
+              port: 8086
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/chat/health
+              port: 8086
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: chatbot-data
+          persistentVolumeClaim:
+            claimName: chatbot-data-pvc
+        - name: chatbot-docs
+          persistentVolumeClaim:
+            claimName: chatbot-docs-pvc
+
+# ===================================================================
+# Chatbot Service: Service
+# 클러스터 내 chatbot-service:8086 접근 제공
+# ===================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatbot-service
+  namespace: portal-universe
+  labels:
+    app: chatbot-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8086
+      targetPort: 8086
+      protocol: TCP
+      name: http
+  selector:
+    app: chatbot-service
+
+# ===================================================================
+# Chatbot Service: ConfigMap
+# AI Provider 및 RAG 설정 (비밀 아닌 값)
+# ===================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chatbot-config
+  namespace: portal-universe
+data:
+  AI_PROVIDER: "ollama"
+  AI_MODEL: "llama3"
+  EMBEDDING_PROVIDER: "ollama"
+  EMBEDDING_MODEL: "nomic-embed-text"
+  OLLAMA_BASE_URL: "http://host.docker.internal:11434"
+  RAG_CHUNK_SIZE: "1000"
+  RAG_CHUNK_OVERLAP: "200"
+  RAG_TOP_K: "5"
+  RAG_SCORE_THRESHOLD: "0.7"
+  LOG_LEVEL: "INFO"
+
+# ===================================================================
+# Chatbot Service: Secret
+# AI Provider API Keys (base64 인코딩 필요)
+# ===================================================================
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: chatbot-secret
+  namespace: portal-universe
+type: Opaque
+data:
+  # echo -n "" | base64
+  AI_API_KEY: ""
+
+# ===================================================================
+# Chatbot Service: PVC - ChromaDB Data
+# ===================================================================
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chatbot-data-pvc
+  namespace: portal-universe
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+# ===================================================================
+# Chatbot Service: PVC - Documents
+# ===================================================================
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chatbot-docs-pvc
+  namespace: portal-universe
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
