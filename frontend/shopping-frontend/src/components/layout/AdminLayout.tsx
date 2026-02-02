@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { useAuthStore } from '@/stores/authStore'
+import { usePortalAuth } from '@portal/react-bridge'
 
 interface NavItem {
   label: string
@@ -80,7 +80,7 @@ const navItems: NavItem[] = [
 
 export const AdminLayout: React.FC = () => {
   const location = useLocation()
-  const { user, logout } = useAuthStore()
+  const { user, logout } = usePortalAuth()
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const handleLogout = () => {

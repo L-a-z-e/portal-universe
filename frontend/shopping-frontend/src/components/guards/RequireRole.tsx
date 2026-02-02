@@ -11,7 +11,7 @@
  */
 import React from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAuthStore } from '@/stores/authStore'
+import { usePortalAuth } from '@portal/react-bridge'
 
 interface RequireRoleProps {
   children: React.ReactNode
@@ -33,13 +33,13 @@ export const RequireRole: React.FC<RequireRoleProps> = ({
   roles,
   redirectTo = '/403'
 }) => {
-  const { user } = useAuthStore()
+  const { roles: userRolesRaw } = usePortalAuth()
 
   // 필요한 역할 정규화
   const normalizedRequiredRoles = roles.map(normalizeRole)
 
   // 사용자 역할 정규화
-  const userRoles = (user?.roles || []).map(normalizeRole)
+  const userRoles = (userRolesRaw || []).map(normalizeRole)
 
   // 사용자가 필요한 역할 중 하나 이상을 보유하는지 확인
   const hasRequiredRole = normalizedRequiredRoles.some(required =>
@@ -48,7 +48,7 @@ export const RequireRole: React.FC<RequireRoleProps> = ({
 
   if (!hasRequiredRole) {
     console.warn('[RequireRole] User does not have required role:', {
-      userRoles: user?.roles,
+      userRoles: userRolesRaw,
       requiredRoles: roles,
       normalizedRequired: normalizedRequiredRoles
     })

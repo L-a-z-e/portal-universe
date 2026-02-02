@@ -56,6 +56,10 @@ export default defineConfig(({ mode }) => {
           __dirname,
           '../design-system-react/src/index.ts'
         ),
+        '@portal/react-bridge': resolve(
+          __dirname,
+          '../react-bridge/src/index.ts'
+        ),
         '@': path.resolve(__dirname, './src'),
         '@components': path.resolve(__dirname, './src/components'),
         '@pages': path.resolve(__dirname, './src/pages'),

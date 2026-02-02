@@ -53,7 +53,7 @@ const AdminQueuePage = lazy(() => import('@/pages/admin/AdminQueuePage'))
 const ForbiddenPage = lazy(() => import('@/pages/error/ForbiddenPage'))
 
 // Guards
-const RequireAuth = lazy(() => import('@/components/guards/RequireAuth'))
+import { RequireAuth } from '@portal/react-bridge'
 const RequireRole = lazy(() => import('@/components/guards/RequireRole'))
 
 // Loading fallback component

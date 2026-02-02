@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import { ShoppingRouter } from '@/router'
-import { useAuthStore } from '@/stores/authStore'
-import { usePortalTheme } from '@/hooks/usePortalStore'
+import { usePortalTheme } from '@portal/react-bridge'
 import { ToastContainer, useToast } from '@portal/design-system-react'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import './styles/index.css'
@@ -121,20 +120,7 @@ function App({
     // ✅ Step 1: data-service="shopping" 속성 설정 (CSS 선택자 활성화)
     document.documentElement.setAttribute('data-service', 'shopping')
 
-    if (isEmbedded) {
-      // ============================================
-      // Embedded 모드: Portal Shell의 authStore 동기화
-      // themeStore는 usePortalTheme hook이 자동으로 구독
-      // ============================================
-      console.log('[Shopping] Embedded mode - syncing authStore...')
-
-      const authStore = useAuthStore.getState()
-      authStore.syncFromPortal().then(() => {
-        console.log('[Shopping] Portal Shell authStore synced')
-      }).catch((err) => {
-        console.warn('[Shopping] Failed to sync authStore:', err)
-      })
-    }
+    // Auth 동기화는 PortalBridgeProvider + usePortalAuth가 처리
   }, [theme, locale, userRole, isEmbedded, portalTheme.isConnected])
 
   // ============================================
