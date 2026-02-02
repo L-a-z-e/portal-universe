@@ -10,6 +10,7 @@
     "design-system-react",
     "portal-shell",
     "blog-frontend",
+    "react-bridge",
     "shopping-frontend",
     "prism-frontend"
   ],
