@@ -35,6 +35,8 @@ public class KafkaConfig {
     public static final String TOPIC_PAYMENT_FAILED = "shopping.payment.failed";
     public static final String TOPIC_INVENTORY_RESERVED = "shopping.inventory.reserved";
     public static final String TOPIC_DELIVERY_SHIPPED = "shopping.delivery.shipped";
+    public static final String TOPIC_COUPON_ISSUED = "shopping.coupon.issued";
+    public static final String TOPIC_TIMEDEAL_STARTED = "shopping.timedeal.started";
 
     // ========================================
     // Producer Configuration
@@ -121,6 +123,22 @@ public class KafkaConfig {
     @Bean
     public NewTopic deliveryShippedTopic() {
         return TopicBuilder.name(TOPIC_DELIVERY_SHIPPED)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic couponIssuedTopic() {
+        return TopicBuilder.name(TOPIC_COUPON_ISSUED)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic timeDealStartedTopic() {
+        return TopicBuilder.name(TOPIC_TIMEDEAL_STARTED)
                 .partitions(3)
                 .replicas(1)
                 .build();

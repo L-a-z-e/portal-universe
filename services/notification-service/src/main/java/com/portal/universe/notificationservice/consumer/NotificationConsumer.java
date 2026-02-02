@@ -1,8 +1,12 @@
 package com.portal.universe.notificationservice.consumer;
 
 import com.portal.universe.common.event.UserSignedUpEvent;
+import com.portal.universe.common.event.shopping.CouponIssuedEvent;
+import com.portal.universe.common.event.shopping.TimeDealStartedEvent;
+import com.portal.universe.notificationservice.common.constants.NotificationConstants;
 import com.portal.universe.notificationservice.domain.Notification;
 import com.portal.universe.notificationservice.domain.NotificationType;
+import com.portal.universe.notificationservice.dto.CreateNotificationCommand;
 import com.portal.universe.notificationservice.dto.NotificationEvent;
 import com.portal.universe.notificationservice.service.NotificationPushService;
 import com.portal.universe.notificationservice.service.NotificationService;
@@ -19,69 +23,66 @@ public class NotificationConsumer {
     private final NotificationService notificationService;
     private final NotificationPushService pushService;
 
-    @KafkaListener(topics = "user-signup", groupId = "notification-group")
+    @KafkaListener(topics = NotificationConstants.TOPIC_USER_SIGNUP,
+                   groupId = "${spring.kafka.consumer.group-id}")
     public void handleUserSignup(UserSignedUpEvent event) {
-        log.info("Received user signup event: {}", event);
-        log.info("Sending welcome email to: {} ({})", event.name(), event.email());
+        log.info("Received user signup event: userId={}", event.userId());
+        NotificationEvent notifEvent = NotificationEvent.builder()
+                .userId(Long.parseLong(event.userId()))
+                .type(NotificationType.SYSTEM)
+                .title("환영합니다!")
+                .message(event.name() + "님, Portal Universe에 가입해주셔서 감사합니다.")
+                .build();
+        handleNotificationEvent(notifEvent);
     }
 
-    @KafkaListener(topics = "shopping.order.created", groupId = "notification-group")
-    public void handleOrderCreated(NotificationEvent event) {
-        log.info("Received order created event: userId={}", event.getUserId());
-        createAndPush(event);
+    @KafkaListener(topics = {
+        NotificationConstants.TOPIC_ORDER_CREATED,
+        NotificationConstants.TOPIC_ORDER_CONFIRMED,
+        NotificationConstants.TOPIC_ORDER_CANCELLED,
+        NotificationConstants.TOPIC_DELIVERY_SHIPPED,
+        NotificationConstants.TOPIC_PAYMENT_COMPLETED,
+        NotificationConstants.TOPIC_PAYMENT_FAILED
+    }, groupId = "${spring.kafka.consumer.group-id}")
+    public void handleShoppingEvent(NotificationEvent event) {
+        log.info("Received shopping event: userId={}, type={}", event.getUserId(), event.getType());
+        handleNotificationEvent(event);
     }
 
-    @KafkaListener(topics = "shopping.delivery.shipped", groupId = "notification-group")
-    public void handleDeliveryShipped(NotificationEvent event) {
-        log.info("Received delivery shipped event: userId={}", event.getUserId());
-        createAndPush(event);
+    @KafkaListener(topics = NotificationConstants.TOPIC_COUPON_ISSUED,
+                   groupId = "${spring.kafka.consumer.group-id}")
+    public void handleCouponIssued(CouponIssuedEvent event) {
+        log.info("Received coupon issued event: couponCode={}", event.couponCode());
+        NotificationEvent notifEvent = NotificationEvent.builder()
+                .userId(event.userId())
+                .type(NotificationType.COUPON_ISSUED)
+                .title(NotificationType.COUPON_ISSUED.getDefaultMessage())
+                .message(event.couponName() + " 쿠폰이 발급되었습니다.")
+                .link("/shopping/coupons")
+                .referenceId(event.couponCode())
+                .referenceType("coupon")
+                .build();
+        handleNotificationEvent(notifEvent);
     }
 
-    @KafkaListener(topics = "shopping.payment.completed", groupId = "notification-group")
-    public void handlePaymentCompleted(NotificationEvent event) {
-        log.info("Received payment completed event: userId={}", event.getUserId());
-        createAndPush(event);
+    @KafkaListener(topics = NotificationConstants.TOPIC_TIMEDEAL_STARTED,
+                   groupId = "${spring.kafka.consumer.group-id}")
+    public void handleTimeDealStarted(TimeDealStartedEvent event) {
+        log.info("Received timedeal started event: id={}", event.timeDealId());
+        // TimeDeal은 broadcast (특정 userId 없음) → 현재 구조에서는 skip
+        // 향후 구독/관심 기능 추가 시 구현
+        log.info("TimeDeal broadcast notification not yet implemented (no subscriber model)");
     }
 
-    @KafkaListener(topics = "shopping.coupon.issued", groupId = "notification-group")
-    public void handleCouponIssued(NotificationEvent event) {
-        log.info("Received coupon issued event: userId={}", event.getUserId());
-        createAndPush(event);
-    }
-
-    @KafkaListener(topics = "shopping.timedeal.started", groupId = "notification-group")
-    public void handleTimeDealStarted(NotificationEvent event) {
-        log.info("Received timedeal started event: userId={}", event.getUserId());
-        createAndPush(event);
-    }
-
-    /**
-     * 알림을 생성하고 푸시합니다.
-     *
-     * 중요: try-catch로 예외를 삼키지 않습니다.
-     * 예외가 발생하면 KafkaConsumerConfig의 ErrorHandler가:
-     * 1. 설정된 횟수만큼 재시도
-     * 2. 재시도 실패 시 DLQ(Dead Letter Queue)로 이동
-     *
-     * @param event 알림 이벤트
-     * @throws RuntimeException 처리 실패 시 (ErrorHandler가 처리)
-     */
-    private void createAndPush(NotificationEvent event) {
-        log.debug("Creating notification for user: {}", event.getUserId());
+    private void handleNotificationEvent(NotificationEvent event) {
+        event.validate();
 
         Notification notification = notificationService.create(
-                event.getUserId(),
-                event.getType(),
-                event.getTitle(),
-                event.getMessage(),
-                event.getLink(),
-                event.getReferenceId(),
-                event.getReferenceType()
-        );
+                CreateNotificationCommand.from(event));
 
         pushService.push(notification);
 
-        log.info("Notification created and pushed: userId={}, type={}, notificationId={}",
+        log.info("Notification created and pushed: userId={}, type={}, id={}",
                 event.getUserId(), event.getType(), notification.getId());
     }
 }

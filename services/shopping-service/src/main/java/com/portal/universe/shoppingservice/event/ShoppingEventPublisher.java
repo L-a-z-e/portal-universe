@@ -70,6 +70,20 @@ public class ShoppingEventPublisher {
     }
 
     /**
+     * 쿠폰 발급 이벤트를 발행합니다.
+     */
+    public void publishCouponIssued(CouponIssuedEvent event) {
+        publishEvent(KafkaConfig.TOPIC_COUPON_ISSUED, event.couponCode(), event);
+    }
+
+    /**
+     * 타임딜 시작 이벤트를 발행합니다.
+     */
+    public void publishTimeDealStarted(TimeDealStartedEvent event) {
+        publishEvent(KafkaConfig.TOPIC_TIMEDEAL_STARTED, String.valueOf(event.timeDealId()), event);
+    }
+
+    /**
      * 이벤트를 Kafka로 발행합니다.
      *
      * @param topic 토픽명

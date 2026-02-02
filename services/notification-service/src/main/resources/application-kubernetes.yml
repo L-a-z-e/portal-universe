@@ -5,34 +5,9 @@
 server:
   forward-headers-strategy: framework
 
-# 서비스 URL 정의 (K8s DNS - 각 서비스 포트 명시)
-services:
-  gateway:
-    url: "http://api-gateway:8080"
-  auth:
-    url: "http://auth-service:8081"
-  blog:
-    url: "http://blog-service:8082"
-  shopping:
-    url: "http://shopping-service:8083"
-  notification:
-    url: "http://notification-service:8084"
-
-# Feign Client 설정
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 5000
-        readTimeout: 5000
-  auth-service:
-    url: "${services.auth.url}"
-  blog-service:
-    url: "${services.blog.url}"
-  shopping-service:
-    url: "${services.shopping.url}"
-  notification-service:
-    url: "${services.notification.url}"
+app:
+  websocket:
+    allowed-origins: "https://portal-universe.com,https://www.portal-universe.com"
 
 spring:
   kafka:
@@ -42,7 +17,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"
+        spring.json.trusted.packages: "com.portal.universe.*"
 
 # Kubernetes 환경 모니터링 설정
 management:

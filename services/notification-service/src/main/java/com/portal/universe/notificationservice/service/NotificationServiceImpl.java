@@ -2,7 +2,7 @@ package com.portal.universe.notificationservice.service;
 
 import com.portal.universe.notificationservice.domain.Notification;
 import com.portal.universe.notificationservice.domain.NotificationStatus;
-import com.portal.universe.notificationservice.domain.NotificationType;
+import com.portal.universe.notificationservice.dto.CreateNotificationCommand;
 import com.portal.universe.notificationservice.dto.NotificationResponse;
 import com.portal.universe.notificationservice.common.exception.NotificationErrorCode;
 import com.portal.universe.notificationservice.repository.NotificationRepository;
@@ -26,20 +26,33 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public Notification create(Long userId, NotificationType type, String title, String message,
-                               String link, String referenceId, String referenceType) {
+    public Notification create(CreateNotificationCommand cmd) {
+        if (cmd.referenceId() != null && cmd.referenceType() != null) {
+            boolean exists = notificationRepository
+                    .existsByReferenceIdAndReferenceTypeAndUserId(
+                        cmd.referenceId(), cmd.referenceType(), cmd.userId());
+            if (exists) {
+                log.info("Duplicate notification skipped: ref={}/{}, userId={}",
+                        cmd.referenceType(), cmd.referenceId(), cmd.userId());
+                return notificationRepository
+                        .findByReferenceIdAndReferenceTypeAndUserId(
+                            cmd.referenceId(), cmd.referenceType(), cmd.userId())
+                        .orElseThrow();
+            }
+        }
+
         Notification notification = Notification.builder()
-                .userId(userId)
-                .type(type)
-                .title(title)
-                .message(message)
-                .link(link)
-                .referenceId(referenceId)
-                .referenceType(referenceType)
+                .userId(cmd.userId())
+                .type(cmd.type())
+                .title(cmd.title())
+                .message(cmd.message())
+                .link(cmd.link())
+                .referenceId(cmd.referenceId())
+                .referenceType(cmd.referenceType())
                 .build();
 
         Notification saved = notificationRepository.save(notification);
-        log.info("Notification created: userId={}, type={}, id={}", userId, type, saved.getId());
+        log.info("Notification created: userId={}, type={}, id={}", cmd.userId(), cmd.type(), saved.getId());
         return saved;
     }
 

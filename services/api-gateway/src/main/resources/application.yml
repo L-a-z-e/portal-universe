@@ -327,6 +327,18 @@ spring:
                     name: shoppingCircuitBreaker
                     fallbackUri: forward:/fallback/shopping
 
+            # ========== Notification Service ==========
+            - id: notification-service-route
+              uri: ${services.notification.url:http://localhost:8084}
+              predicates:
+                - Path=/api/v1/notifications/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+              order: 50
+
             # ========== Prism Service (AI Orchestration) ==========
             # Prism Service Health/Ready - public
             - id: prism-service-health

@@ -1,15 +1,14 @@
 package com.portal.universe.notificationservice.service;
 
 import com.portal.universe.notificationservice.domain.Notification;
-import com.portal.universe.notificationservice.domain.NotificationType;
+import com.portal.universe.notificationservice.dto.CreateNotificationCommand;
 import com.portal.universe.notificationservice.dto.NotificationResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface NotificationService {
 
-    Notification create(Long userId, NotificationType type, String title, String message,
-                        String link, String referenceId, String referenceType);
+    Notification create(CreateNotificationCommand command);
 
     Page<NotificationResponse> getNotifications(Long userId, Pageable pageable);
 

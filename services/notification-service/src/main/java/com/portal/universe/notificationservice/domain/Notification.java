@@ -8,11 +8,12 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "notifications", indexes = {
     @Index(name = "idx_notification_user_status", columnList = "user_id, status"),
-    @Index(name = "idx_notification_user_created", columnList = "user_id, created_at DESC")
+    @Index(name = "idx_notification_user_created", columnList = "user_id, created_at DESC"),
+    @Index(name = "idx_notification_ref", columnList = "reference_id, reference_type, user_id")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class Notification {
 
@@ -38,8 +39,7 @@ public class Notification {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    @Builder.Default
-    private NotificationStatus status = NotificationStatus.UNREAD;
+    private NotificationStatus status;
 
     @Column(name = "reference_id", length = 100)
     private String referenceId;
@@ -48,11 +48,20 @@ public class Notification {
     private String referenceType;
 
     @Column(name = "created_at")
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @Column(name = "read_at")
     private LocalDateTime readAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.status == null) {
+            this.status = NotificationStatus.UNREAD;
+        }
+    }
 
     public void markAsRead() {
         if (this.status == NotificationStatus.UNREAD) {

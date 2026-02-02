@@ -50,13 +50,11 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.consumer.group-id:notification-group}")
     private String groupId;
 
-    /**
-     * 재시도 설정
-     * - RETRY_INTERVAL_MS: 재시도 간격 (밀리초)
-     * - MAX_RETRY_ATTEMPTS: 최대 재시도 횟수
-     */
-    private static final long RETRY_INTERVAL_MS = 1000L;
-    private static final long MAX_RETRY_ATTEMPTS = 3L;
+    @Value("${app.kafka.retry.interval-ms:1000}")
+    private long retryIntervalMs;
+
+    @Value("${app.kafka.retry.max-attempts:3}")
+    private long maxRetryAttempts;
 
     /**
      * Consumer Factory를 생성합니다.
@@ -156,7 +154,7 @@ public class KafkaConsumerConfig {
         // FixedBackOff: 고정 간격 재시도
         // - interval: 재시도 간격 (ms)
         // - maxAttempts: 최대 재시도 횟수
-        FixedBackOff backOff = new FixedBackOff(RETRY_INTERVAL_MS, MAX_RETRY_ATTEMPTS);
+        FixedBackOff backOff = new FixedBackOff(retryIntervalMs, maxRetryAttempts);
 
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, backOff);
 

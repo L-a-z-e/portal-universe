@@ -29,4 +29,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     int markAllAsRead(@Param("userId") Long userId, @Param("status") NotificationStatus status, @Param("readAt") LocalDateTime readAt);
 
     void deleteByUserIdAndId(Long userId, Long id);
+
+    boolean existsByReferenceIdAndReferenceTypeAndUserId(String referenceId, String referenceType, Long userId);
+
+    Optional<Notification> findByReferenceIdAndReferenceTypeAndUserId(String referenceId, String referenceType, Long userId);
 }
