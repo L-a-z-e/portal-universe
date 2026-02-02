@@ -163,6 +163,23 @@ export const authAdapter = {
   logout: (): void => {
     const store = useAuthStore()
     store.logout()
+  },
+
+  /**
+   * 현재 access token 반환
+   */
+  getAccessToken: (): string | null => {
+    const store = useAuthStore()
+    return store.user?._accessToken ?? window.__PORTAL_ACCESS_TOKEN__ ?? null
+  },
+
+  /**
+   * 로그인 모달 요청 (Remote 앱에서 호출)
+   * @param path 로그인 후 리다이렉트할 경로
+   */
+  requestLogin: (path?: string): void => {
+    const store = useAuthStore()
+    store.requestLogin(path)
   }
 }
 
