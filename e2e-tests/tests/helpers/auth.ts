@@ -57,7 +57,7 @@ async function ensureAuthenticated(page: Page): Promise<void> {
 }
 
 /**
- * Navigate to a shopping page with full auth handling and Module Federation loading.
+ * Navigate to a service page with full auth handling and Module Federation loading.
  *
  * Handles:
  * 1. Auth state resolution (waits for refresh token flow)
@@ -66,10 +66,7 @@ async function ensureAuthenticated(page: Page): Promise<void> {
  * 4. Module Federation remote content loading
  * 5. Spinner wait
  */
-/**
- * Navigate to a blog page with full auth handling and Module Federation loading.
- */
-export async function gotoBlogPage(page: Page, urlPath: string, contentSelector?: string): Promise<void> {
+export async function gotoServicePage(page: Page, urlPath: string, contentSelector?: string): Promise<void> {
   await page.goto(urlPath)
 
   // Wait for auth state to resolve
@@ -78,8 +75,8 @@ export async function gotoBlogPage(page: Page, urlPath: string, contentSelector?
   // If not authenticated, try to login
   await ensureAuthenticated(page)
 
-  // Wait a moment for the page to re-render after auth change
-  await page.waitForTimeout(1000)
+  // Wait for page to stabilize after auth change (network idle = no pending requests)
+  await page.waitForLoadState('networkidle').catch(() => {})
 
   // Wait for Module Federation content
   if (contentSelector) {
@@ -90,44 +87,7 @@ export async function gotoBlogPage(page: Page, urlPath: string, contentSelector?
   await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 }
 
-export async function gotoPrismPage(page: Page, urlPath: string, contentSelector?: string): Promise<void> {
-  await page.goto(urlPath)
-
-  // Wait for auth state to resolve
-  await waitForAuthReady(page)
-
-  // If not authenticated, try to login
-  await ensureAuthenticated(page)
-
-  // Wait a moment for the page to re-render after auth change
-  await page.waitForTimeout(1000)
-
-  // Wait for Module Federation content
-  if (contentSelector) {
-    await page.locator(contentSelector).first().waitFor({ timeout: 15000 }).catch(() => {})
-  }
-
-  // Wait for spinners to finish
-  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-}
-
-export async function gotoShoppingPage(page: Page, urlPath: string, contentSelector?: string): Promise<void> {
-  await page.goto(urlPath)
-
-  // Wait for auth state to resolve
-  await waitForAuthReady(page)
-
-  // If not authenticated, try to login
-  await ensureAuthenticated(page)
-
-  // Wait a moment for the page to re-render after auth change
-  await page.waitForTimeout(1000)
-
-  // Wait for Module Federation content
-  if (contentSelector) {
-    await page.locator(contentSelector).first().waitFor({ timeout: 15000 }).catch(() => {})
-  }
-
-  // Wait for spinners to finish
-  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-}
+// Backward-compatible aliases
+export const gotoBlogPage = gotoServicePage
+export const gotoPrismPage = gotoServicePage
+export const gotoShoppingPage = gotoServicePage
