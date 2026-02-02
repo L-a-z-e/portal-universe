@@ -93,6 +93,15 @@ CLAUDE.md
 /docs/learning/mentor-desktop-prompt.md
 /docs/learning/learner-profile.md
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+*.egg-info/
+
 # Spring Boot auto-generated help
 HELP.md
 
