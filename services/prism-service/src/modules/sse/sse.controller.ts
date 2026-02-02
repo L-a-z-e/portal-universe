@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Sse, ParseIntPipe, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Sse,
+  ParseIntPipe,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Observable, interval, map, merge } from 'rxjs';
 import type { Request } from 'express';
 import { SseService } from './sse.service';
@@ -15,7 +23,7 @@ interface MessageEvent {
 export class SseController {
   constructor(private readonly sseService: SseService) {}
 
-  @Public()  // SSE는 EventSource가 Authorization 헤더를 지원하지 않아 Public 처리
+  @Public() // SSE는 EventSource가 Authorization 헤더를 지원하지 않아 Public 처리
   @Get('boards/:boardId')
   @Sse()
   subscribeToBoard(
@@ -45,11 +53,11 @@ export class SseController {
   private extractUserId(req: Request): string {
     // User ID is set by API Gateway from JWT token (UUID string)
     const userIdHeader = req.headers['x-user-id'];
-    if (userIdHeader) {
-      return String(userIdHeader);
+    if (!userIdHeader) {
+      throw new UnauthorizedException(
+        'X-User-Id header is required. SSE connections must go through the API Gateway.',
+      );
     }
-
-    // Fallback for development
-    return 'unknown';
+    return String(userIdHeader);
   }
 }

@@ -34,16 +34,20 @@ export class JwtAuthGuard implements CanActivate {
 
     // X-User-Roles 파싱 (comma-separated: "ROLE_USER,ROLE_SELLER")
     const rolesHeader = request.headers['x-user-roles'];
-    const roles: string[] = typeof rolesHeader === 'string'
-      ? rolesHeader.split(',').map(r => r.trim()).filter(Boolean)
-      : [];
+    const roles: string[] =
+      typeof rolesHeader === 'string'
+        ? rolesHeader
+            .split(',')
+            .map((r) => r.trim())
+            .filter(Boolean)
+        : [];
 
     // X-User-Memberships 파싱 (Gateway에서 JSON 문자열로 전달: '{"shopping":"FREE","blog":"PREMIUM"}')
     const membershipsHeader = request.headers['x-user-memberships'];
     let memberships: Record<string, string> = {};
     if (typeof membershipsHeader === 'string') {
       try {
-        memberships = JSON.parse(membershipsHeader);
+        memberships = JSON.parse(membershipsHeader) as Record<string, string>;
       } catch {
         // fallback: ignore invalid JSON
       }

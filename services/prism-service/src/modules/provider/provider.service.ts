@@ -10,6 +10,12 @@ import {
 } from './dto/provider-response.dto';
 import { EncryptionUtil } from '../../common/utils/encryption.util';
 import { BusinessException } from '../../common/filters/business.exception';
+import { findOneOrThrow } from '../../common/utils/repository.util';
+import { AIProviderFactory } from '../ai/ai-provider.factory';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class ProviderService {
@@ -44,12 +50,25 @@ export class ProviderService {
     return this.toResponseDto(saved);
   }
 
-  async findAll(userId: string): Promise<ProviderResponseDto[]> {
-    const providers = await this.providerRepository.find({
+  async findAll(
+    userId: string,
+    pagination?: PaginationDto,
+  ): Promise<PaginatedResult<ProviderResponseDto>> {
+    const [providers, total] = await this.providerRepository.findAndCount({
       where: { userId },
       order: { createdAt: 'DESC' },
+      skip: pagination?.skip ?? 0,
+      take: pagination?.take ?? 20,
     });
-    return providers.map((p) => this.toResponseDto(p));
+    const items = providers.map((p) => this.toResponseDto(p));
+    const size = pagination?.size ?? 20;
+    return {
+      items,
+      total,
+      page: pagination?.page ?? 1,
+      size,
+      totalPages: Math.ceil(total / size),
+    };
   }
 
   async findOne(userId: string, id: number): Promise<ProviderResponseDto> {
@@ -101,7 +120,7 @@ export class ProviderService {
     const apiKey = this.encryptionUtil.decrypt(provider.apiKeyEncrypted);
 
     try {
-      const models = this.fetchModels(
+      const models = await this.fetchModels(
         provider.providerType,
         apiKey,
         provider.baseUrl,
@@ -132,7 +151,7 @@ export class ProviderService {
 
     // Fetch fresh models
     const apiKey = this.encryptionUtil.decrypt(provider.apiKeyEncrypted);
-    const models = this.fetchModels(
+    const models = await this.fetchModels(
       provider.providerType,
       apiKey,
       provider.baseUrl,
@@ -149,13 +168,11 @@ export class ProviderService {
     userId: string,
     id: number,
   ): Promise<AIProvider> {
-    const provider = await this.providerRepository.findOne({
-      where: { id, userId },
-    });
-    if (!provider) {
-      throw BusinessException.notFound('Provider');
-    }
-    return provider;
+    return findOneOrThrow(
+      this.providerRepository,
+      { where: { id, userId } },
+      'Provider',
+    );
   }
 
   /**
@@ -191,46 +208,12 @@ export class ProviderService {
     }
   }
 
-  private fetchModels(
+  private async fetchModels(
     type: ProviderType,
     apiKey: string,
     baseUrl: string | null,
-  ): string[] {
-    // TODO: Implement actual API calls in Step 7
-    // - OpenAI: GET /models with apiKey
-    // - Anthropic: hardcoded list (no models endpoint)
-    // - Ollama: GET {baseUrl}/api/tags
-    // For now, return default models based on provider type
-    void apiKey; // Will be used for API authentication
-    void baseUrl; // Will be used for custom endpoints
-    switch (type) {
-      case ProviderType.OPENAI:
-        return [
-          'gpt-4o',
-          'gpt-4o-mini',
-          'gpt-4-turbo',
-          'gpt-4',
-          'gpt-3.5-turbo',
-          'o1',
-          'o1-mini',
-        ];
-      case ProviderType.ANTHROPIC:
-        return [
-          'claude-opus-4-20250514',
-          'claude-sonnet-4-20250514',
-          'claude-3-7-sonnet-20250219',
-          'claude-3-5-haiku-20241022',
-        ];
-      case ProviderType.OLLAMA:
-        return ['llama3.3', 'mistral', 'codellama', 'deepseek-r1'];
-      case ProviderType.AZURE_OPENAI:
-        return ['gpt-4', 'gpt-35-turbo'];
-      default:
-        return [];
-    }
-    // TODO: Implement actual API calls
-    // - OpenAI: GET /models
-    // - Anthropic: hardcoded list (no models endpoint)
-    // - Ollama: GET /api/tags
+  ): Promise<string[]> {
+    const provider = AIProviderFactory.create(type, apiKey, baseUrl);
+    return provider.listModels();
   }
 }

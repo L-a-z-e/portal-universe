@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   ParseIntPipe,
   HttpCode,
   HttpStatus,
@@ -24,6 +25,10 @@ import {
   VerifyProviderResponseDto,
 } from './dto/provider-response.dto';
 import { CurrentUserId } from '../../common/decorators/current-user.decorator';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 @ApiTags('AI Providers')
 @ApiBearerAuth()
@@ -46,8 +51,9 @@ export class ProviderController {
   @ApiResponse({ status: 200, type: [ProviderResponseDto] })
   async findAll(
     @CurrentUserId() userId: string,
-  ): Promise<ProviderResponseDto[]> {
-    return this.providerService.findAll(userId);
+    @Query() pagination: PaginationDto,
+  ): Promise<PaginatedResult<ProviderResponseDto>> {
+    return this.providerService.findAll(userId, pagination);
   }
 
   @Get(':id')

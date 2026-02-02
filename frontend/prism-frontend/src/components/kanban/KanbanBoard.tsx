@@ -12,7 +12,7 @@ import {
 } from '@dnd-kit/core';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
-import { useTaskStore } from '@/stores/taskStore';
+import { useTaskStore, COLUMN_CONFIG } from '@/stores/taskStore';
 import type { Task, TaskStatus } from '@/types';
 
 interface KanbanBoardProps {
@@ -21,7 +21,7 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ onEditTask, onAddTask }: KanbanBoardProps) {
-  const { columns, tasks, moveTask, executeTask } = useTaskStore();
+  const { columns, moveTask, executeTask } = useTaskStore();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
@@ -32,16 +32,14 @@ export function KanbanBoard({ onEditTask, onAddTask }: KanbanBoardProps) {
     })
   );
 
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const { active } = event;
-      const task = tasks.find((t) => t.id === active.id);
-      if (task) {
-        setActiveTask(task);
-      }
-    },
-    [tasks]
-  );
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const { active } = event;
+    const { tasks } = useTaskStore.getState();
+    const task = tasks.find((t) => t.id === active.id);
+    if (task) {
+      setActiveTask(task);
+    }
+  }, []);
 
   const handleDragOver = useCallback((_event: DragOverEvent) => {
     // Handle drag over for visual feedback
@@ -55,6 +53,7 @@ export function KanbanBoard({ onEditTask, onAddTask }: KanbanBoardProps) {
 
       if (!over) return;
 
+      const { tasks, columns } = useTaskStore.getState();
       const taskId = active.id as number;
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
@@ -64,7 +63,8 @@ export function KanbanBoard({ onEditTask, onAddTask }: KanbanBoardProps) {
       let targetPosition: number;
 
       // Check if dropped on a column
-      if (['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'].includes(String(over.id))) {
+      const columnIds = COLUMN_CONFIG.map((c) => c.id as string);
+      if (columnIds.includes(String(over.id))) {
         targetStatus = over.id as TaskStatus;
         const targetColumn = columns.find((c) => c.id === targetStatus);
         targetPosition = targetColumn ? targetColumn.tasks.length : 0;
@@ -82,7 +82,7 @@ export function KanbanBoard({ onEditTask, onAddTask }: KanbanBoardProps) {
         await moveTask(taskId, targetStatus, targetPosition);
       }
     },
-    [tasks, columns, moveTask]
+    [moveTask]
   );
 
   const handleExecuteTask = useCallback(

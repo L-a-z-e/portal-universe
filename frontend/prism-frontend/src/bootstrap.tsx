@@ -53,7 +53,7 @@ export function mountPrismApp(
   console.group('🚀 [Prism] Mounting app in EMBEDDED mode');
 
   // Portal Shell에서 마운트됨을 표시
-  (window as any).__POWERED_BY_PORTAL_SHELL__ = true;
+  window.__POWERED_BY_PORTAL_SHELL__ = true;
 
   if (!el) {
     console.error('❌ [Prism] Mount element is null!');
@@ -82,7 +82,7 @@ export function mountPrismApp(
 
   try {
     const root = ReactDOM.createRoot(el);
-    let navigateCallback = onNavigate || null;
+    const navigateCallback = onNavigate || null;
     let currentTheme: 'light' | 'dark' = theme;
 
     // 스타일 태그 마킹을 위한 MutationObserver

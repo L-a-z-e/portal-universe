@@ -24,6 +24,10 @@ import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { BoardResponseDto } from './dto/board-response.dto';
 import { CurrentUserId } from '../../common/decorators/current-user.decorator';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 @ApiTags('Boards')
 @ApiBearerAuth()
@@ -49,8 +53,13 @@ export class BoardController {
     @CurrentUserId() userId: string,
     @Query('includeArchived', new ParseBoolPipe({ optional: true }))
     includeArchived?: boolean,
-  ): Promise<BoardResponseDto[]> {
-    return this.boardService.findAll(userId, includeArchived ?? false);
+    @Query() pagination?: PaginationDto,
+  ): Promise<PaginatedResult<BoardResponseDto>> {
+    return this.boardService.findAll(
+      userId,
+      includeArchived ?? false,
+      pagination,
+    );
   }
 
   @Get(':id')

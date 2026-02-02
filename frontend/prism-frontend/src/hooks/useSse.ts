@@ -15,6 +15,7 @@ interface UseSseOptions {
 }
 
 const SSE_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const MAX_RECONNECT_ATTEMPTS = 5;
 
 export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -38,18 +39,7 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
       reconnectAttemptsRef.current = 0;
     };
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data) as SseEvent;
-        if (data.type !== 'heartbeat') {
-          onEvent(data);
-        }
-      } catch (error) {
-        console.error('[SSE] Failed to parse event:', error);
-      }
-    };
-
-    // Listen for specific event types
+    // Server sends all events as named events, so we listen via addEventListener
     const eventTypes = [
       'task.created',
       'task.updated',
@@ -76,11 +66,18 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
       console.error('[SSE] Connection error');
       eventSource.close();
 
-      // Exponential backoff reconnection
+      if (!enabled) return;
+
       const attempts = reconnectAttemptsRef.current;
+      if (attempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.error(`[SSE] Max reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Giving up.`);
+        return;
+      }
+
+      // Exponential backoff reconnection
       const delay = Math.min(1000 * Math.pow(2, attempts), 30000);
 
-      console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${attempts + 1})`);
+      console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${attempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
       reconnectTimeoutRef.current = window.setTimeout(() => {
         reconnectAttemptsRef.current += 1;
         connect();

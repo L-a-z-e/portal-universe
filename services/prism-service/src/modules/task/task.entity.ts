@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Board } from '../board/board.entity';
 import { Agent } from '../agent/agent.entity';
@@ -28,6 +29,7 @@ export enum TaskPriority {
 }
 
 @Entity('tasks')
+@Index(['boardId', 'status'])
 export class Task {
   @PrimaryGeneratedColumn()
   id: number;

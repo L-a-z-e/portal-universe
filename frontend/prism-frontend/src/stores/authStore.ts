@@ -100,7 +100,8 @@ export const useAuthStore = create<AuthState>()(
           // ✅ authAdapter 사용 (Framework-agnostic)
           const portalStoresModule = await import('portal/stores')
           // Module Federation의 wrapDefault로 인해 module.default에 있을 수 있음
-          const actualModule = (portalStoresModule as any).default || portalStoresModule
+          const rawModule = portalStoresModule as typeof portalStoresModule & { default?: typeof portalStoresModule }
+          const actualModule = rawModule.default ?? rawModule
           const authAdapter = actualModule.authAdapter
 
           if (!authAdapter) {

@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,10 @@ import { CreateAgentDto } from './dto/create-agent.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
 import { AgentResponseDto } from './dto/agent-response.dto';
 import { CurrentUserId } from '../../common/decorators/current-user.decorator';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 @ApiTags('AI Agents')
 @ApiBearerAuth()
@@ -41,8 +46,11 @@ export class AgentController {
   @Get()
   @ApiOperation({ summary: 'List all agents for the current user' })
   @ApiResponse({ status: 200, type: [AgentResponseDto] })
-  async findAll(@CurrentUserId() userId: string): Promise<AgentResponseDto[]> {
-    return this.agentService.findAll(userId);
+  async findAll(
+    @CurrentUserId() userId: string,
+    @Query() pagination: PaginationDto,
+  ): Promise<PaginatedResult<AgentResponseDto>> {
+    return this.agentService.findAll(userId, pagination);
   }
 
   @Get(':id')

@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => {
 
     build: {
       target: 'esnext',
-      minify: false,
+      minify: mode === 'production' ? 'esbuild' : false,
       cssCodeSplit: true,
       sourcemap: false,
       outDir: 'dist',

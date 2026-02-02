@@ -51,8 +51,20 @@ export class OllamaProvider implements LLMProvider {
     if (!response.ok) {
       throw new Error(`Ollama API error: ${response.status}`);
     }
-    const data = (await response.json()) as OllamaTagsResponse;
+    const data: unknown = await response.json();
+    if (!this.isOllamaTagsResponse(data)) {
+      throw new Error('Unexpected Ollama API response format');
+    }
     return data.models.map((m) => m.name).sort();
+  }
+
+  private isOllamaTagsResponse(data: unknown): data is OllamaTagsResponse {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      'models' in data &&
+      Array.isArray((data as OllamaTagsResponse).models)
+    );
   }
 
   async testConnection(): Promise<boolean> {

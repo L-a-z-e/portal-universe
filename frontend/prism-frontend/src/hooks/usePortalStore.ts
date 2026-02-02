@@ -59,16 +59,22 @@ export function usePortalTheme() {
 
   useEffect(() => {
     // Standalone 모드에서는 adapter 사용하지 않음
-    if (!(window as any).__POWERED_BY_PORTAL_SHELL__) {
+    if (!window.__POWERED_BY_PORTAL_SHELL__) {
       setLoading(false)
       return
     }
 
+    let isMounted = true
+    let unsubscribe: (() => void) | undefined
+
     // Portal Shell에서 storeAdapter 동적 import
     import('portal/stores')
       .then((module) => {
+        if (!isMounted) return
+
         // Module Federation의 wrapDefault로 인해 module.default에 있을 수 있음
-        const actualModule = (module as any).default || module
+        const rawModule = module as typeof module & { default?: typeof module }
+        const actualModule = rawModule.default ?? rawModule
         const themeAdapter = actualModule.themeAdapter as ThemeAdapter
 
         if (!themeAdapter) {
@@ -76,24 +82,25 @@ export function usePortalTheme() {
         }
 
         setAdapter(themeAdapter)
-
-        // 초기 상태 설정
         setTheme(themeAdapter.getState())
 
-        // 변경 구독
-        const unsubscribe = themeAdapter.subscribe((newState) => {
+        unsubscribe = themeAdapter.subscribe((newState) => {
           setTheme(newState)
         })
 
         setLoading(false)
-
-        return () => unsubscribe()
       })
       .catch((err) => {
+        if (!isMounted) return
         console.error('[usePortalTheme] Failed to load storeAdapter:', err)
         setError(err)
         setLoading(false)
       })
+
+    return () => {
+      isMounted = false
+      unsubscribe?.()
+    }
   }, [])
 
   const toggle = useCallback(() => {
@@ -131,15 +138,21 @@ export function usePortalAuth() {
 
   useEffect(() => {
     // Standalone 모드에서는 adapter 사용하지 않음
-    if (!(window as any).__POWERED_BY_PORTAL_SHELL__) {
+    if (!window.__POWERED_BY_PORTAL_SHELL__) {
       setLoading(false)
       return
     }
 
+    let isMounted = true
+    let unsubscribe: (() => void) | undefined
+
     // Portal Shell에서 storeAdapter 동적 import
     import('portal/stores')
       .then((module) => {
-        const actualModule = (module as any).default || module
+        if (!isMounted) return
+
+        const rawModule = module as typeof module & { default?: typeof module }
+        const actualModule = rawModule.default ?? rawModule
         const authAdapter = actualModule.authAdapter as AuthAdapter
 
         if (!authAdapter) {
@@ -147,24 +160,25 @@ export function usePortalAuth() {
         }
 
         setAdapter(authAdapter)
-
-        // 초기 상태 설정
         setAuth(authAdapter.getState())
 
-        // 변경 구독
-        const unsubscribe = authAdapter.subscribe((newState) => {
+        unsubscribe = authAdapter.subscribe((newState) => {
           setAuth(newState)
         })
 
         setLoading(false)
-
-        return () => unsubscribe()
       })
       .catch((err) => {
+        if (!isMounted) return
         console.error('[usePortalAuth] Failed to load storeAdapter:', err)
         setError(err)
         setLoading(false)
       })
+
+    return () => {
+      isMounted = false
+      unsubscribe?.()
+    }
   }, [])
 
   const hasRole = useCallback((role: string): boolean => {

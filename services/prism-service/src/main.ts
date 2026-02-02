@@ -1,10 +1,12 @@
 import { NestFactory, Reflector } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { ApiResponseInterceptor } from './common/interceptors/api-response.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+
+const logger = new Logger('Bootstrap');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -41,7 +43,7 @@ async function bootstrap() {
       ],
       credentials: true,
     });
-    console.log('CORS enabled for standalone mode');
+    logger.log('CORS enabled for standalone mode');
   }
 
   // Swagger
@@ -56,6 +58,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 8085;
   await app.listen(port);
-  console.log(`Prism service running on port ${port}`);
+  logger.log(`Prism service running on port ${port}`);
 }
 void bootstrap();

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Subject, Observable, filter, map } from 'rxjs';
+import { Subject, Observable, filter, map, finalize } from 'rxjs';
 
 export interface SseEvent {
   type:
@@ -27,6 +27,15 @@ interface MessageEvent {
 export class SseService {
   private readonly logger = new Logger(SseService.name);
   private readonly events$ = new Subject<SseEvent>();
+  private readonly connections = new Map<string, Set<string>>();
+
+  get activeConnectionCount(): number {
+    let count = 0;
+    for (const boards of this.connections.values()) {
+      count += boards.size;
+    }
+    return count;
+  }
 
   emit(event: SseEvent): void {
     this.logger.debug(`SSE Event: ${event.type} for board ${event.boardId}`);
@@ -34,7 +43,14 @@ export class SseService {
   }
 
   subscribe(userId: string, boardId: number): Observable<MessageEvent> {
-    this.logger.log(`User ${userId} subscribed to board ${boardId}`);
+    // Track connection
+    if (!this.connections.has(userId)) {
+      this.connections.set(userId, new Set());
+    }
+    this.connections.get(userId)!.add(String(boardId));
+    this.logger.log(
+      `User ${userId} subscribed to board ${boardId} (active: ${this.activeConnectionCount})`,
+    );
 
     return this.events$.pipe(
       filter((event) => event.boardId === boardId && event.userId === userId),
@@ -46,6 +62,19 @@ export class SseService {
         }),
         type: event.type,
       })),
+      finalize(() => {
+        // Clean up on disconnect
+        const boards = this.connections.get(userId);
+        if (boards) {
+          boards.delete(String(boardId));
+          if (boards.size === 0) {
+            this.connections.delete(userId);
+          }
+        }
+        this.logger.log(
+          `User ${userId} disconnected from board ${boardId} (active: ${this.activeConnectionCount})`,
+        );
+      }),
     );
   }
 

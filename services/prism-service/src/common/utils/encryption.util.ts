@@ -1,13 +1,16 @@
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   BusinessException,
   PrismErrorCode,
 } from '../filters/business.exception';
 
+const DEFAULT_KEY = 'default-32-byte-encryption-key!!';
+
 @Injectable()
 export class EncryptionUtil {
+  private readonly logger = new Logger(EncryptionUtil.name);
   private readonly algorithm = 'aes-256-gcm';
   private readonly key: Buffer;
 
@@ -15,6 +18,16 @@ export class EncryptionUtil {
     const encryptionKey = this.configService.get<string>('encryption.key');
     if (!encryptionKey || encryptionKey.length < 32) {
       throw new Error('Encryption key must be at least 32 characters');
+    }
+    if (encryptionKey === DEFAULT_KEY) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+          'Default encryption key is not allowed in production. Set ENCRYPTION_KEY environment variable.',
+        );
+      }
+      this.logger.warn(
+        'Using default encryption key. Set ENCRYPTION_KEY for production use.',
+      );
     }
     this.key = Buffer.from(encryptionKey.slice(0, 32), 'utf-8');
   }

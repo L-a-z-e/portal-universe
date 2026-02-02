@@ -7,6 +7,11 @@ import { CreateAgentDto } from './dto/create-agent.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
 import { AgentResponseDto } from './dto/agent-response.dto';
 import { BusinessException } from '../../common/filters/business.exception';
+import { findOneOrThrow } from '../../common/utils/repository.util';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class AgentService {
@@ -53,13 +58,26 @@ export class AgentService {
     return AgentResponseDto.from(withProvider);
   }
 
-  async findAll(userId: string): Promise<AgentResponseDto[]> {
-    const agents = await this.agentRepository.find({
+  async findAll(
+    userId: string,
+    pagination?: PaginationDto,
+  ): Promise<PaginatedResult<AgentResponseDto>> {
+    const [agents, total] = await this.agentRepository.findAndCount({
       where: { userId },
       relations: ['provider'],
       order: { createdAt: 'DESC' },
+      skip: pagination?.skip ?? 0,
+      take: pagination?.take ?? 20,
     });
-    return agents.map((a) => AgentResponseDto.from(a));
+    const items = agents.map((a) => AgentResponseDto.from(a));
+    const size = pagination?.size ?? 20;
+    return {
+      items,
+      total,
+      page: pagination?.page ?? 1,
+      size,
+      totalPages: Math.ceil(total / size),
+    };
   }
 
   async findOne(userId: string, id: number): Promise<AgentResponseDto> {
@@ -120,13 +138,10 @@ export class AgentService {
   }
 
   private async findByIdAndUser(userId: string, id: number): Promise<Agent> {
-    const agent = await this.agentRepository.findOne({
-      where: { id, userId },
-      relations: ['provider'],
-    });
-    if (!agent) {
-      throw BusinessException.notFound('Agent');
-    }
-    return agent;
+    return findOneOrThrow(
+      this.agentRepository,
+      { where: { id, userId }, relations: ['provider'] },
+      'Agent',
+    );
   }
 }

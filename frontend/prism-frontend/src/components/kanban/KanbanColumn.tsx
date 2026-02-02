@@ -18,6 +18,7 @@ const statusColors: Record<string, string> = {
   IN_PROGRESS: 'border-t-blue-500',
   IN_REVIEW: 'border-t-yellow-500',
   DONE: 'border-t-green-500',
+  CANCELLED: 'border-t-red-500',
 };
 
 export function KanbanColumn({

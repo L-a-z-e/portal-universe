@@ -6,6 +6,10 @@ import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { BoardResponseDto } from './dto/board-response.dto';
 import { BusinessException } from '../../common/filters/business.exception';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class BoardService {
@@ -37,12 +41,15 @@ export class BoardService {
   async findAll(
     userId: string,
     includeArchived = false,
-  ): Promise<BoardResponseDto[]> {
+    pagination?: PaginationDto,
+  ): Promise<PaginatedResult<BoardResponseDto>> {
     const queryBuilder = this.boardRepository
       .createQueryBuilder('board')
       .leftJoinAndSelect('board.tasks', 'task')
       .where('board.userId = :userId', { userId })
-      .orderBy('board.createdAt', 'DESC');
+      .orderBy('board.createdAt', 'DESC')
+      .skip(pagination?.skip ?? 0)
+      .take(pagination?.take ?? 20);
 
     if (!includeArchived) {
       queryBuilder.andWhere('board.isArchived = :isArchived', {
@@ -50,8 +57,16 @@ export class BoardService {
       });
     }
 
-    const boards = await queryBuilder.getMany();
-    return boards.map((b) => BoardResponseDto.from(b, true));
+    const [boards, total] = await queryBuilder.getManyAndCount();
+    const items = boards.map((b) => BoardResponseDto.from(b, true));
+    const size = pagination?.size ?? 20;
+    return {
+      items,
+      total,
+      page: pagination?.page ?? 1,
+      size,
+      totalPages: Math.ceil(total / size),
+    };
   }
 
   async findOne(userId: string, id: number): Promise<BoardResponseDto> {

@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { AIProvider } from '../provider/provider.entity';
 import { Task } from '../task/task.entity';
@@ -22,6 +23,7 @@ export enum AgentRole {
 }
 
 @Entity('agents')
+@Index(['userId', 'id'])
 export class Agent {
   @PrimaryGeneratedColumn()
   id: number;

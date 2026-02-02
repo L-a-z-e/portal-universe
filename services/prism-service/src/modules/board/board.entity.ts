@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Task } from '../task/task.entity';
 
 @Entity('boards')
+@Index(['userId', 'id'])
 export class Board {
   @PrimaryGeneratedColumn()
   id: number;

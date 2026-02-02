@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Agent } from '../agent/agent.entity';
 
@@ -16,6 +17,7 @@ export enum ProviderType {
 }
 
 @Entity('ai_providers')
+@Index(['userId', 'id'])
 export class AIProvider {
   @PrimaryGeneratedColumn()
   id: number;

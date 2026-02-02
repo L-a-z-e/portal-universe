@@ -24,13 +24,16 @@ export class CreateProviderDto {
 
   @ApiProperty({ example: 'sk-xxxxxxxxxxxxxxxx' })
   @IsString()
-  @ValidateIf((o) => o.providerType !== ProviderType.OLLAMA)
+  @ValidateIf((o: CreateProviderDto) => o.providerType !== ProviderType.OLLAMA)
   @IsNotEmpty()
   apiKey: string;
 
   @ApiPropertyOptional({ example: 'https://api.openai.com/v1' })
   @IsOptional()
-  @ValidateIf((o) => o.providerType !== ProviderType.OLLAMA || !!o.baseUrl)
+  @ValidateIf(
+    (o: CreateProviderDto) =>
+      o.providerType !== ProviderType.OLLAMA || !!o.baseUrl,
+  )
   @IsUrl()
   @MaxLength(255)
   baseUrl?: string;

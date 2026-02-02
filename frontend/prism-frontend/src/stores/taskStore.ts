@@ -28,11 +28,12 @@ interface TaskState {
   handleExecutionFailed: (taskId: number) => void;
 }
 
-const COLUMN_CONFIG: { id: TaskStatus; title: string }[] = [
+export const COLUMN_CONFIG: { id: TaskStatus; title: string }[] = [
   { id: 'TODO', title: 'To Do' },
   { id: 'IN_PROGRESS', title: 'In Progress' },
   { id: 'IN_REVIEW', title: 'In Review' },
   { id: 'DONE', title: 'Done' },
+  { id: 'CANCELLED', title: 'Cancelled' },
 ];
 
 const buildColumns = (tasks: Task[]): KanbanColumn[] => {
@@ -112,6 +113,9 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   moveTask: async (id: number, status: TaskStatus, position: number) => {
+    // Snapshot for rollback
+    const prev = get();
+
     // Optimistic update
     set((state) => {
       const task = state.tasks.find((t) => t.id === id);
@@ -129,8 +133,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     try {
       await api.moveTask(id, { status, position });
     } catch (error) {
-      // Revert on error - refetch tasks
+      // Revert to previous state on error
       set({
+        tasks: prev.tasks,
+        columns: buildColumns(prev.tasks),
         error: error instanceof Error ? error.message : 'Failed to move task',
       });
     }
