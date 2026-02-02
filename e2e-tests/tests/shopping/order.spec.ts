@@ -23,7 +23,7 @@ test.describe('Order List Page', () => {
   test('should show empty state or order list', async ({ page }) => {
     // Check for empty state or order list
     const emptyState = page.locator('text="No orders yet"')
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
 
     const isEmpty = await emptyState.isVisible()
     const hasOrders = await orderList.first().isVisible()
@@ -38,7 +38,7 @@ test.describe('Order List Page', () => {
   })
 
   test('should display order cards with status badges', async ({ page }) => {
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
@@ -63,7 +63,7 @@ test.describe('Order List Page', () => {
   })
 
   test('should navigate to order detail when clicking an order', async ({ page }) => {
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
@@ -103,7 +103,7 @@ test.describe('Order Detail Page', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
@@ -127,7 +127,7 @@ test.describe('Order Detail Page', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
@@ -148,7 +148,7 @@ test.describe('Order Detail Page', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
@@ -168,7 +168,7 @@ test.describe('Order Detail Page', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
@@ -188,12 +188,12 @@ test.describe('Order Detail Page', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
       // Find an order with SHIPPING or DELIVERED status
-      const shippedOrders = page.locator('a[href*="/shopping/orders/"]').filter({
+      const shippedOrders = page.locator('a[href*="/orders/"]').filter({
         has: page.locator('text=/Shipping|Delivered|배송/')
       })
 
@@ -222,12 +222,12 @@ test.describe('Order Detail Page', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
       // Find a PENDING or CONFIRMED order (cancellable)
-      const cancellableOrders = page.locator('a[href*="/shopping/orders/"]').filter({
+      const cancellableOrders = page.locator('a[href*="/orders/"]').filter({
         has: page.locator('text=/Pending|Confirmed|대기|확인/')
       })
 
@@ -247,12 +247,12 @@ test.describe('Order Detail Page', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
       // Find a PENDING order
-      const pendingOrders = page.locator('a[href*="/shopping/orders/"]').filter({
+      const pendingOrders = page.locator('a[href*="/orders/"]').filter({
         has: page.locator('text=/Pending|대기/')
       })
 
@@ -282,7 +282,7 @@ test.describe('Order Detail Page', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {
@@ -316,7 +316,7 @@ test.describe('Order Status Flow', () => {
     await page.goto('/shopping/orders')
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
 
-    const orderList = page.locator('a[href*="/shopping/orders/"]')
+    const orderList = page.locator('a[href*="/orders/"]')
     const hasOrders = await orderList.first().isVisible()
 
     if (hasOrders) {

@@ -361,13 +361,14 @@ setup('seed test data', async () => {
 
   console.log('Data seed: Starting prism data seeding...')
 
-  // Check existing boards
-  const existingBoards = await apiGet<{ id: number; name: string }[]>(
+  // Check existing boards (API returns PaginatedResult: { items, total, page, size, totalPages })
+  const existingBoardsResult = await apiGet<{ items: { id: number; name: string }[] }>(
     `${PRISM_API}/boards`,
     userToken,
   )
+  const existingBoards = existingBoardsResult?.items ?? []
   const existingBoardNames = new Set(
-    (existingBoards ?? []).map((b) => b.name),
+    existingBoards.map((b) => b.name),
   )
 
   // Create a board
