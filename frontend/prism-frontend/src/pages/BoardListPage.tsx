@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Button, Input, Textarea } from '@/components/common';
+import { Modal, Button, Input, Textarea } from '@portal/design-system-react';
 import { useBoardStore } from '@/stores/boardStore';
 import type { CreateBoardRequest } from '@/types';
 
@@ -123,7 +123,7 @@ function BoardListPage() {
       )}
 
       <Modal
-        isOpen={isModalOpen}
+        open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Create New Board"
         size="sm"

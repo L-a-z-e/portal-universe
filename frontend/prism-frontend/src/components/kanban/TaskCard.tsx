@@ -10,10 +10,10 @@ interface TaskCardProps {
 }
 
 const priorityColors: Record<TaskPriority, string> = {
-  LOW: 'bg-gray-100 text-gray-600',
-  MEDIUM: 'bg-blue-100 text-blue-600',
-  HIGH: 'bg-orange-100 text-orange-600',
-  URGENT: 'bg-red-100 text-red-600',
+  LOW: 'bg-bg-muted text-text-meta',
+  MEDIUM: 'bg-status-info/20 text-status-info',
+  HIGH: 'bg-status-warning/20 text-status-warning',
+  URGENT: 'bg-status-error/20 text-status-error',
 };
 
 const priorityLabels: Record<TaskPriority, string> = {
@@ -81,7 +81,7 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
 
       <div className="flex items-center justify-between mt-3">
         {task.agentName ? (
-          <span className="text-xs bg-prism-100 text-prism-700 px-2 py-0.5 rounded">
+          <span className="text-xs bg-brand-primary/10 text-brand-primary px-2 py-0.5 rounded">
             {task.agentName}
           </span>
         ) : (
@@ -90,7 +90,7 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
 
         <div className="flex gap-1 items-center">
           {isExecuting ? (
-            <span className="flex items-center gap-1 text-xs text-prism-600">
+            <span className="flex items-center gap-1 text-xs text-brand-primary">
               <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -102,7 +102,7 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
               {task.agentId && task.status === 'TODO' && (
                 <button
                   onClick={handleExecute}
-                  className="text-xs px-2 py-1 bg-prism-500 text-white rounded hover:bg-prism-600 transition-colors"
+                  className="text-xs px-2 py-1 bg-brand-primary text-white rounded hover:bg-brand-primaryHover transition-colors"
                 >
                   Run
                 </button>

@@ -241,7 +241,7 @@ onMounted(() => {
 .loading-spinner svg {
   width: 3rem;
   height: 3rem;
-  color: var(--semantic-brand-primary, #20c997);
+  color: var(--semantic-brand-primary);
 }
 
 @keyframes spin {
@@ -276,7 +276,7 @@ onMounted(() => {
 .error-icon {
   width: 3rem;
   height: 3rem;
-  color: var(--semantic-error, #f56565);
+  color: var(--semantic-status-error);
 }
 
 .error-message {
@@ -337,7 +337,7 @@ onMounted(() => {
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
   background-color: var(--semantic-brand-primary-light, rgba(32, 201, 151, 0.1));
-  color: var(--semantic-brand-primary, #20c997);
+  color: var(--semantic-brand-primary);
   font-size: 0.875rem;
   font-weight: 600;
   border-radius: 0.375rem;
@@ -433,7 +433,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   background-color: var(--semantic-brand-primary-light, rgba(32, 201, 151, 0.1));
-  color: var(--semantic-brand-primary, #20c997);
+  color: var(--semantic-brand-primary);
   font-size: 1.125rem;
   font-weight: 700;
   border-radius: 0.5rem;
@@ -456,7 +456,7 @@ onMounted(() => {
 }
 
 .post-item:hover .post-title {
-  color: var(--semantic-brand-primary, #20c997);
+  color: var(--semantic-brand-primary);
 }
 
 .post-summary {

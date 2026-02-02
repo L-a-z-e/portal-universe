@@ -131,7 +131,7 @@ function App({
             <div className="flex items-center justify-between">
               {/* Logo */}
               <div className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-prism-500 to-prism-700 flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primaryHover flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-lg">P</span>
                 </div>
                 <span className="text-xl font-bold text-text-heading">Prism</span>
@@ -141,19 +141,19 @@ function App({
               <nav className="flex items-center gap-6">
                 <a
                   href="/"
-                  className="text-text-body hover:text-prism-500 font-medium transition-colors"
+                  className="text-text-body hover:text-brand-primary font-medium transition-colors"
                 >
                   Boards
                 </a>
                 <a
                   href="/agents"
-                  className="text-text-body hover:text-prism-500 font-medium transition-colors"
+                  className="text-text-body hover:text-brand-primary font-medium transition-colors"
                 >
                   Agents
                 </a>
                 <a
                   href="/providers"
-                  className="text-text-body hover:text-prism-500 font-medium transition-colors"
+                  className="text-text-body hover:text-brand-primary font-medium transition-colors"
                 >
                   Providers
                 </a>

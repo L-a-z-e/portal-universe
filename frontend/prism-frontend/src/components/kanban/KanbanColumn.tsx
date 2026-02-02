@@ -14,11 +14,11 @@ interface KanbanColumnProps {
 }
 
 const statusColors: Record<string, string> = {
-  TODO: 'border-t-gray-400',
-  IN_PROGRESS: 'border-t-blue-500',
-  IN_REVIEW: 'border-t-yellow-500',
-  DONE: 'border-t-green-500',
-  CANCELLED: 'border-t-red-500',
+  TODO: 'border-t-text-muted',
+  IN_PROGRESS: 'border-t-status-info',
+  IN_REVIEW: 'border-t-status-warning',
+  DONE: 'border-t-status-success',
+  CANCELLED: 'border-t-status-error',
 };
 
 export function KanbanColumn({
@@ -71,7 +71,7 @@ export function KanbanColumn({
         {column.id === 'TODO' && (
           <button
             onClick={onAddTask}
-            className="w-full mt-2 p-2 text-sm text-text-meta border-2 border-dashed border-border-default rounded-lg hover:border-prism-400 hover:text-prism-600 transition-colors"
+            className="w-full mt-2 p-2 text-sm text-text-meta border-2 border-dashed border-border-default rounded-lg hover:border-brand-primary hover:text-brand-primary transition-colors"
           >
             + Add Task
           </button>

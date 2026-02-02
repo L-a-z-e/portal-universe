@@ -253,7 +253,7 @@ const navigate = (path: string) => {
             <p class="text-sm font-medium text-text-heading truncate">
               {{ authStore.displayName }}
             </p>
-            <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">ADMIN</span>
+            <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-status-error text-white rounded-full">ADMIN</span>
           </div>
         </Button>
       </template>
@@ -299,7 +299,7 @@ const navigate = (path: string) => {
         v-if="authStore.isAuthenticated"
         variant="ghost"
         @click="handleLogout"
-        class="w-full justify-start gap-3 text-red-500 hover:bg-red-500/10"
+        class="w-full justify-start gap-3 text-status-error hover:bg-status-error/10"
       >
         <span class="text-lg shrink-0">🚪</span>
         <span v-if="!isCollapsed" class="font-medium">Logout</span>

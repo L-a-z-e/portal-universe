@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KanbanBoard, TaskModal } from '@/components/kanban';
-import { Button } from '@/components/common';
+import { Button } from '@portal/design-system-react';
 import { useBoardStore } from '@/stores/boardStore';
 import { useTaskStore } from '@/stores/taskStore';
 import { useSse, SseEvent } from '@/hooks/useSse';
@@ -121,7 +121,7 @@ function BoardPage() {
   if (boardLoading && !currentBoard) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-prism-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
       </div>
     );
   }
@@ -129,7 +129,7 @@ function BoardPage() {
   if (!currentBoard) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-gray-700">Board not found</h2>
+        <h2 className="text-xl font-semibold text-text-body">Board not found</h2>
         <Button
           variant="secondary"
           className="mt-4"
@@ -148,16 +148,16 @@ function BoardPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/boards')}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              className="p-1 text-text-muted hover:text-text-body rounded-lg hover:bg-bg-hover"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">{currentBoard.name}</h1>
+            <h1 className="text-2xl font-bold text-text-heading">{currentBoard.name}</h1>
           </div>
           {currentBoard.description && (
-            <p className="text-gray-500 mt-1 ml-8">{currentBoard.description}</p>
+            <p className="text-text-meta mt-1 ml-8">{currentBoard.description}</p>
           )}
         </div>
 
@@ -171,7 +171,7 @@ function BoardPage() {
 
       {taskLoading && (
         <div className="absolute top-4 right-4">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-prism-500" />
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-primary" />
         </div>
       )}
 

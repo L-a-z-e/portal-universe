@@ -205,7 +205,7 @@ const handleClick = () => {
 
 .post-count {
   font-weight: 600;
-  color: var(--semantic-brand-primary, #20c997);
+  color: var(--semantic-brand-primary);
 }
 
 .update-time {

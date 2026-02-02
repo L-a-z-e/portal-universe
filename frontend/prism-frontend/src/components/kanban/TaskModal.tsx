@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Input, Select, Textarea } from '@/components/common';
+import { Modal, Button, Input, Select, Textarea } from '@portal/design-system-react';
 import { useAgentStore } from '@/stores/agentStore';
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskPriority } from '@/types';
 
@@ -108,7 +108,7 @@ export function TaskModal({
 
   return (
     <Modal
-      isOpen={isOpen}
+      open={isOpen}
       onClose={onClose}
       title={task ? 'Edit Task' : 'Create Task'}
       size="md"
@@ -135,24 +135,27 @@ export function TaskModal({
           <Select
             label="Priority"
             value={formData.priority}
-            onChange={(e) =>
-              setFormData({ ...formData, priority: e.target.value as TaskPriority })
+            onChange={(value) =>
+              setFormData({ ...formData, priority: value as TaskPriority })
             }
             options={priorityOptions}
           />
 
-          <Input
-            label="Due Date"
-            type="date"
-            value={formData.dueDate}
-            onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-          />
+          <div className="w-full">
+            <label className="block text-sm font-medium text-text-body mb-1">Due Date</label>
+            <input
+              type="date"
+              value={formData.dueDate}
+              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+              className="w-full px-3 py-2 border border-border-default rounded-lg text-text-heading bg-bg-input focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+            />
+          </div>
         </div>
 
         <Select
           label="Assigned Agent"
           value={formData.agentId}
-          onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
+          onChange={(value) => setFormData({ ...formData, agentId: String(value ?? '') })}
           options={agentOptions}
         />
 

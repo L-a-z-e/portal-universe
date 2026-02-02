@@ -159,7 +159,7 @@ onMounted(() => {
 <style scoped>
 .series-box {
   background: linear-gradient(135deg, rgba(32, 201, 151, 0.05) 0%, rgba(32, 201, 151, 0.02) 100%);
-  border: 1px solid var(--semantic-brand-primary, #20c997);
+  border: 1px solid var(--semantic-brand-primary);
 }
 
 /* 헤더 */
@@ -188,7 +188,7 @@ onMounted(() => {
 .series-icon {
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--semantic-brand-primary, #20c997);
+  color: var(--semantic-brand-primary);
   flex-shrink: 0;
 }
 
@@ -231,7 +231,7 @@ onMounted(() => {
 
 .nav-button:hover {
   background-color: var(--semantic-bg-hover);
-  border-color: var(--semantic-brand-primary, #20c997);
+  border-color: var(--semantic-brand-primary);
 }
 
 .prev-button {
@@ -279,7 +279,7 @@ onMounted(() => {
 }
 
 .error-content {
-  color: var(--semantic-error, #f56565);
+  color: var(--semantic-status-error);
 }
 
 /* 반응형 */

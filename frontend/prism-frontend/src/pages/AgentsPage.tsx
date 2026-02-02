@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select, Textarea } from '@/components/common';
+import { Modal, Button, Input, Select, Textarea } from '@portal/design-system-react';
 import { useAgentStore } from '@/stores/agentStore';
 import { useProviderStore } from '@/stores/providerStore';
 import type { Agent, CreateAgentRequest } from '@/types';
@@ -94,12 +94,12 @@ function AgentsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg">{error}</div>
+        <div className="mb-4 p-4 bg-status-error/10 text-status-error rounded-lg">{error}</div>
       )}
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-prism-500" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
         </div>
       ) : agents.length === 0 ? (
         <div className="text-center py-12 bg-bg-subtle rounded-xl">
@@ -123,7 +123,7 @@ function AgentsPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-text-heading">{agent.name}</h3>
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${agent.isActive ? 'bg-green-100 text-green-700' : 'bg-bg-muted text-text-meta'}`}>
+                    <span className={`px-2 py-0.5 text-xs rounded-full ${agent.isActive ? 'bg-status-success/10 text-status-success' : 'bg-bg-muted text-text-meta'}`}>
                       {agent.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
@@ -132,7 +132,7 @@ function AgentsPage() {
                 <div className="flex gap-1">
                   <button
                     onClick={() => handleOpenModal(agent)}
-                    className="p-2 text-text-muted hover:text-prism-600 rounded-lg hover:bg-bg-hover"
+                    className="p-2 text-text-muted hover:text-brand-primary rounded-lg hover:bg-bg-hover"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -140,7 +140,7 @@ function AgentsPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(agent.id)}
-                    className="p-2 text-text-muted hover:text-red-500 rounded-lg hover:bg-bg-hover"
+                    className="p-2 text-text-muted hover:text-status-error rounded-lg hover:bg-bg-hover"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -161,7 +161,7 @@ function AgentsPage() {
       )}
 
       <Modal
-        isOpen={isModalOpen}
+        open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={selectedAgent ? 'Edit Agent' : 'Create Agent'}
         size="lg"
@@ -179,7 +179,7 @@ function AgentsPage() {
             <Select
               label="Provider"
               value={formData.providerId}
-              onChange={(e) => setFormData({ ...formData, providerId: parseInt(e.target.value) })}
+              onChange={(value) => setFormData({ ...formData, providerId: Number(value) })}
               options={providerOptions}
               placeholder="Select a provider"
             />

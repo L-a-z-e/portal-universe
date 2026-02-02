@@ -289,7 +289,7 @@ onMounted(() => {
 }
 
 .error-message {
-  color: #dc2626;
+  color: var(--semantic-status-error);
   font-size: 1rem;
   margin-bottom: 1rem;
 }

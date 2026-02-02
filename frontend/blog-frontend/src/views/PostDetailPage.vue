@@ -391,7 +391,7 @@ function handleLikeChanged(liked: boolean, count: number) {
         <p class="text-text-body mb-4">이 게시글을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
         <div class="flex justify-end gap-2">
           <Button variant="secondary" size="sm" @click="showDeleteConfirm = false" :disabled="isDeleting">취소</Button>
-          <Button variant="primary" size="sm" class="bg-status-error hover:bg-red-700" @click="handleDelete" :disabled="isDeleting">
+          <Button variant="danger" size="sm" @click="handleDelete" :disabled="isDeleting">
             {{ isDeleting ? '삭제 중...' : '삭제' }}
           </Button>
         </div>

@@ -303,7 +303,7 @@ onMounted(() => fetchSeries())
       <p class="delete-note">시리즈를 삭제해도 포함된 게시글은 삭제되지 않습니다.</p>
       <div class="modal-actions">
         <Button variant="secondary" @click="showDeleteConfirm = false" :disabled="isSubmitting">취소</Button>
-        <Button variant="primary" class="bg-status-error hover:bg-red-700" @click="handleDelete" :disabled="isSubmitting">
+        <Button variant="danger" @click="handleDelete" :disabled="isSubmitting">
           {{ isSubmitting ? '삭제 중...' : '삭제' }}
         </Button>
       </div>

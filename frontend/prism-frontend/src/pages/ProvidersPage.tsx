@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select } from '@/components/common';
+import { Modal, Button, Input, Select } from '@portal/design-system-react';
 import { useProviderStore } from '@/stores/providerStore';
 import type { CreateProviderRequest, ProviderType } from '@/types';
 
@@ -80,12 +80,12 @@ function ProvidersPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg">{error}</div>
+        <div className="mb-4 p-4 bg-status-error/10 text-status-error rounded-lg">{error}</div>
       )}
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-prism-500" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
         </div>
       ) : providers.length === 0 ? (
         <div className="text-center py-12 bg-bg-subtle rounded-xl">
@@ -114,12 +114,12 @@ function ProvidersPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${provider.isActive ? 'bg-green-100 text-green-700' : 'bg-bg-muted text-text-meta'}`}>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${provider.isActive ? 'bg-status-success/10 text-status-success' : 'bg-bg-muted text-text-meta'}`}>
                     {provider.isActive ? 'Active' : 'Inactive'}
                   </span>
                   <button
                     onClick={() => handleDelete(provider.id)}
-                    className="p-1 text-text-muted hover:text-red-500 rounded-lg hover:bg-bg-hover"
+                    className="p-1 text-text-muted hover:text-status-error rounded-lg hover:bg-bg-hover"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -141,7 +141,7 @@ function ProvidersPage() {
       )}
 
       <Modal
-        isOpen={isModalOpen}
+        open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Add AI Provider"
         size="sm"
@@ -159,7 +159,7 @@ function ProvidersPage() {
           <Select
             label="Provider Type"
             value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value as ProviderType })}
+            onChange={(value) => setFormData({ ...formData, type: value as ProviderType })}
             options={providerTypeOptions}
           />
 
@@ -172,13 +172,15 @@ function ProvidersPage() {
             required
           />
 
-          <Input
-            label="Base URL (Optional)"
-            value={formData.baseUrl || ''}
-            onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-            placeholder="https://api.openai.com/v1"
-            helperText="Leave empty to use default provider URL"
-          />
+          <div>
+            <Input
+              label="Base URL (Optional)"
+              value={formData.baseUrl || ''}
+              onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
+              placeholder="https://api.openai.com/v1"
+            />
+            <p className="mt-1 text-sm text-text-meta">Leave empty to use default provider URL</p>
+          </div>
 
           <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
