@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { PortalBridgeProvider } from '@portal/react-bridge';
 import App from './App';
 import { navigateTo, resetRouter, setAppActive } from './router';
 import './index.css';
@@ -114,7 +115,9 @@ export function mountPrismApp(
     const rerender = () => {
       root.render(
         <React.StrictMode>
-          <App {...getCurrentProps()} />
+          <PortalBridgeProvider>
+            <App {...getCurrentProps()} />
+          </PortalBridgeProvider>
         </React.StrictMode>
       );
     };

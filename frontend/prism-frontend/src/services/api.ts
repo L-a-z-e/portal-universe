@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import type { ErrorDetails } from '@portal/design-types';
+import { isBridgeReady, getAdapter } from '@portal/react-bridge';
 import type {
   ApiResponse,
   Provider,
@@ -57,12 +58,19 @@ class ApiService {
     // Request Interceptor: 토큰 자동 첨부
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        // 1. Portal Shell에서 주입된 토큰 우선 확인 (getter 함수 우선)
-        const portalToken = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__;
-        // 2. localStorage에서 토큰 확인 (standalone 모드)
-        const localToken = localStorage.getItem('access_token');
-
-        const token = portalToken || localToken;
+        // 1. Bridge에서 토큰 가져오기 (우선)
+        let token: string | null | undefined = null;
+        if (isBridgeReady()) {
+          token = getAdapter('auth').getAccessToken?.();
+        }
+        // 2. Fallback: window globals
+        if (!token) {
+          token = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__;
+        }
+        // 3. localStorage (standalone 모드)
+        if (!token) {
+          token = localStorage.getItem('access_token');
+        }
 
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;

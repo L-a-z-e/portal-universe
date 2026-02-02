@@ -22,8 +22,8 @@ const AgentsPage = lazy(() => import('@/pages/AgentsPage'))
 const ProvidersPage = lazy(() => import('@/pages/ProvidersPage'))
 const AppLayout = lazy(() => import('@/components/Layout'))
 
-// Guards (lazy loaded like Shopping pattern)
-const RequireAuth = lazy(() => import('@/components/guards/RequireAuth'))
+// Guards
+import { RequireAuth } from '@portal/react-bridge'
 
 // Loading fallback component
 const PageLoader: React.FC = () => (

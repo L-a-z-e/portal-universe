@@ -6,16 +6,9 @@
  */
 import { useEffect } from 'react';
 import { PrismRouter } from '@/router';
-import { useAuthStore } from '@/stores/authStore';
-import { usePortalTheme } from '@/hooks/usePortalStore';
+import { usePortalTheme } from '@portal/react-bridge';
 import { ToastContainer, useToast } from '@portal/design-system-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
-
-declare global {
-  interface Window {
-    __POWERED_BY_PORTAL_SHELL__?: boolean;
-  }
-}
 
 /**
  * App Props 인터페이스
@@ -120,20 +113,7 @@ function App({
     // ✅ Step 1: data-service="prism" 속성 설정 (CSS 선택자 활성화)
     document.documentElement.setAttribute('data-service', 'prism');
 
-    if (isEmbedded) {
-      // ============================================
-      // Embedded 모드: Portal Shell의 authStore 동기화
-      // themeStore는 usePortalTheme hook이 자동으로 구독
-      // ============================================
-      console.log('[Prism] Embedded mode - syncing authStore...');
-
-      const authStore = useAuthStore.getState();
-      authStore.syncFromPortal().then(() => {
-        console.log('[Prism] Portal Shell authStore synced');
-      }).catch((err) => {
-        console.warn('[Prism] Failed to sync authStore:', err);
-      });
-    }
+    // Auth 동기화는 PortalBridgeProvider + usePortalAuth가 처리
   }, [theme, locale, userRole, isEmbedded, portalTheme.isConnected]);
 
   // ============================================
