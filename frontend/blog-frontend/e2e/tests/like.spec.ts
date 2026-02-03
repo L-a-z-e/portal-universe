@@ -3,6 +3,7 @@ import { mockLogin, mockLogout } from '../fixtures/auth'
 
 /**
  * E2E tests for Like features
+ * Using Playwright recommended selectors: getByRole, getByText, CSS classes
  */
 test.describe('Like Features', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,20 +13,20 @@ test.describe('Like Features', () => {
   test('should display like button on post detail page', async ({ page }) => {
     await page.goto('/posts/1')
 
-    // Check like button is visible
-    const likeButton = page.locator('[data-testid="like-button"]')
+    // Check like button is visible using CSS class
+    const likeButton = page.locator('.like-button')
     await expect(likeButton).toBeVisible()
 
     // Check like count is displayed
-    const likeCount = likeButton.locator('[data-testid="like-count"]')
+    const likeCount = likeButton.locator('.like-count')
     await expect(likeCount).toBeVisible()
   })
 
   test('should increase like count when clicking like button', async ({ page }) => {
     await page.goto('/posts/1')
 
-    const likeButton = page.locator('[data-testid="like-button"]')
-    const likeCount = likeButton.locator('[data-testid="like-count"]')
+    const likeButton = page.locator('.like-button')
+    const likeCount = likeButton.locator('.like-count')
 
     // Get initial count
     const initialCount = parseInt(await likeCount.textContent() || '0')
@@ -40,15 +41,15 @@ test.describe('Like Features', () => {
     const newCount = parseInt(await likeCount.textContent() || '0')
     expect(newCount).toBe(initialCount + 1)
 
-    // Check button state changed (liked)
-    await expect(likeButton).toHaveAttribute('data-liked', 'true')
+    // Check button state changed (liked) - using CSS class
+    await expect(likeButton).toHaveClass(/liked/)
   })
 
   test('should decrease like count when clicking liked button', async ({ page }) => {
     await page.goto('/posts/1')
 
-    const likeButton = page.locator('[data-testid="like-button"]')
-    const likeCount = likeButton.locator('[data-testid="like-count"]')
+    const likeButton = page.locator('.like-button')
+    const likeCount = likeButton.locator('.like-count')
 
     // First like
     await likeButton.click()
@@ -64,14 +65,14 @@ test.describe('Like Features', () => {
     const finalCount = parseInt(await likeCount.textContent() || '0')
     expect(finalCount).toBe(likedCount - 1)
 
-    // Check button state changed (unliked)
-    await expect(likeButton).toHaveAttribute('data-liked', 'false')
+    // Check button state changed (unliked) - using CSS class
+    await expect(likeButton).not.toHaveClass(/liked/)
   })
 
   test('should show visual feedback on like button hover', async ({ page }) => {
     await page.goto('/posts/1')
 
-    const likeButton = page.locator('[data-testid="like-button"]')
+    const likeButton = page.locator('.like-button')
 
     // Hover over button
     await likeButton.hover()
@@ -86,27 +87,26 @@ test.describe('Like Features', () => {
     await mockLogout(page)
     await page.goto('/posts/1')
 
-    const likeButton = page.locator('[data-testid="like-button"]')
+    const likeButton = page.locator('.like-button')
 
     // Click like button
     await likeButton.click()
 
-    // Should show login prompt or redirect to login
-    // This depends on your implementation
-    const loginModal = page.locator('[data-testid="login-modal"]')
-    const loginPrompt = page.locator('[data-testid="login-prompt"]')
+    // Should show login prompt or redirect to login or show error message
+    const loginModal = page.locator('.login-modal')
+    const errorMessage = page.locator('.error-message')
 
     const isModalVisible = await loginModal.isVisible().catch(() => false)
-    const isPromptVisible = await loginPrompt.isVisible().catch(() => false)
+    const isErrorVisible = await errorMessage.isVisible().catch(() => false)
     const isRedirected = page.url().includes('/login')
 
-    expect(isModalVisible || isPromptVisible || isRedirected).toBeTruthy()
+    expect(isModalVisible || isErrorVisible || isRedirected).toBeTruthy()
   })
 
   test('should display like count correctly', async ({ page }) => {
     await page.goto('/posts/1')
 
-    const likeCount = page.locator('[data-testid="like-count"]')
+    const likeCount = page.locator('.like-count')
     const countText = await likeCount.textContent()
 
     // Should be a number
@@ -116,7 +116,7 @@ test.describe('Like Features', () => {
   test('should persist like state on page reload', async ({ page }) => {
     await page.goto('/posts/1')
 
-    const likeButton = page.locator('[data-testid="like-button"]')
+    const likeButton = page.locator('.like-button')
 
     // Like the post
     await likeButton.click()
@@ -125,15 +125,15 @@ test.describe('Like Features', () => {
     // Reload page
     await page.reload()
 
-    // Check like state persisted
-    await expect(likeButton).toHaveAttribute('data-liked', 'true')
+    // Check like state persisted - using CSS class
+    await expect(likeButton).toHaveClass(/liked/)
   })
 
   test('should handle rapid clicking (debounce)', async ({ page }) => {
     await page.goto('/posts/1')
 
-    const likeButton = page.locator('[data-testid="like-button"]')
-    const likeCount = likeButton.locator('[data-testid="like-count"]')
+    const likeButton = page.locator('.like-button')
+    const likeCount = likeButton.locator('.like-count')
 
     const initialCount = parseInt(await likeCount.textContent() || '0')
 

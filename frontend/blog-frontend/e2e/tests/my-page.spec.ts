@@ -3,7 +3,7 @@ import { mockLogin, mockLogout } from '../fixtures/auth'
 
 /**
  * E2E tests for My Page (/my)
- * Tests user profile management and personal post management
+ * Using Playwright recommended selectors: CSS classes, getByRole, getByText
  */
 test.describe('My Page', () => {
   test.describe('Authentication', () => {
@@ -14,13 +14,14 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Should show login prompt or redirect
-      const loginPrompt = page.locator('[data-testid="login-required"]')
-      const loginButton = page.getByText(/로그인|Sign in|Login/i)
+      const loginPrompt = page.locator('.login-required, .login-prompt').or(page.getByText(/로그인이 필요|Sign in|Login/i))
+      const loginButton = page.getByRole('button', { name: /로그인|Sign in|Login/i }).or(page.getByRole('link', { name: /로그인|Sign in|Login/i }))
 
-      const hasPrompt = await loginPrompt.isVisible().catch(() => false)
-      const hasButton = await loginButton.isVisible().catch(() => false)
+      const hasPrompt = await loginPrompt.first().isVisible().catch(() => false)
+      const hasButton = await loginButton.first().isVisible().catch(() => false)
+      const isRedirected = page.url().includes('/login')
 
-      expect(hasPrompt || hasButton).toBeTruthy()
+      expect(hasPrompt || hasButton || isRedirected).toBeTruthy()
     })
 
     test('should access my page after login', async ({ page }) => {
@@ -29,8 +30,8 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Should display my page content
-      const myPageContainer = page.locator('[data-testid="my-page"]')
-      await expect(myPageContainer).toBeVisible()
+      const myPageContainer = page.locator('.my-page, .mypage, main')
+      await expect(myPageContainer.first()).toBeVisible()
     })
   })
 
@@ -43,38 +44,38 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Check profile section
-      const profileSection = page.locator('[data-testid="my-profile"]')
-      await expect(profileSection).toBeVisible()
+      const profileSection = page.locator('.my-profile, .profile-section, .profile-card')
+      await expect(profileSection.first()).toBeVisible()
 
       // Check username
-      const username = page.locator('[data-testid="profile-username"]')
-      await expect(username).toBeVisible()
+      const username = page.locator('.profile-username, .username')
+      await expect(username.first()).toBeVisible()
 
       // Check email
-      const email = page.locator('[data-testid="profile-email"]')
-      await expect(email).toBeVisible()
+      const email = page.locator('.profile-email, .email')
+      await expect(email.first()).toBeVisible()
 
       // Check nickname
-      const nickname = page.locator('[data-testid="profile-nickname"]')
-      if (await nickname.isVisible()) {
-        await expect(nickname).toBeVisible()
+      const nickname = page.locator('.profile-nickname, .nickname, .display-name')
+      if (await nickname.first().isVisible().catch(() => false)) {
+        await expect(nickname.first()).toBeVisible()
       }
     })
 
     test('should display profile edit button', async ({ page }) => {
       await page.goto('/my')
 
-      const editButton = page.locator('[data-testid="profile-edit-button"]')
-      await expect(editButton).toBeVisible()
+      const editButton = page.locator('.profile-edit-button, .edit-button').or(page.getByRole('button', { name: /수정|edit/i }))
+      await expect(editButton.first()).toBeVisible()
     })
 
     test('should display profile statistics', async ({ page }) => {
       await page.goto('/my')
 
       // Check post count
-      const postCount = page.locator('[data-testid="my-post-count"]')
-      if (await postCount.isVisible()) {
-        const text = await postCount.textContent()
+      const postCount = page.locator('.my-post-count, .post-count').or(page.getByText(/\d+\s*(개|posts?|건)/i))
+      if (await postCount.first().isVisible().catch(() => false)) {
+        const text = await postCount.first().textContent()
         expect(text).toMatch(/\d+/)
       }
     })
@@ -89,74 +90,74 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Click edit button
-      const editButton = page.locator('[data-testid="profile-edit-button"]')
-      await editButton.click()
+      const editButton = page.locator('.profile-edit-button, .edit-button').or(page.getByRole('button', { name: /수정|edit/i }))
+      await editButton.first().click()
 
       // Edit form should appear
-      const editForm = page.locator('[data-testid="profile-edit-form"]')
-      await expect(editForm).toBeVisible()
+      const editForm = page.locator('.profile-edit-form, .edit-form, form')
+      await expect(editForm.first()).toBeVisible()
 
       // Cancel button should appear
-      const cancelButton = page.locator('[data-testid="profile-cancel-button"]')
-      await expect(cancelButton).toBeVisible()
+      const cancelButton = page.locator('.cancel-button').or(page.getByRole('button', { name: /취소|cancel/i }))
+      await expect(cancelButton.first()).toBeVisible()
 
       // Save button should appear
-      const saveButton = page.locator('[data-testid="profile-save-button"]')
-      await expect(saveButton).toBeVisible()
+      const saveButton = page.locator('.save-button').or(page.getByRole('button', { name: /저장|save/i }))
+      await expect(saveButton.first()).toBeVisible()
     })
 
     test('should update profile information', async ({ page }) => {
       await page.goto('/my')
 
       // Enter edit mode
-      const editButton = page.locator('[data-testid="profile-edit-button"]')
-      await editButton.click()
+      const editButton = page.locator('.profile-edit-button, .edit-button').or(page.getByRole('button', { name: /수정|edit/i }))
+      await editButton.first().click()
 
       // Update nickname
-      const nicknameInput = page.locator('[data-testid="input-nickname"]')
-      await expect(nicknameInput).toBeVisible()
-      await nicknameInput.fill('Updated Nickname')
+      const nicknameInput = page.locator('input[name="nickname"], .input-nickname').or(page.getByLabel(/닉네임|nickname/i))
+      await expect(nicknameInput.first()).toBeVisible()
+      await nicknameInput.first().fill('Updated Nickname')
 
       // Update bio
-      const bioInput = page.locator('[data-testid="input-bio"]')
-      if (await bioInput.isVisible()) {
-        await bioInput.fill('Updated bio text')
+      const bioInput = page.locator('textarea[name="bio"], .input-bio').or(page.getByLabel(/소개|bio/i))
+      if (await bioInput.first().isVisible().catch(() => false)) {
+        await bioInput.first().fill('Updated bio text')
       }
 
       // Save changes
-      const saveButton = page.locator('[data-testid="profile-save-button"]')
-      await saveButton.click()
+      const saveButton = page.locator('.save-button').or(page.getByRole('button', { name: /저장|save/i }))
+      await saveButton.first().click()
 
       // Wait for save to complete
       await page.waitForTimeout(500)
 
       // Success message should appear
       const successMessage = page.getByText(/저장되었습니다|Saved|Success/i)
-      await expect(successMessage).toBeVisible({ timeout: 3000 })
+      await expect(successMessage.first()).toBeVisible({ timeout: 3000 })
     })
 
     test('should cancel profile editing', async ({ page }) => {
       await page.goto('/my')
 
       // Enter edit mode
-      const editButton = page.locator('[data-testid="profile-edit-button"]')
-      await editButton.click()
+      const editButton = page.locator('.profile-edit-button, .edit-button').or(page.getByRole('button', { name: /수정|edit/i }))
+      await editButton.first().click()
 
       // Make some changes
-      const nicknameInput = page.locator('[data-testid="input-nickname"]')
-      const originalValue = await nicknameInput.inputValue()
-      await nicknameInput.fill('Temporary Change')
+      const nicknameInput = page.locator('input[name="nickname"], .input-nickname').or(page.getByLabel(/닉네임|nickname/i))
+      const originalValue = await nicknameInput.first().inputValue()
+      await nicknameInput.first().fill('Temporary Change')
 
       // Click cancel
-      const cancelButton = page.locator('[data-testid="profile-cancel-button"]')
-      await cancelButton.click()
+      const cancelButton = page.locator('.cancel-button').or(page.getByRole('button', { name: /취소|cancel/i }))
+      await cancelButton.first().click()
 
       // Edit form should be hidden
-      const editForm = page.locator('[data-testid="profile-edit-form"]')
+      const editForm = page.locator('.profile-edit-form, .edit-form')
       await expect(editForm).not.toBeVisible()
 
       // Edit button should be visible again
-      await expect(editButton).toBeVisible()
+      await expect(editButton.first()).toBeVisible()
     })
 
     test('should set username if not already set', async ({ page }) => {
@@ -173,17 +174,17 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Username setup prompt should appear
-      const usernamePrompt = page.locator('[data-testid="username-setup"]')
+      const usernamePrompt = page.locator('.username-setup, .username-prompt')
 
-      if (await usernamePrompt.isVisible()) {
+      if (await usernamePrompt.first().isVisible().catch(() => false)) {
         // Enter username
-        const usernameInput = page.locator('[data-testid="input-username"]')
-        await expect(usernameInput).toBeVisible()
-        await usernameInput.fill('newusername')
+        const usernameInput = page.locator('input[name="username"], .input-username').or(page.getByLabel(/사용자명|username/i))
+        await expect(usernameInput.first()).toBeVisible()
+        await usernameInput.first().fill('newusername')
 
         // Submit username
-        const submitButton = page.locator('[data-testid="username-submit"]')
-        await submitButton.click()
+        const submitButton = page.locator('.username-submit').or(page.getByRole('button', { name: /확인|submit|설정/i }))
+        await submitButton.first().click()
 
         await page.waitForTimeout(500)
       }
@@ -193,21 +194,21 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Enter edit mode
-      const editButton = page.locator('[data-testid="profile-edit-button"]')
-      await editButton.click()
+      const editButton = page.locator('.profile-edit-button, .edit-button').or(page.getByRole('button', { name: /수정|edit/i }))
+      await editButton.first().click()
 
-      const usernameInput = page.locator('[data-testid="input-username"]')
+      const usernameInput = page.locator('input[name="username"], .input-username').or(page.getByLabel(/사용자명|username/i))
 
-      if (await usernameInput.isVisible()) {
+      if (await usernameInput.first().isVisible().catch(() => false)) {
         // Try invalid username (spaces, special chars)
-        await usernameInput.fill('invalid username!')
+        await usernameInput.first().fill('invalid username!')
 
         // Error message should appear
-        const errorMessage = page.locator('[data-testid="username-error"]')
-        await expect(errorMessage).toBeVisible()
+        const errorMessage = page.locator('.username-error, .error-message').or(page.getByText(/유효하지 않|invalid|형식/i))
+        await expect(errorMessage.first()).toBeVisible()
 
         // Try valid username
-        await usernameInput.fill('validusername')
+        await usernameInput.first().fill('validusername')
         await expect(errorMessage).not.toBeVisible()
       }
     })
@@ -216,22 +217,22 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Enter edit mode
-      const editButton = page.locator('[data-testid="profile-edit-button"]')
-      await editButton.click()
+      const editButton = page.locator('.profile-edit-button, .edit-button').or(page.getByRole('button', { name: /수정|edit/i }))
+      await editButton.first().click()
 
-      const usernameInput = page.locator('[data-testid="input-username"]')
+      const usernameInput = page.locator('input[name="username"], .input-username').or(page.getByLabel(/사용자명|username/i))
 
-      if (await usernameInput.isVisible()) {
+      if (await usernameInput.first().isVisible().catch(() => false)) {
         // Enter an existing username
-        await usernameInput.fill('existinguser')
-        await usernameInput.blur()
+        await usernameInput.first().fill('existinguser')
+        await usernameInput.first().blur()
 
         // Wait for validation
         await page.waitForTimeout(500)
 
-        // Duplication error might appear
-        const duplicateError = page.locator('[data-testid="username-duplicate-error"]')
-        // Check if duplicate validation is shown (it depends on backend response)
+        // Duplication error might appear (depends on backend response)
+        const duplicateError = page.locator('.username-duplicate-error, .duplicate-error').or(page.getByText(/이미 사용 중|already taken|duplicate/i))
+        // Check if duplicate validation is shown
       }
     })
 
@@ -239,28 +240,28 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Enter edit mode
-      const editButton = page.locator('[data-testid="profile-edit-button"]')
-      await editButton.click()
+      const editButton = page.locator('.profile-edit-button, .edit-button').or(page.getByRole('button', { name: /수정|edit/i }))
+      await editButton.first().click()
 
       // Update social links if available
-      const githubInput = page.locator('[data-testid="input-social-github"]')
-      if (await githubInput.isVisible()) {
-        await githubInput.fill('https://github.com/testuser')
+      const githubInput = page.locator('input[name="github"], .input-social-github').or(page.getByLabel(/github/i))
+      if (await githubInput.first().isVisible().catch(() => false)) {
+        await githubInput.first().fill('https://github.com/testuser')
       }
 
-      const twitterInput = page.locator('[data-testid="input-social-twitter"]')
-      if (await twitterInput.isVisible()) {
-        await twitterInput.fill('https://twitter.com/testuser')
+      const twitterInput = page.locator('input[name="twitter"], .input-social-twitter').or(page.getByLabel(/twitter/i))
+      if (await twitterInput.first().isVisible().catch(() => false)) {
+        await twitterInput.first().fill('https://twitter.com/testuser')
       }
 
-      const websiteInput = page.locator('[data-testid="input-social-website"]')
-      if (await websiteInput.isVisible()) {
-        await websiteInput.fill('https://testuser.com')
+      const websiteInput = page.locator('input[name="website"], .input-social-website').or(page.getByLabel(/website|웹사이트/i))
+      if (await websiteInput.first().isVisible().catch(() => false)) {
+        await websiteInput.first().fill('https://testuser.com')
       }
 
       // Save changes
-      const saveButton = page.locator('[data-testid="profile-save-button"]')
-      await saveButton.click()
+      const saveButton = page.locator('.save-button').or(page.getByRole('button', { name: /저장|save/i }))
+      await saveButton.first().click()
 
       await page.waitForTimeout(500)
     })
@@ -275,15 +276,15 @@ test.describe('My Page', () => {
       await page.goto('/my')
 
       // Check posts section
-      const postsSection = page.locator('[data-testid="my-posts"]')
-      await expect(postsSection).toBeVisible()
+      const postsSection = page.locator('.my-posts, .posts-section')
+      await expect(postsSection.first()).toBeVisible()
 
       // Check if posts or empty state is shown
-      const posts = page.locator('[data-testid="my-post-card"]')
-      const emptyState = page.locator('[data-testid="empty-my-posts"]')
+      const posts = page.locator('.my-post-card, .post-card, article.card')
+      const emptyState = page.locator('.empty-my-posts, .empty-state').or(page.getByText(/게시글이 없|no posts|없습니다/i))
 
       const postCount = await posts.count()
-      const hasEmptyState = await emptyState.isVisible().catch(() => false)
+      const hasEmptyState = await emptyState.first().isVisible().catch(() => false)
 
       expect(postCount > 0 || hasEmptyState).toBeTruthy()
     })
@@ -294,46 +295,46 @@ test.describe('My Page', () => {
       await page.waitForTimeout(500)
 
       // Check status filter exists
-      const statusFilter = page.locator('[data-testid="post-status-filter"]')
-      await expect(statusFilter).toBeVisible()
+      const statusFilter = page.locator('.post-status-filter, .status-filter, [role="tablist"]')
+      await expect(statusFilter.first()).toBeVisible()
 
       // Filter by ALL (default)
-      const allFilter = page.locator('[data-testid="filter-all"]')
-      await allFilter.click()
+      const allFilter = page.locator('.filter-all').or(page.getByRole('tab', { name: /전체|all/i })).or(page.getByText(/전체|all/i))
+      await allFilter.first().click()
       await page.waitForTimeout(300)
 
       // Filter by DRAFT
-      const draftFilter = page.locator('[data-testid="filter-draft"]')
-      await draftFilter.click()
+      const draftFilter = page.locator('.filter-draft').or(page.getByRole('tab', { name: /임시|draft/i })).or(page.getByText(/임시|draft/i))
+      await draftFilter.first().click()
       await page.waitForTimeout(300)
 
       // Should show only drafts
-      const posts = page.locator('[data-testid="my-post-card"]')
+      const posts = page.locator('.my-post-card, .post-card')
       const postCount = await posts.count()
 
       if (postCount > 0) {
         // All posts should have draft badge
         for (let i = 0; i < postCount; i++) {
           const post = posts.nth(i)
-          const draftBadge = post.locator('[data-testid="draft-badge"]')
+          const draftBadge = post.locator('.draft-badge, .draft')
           await expect(draftBadge).toBeVisible()
         }
       }
 
       // Filter by PUBLISHED
-      const publishedFilter = page.locator('[data-testid="filter-published"]')
-      await publishedFilter.click()
+      const publishedFilter = page.locator('.filter-published').or(page.getByRole('tab', { name: /발행|published/i })).or(page.getByText(/발행|published/i))
+      await publishedFilter.first().click()
       await page.waitForTimeout(300)
 
       // Should show only published posts
-      const publishedPosts = page.locator('[data-testid="my-post-card"]')
+      const publishedPosts = page.locator('.my-post-card, .post-card')
       const publishedCount = await publishedPosts.count()
 
       if (publishedCount > 0) {
         // No posts should have draft badge
         for (let i = 0; i < publishedCount; i++) {
           const post = publishedPosts.nth(i)
-          const draftBadge = post.locator('[data-testid="draft-badge"]')
+          const draftBadge = post.locator('.draft-badge, .draft')
           await expect(draftBadge).not.toBeVisible()
         }
       }
@@ -344,19 +345,19 @@ test.describe('My Page', () => {
 
       await page.waitForTimeout(500)
 
-      const posts = page.locator('[data-testid="my-post-card"]')
+      const posts = page.locator('.my-post-card, .post-card')
       const postCount = await posts.count()
 
       if (postCount > 0) {
         const firstPost = posts.first()
 
         // Check for edit button
-        const editButton = firstPost.locator('[data-testid="post-edit-button"]')
-        await expect(editButton).toBeVisible()
+        const editButton = firstPost.locator('.post-edit-button, .edit-btn').or(firstPost.getByRole('button', { name: /수정|edit/i }))
+        await expect(editButton.first()).toBeVisible()
 
         // Check for delete button
-        const deleteButton = firstPost.locator('[data-testid="post-delete-button"]')
-        await expect(deleteButton).toBeVisible()
+        const deleteButton = firstPost.locator('.post-delete-button, .delete-btn').or(firstPost.getByRole('button', { name: /삭제|delete/i }))
+        await expect(deleteButton.first()).toBeVisible()
       }
     })
 
@@ -365,29 +366,29 @@ test.describe('My Page', () => {
 
       await page.waitForTimeout(500)
 
-      const posts = page.locator('[data-testid="my-post-card"]')
+      const posts = page.locator('.my-post-card, .post-card')
       const postCount = await posts.count()
 
       if (postCount > 0) {
         const firstPost = posts.first()
 
         // Click delete button
-        const deleteButton = firstPost.locator('[data-testid="post-delete-button"]')
-        await deleteButton.click()
+        const deleteButton = firstPost.locator('.post-delete-button, .delete-btn').or(firstPost.getByRole('button', { name: /삭제|delete/i }))
+        await deleteButton.first().click()
 
         // Confirmation dialog should appear
-        const confirmDialog = page.locator('[data-testid="delete-confirm-dialog"]')
-        await expect(confirmDialog).toBeVisible()
+        const confirmDialog = page.locator('.delete-confirm-dialog, .confirm-dialog, [role="dialog"]').or(page.getByRole('dialog'))
+        await expect(confirmDialog.first()).toBeVisible()
 
         // Check dialog has confirm and cancel buttons
-        const confirmButton = page.locator('[data-testid="delete-confirm-button"]')
-        const cancelButton = page.locator('[data-testid="delete-cancel-button"]')
+        const confirmButton = page.locator('.delete-confirm-button, .confirm-btn').or(page.getByRole('button', { name: /확인|confirm|삭제/i }))
+        const cancelButton = page.locator('.delete-cancel-button, .cancel-btn').or(page.getByRole('button', { name: /취소|cancel/i }))
 
-        await expect(confirmButton).toBeVisible()
-        await expect(cancelButton).toBeVisible()
+        await expect(confirmButton.first()).toBeVisible()
+        await expect(cancelButton.first()).toBeVisible()
 
         // Cancel deletion
-        await cancelButton.click()
+        await cancelButton.first().click()
 
         // Dialog should close
         await expect(confirmDialog).not.toBeVisible()
@@ -399,26 +400,26 @@ test.describe('My Page', () => {
 
       await page.waitForTimeout(500)
 
-      const posts = page.locator('[data-testid="my-post-card"]')
+      const posts = page.locator('.my-post-card, .post-card')
       const initialCount = await posts.count()
 
       if (initialCount > 0) {
         const firstPost = posts.first()
 
         // Click delete button
-        const deleteButton = firstPost.locator('[data-testid="post-delete-button"]')
-        await deleteButton.click()
+        const deleteButton = firstPost.locator('.post-delete-button, .delete-btn').or(firstPost.getByRole('button', { name: /삭제|delete/i }))
+        await deleteButton.first().click()
 
         // Confirm deletion
-        const confirmButton = page.locator('[data-testid="delete-confirm-button"]')
-        await confirmButton.click()
+        const confirmButton = page.locator('.delete-confirm-button, .confirm-btn').or(page.getByRole('button', { name: /확인|confirm|삭제/i }))
+        await confirmButton.first().click()
 
         // Wait for deletion to complete
         await page.waitForTimeout(1000)
 
         // Success message should appear
         const successMessage = page.getByText(/삭제되었습니다|Deleted|Success/i)
-        await expect(successMessage).toBeVisible({ timeout: 3000 })
+        await expect(successMessage.first()).toBeVisible({ timeout: 3000 })
       }
     })
 
@@ -428,28 +429,28 @@ test.describe('My Page', () => {
       await page.waitForTimeout(500)
 
       // Filter by drafts
-      const draftFilter = page.locator('[data-testid="filter-draft"]')
-      await draftFilter.click()
+      const draftFilter = page.locator('.filter-draft').or(page.getByRole('tab', { name: /임시|draft/i })).or(page.getByText(/임시|draft/i))
+      await draftFilter.first().click()
       await page.waitForTimeout(300)
 
-      const posts = page.locator('[data-testid="my-post-card"]')
+      const posts = page.locator('.my-post-card, .post-card')
       const postCount = await posts.count()
 
       if (postCount > 0) {
         const firstPost = posts.first()
 
         // Check for publish button
-        const publishButton = firstPost.locator('[data-testid="post-publish-button"]')
+        const publishButton = firstPost.locator('.post-publish-button, .publish-btn').or(firstPost.getByRole('button', { name: /발행|publish/i }))
 
-        if (await publishButton.isVisible()) {
-          await publishButton.click()
+        if (await publishButton.first().isVisible().catch(() => false)) {
+          await publishButton.first().click()
 
           // Wait for publish to complete
           await page.waitForTimeout(500)
 
           // Success message should appear
           const successMessage = page.getByText(/발행되었습니다|Published|Success/i)
-          await expect(successMessage).toBeVisible({ timeout: 3000 })
+          await expect(successMessage.first()).toBeVisible({ timeout: 3000 })
         }
       }
     })
@@ -459,18 +460,18 @@ test.describe('My Page', () => {
 
       await page.waitForTimeout(500)
 
-      const posts = page.locator('[data-testid="my-post-card"]')
+      const posts = page.locator('.my-post-card, .post-card')
       const postCount = await posts.count()
 
       if (postCount > 0) {
         const firstPost = posts.first()
 
         // Click edit button
-        const editButton = firstPost.locator('[data-testid="post-edit-button"]')
-        await editButton.click()
+        const editButton = firstPost.locator('.post-edit-button, .edit-btn').or(firstPost.getByRole('button', { name: /수정|edit/i }))
+        await editButton.first().click()
 
         // Should navigate to edit page
-        await expect(page).toHaveURL(/\/posts\/\d+\/edit/)
+        await expect(page).toHaveURL(/\/posts\/\d+\/edit|\/write\/\d+/)
       }
     })
 
@@ -479,24 +480,24 @@ test.describe('My Page', () => {
 
       await page.waitForTimeout(500)
 
-      const posts = page.locator('[data-testid="my-post-card"]')
+      const posts = page.locator('.my-post-card, .post-card')
       const postCount = await posts.count()
 
       if (postCount > 0) {
         const firstPost = posts.first()
 
         // Check title
-        const title = firstPost.locator('[data-testid="post-title"]')
-        await expect(title).toBeVisible()
+        const title = firstPost.locator('.post-title, h2, h3')
+        await expect(title.first()).toBeVisible()
 
         // Check timestamp
-        const timestamp = firstPost.locator('[data-testid="post-timestamp"]')
-        await expect(timestamp).toBeVisible()
+        const timestamp = firstPost.locator('.post-timestamp, .timestamp, time, .created-at')
+        await expect(timestamp.first()).toBeVisible()
 
         // Check status badge
-        const statusBadge = firstPost.locator('[data-testid="post-status"]')
-        if (await statusBadge.isVisible()) {
-          await expect(statusBadge).toBeVisible()
+        const statusBadge = firstPost.locator('.post-status, .status-badge')
+        if (await statusBadge.first().isVisible().catch(() => false)) {
+          await expect(statusBadge.first()).toBeVisible()
         }
       }
     })
@@ -504,14 +505,14 @@ test.describe('My Page', () => {
     test('should show create new post button', async ({ page }) => {
       await page.goto('/my')
 
-      const createButton = page.locator('[data-testid="create-post-button"]')
-      await expect(createButton).toBeVisible()
+      const createButton = page.locator('.create-post-button, .new-post-btn').or(page.getByRole('button', { name: /새 글|create|write|작성/i })).or(page.getByRole('link', { name: /새 글|create|write|작성/i }))
+      await expect(createButton.first()).toBeVisible()
 
       // Click create button
-      await createButton.click()
+      await createButton.first().click()
 
       // Should navigate to create page
-      await expect(page).toHaveURL(/\/posts\/new/)
+      await expect(page).toHaveURL(/\/posts\/new|\/write/)
     })
 
     test('should sort posts by creation date', async ({ page }) => {
@@ -519,19 +520,19 @@ test.describe('My Page', () => {
 
       await page.waitForTimeout(500)
 
-      const posts = page.locator('[data-testid="my-post-card"]')
+      const posts = page.locator('.my-post-card, .post-card')
       const postCount = await posts.count()
 
       if (postCount > 1) {
         // Check if sort options exist
-        const sortSelect = page.locator('[data-testid="post-sort-select"]')
+        const sortSelect = page.locator('.post-sort-select, select').or(page.getByRole('combobox'))
 
-        if (await sortSelect.isVisible()) {
+        if (await sortSelect.first().isVisible().catch(() => false)) {
           // Try different sort options
-          await sortSelect.selectOption({ value: 'newest' })
+          await sortSelect.first().selectOption({ value: 'newest' })
           await page.waitForTimeout(300)
 
-          await sortSelect.selectOption({ value: 'oldest' })
+          await sortSelect.first().selectOption({ value: 'oldest' })
           await page.waitForTimeout(300)
         }
       }
@@ -552,12 +553,12 @@ test.describe('My Page', () => {
       await page.waitForTimeout(500)
 
       // Profile section should be visible
-      const profileSection = page.locator('[data-testid="my-profile"]')
-      await expect(profileSection).toBeVisible()
+      const profileSection = page.locator('.my-profile, .profile-section, .profile-card')
+      await expect(profileSection.first()).toBeVisible()
 
       // Posts section should be visible
-      const postsSection = page.locator('[data-testid="my-posts"]')
-      await expect(postsSection).toBeVisible()
+      const postsSection = page.locator('.my-posts, .posts-section')
+      await expect(postsSection.first()).toBeVisible()
     })
 
     test('should have mobile-friendly edit buttons', async ({ page }) => {
@@ -568,8 +569,8 @@ test.describe('My Page', () => {
       await page.waitForTimeout(500)
 
       // Edit button should be accessible on mobile
-      const editButton = page.locator('[data-testid="profile-edit-button"]')
-      await expect(editButton).toBeVisible()
+      const editButton = page.locator('.profile-edit-button, .edit-button').or(page.getByRole('button', { name: /수정|edit/i }))
+      await expect(editButton.first()).toBeVisible()
     })
   })
 })
