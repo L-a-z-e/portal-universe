@@ -57,26 +57,26 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Page<NotificationResponse> getNotifications(Long userId, Pageable pageable) {
+    public Page<NotificationResponse> getNotifications(String userId, Pageable pageable) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
                 .map(NotificationResponse::from);
     }
 
     @Override
-    public Page<NotificationResponse> getUnreadNotifications(Long userId, Pageable pageable) {
+    public Page<NotificationResponse> getUnreadNotifications(String userId, Pageable pageable) {
         return notificationRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
                 userId, NotificationStatus.UNREAD, pageable)
                 .map(NotificationResponse::from);
     }
 
     @Override
-    public long getUnreadCount(Long userId) {
+    public long getUnreadCount(String userId) {
         return notificationRepository.countByUserIdAndStatus(userId, NotificationStatus.UNREAD);
     }
 
     @Override
     @Transactional
-    public NotificationResponse markAsRead(Long notificationId, Long userId) {
+    public NotificationResponse markAsRead(Long notificationId, String userId) {
         Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
                 .orElseThrow(() -> new CustomBusinessException(NotificationErrorCode.NOTIFICATION_NOT_FOUND));
 
@@ -86,13 +86,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public int markAllAsRead(Long userId) {
+    public int markAllAsRead(String userId) {
         return notificationRepository.markAllAsRead(userId, NotificationStatus.READ, LocalDateTime.now());
     }
 
     @Override
     @Transactional
-    public void delete(Long notificationId, Long userId) {
+    public void delete(Long notificationId, String userId) {
         notificationRepository.deleteByUserIdAndId(userId, notificationId);
     }
 }

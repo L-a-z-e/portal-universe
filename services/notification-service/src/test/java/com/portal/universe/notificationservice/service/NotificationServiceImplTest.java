@@ -34,13 +34,14 @@ class NotificationServiceImplTest {
     @DisplayName("should_createNotification_when_validCommand")
     void should_createNotification_when_validCommand() {
         // given
+        String userId = "550e8400-e29b-41d4-a716-446655440000";
         CreateNotificationCommand command = new CreateNotificationCommand(
-                1L, NotificationType.ORDER_CREATED, "주문 접수", "주문이 접수되었습니다",
+                userId, NotificationType.ORDER_CREATED, "주문 접수", "주문이 접수되었습니다",
                 "/orders/123", "ORD-123", "order"
         );
 
         Notification savedNotification = Notification.builder()
-                .userId(1L)
+                .userId(userId)
                 .type(NotificationType.ORDER_CREATED)
                 .title("주문 접수")
                 .message("주문이 접수되었습니다")
@@ -50,7 +51,7 @@ class NotificationServiceImplTest {
                 .build();
 
         given(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
-                "ORD-123", "order", 1L)).willReturn(false);
+                "ORD-123", "order", userId)).willReturn(false);
         given(notificationRepository.save(any(Notification.class))).willReturn(savedNotification);
 
         // when
@@ -58,7 +59,7 @@ class NotificationServiceImplTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getUserId()).isEqualTo(1L);
+        assertThat(result.getUserId()).isEqualTo(userId);
         assertThat(result.getType()).isEqualTo(NotificationType.ORDER_CREATED);
         verify(notificationRepository).save(any(Notification.class));
     }
@@ -67,13 +68,14 @@ class NotificationServiceImplTest {
     @DisplayName("should_skipDuplicate_when_sameReferenceExists")
     void should_skipDuplicate_when_sameReferenceExists() {
         // given
+        String userId = "550e8400-e29b-41d4-a716-446655440000";
         CreateNotificationCommand command = new CreateNotificationCommand(
-                1L, NotificationType.ORDER_CREATED, "주문 접수", "주문이 접수되었습니다",
+                userId, NotificationType.ORDER_CREATED, "주문 접수", "주문이 접수되었습니다",
                 "/orders/123", "ORD-123", "order"
         );
 
         Notification existingNotification = Notification.builder()
-                .userId(1L)
+                .userId(userId)
                 .type(NotificationType.ORDER_CREATED)
                 .title("주문 접수")
                 .message("주문이 접수되었습니다")
@@ -82,9 +84,9 @@ class NotificationServiceImplTest {
                 .build();
 
         given(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
-                "ORD-123", "order", 1L)).willReturn(true);
+                "ORD-123", "order", userId)).willReturn(true);
         given(notificationRepository.findByReferenceIdAndReferenceTypeAndUserId(
-                "ORD-123", "order", 1L)).willReturn(Optional.of(existingNotification));
+                "ORD-123", "order", userId)).willReturn(Optional.of(existingNotification));
 
         // when
         Notification result = notificationService.create(command);
@@ -98,13 +100,14 @@ class NotificationServiceImplTest {
     @DisplayName("should_skipIdempotencyCheck_when_referenceIdIsNull")
     void should_skipIdempotencyCheck_when_referenceIdIsNull() {
         // given
+        String userId = "550e8400-e29b-41d4-a716-446655440000";
         CreateNotificationCommand command = new CreateNotificationCommand(
-                1L, NotificationType.SYSTEM, "환영합니다!", "가입 감사합니다",
+                userId, NotificationType.SYSTEM, "환영합니다!", "가입 감사합니다",
                 null, null, null
         );
 
         Notification savedNotification = Notification.builder()
-                .userId(1L)
+                .userId(userId)
                 .type(NotificationType.SYSTEM)
                 .title("환영합니다!")
                 .message("가입 감사합니다")
@@ -126,11 +129,12 @@ class NotificationServiceImplTest {
     @DisplayName("should_returnUnreadCount_when_userHasNotifications")
     void should_returnUnreadCount_when_userHasNotifications() {
         // given
-        given(notificationRepository.countByUserIdAndStatus(1L, NotificationStatus.UNREAD))
+        String userId = "550e8400-e29b-41d4-a716-446655440000";
+        given(notificationRepository.countByUserIdAndStatus(userId, NotificationStatus.UNREAD))
                 .willReturn(5L);
 
         // when
-        long count = notificationService.getUnreadCount(1L);
+        long count = notificationService.getUnreadCount(userId);
 
         // then
         assertThat(count).isEqualTo(5L);

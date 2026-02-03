@@ -1,10 +1,11 @@
 package com.portal.universe.notificationservice.consumer;
 
 import com.portal.universe.common.event.UserSignedUpEvent;
+import com.portal.universe.event.shopping.OrderCreatedEvent;
+import com.portal.universe.notificationservice.converter.NotificationEventConverter;
 import com.portal.universe.notificationservice.domain.Notification;
 import com.portal.universe.notificationservice.domain.NotificationType;
 import com.portal.universe.notificationservice.dto.CreateNotificationCommand;
-import com.portal.universe.notificationservice.dto.NotificationEvent;
 import com.portal.universe.notificationservice.service.NotificationPushService;
 import com.portal.universe.notificationservice.service.NotificationService;
 import org.junit.jupiter.api.DisplayName;
@@ -16,11 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationConsumerTest {
@@ -31,6 +30,9 @@ class NotificationConsumerTest {
     @Mock
     private NotificationPushService pushService;
 
+    @Mock
+    private NotificationEventConverter converter;
+
     @InjectMocks
     private NotificationConsumer notificationConsumer;
 
@@ -38,10 +40,11 @@ class NotificationConsumerTest {
     @DisplayName("should_createWelcomeNotification_when_userSignup")
     void should_createWelcomeNotification_when_userSignup() {
         // given
-        UserSignedUpEvent event = new UserSignedUpEvent("1", "hong@test.com", "홍길동");
+        String userId = "550e8400-e29b-41d4-a716-446655440000";
+        UserSignedUpEvent event = new UserSignedUpEvent(userId, "hong@test.com", "홍길동");
 
         Notification notification = Notification.builder()
-                .userId(1L)
+                .userId(userId)
                 .type(NotificationType.SYSTEM)
                 .title("환영합니다!")
                 .message("홍길동님, Portal Universe에 가입해주셔서 감사합니다.")
@@ -59,7 +62,7 @@ class NotificationConsumerTest {
         verify(notificationService).create(captor.capture());
 
         CreateNotificationCommand captured = captor.getValue();
-        assertThat(captured.userId()).isEqualTo(1L);
+        assertThat(captured.userId()).isEqualTo(userId);
         assertThat(captured.type()).isEqualTo(NotificationType.SYSTEM);
         assertThat(captured.title()).isEqualTo("환영합니다!");
         assertThat(captured.message()).contains("홍길동");
@@ -68,86 +71,36 @@ class NotificationConsumerTest {
     }
 
     @Test
-    @DisplayName("should_createNotification_when_shoppingEvent")
-    void should_createNotification_when_shoppingEvent() {
+    @DisplayName("should_createNotification_when_orderCreated")
+    void should_createNotification_when_orderCreated() {
         // given
-        NotificationEvent event = NotificationEvent.builder()
-                .userId(1L)
-                .type(NotificationType.ORDER_CREATED)
-                .title("주문 접수")
-                .message("주문이 접수되었습니다")
-                .referenceId("ORD-001")
-                .referenceType("order")
-                .build();
+        String userId = "550e8400-e29b-41d4-a716-446655440000";
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                "ORD-001", userId, new java.math.BigDecimal("50000"), 2, java.util.List.of(), java.time.LocalDateTime.now()
+        );
+
+        CreateNotificationCommand cmd = new CreateNotificationCommand(
+                userId, NotificationType.ORDER_CREATED, "주문이 접수되었습니다",
+                "2개 상품, 50,000원 결제 대기중", "/shopping/orders/ORD-001", "ORD-001", "order"
+        );
 
         Notification notification = Notification.builder()
-                .userId(1L)
+                .userId(userId)
                 .type(NotificationType.ORDER_CREATED)
-                .title("주문 접수")
-                .message("주문이 접수되었습니다")
+                .title("주문이 접수되었습니다")
+                .message("2개 상품, 50,000원 결제 대기중")
                 .build();
 
+        given(converter.convert(event)).willReturn(cmd);
         given(notificationService.create(any(CreateNotificationCommand.class)))
                 .willReturn(notification);
 
         // when
-        notificationConsumer.handleShoppingEvent(event);
+        notificationConsumer.handleOrderCreated(event);
 
         // then
-        verify(notificationService).create(any(CreateNotificationCommand.class));
+        verify(converter).convert(event);
+        verify(notificationService).create(cmd);
         verify(pushService).push(notification);
-    }
-
-    @Test
-    @DisplayName("should_throwException_when_invalidEvent")
-    void should_throwException_when_invalidEvent() {
-        // given - userId가 null인 이벤트
-        NotificationEvent event = NotificationEvent.builder()
-                .userId(null)
-                .type(NotificationType.ORDER_CREATED)
-                .title("주문")
-                .message("테스트")
-                .build();
-
-        // when & then
-        assertThatThrownBy(() -> notificationConsumer.handleShoppingEvent(event))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("userId");
-
-        verify(notificationService, never()).create(any());
-    }
-
-    @Test
-    @DisplayName("should_useDefaultMessage_when_titleIsBlank")
-    void should_useDefaultMessage_when_titleIsBlank() {
-        // given
-        NotificationEvent event = NotificationEvent.builder()
-                .userId(1L)
-                .type(NotificationType.ORDER_CREATED)
-                .title("")
-                .message("")
-                .build();
-
-        Notification notification = Notification.builder()
-                .userId(1L)
-                .type(NotificationType.ORDER_CREATED)
-                .title(NotificationType.ORDER_CREATED.getDefaultMessage())
-                .message(NotificationType.ORDER_CREATED.getDefaultMessage())
-                .build();
-
-        given(notificationService.create(any(CreateNotificationCommand.class)))
-                .willReturn(notification);
-
-        // when
-        notificationConsumer.handleShoppingEvent(event);
-
-        // then
-        ArgumentCaptor<CreateNotificationCommand> captor =
-                ArgumentCaptor.forClass(CreateNotificationCommand.class);
-        verify(notificationService).create(captor.capture());
-
-        CreateNotificationCommand captured = captor.getValue();
-        assertThat(captured.title()).isEqualTo(NotificationType.ORDER_CREATED.getDefaultMessage());
-        assertThat(captured.message()).isEqualTo(NotificationType.ORDER_CREATED.getDefaultMessage());
     }
 }

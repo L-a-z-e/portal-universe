@@ -29,6 +29,17 @@ public enum NotificationType {
     TIMEDEAL_STARTING("타임딜이 곧 시작됩니다"),
     TIMEDEAL_STARTED("타임딜이 시작되었습니다"),
 
+    // Blog
+    BLOG_LIKE("회원님의 글에 좋아요가 눌렸습니다"),
+    BLOG_COMMENT("새 댓글이 달렸습니다"),
+    BLOG_REPLY("답글이 달렸습니다"),
+    BLOG_FOLLOW("새 팔로워가 생겼습니다"),
+    BLOG_NEW_POST("새 글이 작성되었습니다"),
+
+    // Prism (AI Service)
+    PRISM_TASK_COMPLETED("AI 작업이 완료되었습니다"),
+    PRISM_TASK_FAILED("AI 작업이 실패했습니다"),
+
     // System
     SYSTEM("시스템 알림");
 

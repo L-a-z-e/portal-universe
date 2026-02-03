@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class NotificationEvent {
-    private Long userId;
+    private String userId;
     private NotificationType type;
     private String title;
     private String message;
@@ -22,8 +22,8 @@ public class NotificationEvent {
     private String referenceType;
 
     public void validate() {
-        if (userId == null || userId <= 0) {
-            throw new IllegalArgumentException("userId is required and must be positive");
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("userId is required");
         }
         if (type == null) {
             throw new IllegalArgumentException("notification type is required");

@@ -25,7 +25,7 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getNotifications(
-            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Id") String userId,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(
                 notificationService.getNotifications(userId, pageable)));
@@ -33,7 +33,7 @@ public class NotificationController {
 
     @GetMapping("/unread")
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getUnreadNotifications(
-            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Id") String userId,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(
                 notificationService.getUnreadNotifications(userId, pageable)));
@@ -41,7 +41,7 @@ public class NotificationController {
 
     @GetMapping("/unread/count")
     public ResponseEntity<ApiResponse<Long>> getUnreadCount(
-            @RequestHeader("X-User-Id") Long userId) {
+            @RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(ApiResponse.success(
                 notificationService.getUnreadCount(userId)));
     }
@@ -49,14 +49,14 @@ public class NotificationController {
     @PutMapping("/{id}/read")
     public ResponseEntity<ApiResponse<NotificationResponse>> markAsRead(
             @PathVariable Long id,
-            @RequestHeader("X-User-Id") Long userId) {
+            @RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(ApiResponse.success(
                 notificationService.markAsRead(id, userId)));
     }
 
     @PutMapping("/read-all")
     public ResponseEntity<ApiResponse<Integer>> markAllAsRead(
-            @RequestHeader("X-User-Id") Long userId) {
+            @RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(ApiResponse.success(
                 notificationService.markAllAsRead(userId)));
     }
@@ -64,7 +64,7 @@ public class NotificationController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long id,
-            @RequestHeader("X-User-Id") Long userId) {
+            @RequestHeader("X-User-Id") String userId) {
         notificationService.delete(id, userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }

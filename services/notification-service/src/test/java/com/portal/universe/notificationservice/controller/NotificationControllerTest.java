@@ -35,12 +35,13 @@ class NotificationControllerTest {
     private NotificationController notificationController;
 
     private NotificationResponse sampleResponse;
+    private static final String TEST_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
 
     @BeforeEach
     void setUp() {
         sampleResponse = NotificationResponse.builder()
                 .id(1L)
-                .userId(1L)
+                .userId(TEST_USER_ID)
                 .type(NotificationType.ORDER_CREATED)
                 .title("주문 접수")
                 .message("주문이 접수되었습니다")
@@ -56,12 +57,12 @@ class NotificationControllerTest {
     @DisplayName("should_returnNotifications_when_validUser")
     void should_returnNotifications_when_validUser() {
         // given
-        given(notificationService.getNotifications(eq(1L), any(Pageable.class)))
+        given(notificationService.getNotifications(eq(TEST_USER_ID), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(sampleResponse)));
 
         // when
         ResponseEntity<ApiResponse<org.springframework.data.domain.Page<NotificationResponse>>> result =
-                notificationController.getNotifications(1L, PageRequest.of(0, 20));
+                notificationController.getNotifications(TEST_USER_ID, PageRequest.of(0, 20));
 
         // then
         assertThat(result.getStatusCode().value()).isEqualTo(200);
@@ -75,10 +76,10 @@ class NotificationControllerTest {
     @DisplayName("should_returnUnreadCount_when_validUser")
     void should_returnUnreadCount_when_validUser() {
         // given
-        given(notificationService.getUnreadCount(1L)).willReturn(5L);
+        given(notificationService.getUnreadCount(TEST_USER_ID)).willReturn(5L);
 
         // when
-        ResponseEntity<ApiResponse<Long>> result = notificationController.getUnreadCount(1L);
+        ResponseEntity<ApiResponse<Long>> result = notificationController.getUnreadCount(TEST_USER_ID);
 
         // then
         assertThat(result.getBody()).isNotNull();
@@ -89,10 +90,10 @@ class NotificationControllerTest {
     @DisplayName("should_markAllAsRead_when_validUser")
     void should_markAllAsRead_when_validUser() {
         // given
-        given(notificationService.markAllAsRead(1L)).willReturn(3);
+        given(notificationService.markAllAsRead(TEST_USER_ID)).willReturn(3);
 
         // when
-        ResponseEntity<ApiResponse<Integer>> result = notificationController.markAllAsRead(1L);
+        ResponseEntity<ApiResponse<Integer>> result = notificationController.markAllAsRead(TEST_USER_ID);
 
         // then
         assertThat(result.getBody()).isNotNull();
@@ -103,7 +104,7 @@ class NotificationControllerTest {
     @DisplayName("should_deleteNotification_when_validUser")
     void should_deleteNotification_when_validUser() {
         // when
-        ResponseEntity<ApiResponse<Void>> result = notificationController.delete(1L, 1L);
+        ResponseEntity<ApiResponse<Void>> result = notificationController.delete(1L, TEST_USER_ID);
 
         // then
         assertThat(result.getStatusCode().value()).isEqualTo(200);

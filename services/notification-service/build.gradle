@@ -28,7 +28,10 @@ dependencies {
     // =======================================
     // Internal Libraries
     // =======================================
-    implementation project(':services:common-library') // 공통 이벤트 DTO, 예외 처리 등
+    implementation project(':services:common-library') // 공통 예외 처리, 응답 형식 등
+    implementation project(':services:shopping-events') // Shopping 도메인 이벤트
+    implementation project(':services:blog-events') // Blog 도메인 이벤트
+    implementation project(':services:prism-events') // Prism 도메인 이벤트
 
     // =======================================
     // Web

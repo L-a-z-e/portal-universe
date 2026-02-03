@@ -10,15 +10,15 @@ public interface NotificationService {
 
     Notification create(CreateNotificationCommand command);
 
-    Page<NotificationResponse> getNotifications(Long userId, Pageable pageable);
+    Page<NotificationResponse> getNotifications(String userId, Pageable pageable);
 
-    Page<NotificationResponse> getUnreadNotifications(Long userId, Pageable pageable);
+    Page<NotificationResponse> getUnreadNotifications(String userId, Pageable pageable);
 
-    long getUnreadCount(Long userId);
+    long getUnreadCount(String userId);
 
-    NotificationResponse markAsRead(Long notificationId, Long userId);
+    NotificationResponse markAsRead(Long notificationId, String userId);
 
-    int markAllAsRead(Long userId);
+    int markAllAsRead(String userId);
 
-    void delete(Long notificationId, Long userId);
+    void delete(Long notificationId, String userId);
 }

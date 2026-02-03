@@ -3,7 +3,7 @@ package com.portal.universe.notificationservice.dto;
 import com.portal.universe.notificationservice.domain.NotificationType;
 
 public record CreateNotificationCommand(
-    Long userId,
+    String userId,
     NotificationType type,
     String title,
     String message,
