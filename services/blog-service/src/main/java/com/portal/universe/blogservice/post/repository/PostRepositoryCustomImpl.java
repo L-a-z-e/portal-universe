@@ -20,8 +20,10 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -365,6 +367,10 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                         .and("status").is(PostStatus.PUBLISHED.name())),
                 Post.class);
 
+        // MongoDB의 Date를 LocalDateTime으로 변환
+        LocalDateTime firstPostDate = toLocalDateTime(stats.get("firstPostDate", Date.class));
+        LocalDateTime lastPostDate = toLocalDateTime(stats.get("lastPostDate", Date.class));
+
         return new AuthorStats(
                 authorId,
                 stats.getString("authorName"),
@@ -372,8 +378,15 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                 publishedPosts,
                 stats.get("totalViews", Number.class).longValue(),
                 stats.get("totalLikes", Number.class).longValue(),
-                stats.get("firstPostDate", LocalDateTime.class),
-                stats.get("lastPostDate", LocalDateTime.class)
+                firstPostDate,
+                lastPostDate
         );
+    }
+
+    /**
+     * MongoDB Date를 LocalDateTime으로 변환
+     */
+    private LocalDateTime toLocalDateTime(Date date) {
+        return date != null ? date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime() : null;
     }
 }
