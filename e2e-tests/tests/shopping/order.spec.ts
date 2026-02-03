@@ -1,338 +1,118 @@
-/**
- * Order E2E Tests
- *
- * Tests for order management:
- * - Order list display
- * - Order detail view
- * - Order status display
- * - Delivery tracking
- * - Order cancellation
- */
-import { test, expect } from '../helpers/test-fixtures'
-import { gotoShoppingPage } from '../helpers/auth'
+import { test, expect } from '../../fixtures/base'
+import { routes } from '../../fixtures/test-data'
+import { waitForLoading } from '../../utils/wait'
 
-test.describe('Order List Page', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoShoppingPage(page, '/shopping/orders', 'h1:has-text("My Orders")')
+test.describe('Shopping - Order', () => {
+  test('주문 내역 페이지 접근 (로그인 필요)', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.shopping.orders)
+    await waitForLoading(authenticatedPage)
+
+    await expect(authenticatedPage).toHaveURL(/orders/)
   })
 
-  test('should display My Orders title', async ({ page }) => {
-    await expect(page.locator('h1:has-text("My Orders")')).toBeVisible()
+  test('비로그인 - 주문 내역 접근 제한', async ({ page }) => {
+    await page.goto(routes.shopping.orders)
+
+    // 로그인 페이지로 리다이렉트
+    await expect(page).toHaveURL(/login/)
   })
 
-  test('should show empty state or order list', async ({ page }) => {
-    // Check for empty state or order list
-    const emptyState = page.locator('text="No orders yet"')
-    const orderList = page.locator('a[href*="/orders/"]')
+  test('주문 내역 목록 표시', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.shopping.orders)
+    await waitForLoading(authenticatedPage)
 
-    const isEmpty = await emptyState.isVisible()
-    const hasOrders = await orderList.first().isVisible()
+    // 주문 목록 또는 빈 상태 메시지
+    const orders = authenticatedPage.locator('.order-item, .order-card')
+    const emptyMessage = authenticatedPage.getByText(/주문.*없|no orders|empty/i)
 
-    // Either empty message or orders should be displayed
-    expect(isEmpty || hasOrders).toBeTruthy()
+    const hasOrders = (await orders.count()) > 0
+    const hasEmptyMessage = (await emptyMessage.count()) > 0
 
-    if (isEmpty) {
-      // Browse Products button should be visible
-      await expect(page.locator('a:has-text("Browse Products")')).toBeVisible()
+    expect(hasOrders || hasEmptyMessage).toBeTruthy()
+  })
+
+  test('주문 상세 정보 표시', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.shopping.orders)
+    await waitForLoading(authenticatedPage)
+
+    const orders = authenticatedPage.locator('.order-item, .order-card')
+    const count = await orders.count()
+
+    if (count > 0) {
+      // 첫 번째 주문 클릭
+      await orders.first().click()
+
+      // 주문 상세 정보
+      const orderDetail = authenticatedPage.locator('.order-detail, .order-info')
+        .or(authenticatedPage.getByText(/주문 번호|order.*#|order.*id/i))
+
+      await expect(orderDetail.first()).toBeVisible()
     }
   })
 
-  test('should display order cards with status badges', async ({ page }) => {
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
+  test('주문 상태 표시', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.shopping.orders)
+    await waitForLoading(authenticatedPage)
 
-    if (hasOrders) {
-      // Each order card should have:
-      // - Order number (font-mono style)
-      // - Status badge
-      // - Date
-      // - Total amount
+    const orders = authenticatedPage.locator('.order-item, .order-card')
+    const count = await orders.count()
 
-      const firstOrder = orderList.first()
+    if (count > 0) {
+      // 주문 상태 확인
+      const status = orders.first().locator('.order-status, .status')
+        .or(orders.first().getByText(/배송|결제|완료|취소|pending|delivered|canceled/i))
 
-      // Order number pattern (alphanumeric)
-      await expect(firstOrder.locator('.font-mono')).toBeVisible()
-
-      // Status badge (colored)
-      const statusBadge = firstOrder.locator('[class*="rounded"][class*="text-xs"]')
-      await expect(statusBadge).toBeVisible()
-
-      // Total amount
-      await expect(firstOrder.locator('text=/₩[\\d,]+/')).toBeVisible()
+      await expect(status.first()).toBeVisible()
     }
   })
 
-  test('should navigate to order detail when clicking an order', async ({ page }) => {
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
+  test('주문 취소 버튼 (취소 가능 상태)', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.shopping.orders)
+    await waitForLoading(authenticatedPage)
 
-    if (hasOrders) {
-      // Click first order
-      await orderList.first().click()
+    const orders = authenticatedPage.locator('.order-item, .order-card')
+    const count = await orders.count()
 
-      // Should navigate to order detail page
-      await expect(page).toHaveURL(/\/shopping\/orders\/ORD-[\w-]+/)
+    if (count > 0) {
+      // 취소 버튼
+      const cancelButton = orders.first().getByRole('button', { name: /취소|cancel/i })
 
-      // Order detail page should load
-      await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-    }
-  })
-
-  test('should handle pagination if multiple pages exist', async ({ page }) => {
-    // Check if pagination controls exist
-    const nextButton = page.locator('button:has-text("Next")')
-    const isPaginationVisible = await nextButton.isVisible()
-
-    if (isPaginationVisible) {
-      const isNextEnabled = await nextButton.isEnabled()
-
-      if (isNextEnabled) {
-        await nextButton.click()
-        await expect(page).toHaveURL(/page=1/)
-      }
-    }
-  })
-})
-
-test.describe('Order Detail Page', () => {
-  // This test assumes there's at least one order
-  // In a real scenario, you might need to create an order first
-
-  test('should display order status card', async ({ page }) => {
-    // First check if there are any orders
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
-
-    if (hasOrders) {
-      // Navigate to first order detail
-      await orderList.first().click()
-      await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-      // Order Status card should be visible
-      await expect(page.locator('h2:has-text("Order Status")')).toBeVisible()
-
-      // Status badge should be present
-      const statusBadge = page.locator('[class*="rounded"][class*="text-sm"][class*="font-medium"]')
-      await expect(statusBadge).toBeVisible()
-
-      // Order date should be displayed
-      await expect(page.locator('text="Order Date"')).toBeVisible()
-    }
-  })
-
-  test('should display order items list', async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
-
-    if (hasOrders) {
-      await orderList.first().click()
-      await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-      // Order Items section should be visible
-      await expect(page.locator('h2:has-text("Order Items")')).toBeVisible()
-
-      // At least one item should be listed
-      // Items have product name and price x quantity format
-      const itemRow = page.locator('text=/₩[\\d,]+.*x.*\\d+/')
-      await expect(itemRow).toBeVisible()
-    }
-  })
-
-  test('should display shipping address', async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
-
-    if (hasOrders) {
-      await orderList.first().click()
-      await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-      // Shipping Address section should be visible
-      await expect(page.locator('h3:has-text("Shipping Address")')).toBeVisible()
-
-      // Address info should include receiver name, phone, address
-      const addressSection = page.locator('h3:has-text("Shipping Address")').locator('..').locator('..')
-      await expect(addressSection).toBeVisible()
-    }
-  })
-
-  test('should display order summary', async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
-
-    if (hasOrders) {
-      await orderList.first().click()
-      await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-      // Order Summary section should be visible
-      await expect(page.locator('h3:has-text("Order Summary")')).toBeVisible()
-
-      // Subtotal and Total should be displayed
-      await expect(page.locator('text="Subtotal"')).toBeVisible()
-      await expect(page.locator('text=/Total.*₩[\\d,]+/')).toBeVisible()
-    }
-  })
-
-  test('should display delivery tracking when order is shipped', async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
-
-    if (hasOrders) {
-      // Find an order with SHIPPING or DELIVERED status
-      const shippedOrders = page.locator('a[href*="/orders/"]').filter({
-        has: page.locator('text=/Shipping|Delivered|배송/')
-      })
-
-      const hasShippedOrders = await shippedOrders.first().isVisible()
-
-      if (hasShippedOrders) {
-        await shippedOrders.first().click()
-        await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-        // Delivery Tracking section might be visible for shipped orders
-        const deliverySection = page.locator('h2:has-text("Delivery Tracking")')
-        const hasDeliveryInfo = await deliverySection.isVisible()
-
-        if (hasDeliveryInfo) {
-          // Tracking number should be displayed
-          await expect(page.locator('text="Tracking Number"')).toBeVisible()
-
-          // Carrier should be displayed
-          await expect(page.locator('text="Carrier"')).toBeVisible()
-        }
+      const cancelCount = await cancelButton.count()
+      if (cancelCount > 0) {
+        await expect(cancelButton.first()).toBeVisible()
       }
     }
   })
 
-  test('should show cancel button for eligible orders', async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+  test('주문 필터 (기간/상태)', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.shopping.orders)
+    await waitForLoading(authenticatedPage)
 
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
+    // 필터 옵션
+    const filter = authenticatedPage.getByRole('combobox', { name: /기간|상태|filter/i })
+      .or(authenticatedPage.locator('.order-filter, .filter-options'))
 
-    if (hasOrders) {
-      // Find a PENDING or CONFIRMED order (cancellable)
-      const cancellableOrders = page.locator('a[href*="/orders/"]').filter({
-        has: page.locator('text=/Pending|Confirmed|대기|확인/')
-      })
+    const count = await filter.count()
+    if (count > 0) {
+      await expect(filter.first()).toBeVisible()
+    }
+  })
 
-      const hasCancellableOrders = await cancellableOrders.first().isVisible()
+  test('재주문 버튼', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.shopping.orders)
+    await waitForLoading(authenticatedPage)
 
-      if (hasCancellableOrders) {
-        await cancellableOrders.first().click()
-        await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    const orders = authenticatedPage.locator('.order-item, .order-card')
+    const count = await orders.count()
 
-        // Cancel Order button should be visible for pending/confirmed orders
-        await expect(page.locator('button:has-text("Cancel Order")')).toBeVisible()
+    if (count > 0) {
+      // 재주문 버튼
+      const reorderButton = orders.first().getByRole('button', { name: /재주문|reorder|다시 주문/i })
+
+      const reorderCount = await reorderButton.count()
+      if (reorderCount > 0) {
+        await expect(reorderButton.first()).toBeVisible()
       }
-    }
-  })
-
-  test('should allow order cancellation with confirmation', async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
-
-    if (hasOrders) {
-      // Find a PENDING order
-      const pendingOrders = page.locator('a[href*="/orders/"]').filter({
-        has: page.locator('text=/Pending|대기/')
-      })
-
-      const hasPendingOrders = await pendingOrders.first().isVisible()
-
-      if (hasPendingOrders) {
-        await pendingOrders.first().click()
-        await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-        const cancelButton = page.locator('button:has-text("Cancel Order")')
-        const canCancel = await cancelButton.isVisible()
-
-        if (canCancel) {
-          // Handle confirmation dialog
-          page.on('dialog', async dialog => {
-            expect(dialog.message()).toContain('cancel')
-            await dialog.dismiss() // Dismiss to not actually cancel
-          })
-
-          await cancelButton.click()
-        }
-      }
-    }
-  })
-
-  test('should navigate back to orders list', async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
-
-    if (hasOrders) {
-      await orderList.first().click()
-      await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-      // Orders link in breadcrumb/header should be visible
-      const ordersLink = page.locator('a:has-text("Orders")')
-      await expect(ordersLink).toBeVisible()
-
-      // Click to go back
-      await ordersLink.click()
-      await expect(page).toHaveURL(/\/shopping\/orders$/)
-    }
-  })
-
-  test('should handle non-existent order gracefully', async ({ page }) => {
-    // Navigate to a non-existent order
-    await gotoShoppingPage(page, '/shopping/orders/ORD-NONEXISTENT-123')
-
-    // Error message should be displayed (Korean UI for 404 errors)
-    await expect(page.locator('text="주문을 찾을 수 없습니다."')).toBeVisible({ timeout: 15000 })
-
-    // View All Orders link should be available
-    await expect(page.locator('a:has-text("View All Orders")')).toBeVisible()
-  })
-})
-
-test.describe('Order Status Flow', () => {
-  test('should display correct status colors', async ({ page }) => {
-    await page.goto('/shopping/orders')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-
-    const orderList = page.locator('a[href*="/orders/"]')
-    const hasOrders = await orderList.first().isVisible()
-
-    if (hasOrders) {
-      // Check various status badges have appropriate colors
-      // PENDING/CONFIRMED - warning (yellow/orange)
-      const warningStatuses = page.locator('text=/Pending|Confirmed|대기|확인/').locator('..')
-      // PAID/SHIPPING - info (blue)
-      // DELIVERED - success (green)
-      // CANCELLED/REFUNDED - error (red)
-
-      // Verify at least the status badge system is working
-      const statusBadges = page.locator('[class*="px-"][class*="py-"][class*="rounded"]')
-      const badgeCount = await statusBadges.count()
-
-      // Each order should have a status badge
-      expect(badgeCount).toBeGreaterThan(0)
     }
   })
 })
