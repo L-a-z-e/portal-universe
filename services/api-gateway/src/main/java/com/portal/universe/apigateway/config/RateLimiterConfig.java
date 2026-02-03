@@ -30,12 +30,14 @@ import java.util.Arrays;
 @Configuration
 public class RateLimiterConfig {
 
-    private final boolean isDockerProfile;
+    private final boolean isRelaxedRateLimiting;
 
     public RateLimiterConfig(Environment environment) {
-        this.isDockerProfile = Arrays.asList(environment.getActiveProfiles()).contains("docker");
-        if (isDockerProfile) {
-            log.info("Docker profile detected - using relaxed rate limits for development/testing");
+        var profiles = Arrays.asList(environment.getActiveProfiles());
+        // docker, local 프로파일에서는 개발/테스트를 위해 완화된 Rate Limiting 적용
+        this.isRelaxedRateLimiting = profiles.contains("docker") || profiles.contains("local");
+        if (isRelaxedRateLimiting) {
+            log.info("Development profile detected (docker/local) - using relaxed rate limits for testing");
         }
     }
 
@@ -110,7 +112,7 @@ public class RateLimiterConfig {
     @Bean
     @Primary
     public RedisRateLimiter defaultRedisRateLimiter() {
-        return isDockerProfile
+        return isRelaxedRateLimiting
             ? new RedisRateLimiter(50, 200, 1)
             : new RedisRateLimiter(10, 20, 1);
     }
@@ -125,7 +127,7 @@ public class RateLimiterConfig {
      */
     @Bean
     public RedisRateLimiter strictRedisRateLimiter() {
-        return isDockerProfile
+        return isRelaxedRateLimiting
             ? new RedisRateLimiter(20, 50, 1)
             : new RedisRateLimiter(1, 5, 1);
     }
@@ -139,7 +141,7 @@ public class RateLimiterConfig {
      */
     @Bean
     public RedisRateLimiter signupRedisRateLimiter() {
-        return isDockerProfile
+        return isRelaxedRateLimiting
             ? new RedisRateLimiter(20, 50, 1)
             : new RedisRateLimiter(1, 3, 1);
     }
@@ -153,7 +155,7 @@ public class RateLimiterConfig {
      */
     @Bean
     public RedisRateLimiter authenticatedRedisRateLimiter() {
-        return isDockerProfile
+        return isRelaxedRateLimiting
             ? new RedisRateLimiter(50, 500, 1)
             : new RedisRateLimiter(2, 100, 1);
     }
@@ -167,7 +169,7 @@ public class RateLimiterConfig {
      */
     @Bean
     public RedisRateLimiter unauthenticatedRedisRateLimiter() {
-        return isDockerProfile
+        return isRelaxedRateLimiting
             ? new RedisRateLimiter(50, 200, 1)
             : new RedisRateLimiter(1, 30, 1);
     }
