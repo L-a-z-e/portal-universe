@@ -108,7 +108,7 @@ public class NotificationEventConverter {
                 "게시글에 좋아요가 달렸습니다",
                 String.format("\"%s\"에 %s님이 좋아요를 눌렀습니다",
                         truncate(event.postTitle(), 30), event.likerName()),
-                "/blog/posts/" + event.postId(),
+                "/blog/" + event.postId(),
                 event.likeId(),
                 "like"
         );
@@ -122,7 +122,7 @@ public class NotificationEventConverter {
                 String.format("\"%s\"에 %s님이 댓글을 달았습니다: %s",
                         truncate(event.postTitle(), 20), event.commenterName(),
                         truncate(event.content(), 30)),
-                "/blog/posts/" + event.postId(),
+                "/blog/" + event.postId(),
                 event.commentId(),
                 "comment"
         );
@@ -135,7 +135,7 @@ public class NotificationEventConverter {
                 "댓글에 답글이 달렸습니다",
                 String.format("%s님이 회원님의 댓글에 답글을 달았습니다: %s",
                         event.replierName(), truncate(event.content(), 40)),
-                "/blog/posts/" + event.postId() + "#comment-" + event.parentCommentId(),
+                "/blog/" + event.postId() + "#comment-" + event.parentCommentId(),
                 event.replyId(),
                 "reply"
         );
