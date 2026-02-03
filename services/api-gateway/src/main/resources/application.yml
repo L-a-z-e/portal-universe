@@ -328,11 +328,22 @@ spring:
                     fallbackUri: forward:/fallback/shopping
 
             # ========== Notification Service ==========
+            # WebSocket route for real-time notifications
+            - id: notification-service-websocket
+              uri: ${services.notification.url:http://localhost:8084}
+              predicates:
+                - Path=/notification/ws/**
+              filters:
+                - StripPrefix=1
+              order: 49
+
+            # REST API route
             - id: notification-service-route
               uri: ${services.notification.url:http://localhost:8084}
               predicates:
-                - Path=/api/v1/notifications/**
+                - Path=/notification/api/v1/notifications/**,/api/v1/notifications/**
               filters:
+                - StripPrefix=1
                 - name: RequestRateLimiter
                   args:
                     rate-limiter: "#{@authenticatedRedisRateLimiter}"
@@ -478,6 +489,7 @@ resilience4j:
 gateway:
   public-paths:
     permit-all:
+      - "/notification/ws/**"
       - "/auth-service/**"
       - "/api/v1/auth/**"
       - "/api/v1/users/**"
