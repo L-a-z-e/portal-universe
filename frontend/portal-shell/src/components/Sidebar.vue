@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import { authService } from '../services/authService';
 import { Button } from '@portal/design-system-vue';
+import { NotificationBell } from './notification';
 
 // Screen size detection for mobile header
 const isMobile = ref(false);
@@ -233,6 +234,12 @@ const navigate = (path: string) => {
 
     <!-- Bottom Section -->
     <div class="border-t border-border-default p-3 space-y-2 shrink-0">
+      <!-- Notifications (로그인된 경우만) -->
+      <div v-if="authStore.isAuthenticated" class="flex items-center" :class="isCollapsed ? 'justify-center' : 'justify-start'">
+        <NotificationBell />
+        <span v-if="!isCollapsed" class="ml-2 text-sm text-text-body">알림</span>
+      </div>
+
       <!-- User Section (최상단) -->
       <template v-if="authStore.isAuthenticated">
         <Button

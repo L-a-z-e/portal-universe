@@ -2,6 +2,8 @@
 import { useThemeStore } from "./store/theme.ts";
 import { useSettingsStore } from "./store/settings.ts";
 import { useAuthStore } from "./store/auth.ts";
+import { useNotificationStore } from "./store/notification.ts";
+import { useWebSocket } from "./composables/useWebSocket.ts";
 import { onMounted, onBeforeUnmount, watch, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
@@ -13,7 +15,12 @@ import { ToastContainer } from "@portal/design-system-vue";
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
 const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 const route = useRoute();
+
+// Initialize WebSocket for real-time notifications
+// Connection state is managed internally by the composable
+useWebSocket();
 
 // Quick Actions modal state
 const showQuickActions = ref(false);
@@ -101,6 +108,18 @@ watch(() => themeStore.isDark, (newVal) => {
   updateDataTheme();
   forceReflowToApplyCSSChanges();
 });
+
+// Notification management based on auth state (WebSocket handles real-time updates)
+watch(() => authStore.isAuthenticated, (isAuth) => {
+  if (isAuth) {
+    // Fetch initial unread count on login
+    // Real-time updates handled by WebSocket (useWebSocket composable)
+    notificationStore.fetchUnreadCount();
+  } else {
+    // Clear notifications on logout
+    notificationStore.reset();
+  }
+}, { immediate: true });
 </script>
 
 <template>
