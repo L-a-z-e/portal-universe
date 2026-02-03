@@ -12,4 +12,8 @@ CREATE DATABASE IF NOT EXISTS notification_db CHARACTER SET utf8mb4 COLLATE utf8
 GRANT ALL PRIVILEGES ON auth_db.* TO 'laze'@'%';
 GRANT ALL PRIVILEGES ON shopping_db.* TO 'laze'@'%';
 GRANT ALL PRIVILEGES ON notification_db.* TO 'laze'@'%';
+-- MySQL Exporter 계정 (Prometheus 모니터링용)
+CREATE USER IF NOT EXISTS 'exporter'@'%' IDENTIFIED BY 'exporter';
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'%';
+
 FLUSH PRIVILEGES;

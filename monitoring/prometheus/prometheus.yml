@@ -92,41 +92,41 @@ scrape_configs:
         replacement: 'platform'
 
   # ========================================
-  # Infrastructure (Optional - Node Exporter)
+  # cAdvisor (Container Metrics)
   # ========================================
-  # - job_name: 'node-exporter'
-  #   static_configs:
-  #     - targets: ['node-exporter:9100']
-  #   relabel_configs:
-  #     - target_label: service
-  #       replacement: 'node-exporter'
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    relabel_configs:
+      - target_label: service
+        replacement: 'cadvisor'
 
   # ========================================
-  # MySQL Exporter (Optional)
+  # MySQL Exporter
   # ========================================
-  # - job_name: 'mysql-exporter'
-  #   static_configs:
-  #     - targets: ['mysql-exporter:9104']
-  #   relabel_configs:
-  #     - target_label: service
-  #       replacement: 'mysql'
+  - job_name: 'mysql-exporter'
+    static_configs:
+      - targets: ['mysql-exporter:9104']
+    relabel_configs:
+      - target_label: service
+        replacement: 'mysql'
 
   # ========================================
-  # Redis Exporter (Optional)
+  # Redis Exporter
   # ========================================
-  # - job_name: 'redis-exporter'
-  #   static_configs:
-  #     - targets: ['redis-exporter:9121']
-  #   relabel_configs:
-  #     - target_label: service
-  #       replacement: 'redis'
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    relabel_configs:
+      - target_label: service
+        replacement: 'redis'
 
   # ========================================
-  # Kafka Exporter (Optional)
+  # Kafka Exporter
   # ========================================
-  # - job_name: 'kafka-exporter'
-  #   static_configs:
-  #     - targets: ['kafka-exporter:9308']
-  #   relabel_configs:
-  #     - target_label: service
-  #       replacement: 'kafka'
+  - job_name: 'kafka-exporter'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    relabel_configs:
+      - target_label: service
+        replacement: 'kafka'

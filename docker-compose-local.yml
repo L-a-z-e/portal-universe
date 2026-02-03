@@ -43,6 +43,11 @@ services:
       - MYSQL_ROOT_HOST=%
     networks:
       - portal-universe-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongodb:
     image: mongo:8.0
@@ -172,6 +177,7 @@ services:
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
       - '--web.enable-admin-api'
+      - '--web.enable-remote-write-receiver'
 
   alertmanager:
     image: prom/alertmanager:v0.28.1
@@ -239,9 +245,75 @@ services:
     ports:
       - "9411:9411"
     environment:
-      - STORAGE_TYPE=mem
+      - STORAGE_TYPE=elasticsearch
+      - ES_HOSTS=http://elasticsearch:9200
+      - ES_INDEX=zipkin
+      - ES_INDEX_REPLICAS=0
+      - ES_INDEX_SHARDS=1
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
     networks:
       - portal-universe-net
+
+  # ===========================================
+  # Exporters (Performance Monitoring)
+  # ===========================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    ports:
+      - "8888:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - portal-universe-net
+    restart: unless-stopped
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.15.0
+    container_name: mysql-exporter
+    ports:
+      - "9104:9104"
+    volumes:
+      - ./infrastructure/mysql/exporter.my.cnf:/.my.cnf:ro
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+    restart: unless-stopped
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.66.0
+    container_name: redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+    restart: unless-stopped
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.8.0
+    container_name: kafka-exporter
+    ports:
+      - "9308:9308"
+    command:
+      - "--kafka.server=kafka:29092"
+      - "--topic.filter=.*"
+      - "--group.filter=.*"
+    depends_on:
+      - kafka
+    networks:
+      - portal-universe-net
+    restart: unless-stopped
 
   dozzle:
     image: amir20/dozzle:v8.14.5
