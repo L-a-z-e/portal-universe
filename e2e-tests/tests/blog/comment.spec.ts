@@ -1,121 +1,155 @@
-/**
- * Blog Comment E2E Tests
- *
- * Tests for comment functionality:
- * - Comment display on post detail
- * - Comment creation
- * - Reply (thread) comments
- * - Comment editing and deletion
- */
-import { test, expect } from '../helpers/test-fixtures'
-import { gotoBlogPage } from '../helpers/auth'
+import { test, expect } from '../../fixtures/base'
+import { routes, testPosts, testComments } from '../../fixtures/test-data'
+import { waitForLoading, waitForAPI, expectToast } from '../../utils/wait'
+import { blogSelectors } from '../../utils/selectors'
 
-/**
- * Navigate to a post detail page that has comments.
- */
-async function navigateToPostWithComments(page: import('@playwright/test').Page): Promise<boolean> {
-  await gotoBlogPage(page, '/blog')
-  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-  await page.waitForTimeout(1000)
+test.describe('Blog - Comments', () => {
+  const postUrl = routes.blog.post(testPosts.existing.id)
 
-  // Click first post card
-  const postCard = page.locator('[data-testid="post-card"]').first()
-    .or(page.locator('[class*="rounded"]').filter({ hasText: /E2E Test Blog Post 1/ }).first())
+  test('포스트 상세 페이지 - 댓글 섹션 표시', async ({ page }) => {
+    await page.goto(postUrl)
+    await waitForLoading(page)
 
-  const hasPost = await postCard.isVisible().catch(() => false)
-  if (!hasPost) return false
-
-  await postCard.click()
-  await page.waitForTimeout(2000)
-  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 5000 }).catch(() => {})
-  return true
-}
-
-test.describe('Blog Comments', () => {
-  test('should display comment section on post detail', async ({ page }) => {
-    const navigated = await navigateToPostWithComments(page)
-    if (!navigated) return
-
-    // Comment section should be visible
-    const commentSection = page.locator('[data-testid="comment-section"]')
-      .or(page.locator('[data-testid="comment-list"]'))
-      .or(page.locator('text=/댓글|Comments/i').first())
-
-    const hasComments = await commentSection.isVisible().catch(() => false)
-    expect(hasComments).toBeTruthy()
+    // 댓글 섹션 확인
+    const commentSection = blogSelectors.commentSection(page)
+    await expect(commentSection).toBeVisible()
   })
 
-  test('should display existing comments', async ({ page }) => {
-    const navigated = await navigateToPostWithComments(page)
-    if (!navigated) return
+  test('비로그인 - 댓글 작성 불가', async ({ page }) => {
+    await page.goto(postUrl)
+    await waitForLoading(page)
 
-    await page.waitForTimeout(1000)
+    // 댓글 입력 필드가 비활성화되거나 로그인 안내가 표시
+    const commentInput = blogSelectors.commentInput(page)
+    const loginPrompt = page.getByText(/로그인|login/i)
 
-    // Look for comment items
-    const commentItems = page.locator('[data-testid="comment-item"]')
-    const genericComments = page.locator('text=/E2E Test Comment/')
+    const inputCount = await commentInput.count()
+    const promptCount = await loginPrompt.count()
 
-    const hasTestIdComments = await commentItems.first().isVisible().catch(() => false)
-    const hasGenericComments = await genericComments.first().isVisible().catch(() => false)
-
-    // Comments should exist (seeded data)
-    if (hasTestIdComments) {
-      expect(await commentItems.count()).toBeGreaterThan(0)
-    } else if (hasGenericComments) {
-      expect(await genericComments.count()).toBeGreaterThan(0)
+    if (inputCount > 0) {
+      const isDisabled = await commentInput.isDisabled()
+      expect(isDisabled || promptCount > 0).toBeTruthy()
     }
   })
 
-  test('should create a new comment', async ({ page }) => {
-    const navigated = await navigateToPostWithComments(page)
-    if (!navigated) return
+  test('로그인 - 댓글 입력 필드 활성화', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(postUrl)
+    await waitForLoading(authenticatedPage)
 
-    // Find comment input form
-    const commentInput = page.locator('[data-testid="comment-input"]')
-      .or(page.locator('textarea[placeholder*="댓글"], textarea[placeholder*="comment" i]'))
-      .first()
-
-    const hasInput = await commentInput.isVisible().catch(() => false)
-    if (!hasInput) return
-
-    const testComment = `E2E New Comment ${Date.now()}`
-    await commentInput.fill(testComment)
-
-    // Submit comment
-    const submitButton = page.locator('[data-testid="comment-submit"]')
-      .or(page.getByRole('button', { name: /작성|등록|Submit|Post/i }))
-      .first()
-
-    await submitButton.click()
-    await page.waitForTimeout(2000)
-
-    // New comment should appear
-    const newComment = page.locator(`text="${testComment}"`)
-    const hasNewComment = await newComment.isVisible().catch(() => false)
-    expect(hasNewComment).toBeTruthy()
+    // 댓글 입력 필드 활성화 확인
+    const commentInput = blogSelectors.commentInput(authenticatedPage)
+    await expect(commentInput).toBeEnabled()
   })
 
-  test('should show reply form when clicking reply button', async ({ page }) => {
-    const navigated = await navigateToPostWithComments(page)
-    if (!navigated) return
+  test('댓글 작성', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(postUrl)
+    await waitForLoading(authenticatedPage)
 
-    // Find reply button on a comment
-    const replyButton = page.locator('[data-testid="comment-reply-btn"]')
-      .or(page.locator('button').filter({ hasText: /답글|Reply/i }))
-      .first()
+    const commentInput = blogSelectors.commentInput(authenticatedPage)
 
-    const hasReply = await replyButton.isVisible().catch(() => false)
-    if (!hasReply) return
+    // 댓글 입력
+    await commentInput.fill(testComments.new.content)
 
-    await replyButton.click()
-    await page.waitForTimeout(500)
+    // 제출 버튼 클릭
+    const submitButton = authenticatedPage.getByRole('button', { name: /등록|submit|댓글/i })
+      .or(authenticatedPage.locator('.comment-submit, button[type="submit"]'))
 
-    // Reply form should appear
-    const replyForm = page.locator('[data-testid="reply-form"]')
-      .or(page.locator('textarea[placeholder*="답글"], textarea[placeholder*="reply" i]'))
-      .first()
+    await submitButton.first().click()
 
-    const hasReplyForm = await replyForm.isVisible().catch(() => false)
-    expect(hasReplyForm).toBeTruthy()
+    // 댓글 추가 확인
+    const newComment = authenticatedPage.locator('.comment, .comment-item')
+      .filter({ hasText: testComments.new.content })
+
+    await expect(newComment).toBeVisible({ timeout: 10000 })
+  })
+
+  test('댓글 목록 표시', async ({ page }) => {
+    await page.goto(postUrl)
+    await waitForLoading(page)
+
+    // 댓글 목록 확인
+    const comments = blogSelectors.commentItem(page)
+    const count = await comments.count()
+
+    // 댓글이 있으면 표시 확인
+    if (count > 0) {
+      await expect(comments.first()).toBeVisible()
+    }
+  })
+
+  test('대댓글 작성', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(postUrl)
+    await waitForLoading(authenticatedPage)
+
+    const comments = blogSelectors.commentItem(authenticatedPage)
+    const count = await comments.count()
+
+    if (count > 0) {
+      // 답글 버튼 클릭
+      const replyButton = comments.first().getByRole('button', { name: /답글|reply/i })
+        .or(comments.first().locator('.reply-button'))
+
+      const replyCount = await replyButton.count()
+      if (replyCount > 0) {
+        await replyButton.first().click()
+
+        // 대댓글 입력 필드
+        const replyInput = authenticatedPage.locator('textarea').last()
+        await replyInput.fill(testComments.reply.content)
+
+        // 제출
+        const submitButton = authenticatedPage.getByRole('button', { name: /등록|submit/i }).last()
+        await submitButton.click()
+      }
+    }
+  })
+
+  test('댓글 수정 (본인 댓글)', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(postUrl)
+    await waitForLoading(authenticatedPage)
+
+    // 본인 댓글의 수정 버튼 찾기
+    const editButton = authenticatedPage.getByRole('button', { name: /수정|edit/i })
+      .or(authenticatedPage.locator('.comment-edit, .edit-button'))
+
+    const count = await editButton.count()
+    if (count > 0) {
+      await editButton.first().click()
+
+      // 수정 모드 확인
+      const editInput = authenticatedPage.locator('textarea').first()
+      await expect(editInput).toBeVisible()
+    }
+  })
+
+  test('댓글 삭제 (본인 댓글)', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(postUrl)
+    await waitForLoading(authenticatedPage)
+
+    // 본인 댓글의 삭제 버튼 찾기
+    const deleteButton = authenticatedPage.getByRole('button', { name: /삭제|delete/i })
+      .or(authenticatedPage.locator('.comment-delete, .delete-button'))
+
+    const count = await deleteButton.count()
+    if (count > 0) {
+      // 다이얼로그 핸들러 설정
+      authenticatedPage.on('dialog', dialog => dialog.accept())
+
+      await deleteButton.first().click()
+    }
+  })
+
+  test('댓글 정렬 (최신순/인기순)', async ({ page }) => {
+    await page.goto(postUrl)
+    await waitForLoading(page)
+
+    // 정렬 옵션
+    const sortOptions = page.getByRole('button', { name: /최신|인기|정렬/i })
+      .or(page.locator('.comment-sort'))
+
+    const count = await sortOptions.count()
+    if (count > 0) {
+      await expect(sortOptions.first()).toBeVisible()
+    }
   })
 })

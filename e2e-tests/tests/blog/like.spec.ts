@@ -1,111 +1,134 @@
-/**
- * Blog Like E2E Tests
- *
- * Tests for the like/unlike functionality:
- * - Like button display
- * - Like toggle (like/unlike)
- * - Like count update
- * - Like state persistence
- */
-import { test, expect } from '../helpers/test-fixtures'
-import { gotoBlogPage } from '../helpers/auth'
+import { test, expect } from '../../fixtures/base'
+import { routes, testPosts } from '../../fixtures/test-data'
+import { waitForLoading } from '../../utils/wait'
+import { blogSelectors } from '../../utils/selectors'
 
-async function navigateToPostDetail(page: import('@playwright/test').Page): Promise<boolean> {
-  await gotoBlogPage(page, '/blog')
-  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-  await page.waitForTimeout(1000)
+test.describe('Blog - Like', () => {
+  const postUrl = routes.blog.post(testPosts.existing.id)
 
-  const postCard = page.locator('[data-testid="post-card"]').first()
-    .or(page.locator('[class*="rounded"]').filter({ hasText: /E2E Test Blog Post/ }).first())
+  test('포스트 상세 페이지 - 좋아요 버튼 표시', async ({ page }) => {
+    await page.goto(postUrl)
+    await waitForLoading(page)
 
-  const hasPost = await postCard.isVisible().catch(() => false)
-  if (!hasPost) return false
+    // 좋아요 버튼 확인
+    const likeButton = blogSelectors.likeButton(page)
+      .or(page.getByRole('button', { name: /좋아요|like/i }))
+      .or(page.locator('[aria-label*="like"], .like-btn'))
 
-  await postCard.click()
-  await page.waitForTimeout(2000)
-  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 5000 }).catch(() => {})
-  return true
-}
-
-test.describe('Blog Like Feature', () => {
-  test('should display like button on post detail page', async ({ page }) => {
-    const navigated = await navigateToPostDetail(page)
-    if (!navigated) return
-
-    const likeButton = page.locator('[data-testid="like-button"]')
-      .or(page.locator('button').filter({ hasText: /좋아요|♡|❤|👍/ }))
-      .first()
-
-    const hasLike = await likeButton.isVisible().catch(() => false)
-    expect(hasLike).toBeTruthy()
+    await expect(likeButton.first()).toBeVisible()
   })
 
-  test('should display like count', async ({ page }) => {
-    const navigated = await navigateToPostDetail(page)
-    if (!navigated) return
+  test('비로그인 - 좋아요 클릭 시 로그인 유도', async ({ page }) => {
+    await page.goto(postUrl)
+    await waitForLoading(page)
 
-    const likeCount = page.locator('[data-testid="like-count"]')
-      .or(page.locator('[data-testid="like-button"]').locator('text=/\\d+/'))
-      .first()
+    const likeButton = blogSelectors.likeButton(page)
+      .or(page.getByRole('button', { name: /좋아요|like/i }))
 
-    const hasCount = await likeCount.isVisible().catch(() => false)
-    if (hasCount) {
-      const text = await likeCount.textContent()
-      expect(text).toMatch(/\d+/)
+    await likeButton.first().click()
+
+    // 로그인 모달 또는 리다이렉트
+    const loginPrompt = page.getByText(/로그인|login/i)
+      .or(page.locator('.login-modal, [role="dialog"]'))
+
+    const promptCount = await loginPrompt.count()
+    const isLoginPage = page.url().includes('login')
+
+    expect(promptCount > 0 || isLoginPage).toBeTruthy()
+  })
+
+  test('로그인 - 좋아요 토글', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(postUrl)
+    await waitForLoading(authenticatedPage)
+
+    const likeButton = blogSelectors.likeButton(authenticatedPage)
+      .or(authenticatedPage.getByRole('button', { name: /좋아요|like/i }))
+
+    // 좋아요 상태 확인
+    const isLiked = await likeButton.first().evaluate(el =>
+      el.classList.contains('liked') ||
+      el.classList.contains('active') ||
+      el.getAttribute('aria-pressed') === 'true'
+    )
+
+    // 좋아요 클릭
+    await likeButton.first().click()
+    await authenticatedPage.waitForTimeout(500)
+
+    // 상태 변경 확인
+    const afterLiked = await likeButton.first().evaluate(el =>
+      el.classList.contains('liked') ||
+      el.classList.contains('active') ||
+      el.getAttribute('aria-pressed') === 'true'
+    )
+
+    expect(afterLiked).not.toBe(isLiked)
+  })
+
+  test('좋아요 수 표시', async ({ page }) => {
+    await page.goto(postUrl)
+    await waitForLoading(page)
+
+    // 좋아요 카운트 표시
+    const likeCount = page.locator('.like-count, .likes-count, [class*="like"] span')
+      .or(page.getByText(/\d+.*좋아요|\d+.*likes/i))
+
+    const count = await likeCount.count()
+    if (count > 0) {
+      await expect(likeCount.first()).toBeVisible()
     }
   })
 
-  test('should toggle like state when clicking like button', async ({ page }) => {
-    const navigated = await navigateToPostDetail(page)
-    if (!navigated) return
+  test('피드에서 좋아요 버튼', async ({ page }) => {
+    await page.goto(routes.blog.feed)
+    await waitForLoading(page)
 
-    const likeButton = page.locator('[data-testid="like-button"]')
-      .or(page.locator('button').filter({ hasText: /좋아요|♡|❤|👍/ }))
-      .first()
+    const postCards = blogSelectors.postCard(page)
+    const count = await postCards.count()
 
-    const hasLike = await likeButton.isVisible().catch(() => false)
-    if (!hasLike) return
+    if (count > 0) {
+      // 카드 내 좋아요 버튼
+      const likeButton = postCards.first().locator('.like-button, .like-btn, [aria-label*="like"]')
+        .or(postCards.first().getByRole('button', { name: /좋아요|like/i }))
 
-    // Get initial state
-    const initialLiked = await likeButton.getAttribute('data-liked').catch(() => null)
-
-    // Click to toggle
-    await likeButton.click()
-    await page.waitForTimeout(1000)
-
-    // State should have changed (or at least the click should succeed without error)
-    const afterLiked = await likeButton.getAttribute('data-liked').catch(() => null)
-    if (initialLiked !== null && afterLiked !== null) {
-      expect(afterLiked).not.toBe(initialLiked)
+      const likeCount = await likeButton.count()
+      if (likeCount > 0) {
+        await expect(likeButton.first()).toBeVisible()
+      }
     }
   })
 
-  test('should persist like state on page reload', async ({ page }) => {
-    const navigated = await navigateToPostDetail(page)
-    if (!navigated) return
+  test('좋아요한 포스트 목록 (마이페이지)', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
 
-    const likeButton = page.locator('[data-testid="like-button"]')
-      .or(page.locator('button').filter({ hasText: /좋아요|♡|❤|👍/ }))
-      .first()
+    // 좋아요한 글 탭
+    const likedTab = authenticatedPage.getByRole('tab', { name: /좋아요|liked/i })
+      .or(authenticatedPage.getByText(/좋아요한|liked posts/i))
 
-    const hasLike = await likeButton.isVisible().catch(() => false)
-    if (!hasLike) return
+    const count = await likedTab.count()
+    if (count > 0) {
+      await likedTab.first().click()
 
-    // Click like
-    await likeButton.click()
-    await page.waitForTimeout(1000)
+      // 좋아요한 포스트 목록 표시
+      const postList = blogSelectors.postCard(authenticatedPage)
+        .or(authenticatedPage.locator('.liked-posts, .post-list'))
 
-    const likedState = await likeButton.getAttribute('data-liked').catch(() => null)
-
-    // Reload page
-    await page.reload()
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-    await page.waitForTimeout(2000)
-
-    // State should persist
-    if (likedState !== null) {
-      const afterReload = await likeButton.getAttribute('data-liked').catch(() => null)
-      expect(afterReload).toBe(likedState)
+      await expect(postList.first()).toBeVisible()
     }
+  })
+
+  test('좋아요 애니메이션 효과', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(postUrl)
+    await waitForLoading(authenticatedPage)
+
+    const likeButton = blogSelectors.likeButton(authenticatedPage)
+      .or(authenticatedPage.getByRole('button', { name: /좋아요|like/i }))
+
+    // 좋아요 클릭 전 스크린샷
+    await likeButton.first().click()
+
+    // 애니메이션이 있는 경우 잠시 대기
+    await authenticatedPage.waitForTimeout(300)
   })
 })

@@ -1,129 +1,174 @@
-/**
- * Blog My Page E2E Tests
- *
- * Tests for the authenticated user's blog management page:
- * - Profile display
- * - My posts list with status filtering
- * - Post management (edit, delete, publish)
- * - Series management
- */
-import { test, expect } from '../helpers/test-fixtures'
-import { gotoBlogPage } from '../helpers/auth'
+import { test, expect } from '../../fixtures/base'
+import { routes } from '../../fixtures/test-data'
+import { waitForLoading } from '../../utils/wait'
+import { blogSelectors } from '../../utils/selectors'
 
-test.describe('Blog My Page', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoBlogPage(page, '/blog/my')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+test.describe('Blog - My Page', () => {
+  test('비로그인 - 마이페이지 접근 제한', async ({ page }) => {
+    await page.goto(routes.blog.myPage)
+
+    // 로그인 페이지로 리다이렉트
+    await expect(page).toHaveURL(/login/)
   })
 
-  test('should display my page with profile info', async ({ page }) => {
-    await page.waitForTimeout(1000)
+  test('로그인 - 마이페이지 접근', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
 
-    // My page should show profile information
-    const profileSection = page.locator('[data-testid="my-page"]')
-      .or(page.locator('[data-testid="profile-section"]'))
-      .or(page.locator('text=/마이페이지|My Page|프로필/i').first())
-
-    const hasProfile = await profileSection.isVisible().catch(() => false)
-    const hasNickname = await page.locator('[data-testid="profile-nickname"]').or(page.locator('text=/test/i').first()).isVisible().catch(() => false)
-
-    expect(hasProfile || hasNickname).toBeTruthy()
+    // 마이페이지 로드 확인
+    await expect(authenticatedPage).toHaveURL(/my|profile/)
   })
 
-  test('should display my posts list', async ({ page }) => {
-    await page.waitForTimeout(1000)
+  test('내 프로필 정보 표시', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
 
-    // My posts section
-    const myPosts = page.locator('[data-testid="my-posts"]')
-      .or(page.locator('[data-testid="my-post-card"]'))
-      .or(page.locator('text=/내 게시글|My Posts/i').first())
+    // 프로필 영역
+    const profile = authenticatedPage.locator('.profile, .my-profile')
+    const count = await profile.count()
 
-    const postCards = page.locator('[data-testid="my-post-card"]')
-      .or(page.locator('[class*="rounded"]').filter({ hasText: /E2E Test/ }))
-
-    const hasMyPosts = await myPosts.isVisible().catch(() => false)
-    const hasPosts = await postCards.first().isVisible().catch(() => false)
-    const hasEmpty = await page.locator('text=/게시글이 없습니다|No posts/i').isVisible().catch(() => false)
-
-    expect(hasMyPosts || hasPosts || hasEmpty).toBeTruthy()
+    if (count > 0) {
+      await expect(profile.first()).toBeVisible()
+    }
   })
 
-  test('should filter posts by status', async ({ page }) => {
-    await page.waitForTimeout(1000)
+  test('내 글 목록', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
 
-    // Look for status filter tabs/buttons
-    const allFilter = page.locator('[data-testid="filter-all"]')
-      .or(page.locator('button').filter({ hasText: /전체|All/i }).first())
-    const draftFilter = page.locator('[data-testid="filter-draft"]')
-      .or(page.locator('button').filter({ hasText: /초안|Draft/i }).first())
-    const publishedFilter = page.locator('[data-testid="filter-published"]')
-      .or(page.locator('button').filter({ hasText: /발행|Published/i }).first())
+    // 글 목록 탭
+    const postsTab = authenticatedPage.getByRole('tab', { name: /글|posts|작성한/i })
+    const count = await postsTab.count()
 
-    const hasAll = await allFilter.isVisible().catch(() => false)
-    const hasDraft = await draftFilter.isVisible().catch(() => false)
+    if (count > 0) {
+      await postsTab.first().click()
 
-    if (hasAll && hasDraft) {
-      // Click draft filter
-      await draftFilter.click()
-      await page.waitForTimeout(1000)
+      // 포스트 목록
+      const posts = blogSelectors.postCard(authenticatedPage)
+      const postsCount = await posts.count()
 
-      // Click published filter
-      if (await publishedFilter.isVisible().catch(() => false)) {
-        await publishedFilter.click()
-        await page.waitForTimeout(1000)
+      if (postsCount > 0) {
+        await expect(posts.first()).toBeVisible()
       }
-
-      // Click all filter
-      await allFilter.click()
-      await page.waitForTimeout(1000)
     }
   })
 
-  test('should show post action buttons (edit, delete)', async ({ page }) => {
-    await page.waitForTimeout(1000)
+  test('임시 저장 글 목록', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
 
-    const postCards = page.locator('[data-testid="my-post-card"]')
-      .or(page.locator('[class*="rounded"]').filter({ hasText: /E2E Test/ }))
+    // 임시 저장 탭
+    const draftsTab = authenticatedPage.getByRole('tab', { name: /임시|drafts|저장/i })
+    const count = await draftsTab.count()
 
-    const hasPosts = await postCards.first().isVisible().catch(() => false)
-    if (!hasPosts) return
+    if (count > 0) {
+      await draftsTab.first().click()
 
-    // Check for action buttons
-    const editButton = page.locator('[data-testid="post-edit-button"]')
-      .or(page.locator('button').filter({ hasText: /수정|Edit/i }))
-      .first()
-    const deleteButton = page.locator('[data-testid="post-delete-button"]')
-      .or(page.locator('button').filter({ hasText: /삭제|Delete/i }))
-      .first()
+      // 임시 저장 목록
+      const drafts = authenticatedPage.locator('.draft-item, .draft-list')
+        .or(blogSelectors.postCard(authenticatedPage))
 
-    const hasEdit = await editButton.isVisible().catch(() => false)
-    const hasDelete = await deleteButton.isVisible().catch(() => false)
-
-    expect(hasEdit || hasDelete).toBeTruthy()
-  })
-
-  test('should display my series list', async ({ page }) => {
-    await page.waitForTimeout(1000)
-
-    const mySeries = page.locator('[data-testid="my-series"]')
-      .or(page.locator('[data-testid="my-series-list"]'))
-      .or(page.locator('text=/내 시리즈|My Series/i').first())
-
-    const hasSeries = await mySeries.isVisible().catch(() => false)
-    if (hasSeries) {
-      await expect(mySeries).toBeVisible()
+      await expect(drafts.first()).toBeVisible()
     }
   })
 
-  test('should show create new post button', async ({ page }) => {
-    await page.waitForTimeout(1000)
+  test('좋아요한 글 목록', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
 
-    const createButton = page.locator('[data-testid="create-post-button"]')
-      .or(page.locator('a, button').filter({ hasText: /새 글|글쓰기|New Post|Write/i }).first())
+    // 좋아요 탭
+    const likesTab = authenticatedPage.getByRole('tab', { name: /좋아요|liked/i })
+    const count = await likesTab.count()
 
-    const hasCreate = await createButton.isVisible().catch(() => false)
-    if (hasCreate) {
-      await expect(createButton).toBeVisible()
+    if (count > 0) {
+      await likesTab.first().click()
+
+      // 좋아요한 글 목록
+      const likedPosts = blogSelectors.postCard(authenticatedPage)
+      const likedCount = await likedPosts.count()
+
+      if (likedCount > 0) {
+        await expect(likedPosts.first()).toBeVisible()
+      }
+    }
+  })
+
+  test('내 시리즈 목록', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
+
+    // 시리즈 탭
+    const seriesTab = authenticatedPage.getByRole('tab', { name: /시리즈|series/i })
+    const count = await seriesTab.count()
+
+    if (count > 0) {
+      await seriesTab.first().click()
+
+      // 시리즈 목록
+      const series = blogSelectors.seriesList(authenticatedPage)
+        .or(authenticatedPage.locator('.series-list, .my-series'))
+
+      await expect(series).toBeVisible()
+    }
+  })
+
+  test('프로필 수정 버튼', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
+
+    // 프로필 수정 버튼
+    const editButton = authenticatedPage.getByRole('button', { name: /수정|edit|설정/i })
+      .or(authenticatedPage.locator('.edit-profile, .settings'))
+
+    const count = await editButton.count()
+    if (count > 0) {
+      await expect(editButton.first()).toBeVisible()
+    }
+  })
+
+  test('프로필 수정 모달/페이지', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
+
+    const editButton = authenticatedPage.getByRole('button', { name: /프로필.*수정|edit.*profile/i })
+      .or(authenticatedPage.locator('.edit-profile'))
+
+    const count = await editButton.count()
+    if (count > 0) {
+      await editButton.first().click()
+
+      // 수정 모달 또는 페이지
+      const editForm = authenticatedPage.locator('[role="dialog"], .profile-edit, form')
+      await expect(editForm.first()).toBeVisible()
+    }
+  })
+
+  test('통계 정보 표시', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
+
+    // 통계 정보 (글 수, 팔로워 등)
+    const stats = authenticatedPage.locator('.stats, .statistics')
+      .or(authenticatedPage.getByText(/글\s*\d+|팔로워\s*\d+|posts\s*\d+/i))
+
+    const count = await stats.count()
+    if (count > 0) {
+      await expect(stats.first()).toBeVisible()
+    }
+  })
+
+  test('새 글 쓰기 버튼', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.myPage)
+    await waitForLoading(authenticatedPage)
+
+    // 글쓰기 버튼
+    const writeButton = authenticatedPage.getByRole('link', { name: /새 글|글쓰기|write|new post/i })
+      .or(authenticatedPage.getByRole('button', { name: /새 글|글쓰기/i }))
+
+    const count = await writeButton.count()
+    if (count > 0) {
+      await writeButton.first().click()
+      await expect(authenticatedPage).toHaveURL(/write/)
     }
   })
 })

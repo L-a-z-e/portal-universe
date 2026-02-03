@@ -1,129 +1,136 @@
-/**
- * Blog Tag E2E Tests
- *
- * Tests for tag functionality:
- * - Tag list page
- * - Tag detail page (posts by tag)
- * - Tag search/autocomplete
- * - Popular tags
- */
-import { test, expect } from '../helpers/test-fixtures'
-import { gotoBlogPage } from '../helpers/auth'
+import { test, expect } from '../../fixtures/base'
+import { routes } from '../../fixtures/test-data'
+import { waitForLoading } from '../../utils/wait'
+import { blogSelectors } from '../../utils/selectors'
 
-test.describe('Blog Tag List Page', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoBlogPage(page, '/blog/tags')
+test.describe('Blog - Tags', () => {
+  test('태그 페이지 접근', async ({ page }) => {
+    await page.goto(routes.blog.tag('javascript'))
+    await waitForLoading(page)
+
+    // 태그 페이지 확인
+    await expect(page).toHaveURL(/tags/)
   })
 
-  test('should display tag list page', async ({ page }) => {
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-    await page.waitForTimeout(3000)
+  test('태그별 포스트 목록 표시', async ({ page }) => {
+    await page.goto(routes.blog.tag('javascript'))
+    await waitForLoading(page)
 
-    // Tag page should show tag cards, tag heading, or empty state
-    const tagCards = page.locator('[data-testid="tag-card"]')
-    const genericTags = page.locator('text=/e2e-test|playwright|automation|blog|tutorial/')
-    const emptyState = page.locator('text=/태그가 없습니다|No tags/i')
-    const tagHeading = page.locator('h1').filter({ hasText: /태그|Tags/i })
+    // 포스트 목록
+    const posts = blogSelectors.postCard(page)
+    const count = await posts.count()
 
-    const hasTagCards = await tagCards.first().isVisible().catch(() => false)
-    const hasGenericTags = await genericTags.first().isVisible().catch(() => false)
-    const hasEmpty = await emptyState.isVisible().catch(() => false)
-    const hasHeading = await tagHeading.first().isVisible().catch(() => false)
-
-    expect(hasTagCards || hasGenericTags || hasEmpty || hasHeading).toBeTruthy()
-  })
-
-  test('should display tag post count', async ({ page }) => {
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-    await page.waitForTimeout(1000)
-
-    const tagPostCount = page.locator('[data-testid="tag-post-count"]')
-      .or(page.locator('text=/\\d+\\s*(posts|개|건)/i'))
-      .first()
-
-    const hasCount = await tagPostCount.isVisible().catch(() => false)
-    if (hasCount) {
-      const text = await tagPostCount.textContent()
-      expect(text).toMatch(/\d+/)
+    // 포스트가 있으면 표시 확인
+    if (count > 0) {
+      await expect(posts.first()).toBeVisible()
     }
   })
 
-  test('should search tags', async ({ page }) => {
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-    await page.waitForTimeout(3000)
+  test('태그 이름 표시', async ({ page }) => {
+    await page.goto(routes.blog.tag('javascript'))
+    await waitForLoading(page)
 
-    const searchInput = page.locator('[data-testid="tag-search-input"]')
-      .or(page.locator('input[placeholder*="태그"], input[placeholder*="tag" i], input[placeholder*="검색"]'))
-      .first()
+    // 태그 이름이 페이지에 표시
+    const tagTitle = page.getByRole('heading', { name: /javascript/i })
+      .or(page.locator('.tag-title, h1').filter({ hasText: /javascript/i }))
 
-    const hasSearch = await searchInput.isVisible().catch(() => false)
-    if (!hasSearch) return
-
-    await searchInput.fill('e2e')
-    await page.waitForTimeout(1000)
-
-    // Should filter tags or show empty state
-    const filteredTags = page.locator('text=/e2e-test/')
-    const hasFiltered = await filteredTags.first().isVisible().catch(() => false)
-    const emptyState = page.locator('text=/결과가 없습니다|No tags|태그가 없습니다/i')
-    const hasEmpty = await emptyState.isVisible().catch(() => false)
-
-    expect(hasFiltered || hasEmpty).toBeTruthy()
-  })
-})
-
-test.describe('Blog Tag Detail Page', () => {
-  test('should navigate to tag detail and show posts', async ({ page }) => {
-    await gotoBlogPage(page, '/blog/tags')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-    await page.waitForTimeout(1000)
-
-    // Click on a tag
-    const tagCard = page.locator('[data-testid="tag-card"]').first()
-      .or(page.locator('a').filter({ hasText: /e2e-test|playwright/ }).first())
-
-    const hasTag = await tagCard.isVisible().catch(() => false)
-    if (!hasTag) return
-
-    await tagCard.click()
-    await page.waitForTimeout(2000)
-
-    // Should show posts with the selected tag
-    const postCards = page.locator('[data-testid="post-card"]')
-      .or(page.locator('[class*="rounded"]').filter({ hasText: /E2E Test/ }))
-
-    const emptyState = page.locator('text=/게시글이 없습니다|No posts/i')
-
-    const hasPosts = await postCards.first().isVisible().catch(() => false)
-    const hasEmpty = await emptyState.isVisible().catch(() => false)
-
-    expect(hasPosts || hasEmpty).toBeTruthy()
+    await expect(tagTitle.first()).toBeVisible()
   })
 
-  test('should navigate back to tag list from tag detail', async ({ page }) => {
-    await gotoBlogPage(page, '/blog/tags')
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
-    await page.waitForTimeout(1000)
+  test('포스트 카드 내 태그 클릭', async ({ page }) => {
+    await page.goto(routes.blog.feed)
+    await waitForLoading(page)
 
-    const tagCard = page.locator('[data-testid="tag-card"]').first()
-      .or(page.locator('a').filter({ hasText: /e2e-test|playwright/ }).first())
+    // 포스트 카드 내 태그
+    const tagItem = blogSelectors.tagItem(page)
+    const count = await tagItem.count()
 
-    const hasTag = await tagCard.isVisible().catch(() => false)
-    if (!hasTag) return
+    if (count > 0) {
+      // 태그 클릭
+      const tagText = await tagItem.first().textContent()
+      await tagItem.first().click()
 
-    await tagCard.click()
-    await page.waitForTimeout(2000)
+      // 태그 페이지로 이동 확인
+      await expect(page).toHaveURL(/tags/)
+    }
+  })
 
-    // Go back
-    await page.goBack()
-    await page.waitForTimeout(1000)
+  test('인기 태그 목록', async ({ page }) => {
+    await page.goto(routes.blog.home)
+    await waitForLoading(page)
 
-    // Should be back on tag list
-    const tagList = page.locator('[data-testid="tag-card"]')
-      .or(page.locator('text=/e2e-test|playwright/'))
-      .first()
+    // 인기 태그 섹션
+    const popularTags = page.locator('.popular-tags, .trending-tags, .tag-cloud')
+      .or(page.getByText(/인기 태그|popular tags|trending tags/i))
 
-    const hasTagList = await tagList.isVisible().catch(() => false)
-    expect(hasTagList).toBeTruthy()
+    const count = await popularTags.count()
+    if (count > 0) {
+      await expect(popularTags.first()).toBeVisible()
+    }
+  })
+
+  test('태그 검색/필터', async ({ page }) => {
+    await page.goto(routes.blog.feed)
+    await waitForLoading(page)
+
+    // 태그 필터 기능
+    const tagFilter = page.getByRole('combobox', { name: /태그|tag/i })
+      .or(page.locator('.tag-filter, .tag-search'))
+
+    const count = await tagFilter.count()
+    if (count > 0) {
+      await expect(tagFilter.first()).toBeVisible()
+    }
+  })
+
+  test('포스트 상세 - 태그 목록 표시', async ({ page }) => {
+    await page.goto(routes.blog.post('1'))
+    await waitForLoading(page)
+
+    // 태그 목록
+    const tagList = blogSelectors.tagList(page)
+    const count = await tagList.count()
+
+    if (count > 0) {
+      await expect(tagList.first()).toBeVisible()
+    }
+  })
+
+  test('글쓰기 - 태그 자동완성', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto(routes.blog.write)
+    await waitForLoading(authenticatedPage)
+
+    // 태그 입력 필드
+    const tagInput = authenticatedPage.getByRole('textbox', { name: /태그|tag/i })
+      .or(authenticatedPage.getByPlaceholder(/태그|tag/i))
+      .or(authenticatedPage.locator('.tag-input'))
+
+    const count = await tagInput.count()
+    if (count > 0) {
+      await tagInput.first().fill('java')
+
+      // 자동완성 드롭다운
+      const autocomplete = authenticatedPage.locator('.autocomplete, .tag-suggestions, [role="listbox"]')
+      const acCount = await autocomplete.count()
+
+      // 자동완성이 있으면 표시 확인 (없을 수도 있음)
+      if (acCount > 0) {
+        await expect(autocomplete.first()).toBeVisible()
+      }
+    }
+  })
+
+  test('태그 포스트 개수 표시', async ({ page }) => {
+    await page.goto(routes.blog.tag('javascript'))
+    await waitForLoading(page)
+
+    // 포스트 개수 표시
+    const postCount = page.getByText(/\d+.*개|\d+.*posts/i)
+      .or(page.locator('.post-count, .result-count'))
+
+    const count = await postCount.count()
+    if (count > 0) {
+      await expect(postCount.first()).toBeVisible()
+    }
   })
 })
