@@ -234,36 +234,41 @@ const navigate = (path: string) => {
 
     <!-- Bottom Section -->
     <div class="border-t border-border-default p-3 space-y-2 shrink-0">
-      <!-- Notifications (로그인된 경우만) -->
-      <div v-if="authStore.isAuthenticated" class="flex items-center" :class="isCollapsed ? 'justify-center' : 'justify-start'">
-        <NotificationBell />
-        <span v-if="!isCollapsed" class="ml-2 text-sm text-text-body">알림</span>
-      </div>
-
-      <!-- User Section (최상단) -->
+      <!-- User Section with Notification Bell (통합) -->
       <template v-if="authStore.isAuthenticated">
-        <Button
-          v-if="!isCollapsed"
-          variant="ghost"
-          @click="navigate('/profile')"
-          :class="[
-            'w-full justify-start gap-2',
-            isActive('/profile', true) ? 'bg-brand-primary/10' : 'bg-bg-elevated'
-          ]"
-        >
-          <div class="w-8 h-8 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
-            <span class="text-brand-primary font-medium text-sm">
-              {{ authStore.displayName?.charAt(0)?.toUpperCase() || 'U' }}
-            </span>
-          </div>
-          <div class="flex-1 min-w-0 text-left">
-            <p class="text-sm font-medium text-text-heading truncate">
-              {{ authStore.displayName }}
-            </p>
-            <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-status-error text-white rounded-full">ADMIN</span>
-          </div>
-        </Button>
+        <!-- Expanded: Profile + Bell in same row -->
+        <div v-if="!isCollapsed" class="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            @click="navigate('/profile')"
+            :class="[
+              'flex-1 justify-start gap-3',
+              isActive('/profile', true) ? 'bg-brand-primary/10' : 'bg-bg-elevated'
+            ]"
+          >
+            <div class="w-8 h-8 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
+              <span class="text-brand-primary font-medium text-sm">
+                {{ authStore.displayName?.charAt(0)?.toUpperCase() || 'U' }}
+              </span>
+            </div>
+            <div class="flex-1 min-w-0 text-left">
+              <p class="text-sm font-medium text-text-heading truncate">
+                {{ authStore.displayName }}
+              </p>
+              <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-status-error text-white rounded-full">ADMIN</span>
+            </div>
+          </Button>
+          <!-- Notification Bell (우측) -->
+          <NotificationBell dropdown-direction="right" />
+        </div>
+
+        <!-- Collapsed: Bell only (centered) -->
+        <div v-else class="flex justify-center">
+          <NotificationBell dropdown-direction="right" />
+        </div>
       </template>
+
+      <!-- Login Button (비로그인 시) -->
       <template v-else>
         <Button
           variant="primary"

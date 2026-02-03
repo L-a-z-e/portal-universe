@@ -2,6 +2,15 @@
 import { useNotificationStore } from '../../store/notification'
 import NotificationDropdown from './NotificationDropdown.vue'
 
+// Props for dropdown direction
+interface Props {
+  dropdownDirection?: 'left' | 'right' | 'up'
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  dropdownDirection: 'right'
+})
+
 const store = useNotificationStore()
 </script>
 
@@ -36,6 +45,9 @@ const store = useNotificationStore()
     </button>
 
     <!-- Dropdown -->
-    <NotificationDropdown v-if="store.isDropdownOpen" />
+    <NotificationDropdown
+      v-if="store.isDropdownOpen"
+      :direction="dropdownDirection"
+    />
   </div>
 </template>
