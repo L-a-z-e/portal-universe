@@ -1,6 +1,7 @@
 package com.portal.universe.blogservice.like.service;
 
 import com.portal.universe.blogservice.common.exception.BlogErrorCode;
+import com.portal.universe.blogservice.event.BlogEventPublisher;
 import com.portal.universe.blogservice.like.domain.Like;
 import com.portal.universe.blogservice.like.dto.LikeStatusResponse;
 import com.portal.universe.blogservice.like.dto.LikeToggleResponse;
@@ -8,7 +9,9 @@ import com.portal.universe.blogservice.like.dto.LikerResponse;
 import com.portal.universe.blogservice.like.repository.LikeRepository;
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.repository.PostRepository;
+import com.portal.universe.event.blog.PostLikedEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,6 +36,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final MongoTemplate mongoTemplate;
+    private final BlogEventPublisher eventPublisher;
 
     /**
      * 좋아요 토글 (추가/취소)
@@ -66,10 +70,23 @@ public class LikeService {
                     .userId(userId)
                     .userName(userName)
                     .build();
-            likeRepository.save(newLike);
+            Like savedLike = likeRepository.save(newLike);
             increment = 1;
             liked = true;
             log.info("Like added: postId={}, userId={}", postId, userId);
+
+            // 자기 글에 좋아요한 경우 알림 발행하지 않음
+            if (!userId.equals(post.getAuthorId())) {
+                eventPublisher.publishPostLiked(new PostLikedEvent(
+                        savedLike.getId(),
+                        postId,
+                        post.getTitle(),
+                        post.getAuthorId(),
+                        userId,
+                        userName,
+                        LocalDateTime.now()
+                ));
+            }
         }
 
         // 3. likeCount atomic 업데이트 (race condition 방지)

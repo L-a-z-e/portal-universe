@@ -4,7 +4,10 @@ import com.portal.universe.blogservice.comment.domain.Comment;
 import com.portal.universe.blogservice.comment.dto.*;
 import com.portal.universe.blogservice.comment.repository.CommentRepository;
 import com.portal.universe.blogservice.common.exception.BlogErrorCode;
+import com.portal.universe.blogservice.event.BlogEventPublisher;
 import com.portal.universe.blogservice.post.domain.Post;
+import com.portal.universe.blogservice.post.repository.PostRepository;
+import com.portal.universe.event.blog.CommentCreatedEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -29,29 +32,50 @@ import java.util.List;
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final PostRepository postRepository;
     private final MongoTemplate mongoTemplate;
+    private final BlogEventPublisher eventPublisher;
 
     /**
      * 댓글 생성
      */
     @Transactional
     public CommentResponse createComment(CommentCreateRequest request, String authorId, String authorName) {
+        // 게시물 조회 (알림 발행을 위해)
+        Post post = postRepository.findById(request.postId())
+                .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
+
+        String decodedAuthorName = decodeHeaderValue(authorName);
         Comment comment = Comment.builder()
                 .postId(request.postId())
                 .parentCommentId(request.parentCommentId())
                 .authorId(authorId)
-                .authorName(decodeHeaderValue(authorName))
+                .authorName(decodedAuthorName)
                 .content(request.content())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
 
         // Phase 3: 게시물의 댓글 수 증가
         updatePostCommentCount(request.postId(), true);
 
-        return toResponse(comment);
+        // 자기 글에 댓글을 단 경우 알림 발행하지 않음
+        if (!authorId.equals(post.getAuthorId())) {
+            eventPublisher.publishCommentCreated(new CommentCreatedEvent(
+                    savedComment.getId(),
+                    request.postId(),
+                    post.getTitle(),
+                    post.getAuthorId(),
+                    authorId,
+                    decodedAuthorName,
+                    request.content(),
+                    LocalDateTime.now()
+            ));
+        }
+
+        return toResponse(savedComment);
     }
 
     /**
