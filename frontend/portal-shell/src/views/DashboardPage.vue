@@ -1,12 +1,23 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
+import { useDashboard } from '../composables/useDashboard'
 import { Button, Badge } from '@portal/design-system-vue'
 import { getRemoteConfigs } from '../config/remoteRegistry'
+import { formatRelativeTime } from '../utils/dateUtils'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// Dashboard composable - 실제 데이터 사용
+const {
+  stats,
+  activities,
+  loading,
+  errors,
+  fetchAll
+} = useDashboard()
 
 // Get available services from remote registry
 const services = computed(() => {
@@ -27,20 +38,6 @@ const quickActions = [
   { id: 'browse-products', label: '상품 둘러보기', icon: '🛍️', path: '/shopping', shortcut: 'S' },
   { id: 'my-orders', label: '주문 내역', icon: '📦', path: '/shopping/orders', shortcut: 'O' },
 ]
-
-// Recent activity (mock data - will be replaced with real API)
-const recentActivity = ref([
-  { id: 1, type: 'blog', action: '글 작성', title: 'Vue 3 Composition API 가이드', time: '2시간 전', icon: '📝' },
-  { id: 2, type: 'shopping', action: '주문 완료', title: '상품 3개 주문', time: '1일 전', icon: '🛒' },
-  { id: 3, type: 'blog', action: '댓글 작성', title: 'React vs Vue 토론', time: '2일 전', icon: '💬' },
-])
-
-// Stats summary
-const stats = computed(() => [
-  { label: '작성한 글', value: 12, icon: '📄', change: '+3' },
-  { label: '주문 건수', value: 5, icon: '📦', change: '+1' },
-  { label: '받은 좋아요', value: 48, icon: '❤️', change: '+12' },
-])
 
 // Current time greeting
 const greeting = computed(() => {
@@ -85,12 +82,39 @@ function navigateTo(path: string) {
           :key="stat.label"
           class="bg-bg-card border border-border-default rounded-xl p-5 hover:border-brand-primary/30 transition-colors"
         >
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-2xl">{{ stat.icon }}</span>
-            <Badge variant="success" size="sm">{{ stat.change }}</Badge>
-          </div>
-          <p class="text-2xl font-bold text-text-heading">{{ stat.value }}</p>
-          <p class="text-sm text-text-meta">{{ stat.label }}</p>
+          <!-- 로딩 상태 -->
+          <template v-if="stat.loading">
+            <div class="animate-pulse">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-8 w-8 bg-bg-elevated rounded"></div>
+                <div class="h-5 w-10 bg-bg-elevated rounded"></div>
+              </div>
+              <div class="h-8 w-16 bg-bg-elevated rounded mb-1"></div>
+              <div class="h-4 w-20 bg-bg-elevated rounded"></div>
+            </div>
+          </template>
+
+          <!-- 에러 상태 -->
+          <template v-else-if="stat.error">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-2xl">{{ stat.icon }}</span>
+              <Badge variant="danger" size="sm">에러</Badge>
+            </div>
+            <p class="text-2xl font-bold text-text-meta">--</p>
+            <p class="text-sm text-text-meta">{{ stat.label }}</p>
+          </template>
+
+          <!-- 정상 상태 -->
+          <template v-else>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-2xl">{{ stat.icon }}</span>
+              <Badge v-if="stat.change" variant="success" size="sm">
+                {{ stat.change }}
+              </Badge>
+            </div>
+            <p class="text-2xl font-bold text-text-heading">{{ stat.value }}</p>
+            <p class="text-sm text-text-meta">{{ stat.label }}</p>
+          </template>
         </div>
       </section>
 
@@ -130,22 +154,55 @@ function navigateTo(path: string) {
                 <span>📊</span>
                 최근 활동
               </h2>
-              <Button variant="ghost" size="sm">전체 보기</Button>
+              <Button variant="ghost" size="sm" @click="fetchAll">새로고침</Button>
             </div>
-            <div class="space-y-3">
+
+            <!-- 로딩 상태 -->
+            <div v-if="loading.activities" class="space-y-3">
+              <div v-for="i in 3" :key="i" class="animate-pulse flex items-center gap-4 p-3">
+                <div class="w-10 h-10 bg-bg-elevated rounded-full"></div>
+                <div class="flex-1">
+                  <div class="h-4 w-3/4 bg-bg-elevated rounded mb-2"></div>
+                  <div class="h-3 w-1/2 bg-bg-elevated rounded"></div>
+                </div>
+                <div class="h-3 w-12 bg-bg-elevated rounded"></div>
+              </div>
+            </div>
+
+            <!-- 에러 상태 -->
+            <div v-else-if="errors.activities" class="text-center py-8 text-text-meta">
+              <p>활동을 불러올 수 없습니다</p>
+              <Button variant="ghost" size="sm" class="mt-2" @click="fetchAll">
+                다시 시도
+              </Button>
+            </div>
+
+            <!-- 빈 상태 -->
+            <div v-else-if="activities.length === 0" class="text-center py-8 text-text-meta">
+              <p>아직 활동이 없습니다</p>
+              <p class="text-sm mt-1">글을 작성하거나 상품을 주문해보세요!</p>
+            </div>
+
+            <!-- 정상 상태 -->
+            <div v-else class="space-y-3">
               <div
-                v-for="activity in recentActivity"
+                v-for="activity in activities"
                 :key="activity.id"
                 class="flex items-center gap-4 p-3 rounded-lg hover:bg-bg-elevated transition-colors cursor-pointer"
+                @click="activity.link && navigateTo(activity.link)"
               >
                 <div class="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center text-lg">
                   {{ activity.icon }}
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-text-heading font-medium truncate">{{ activity.title }}</p>
-                  <p class="text-sm text-text-meta">{{ activity.action }}</p>
+                  <p class="text-text-heading font-medium truncate">
+                    {{ activity.title }}
+                  </p>
+                  <p class="text-sm text-text-meta">{{ activity.description }}</p>
                 </div>
-                <span class="text-xs text-text-meta whitespace-nowrap">{{ activity.time }}</span>
+                <span class="text-xs text-text-meta whitespace-nowrap">
+                  {{ formatRelativeTime(activity.timestamp) }}
+                </span>
               </div>
             </div>
           </div>
