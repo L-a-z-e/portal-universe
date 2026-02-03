@@ -1,4 +1,4 @@
-package com.portal.universe.common.event.shopping;
+package com.portal.universe.event.shopping;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
