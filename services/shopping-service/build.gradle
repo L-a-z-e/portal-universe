@@ -34,6 +34,7 @@ dependencies {
     // Internal Libraries
     // =======================================
     implementation project(':services:common-library') // 공통 예외 처리, 응답 형식 등
+    implementation project(':services:shopping-events') // Shopping 도메인 이벤트
 
     // =======================================
     // Spring Cloud & Microservice Core

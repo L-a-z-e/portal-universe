@@ -1,6 +1,6 @@
 package com.portal.universe.shoppingservice.event;
 
-import com.portal.universe.common.event.shopping.*;
+import com.portal.universe.event.shopping.*;
 import com.portal.universe.shoppingservice.common.config.KafkaConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

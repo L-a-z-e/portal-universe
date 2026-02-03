@@ -12,6 +12,8 @@ import com.portal.universe.shoppingservice.coupon.dto.UserCouponResponse;
 import com.portal.universe.shoppingservice.coupon.redis.CouponRedisService;
 import com.portal.universe.shoppingservice.coupon.repository.CouponRepository;
 import com.portal.universe.shoppingservice.coupon.repository.UserCouponRepository;
+import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
+import com.portal.universe.event.shopping.CouponIssuedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,13 +33,14 @@ public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
+    private final CouponRedisService couponRedisService;
+    private final ShoppingEventPublisher eventPublisher;
 
     @Override
     public Page<CouponResponse> getAllCoupons(Pageable pageable) {
         return couponRepository.findAll(pageable)
                 .map(CouponResponse::from);
     }
-    private final CouponRedisService couponRedisService;
 
     @Override
     @Transactional
@@ -119,6 +122,16 @@ public class CouponServiceImpl implements CouponService {
 
         log.info("Issued coupon: couponId={}, userId={}, userCouponId={}",
                 couponId, userId, savedUserCoupon.getId());
+
+        // 쿠폰 발급 이벤트 발행
+        eventPublisher.publishCouponIssued(new CouponIssuedEvent(
+                Long.parseLong(userId),
+                coupon.getCode(),
+                coupon.getName(),
+                coupon.getDiscountType().name(),
+                coupon.getDiscountValue().intValue(),
+                coupon.getExpiresAt()
+        ));
 
         return UserCouponResponse.from(savedUserCoupon);
     }

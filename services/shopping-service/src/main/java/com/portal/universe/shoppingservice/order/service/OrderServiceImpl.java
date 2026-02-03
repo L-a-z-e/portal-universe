@@ -17,6 +17,9 @@ import com.portal.universe.shoppingservice.order.repository.OrderRepository;
 import com.portal.universe.shoppingservice.order.repository.SagaStateRepository;
 import com.portal.universe.shoppingservice.order.saga.OrderSagaOrchestrator;
 import com.portal.universe.shoppingservice.order.saga.SagaState;
+import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
+import com.portal.universe.event.shopping.OrderCreatedEvent;
+import com.portal.universe.event.shopping.OrderCancelledEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -43,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderSagaOrchestrator orderSagaOrchestrator;
     private final InventoryService inventoryService;
     private final CouponService couponService;
+    private final ShoppingEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -108,6 +113,22 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order created successfully: {} (user: {}, items: {}, total: {}, discount: {}, final: {})",
                 savedOrder.getOrderNumber(), userId, savedOrder.getItems().size(),
                 savedOrder.getTotalAmount(), savedOrder.getDiscountAmount(), savedOrder.getFinalAmount());
+
+        // 주문 생성 이벤트 발행
+        eventPublisher.publishOrderCreated(new OrderCreatedEvent(
+                savedOrder.getOrderNumber(),
+                userId,
+                savedOrder.getFinalAmount(),
+                savedOrder.getItems().size(),
+                savedOrder.getItems().stream()
+                        .map(item -> new OrderCreatedEvent.OrderItemInfo(
+                                item.getProductId(),
+                                item.getProductName(),
+                                item.getQuantity(),
+                                item.getPrice()))
+                        .toList(),
+                LocalDateTime.now()
+        ));
 
         return OrderResponse.from(savedOrder);
     }
@@ -182,6 +203,16 @@ public class OrderServiceImpl implements OrderService {
         }
 
         log.info("Order cancelled: {} (user: {}, reason: {})", orderNumber, userId, request.reason());
+
+        // 주문 취소 이벤트 발행
+        eventPublisher.publishOrderCancelled(new OrderCancelledEvent(
+                orderNumber,
+                userId,
+                savedOrder.getFinalAmount(),
+                request.reason(),
+                LocalDateTime.now()
+        ));
+
         return OrderResponse.from(savedOrder);
     }
 

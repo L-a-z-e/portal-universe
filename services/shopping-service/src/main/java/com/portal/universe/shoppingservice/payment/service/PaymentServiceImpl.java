@@ -12,10 +12,15 @@ import com.portal.universe.shoppingservice.payment.dto.ProcessPaymentRequest;
 import com.portal.universe.shoppingservice.payment.pg.MockPGClient;
 import com.portal.universe.shoppingservice.payment.pg.PgResponse;
 import com.portal.universe.shoppingservice.payment.repository.PaymentRepository;
+import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
+import com.portal.universe.event.shopping.PaymentCompletedEvent;
+import com.portal.universe.event.shopping.PaymentFailedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 /**
  * 결제 관리 서비스 구현체입니다.
@@ -30,6 +35,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderRepository orderRepository;
     private final OrderService orderService;
     private final MockPGClient mockPGClient;
+    private final ShoppingEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -96,12 +102,35 @@ public class PaymentServiceImpl implements PaymentService {
 
             log.info("Payment completed successfully: {} (order: {}, amount: {})",
                     payment.getPaymentNumber(), order.getOrderNumber(), payment.getAmount());
+
+            // 결제 완료 이벤트 발행
+            eventPublisher.publishPaymentCompleted(new PaymentCompletedEvent(
+                    payment.getPaymentNumber(),
+                    order.getOrderNumber(),
+                    userId,
+                    payment.getAmount(),
+                    payment.getPaymentMethod().name(),
+                    payment.getPgTransactionId(),
+                    LocalDateTime.now()
+            ));
         } else {
             payment.fail(pgResponse.errorCode() + ": " + pgResponse.message(), pgResponse.rawResponse());
             paymentRepository.save(payment);
 
             log.warn("Payment failed: {} (order: {}, error: {})",
                     payment.getPaymentNumber(), order.getOrderNumber(), pgResponse.errorCode());
+
+            // 결제 실패 이벤트 발행
+            eventPublisher.publishPaymentFailed(new PaymentFailedEvent(
+                    payment.getPaymentNumber(),
+                    order.getOrderNumber(),
+                    userId,
+                    payment.getAmount(),
+                    payment.getPaymentMethod().name(),
+                    pgResponse.errorCode() + ": " + pgResponse.message(),
+                    LocalDateTime.now()
+            ));
+
             throw new CustomBusinessException(ShoppingErrorCode.PAYMENT_PROCESSING_FAILED);
         }
 
