@@ -1,28 +1,26 @@
 {
   "name": "e2e-tests",
   "version": "1.0.0",
-  "description": "E2E tests for Portal Universe using Playwright",
+  "description": "Portal Universe E2E Tests",
   "scripts": {
     "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:debug": "playwright test --debug",
-    "test:ui": "playwright test --ui",
-    "test:shopping": "playwright test tests/shopping/",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project=mobile-chrome",
+    "test:portal": "playwright test tests/portal-shell/",
     "test:blog": "playwright test tests/blog/",
-    "test:auth": "playwright test tests/auth.setup.ts",
+    "test:shopping": "playwright test tests/shopping/",
+    "test:prism": "playwright test tests/prism/",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
     "report": "playwright show-report",
     "codegen": "playwright codegen http://localhost:30000"
   },
-  "keywords": [
-    "e2e",
-    "playwright",
-    "testing"
-  ],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.56.0",
-    "@types/node": "^25.1.0",
-    "playwright": "^1.56.0"
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.0"
   }
 }

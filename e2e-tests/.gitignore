@@ -1,8 +1,36 @@
-# Playwright test artifacts
-playwright-report/
-test-results/
-.cache/
+# Dependencies
+node_modules/
 
-# Screenshots and videos from failed tests
+# Build output
+dist/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+.playwright/
+
+# Test artifacts
 screenshots/
 videos/
+traces/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/

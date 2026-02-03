@@ -1,116 +1,65 @@
 import { defineConfig, devices } from '@playwright/test'
 
-/**
- * Portal Universe E2E Test Configuration
- *
- * Shopping frontend E2E tests for Phase 1 e-commerce features:
- * - Product browsing
- * - Cart management
- * - Checkout flow
- * - Order tracking
- */
+const isDocker = process.env.TEST_ENV === 'docker'
+
 export default defineConfig({
   testDir: './tests',
+  outputDir: './test-results',
 
-  // Run tests in files in parallel
+  /* 병렬 실행 */
   fullyParallel: true,
-
-  // Fail the build on CI if you accidentally left test.only in the code
   forbidOnly: !!process.env.CI,
-
-  // Retry on CI only
-  retries: process.env.CI ? 2 : 1,
-
-  // Opt out of parallel tests on CI
+  retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
 
-  // Reporter to use
+  /* 리포터 */
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['list']
+    ['list'],
+    ['html', { outputFolder: './playwright-report' }],
   ],
 
-  // Shared settings for all projects
+  /* 전역 설정 */
   use: {
-    // Base URL for portal-shell (Module Federation host)
-    // Docker: https://portal-universe:30000, Local: https://localhost:30000
-    baseURL: process.env.BASE_URL || 'https://localhost:30000',
+    baseURL: isDocker
+      ? 'https://portal-universe:30000'
+      : 'http://localhost:30000',
 
-    // Ignore HTTPS errors (Docker uses self-signed certificates)
-    ignoreHTTPSErrors: true,
-
-    // Collect trace when retrying the failed test
+    /* 디버깅 */
     trace: 'on-first-retry',
-
-    // Screenshot on failure
     screenshot: 'only-on-failure',
+    video: 'on-first-retry',
 
-    // Video on failure
-    video: 'retain-on-failure',
-
-    // Default timeout for actions
+    /* 타임아웃 */
     actionTimeout: 10000,
-
-    // Default navigation timeout
     navigationTimeout: 30000,
+
+    /* HTTPS 인증서 무시 (Docker 환경) */
+    ignoreHTTPSErrors: isDocker,
   },
 
-  // Global timeout for each test
-  timeout: 60000,
-
-  // Expect timeout
-  expect: {
-    timeout: 10000,
-  },
-
-  // Configure projects for browsers
+  /* 브라우저 설정 */
   projects: [
-    // Setup project for user authentication
-    {
-      name: 'setup',
-      testMatch: /auth\.setup\.ts/,
-    },
-
-    // Setup project for admin authentication
-    {
-      name: 'admin-setup',
-      testMatch: /auth-admin\.setup\.ts/,
-    },
-
-    // Seed test data via Admin & User API (products, coupons, time-deals, blog posts)
-    {
-      name: 'data-seed',
-      testMatch: /data-seed\.setup\.ts/,
-      dependencies: ['setup', 'admin-setup'],
-    },
-
-    // Main test project with user authentication state (excludes admin/ and noauth)
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: './tests/.auth/user.json',
-      },
-      testIgnore: [/tests\/admin\//, /.*\.noauth\.spec\.ts/],
-      dependencies: ['setup'],
-    },
-
-    // Admin test project with admin authentication state
-    {
-      name: 'chromium-admin',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: './tests/.auth/admin.json',
-      },
-      testMatch: /tests\/admin\//,
-      dependencies: ['admin-setup', 'data-seed'],
-    },
-
-    // Tests that don't require authentication
-    {
-      name: 'chromium-no-auth',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: /.*\.noauth\.spec\.ts/,
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+    {
+      name: 'mobile-chrome',
+      use: { ...devices['Pixel 5'] },
     },
   ],
+
+  /* 글로벌 타임아웃 */
+  timeout: 60000,
+  expect: {
+    timeout: 5000,
+  },
 })
