@@ -9,6 +9,12 @@ spring:
   application:
     name: notification-service
 
+  # Jackson 설정 (ISO 8601 날짜 형식)
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+
   # JPA 공통 설정
   jpa:
     open-in-view: false

@@ -18,8 +18,8 @@ const store = useNotificationStore()
 const positionClass = computed(() => {
   switch (props.direction) {
     case 'right':
-      // Sidebar 오른쪽으로 확장 (Bell 버튼 기준 왼쪽 전체 너비 + 마진)
-      return 'left-full ml-2 top-0'
+      // Sidebar 오른쪽으로 확장, 위쪽으로 펼쳐짐 (하단 잘림 방지)
+      return 'left-full ml-2 bottom-0'
     case 'left':
       // 기존 방식 (오른쪽 정렬, 아래로 확장)
       return 'right-0 mt-2'
@@ -27,7 +27,7 @@ const positionClass = computed(() => {
       // 위쪽으로 확장
       return 'bottom-full mb-2 right-0'
     default:
-      return 'left-full ml-2 top-0'
+      return 'left-full ml-2 bottom-0'
   }
 })
 
@@ -66,7 +66,7 @@ onUnmounted(() => {
 <template>
   <div
     :class="[
-      'notification-dropdown absolute w-80 max-h-[32rem] bg-bg-card rounded-lg shadow-lg border border-border-default z-[60] overflow-hidden',
+      'notification-dropdown absolute w-80 max-h-[min(24rem,calc(100vh-10rem))] bg-bg-card rounded-lg shadow-lg border border-border-default z-[60] flex flex-col',
       positionClass
     ]"
   >

@@ -11,9 +11,26 @@ const props = defineProps<{
 const router = useRouter()
 const store = useNotificationStore()
 
+// Parse date (handles both ISO string and array format from backend)
+function parseDate(value: string | number[] | null | undefined): Date | null {
+  if (!value) return null
+
+  // Handle array format: [2026, 2, 3, 23, 53, 49, 901889000]
+  if (Array.isArray(value)) {
+    const [year, month, day, hour = 0, minute = 0, second = 0] = value
+    return new Date(year, month - 1, day, hour, minute, second)
+  }
+
+  // Handle ISO string format
+  const date = new Date(value)
+  return isNaN(date.getTime()) ? null : date
+}
+
 // Time ago formatting
 const timeAgo = computed(() => {
-  const date = new Date(props.notification.createdAt)
+  const date = parseDate(props.notification.createdAt as string | number[])
+  if (!date) return ''
+
   const now = new Date()
   const diff = now.getTime() - date.getTime()
 
