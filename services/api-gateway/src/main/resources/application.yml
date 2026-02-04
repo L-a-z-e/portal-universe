@@ -485,7 +485,8 @@ resilience4j:
         timeout-duration: 120s  # RAG + AI 응답 대기
 
 # 공개 경로 설정 (PublicPathProperties)
-# Java 기본값과 동일하며, 필요 시 여기서 override 가능
+# YAML이 Single Source of Truth - 모든 경로는 여기서 정의
+# 환경별 프로필(local, docker, kubernetes)에서도 동일한 설정 유지
 gateway:
   public-paths:
     permit-all:
