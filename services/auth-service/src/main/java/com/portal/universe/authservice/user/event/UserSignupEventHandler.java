@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.user.event;
 
-import com.portal.universe.common.event.UserSignedUpEvent;
+import com.portal.universe.event.auth.UserSignedUpEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

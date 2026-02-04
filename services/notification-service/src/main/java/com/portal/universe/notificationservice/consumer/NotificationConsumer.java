@@ -1,6 +1,6 @@
 package com.portal.universe.notificationservice.consumer;
 
-import com.portal.universe.common.event.UserSignedUpEvent;
+import com.portal.universe.event.auth.UserSignedUpEvent;
 import com.portal.universe.event.blog.CommentCreatedEvent;
 import com.portal.universe.event.blog.CommentRepliedEvent;
 import com.portal.universe.event.blog.PostLikedEvent;

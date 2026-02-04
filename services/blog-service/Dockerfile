@@ -5,8 +5,33 @@ FROM gradle:8.9-jdk17 AS builder
 
 WORKDIR /app
 
-COPY . .
+# ---------------------------------------------
+# Layer 1: 의존성 파일만 복사 (Layer Cache 활용)
+# ---------------------------------------------
+COPY build.gradle settings.gradle ./
+COPY gradle/ gradle/
+COPY gradlew ./
+COPY services/common-library/build.gradle services/common-library/
+COPY services/blog-events/build.gradle services/blog-events/
+COPY services/blog-service/build.gradle services/blog-service/
 
+# ---------------------------------------------
+# Layer 2: 의존성 다운로드 (의존성 변경 없으면 캐시)
+# ---------------------------------------------
+RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
+    --mount=type=cache,target=/home/gradle/.gradle/wrapper \
+    ./gradlew :services:blog-service:dependencies --no-daemon || true
+
+# ---------------------------------------------
+# Layer 3: 소스 코드 복사 (common-library, blog-events 포함)
+# ---------------------------------------------
+COPY services/common-library/ services/common-library/
+COPY services/blog-events/ services/blog-events/
+COPY services/blog-service/ services/blog-service/
+
+# ---------------------------------------------
+# Layer 4: 빌드 (소스만 변경 시 여기서만 재실행)
+# ---------------------------------------------
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
     ./gradlew :services:blog-service:build --no-daemon -x test

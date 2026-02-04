@@ -1,6 +1,6 @@
 package com.portal.universe.notificationservice.consumer;
 
-import com.portal.universe.common.event.UserSignedUpEvent;
+import com.portal.universe.event.auth.UserSignedUpEvent;
 import com.portal.universe.event.shopping.OrderCreatedEvent;
 import com.portal.universe.notificationservice.converter.NotificationEventConverter;
 import com.portal.universe.notificationservice.domain.Notification;
