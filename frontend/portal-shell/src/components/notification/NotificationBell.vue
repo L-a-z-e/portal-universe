@@ -7,7 +7,7 @@ interface Props {
   dropdownDirection?: 'left' | 'right' | 'up'
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   dropdownDirection: 'right'
 })
 

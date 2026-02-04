@@ -141,7 +141,27 @@ class ApiService {
 
   // Provider APIs
   async getProviders(): Promise<Provider[]> {
-    return this.request<Provider[]>('get', '/api/v1/prism/providers');
+    interface ProviderApiResponse {
+      id: number;
+      providerType: string;
+      name: string;
+      baseUrl?: string;
+      isActive: boolean;
+      createdAt: string;
+      updatedAt: string;
+    }
+    const result = await this.request<{ items: ProviderApiResponse[] }>('get', '/api/v1/prism/providers');
+    const items = result.items ?? [];
+    // Map API response to frontend type
+    return items.map((p) => ({
+      id: p.id,
+      name: p.name,
+      type: p.providerType as Provider['type'],
+      baseUrl: p.baseUrl,
+      isActive: p.isActive,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    }));
   }
 
   async getProvider(id: number): Promise<Provider> {
@@ -158,7 +178,40 @@ class ApiService {
 
   // Agent APIs
   async getAgents(): Promise<Agent[]> {
-    return this.request<Agent[]>('get', '/api/v1/prism/agents');
+    interface AgentApiResponse {
+      id: number;
+      providerId: number;
+      provider: {
+        id: number;
+        name: string;
+        providerType: string;
+      };
+      name: string;
+      description?: string;
+      systemPrompt: string;
+      model: string;
+      temperature: number;
+      maxTokens: number;
+      createdAt: string;
+      updatedAt: string;
+    }
+    const result = await this.request<{ items: AgentApiResponse[] }>('get', '/api/v1/prism/agents');
+    const items = result.items ?? [];
+    // Map API response to frontend type
+    return items.map((a) => ({
+      id: a.id,
+      name: a.name,
+      description: a.description,
+      providerId: a.providerId,
+      providerName: a.provider?.name ?? 'Unknown',
+      model: a.model,
+      systemPrompt: a.systemPrompt,
+      temperature: a.temperature,
+      maxTokens: a.maxTokens,
+      isActive: true, // Backend doesn't have isActive for agents, default to true
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+    }));
   }
 
   async getAgent(id: number): Promise<Agent> {

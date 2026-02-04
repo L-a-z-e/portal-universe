@@ -16,14 +16,18 @@ function parseDate(value: string | number[] | null | undefined): Date | null {
   if (!value) return null
 
   // Handle array format: [2026, 2, 3, 23, 53, 49, 901889000]
-  if (Array.isArray(value)) {
-    const [year, month, day, hour = 0, minute = 0, second = 0] = value
-    return new Date(year, month - 1, day, hour, minute, second)
+  if (Array.isArray(value) && value.length >= 3) {
+    const arr = value as [number, number, number, ...number[]]
+    return new Date(arr[0], arr[1] - 1, arr[2], arr[3] ?? 0, arr[4] ?? 0, arr[5] ?? 0)
   }
 
   // Handle ISO string format
-  const date = new Date(value)
-  return isNaN(date.getTime()) ? null : date
+  if (typeof value === 'string') {
+    const date = new Date(value)
+    return isNaN(date.getTime()) ? null : date
+  }
+
+  return null
 }
 
 // Time ago formatting

@@ -7,6 +7,7 @@ const providerTypeOptions = [
   { value: 'OPENAI', label: 'OpenAI' },
   { value: 'ANTHROPIC', label: 'Anthropic' },
   { value: 'GOOGLE', label: 'Google AI' },
+  { value: 'OLLAMA', label: 'Ollama' },
   { value: 'LOCAL', label: 'Local/Custom' },
 ];
 
@@ -62,6 +63,8 @@ function ProvidersPage() {
         return '🟠';
       case 'GOOGLE':
         return '🔵';
+      case 'OLLAMA':
+        return '🦙';
       default:
         return '⚪';
     }

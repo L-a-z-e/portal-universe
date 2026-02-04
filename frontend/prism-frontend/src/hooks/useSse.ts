@@ -14,7 +14,8 @@ interface UseSseOptions {
   enabled?: boolean;
 }
 
-const SSE_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// SSE connects directly to the API, base URL should not include /api prefix
+const SSE_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 const MAX_RECONNECT_ATTEMPTS = 5;
 
 export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {

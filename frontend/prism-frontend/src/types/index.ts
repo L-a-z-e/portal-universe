@@ -9,7 +9,7 @@ export interface Provider {
   updatedAt: string;
 }
 
-export type ProviderType = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE' | 'LOCAL';
+export type ProviderType = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE' | 'OLLAMA' | 'LOCAL';
 
 export interface CreateProviderRequest {
   name: string;
