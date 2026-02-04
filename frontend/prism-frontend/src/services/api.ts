@@ -215,6 +215,7 @@ class ApiService {
         providerType: string;
       };
       name: string;
+      role: string;
       description?: string;
       systemPrompt: string;
       model: string;
@@ -229,6 +230,7 @@ class ApiService {
     return items.map((a) => ({
       id: a.id,
       name: a.name,
+      role: (a.role || 'CUSTOM') as Agent['role'],
       description: a.description,
       providerId: a.providerId,
       providerName: a.provider?.name ?? 'Unknown',

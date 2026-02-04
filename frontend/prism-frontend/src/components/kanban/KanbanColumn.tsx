@@ -36,7 +36,7 @@ export function KanbanColumn({
   return (
     <div
       className={`
-        flex-shrink-0 w-72 bg-bg-subtle rounded-lg
+        flex-1 min-w-[180px] bg-bg-subtle rounded-lg
         border-t-4 ${statusColors[column.id]}
         ${isOver ? 'bg-bg-muted' : ''}
       `}

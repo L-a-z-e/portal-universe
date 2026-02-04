@@ -3,7 +3,16 @@ import { Modal, Button, Input, Select, Textarea } from '@portal/design-system-re
 import { useAgentStore } from '@/stores/agentStore';
 import { useProviderStore } from '@/stores/providerStore';
 import { api } from '@/services/api';
-import type { Agent, CreateAgentRequest } from '@/types';
+import type { Agent, AgentRole, CreateAgentRequest } from '@/types';
+
+const AGENT_ROLES: { value: AgentRole; label: string }[] = [
+  { value: 'PM', label: 'PM (Project Manager)' },
+  { value: 'BACKEND', label: 'Backend Developer' },
+  { value: 'FRONTEND', label: 'Frontend Developer' },
+  { value: 'DEVOPS', label: 'DevOps Engineer' },
+  { value: 'TESTER', label: 'Tester / QA' },
+  { value: 'CUSTOM', label: 'Custom' },
+];
 
 function AgentsPage() {
   const { agents, loading, error, fetchAgents, createAgent, updateAgent, deleteAgent } = useAgentStore();
@@ -17,6 +26,7 @@ function AgentsPage() {
   const [useCustomModel, setUseCustomModel] = useState(false);
   const [formData, setFormData] = useState<CreateAgentRequest>({
     name: '',
+    role: 'CUSTOM',
     description: '',
     providerId: 0,
     model: '',
@@ -65,6 +75,7 @@ function AgentsPage() {
       setSelectedAgent(agent);
       setFormData({
         name: agent.name,
+        role: agent.role || 'CUSTOM',
         description: agent.description || '',
         providerId: agent.providerId,
         model: agent.model,
@@ -78,6 +89,7 @@ function AgentsPage() {
       setSelectedAgent(null);
       setFormData({
         name: '',
+        role: 'CUSTOM',
         description: '',
         providerId: providers[0]?.id || 0,
         model: 'gpt-4o',
@@ -160,6 +172,9 @@ function AgentsPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-text-heading">{agent.name}</h3>
+                    <span className="px-2 py-0.5 text-xs rounded-full bg-brand-primary/10 text-brand-primary">
+                      {agent.role || 'CUSTOM'}
+                    </span>
                     <span className={`px-2 py-0.5 text-xs rounded-full ${agent.isActive ? 'bg-status-success/10 text-status-success' : 'bg-bg-muted text-text-meta'}`}>
                       {agent.isActive ? 'Active' : 'Inactive'}
                     </span>
@@ -214,13 +229,21 @@ function AgentsPage() {
               autoFocus
             />
             <Select
-              label="Provider"
-              value={formData.providerId}
-              onChange={(value) => setFormData({ ...formData, providerId: Number(value) })}
-              options={providerOptions}
-              placeholder="Select a provider"
+              label="Role"
+              value={formData.role}
+              onChange={(value) => setFormData({ ...formData, role: value as AgentRole })}
+              options={AGENT_ROLES}
+              placeholder="Select a role"
             />
           </div>
+
+          <Select
+            label="Provider"
+            value={formData.providerId}
+            onChange={(value) => setFormData({ ...formData, providerId: Number(value) })}
+            options={providerOptions}
+            placeholder="Select a provider"
+          />
 
           <Input
             label="Description"

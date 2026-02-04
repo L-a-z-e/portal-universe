@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Execution, ExecutionStatus } from './execution.entity';
+import { Task } from '../task/task.entity';
 import { TaskService } from '../task/task.service';
 import { AgentService } from '../agent/agent.service';
 import { AIService } from '../ai/ai.service';
@@ -17,6 +18,8 @@ export class ExecutionService {
   constructor(
     @InjectRepository(Execution)
     private readonly executionRepository: Repository<Execution>,
+    @InjectRepository(Task)
+    private readonly taskRepository: Repository<Task>,
     private readonly taskService: TaskService,
     private readonly agentService: AgentService,
     private readonly aiService: AIService,
@@ -43,13 +46,24 @@ export class ExecutionService {
       where: { taskId },
     });
 
+    // 참조 Task 결과 조회
+    let referencedResults:
+      | Array<{ taskTitle: string; outputResult: string }>
+      | undefined;
+    if (task.referencedTaskIds && task.referencedTaskIds.length > 0) {
+      referencedResults = await this.getReferencedResults(
+        task.referencedTaskIds,
+        task.id,
+      );
+    }
+
     // Create execution record
     const execution = this.executionRepository.create({
       taskId,
       agentId: agent.id,
       executionNumber: executionCount + 1,
       status: ExecutionStatus.PENDING,
-      inputPrompt: this.buildPrompt(task.title, task.description),
+      inputPrompt: this.buildPrompt(task.title, task.description, referencedResults),
     });
 
     const saved = await this.executionRepository.save(execution);
@@ -222,12 +236,62 @@ export class ExecutionService {
     }
   }
 
-  private buildPrompt(title: string, description: string | null): string {
+  private buildPrompt(
+    title: string,
+    description: string | null,
+    referencedResults?: Array<{ taskTitle: string; outputResult: string }>,
+  ): string {
     let prompt = `Task: ${title}`;
     if (description) {
       prompt += `\n\nDescription:\n${description}`;
     }
+
+    // 참조된 Task 결과 추가
+    if (referencedResults && referencedResults.length > 0) {
+      prompt += `\n\n---\nReferenced Task Results:\n`;
+      for (const ref of referencedResults) {
+        prompt += `\n[${ref.taskTitle}]\n${ref.outputResult}\n`;
+      }
+    }
+
     return prompt;
+  }
+
+  /**
+   * 참조된 Task들의 최신 실행 결과를 조회
+   * @param taskIds 참조할 Task ID 배열
+   * @param currentTaskId 현재 Task ID (순환 참조 방지)
+   */
+  private async getReferencedResults(
+    taskIds: number[],
+    currentTaskId: number,
+  ): Promise<Array<{ taskTitle: string; outputResult: string }>> {
+    if (!taskIds || taskIds.length === 0) return [];
+
+    const results: Array<{ taskTitle: string; outputResult: string }> = [];
+
+    for (const taskId of taskIds) {
+      // 순환 참조 방지
+      if (taskId === currentTaskId) continue;
+
+      // 각 참조 task의 최신 완료된 execution 조회
+      const execution = await this.executionRepository.findOne({
+        where: { taskId, status: ExecutionStatus.COMPLETED },
+        order: { executionNumber: 'DESC' },
+      });
+
+      if (execution?.outputResult) {
+        const task = await this.taskRepository.findOne({
+          where: { id: taskId },
+        });
+        results.push({
+          taskTitle: task?.title || `Task #${taskId}`,
+          outputResult: execution.outputResult.substring(0, 3000), // 토큰 제한
+        });
+      }
+    }
+
+    return results;
   }
 
   private async findByIdAndUser(

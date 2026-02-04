@@ -66,7 +66,7 @@ export class TaskService {
       priority: dto.priority,
       agentId: dto.agentId,
       dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
-      referencedTaskIds: dto.referencedTaskIds ?? null,
+      referencedTaskIds: dto.referencedTaskIds?.map(Number) ?? null,
       status: TaskStatus.TODO,
       position: (maxPosition?.maxPos ?? -1) + 1,
     });
@@ -138,7 +138,7 @@ export class TaskService {
       task.dueDate = dto.dueDate ? new Date(dto.dueDate) : null;
     }
     if (dto.referencedTaskIds !== undefined) {
-      task.referencedTaskIds = dto.referencedTaskIds;
+      task.referencedTaskIds = dto.referencedTaskIds?.map(Number) ?? null;
     }
 
     await this.taskRepository.save(task);
@@ -235,11 +235,12 @@ export class TaskService {
   ): Promise<TaskContextResponseDto> {
     const task = await this.findByIdAndUser(userId, id);
 
-    // Get previous executions for this task
+    // Get previous executions for this task (with agent info)
     const previousExecutions = await this.executionRepository.find({
       where: { taskId: id },
+      relations: ['agent'],
       order: { executionNumber: 'DESC' },
-      take: 5,
+      take: 10,
     });
 
     // Get referenced tasks with their last execution

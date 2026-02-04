@@ -19,9 +19,12 @@ export interface CreateProviderRequest {
 }
 
 // Agent Types
+export type AgentRole = 'PM' | 'BACKEND' | 'FRONTEND' | 'DEVOPS' | 'TESTER' | 'CUSTOM';
+
 export interface Agent {
   id: number;
   name: string;
+  role: AgentRole;
   description?: string;
   providerId: number;
   providerName: string;
@@ -36,6 +39,7 @@ export interface Agent {
 
 export interface CreateAgentRequest {
   name: string;
+  role: AgentRole;
   description?: string;
   providerId: number;
   model: string;
@@ -108,6 +112,7 @@ export interface Execution {
   id: number;
   taskId: number;
   agentId: number;
+  agentName?: string;
   executionNumber: number;
   status: ExecutionStatus;
   inputPrompt: string;

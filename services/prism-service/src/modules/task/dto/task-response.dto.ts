@@ -73,7 +73,7 @@ export class TaskResponseDto {
     dto.dueDate = entity.dueDate
       ? entity.dueDate.toISOString().split('T')[0]
       : null;
-    dto.referencedTaskIds = entity.referencedTaskIds;
+    dto.referencedTaskIds = entity.referencedTaskIds?.map(Number) ?? null;
     dto.availableActions = TaskStateMachine.getAvailableActions(entity.status);
     dto.createdAt = entity.createdAt;
     dto.updatedAt = entity.updatedAt;
