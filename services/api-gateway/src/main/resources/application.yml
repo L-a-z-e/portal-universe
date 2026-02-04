@@ -502,7 +502,6 @@ gateway:
       - "/api/v1/shopping/time-deals/**"
       - "/api/v1/shopping/inventory/batch"
       - "/api/v1/shopping/inventory/stream"
-      - "/api/v1/prism/sse/**"
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
       - "/api/v1/chat/health"
@@ -525,7 +524,6 @@ gateway:
       - "/api/v1/shopping/categories"
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
-      - "/api/v1/prism/sse/"
       - "/api/v1/chat/health"
 
 # JWT 설정 (Auth Service와 동일한 설정 사용, 다중 키 지원)
