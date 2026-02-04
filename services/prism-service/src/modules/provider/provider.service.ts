@@ -201,6 +201,8 @@ export class ProviderService {
         return 'https://api.anthropic.com';
       case ProviderType.OLLAMA:
         return 'http://localhost:11434';
+      case ProviderType.LOCAL:
+        return 'http://localhost:11434'; // Default same as Ollama
       case ProviderType.AZURE_OPENAI:
         return null; // User must provide
       default:

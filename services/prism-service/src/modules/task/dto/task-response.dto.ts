@@ -42,6 +42,12 @@ export class TaskResponseDto {
   @ApiProperty({ example: 0 })
   position: number;
 
+  @ApiPropertyOptional({ example: '2026-02-28' })
+  dueDate: string | null;
+
+  @ApiPropertyOptional({ example: [1, 2] })
+  referencedTaskIds: number[] | null;
+
   @ApiProperty({
     example: ['execute', 'cancel'],
     description: 'Available actions based on current status',
@@ -64,6 +70,10 @@ export class TaskResponseDto {
     dto.status = entity.status;
     dto.priority = entity.priority;
     dto.position = entity.position;
+    dto.dueDate = entity.dueDate
+      ? entity.dueDate.toISOString().split('T')[0]
+      : null;
+    dto.referencedTaskIds = entity.referencedTaskIds;
     dto.availableActions = TaskStateMachine.getAvailableActions(entity.status);
     dto.createdAt = entity.createdAt;
     dto.updatedAt = entity.updatedAt;

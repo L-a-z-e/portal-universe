@@ -22,17 +22,21 @@ export class CreateProviderDto {
   @MaxLength(100)
   name: string;
 
-  @ApiProperty({ example: 'sk-xxxxxxxxxxxxxxxx' })
+  @ApiPropertyOptional({ example: 'sk-xxxxxxxxxxxxxxxx' })
   @IsString()
-  @ValidateIf((o: CreateProviderDto) => o.providerType !== ProviderType.OLLAMA)
+  @IsOptional()
+  @ValidateIf((o: CreateProviderDto) =>
+    ![ProviderType.OLLAMA, ProviderType.LOCAL].includes(o.providerType),
+  )
   @IsNotEmpty()
-  apiKey: string;
+  apiKey?: string;
 
   @ApiPropertyOptional({ example: 'https://api.openai.com/v1' })
   @IsOptional()
   @ValidateIf(
     (o: CreateProviderDto) =>
-      o.providerType !== ProviderType.OLLAMA || !!o.baseUrl,
+      ![ProviderType.OLLAMA, ProviderType.LOCAL].includes(o.providerType) ||
+      !!o.baseUrl,
   )
   @IsUrl()
   @MaxLength(255)

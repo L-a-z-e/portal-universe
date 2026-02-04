@@ -71,6 +71,12 @@ export class Task {
   @Column({ type: 'int', default: 0 })
   position: number;
 
+  @Column({ name: 'due_date', type: 'date', nullable: true })
+  dueDate: Date | null;
+
+  @Column({ name: 'referenced_task_ids', type: 'simple-array', nullable: true })
+  referencedTaskIds: number[] | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
