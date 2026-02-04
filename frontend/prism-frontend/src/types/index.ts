@@ -70,6 +70,8 @@ export interface Task {
   agentName?: string;
   position: number;
   dueDate?: string;
+  referencedTaskIds?: number[];
+  availableActions?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -84,6 +86,7 @@ export interface CreateTaskRequest {
   priority?: TaskPriority;
   agentId?: number;
   dueDate?: string;
+  referencedTaskIds?: number[];
 }
 
 export interface UpdateTaskRequest {
@@ -92,6 +95,7 @@ export interface UpdateTaskRequest {
   priority?: TaskPriority;
   agentId?: number;
   dueDate?: string;
+  referencedTaskIds?: number[];
 }
 
 export interface MoveTaskRequest {

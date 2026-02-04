@@ -16,6 +16,8 @@ interface TaskState {
   assignAgent: (taskId: number, agentId: number) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
   executeTask: (taskId: number) => Promise<void>;
+  approveTask: (taskId: number) => Promise<void>;
+  rejectTask: (taskId: number, feedback?: string) => Promise<void>;
   clearError: () => void;
 
   // SSE event handlers
@@ -74,6 +76,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     try {
       const task = await api.createTask(data);
       set((state) => {
+        // Avoid duplicates (SSE event may arrive before API response)
+        if (state.tasks.some((t) => t.id === task.id)) {
+          return { loading: false };
+        }
         const newTasks = [...state.tasks, task];
         return {
           tasks: newTasks,
@@ -192,6 +198,48 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to execute task',
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  approveTask: async (taskId: number) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await api.approveTask(taskId);
+      set((state) => {
+        const newTasks = state.tasks.map((t) => (t.id === taskId ? updated : t));
+        return {
+          tasks: newTasks,
+          columns: buildColumns(newTasks),
+          loading: false,
+        };
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to approve task',
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  rejectTask: async (taskId: number, feedback?: string) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await api.rejectTask(taskId, feedback);
+      set((state) => {
+        const newTasks = state.tasks.map((t) => (t.id === taskId ? updated : t));
+        return {
+          tasks: newTasks,
+          columns: buildColumns(newTasks),
+          loading: false,
+        };
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to reject task',
         loading: false,
       });
       throw error;

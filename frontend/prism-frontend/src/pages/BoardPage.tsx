@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { KanbanBoard, TaskModal } from '@/components/kanban';
+import { KanbanBoard, TaskModal, TaskResultModal } from '@/components/kanban';
 import { Button } from '@portal/design-system-react';
 import { useBoardStore } from '@/stores/boardStore';
 import { useTaskStore } from '@/stores/taskStore';
@@ -17,6 +17,8 @@ function BoardPage() {
     createTask,
     updateTask,
     deleteTask,
+    approveTask,
+    rejectTask,
     loading: taskLoading,
     handleTaskCreated,
     handleTaskUpdated,
@@ -28,7 +30,9 @@ function BoardPage() {
   } = useTaskStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [viewTask, setViewTask] = useState<Task | null>(null);
 
   const boardIdNum = boardId ? parseInt(boardId) : null;
 
@@ -99,6 +103,30 @@ function BoardPage() {
     setIsModalOpen(false);
     setSelectedTask(null);
   }, []);
+
+  const handleViewTask = useCallback((task: Task) => {
+    setViewTask(task);
+    setIsResultModalOpen(true);
+  }, []);
+
+  const handleCloseResultModal = useCallback(() => {
+    setIsResultModalOpen(false);
+    setViewTask(null);
+  }, []);
+
+  const handleApproveTask = useCallback(
+    async (task: Task) => {
+      await approveTask(task.id);
+    },
+    [approveTask]
+  );
+
+  const handleRejectTask = useCallback(
+    async (task: Task, feedback: string) => {
+      await rejectTask(task.id, feedback);
+    },
+    [rejectTask]
+  );
 
   const handleSubmitTask = useCallback(
     async (data: CreateTaskRequest | UpdateTaskRequest) => {
@@ -176,7 +204,11 @@ function BoardPage() {
       )}
 
       <div className="flex-1 overflow-hidden">
-        <KanbanBoard onEditTask={handleEditTask} onAddTask={handleAddTask} />
+        <KanbanBoard
+          onEditTask={handleEditTask}
+          onViewTask={handleViewTask}
+          onAddTask={handleAddTask}
+        />
       </div>
 
       <TaskModal
@@ -186,6 +218,14 @@ function BoardPage() {
         boardId={currentBoard.id}
         onSubmit={handleSubmitTask}
         onDelete={handleDeleteTask}
+      />
+
+      <TaskResultModal
+        isOpen={isResultModalOpen}
+        onClose={handleCloseResultModal}
+        task={viewTask}
+        onApprove={handleApproveTask}
+        onReject={handleRejectTask}
       />
     </div>
   );

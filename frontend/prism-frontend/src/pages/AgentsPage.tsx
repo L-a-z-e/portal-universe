@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Modal, Button, Input, Select, Textarea } from '@portal/design-system-react';
 import { useAgentStore } from '@/stores/agentStore';
 import { useProviderStore } from '@/stores/providerStore';
+import { api } from '@/services/api';
 import type { Agent, CreateAgentRequest } from '@/types';
 
 function AgentsPage() {
@@ -11,11 +12,14 @@ function AgentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [useCustomModel, setUseCustomModel] = useState(false);
   const [formData, setFormData] = useState<CreateAgentRequest>({
     name: '',
     description: '',
     providerId: 0,
-    model: 'gpt-4o',
+    model: '',
     systemPrompt: '',
     temperature: 0.7,
     maxTokens: 4096,
@@ -25,6 +29,36 @@ function AgentsPage() {
     fetchAgents();
     fetchProviders();
   }, [fetchAgents, fetchProviders]);
+
+  // Provider 변경 시 모델 목록 조회
+  useEffect(() => {
+    if (!formData.providerId) {
+      setAvailableModels([]);
+      return;
+    }
+
+    const fetchModels = async () => {
+      setModelsLoading(true);
+      try {
+        const models = await api.getProviderModels(formData.providerId);
+        setAvailableModels(models);
+        // 현재 선택된 모델이 목록에 없으면 custom model로 간주
+        if (formData.model && !models.includes(formData.model)) {
+          setUseCustomModel(true);
+        } else if (models.length > 0 && !formData.model) {
+          // 모델이 없으면 첫 번째 모델로 설정
+          setFormData(prev => ({ ...prev, model: models[0] }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+        setAvailableModels([]);
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, [formData.providerId]);
 
   const handleOpenModal = useCallback((agent?: Agent) => {
     if (agent) {
@@ -38,6 +72,8 @@ function AgentsPage() {
         temperature: agent.temperature,
         maxTokens: agent.maxTokens,
       });
+      // Check if agent's model is not in available models (custom model)
+      setUseCustomModel(false); // Will be updated after models are fetched
     } else {
       setSelectedAgent(null);
       setFormData({
@@ -49,6 +85,7 @@ function AgentsPage() {
         temperature: 0.7,
         maxTokens: 4096,
       });
+      setUseCustomModel(false);
     }
     setIsModalOpen(true);
   }, [providers]);
@@ -193,13 +230,63 @@ function AgentsPage() {
           />
 
           <div className="grid grid-cols-3 gap-4">
-            <Input
-              label="Model"
-              value={formData.model}
-              onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-              placeholder="gpt-4o"
-              required
-            />
+            <div>
+              {useCustomModel ? (
+                <>
+                  <Input
+                    label="Custom Model"
+                    value={formData.model}
+                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                    placeholder="e.g., llama3.2:latest"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseCustomModel(false);
+                      if (availableModels.length > 0) {
+                        setFormData(prev => ({ ...prev, model: availableModels[0] }));
+                      }
+                    }}
+                    className="mt-1 text-xs text-brand-primary hover:underline"
+                  >
+                    ← Select from list
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Select
+                    label="Model"
+                    value={formData.model}
+                    onChange={(value) => {
+                      if (value === '__custom__') {
+                        setUseCustomModel(true);
+                        setFormData({ ...formData, model: '' });
+                      } else {
+                        setFormData({ ...formData, model: value });
+                      }
+                    }}
+                    options={[
+                      ...availableModels.map(m => ({ value: m, label: m })),
+                      { value: '__custom__', label: 'Other (Custom)' },
+                    ]}
+                    placeholder={modelsLoading ? 'Loading models...' : 'Select a model'}
+                    disabled={modelsLoading || availableModels.length === 0}
+                  />
+                  {!formData.providerId && (
+                    <p className="mt-1 text-xs text-text-meta">Select a provider first</p>
+                  )}
+                  {formData.providerId && !modelsLoading && availableModels.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setUseCustomModel(true)}
+                      className="mt-1 text-xs text-brand-primary hover:underline"
+                    >
+                      Enter custom model name →
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
             <Input
               label="Temperature"
               type="number"
@@ -243,3 +330,4 @@ function AgentsPage() {
 }
 
 export default AgentsPage;
+

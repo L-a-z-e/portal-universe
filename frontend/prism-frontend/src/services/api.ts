@@ -31,6 +31,15 @@ export class ApiError extends Error {
   }
 }
 
+// Backend Task API response type (includes agent object instead of agentName)
+interface TaskApiResponse extends Omit<Task, 'agentName'> {
+  agent?: {
+    id: number;
+    name: string;
+    role: string;
+  };
+}
+
 // API Base URL 설정 (환경별)
 const getBaseUrl = (): string => {
   if (import.meta.env.VITE_API_BASE_URL) {
@@ -139,6 +148,14 @@ class ApiService {
     return response.data.data as T;
   }
 
+  // Helper to map backend task response to frontend Task type
+  private mapTaskResponse(task: TaskApiResponse): Task {
+    return {
+      ...task,
+      agentName: task.agent?.name,
+    };
+  }
+
   // Provider APIs
   async getProviders(): Promise<Provider[]> {
     interface ProviderApiResponse {
@@ -169,11 +186,22 @@ class ApiService {
   }
 
   async createProvider(data: CreateProviderRequest): Promise<Provider> {
-    return this.request<Provider>('post', '/api/v1/prism/providers', data);
+    // Map frontend 'type' to backend 'providerType'
+    const backendData = {
+      name: data.name,
+      providerType: data.type,
+      apiKey: data.apiKey,
+      baseUrl: data.baseUrl,
+    };
+    return this.request<Provider>('post', '/api/v1/prism/providers', backendData);
   }
 
   async deleteProvider(id: number): Promise<void> {
     return this.request<void>('delete', `/api/v1/prism/providers/${id}`);
+  }
+
+  async getProviderModels(id: number): Promise<string[]> {
+    return this.request<string[]>('get', `/api/v1/prism/providers/${id}/models`);
   }
 
   // Agent APIs
@@ -254,33 +282,64 @@ class ApiService {
 
   // Task APIs
   async getTasks(boardId: number): Promise<Task[]> {
-    return this.request<Task[]>('get', `/api/v1/prism/boards/${boardId}/tasks`);
+    const tasks = await this.request<TaskApiResponse[]>('get', `/api/v1/prism/boards/${boardId}/tasks`);
+    return tasks.map((t) => this.mapTaskResponse(t));
   }
 
   async getTask(id: number): Promise<Task> {
-    return this.request<Task>('get', `/api/v1/prism/tasks/${id}`);
+    const task = await this.request<TaskApiResponse>('get', `/api/v1/prism/tasks/${id}`);
+    return this.mapTaskResponse(task);
   }
 
   async createTask(data: CreateTaskRequest): Promise<Task> {
     const { boardId, ...taskData } = data;
-    return this.request<Task>('post', `/api/v1/prism/boards/${boardId}/tasks`, taskData);
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/boards/${boardId}/tasks`, taskData);
+    return this.mapTaskResponse(task);
   }
 
   async updateTask(id: number, data: UpdateTaskRequest): Promise<Task> {
-    return this.request<Task>('put', `/api/v1/prism/tasks/${id}`, data);
+    const task = await this.request<TaskApiResponse>('put', `/api/v1/prism/tasks/${id}`, data);
+    return this.mapTaskResponse(task);
   }
 
   async moveTask(id: number, data: MoveTaskRequest): Promise<Task> {
-    return this.request<Task>('patch', `/api/v1/prism/tasks/${id}/position`, data);
+    const task = await this.request<TaskApiResponse>('patch', `/api/v1/prism/tasks/${id}/position`, data);
+    return this.mapTaskResponse(task);
   }
 
   async assignAgent(taskId: number, agentId: number): Promise<Task> {
     // Backend uses UpdateTaskDto for agent assignment via PUT /tasks/:id
-    return this.request<Task>('put', `/api/v1/prism/tasks/${taskId}`, { agentId });
+    const task = await this.request<TaskApiResponse>('put', `/api/v1/prism/tasks/${taskId}`, { agentId });
+    return this.mapTaskResponse(task);
   }
 
   async deleteTask(id: number): Promise<void> {
     return this.request<void>('delete', `/api/v1/prism/tasks/${id}`);
+  }
+
+  // Task Actions
+  async approveTask(id: number): Promise<Task> {
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/tasks/${id}/approve`);
+    return this.mapTaskResponse(task);
+  }
+
+  async rejectTask(id: number, feedback?: string): Promise<Task> {
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/tasks/${id}/reject`, { feedback });
+    return this.mapTaskResponse(task);
+  }
+
+  async cancelTask(id: number): Promise<Task> {
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/tasks/${id}/cancel`);
+    return this.mapTaskResponse(task);
+  }
+
+  async reopenTask(id: number): Promise<Task> {
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/tasks/${id}/reopen`);
+    return this.mapTaskResponse(task);
+  }
+
+  async getTaskContext(id: number): Promise<{ previousExecutions: Execution[]; referencedTasks: Array<{ taskId: number; taskTitle: string; lastExecution: Execution | null }> }> {
+    return this.request('get', `/api/v1/prism/tasks/${id}/context`);
   }
 
   // Execution APIs

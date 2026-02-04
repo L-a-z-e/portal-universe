@@ -10,6 +10,7 @@ interface KanbanColumnProps {
   column: KanbanColumnType;
   onEditTask?: (task: Task) => void;
   onExecuteTask?: (task: Task) => void;
+  onViewTask?: (task: Task) => void;
   onAddTask?: () => void;
 }
 
@@ -25,6 +26,7 @@ export function KanbanColumn({
   column,
   onEditTask,
   onExecuteTask,
+  onViewTask,
   onAddTask,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -63,6 +65,7 @@ export function KanbanColumn({
                 task={task}
                 onEdit={onEditTask}
                 onExecute={onExecuteTask}
+                onView={onViewTask}
               />
             ))}
           </div>

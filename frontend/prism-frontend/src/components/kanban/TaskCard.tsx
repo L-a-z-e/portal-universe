@@ -7,6 +7,7 @@ interface TaskCardProps {
   task: Task;
   onEdit?: (task: Task) => void;
   onExecute?: (task: Task) => void;
+  onView?: (task: Task) => void;
 }
 
 const priorityColors: Record<TaskPriority, string> = {
@@ -23,7 +24,7 @@ const priorityLabels: Record<TaskPriority, string> = {
   URGENT: 'Urgent',
 };
 
-export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
+export function TaskCard({ task, onEdit, onExecute, onView }: TaskCardProps) {
   const executingTaskIds = useTaskStore((state) => state.executingTaskIds);
   const isExecuting = executingTaskIds.has(task.id);
 
@@ -51,6 +52,17 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
     e.stopPropagation();
     onExecute?.(task);
   };
+
+  const handleView = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onView?.(task);
+  };
+
+  // 상태별 버튼 렌더링 로직
+  const canEdit = task.status === 'TODO';
+  const canRun = task.status === 'TODO' && task.agentId;
+  const canView = ['IN_PROGRESS', 'IN_REVIEW', 'DONE', 'CANCELLED'].includes(task.status);
+  const showReviewActions = task.status === 'IN_REVIEW';
 
   return (
     <div
@@ -99,7 +111,8 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
             </span>
           ) : (
             <>
-              {task.agentId && task.status === 'TODO' && (
+              {/* TODO: Run 버튼 */}
+              {canRun && (
                 <button
                   onClick={handleExecute}
                   className="text-xs px-2 py-1 bg-brand-primary text-white rounded hover:bg-brand-primaryHover transition-colors"
@@ -107,12 +120,36 @@ export function TaskCard({ task, onEdit, onExecute }: TaskCardProps) {
                   Run
                 </button>
               )}
-              <button
-                onClick={handleEdit}
-                className="text-xs px-2 py-1 text-text-meta hover:text-text-heading hover:bg-bg-hover rounded transition-colors"
-              >
-                Edit
-              </button>
+
+              {/* IN_REVIEW: View (결과 확인 + Approve/Reject) */}
+              {showReviewActions && (
+                <button
+                  onClick={handleView}
+                  className="text-xs px-2 py-1 bg-status-warning/20 text-status-warning rounded hover:bg-status-warning/30 transition-colors"
+                >
+                  Review
+                </button>
+              )}
+
+              {/* IN_PROGRESS, DONE, CANCELLED: View 버튼 */}
+              {canView && !showReviewActions && (
+                <button
+                  onClick={handleView}
+                  className="text-xs px-2 py-1 text-text-meta hover:text-text-heading hover:bg-bg-hover rounded transition-colors"
+                >
+                  View
+                </button>
+              )}
+
+              {/* TODO: Edit 버튼 */}
+              {canEdit && (
+                <button
+                  onClick={handleEdit}
+                  className="text-xs px-2 py-1 text-text-meta hover:text-text-heading hover:bg-bg-hover rounded transition-colors"
+                >
+                  Edit
+                </button>
+              )}
             </>
           )}
         </div>

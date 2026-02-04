@@ -11,6 +11,11 @@ const providerTypeOptions = [
   { value: 'LOCAL', label: 'Local/Custom' },
 ];
 
+// API Key가 필수인지 판단 (OLLAMA, LOCAL은 필요 없음)
+const requiresApiKey = (type: ProviderType): boolean => {
+  return !['OLLAMA', 'LOCAL'].includes(type);
+};
+
 function ProvidersPage() {
   const { providers, loading, error, fetchProviders, createProvider, deleteProvider } = useProviderStore();
 
@@ -34,12 +39,15 @@ function ProvidersPage() {
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.apiKey.trim()) return;
+    // API Key는 OLLAMA/LOCAL이 아닌 경우에만 필수
+    if (!formData.name.trim()) return;
+    if (requiresApiKey(formData.type) && !formData.apiKey.trim()) return;
 
     setSubmitting(true);
     try {
       await createProvider({
         ...formData,
+        apiKey: formData.apiKey || undefined,
         baseUrl: formData.baseUrl || undefined,
       });
       setIsModalOpen(false);
@@ -166,14 +174,21 @@ function ProvidersPage() {
             options={providerTypeOptions}
           />
 
-          <Input
-            label="API Key"
-            type="password"
-            value={formData.apiKey}
-            onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-            placeholder="sk-..."
-            required
-          />
+          <div>
+            <Input
+              label={`API Key${requiresApiKey(formData.type) ? '' : ' (Optional)'}`}
+              type="password"
+              value={formData.apiKey}
+              onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+              placeholder={requiresApiKey(formData.type) ? 'sk-...' : 'Not required for this provider'}
+              required={requiresApiKey(formData.type)}
+            />
+            {!requiresApiKey(formData.type) && (
+              <p className="mt-1 text-sm text-text-meta">
+                {formData.type === 'OLLAMA' ? 'Ollama runs locally without API key' : 'Local provider may not require API key'}
+              </p>
+            )}
+          </div>
 
           <div>
             <Input
