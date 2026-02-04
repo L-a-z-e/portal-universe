@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
         },
-        shared: ['react', 'react-dom', 'react-dom/client'],
+        shared: ['react', 'react-dom', 'react-dom/client', 'react-router-dom'],
       }),
     ],
 
@@ -84,9 +84,9 @@ export default defineConfig(({ mode }) => {
 
     build: {
       target: 'esnext',
-      minify: mode === 'production' ? 'esbuild' : false,
+      minify: false,  // Temporarily disabled for debugging React Error #525
       cssCodeSplit: true,
-      sourcemap: false,
+      sourcemap: true,  // Enable sourcemap for debugging
       outDir: 'dist',
     },
   }
