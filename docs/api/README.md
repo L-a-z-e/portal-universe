@@ -12,7 +12,7 @@
 | Auth Service | [auth-service/](./auth-service/) | OAuth2/JWT 인증, 회원가입 | 1 |
 | Blog Service | [blog-service/](./blog-service/) | 게시물, 댓글, 시리즈, 태그, 좋아요 | 1 |
 | Shopping Service | [shopping-service/](./shopping-service/) | 상품, 주문, 결제, 배송, 쿠폰, 타임딜, 대기열 | 10 |
-| Notification Service | [notification-service/](./notification-service/) | 알림 CRUD, WebSocket 구독 | 1 |
+| Notification Service | [notification-service/](./notification-service/) | 알림 CRUD, WebSocket, Kafka Events, Redis Pub/Sub | 2 |
 
 ## Frontend Applications
 
@@ -26,7 +26,7 @@
 
 | 서비스 | 디렉토리 | 설명 | 문서 수 |
 |--------|----------|------|---------|
-| Design System Vue | [design-system-vue/](./design-system-vue/) | Vue 3 컴포넌트 및 Composables API | 4 |
+| Design System Vue | [design-system-vue/](./design-system-vue/) | Vue 3 컴포넌트 및 Composables API | 7 |
 | Design System React | [design-system-react/](./design-system-react/) | React 18 컴포넌트 및 Hooks API | 4 |
 | Design Tokens | [design-tokens/](./design-tokens/) | CSS Custom Properties (3-tier 토큰) | 1 |
 | Design Types | [design-types/](./design-types/) | 공유 TypeScript 타입 정의 | 2 |
