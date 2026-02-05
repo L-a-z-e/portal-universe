@@ -350,7 +350,7 @@ GET /api/shopping/products/{productId}/with-reviews
 ## 🔗 관련 문서
 
 - [Cart API](./cart-api.md)
-- [Blog Service API](../../blog-service/docs/api/README.md)
+- [Blog Service API](../blog-service/README.md)
 
 ---
 

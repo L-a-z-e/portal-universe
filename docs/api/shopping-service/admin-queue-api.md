@@ -235,7 +235,7 @@ sequenceDiagram
     participant Redis
     participant Scheduler
 
-    Admin->>API: POST /admin/queue/TIMEDEAL/123/activate
+    Admin->>API: POST /shopping/admin/queue/TIMEDEAL/123/activate
     Note over Admin,API: {maxCapacity: 1000, entryBatchSize: 50, entryIntervalSeconds: 10}
 
     API->>DB: INSERT waiting_queues
@@ -250,7 +250,7 @@ sequenceDiagram
         Scheduler->>Redis: ZREM (50명 제거)
     end
 
-    Admin->>API: POST /admin/queue/TIMEDEAL/123/deactivate
+    Admin->>API: POST /shopping/admin/queue/TIMEDEAL/123/deactivate
     API->>DB: UPDATE isActive = false
     API-->>Admin: 비활성화 완료
 ```
@@ -375,4 +375,4 @@ curl -X POST http://localhost:8080/api/shopping/admin/queue/TIMEDEAL/123/deactiv
 
 ---
 
-**최종 업데이트**: 2026-01-19
+**최종 업데이트**: 2026-02-06
