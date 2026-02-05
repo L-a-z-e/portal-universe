@@ -24,7 +24,7 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **Base URL** | `/api/admin/shopping/queue` |
+| **Base URL** | `/api/shopping/admin/queue` |
 | **인증** | Bearer Token 필요 |
 | **권한** | ADMIN 전용 (모든 엔드포인트) |
 | **버전** | v1 |
@@ -48,7 +48,7 @@ related:
 ### Request
 
 ```http
-POST /api/admin/shopping/queue/{eventType}/{eventId}/activate
+POST /api/shopping/admin/queue/{eventType}/{eventId}/activate
 Content-Type: application/json
 Authorization: Bearer {token}
 
@@ -139,7 +139,7 @@ Authorization: Bearer {token}
 ### Request
 
 ```http
-POST /api/admin/shopping/queue/{eventType}/{eventId}/deactivate
+POST /api/shopping/admin/queue/{eventType}/{eventId}/deactivate
 Authorization: Bearer {token}
 ```
 
@@ -182,7 +182,7 @@ Authorization: Bearer {token}
 ### Request
 
 ```http
-POST /api/admin/shopping/queue/{eventType}/{eventId}/process
+POST /api/shopping/admin/queue/{eventType}/{eventId}/process
 Authorization: Bearer {token}
 ```
 
@@ -340,7 +340,7 @@ sequenceDiagram
 
 ```bash
 # 1. 대기열 활성화
-curl -X POST http://localhost:8080/api/admin/shopping/queue/TIMEDEAL/123/activate \
+curl -X POST http://localhost:8080/api/shopping/admin/queue/TIMEDEAL/123/activate \
   -H "Authorization: Bearer {admin_token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -357,11 +357,11 @@ for i in {1..50}; do
 done
 
 # 3. 수동 처리 (10명 입장)
-curl -X POST http://localhost:8080/api/admin/shopping/queue/TIMEDEAL/123/process \
+curl -X POST http://localhost:8080/api/shopping/admin/queue/TIMEDEAL/123/process \
   -H "Authorization: Bearer {admin_token}"
 
 # 4. 대기열 비활성화
-curl -X POST http://localhost:8080/api/admin/shopping/queue/TIMEDEAL/123/deactivate \
+curl -X POST http://localhost:8080/api/shopping/admin/queue/TIMEDEAL/123/deactivate \
   -H "Authorization: Bearer {admin_token}"
 ```
 
