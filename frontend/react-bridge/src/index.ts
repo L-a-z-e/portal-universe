@@ -25,5 +25,5 @@ export { usePortalBridge } from './hooks/usePortalBridge'
 // Components
 export { RequireAuth } from './components/RequireAuth'
 
-// API
-export { createPortalApiClient } from './api/create-api-client'
+// API Registry
+export { initPortalApi, getPortalApiClient } from './api-registry'

@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { initBridge, isBridgeReady } from './bridge-registry'
+import { initPortalApi } from './api-registry'
 
 interface PortalBridgeProviderProps {
   children: ReactNode
@@ -31,7 +32,10 @@ export function PortalBridgeProvider({ children, fallback }: PortalBridgeProvide
       return
     }
 
-    initBridge()
+    Promise.all([
+      initBridge(),
+      initPortalApi(),  // 실패해도 bridge 초기화에 영향 없음
+    ])
       .then(() => setReady(true))
       .catch((err) => {
         console.error('[PortalBridgeProvider] Failed to initialize bridge:', err)
