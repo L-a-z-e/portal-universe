@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
         },
-        shared: ['react', 'react-dom', 'react-dom/client'],
+        shared: ['react', 'react-dom', 'react-dom/client', 'axios'],
       }),
     ],
 
