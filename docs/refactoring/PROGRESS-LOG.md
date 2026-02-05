@@ -14,7 +14,7 @@
 
 ---
 
-## 📍 현재 상태 (2026-02-04)
+## 📍 현재 상태 (2026-02-05)
 
 ### 전체 로드맵 위치
 
@@ -22,131 +22,154 @@
 Week 1 (Phase 0): ✅ 완료
   └─ 브랜치, 테스트 기준선, 분석 완료
 
-Week 2~: ⏸️ 일시 중단
-  └─ Bootstrap 리팩토링 먼저 진행 중 (사용자 요청)
+Week 2~: ✅ Bootstrap 리팩토링 완료
+  └─ react-bridge, react-bootstrap Library Mode 빌드 완료
 ```
 
 ### Bootstrap 리팩토링 진행률
 
 ```
-[██████░░░░] 60%
+[██████████] 100%
 
 ✅ 완료:
-  - frontend/react-bootstrap/package.json
-  - frontend/react-bootstrap/src/types.ts
-  - frontend/react-bootstrap/src/createAppBootstrap.tsx
+  - react-bridge: Vite Library Mode 빌드 설정
+  - react-bootstrap: Vite Library Mode 빌드 설정
+  - shopping-frontend/bootstrap.tsx 수정 (287줄 → 32줄)
+  - prism-frontend/bootstrap.tsx 수정 (235줄 → 32줄)
+  - 빌드 체인 검증 완료
 
-⏳ 남은 작업:
-  - frontend/react-bootstrap/src/index.ts (export 파일)
-  - shopping-frontend/src/bootstrap.tsx 수정
-  - prism-frontend/src/bootstrap.tsx 수정
-  - 테스트 및 검증
+⚠️ 참고:
+  - prism-frontend에 기존 타입 에러 있음 (리팩토링과 무관)
 ```
 
 ### Clean Code 학습 진행률
 
 ```
-[████████░░] 80% (createAppBootstrap.tsx 코드 리뷰)
+[██████████] 100%
 
 ✅ 학습 완료:
-  - import / import type 차이
-  - React vs ReactDOM 차이
-  - @portal 네임스페이스
-  - WeakMap
-  - 구조 분해 할당 (const { a, b } = obj)
-  - 화살표 함수 () => () vs () => {}
-  - Props 개념
-  - 렌더링 함수 & 스프레드 문법
-  - window as any
-  - MutationObserver 전체
+  - createAppBootstrap.tsx 전체 (팩토리 함수)
+  - createAppInstance 함수 (앱 인스턴스 생성)
+  - cleanupInstance 함수 (정리 로직)
+  - Vite Library Mode 빌드 패턴
 
-⏳ 남은 학습:
-  - createAppInstance 함수 내부
-  - cleanupInstance 함수 내부
-  - 실제 적용 시 발생하는 이슈들
+⏳ 다음 학습:
+  - react-bridge 주요 파일 살펴보기
 ```
 
 ---
 
-## 📂 생성된 파일 목록
+## 📂 생성/수정된 파일 목록
 
-### 이번 세션에서 생성
+### 이번 세션 (2026-02-05)
 
-| 파일 | 상태 | 설명 |
+| 파일 | 작업 | 설명 |
 |------|------|------|
-| `docs/refactoring/BRANCH-STRATEGY.md` | ✅ | 브랜치 전략 |
-| `docs/refactoring/BASELINE-REPORT.md` | ✅ | 테스트 커버리지 기준선 |
-| `docs/refactoring/BOOTSTRAP-ANALYSIS.md` | ✅ | Bootstrap 중복 분석 |
-| `docs/refactoring/PROGRESS-LOG.md` | ✅ | 이 파일 (진행 로그) |
-| `frontend/react-bootstrap/package.json` | ✅ | 패키지 설정 |
-| `frontend/react-bootstrap/src/types.ts` | ✅ | 타입 정의 |
-| `frontend/react-bootstrap/src/createAppBootstrap.tsx` | ✅ | 팩토리 함수 |
+| `frontend/react-bridge/vite.config.ts` | 생성 | Library Mode 빌드 설정 |
+| `frontend/react-bridge/tsconfig.json` | 수정 | design-system-react 패턴 |
+| `frontend/react-bridge/tsconfig.node.json` | 생성 | vite.config.ts용 |
+| `frontend/react-bridge/package.json` | 수정 | dist 경로, 빌드 스크립트 |
+| `frontend/react-bootstrap/vite.config.ts` | 생성 | Library Mode 빌드 설정 |
+| `frontend/react-bootstrap/tsconfig.json` | 수정 | design-system-react 패턴 |
+| `frontend/react-bootstrap/tsconfig.node.json` | 생성 | vite.config.ts용 |
+| `frontend/react-bootstrap/package.json` | 수정 | dist 경로, 빌드 스크립트 |
+| `frontend/react-bootstrap/src/index.ts` | 생성 | export 파일 |
+| `frontend/shopping-frontend/src/bootstrap.tsx` | 수정 | 287줄 → 32줄 |
+| `frontend/shopping-frontend/vite.config.ts` | 수정 | alias 제거 |
+| `frontend/prism-frontend/src/bootstrap.tsx` | 수정 | 235줄 → 32줄 |
+| `frontend/prism-frontend/vite.config.ts` | 수정 | alias 제거 |
+| `frontend/package.json` | 수정 | build:libs 스크립트 추가 |
 
-### 다음에 생성/수정할 파일
+### 삭제된 파일
 
-| 파일 | 작업 |
+| 파일 | 이유 |
 |------|------|
-| `frontend/react-bootstrap/src/index.ts` | 생성 (export) |
-| `frontend/shopping-frontend/src/bootstrap.tsx` | 수정 (287줄 → ~15줄) |
-| `frontend/prism-frontend/src/bootstrap.tsx` | 수정 (235줄 → ~15줄) |
+| `react-bootstrap/src/createAppBootstrap.jsx` | tsx와 충돌 (vite resolve 문제) |
 
 ---
 
 ## 🎯 다음 세션 TODO
 
-### 1. 코드 작업 (20분)
+### 1. react-bridge 주요 파일 학습
 
 ```
-1. index.ts 생성 (export 파일)
-2. shopping-frontend/bootstrap.tsx 수정
-3. prism-frontend/bootstrap.tsx 수정
+- PortalBridgeProvider.tsx (Provider 패턴)
+- hooks/usePortalAuth.ts (인증 훅)
+- hooks/usePortalTheme.ts (테마 훅)
+- bridge-registry.ts (Module Federation 연결)
 ```
 
-### 2. 학습 (선택)
+### 2. prism-frontend 타입 에러 수정 (선택)
 
 ```
-- createAppInstance 내부 코드 리뷰
-- cleanupInstance 내부 코드 리뷰
+- 암시적 any 타입 수정
+- 빌드 통과 확인
 ```
 
-### 3. 테스트 (10분)
+### 3. E2E 테스트 (선택)
 
 ```
-- npm install (의존성 설치)
-- 빌드 확인
-- 기존 E2E 테스트 통과 확인
+npm run test:e2e
 ```
 
 ---
 
-## 📚 학습 노트 (나중에 복습용)
+## 📚 학습 노트
 
-### TypeScript 핵심 문법
+### Vite Library Mode 패턴
 
-| 문법 | 의미 | 예시 |
-|------|------|------|
-| `import type` | 타입만 가져옴 (컴파일 시 삭제) | `import type { User } from './types'` |
-| `as any` | 타입 검사 무시 | `(window as any).foo = 1` |
-| `() => ({})` | 객체를 바로 반환하는 화살표 함수 | `const fn = () => ({ name: 'Kim' })` |
-| `{ a, b } = obj` | 구조 분해 할당 | `const { name, age } = user` |
-| `...obj` | 스프레드 (펼치기) | `<App {...props} />` |
-| `?.` | 옵셔널 체이닝 (null이면 멈춤) | `state?.isActive` |
+```typescript
+// vite.config.ts 핵심 설정
+export default defineConfig({
+  plugins: [react(), dts({ insertTypesEntry: true })],
+  build: {
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      formats: ['es', 'cjs'],
+    },
+    rollupOptions: {
+      external: ['react', 'react-dom', ...],
+    },
+  },
+});
+```
 
-### React 핵심 개념
+### package.json exports 패턴
 
-| 개념 | 설명 |
-|------|------|
-| Props | 부모 → 자식으로 전달하는 값 |
-| render() | 컴포넌트를 DOM에 그리기 |
-| StrictMode | 개발 중 실수 찾아주는 검사기 |
+```json
+{
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  }
+}
+```
 
-### 브라우저 API
+### 빌드 순서
 
-| API | 설명 |
-|-----|------|
-| `window` | 브라우저 전역 객체 |
-| `document` | HTML 문서 전체 |
-| `MutationObserver` | DOM 변화 감시자 |
+```
+1. build:design (tokens → types → vue → react)
+2. build:libs (react-bridge → react-bootstrap)
+3. build:apps (shell → blog → shopping → prism)
+```
+
+---
+
+## 🐛 해결된 이슈
+
+### ajv/dist/core 에러
+- **원인**: vite-plugin-dts의 의존성 해석 문제
+- **해결**: `npm install ajv@8 --save-dev`
+
+### createAppBootstrap not exported 에러
+- **원인**: `createAppBootstrap.jsx` 파일이 `.tsx`와 충돌
+- **해결**: `.jsx` 파일 삭제
 
 ---
 
@@ -156,19 +179,4 @@ Week 2~: ⏸️ 일시 중단
 refactor/phase0-setup
 ```
 
-작업 완료 후 커밋하고 PR 생성 예정.
-
----
-
-## 📞 도움말
-
-### 진행 방식
-
-1. **학습 + 코딩 병행**: 코드 만들면서 문법 설명
-2. **질문 환영**: 모르는 거 바로바로 물어보기
-3. **짧게 끊기**: 한 번에 너무 많이 안 보기
-
-### 속도 조절
-
-- 빠르게: "설명 생략하고 코드만"
-- 천천히: "이 부분 더 자세히"
+커밋 대기 중. 작업 확인 후 커밋 예정.

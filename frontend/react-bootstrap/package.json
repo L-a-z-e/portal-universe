@@ -2,20 +2,36 @@
   "name": "@portal/react-bootstrap",
   "version": "1.0.0",
   "description": "Shared bootstrap utilities for React micro-frontends",
+  "private": true,
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "build": "tsc && vite build",
+    "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@portal/react-bridge": "workspace:*"
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "@portal/react-bridge": "*"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "typescript": "~5.9.3"
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.7",
+    "vite-plugin-dts": "^4.5.3"
   }
 }

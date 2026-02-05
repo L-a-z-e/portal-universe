@@ -20,6 +20,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@portal/design-system-react": "*",
     "@portal/design-tokens": "*",
+    "@portal/react-bootstrap": "*",
     "@portal/react-bridge": "*",
     "axios": "^1.12.2",
     "react": "^18.2.0",

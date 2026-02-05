@@ -182,7 +182,7 @@ function createAppInstance(
   name: string,
   dataService: string,
   router: AppBootstrapConfig['router'],
-  getTheme: () => Theme,
+  _getTheme: () => Theme,  // 향후 확장용으로 유지
   setTheme: (t: Theme) => void
 ): AppInstance {
   return {
