@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-01-19
 updated: 2026-01-19
-author: documenter
+author: Laze
 tags: [api, react, feedback, alert, toast, modal]
 related:
   - components-button-react

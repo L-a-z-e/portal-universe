@@ -5,7 +5,7 @@ type: troubleshooting
 status: resolved
 created: 2026-01-17
 updated: 2026-01-17
-author: Frontend Team
+author: Laze
 severity: high
 resolved: true
 affected_services: [shopping-frontend]

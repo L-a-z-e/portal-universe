@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-02-06
 updated: 2026-02-06
-author: documenter-agent
+author: Laze
 tags: [api-gateway, health-check, monitoring, prometheus, zipkin, kubernetes]
 related:
   - api-gateway-routing-specification

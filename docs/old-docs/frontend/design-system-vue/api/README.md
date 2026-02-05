@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: documenter
+author: Laze
 tags: [design-system, api, components, vue3, typescript]
 related:
   - arch-design-system-index

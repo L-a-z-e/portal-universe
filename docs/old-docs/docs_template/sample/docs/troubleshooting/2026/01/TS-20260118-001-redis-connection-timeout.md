@@ -5,7 +5,7 @@ type: troubleshooting
 status: resolved
 created: 2026-01-18
 updated: 2026-01-18
-author: DevOps Team
+author: Laze
 severity: critical
 resolved: true
 affected_services: [product-service, order-service]

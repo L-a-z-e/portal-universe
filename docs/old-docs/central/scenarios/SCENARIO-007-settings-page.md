@@ -5,7 +5,7 @@ type: scenario
 status: current
 created: 2026-01-21
 updated: 2026-01-21
-author: Documenter Agent
+author: Laze
 tags:
   - settings
   - theme

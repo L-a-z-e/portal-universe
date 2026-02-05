@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: documenter
+author: Laze
 tags: [design-system, architecture, system-design, vue3]
 related:
   - arch-token-system

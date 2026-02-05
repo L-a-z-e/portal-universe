@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: Claude
+author: Laze
 tags: [architecture, auth, oauth2, security, spring-authorization-server]
 related:
   - arch-data-flow

@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-01-18
 updated: 2026-02-06
-author: documenter
+author: Laze
 tags: [design-system, api, input, components, vue3]
 related:
   - api-design-system

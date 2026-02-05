@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-01-18
 updated: 2026-01-30
-author: Documenter Agent
+author: Laze
 tags: [api, portal-shell, pinia, theme, dark-mode, module-federation]
 related:
   - api-portal-shell-auth-store

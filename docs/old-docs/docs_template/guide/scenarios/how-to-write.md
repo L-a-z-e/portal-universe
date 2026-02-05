@@ -33,7 +33,7 @@ type: scenario
 status: draft | review | approved | current
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-author: [작성자]
+author: Laze
 tags:
   - [관련 태그]
 related:

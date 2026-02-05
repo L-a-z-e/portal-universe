@@ -5,7 +5,7 @@ type: learning
 status: current
 created: 2026-01-22
 updated: 2026-01-22
-author: Portal Universe Team
+author: Laze
 tags: [clean-code, dry, kiss, yagni, design-principles, pragmatic]
 difficulty: beginner
 estimated_time: 40분

@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-01-30
 updated: 2026-02-06
-author: Claude
+author: Laze
 tags: [api, notification-service, notification, rest]
 related:
   - notification-events

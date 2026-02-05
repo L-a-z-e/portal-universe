@@ -5,7 +5,7 @@ type: adr
 status: proposed
 created: 2026-01-23
 updated: 2026-01-23
-author: Architect Agent
+author: Laze
 decision_date: null
 reviewers: []
 tags: [security, rate-limiting, audit-logging, redis, kafka, gateway]

@@ -5,7 +5,7 @@ type: guide
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: Backend Team
+author: Laze
 tags: [setup, environment, onboarding]
 ---
 

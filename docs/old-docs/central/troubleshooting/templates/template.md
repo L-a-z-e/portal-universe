@@ -5,7 +5,7 @@ type: troubleshooting
 status: investigating | resolved
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-author: [작성자]
+author: Laze
 severity: critical | high | medium | low
 resolved: true | false
 affected_services: [서비스 목록]

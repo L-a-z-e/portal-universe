@@ -5,7 +5,7 @@ type: learning
 status: current
 created: 2026-01-22
 updated: 2026-01-22
-author: Portal Universe Team
+author: Laze
 tags: [clean-code, function, method, design, refactoring]
 difficulty: intermediate
 estimated_time: 50분

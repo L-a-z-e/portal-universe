@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-19
 updated: 2026-01-19
-author: documenter
+author: Laze
 tags: [architecture, design-tokens, css-variables]
 related:
   - css-variables

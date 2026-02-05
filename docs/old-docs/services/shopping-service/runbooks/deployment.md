@@ -5,7 +5,7 @@ type: runbook
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: Claude
+author: Laze
 tags: [runbook, shopping-service, deployment, docker, kubernetes]
 ---
 

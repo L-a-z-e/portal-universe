@@ -5,7 +5,7 @@ type: guide
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: Claude (Documenter Agent)
+author: Laze
 tags: [portal-shell, development, workflow, debugging, testing, vue3]
 related:
   - portal-shell-getting-started

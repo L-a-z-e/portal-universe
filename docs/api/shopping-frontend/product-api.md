@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-02-06
 updated: 2026-02-06
-author: Documenter Agent
+author: Laze
 tags: [api, shopping, frontend, product, admin]
 related: [api-shopping-types, api-shopping-inventory]
 ---

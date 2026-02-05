@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-02-06
 updated: 2026-02-06
-author: documenter
+author: Laze
 tags: [api, react, navigation, tabs, breadcrumb, link, dropdown, pagination]
 related:
   - components-button-react

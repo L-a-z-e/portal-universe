@@ -19,7 +19,7 @@ type: api
 status: current | deprecated
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-author: [작성자]
+author: Laze
 tags: [태그 배열]
 related:
   - [관련 PRD ID]

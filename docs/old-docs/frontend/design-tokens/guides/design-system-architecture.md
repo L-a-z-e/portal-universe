@@ -5,7 +5,7 @@ type: guide
 status: current
 created: 2026-01-28
 updated: 2026-01-28
-author: documenter
+author: Laze
 tags: [guide, architecture, design-system, tokens, theming, components]
 related:
   - getting-started

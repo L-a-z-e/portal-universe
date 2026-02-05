@@ -19,7 +19,7 @@ type: adr
 status: proposed | accepted | rejected | deprecated | superseded
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-author: [작성자]
+author: Laze
 decision_date: YYYY-MM-DD
 reviewers: [검토자 목록]
 superseded_by: [대체 ADR ID] # deprecated/superseded 시

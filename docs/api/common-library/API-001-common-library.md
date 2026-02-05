@@ -6,7 +6,7 @@ status: current
 version: v2
 created: 2026-01-18
 updated: 2026-02-06
-author: Portal Universe Team
+author: Laze
 tags: [api, common-library, java, spring-boot, response, exception]
 related:
   - API-002

@@ -5,7 +5,7 @@ type: adr
 status: accepted
 created: 2026-01-18
 updated: 2026-01-18
-author: Architecture Team
+author: Laze
 decision_date: 2026-01-18
 tags: [caching, redis, performance]
 related:

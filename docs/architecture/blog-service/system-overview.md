@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-18
 updated: 2026-01-26
-author: Documenter Agent
+author: Laze
 tags: [architecture, blog-service, system-design, mongodb, microservices]
 related:
   - ADR-001

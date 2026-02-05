@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-02-06
 updated: 2026-02-06
-author: documenter
+author: Laze
 tags: [api, tailwind, preset, utility-classes]
 related:
   - css-variables

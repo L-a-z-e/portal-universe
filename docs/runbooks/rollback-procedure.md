@@ -5,7 +5,7 @@ type: runbook
 status: current
 created: 2026-01-19
 updated: 2026-01-19
-author: DevOps Team
+author: Laze
 tags: [rollback, production, kubernetes]
 ---
 

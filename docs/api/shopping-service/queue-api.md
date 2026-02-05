@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-01-19
 updated: 2026-01-19
-author: Claude
+author: Laze
 tags: [api, shopping-service, queue, sse, redis]
 related:
   - api-admin-queue

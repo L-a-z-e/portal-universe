@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-02-06
 updated: 2026-02-06
-author: documenter-agent
+author: Laze
 tags: [api-gateway, rate-limiting, redis, token-bucket]
 related:
   - api-gateway-routing-specification

@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-01-19
 updated: 2026-01-19
-author: System
+author: Laze
 tags: [admin, timedeal, shopping, api]
 related: []
 ---

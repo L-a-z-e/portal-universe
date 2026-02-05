@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-02-06
 updated: 2026-02-06
-author: Documenter Agent
+author: Laze
 tags: [api, portal-shell, react, store-adapter, module-federation, pinia, useSyncExternalStore]
 related:
   - api-portal-shell-auth-store

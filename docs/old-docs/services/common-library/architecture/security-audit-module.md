@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-23
 updated: 2026-01-30
-author: Portal Universe Team
+author: Laze
 tags: [common-library, security, audit, logging, architecture]
 ---
 

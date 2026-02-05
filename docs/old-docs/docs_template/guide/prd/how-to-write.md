@@ -19,7 +19,7 @@ type: prd
 status: draft | review | approved | rejected | deprecated
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-author: [작성자]
+author: Laze
 stakeholders: [이해관계자 목록]
 target_release: [타겟 버전]
 priority: P0 | P1 | P2

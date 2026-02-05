@@ -5,7 +5,7 @@ type: learning
 status: current
 created: 2026-01-22
 updated: 2026-01-22
-author: Portal Universe Team
+author: Laze
 tags: [clean-code, solid, oop, design-principles, architecture]
 difficulty: intermediate
 estimated_time: 60분

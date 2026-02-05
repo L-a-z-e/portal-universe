@@ -5,7 +5,7 @@ type: guide
 status: current
 created: 2026-01-23
 updated: 2026-01-30
-author: Claude
+author: Laze
 tags: [swagger, actuator, security, spring-boot, prometheus]
 related:
   - guide-jwt-rbac-setup

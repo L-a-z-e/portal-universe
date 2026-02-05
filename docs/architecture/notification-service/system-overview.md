@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: documenter-agent
+author: Laze
 tags: [notification-service, kafka, consumer, event-driven, email, sms, push]
 related: []
 ---

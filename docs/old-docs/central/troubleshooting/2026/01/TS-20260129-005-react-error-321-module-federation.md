@@ -5,7 +5,7 @@ type: troubleshooting
 status: resolved
 created: 2026-01-29
 updated: 2026-01-29
-author: Frontend Team
+author: Laze
 severity: high
 resolved: true
 affected_services: [prism-frontend, shopping-frontend]

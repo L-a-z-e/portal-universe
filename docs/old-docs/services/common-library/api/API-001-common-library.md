@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-01-18
 updated: 2026-01-18
-author: Portal Universe Team
+author: Laze
 tags: [api, common-library, java, spring-boot]
 related:
   - ARCH-001

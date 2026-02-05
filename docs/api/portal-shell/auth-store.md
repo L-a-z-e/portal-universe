@@ -6,7 +6,7 @@ status: current
 version: v2
 created: 2026-01-18
 updated: 2026-02-06
-author: Documenter Agent
+author: Laze
 tags: [api, portal-shell, pinia, auth, module-federation, jwt, social-login]
 related:
   - api-portal-shell-api-client

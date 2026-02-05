@@ -5,7 +5,7 @@ type: learning
 status: current
 created: 2026-01-22
 updated: 2026-01-22
-author: Portal Universe Team
+author: Laze
 tags: [refactoring, clean-code, code-quality, best-practices]
 difficulty: intermediate
 estimated_time: 2-3 hours

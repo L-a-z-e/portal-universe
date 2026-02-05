@@ -5,7 +5,7 @@ type: prd
 status: approved
 created: 2026-01-18
 updated: 2026-01-18
-author: Product Team
+author: Laze
 tags: [product, crud, inventory]
 related:
   - ADR-001

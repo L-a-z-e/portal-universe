@@ -5,7 +5,7 @@ type: adr
 status: accepted
 created: 2026-01-19
 updated: 2026-01-19
-author: Documenter Agent
+author: Laze
 decision_date: 2026-01-19
 reviewers: []
 tags: [security, devops, configuration]

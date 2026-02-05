@@ -5,7 +5,7 @@ type: index
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: documenter-agent
+author: Laze
 tags: [notification-service, documentation, index, kafka, consumer]
 related:
   - notification-service-architecture-system-overview

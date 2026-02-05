@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-01-18
 updated: 2026-02-06
-author: Claude
+author: Laze
 tags: [api, auth, oauth2, jwt, rbac, membership, follow, seller]
 related:
   - arch-system-overview

@@ -5,7 +5,7 @@ type: guide
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: documenter
+author: Laze
 tags: [design-system, setup, vue3, getting-started]
 related:
   - guide-using-components

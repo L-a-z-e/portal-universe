@@ -5,7 +5,7 @@ type: index
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: documenter-agent
+author: Laze
 tags: [api-gateway, documentation, index]
 related: []
 ---

@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-01-18
 updated: 2026-02-06
-author: Documenter Agent
+author: Laze
 tags: [api, blog, mongodb, post, comment, series, tag, file, like]
 related:
   - PRD-001

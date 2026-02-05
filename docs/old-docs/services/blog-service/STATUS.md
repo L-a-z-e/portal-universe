@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-26
 updated: 2026-01-26
-author: Claude
+author: Laze
 tags: [blog-service, status, implementation, phase-1]
 ---
 

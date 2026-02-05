@@ -5,7 +5,7 @@ type: troubleshooting
 status: resolved
 created: 2026-01-23
 updated: 2026-01-23
-author: DevOps Team
+author: Laze
 severity: medium
 resolved: true
 affected_services: [localstack, blog-service]

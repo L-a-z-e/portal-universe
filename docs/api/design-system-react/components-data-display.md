@@ -5,7 +5,7 @@ type: api
 status: current
 created: 2026-02-06
 updated: 2026-02-06
-author: documenter
+author: Laze
 tags: [api, react, data-display, overlay, badge, tag, avatar, table, tooltip, popover]
 related:
   - components-button-react

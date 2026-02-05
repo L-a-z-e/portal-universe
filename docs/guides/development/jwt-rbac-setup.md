@@ -5,7 +5,7 @@ type: guide
 status: current
 created: 2026-01-19
 updated: 2026-01-19
-author: Documenter Agent
+author: Laze
 tags:
   - jwt
   - rbac

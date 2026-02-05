@@ -5,7 +5,7 @@ type: test-plan
 status: approved
 created: 2026-01-18
 updated: 2026-01-18
-author: QA Team
+author: Laze
 tags: [testing, product, crud]
 related:
   - PRD-001

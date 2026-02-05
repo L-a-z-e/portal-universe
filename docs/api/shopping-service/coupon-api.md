@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-02-06
 updated: 2026-02-06
-author: System
+author: Laze
 tags: [api, shopping-service, coupon, discount]
 related:
   - api-admin-coupon

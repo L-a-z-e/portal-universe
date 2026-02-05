@@ -5,7 +5,7 @@ type: guide
 status: current
 created: 2026-01-19
 updated: 2026-01-30
-author: Portal Universe Team
+author: Laze
 tags: [design-system-vue, usage, integration, vue]
 ---
 

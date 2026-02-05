@@ -5,7 +5,7 @@ type: index
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: Documenter Agent
+author: Laze
 tags: [portal-shell, documentation, index, vue3, module-federation]
 ---
 

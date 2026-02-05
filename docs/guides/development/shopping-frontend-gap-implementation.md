@@ -5,7 +5,7 @@ type: guide
 status: current
 created: 2026-01-28
 updated: 2026-01-28
-author: Claude
+author: Laze
 tags: [shopping-frontend, implementation, gap-analysis, react]
 related:
   - guide-admin-product-guide

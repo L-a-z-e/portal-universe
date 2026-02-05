@@ -6,7 +6,7 @@ status: current
 version: v1
 created: 2026-02-06
 updated: 2026-02-06
-author: Portal Universe Team
+author: Laze
 tags: [api, common-library, security, xss, sql-injection, validation]
 related:
   - API-001

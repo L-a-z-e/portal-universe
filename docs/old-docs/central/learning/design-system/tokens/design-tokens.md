@@ -4,7 +4,7 @@ title: Design Tokens - 색상, 타이포그래피, 간격
 type: learning
 created: 2026-01-22
 updated: 2026-01-22
-author: Portal Universe Team
+author: Laze
 tags:
   - design-system
   - design-tokens

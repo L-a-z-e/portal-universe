@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: Claude
+author: Laze
 tags: [architecture, shopping-service, system-design, microservices]
 related:
   - arch-data-flow

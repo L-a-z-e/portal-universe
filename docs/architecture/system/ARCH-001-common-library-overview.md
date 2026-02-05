@@ -5,7 +5,7 @@ type: architecture
 status: current
 created: 2026-01-18
 updated: 2026-01-18
-author: Portal Universe Team
+author: Laze
 tags: [common-library, architecture, shared-library, microservices]
 related: []
 ---

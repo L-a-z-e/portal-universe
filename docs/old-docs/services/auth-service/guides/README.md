@@ -48,7 +48,7 @@ type: guide
 status: draft | current | deprecated
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-author: [작성자명]
+author: Laze
 tags: [태그 배열]
 related: [관련문서 ID 배열]
 ---

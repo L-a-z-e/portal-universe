@@ -5,7 +5,7 @@ type: test-strategy
 status: current
 created: 2026-01-19
 updated: 2026-01-19
-author: QA Team
+author: Laze
 ---
 
 # 테스트 전략
