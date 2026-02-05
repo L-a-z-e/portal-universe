@@ -29,7 +29,7 @@ Blog Frontend 아키텍처 문서 목록입니다.
 
 - [API Documentation](../api/README.md)
 - [Developer Guides](../guides/README.md)
-- [Architecture 작성 가이드](../../../../docs_template/guide/architecture/how-to-write.md)
+- [Architecture 템플릿](../../templates/architecture-template.md)
 - [Portal Universe 전체 문서](../../../../README.md)
 
 ---

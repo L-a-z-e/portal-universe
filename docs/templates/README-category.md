@@ -52,16 +52,17 @@
 
 1. **템플릿 사용**:
    ```bash
-   cp ../../docs_template/templates/[template].md ./new-file.md
+   cp ../templates/[type]-template.md ./new-file.md
    ```
 
 2. **위치 선택**:
    - [하위 카테고리 1]: [설명]
    - [하위 카테고리 2]: [설명]
 
-3. **인덱스 업데이트**:
-   - 이 README에 항목 추가
-   - 메인 [docs/README.md](../README.md) 업데이트
+3. **README 계단식 업데이트**:
+   - L2: 해당 하위 디렉토리 README에 항목 추가
+   - L1: 이 README에 문서 수 갱신
+   - L0: 메인 [docs/README.md](../README.md) 업데이트 (필요시)
 
 ---
 

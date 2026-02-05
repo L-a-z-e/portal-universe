@@ -174,13 +174,13 @@ find docs/ -name "*.md" -mtime -7
 
 ### 템플릿
 새 문서 작성 시 템플릿 활용:
-- [ADR 템플릿](../docs_template/templates/adr-template.md)
-- [Architecture 템플릿](../docs_template/templates/architecture-template.md)
-- [API 템플릿](../docs_template/templates/api-template.md)
-- [Learning 템플릿](../docs_template/templates/learning-template.md)
-- [Guide 템플릿](../docs_template/templates/guide-template.md)
-- [Runbook 템플릿](../docs_template/templates/runbook-template.md)
-- [Troubleshooting 템플릿](../docs_template/templates/troubleshooting-template.md)
+- [ADR 템플릿](templates/adr-template.md)
+- [Architecture 템플릿](templates/architecture-template.md)
+- [API 템플릿](templates/api-template.md)
+- [Learning 템플릿](templates/learning-template.md)
+- [Guide 템플릿](templates/guide-template.md)
+- [Runbook 템플릿](templates/runbook-template.md)
+- [Troubleshooting 템플릿](templates/troubleshooting-template.md)
 
 ### 문서 작성 원칙
 1. **간결성**: 핵심만 담기 (평균 80-100줄)

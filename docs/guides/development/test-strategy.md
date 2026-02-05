@@ -187,5 +187,5 @@ test('user can complete checkout flow', async ({ page }) => {
 
 ## 관련 문서
 
-- [Testing 문서 작성 가이드](../../docs_template/guide/testing/how-to-write.md)
+- [문서 템플릿](../../templates/)
 - [TP-001-01 Shopping API 테스트 계획](./test-plan/TP-001-01-shopping-api.md)

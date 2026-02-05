@@ -18,6 +18,6 @@ arch-003
 
 ## 작성 가이드
 새로운 아키텍처 문서를 작성할 때는 다음을 참고하세요:
-- 템플릿: `/Users/laze/Laze/Project/portal-universe-docs/docs_template/guide/architecture/how-to-write.md`
+- 템플릿: [Architecture 템플릿](../../templates/architecture-template.md)
 - 명명 규칙: `arch-[topic].md`
 - ID 부여: 위의 "다음 ID"를 사용하고 이 README를 업데이트하세요

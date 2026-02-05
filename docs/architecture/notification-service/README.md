@@ -21,4 +21,4 @@
 - [API 문서](../api/README.md)
 - [가이드](../guides/README.md)
 - [Runbook](../runbooks/README.md)
-- [Architecture 작성 가이드](/docs_template/guide/architecture/how-to-write.md)
+- [Architecture 템플릿](../../templates/architecture-template.md)

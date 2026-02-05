@@ -195,8 +195,8 @@ services/new-service/
 | 순서 | 작업 | 참고 |
 |------|------|------|
 | 8 | `docs/README.md` 작성 | 기존 서비스 README 형식 참고 |
-| 9 | `docs/api/*.md` 작성 | [`docs_template/guide/api/how-to-write.md`](../../docs_template/guide/api/how-to-write.md) |
-| 10 | ADR 작성 (주요 결정이 있었다면) | [`docs_template/guide/adr/how-to-write.md`](../../docs_template/guide/adr/how-to-write.md) |
+| 9 | `docs/api/*.md` 작성 | [API 템플릿](../../templates/api-template.md) |
+| 10 | ADR 작성 (주요 결정이 있었다면) | [ADR 템플릿](../../templates/adr-template.md) |
 
 ---
 

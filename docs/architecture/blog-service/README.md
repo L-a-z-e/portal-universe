@@ -38,7 +38,7 @@ architecture/
 ## 🔗 관련 문서
 
 - [문서화 시스템 규칙](../../../../.claude/skills/documentation-system.md)
-- [Architecture 작성 가이드](../../../../docs_template/guide/architecture/how-to-write.md)
+- [Architecture 템플릿](../../templates/architecture-template.md)
 
 ---
 

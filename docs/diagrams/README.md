@@ -30,6 +30,6 @@ diagrams/
 
 ## 작성 가이드
 
-- [Diagrams 작성 가이드](../../docs_template/guide/diagrams/how-to-write.md) 참조
+- [문서 템플릿](../templates/) 참조
 - Mermaid 사용 권장 (Markdown 내 렌더링 가능)
 - 복잡한 다이어그램은 Draw.io 또는 PlantUML 사용
