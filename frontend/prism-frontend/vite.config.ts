@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
         },
-        shared: ['react', 'react-dom', 'react-dom/client', 'react-router-dom'],
+        shared: ['react', 'react-dom', 'react-dom/client', 'react-router-dom', 'axios'],
       }),
     ],
 
@@ -80,9 +80,9 @@ export default defineConfig(({ mode }) => {
 
     build: {
       target: 'esnext',
-      minify: false,  // Temporarily disabled for debugging React Error #525
+      minify: 'esbuild',
       cssCodeSplit: true,
-      sourcemap: true,  // Enable sourcemap for debugging
+      sourcemap: false,
       outDir: 'dist',
     },
   }
