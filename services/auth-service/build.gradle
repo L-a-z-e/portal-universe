@@ -88,6 +88,9 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:junit-jupiter' // Integration tests with Docker containers
     testImplementation 'org.testcontainers:mysql' // MySQL container for testing
+    testImplementation 'io.jsonwebtoken:jjwt-api:0.12.6' // JWT token generation in tests
+    testImplementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.6'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
