@@ -4,7 +4,7 @@ title: Input Components
 type: api
 status: current
 created: 2026-01-19
-updated: 2026-01-19
+updated: 2026-02-06
 author: documenter
 tags: [api, react, input, form]
 related:
@@ -40,6 +40,9 @@ import { Input } from '@portal/design-system-react';
 | `label` | `string` | - | 레이블 |
 | `required` | `boolean` | `false` | 필수 입력 |
 | `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
+| `className` | `string` | - | 추가 CSS 클래스 |
+
+모든 표준 `<input>` HTML 속성도 지원합니다.
 
 ### 기본 사용법
 
@@ -112,8 +115,18 @@ import { Textarea } from '@portal/design-system-react';
 |------|------|---------|-------------|
 | `value` | `string` | - | 입력 값 |
 | `onChange` | `(e: ChangeEvent<HTMLTextAreaElement>) => void` | - | 변경 핸들러 |
-| `rows` | `number` | `3` | 표시 행 수 |
+| `rows` | `number` | `4` | 표시 행 수 |
 | `resize` | `'none' \| 'vertical' \| 'horizontal' \| 'both'` | `'vertical'` | 리사이즈 방향 |
+| `placeholder` | `string` | - | 플레이스홀더 |
+| `disabled` | `boolean` | `false` | 비활성화 |
+| `error` | `boolean` | `false` | 에러 상태 |
+| `errorMessage` | `string` | - | 에러 메시지 |
+| `label` | `string` | - | 레이블 |
+| `required` | `boolean` | `false` | 필수 입력 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
+| `className` | `string` | - | 추가 CSS 클래스 |
+
+모든 표준 `<textarea>` HTML 속성도 지원합니다.
 
 ### 기본 사용법
 
@@ -127,6 +140,27 @@ const [content, setContent] = useState('');
   placeholder="Enter description..."
   rows={5}
 />
+```
+
+### With Validation
+
+```tsx
+function CommentForm() {
+  const [comment, setComment] = useState('');
+  const maxLength = 500;
+
+  return (
+    <Textarea
+      value={comment}
+      onChange={(e) => setComment(e.target.value)}
+      label="Comment"
+      required
+      error={comment.length > maxLength}
+      errorMessage={`${comment.length}/${maxLength} characters (exceeded limit)`}
+      resize="vertical"
+    />
+  );
+}
 ```
 
 ---
@@ -150,6 +184,10 @@ import { Checkbox } from '@portal/design-system-react';
 | `indeterminate` | `boolean` | `false` | 불확정 상태 |
 | `disabled` | `boolean` | `false` | 비활성화 |
 | `label` | `string` | - | 레이블 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
+| `error` | `boolean` | `false` | 에러 상태 |
+| `errorMessage` | `string` | - | 에러 메시지 |
+| `className` | `string` | - | 추가 CSS 클래스 |
 
 ### 기본 사용법
 
@@ -207,6 +245,21 @@ import { Radio } from '@portal/design-system-react';
 | `options` | `RadioOption[]` | `[]` | 옵션 배열 |
 | `name` | `string` | required | name 속성 |
 | `direction` | `'horizontal' \| 'vertical'` | `'vertical'` | 배치 방향 |
+| `disabled` | `boolean` | `false` | 전체 그룹 비활성화 |
+| `error` | `boolean` | `false` | 에러 상태 |
+| `errorMessage` | `string` | - | 에러 메시지 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
+| `className` | `string` | - | 추가 CSS 클래스 |
+
+### RadioOption
+
+```ts
+interface RadioOption {
+  label: string;
+  value: string | number;
+  disabled?: boolean;
+}
+```
 
 ### 기본 사용법
 
@@ -227,6 +280,19 @@ const plans = [
 />
 ```
 
+### Horizontal Layout
+
+```tsx
+<Radio
+  value={selected}
+  onChange={setSelected}
+  options={options}
+  name="size"
+  direction="horizontal"
+  size="sm"
+/>
+```
+
 ---
 
 ## Switch
@@ -244,10 +310,13 @@ import { Switch } from '@portal/design-system-react';
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `checked` | `boolean` | `false` | 토글 상태 |
-| `onChange` | `(checked: boolean) => void` | - | 변경 핸들러 |
+| `onChange` | `(e: ChangeEvent<HTMLInputElement>) => void` | - | 변경 핸들러 |
 | `disabled` | `boolean` | `false` | 비활성화 |
 | `label` | `string` | - | 레이블 |
 | `labelPosition` | `'left' \| 'right'` | `'right'` | 레이블 위치 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
+| `activeColor` | `'primary' \| 'success' \| 'warning' \| 'error'` | `'primary'` | 활성화 색상 |
+| `className` | `string` | - | 추가 CSS 클래스 |
 
 ### 기본 사용법
 
@@ -256,8 +325,20 @@ const [isDarkMode, setIsDarkMode] = useState(false);
 
 <Switch
   checked={isDarkMode}
-  onChange={setIsDarkMode}
+  onChange={(e) => setIsDarkMode(e.target.checked)}
   label="Dark Mode"
+/>
+```
+
+### With Active Color
+
+```tsx
+<Switch
+  checked={isEnabled}
+  onChange={(e) => setIsEnabled(e.target.checked)}
+  label="Enable notifications"
+  activeColor="success"
+  size="lg"
 />
 ```
 
@@ -265,7 +346,7 @@ const [isDarkMode, setIsDarkMode] = useState(false);
 
 ## Select
 
-셀렉트 드롭다운 컴포넌트입니다.
+셀렉트 드롭다운 컴포넌트입니다. 키보드 네비게이션을 지원합니다.
 
 ### Import
 
@@ -280,15 +361,30 @@ import { Select } from '@portal/design-system-react';
 | `value` | `string \| number \| null` | - | 선택된 값 |
 | `onChange` | `(value: string \| number \| null) => void` | - | 변경 핸들러 |
 | `options` | `SelectOption[]` | `[]` | 옵션 배열 |
-| `placeholder` | `string` | `'Select...'` | 플레이스홀더 |
+| `placeholder` | `string` | `'Select an option'` | 플레이스홀더 |
 | `disabled` | `boolean` | `false` | 비활성화 |
 | `clearable` | `boolean` | `false` | 선택 해제 가능 |
-| `searchable` | `boolean` | `false` | 검색 가능 |
+| `error` | `boolean` | `false` | 에러 상태 |
+| `errorMessage` | `string` | - | 에러 메시지 |
+| `label` | `string` | - | 레이블 |
+| `required` | `boolean` | `false` | 필수 입력 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
+| `className` | `string` | - | 추가 CSS 클래스 |
+
+### SelectOption
+
+```ts
+interface SelectOption {
+  label: string;
+  value: string | number;
+  disabled?: boolean;
+}
+```
 
 ### 기본 사용법
 
 ```tsx
-const [country, setCountry] = useState(null);
+const [country, setCountry] = useState<string | number | null>(null);
 
 const countries = [
   { label: 'Korea', value: 'KR' },
@@ -306,11 +402,17 @@ const countries = [
 />
 ```
 
+### Keyboard Navigation
+
+- `Enter` / `Space`: 드롭다운 열기/선택
+- `ArrowDown` / `ArrowUp`: 옵션 탐색
+- `Escape`: 드롭다운 닫기
+
 ---
 
 ## FormField
 
-폼 필드 래퍼 컴포넌트입니다.
+폼 필드 래퍼 컴포넌트입니다. 레이블, 에러 메시지, 도움말 텍스트를 포함합니다.
 
 ### Import
 
@@ -327,7 +429,11 @@ import { FormField } from '@portal/design-system-react';
 | `error` | `boolean` | `false` | 에러 상태 |
 | `errorMessage` | `string` | - | 에러 메시지 |
 | `helperText` | `string` | - | 도움말 텍스트 |
+| `disabled` | `boolean` | `false` | 비활성화 (레이블 흐리게) |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 텍스트 크기 |
+| `id` | `string` | auto-generated | 폼 필드 ID |
 | `children` | `ReactNode` | - | 폼 필드 요소 |
+| `className` | `string` | - | 추가 CSS 클래스 |
 
 ### 기본 사용법
 
@@ -347,7 +453,7 @@ import { FormField } from '@portal/design-system-react';
 
 ## SearchBar
 
-검색 바 컴포넌트입니다.
+검색 바 컴포넌트입니다. 검색 아이콘과 로딩 스피너를 포함합니다.
 
 ### Import
 
@@ -360,11 +466,15 @@ import { SearchBar } from '@portal/design-system-react';
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `value` | `string` | - | 검색어 |
-| `onChange` | `(value: string) => void` | - | 변경 핸들러 |
-| `onSearch` | `(value: string) => void` | - | 검색 실행 (Enter) |
-| `onClear` | `() => void` | - | 클리어 핸들러 |
+| `onValueChange` | `(value: string) => void` | - | 값 변경 핸들러 |
+| `onChange` | `(e: ChangeEvent<HTMLInputElement>) => void` | - | 네이티브 변경 핸들러 |
 | `placeholder` | `string` | `'Search...'` | 플레이스홀더 |
 | `loading` | `boolean` | `false` | 로딩 상태 |
+| `disabled` | `boolean` | `false` | 비활성화 |
+| `autoFocus` | `boolean` | - | 자동 포커스 |
+| `className` | `string` | - | 추가 CSS 클래스 |
+
+모든 표준 `<input>` HTML 속성도 지원합니다.
 
 ### 기본 사용법
 
@@ -372,20 +482,41 @@ import { SearchBar } from '@portal/design-system-react';
 const [query, setQuery] = useState('');
 const [isSearching, setIsSearching] = useState(false);
 
-const handleSearch = async (q: string) => {
-  setIsSearching(true);
-  try {
-    await searchAPI(q);
-  } finally {
-    setIsSearching(false);
-  }
-};
-
 <SearchBar
   value={query}
-  onChange={setQuery}
-  onSearch={handleSearch}
+  onValueChange={setQuery}
   placeholder="Search posts..."
   loading={isSearching}
 />
+```
+
+### With Debounced Search
+
+```tsx
+import { useState, useEffect } from 'react';
+
+function SearchPage() {
+  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!query) return;
+    setLoading(true);
+    const timer = setTimeout(async () => {
+      await searchAPI(query);
+      setLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  return (
+    <SearchBar
+      value={query}
+      onValueChange={setQuery}
+      placeholder="Search..."
+      loading={loading}
+      autoFocus
+    />
+  );
+}
 ```

@@ -1,20 +1,20 @@
 ---
 id: hooks-react
-title: React Hooks Reference
+title: React Hooks & Utilities Reference
 type: api
 status: current
 created: 2026-01-19
-updated: 2026-01-19
+updated: 2026-02-06
 author: documenter
-tags: [api, react, hooks]
+tags: [api, react, hooks, utilities]
 related:
   - theming-react
   - components-feedback-react
 ---
 
-# React Hooks Reference
+# React Hooks & Utilities Reference
 
-Design System React의 커스텀 훅 레퍼런스입니다.
+Design System React의 커스텀 훅 및 유틸리티 레퍼런스입니다.
 
 ## useTheme
 
@@ -30,8 +30,8 @@ import { useTheme } from '@portal/design-system-react';
 
 ```ts
 interface UseThemeOptions {
-  defaultService?: 'portal' | 'blog' | 'shopping';
-  defaultMode?: 'light' | 'dark' | 'system';
+  defaultService?: ServiceType;  // 'portal' | 'blog' | 'shopping' | 'prism'
+  defaultMode?: ThemeMode;       // 'light' | 'dark' | 'system'
 }
 ```
 
@@ -39,11 +39,11 @@ interface UseThemeOptions {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `service` | `'portal' \| 'blog' \| 'shopping'` | 현재 서비스 |
-| `mode` | `'light' \| 'dark' \| 'system'` | 현재 모드 설정 |
+| `service` | `ServiceType` | 현재 서비스 |
+| `mode` | `ThemeMode` | 현재 모드 설정 |
 | `resolvedMode` | `'light' \| 'dark'` | 실제 적용 모드 |
-| `setService` | `(service: string) => void` | 서비스 설정 |
-| `setMode` | `(mode: string) => void` | 모드 설정 |
+| `setService` | `(service: ServiceType) => void` | 서비스 설정 |
+| `setMode` | `(mode: ThemeMode) => void` | 모드 설정 |
 | `toggleMode` | `() => void` | 모드 토글 |
 
 ### 기본 사용법
@@ -70,6 +70,7 @@ function ThemeSettings() {
           { label: 'Portal', value: 'portal' },
           { label: 'Blog', value: 'blog' },
           { label: 'Shopping', value: 'shopping' },
+          { label: 'Prism', value: 'prism' },
         ]}
       />
     </div>
@@ -146,28 +147,34 @@ function App() {
 
 ## useToast
 
-토스트 알림을 위한 훅입니다.
+토스트 알림을 위한 훅입니다. 모듈 레벨 싱글톤으로 구현되어 Provider 없이 동작합니다.
 
 ### Import
 
 ```tsx
-import { useToast, ToastProvider } from '@portal/design-system-react';
+import { useToast } from '@portal/design-system-react';
 ```
 
 ### Setup
 
-`useToast`는 `ToastProvider` 내부에서만 사용할 수 있습니다:
+`useToast`는 Provider 없이 사용할 수 있습니다. `ToastContainer`만 앱 루트에 배치하세요:
 
 ```tsx
 // App.tsx
-import { ToastProvider, ToastContainer } from '@portal/design-system-react';
+import { ToastContainer, useToast } from '@portal/design-system-react';
 
 function App() {
+  const { toasts, removeToast } = useToast();
+
   return (
-    <ToastProvider>
+    <>
       <YourApp />
-      <ToastContainer position="top-right" />
-    </ToastProvider>
+      <ToastContainer
+        position="top-right"
+        toasts={toasts}
+        onDismiss={removeToast}
+      />
+    </>
   );
 }
 ```
@@ -176,23 +183,25 @@ function App() {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `show` | `(options: ToastOptions) => string` | 토스트 표시 |
+| `toasts` | `ToastItem[]` | 현재 토스트 목록 |
+| `addToast` | `(toast: Omit<ToastItem, 'id'>) => string` | 토스트 추가 |
+| `removeToast` | `(id: string) => void` | 토스트 제거 |
+| `clearToasts` | `() => void` | 모든 토스트 제거 |
 | `success` | `(message: string, options?) => string` | 성공 토스트 |
 | `error` | `(message: string, options?) => string` | 에러 토스트 |
 | `warning` | `(message: string, options?) => string` | 경고 토스트 |
 | `info` | `(message: string, options?) => string` | 정보 토스트 |
-| `remove` | `(id: string) => void` | 토스트 제거 |
-| `clear` | `() => void` | 모든 토스트 제거 |
 
 ### Toast Options
 
 ```ts
-interface ToastOptions {
+interface ToastItem {
+  id: string;
   variant?: 'info' | 'success' | 'warning' | 'error';
   title?: string;
   message: string;
-  duration?: number;  // ms, 0 = 자동 닫힘 없음
-  dismissible?: boolean;
+  duration?: number;    // ms, 기본값 5000, 0 = 자동 닫힘 없음
+  dismissible?: boolean; // 기본값 true
   action?: {
     label: string;
     onClick: () => void;
@@ -249,7 +258,7 @@ toast.warning('주의가 필요합니다.', {
 const toast = useToast();
 
 // 업데이트 알림
-toast.show({
+toast.addToast({
   variant: 'info',
   message: '새 버전이 있습니다.',
   action: {
@@ -263,7 +272,7 @@ function deleteItem(id: string) {
   const item = items.find((i) => i.id === id);
   setItems(items.filter((i) => i.id !== id));
 
-  toast.show({
+  toast.addToast({
     variant: 'info',
     message: '항목이 삭제되었습니다.',
     action: {
@@ -284,13 +293,171 @@ async function uploadFile(file: File) {
 
   try {
     await upload(file);
-    toast.remove(toastId);
+    toast.removeToast(toastId);
     toast.success('업로드 완료!');
   } catch (error) {
-    toast.remove(toastId);
+    toast.removeToast(toastId);
     toast.error('업로드 실패');
   }
 }
+```
+
+---
+
+## useApiError
+
+API 에러 처리를 위한 훅입니다. 백엔드의 `ApiResponse` 에러 형식을 파싱하고 토스트로 표시합니다.
+
+### Import
+
+```tsx
+import { useApiError } from '@portal/design-system-react';
+```
+
+### Returns
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `handleError` | `(error: unknown, fallbackMessage?: string) => ApiErrorInfo` | 에러 처리 및 토스트 표시 |
+| `getErrorMessage` | `(error: unknown, fallbackMessage?: string) => string` | 에러 메시지 추출 |
+| `getErrorCode` | `(error: unknown) => string \| null` | 에러 코드 추출 |
+| `getFieldErrors` | `(error: unknown) => Record<string, string>` | 필드별 에러 추출 |
+
+### Types
+
+```ts
+interface ApiErrorInfo {
+  message: string;
+  code: string | null;
+  details: FieldError[];
+}
+
+interface FieldError {
+  field: string;
+  message: string;
+}
+```
+
+### 기본 사용법
+
+```tsx
+import { useApiError } from '@portal/design-system-react';
+
+function MyForm() {
+  const { handleError } = useApiError();
+
+  const handleSubmit = async () => {
+    try {
+      await api.submitForm(data);
+    } catch (err) {
+      handleError(err, '폼 제출에 실패했습니다.');
+    }
+  };
+
+  return <Button onClick={handleSubmit}>Submit</Button>;
+}
+```
+
+### Field Errors 처리
+
+```tsx
+function SignupForm() {
+  const { handleError, getFieldErrors } = useApiError();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const handleSubmit = async () => {
+    try {
+      await api.signup(formData);
+    } catch (err) {
+      handleError(err);
+      setFieldErrors(getFieldErrors(err));
+    }
+  };
+
+  return (
+    <form>
+      <Input
+        error={!!fieldErrors.email}
+        errorMessage={fieldErrors.email}
+        label="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <Input
+        error={!!fieldErrors.password}
+        errorMessage={fieldErrors.password}
+        label="Password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <Button onClick={handleSubmit}>Sign Up</Button>
+    </form>
+  );
+}
+```
+
+### Standalone Utilities
+
+컴포넌트 외부(스토어, 유틸 함수 등)에서 사용할 수 있는 독립 함수들:
+
+```tsx
+import {
+  getApiErrorMessage,
+  getApiErrorCode,
+  getApiFieldErrors,
+} from '@portal/design-system-react';
+
+// Zustand 스토어 등에서 사용
+try {
+  await api.call();
+} catch (error) {
+  const message = getApiErrorMessage(error, 'Default message');
+  const code = getApiErrorCode(error);
+  console.error(`Error ${code}: ${message}`);
+}
+```
+
+---
+
+## cn() Utility
+
+Tailwind CSS 클래스를 병합하는 유틸리티 함수입니다. 내부적으로 `clsx` + `tailwind-merge`를 사용합니다.
+
+### Import
+
+```tsx
+import { cn } from '@portal/design-system-react';
+```
+
+### Signature
+
+```ts
+function cn(...inputs: ClassValue[]): string
+```
+
+### 기본 사용법
+
+```tsx
+import { cn } from '@portal/design-system-react';
+
+// 조건부 클래스
+<div className={cn(
+  'base-class',
+  isActive && 'active-class',
+  isDisabled && 'disabled-class'
+)} />
+
+// 객체 스타일
+<div className={cn({
+  'text-blue-500': isPrimary,
+  'text-red-500': isDanger,
+  'opacity-50': isDisabled,
+})} />
+
+// Tailwind 충돌 해결 (tailwind-merge)
+cn('px-4', 'px-6')  // → 'px-6' (후자가 우선)
+cn('text-red-500', 'text-blue-500')  // → 'text-blue-500'
 ```
 
 ---
@@ -322,38 +489,21 @@ toast.error('결제 실패. 다시 시도해주세요.', {
 });
 ```
 
-### 3. Context 분리
-
-대규모 앱에서는 토스트와 테마 context를 분리하세요:
+### 3. API 에러와 토스트 조합
 
 ```tsx
-// providers/index.tsx
-function Providers({ children }) {
-  return (
-    <ThemeProvider>
-      <ToastProvider>
-        {children}
-      </ToastProvider>
-    </ThemeProvider>
-  );
-}
-```
-
-### 4. 커스텀 훅 조합
-
-```tsx
-// hooks/useApi.ts
 function useApi() {
-  const toast = useToast();
+  const { handleError } = useApiError();
 
-  const mutate = async (fn: () => Promise<void>, options?: MutateOptions) => {
+  const mutate = async (fn: () => Promise<void>, options?: { successMessage?: string }) => {
+    const toast = useToast();
     try {
       await fn();
       if (options?.successMessage) {
         toast.success(options.successMessage);
       }
     } catch (error) {
-      toast.error(options?.errorMessage || '오류가 발생했습니다.');
+      handleError(error);
       throw error;
     }
   };

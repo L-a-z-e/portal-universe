@@ -4,7 +4,7 @@ title: Feedback Components
 type: api
 status: current
 created: 2026-01-19
-updated: 2026-01-19
+updated: 2026-02-06
 author: documenter
 tags: [api, react, feedback, alert, toast, modal]
 related:
@@ -36,8 +36,9 @@ import { Alert } from '@portal/design-system-react';
 | `dismissible` | `boolean` | `false` | 닫기 버튼 표시 |
 | `onDismiss` | `() => void` | - | 닫기 핸들러 |
 | `showIcon` | `boolean` | `true` | 아이콘 표시 |
-| `bordered` | `boolean` | `true` | 테두리 표시 |
+| `bordered` | `boolean` | `false` | 테두리 표시 |
 | `children` | `ReactNode` | - | 알림 내용 |
+| `className` | `string` | - | 추가 CSS 클래스 |
 
 ### 기본 사용법
 
@@ -94,28 +95,31 @@ function DismissibleAlert() {
 
 ## Toast & ToastContainer
 
-토스트 알림 시스템입니다.
+토스트 알림 시스템입니다. 모듈 레벨 싱글톤으로 구현되어 Provider 없이 사용할 수 있습니다.
 
 ### Import
 
 ```tsx
-import {
-  ToastProvider,
-  ToastContainer,
-  useToast,
-} from '@portal/design-system-react';
+import { ToastContainer, useToast } from '@portal/design-system-react';
 ```
 
 ### 설정
 
 ```tsx
-// App.tsx
+// App.tsx - ToastProvider 불필요, ToastContainer만 배치
 function App() {
+  const { toasts, removeToast } = useToast();
+
   return (
-    <ToastProvider>
+    <>
       <YourApp />
-      <ToastContainer position="top-right" maxToasts={5} />
-    </ToastProvider>
+      <ToastContainer
+        position="top-right"
+        maxToasts={5}
+        toasts={toasts}
+        onDismiss={removeToast}
+      />
+    </>
   );
 }
 ```
@@ -126,6 +130,20 @@ function App() {
 |------|------|---------|-------------|
 | `position` | `ToastPosition` | `'top-right'` | 토스트 위치 |
 | `maxToasts` | `number` | `5` | 최대 표시 개수 |
+| `toasts` | `ToastItem[]` | required | 토스트 목록 |
+| `onDismiss` | `(id: string) => void` | required | 닫기 핸들러 |
+
+### ToastPosition
+
+```ts
+type ToastPosition =
+  | 'top-right'
+  | 'top-left'
+  | 'top-center'
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'bottom-center';
+```
 
 ### useToast Hook
 
@@ -146,9 +164,9 @@ function MyComponent() {
     });
   };
 
-  // 액션 버튼 포함
-  const showWithAction = () => {
-    toast.show({
+  // 커스텀 토스트
+  const showCustom = () => {
+    toast.addToast({
       variant: 'info',
       message: '새 버전이 있습니다.',
       action: {
@@ -171,7 +189,7 @@ function MyComponent() {
 
 ## Modal
 
-모달 다이얼로그 컴포넌트입니다.
+모달 다이얼로그 컴포넌트입니다. Portal을 사용하여 렌더링됩니다.
 
 ### Import
 
@@ -186,18 +204,25 @@ import { Modal } from '@portal/design-system-react';
 | `open` | `boolean` | `false` | 모달 표시 여부 |
 | `onClose` | `() => void` | - | 닫기 핸들러 |
 | `title` | `string` | - | 모달 제목 |
-| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 모달 크기 |
+| `size` | `'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | 모달 크기 |
 | `showClose` | `boolean` | `true` | 닫기 버튼 표시 |
 | `closeOnBackdrop` | `boolean` | `true` | 배경 클릭 시 닫기 |
 | `closeOnEscape` | `boolean` | `true` | ESC 키 닫기 |
 | `children` | `ReactNode` | - | 모달 본문 |
-| `footer` | `ReactNode` | - | 모달 푸터 |
+| `className` | `string` | - | 추가 CSS 클래스 |
+
+> Modal은 `footer` prop이 없습니다. footer 영역은 `children` 내부에서 직접 구성합니다.
 
 ### 기본 사용법
 
 ```tsx
 function ConfirmModal() {
   const [open, setOpen] = useState(false);
+
+  const handleConfirm = () => {
+    // confirm logic
+    setOpen(false);
+  };
 
   return (
     <>
@@ -207,18 +232,16 @@ function ConfirmModal() {
         open={open}
         onClose={() => setOpen(false)}
         title="Confirmation"
-        footer={
-          <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleConfirm}>
-              Confirm
-            </Button>
-          </div>
-        }
       >
         <p>Are you sure you want to proceed?</p>
+        <div className="flex justify-end gap-3 mt-4">
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm}>
+            Confirm
+          </Button>
+        </div>
       </Modal>
     </>
   );
@@ -228,7 +251,7 @@ function ConfirmModal() {
 ### Form in Modal
 
 ```tsx
-function EditProfileModal({ open, onClose }) {
+function EditProfileModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [form, setForm] = useState({ name: '', email: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -243,21 +266,7 @@ function EditProfileModal({ open, onClose }) {
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Edit Profile"
-      footer={
-        <div className="flex justify-end gap-3">
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button loading={isSubmitting} onClick={handleSubmit}>
-            Save Changes
-          </Button>
-        </div>
-      }
-    >
+    <Modal open={open} onClose={onClose} title="Edit Profile">
       <div className="space-y-4">
         <Input
           value={form.name}
@@ -270,6 +279,14 @@ function EditProfileModal({ open, onClose }) {
           label="Email"
           type="email"
         />
+      </div>
+      <div className="flex justify-end gap-3 mt-6">
+        <Button variant="ghost" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button loading={isSubmitting} onClick={handleSubmit}>
+          Save Changes
+        </Button>
       </div>
     </Modal>
   );
@@ -295,6 +312,7 @@ import { Spinner } from '@portal/design-system-react';
 | `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | 스피너 크기 |
 | `color` | `'primary' \| 'current' \| 'white'` | `'primary'` | 스피너 색상 |
 | `label` | `string` | - | 접근성 레이블 |
+| `className` | `string` | - | 추가 CSS 클래스 |
 
 ### 기본 사용법
 
@@ -343,6 +361,7 @@ import { Skeleton } from '@portal/design-system-react';
 | `height` | `string` | - | 높이 |
 | `animation` | `'pulse' \| 'wave' \| 'none'` | `'pulse'` | 애니메이션 |
 | `lines` | `number` | `1` | 텍스트 라인 수 |
+| `className` | `string` | - | 추가 CSS 클래스 |
 
 ### 기본 사용법
 
@@ -400,7 +419,8 @@ import { Progress } from '@portal/design-system-react';
 | `max` | `number` | `100` | 최대 값 |
 | `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 크기 |
 | `showLabel` | `boolean` | `false` | 레이블 표시 |
-| `variant` | `'default' \| 'success' \| 'warning' \| 'error'` | `'default'` | 색상 |
+| `variant` | `'default' \| 'info' \| 'success' \| 'warning' \| 'error'` | `'default'` | 색상 |
+| `className` | `string` | - | 추가 CSS 클래스 |
 
 ### 기본 사용법
 
