@@ -713,4 +713,4 @@ void CANCELLED_상태에서는_더_이상_전이_불가() {
 
 - [Saga 패턴](./saga-pattern-deep-dive.md)
 - [이벤트 소싱](./event-sourcing.md)
-- [주문 도메인 설계](../../services/shopping-service/docs/learning/domain/order-domain.md)
+- [주문 도메인 설계](../../scenarios/SCENARIO-002-order-saga.md)
