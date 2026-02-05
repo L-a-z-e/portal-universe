@@ -1,11 +1,14 @@
 package com.portal.universe.blogservice;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * BlogServiceApplication의 기본 통합 테스트 클래스입니다.
  * {@link IntegrationTest}를 상속받아 테스트 환경을 구성합니다.
+ * MongoDB Testcontainer를 필요로 하므로 단위 테스트 실행 시에는 비활성화합니다.
  */
+@Disabled("Integration test requiring MongoDB Testcontainer")
 class BlogServiceApplicationTests extends IntegrationTest {
 
     /**
