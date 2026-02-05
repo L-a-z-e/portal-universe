@@ -1,7 +1,7 @@
 {
-  "name": "@portal/react-bridge",
+  "name": "@portal/react-bootstrap",
   "version": "1.0.0",
-  "description": "Bridge library between Portal Shell (Vue) and React micro-frontends",
+  "description": "Shared bootstrap utilities for React micro-frontends",
   "private": true,
   "type": "module",
   "main": "./dist/index.cjs",
@@ -18,14 +18,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "tsc && vite build",
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-router-dom": "^7.0.0",
-    "axios": "^1.0.0"
+    "@portal/react-bridge": "*"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

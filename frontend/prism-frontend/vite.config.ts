@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
         },
-        shared: ['react', 'react-dom', 'react-dom/client', 'react-router-dom'],
+        shared: ['react', 'react-dom', 'react-dom/client', 'react-router-dom', 'axios'],
       }),
     ],
 
@@ -48,10 +48,6 @@ export default defineConfig(({ mode }) => {
         '@portal/design-system-react': resolve(
           __dirname,
           '../design-system-react/src/index.ts'
-        ),
-        '@portal/react-bridge': resolve(
-          __dirname,
-          '../react-bridge/src/index.ts'
         ),
         '@': path.resolve(__dirname, './src'),
         '@components': path.resolve(__dirname, './src/components'),
@@ -84,9 +80,9 @@ export default defineConfig(({ mode }) => {
 
     build: {
       target: 'esnext',
-      minify: false,  // Temporarily disabled for debugging React Error #525
+      minify: 'esbuild',
       cssCodeSplit: true,
-      sourcemap: true,  // Enable sourcemap for debugging
+      sourcemap: false,
       outDir: 'dist',
     },
   }

@@ -1,8 +1,9 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import type { ErrorDetails } from '@portal/design-types';
-import { isBridgeReady, getAdapter } from '@portal/react-bridge';
+import { getPortalApiClient, isBridgeReady, getAdapter } from '@portal/react-bridge';
 import type {
   ApiResponse,
+  ApiErrorResponse,
+  ErrorDetails,
   Provider,
   CreateProviderRequest,
   Agent,
@@ -52,10 +53,21 @@ const getBaseUrl = (): string => {
 };
 
 class ApiService {
-  private client: AxiosInstance;
+  private _client: AxiosInstance | null = null;
 
-  constructor() {
-    this.client = axios.create({
+  /**
+   * portal/api가 있으면 완전판 사용 (토큰 갱신, 401/429 재시도),
+   * 없으면 local fallback (Standalone 모드)
+   */
+  private get client(): AxiosInstance {
+    // portal/api의 apiClient가 있으면 우선 사용
+    const portalClient = getPortalApiClient();
+    if (portalClient) return portalClient;
+
+    // local fallback (lazy 생성)
+    if (this._client) return this._client;
+
+    this._client = axios.create({
       baseURL: getBaseUrl(),
       timeout: 30000,
       headers: {
@@ -64,19 +76,15 @@ class ApiService {
       withCredentials: true,
     });
 
-    // Request Interceptor: 토큰 자동 첨부
-    this.client.interceptors.request.use(
+    this._client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        // 1. Bridge에서 토큰 가져오기 (우선)
         let token: string | null | undefined = null;
         if (isBridgeReady()) {
           token = getAdapter('auth').getAccessToken?.();
         }
-        // 2. Fallback: window globals
         if (!token) {
           token = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__;
         }
-        // 3. localStorage (standalone 모드)
         if (!token) {
           token = localStorage.getItem('access_token');
         }
@@ -85,31 +93,22 @@ class ApiService {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
-        if (import.meta.env.DEV) {
-          console.log(`[Prism API] ${config.method?.toUpperCase()} ${config.url}`);
-        }
-
         return config;
       }
     );
 
-    // Response Interceptor: 에러 핸들링
-    this.client.interceptors.response.use(
+    this._client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError<ApiResponse<null>>) => {
+      (error: AxiosError<ApiErrorResponse>) => {
         const status = error.response?.status;
 
         if (status === 401) {
           console.warn('[Prism API] Unauthorized - token may be expired');
-          // Portal Shell에게 인증 만료 알림
           if (window.__PORTAL_ON_AUTH_ERROR__) {
             window.__PORTAL_ON_AUTH_ERROR__();
           }
-        } else if (status === 403) {
-          console.warn('[Prism API] Forbidden - insufficient permissions');
         }
 
-        // 에러 응답에서 errorDetails 추출하여 보존
         const errorData = error.response?.data?.error;
         if (errorData) {
           const apiError = new ApiError(
@@ -123,6 +122,8 @@ class ApiService {
         return Promise.reject(error);
       }
     );
+
+    return this._client;
   }
 
   private async request<T>(
@@ -136,16 +137,7 @@ class ApiService {
       data,
     });
 
-    if (!response.data.success) {
-      const errorData = response.data.error;
-      throw new ApiError(
-        errorData?.message || 'Request failed',
-        errorData?.code,
-        errorData ?? undefined,
-      );
-    }
-
-    return response.data.data as T;
+    return response.data.data;
   }
 
   // Helper to map backend task response to frontend Task type

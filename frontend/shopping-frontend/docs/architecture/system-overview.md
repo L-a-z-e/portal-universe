@@ -77,8 +77,8 @@ graph TB
     RT --> Pages
 
     TS -.->|data-theme sync| APP
-    AS -.->|window.__PORTAL_ACCESS_TOKEN__| RAS
-    AC -.->|shared axios| API
+    AS -.->|react-bridge adapter| RAS
+    AC -.->|portal/api apiClient| API
 
     Pages --> CS
     Pages --> RAS
@@ -204,7 +204,7 @@ federation({
   exposes: {
     './bootstrap': './src/bootstrap.tsx'
   },
-  shared: ['react', 'react-dom', 'react-dom/client']
+  shared: ['react', 'react-dom', 'react-dom/client', 'axios']
 })
 ```
 
@@ -234,7 +234,7 @@ shoppingApp.unmount()
 | **감지 방법** | `window.__POWERED_BY_PORTAL_SHELL__ === true` | 미설정 |
 | **라우터** | MemoryRouter | BrowserRouter |
 | **authStore** | Portal Shell Pinia에서 동기화 | 로컬 상태 (미구현) |
-| **apiClient** | Portal Shell axios 공유 | 로컬 axios 생성 |
+| **apiClient** | `portal/api` apiClient (토큰 갱신, 401/429 재시도) | 로컬 axios 생성 |
 | **테마 동기화** | `import('portal/stores')` | MutationObserver |
 | **Header/Footer** | 숨김 | 표시 |
 | **CSS 범위** | `[data-service="shopping"]` | 전역 |
@@ -293,16 +293,14 @@ syncFromPortal: async () => {
 
 ```typescript
 // api/client.ts
+// Embedded: portal/api의 apiClient 사용 (토큰 자동 갱신, 401/429 재시도 포함)
+// Standalone: local fallback client 사용
 export const getApiClient = (): AxiosInstance => {
-  // Portal Shell에서 주입된 apiClient가 있으면 사용
-  if (window.__PORTAL_API_CLIENT__) {
-    return window.__PORTAL_API_CLIENT__ as AxiosInstance
-  }
-
-  // Standalone 모드: 로컬 axios 사용
-  return apiClient
+  return getPortalApiClient() ?? getLocalClient()
 }
 ```
+
+`getPortalApiClient()`는 `@portal/react-bridge`의 api-registry가 `import('portal/api')`로 resolve한 Portal Shell의 완전판 apiClient를 반환합니다. Standalone 모드에서는 `null`을 반환하여 local fallback으로 동작합니다.
 
 ### 4. CSS 격리
 

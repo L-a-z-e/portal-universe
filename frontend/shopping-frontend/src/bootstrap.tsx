@@ -1,286 +1,32 @@
 /// <reference types="vite/client" />
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { PortalBridgeProvider } from '@portal/react-bridge'
-import App from './App'
-import { navigateTo, resetRouter, setAppActive } from './router'
-import './styles/index.css'
+import { createAppBootstrap } from '@portal/react-bootstrap';
+import App from './App';
+import { navigateTo, resetRouter, setAppActive } from './router';
+import './styles/index.css';
 
 /**
- * Mount 옵션 (Blog와 동일한 인터페이스)
- */
-export type MountOptions = {
-  /** 초기 경로 (예: '/cart', '/orders') */
-  initialPath?: string
-  /** Parent에게 경로 변경 알림 */
-  onNavigate?: (path: string) => void
-  /** 🆕 테마 설정 (Portal Shell에서 전달) */
-  theme?: 'light' | 'dark'
-}
-
-/**
- * Mount된 Shopping 앱 인스턴스 (확장된 인터페이스)
- */
-export type ShoppingAppInstance = {
-  /** Parent로부터 경로 변경 수신 */
-  onParentNavigate: (path: string) => void
-  /** 앱 언마운트 */
-  unmount: () => void
-  /** 🆕 keep-alive activated 콜백 */
-  onActivated?: () => void
-  /** 🆕 keep-alive deactivated 콜백 */
-  onDeactivated?: () => void
-  /** 🆕 테마 변경 콜백 (Portal Shell에서 호출) */
-  onThemeChange?: (theme: 'light' | 'dark') => void
-}
-
-// 🆕 WeakMap으로 인스턴스별 상태 관리 (전역 상태 제거)
-const instanceRegistry = new WeakMap<HTMLElement, {
-  root: ReactDOM.Root
-  navigateCallback: ((path: string) => void) | null
-  styleObserver: MutationObserver | null
-  isActive: boolean
-  currentTheme: 'light' | 'dark'
-  rerender: () => void
-}>()
-
-/**
- * Shopping 앱을 지정된 컨테이너에 마운트 (Embedded 모드)
- * Blog와 동일한 인터페이스를 사용
+ * Shopping 앱 부트스트랩
  *
- * @param el - 마운트할 HTML 엘리먼트
- * @param options - 마운트 옵션
- * @returns Shopping 앱 인스턴스 (onParentNavigate, unmount, onActivated, onDeactivated)
- *
- * @example
- * ```
- * const shoppingApp = mountShoppingApp(container, {
- *   initialPath: '/cart',
- *   onNavigate: (path) => console.log('Navigated to:', path)
- * });
- * ```
+ * @portal/react-bootstrap의 createAppBootstrap을 사용하여
+ * 287줄 → 25줄로 단순화됨
  */
-export function mountShoppingApp(
-  el: HTMLElement,
-  options: MountOptions = {}
-): ShoppingAppInstance {
-  console.group('🚀 [Shopping] Mounting app in EMBEDDED mode');
+const { mount } = createAppBootstrap({
+  name: 'shopping',
+  App,
+  dataService: 'shopping',
+  router: {
+    navigateTo,
+    resetRouter,
+    setAppActive,
+  },
+});
 
-  // ✅ Portal Shell에서 마운트됨을 표시 (isEmbedded 플래그 활성화)
-  (window as any).__POWERED_BY_PORTAL_SHELL__ = true;
+// Module Federation에서 사용하는 mount 함수
+export { mount };
 
-  // ✅ 필수 파라미터 검증 (Blog의 패턴 따름)
-  if (!el) {
-    console.error('❌ [Shopping] Mount element is null!');
-    console.groupEnd();
-    throw new Error('[Shopping] Mount element is required');
-  }
+// 기존 API 호환성 유지
+export const mountShoppingApp = mount;
+export default { mountShoppingApp };
 
-  // 🆕 기존 인스턴스가 있으면 정리
-  const existingInstance = instanceRegistry.get(el);
-  if (existingInstance) {
-    console.log('⚠️ [Shopping] Cleaning up existing instance...');
-    try {
-      existingInstance.styleObserver?.disconnect();
-      existingInstance.root.unmount();
-    } catch (err) {
-      console.warn('⚠️ [Shopping] Existing instance cleanup warning:', err);
-    }
-    instanceRegistry.delete(el);
-  }
-
-  console.log('📍 Mount target:', el.tagName, el.className || '(no class)');
-
-  const { initialPath = '/', onNavigate, theme = 'light' } = options;
-  console.log('📍 Initial path:', initialPath);
-  console.log('📍 Theme:', theme);
-  console.log('📍 Options:', { onNavigate: !!onNavigate });
-
-  try {
-    // ✅ Step 1: React 루트 생성 (함수 스코프 내 관리)
-    const root = ReactDOM.createRoot(el);
-    let navigateCallback = onNavigate || null;
-
-    // 🆕 스타일 태그 마킹을 위한 MutationObserver
-    const styleObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeName === 'STYLE' && !(node as HTMLStyleElement).hasAttribute('data-mf-app')) {
-            (node as HTMLStyleElement).setAttribute('data-mf-app', 'shopping');
-          }
-        });
-      });
-    });
-
-    // <head>에 추가되는 스타일 태그 감시
-    styleObserver.observe(document.head, { childList: true });
-
-    // 🆕 Props 상태 관리 (theme 변경 시 재렌더링을 위해)
-    let currentTheme: 'light' | 'dark' = theme;
-
-    const getCurrentProps = () => ({
-      initialPath,
-      theme: currentTheme,
-      onNavigate: (path: string) => {
-        const instance = instanceRegistry.get(el);
-        if (instance?.isActive) {
-          console.log(`📍 [Shopping] Route changed to: ${path}`);
-          instance.navigateCallback?.(path);
-        }
-      }
-    });
-
-    // 🆕 재렌더링 함수
-    const rerender = () => {
-      root.render(
-        <React.StrictMode>
-          <PortalBridgeProvider>
-            <App {...getCurrentProps()} />
-          </PortalBridgeProvider>
-        </React.StrictMode>
-      );
-    };
-
-    // 🆕 WeakMap에 인스턴스 등록 (theme, rerender 추가)
-    instanceRegistry.set(el, {
-      root,
-      navigateCallback,
-      styleObserver,
-      isActive: true,
-      currentTheme,
-      rerender
-    });
-
-    // ✅ Step 2: data-service="shopping" 속성 설정 (CSS 선택자 활성화)
-    document.documentElement.setAttribute('data-service', 'shopping');
-    console.log('[Shopping] Set data-service="shopping"');
-
-    // ✅ Step 3: 초기 Props로 렌더링
-    rerender();
-    console.log('✅ [Shopping] App mounted successfully');
-    console.groupEnd();
-
-    // ✅ Step 4: 앱 인스턴스 반환 (확장된 인터페이스)
-    return {
-      /**
-       * Parent(Portal Shell)로부터 경로 변경 수신
-       * Blog의 onParentNavigate와 동일한 역할
-       */
-      onParentNavigate: (path: string) => {
-        const instance = instanceRegistry.get(el);
-        if (!instance?.isActive) {
-          console.log(`⏸️ [Shopping] Skipping navigation (inactive): ${path}`);
-          return;
-        }
-        console.log(`📥 [Shopping] Received navigation from parent: ${path}`);
-        navigateTo(path);
-      },
-
-      /**
-       * 🆕 keep-alive activated 콜백
-       * Vue의 onActivated 훅에서 호출됨
-       */
-      onActivated: () => {
-        console.log('🔄 [Shopping] App activated (keep-alive)');
-        const instance = instanceRegistry.get(el);
-        if (instance) {
-          instance.isActive = true;
-          // data-service 복원
-          document.documentElement.setAttribute('data-service', 'shopping');
-
-          // NavigationSync 활성화 (약간의 지연으로 초기 sync 방지)
-          setTimeout(() => {
-            setAppActive(true);
-          }, 100);
-        }
-      },
-
-      /**
-       * 🆕 keep-alive deactivated 콜백
-       * Vue의 onDeactivated 훅에서 호출됨
-       */
-      onDeactivated: () => {
-        console.log('⏸️ [Shopping] App deactivated (keep-alive)');
-        const instance = instanceRegistry.get(el);
-        if (instance) {
-          instance.isActive = false;
-          // NavigationSync 비활성화 (즉시)
-          setAppActive(false);
-        }
-      },
-
-      /**
-       * 🆕 테마 변경 콜백
-       * Portal Shell에서 테마가 변경될 때 호출됨
-       */
-      onThemeChange: (newTheme: 'light' | 'dark') => {
-        console.log(`🎨 [Shopping] Theme changed to: ${newTheme}`);
-        const instance = instanceRegistry.get(el);
-        if (instance) {
-          currentTheme = newTheme;
-          instance.currentTheme = newTheme;
-          instance.rerender();
-        }
-      },
-
-      /**
-       * 앱 언마운트 및 클린업
-       *
-       * CSS lifecycle은 Portal Shell(RemoteWrapper)에서 중앙 관리
-       * Remote app은 React app unmount와 DOM 정리만 담당
-       */
-      unmount: () => {
-        console.group('🔄 [Shopping] Unmounting app');
-
-        const instance = instanceRegistry.get(el);
-
-        // 1. MutationObserver 정리
-        if (instance?.styleObserver) {
-          instance.styleObserver.disconnect();
-        }
-
-        // 2. React Root Unmount
-        try {
-          if (instance?.root) {
-            instance.root.unmount();
-          }
-          console.log('✅ [Shopping] App unmounted successfully');
-        } catch (err) {
-          console.error('❌ [Shopping] App unmount failed:', err);
-        }
-
-        // 3. DOM Cleanup (CSS는 Portal Shell에서 관리)
-        try {
-          el.innerHTML = '';
-
-          if (document.documentElement.getAttribute('data-service') === 'shopping') {
-            document.documentElement.removeAttribute('data-service');
-          }
-
-          resetRouter();
-          console.log('✅ [Shopping] Cleanup completed');
-        } catch (err) {
-          console.error('❌ [Shopping] Cleanup failed:', err);
-        }
-
-        // 4. WeakMap에서 제거
-        instanceRegistry.delete(el);
-
-        console.groupEnd();
-      }
-    };
-  } catch (error) {
-    console.error('❌ [Shopping] Mount failed:', error);
-    console.groupEnd();
-    throw error;
-  }
-}
-
-// 타입 정의 (TypeScript)
-export interface MountAPI {
-  onParentNavigate: (path: string) => void;
-  unmount: () => void;
-}
-
-// 호환성을 위한 기본 export
-export default { mountShoppingApp }
+// 타입 재export (기존 코드 호환성)
+export type { MountOptions, AppInstance as ShoppingAppInstance } from '@portal/react-bootstrap';
