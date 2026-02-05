@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-30
+updated: 2026-02-06
 author: Claude
 tags: [api, axios, typescript, frontend]
 related:
@@ -51,6 +51,11 @@ export default apiClient;
 | `api/posts.ts` | 게시물 관련 API | Post |
 | `api/comments.ts` | 댓글 관련 API | Comment |
 | `api/files.ts` | 파일 업로드/삭제 API | File (S3) |
+| `api/likes.ts` | 좋아요 관련 API | Like |
+| `api/series.ts` | 시리즈 관련 API | Series |
+| `api/tags.ts` | 태그 관련 API | Tag |
+| `api/follow.ts` | 팔로우 관련 API | Follow |
+| `api/users.ts` | 사용자 관련 API | User |
 
 ---
 
@@ -170,9 +175,12 @@ console.log(post.title, post.viewCount);
 | `getPostsByCategory` | GET | `/posts/category/{cat}` | 카테고리별 게시물 |
 | `getPostsByTags` | GET | `/posts/tags?tags={t1,t2}` | 태그별 게시물 |
 | `getPopularPosts` | GET | `/posts/popular` | 인기 게시물 |
+| `getTrendingPosts` | GET | `/posts/trending?period={p}` | 트렌딩 게시물 (기간별) |
 | `getRecentPosts` | GET | `/posts/recent?limit={n}` | 최근 게시물 |
 | `getRelatedPosts` | GET | `/posts/{id}/related?limit={n}` | 관련 게시물 |
 | `getPostWithViewIncrement` | GET | `/posts/{id}/view` | 조회수 증가 + 조회 |
+| `getPostNavigation` | GET | `/posts/{id}/navigation?scope={s}` | 이전/다음 포스트 |
+| `getFeed` | GET | `/posts/feed?followingIds={ids}` | 팔로잉 피드 |
 
 ##### `getPublishedPosts(page?: number, size?: number): Promise<PageResponse<PostSummaryResponse>>`
 
@@ -258,6 +266,21 @@ const related = await getRelatedPosts('post-123', 5);
 // 게시물 하단에 관련 글 추천 표시
 ```
 
+##### `getTrendingPosts(period?: 'today' | 'week' | 'month' | 'year', page?: number, size?: number): Promise<PageResponse<PostSummaryResponse>>`
+
+**Query Parameters:**
+- `period` (string, optional): 트렌딩 기간 ('today' | 'week' | 'month' | 'year', 기본값: 'week')
+- `page`, `size`: 페이징
+
+**사용 예시:**
+```typescript
+// 이번 주 트렌딩 게시물
+const trending = await getTrendingPosts('week', 0, 10);
+
+// 오늘의 인기 게시물
+const today = await getTrendingPosts('today', 0, 5);
+```
+
 ##### `getPostWithViewIncrement(postId: string): Promise<PostResponse>`
 
 **설명:**
@@ -268,6 +291,56 @@ const related = await getRelatedPosts('post-123', 5);
 ```typescript
 const post = await getPostWithViewIncrement('post-123');
 console.log(`조회수: ${post.viewCount}`);
+```
+
+##### `getPostNavigation(postId: string, scope?: 'all' | 'author' | 'category' | 'series'): Promise<PostNavigationResponse>`
+
+**Query Parameters:**
+- `scope` (string, optional): 네비게이션 범위 (기본값: 'all')
+  - `'all'`: 전체 게시물 기준
+  - `'author'`: 같은 작성자의 게시물 기준
+  - `'category'`: 같은 카테고리의 게시물 기준
+  - `'series'`: 같은 시리즈의 게시물 기준
+
+**Response:**
+```typescript
+interface PostNavigationResponse {
+  previousPost?: PostNavigationItem;
+  nextPost?: PostNavigationItem;
+  scope: 'all' | 'author' | 'category' | 'series';
+}
+
+interface PostNavigationItem {
+  id: string;
+  title: string;
+  thumbnailUrl?: string;
+  publishedAt: string;
+}
+```
+
+**사용 예시:**
+```typescript
+// 이전/다음 게시물 조회
+const nav = await getPostNavigation('post-123', 'category');
+console.log('이전 글:', nav.previousPost?.title);
+console.log('다음 글:', nav.nextPost?.title);
+
+// 게시물 상세 페이지에서 이전/다음 버튼 구현
+```
+
+##### `getFeed(followingIds: string[], page?: number, size?: number): Promise<PageResponse<PostSummaryResponse>>`
+
+**Query Parameters:**
+- `followingIds` (string[]): 팔로잉 사용자 UUID 목록
+- `page`, `size`: 페이징
+
+**사용 예시:**
+```typescript
+// 내가 팔로우하는 사용자들의 게시물 조회
+const followingIds = await getMyFollowingIds();
+const feed = await getFeed(followingIds.followingIds, 0, 20);
+
+// 피드 페이지에서 사용
 ```
 
 ---
@@ -575,6 +648,452 @@ await deleteFile('http://localhost:4566/blog-bucket/abc123_image.jpg');
 
 ---
 
+## 🔹 Likes API
+
+### 경로 상수
+```typescript
+const BASE_PATH = '/api/v1/blog/posts';
+```
+
+### API 목록
+
+| 함수명 | Method | Endpoint | 설명 |
+|--------|--------|----------|------|
+| `toggleLike` | POST | `/posts/{postId}/like` | 좋아요 토글 (추가/취소) |
+| `getLikeStatus` | GET | `/posts/{postId}/like` | 좋아요 상태 확인 |
+| `getLikers` | GET | `/posts/{postId}/likes` | 좋아요한 사용자 목록 |
+
+#### DTO 타입
+
+```typescript
+interface LikeToggleResponse {
+  postId: string;
+  userId: string;
+  liked: boolean;      // 좋아요 상태 (true: 추가됨, false: 취소됨)
+  likeCount: number;   // 현재 좋아요 수
+  timestamp: string;
+}
+
+interface LikeStatusResponse {
+  postId: string;
+  userId: string;
+  liked: boolean;
+  likeCount: number;
+}
+
+interface LikerResponse {
+  userId: string;
+  username: string;
+  profileImageUrl?: string;
+  likedAt: string;
+}
+```
+
+#### 사용 예시
+
+```typescript
+// 좋아요 토글
+const handleLike = async (postId: string) => {
+  const result = await toggleLike(postId);
+
+  if (result.liked) {
+    console.log('좋아요 추가됨');
+  } else {
+    console.log('좋아요 취소됨');
+  }
+
+  console.log(`현재 좋아요 수: ${result.likeCount}`);
+};
+
+// 좋아요 상태 확인
+const status = await getLikeStatus('post-123');
+if (status.liked) {
+  // 좋아요 버튼 활성화 상태로 표시
+}
+
+// 좋아요한 사용자 목록 조회 (페이징)
+const likers = await getLikers('post-123', 0, 20);
+console.log(`${likers.totalElements}명이 좋아요를 눌렀습니다`);
+likers.content.forEach(liker => {
+  console.log(`${liker.username}님이 ${liker.likedAt}에 좋아요`);
+});
+```
+
+---
+
+## 🔹 Series API
+
+### 경로 상수
+```typescript
+const BASE_PATH = '/api/v1/blog/series';
+```
+
+### API 목록
+
+#### 1. 시리즈 조회
+
+| 함수명 | Method | Endpoint | 설명 |
+|--------|--------|----------|------|
+| `getSeriesList` | GET | `/series` 또는 `/series/author/{id}` | 시리즈 목록 조회 |
+| `getSeriesById` | GET | `/series/{id}` | 시리즈 상세 조회 |
+| `getSeriesPosts` | GET | `/series/{id}/posts` | 시리즈의 포스트 목록 |
+| `getMySeries` | GET | `/series/my` | 내 시리즈 목록 |
+| `getSeriesByPostId` | GET | `/series/by-post/{postId}` | 특정 포스트가 속한 시리즈 |
+
+#### 2. 시리즈 관리 (작성자용)
+
+| 함수명 | Method | Endpoint | 설명 |
+|--------|--------|----------|------|
+| `createSeries` | POST | `/series` | 시리즈 생성 |
+| `updateSeries` | PUT | `/series/{id}` | 시리즈 수정 |
+| `deleteSeries` | DELETE | `/series/{id}` | 시리즈 삭제 |
+| `addPostToSeries` | POST | `/series/{id}/posts/{postId}` | 포스트 추가 |
+| `removePostFromSeries` | DELETE | `/series/{id}/posts/{postId}` | 포스트 제거 |
+| `reorderSeriesPosts` | PUT | `/series/{id}/posts/order` | 포스트 순서 변경 |
+
+#### DTO 타입
+
+```typescript
+interface SeriesResponse {
+  id: string;
+  name: string;
+  description: string;
+  authorId: string;
+  authorName: string;
+  thumbnailUrl: string;
+  postIds: string[];      // 순서대로 정렬된 포스트 ID 배열
+  postCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface SeriesListResponse {
+  id: string;
+  name: string;
+  description: string;
+  authorName: string;
+  thumbnailUrl: string;
+  postCount: number;
+  updatedAt: string;
+}
+
+interface SeriesCreateRequest {
+  name: string;
+  description?: string;
+  thumbnailUrl?: string;
+}
+
+interface SeriesUpdateRequest {
+  name: string;
+  description?: string;
+  thumbnailUrl?: string;
+}
+```
+
+#### 사용 예시
+
+```typescript
+// 시리즈 목록 조회 (전체)
+const allSeries = await getSeriesList();
+
+// 특정 작성자의 시리즈 조회
+const authorSeries = await getSeriesList('author-123');
+
+// 시리즈 상세 조회
+const series = await getSeriesById('series-456');
+console.log(`${series.name}: ${series.postCount}개 포스트`);
+
+// 시리즈의 포스트 목록
+const posts = await getSeriesPosts('series-456');
+// 순서대로 정렬된 포스트 목록
+
+// 시리즈 생성
+const newSeries = await createSeries({
+  name: 'Vue 3 완전 정복',
+  description: 'Vue 3를 처음부터 끝까지 배우는 시리즈',
+  thumbnailUrl: 'https://...',
+});
+
+// 시리즈에 포스트 추가
+await addPostToSeries('series-456', 'post-123');
+
+// 시리즈 포스트 순서 변경
+await reorderSeriesPosts('series-456', [
+  'post-001',
+  'post-003',
+  'post-002',
+]);
+
+// 특정 포스트가 속한 시리즈 조회
+const relatedSeries = await getSeriesByPostId('post-123');
+```
+
+---
+
+## 🔹 Tags API
+
+### 경로 상수
+```typescript
+const BASE_PATH = '/api/v1/blog/tags';
+```
+
+### API 목록
+
+| 함수명 | Method | Endpoint | 설명 |
+|--------|--------|----------|------|
+| `getAllTags` | GET | `/tags` | 전체 태그 목록 |
+| `getTagById` | GET | `/tags/{id}` | 태그 상세 조회 (ID) |
+| `getTagByName` | GET | `/tags/{name}` | 태그 상세 조회 (이름) |
+| `getPostsByTag` | GET | `/posts/tags?tags={name}` | 태그로 포스트 검색 |
+| `getPopularTags` | GET | `/tags/popular?limit={n}` | 인기 태그 |
+| `searchTags` | GET | `/tags/search?q={keyword}` | 태그 검색 |
+
+#### DTO 타입
+
+```typescript
+interface TagResponse {
+  id: string;
+  name: string;
+  postCount: number;
+  description: string;
+  createdAt: string;
+  lastUsedAt: string;
+}
+
+interface TagStatsResponse {
+  name: string;
+  postCount: number;
+  totalViews: number | null;
+}
+```
+
+#### 사용 예시
+
+```typescript
+// 전체 태그 목록 조회
+const allTags = await getAllTags();
+
+// 태그로 포스트 검색
+const vuePosts = await getPostsByTag('vue', 0, 10);
+
+// 인기 태그 (사이드바에 표시)
+const popularTags = await getPopularTags(20);
+popularTags.forEach(tag => {
+  console.log(`#${tag.name} (${tag.postCount}개 포스트)`);
+});
+
+// 태그 자동완성용 검색
+const handleTagSearch = async (keyword: string) => {
+  const tags = await searchTags(keyword, 5);
+  return tags.map(t => t.name);
+};
+
+// 사용자가 "vue"를 입력하면 "vue", "vue3", "vuejs" 등 제안
+const suggestions = await handleTagSearch('vue');
+```
+
+---
+
+## 🔹 Follow API
+
+### 경로 상수
+```typescript
+const AUTH_API_BASE = '/api/v1/users';
+```
+
+**참고:** Follow API는 auth-service를 호출합니다.
+
+### API 목록
+
+| 함수명 | Method | Endpoint | 설명 |
+|--------|--------|----------|------|
+| `toggleFollow` | POST | `/users/{username}/follow` | 팔로우/언팔로우 토글 |
+| `getFollowers` | GET | `/users/{username}/followers` | 팔로워 목록 |
+| `getFollowings` | GET | `/users/{username}/following` | 팔로잉 목록 |
+| `getFollowStatus` | GET | `/users/{username}/follow/status` | 팔로우 상태 확인 |
+| `getMyFollowingIds` | GET | `/users/me/following/ids` | 내 팔로잉 ID 목록 |
+
+#### DTO 타입
+
+```typescript
+interface FollowResponse {
+  following: boolean;      // 팔로우 상태 (true: 팔로우됨, false: 언팔로우됨)
+  followerCount: number;   // 대상 사용자의 팔로워 수
+  followingCount: number;  // 대상 사용자의 팔로잉 수
+}
+
+interface FollowUserResponse {
+  uuid: string;
+  username: string | null;
+  nickname: string;
+  profileImageUrl: string | null;
+  bio: string | null;
+}
+
+interface FollowListResponse {
+  users: FollowUserResponse[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  hasNext: boolean;
+}
+
+interface FollowStatusResponse {
+  isFollowing: boolean;
+}
+
+interface FollowingIdsResponse {
+  followingIds: string[];  // 팔로잉 사용자들의 UUID 배열
+}
+```
+
+#### 사용 예시
+
+```typescript
+// 팔로우 토글
+const handleFollow = async (username: string) => {
+  const result = await toggleFollow(username);
+
+  if (result.following) {
+    console.log('팔로우했습니다');
+  } else {
+    console.log('언팔로우했습니다');
+  }
+
+  console.log(`팔로워: ${result.followerCount}명`);
+};
+
+// 팔로워 목록 조회
+const followers = await getFollowers('john_doe', 0, 20);
+followers.users.forEach(user => {
+  console.log(`@${user.username}: ${user.bio}`);
+});
+
+// 팔로잉 목록 조회
+const followings = await getFollowings('john_doe', 0, 20);
+
+// 팔로우 상태 확인 (버튼 상태 결정)
+const status = await getFollowStatus('john_doe');
+if (status.isFollowing) {
+  // "언팔로우" 버튼 표시
+} else {
+  // "팔로우" 버튼 표시
+}
+
+// 내 팔로잉 ID 목록 (피드 API 호출용)
+const myFollowings = await getMyFollowingIds();
+const feed = await getFeed(myFollowings.followingIds, 0, 20);
+```
+
+---
+
+## 🔹 Users API
+
+### 경로 상수
+```typescript
+const AUTH_API_BASE = '/api/v1/users';
+const BLOG_API_BASE = '/api/v1/blog/posts';
+```
+
+**참고:** 프로필 관련 API는 auth-service, 게시글 조회는 blog-service를 호출합니다.
+
+### API 목록
+
+#### 1. 프로필 조회
+
+| 함수명 | Method | Endpoint | 설명 |
+|--------|--------|----------|------|
+| `getPublicProfile` | GET | `/users/username/{username}` | 공개 프로필 조회 |
+| `getMyProfile` | GET | `/users/me` | 내 프로필 조회 (인증 필요) |
+
+#### 2. 프로필 수정
+
+| 함수명 | Method | Endpoint | 설명 |
+|--------|--------|----------|------|
+| `updateProfile` | PATCH | `/users/me` | 프로필 정보 수정 |
+| `setUsername` | POST | `/users/me/username` | Username 설정 (최초 1회) |
+| `checkUsername` | GET | `/users/username/{username}/check` | Username 중복 확인 |
+
+#### 3. 사용자 게시글
+
+| 함수명 | Method | Endpoint | 설명 |
+|--------|--------|----------|------|
+| `getUserPosts` | GET | `/posts/author/{authorId}` | 특정 사용자의 게시글 |
+
+#### DTO 타입
+
+```typescript
+interface UserProfileResponse {
+  id: number;
+  uuid: string;
+  email: string;
+  nickname: string;
+  username: string | null;  // 최초 설정 전에는 null
+  bio: string | null;
+  profileImageUrl: string | null;
+  website: string | null;
+  followerCount: number;
+  followingCount: number;
+  createdAt: string;
+}
+
+interface UserProfileUpdateRequest {
+  name?: string;
+  bio?: string;
+  profileImageUrl?: string;
+  website?: string;
+}
+
+interface UsernameSetRequest {
+  username: string;
+}
+
+interface UsernameCheckResponse {
+  username: string;
+  available: boolean;
+  message: string;
+}
+```
+
+#### 사용 예시
+
+```typescript
+// 공개 프로필 조회 (username 기반)
+const profile = await getPublicProfile('john_doe');
+console.log(`${profile.nickname}님의 프로필`);
+console.log(`팔로워: ${profile.followerCount}, 팔로잉: ${profile.followingCount}`);
+
+// 내 프로필 조회
+const myProfile = await getMyProfile();
+if (!myProfile.username) {
+  // Username 설정 유도
+}
+
+// 프로필 수정
+await updateProfile({
+  bio: '안녕하세요! Vue 개발자입니다.',
+  website: 'https://myblog.com',
+  profileImageUrl: 'https://...',
+});
+
+// Username 중복 확인
+const checkResult = await checkUsername('john_doe');
+if (checkResult.available) {
+  // Username 설정 가능
+  await setUsername('john_doe');
+} else {
+  console.error(checkResult.message);
+  // "이미 사용 중인 username입니다"
+}
+
+// 사용자의 게시글 조회 (authorId 기반)
+const userPosts = await getUserPosts(profile.uuid, 0, 10);
+console.log(`${profile.nickname}님이 작성한 게시글 ${userPosts.totalElements}개`);
+```
+
+---
+
 ## 🔒 인증 (Authentication)
 
 ### JWT 토큰 자동 첨부
@@ -824,4 +1343,4 @@ const createPostWithImage = async (
 
 ---
 
-**최종 업데이트**: 2026-01-30
+**최종 업데이트**: 2026-02-06
