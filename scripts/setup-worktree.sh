@@ -52,18 +52,34 @@ safe_symlink() {
 echo "Creating symlinks..."
 
 # Symlink 대상 목록 (gitignored files/folders)
+# 루트 레벨 파일/폴더
 SYMLINK_TARGETS=(
     ".claude"
     "certs"
     ".env"
     ".env.local"
+    ".env.dev"
     ".env.docker"
+    ".env.k8s"
     ".mcp.json"
+)
+
+# k8s 시크릿 파일
+K8S_SYMLINK_TARGETS=(
+    "k8s/base/secret.yaml"
+    "k8s/base/jwt-secrets.yaml"
 )
 
 for target in "${SYMLINK_TARGETS[@]}"; do
     safe_symlink "$MAIN_REPO/$target" "$target"
 done
+
+# k8s 디렉토리가 있으면 시크릿 파일도 symlink
+if [ -d "k8s/base" ]; then
+    for target in "${K8S_SYMLINK_TARGETS[@]}"; do
+        safe_symlink "$MAIN_REPO/$target" "$target"
+    done
+fi
 
 # Worktree의 common git dir에 exclude 패턴 추가
 # Git worktree는 info/exclude를 common git dir에서 읽음 (worktree-specific dir 아님)
@@ -92,11 +108,16 @@ for target in "${SYMLINK_TARGETS[@]}"; do
     add_exclude_pattern "$target"
 done
 
+for target in "${K8S_SYMLINK_TARGETS[@]}"; do
+    add_exclude_pattern "$target"
+done
+
 # 검증: symlink가 git에 의해 무시되는지 확인
 echo ""
 echo "Verifying symlinks are properly ignored..."
 LEAKED=""
-for target in "${SYMLINK_TARGETS[@]}"; do
+ALL_TARGETS=("${SYMLINK_TARGETS[@]}" "${K8S_SYMLINK_TARGETS[@]}")
+for target in "${ALL_TARGETS[@]}"; do
     if [ -e "$target" ] || [ -L "$target" ]; then
         STATUS=$(git status --porcelain "$target" 2>/dev/null)
         if [ -n "$STATUS" ]; then
@@ -113,6 +134,11 @@ if [ -n "$LEAKED" ]; then
 else
     echo "  ✓ All symlinks are properly ignored by git"
 fi
+
+# Pre-commit hook 설치
+echo ""
+echo "Installing git hooks..."
+"$MAIN_REPO/scripts/install-hooks.sh"
 
 echo ""
 echo "✓ Worktree 설정 완료: $WORKTREE_PATH ($BRANCH)"

@@ -62,6 +62,7 @@ coverage/
 .env
 .env.local
 .env.*.local
+.env.dev
 .env.docker
 .env.k8s
 
