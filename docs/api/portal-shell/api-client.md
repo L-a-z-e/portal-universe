@@ -3,13 +3,14 @@ id: api-portal-shell-api-client
 title: Portal Shell API Client
 type: api
 status: current
-version: v1
+version: v2
 created: 2026-01-18
-updated: 2026-01-30
+updated: 2026-02-06
 author: Documenter Agent
-tags: [api, portal-shell, axios, module-federation]
+tags: [api, portal-shell, axios, module-federation, rate-limit, token-refresh]
 related:
   - api-portal-shell-auth-store
+  - api-portal-shell-api-utils
 ---
 
 # Portal Shell API Client
@@ -23,23 +24,36 @@ related:
 | 항목 | 내용 |
 |------|------|
 | **Module Federation Path** | `portal/api` |
+| **Export 이름** | `apiClient` |
 | **Base URL** | `VITE_API_BASE_URL` (환경변수) |
 | **Timeout** | 10000ms (10초) |
-| **인증** | Bearer Token 자동 주입 |
+| **인증** | Bearer Token 자동 주입 및 갱신 |
 
 ---
 
 ## 🎯 주요 기능
 
-### 1. 자동 인증 토큰 주입
-- Request Interceptor를 통해 authStore의 accessToken 자동 주입
+### 1. 자동 인증 토큰 주입 및 갱신
+- Request Interceptor를 통해 authService의 accessToken 자동 주입
+- 토큰 만료 시 자동으로 `autoRefreshIfNeeded()` 호출
 - Authorization Header: `Bearer {token}`
 
 ### 2. 401 응답 자동 처리
 - Response Interceptor가 401 응답 감지
-- 자동으로 authStore.logout() 호출
+- 자동으로 토큰 refresh 시도 (1회)
+- Refresh 성공 시 원래 요청 재시도
+- Refresh 실패 시 로그아웃 처리 및 `/?login=required`로 리다이렉트
 
-### 3. 공통 설정
+### 3. 429 Rate Limit 재시도
+- 429 응답 시 자동으로 재시도 (최대 3회)
+- `Retry-After` 헤더가 있으면 해당 시간만큼 대기
+- 없으면 기본 1초 대기
+
+### 4. Backend 에러 메시지 파싱
+- ApiErrorResponse 구조를 파싱하여 `error.errorDetails`에 저장
+- `error.message`와 `error.code`를 Backend 에러로 오버라이드
+
+### 5. 공통 설정
 - Content-Type: application/json
 - Timeout: 10000ms
 
@@ -62,8 +76,10 @@ const apiClient: AxiosInstance;
 
 ```typescript
 // blog-frontend/src/api/blogApi.ts
-import apiClient from 'portal/api';
+import { apiClient } from 'portal/api';
 ```
+
+> ⚠️ **주의**: `default export`가 아닌 **named export**입니다. `{ apiClient }` 형태로 import해야 합니다.
 
 ### 2. GET 요청
 
@@ -114,20 +130,17 @@ export const deletePost = async (id: string) => {
 ### 기본 에러 처리
 
 ```typescript
-import apiClient from 'portal/api';
+import { apiClient, getErrorMessage, getErrorCode } from 'portal/api';
 
 try {
   const response = await apiClient.get('/api/v1/blog/posts');
   console.log(response.data);
 } catch (error) {
-  if (axios.isAxiosError(error)) {
-    if (error.response?.status === 404) {
-      console.error('게시물을 찾을 수 없습니다.');
-    } else if (error.response?.status === 500) {
-      console.error('서버 오류가 발생했습니다.');
-    } else {
-      console.error('요청 실패:', error.message);
-    }
+  console.error('에러 발생:', getErrorMessage(error));
+
+  const code = getErrorCode(error);
+  if (code === 'B001') {
+    console.error('게시물을 찾을 수 없습니다.');
   }
 }
 ```
@@ -135,10 +148,39 @@ try {
 ### 401 응답 (자동 처리)
 
 ```typescript
-// 401 응답 시 자동으로 logout() 호출됨
+// 401 응답 시 자동으로 토큰 refresh 시도 → 성공 시 재시도
+// Refresh 실패 시에만 로그아웃 처리
 // Remote 모듈에서 별도 처리 불필요
+
 await apiClient.get('/api/v1/blog/posts');
-// 401 응답 → Response Interceptor가 authStore.logout() 호출
+// 401 응답 → authService.refresh() 시도
+//   성공: 원래 요청 재시도
+//   실패: authService.clearTokens() + 리다이렉트 /?login=required
+```
+
+### 429 Rate Limit (자동 재시도)
+
+```typescript
+// 429 응답 시 자동으로 재시도 (최대 3회)
+// Retry-After 헤더가 있으면 해당 시간만큼 대기
+await apiClient.get('/api/v1/expensive-operation');
+// 429 → 1초 대기 → 재시도
+// 429 → 1초 대기 → 재시도
+// 429 → 1초 대기 → 재시도
+// 429 → 에러 throw
+```
+
+### Backend 에러 메시지
+
+```typescript
+// Backend에서 반환한 에러 메시지는 자동으로 파싱됨
+try {
+  await apiClient.post('/api/v1/blog/posts', invalidData);
+} catch (error) {
+  console.error(error.message);  // Backend 에러 메시지
+  console.error((error as any).code);  // Backend 에러 코드
+  console.error((error as any).errorDetails);  // 전체 ErrorDetails
+}
 ```
 
 ---
@@ -268,24 +310,29 @@ import apiClient from 'portal/api';
 
 **이유**: Shell의 apiClient를 사용해야 인증 토큰이 자동으로 주입됨
 
-### 2. 401 에러 처리 중복 금지
+### 2. 401/429 에러 처리 중복 금지
 
 ```typescript
-// ❌ 나쁜 예: Remote에서 401 에러 직접 처리
+// ❌ 나쁜 예: Remote에서 401/429 에러 직접 처리
 apiClient.get('/api/v1/posts').catch(error => {
   if (error.response?.status === 401) {
     // logout 등의 처리 (중복!)
+  }
+  if (error.response?.status === 429) {
+    // retry 처리 (중복!)
   }
 });
 
 // ✅ 좋은 예: Interceptor에 맡기기
 apiClient.get('/api/v1/posts').catch(error => {
-  // 401은 자동 처리되므로 다른 에러만 처리
+  // 401, 429는 자동 처리되므로 다른 에러만 처리
   if (error.response?.status === 404) {
     console.error('Not Found');
   }
 });
 ```
+
+**이유**: 401 토큰 refresh와 429 재시도는 Interceptor가 자동으로 처리함
 
 ### 3. Timeout 조정 필요 시
 
@@ -305,4 +352,13 @@ await apiClient.get('/api/v1/large-data', {
 
 ---
 
-**최종 업데이트**: 2026-01-30
+**최종 업데이트**: 2026-02-06
+
+---
+
+## 📝 변경 이력
+
+| 버전 | 날짜 | 변경 내용 |
+|------|------|-----------|
+| v1 | 2026-01-18 | 최초 작성 |
+| v2 | 2026-02-06 | 429 재시도 추가, 401 토큰 refresh 추가, Import 경로 수정, API Utils 추가 |
