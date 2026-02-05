@@ -4,7 +4,7 @@ title: Button Components
 type: api
 status: current
 created: 2026-01-19
-updated: 2026-01-19
+updated: 2026-02-06
 author: documenter
 tags: [api, vue, button]
 related:
@@ -24,6 +24,20 @@ related:
 
 ```ts
 import { DsButton } from '@portal/design-system-vue';
+import type { ButtonProps } from '@portal/design-system-vue';
+```
+
+### TypeScript Interface
+
+```typescript
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  loading?: boolean;
+  fullWidth?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+}
 ```
 
 ### Props

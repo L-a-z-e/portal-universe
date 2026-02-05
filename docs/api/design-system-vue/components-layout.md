@@ -4,7 +4,7 @@ title: 레이아웃 컴포넌트 API
 type: api
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: documenter
 tags: [design-system, api, layout, components, vue3]
 related:
@@ -14,7 +14,7 @@ related:
 
 # 레이아웃 컴포넌트 API
 
-> Card, Container, Stack, Divider, FormField, Breadcrumb
+> Card, Container, Stack, Divider
 
 ---
 
@@ -28,8 +28,6 @@ related:
 | Container | 페이지 래퍼 | 컨테이너 |
 | Stack | 플렉스 레이아웃 | 레이아웃 |
 | Divider | 구분선 | 유틸리티 |
-| FormField | 폼 필드 래퍼 | 폼 |
-| Breadcrumb | 경로 탐색 | 내비게이션 |
 
 ---
 
@@ -41,36 +39,45 @@ related:
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `variant` | `'elevated' \| 'outlined' \| 'flat' \| 'glass' \| 'interactive'` | `'elevated'` | ❌ | 카드 스타일 변형 |
-| `padding` | `'none' \| 'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 내부 여백 |
+| `variant` | `CardVariant` | `'elevated'` | ❌ | 카드 스타일 변형 |
+| `padding` | `PaddingSize` | `'md'` | ❌ | 내부 여백 |
 | `hoverable` | `boolean` | `false` | ❌ | 호버 효과 |
-| `clickable` | `boolean` | `false` | ❌ | 클릭 가능 (커서 포인터) |
-| `bordered` | `boolean` | `true` | ❌ | 테두리 표시 |
 
-### Events
+### CardVariant Type
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `click` | `MouseEvent` | 카드 클릭 시 (clickable일 때) |
+```typescript
+type CardVariant =
+  | 'elevated'
+  | 'outlined'
+  | 'flat'
+  | 'glass'
+  | 'interactive'
+```
+
+### PaddingSize Type
+
+```typescript
+type PaddingSize =
+  | 'none'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+```
 
 ### Slots
 
 | Slot | Description |
 |------|-------------|
-| `default` | 카드 본문 콘텐츠 |
-| `header` | 카드 헤더 영역 |
-| `footer` | 카드 푸터 영역 |
-| `media` | 미디어 영역 (이미지, 비디오) |
+| `default` | 카드 콘텐츠 |
 
 ### TypeScript Interface
 
 ```typescript
 interface CardProps {
-  variant?: 'elevated' | 'outlined' | 'flat' | 'glass' | 'interactive'
-  padding?: 'none' | 'sm' | 'md' | 'lg'
+  variant?: CardVariant
+  padding?: PaddingSize
   hoverable?: boolean
-  clickable?: boolean
-  bordered?: boolean
 }
 ```
 
@@ -84,23 +91,14 @@ import { Card, Button, Badge } from '@portal/design-system'
 <template>
   <!-- 기본 카드 -->
   <Card>
-    <template #header>
-      <h3 class="text-lg font-semibold">카드 제목</h3>
-    </template>
-
+    <h3 class="text-lg font-semibold mb-2">카드 제목</h3>
     <p class="text-body">카드 본문 내용이 들어갑니다.</p>
-
-    <template #footer>
-      <Button size="sm">자세히 보기</Button>
-    </template>
+    <Button size="sm" class="mt-4">자세히 보기</Button>
   </Card>
 
-  <!-- 미디어 카드 -->
+  <!-- 패딩 없는 카드 (이미지용) -->
   <Card padding="none">
-    <template #media>
-      <img src="/image.jpg" alt="Card Image" class="w-full h-48 object-cover" />
-    </template>
-
+    <img src="/image.jpg" alt="Card Image" class="w-full h-48 object-cover rounded-t-xl" />
     <div class="p-4">
       <Badge variant="success" class="mb-2">NEW</Badge>
       <h3 class="font-semibold">이미지 카드</h3>
@@ -108,16 +106,28 @@ import { Card, Button, Badge } from '@portal/design-system'
     </div>
   </Card>
 
-  <!-- 인터랙티브 카드 -->
-  <Card variant="interactive" hoverable clickable @click="handleClick">
+  <!-- 호버 효과가 있는 카드 -->
+  <Card variant="elevated" hoverable>
+    <h3>호버 가능한 카드</h3>
+    <p>마우스를 올려보세요.</p>
+  </Card>
+
+  <!-- 인터랙티브 카드 (클릭 가능) -->
+  <Card variant="interactive">
     <h3>클릭 가능한 카드</h3>
-    <p>호버 시 효과가 적용됩니다.</p>
+    <p>interactive variant는 자동으로 호버 효과를 포함합니다.</p>
   </Card>
 
   <!-- Glass 효과 카드 -->
   <Card variant="glass">
     <h3>Glass 카드</h3>
     <p>반투명 배경 효과</p>
+  </Card>
+
+  <!-- Outlined 카드 -->
+  <Card variant="outlined">
+    <h3>Outlined 카드</h3>
+    <p>테두리만 있는 가벼운 카드</p>
   </Card>
 </template>
 ```
@@ -136,15 +146,41 @@ import { Card, Button, Badge } from '@portal/design-system'
 
 ## 2️⃣ Container
 
-페이지 래퍼 컴포넌트
+페이지 래퍼 컴포넌트 (Polymorphic Component)
 
 ### Props
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `maxWidth` | `'sm' \| 'md' \| 'lg' \| 'xl' \| '2xl' \| 'full'` | `'xl'` | ❌ | 최대 너비 |
+| `maxWidth` | `MaxWidth` | `'lg'` | ❌ | 최대 너비 |
 | `centered` | `boolean` | `true` | ❌ | 가운데 정렬 |
-| `padding` | `boolean` | `true` | ❌ | 좌우 여백 적용 |
+| `padding` | `Exclude<PaddingSize, 'xl'>` | `'md'` | ❌ | 좌우 여백 |
+| `as` | `ContainerElement` | `'div'` | ❌ | 렌더링할 HTML 요소 |
+
+### MaxWidth Type
+
+```typescript
+type MaxWidth =
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | '2xl'
+  | 'full'
+```
+
+### ContainerElement Type
+
+```typescript
+type ContainerElement =
+  | 'div'
+  | 'section'
+  | 'article'
+  | 'main'
+  | 'aside'
+  | 'header'
+  | 'footer'
+```
 
 ### Slots
 
@@ -156,9 +192,10 @@ import { Card, Button, Badge } from '@portal/design-system'
 
 ```typescript
 interface ContainerProps {
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
+  maxWidth?: MaxWidth
   centered?: boolean
-  padding?: boolean
+  padding?: Exclude<PaddingSize, 'xl'>
+  as?: ContainerElement
 }
 ```
 
@@ -198,11 +235,23 @@ import { Container } from '@portal/design-system'
   </Container>
 
   <!-- 블로그 글 레이아웃 -->
-  <Container maxWidth="md">
+  <Container maxWidth="md" as="article">
     <article class="prose">
       <h1>블로그 제목</h1>
       <p>블로그 내용...</p>
     </article>
+  </Container>
+
+  <!-- 시맨틱 요소로 렌더링 -->
+  <Container as="main" maxWidth="xl">
+    <h1>메인 콘텐츠</h1>
+  </Container>
+
+  <!-- 패딩 없는 컨테이너 -->
+  <Container padding="none" maxWidth="2xl">
+    <div class="custom-padding">
+      <!-- 커스텀 레이아웃 -->
+    </div>
   </Container>
 </template>
 ```
@@ -211,17 +260,65 @@ import { Container } from '@portal/design-system'
 
 ## 3️⃣ Stack
 
-플렉스 레이아웃 컴포넌트
+플렉스 레이아웃 컴포넌트 (Polymorphic Component)
 
 ### Props
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
 | `direction` | `'horizontal' \| 'vertical'` | `'vertical'` | ❌ | 배치 방향 |
-| `gap` | `'none' \| 'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | ❌ | 요소 간 간격 |
-| `align` | `'start' \| 'center' \| 'end' \| 'stretch' \| 'baseline'` | `'stretch'` | ❌ | 교차축 정렬 |
-| `justify` | `'start' \| 'center' \| 'end' \| 'between' \| 'around' \| 'evenly'` | `'start'` | ❌ | 주축 정렬 |
+| `gap` | `GapSize` | `'md'` | ❌ | 요소 간 간격 |
+| `align` | `Align` | `'stretch'` | ❌ | 교차축 정렬 |
+| `justify` | `Justify` | `'start'` | ❌ | 주축 정렬 |
 | `wrap` | `boolean` | `false` | ❌ | 줄 바꿈 허용 |
+| `as` | `StackElement` | `'div'` | ❌ | 렌더링할 HTML 요소 |
+
+### GapSize Type
+
+```typescript
+type GapSize =
+  | 'none'
+  | 'xs'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | '2xl'
+```
+
+### Align Type
+
+```typescript
+type Align =
+  | 'start'
+  | 'center'
+  | 'end'
+  | 'stretch'
+  | 'baseline'
+```
+
+### Justify Type
+
+```typescript
+type Justify =
+  | 'start'
+  | 'center'
+  | 'end'
+  | 'between'
+  | 'around'
+  | 'evenly'
+```
+
+### StackElement Type
+
+```typescript
+type StackElement =
+  | 'div'
+  | 'section'
+  | 'ul'
+  | 'ol'
+  | 'nav'
+```
 
 ### Slots
 
@@ -234,10 +331,11 @@ import { Container } from '@portal/design-system'
 ```typescript
 interface StackProps {
   direction?: 'horizontal' | 'vertical'
-  gap?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline'
-  justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly'
+  gap?: GapSize
+  align?: Align
+  justify?: Justify
   wrap?: boolean
+  as?: StackElement
 }
 ```
 
@@ -251,6 +349,7 @@ interface StackProps {
 | `md` | 16px |
 | `lg` | 24px |
 | `xl` | 32px |
+| `2xl` | 48px |
 
 ### 사용 예시
 
@@ -282,9 +381,23 @@ import { Stack, Card, Button } from '@portal/design-system'
 
   <!-- 줄 바꿈 그리드 -->
   <Stack direction="horizontal" gap="md" wrap>
-    <Card v-for="i in 6" :key="i" class="w-[calc(33%-1rem)]">
+    <Card v-for="i in 6" :key="i" class="w-[calc(33.33%-1rem)]">
       카드 {{ i }}
     </Card>
+  </Stack>
+
+  <!-- 내비게이션으로 렌더링 -->
+  <Stack as="nav" direction="horizontal" gap="sm">
+    <a href="/home">Home</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+  </Stack>
+
+  <!-- 리스트로 렌더링 -->
+  <Stack as="ul" direction="vertical" gap="xs">
+    <li>아이템 1</li>
+    <li>아이템 2</li>
+    <li>아이템 3</li>
   </Stack>
 </template>
 ```
@@ -299,23 +412,53 @@ import { Stack, Card, Button } from '@portal/design-system'
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `direction` | `'horizontal' \| 'vertical'` | `'horizontal'` | ❌ | 구분선 방향 |
-| `variant` | `'solid' \| 'dashed' \| 'dotted'` | `'solid'` | ❌ | 선 스타일 |
+| `orientation` | `'horizontal' \| 'vertical'` | `'horizontal'` | ❌ | 구분선 방향 |
+| `variant` | `DividerVariant` | `'solid'` | ❌ | 선 스타일 |
+| `color` | `DividerColor` | `'default'` | ❌ | 선 색상 |
 | `label` | `string` | - | ❌ | 구분선 내 텍스트 |
-| `labelPosition` | `'left' \| 'center' \| 'right'` | `'center'` | ❌ | 라벨 위치 |
-| `spacing` | `'none' \| 'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 상하 여백 |
+| `spacing` | `Exclude<PaddingSize, 'xl'>` | `'md'` | ❌ | 상하/좌우 여백 |
+
+### DividerVariant Type
+
+```typescript
+type DividerVariant =
+  | 'solid'
+  | 'dashed'
+  | 'dotted'
+```
+
+### DividerColor Type
+
+```typescript
+type DividerColor =
+  | 'default'
+  | 'muted'
+  | 'strong'
+```
 
 ### Slots
 
 | Slot | Description |
 |------|-------------|
-| `default` | 구분선 내 커스텀 콘텐츠 |
+| `default` | 구분선 내 커스텀 콘텐츠 (label 대체) |
+
+### TypeScript Interface
+
+```typescript
+interface DividerProps {
+  orientation?: 'horizontal' | 'vertical'
+  variant?: DividerVariant
+  color?: DividerColor
+  label?: string
+  spacing?: Exclude<PaddingSize, 'xl'>
+}
+```
 
 ### 사용 예시
 
 ```vue
 <script setup lang="ts">
-import { Divider } from '@portal/design-system'
+import { Divider, Badge } from '@portal/design-system'
 </script>
 
 <template>
@@ -330,16 +473,25 @@ import { Divider } from '@portal/design-system'
   <!-- 점선 구분선 -->
   <Divider variant="dashed" />
 
+  <!-- 색상 변형 -->
+  <Divider color="muted" />
+  <Divider color="strong" />
+
+  <!-- 여백 조정 -->
+  <Divider spacing="none" />
+  <Divider spacing="sm" />
+  <Divider spacing="lg" />
+
   <!-- 세로 구분선 -->
   <div class="flex items-center gap-4">
     <span>항목 1</span>
-    <Divider direction="vertical" class="h-4" />
+    <Divider orientation="vertical" spacing="none" class="h-4" />
     <span>항목 2</span>
-    <Divider direction="vertical" class="h-4" />
+    <Divider orientation="vertical" spacing="none" class="h-4" />
     <span>항목 3</span>
   </div>
 
-  <!-- 커스텀 콘텐츠 -->
+  <!-- 커스텀 콘텐츠 (슬롯 사용) -->
   <Divider>
     <Badge variant="info">NEW</Badge>
   </Divider>
@@ -348,204 +500,13 @@ import { Divider } from '@portal/design-system'
 
 ---
 
-## 5️⃣ FormField
-
-폼 필드 래퍼 컴포넌트
-
-### Props
-
-| Prop | Type | Default | Required | Description |
-|------|------|---------|----------|-------------|
-| `label` | `string` | - | ❌ | 필드 라벨 |
-| `required` | `boolean` | `false` | ❌ | 필수 표시 (*) |
-| `error` | `string` | - | ❌ | 오류 메시지 |
-| `hint` | `string` | - | ❌ | 힌트 텍스트 |
-| `disabled` | `boolean` | `false` | ❌ | 비활성화 스타일 |
-
-### Slots
-
-| Slot | Description |
-|------|-------------|
-| `default` | 입력 컴포넌트 |
-| `label` | 커스텀 라벨 |
-| `hint` | 커스텀 힌트 |
-
-### 사용 예시
-
-```vue
-<script setup lang="ts">
-import { ref } from 'vue'
-import { FormField, Input, Select, Textarea } from '@portal/design-system'
-
-const email = ref('')
-const emailError = ref('')
-
-const validateEmail = () => {
-  if (!email.value) {
-    emailError.value = '이메일을 입력하세요'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-    emailError.value = '올바른 이메일 형식이 아닙니다'
-  } else {
-    emailError.value = ''
-  }
-}
-</script>
-
-<template>
-  <form class="space-y-4">
-    <!-- 기본 필드 -->
-    <FormField label="이름" required>
-      <Input v-model="name" placeholder="홍길동" />
-    </FormField>
-
-    <!-- 오류가 있는 필드 -->
-    <FormField
-      label="이메일"
-      required
-      :error="emailError"
-      hint="업무용 이메일을 입력하세요"
-    >
-      <Input
-        v-model="email"
-        type="email"
-        placeholder="user@company.com"
-        :error="!!emailError"
-        @blur="validateEmail"
-      />
-    </FormField>
-
-    <!-- Select 필드 -->
-    <FormField label="부서" required>
-      <Select
-        v-model="department"
-        :options="departmentOptions"
-        placeholder="부서를 선택하세요"
-      />
-    </FormField>
-
-    <!-- Textarea 필드 -->
-    <FormField label="자기소개" hint="500자 이내로 작성해주세요">
-      <Textarea
-        v-model="bio"
-        placeholder="간단한 자기소개를 작성하세요"
-        rows="4"
-      />
-    </FormField>
-  </form>
-</template>
-```
-
----
-
-## 6️⃣ Breadcrumb
-
-경로 탐색 컴포넌트
-
-### Props
-
-| Prop | Type | Default | Required | Description |
-|------|------|---------|----------|-------------|
-| `items` | `BreadcrumbItem[]` | `[]` | ✅ | 경로 항목 목록 |
-| `separator` | `string` | `'/'` | ❌ | 구분자 문자 |
-| `maxItems` | `number` | - | ❌ | 최대 표시 항목 수 |
-| `collapseFrom` | `'start' \| 'end'` | `'start'` | ❌ | 축소 시작 위치 |
-
-### Types
-
-```typescript
-interface BreadcrumbItem {
-  label: string
-  href?: string
-  icon?: string
-  disabled?: boolean
-}
-```
-
-### Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `itemClick` | `BreadcrumbItem` | 항목 클릭 시 |
-
-### Slots
-
-| Slot | Description |
-|------|-------------|
-| `separator` | 커스텀 구분자 |
-| `item` | 커스텀 항목 렌더링 |
-
-### 사용 예시
-
-```vue
-<script setup lang="ts">
-import { Breadcrumb } from '@portal/design-system'
-
-const breadcrumbItems = [
-  { label: '홈', href: '/' },
-  { label: '블로그', href: '/blog' },
-  { label: '카테고리', href: '/blog/category' },
-  { label: '글 제목' }  // 마지막 항목은 href 없음 (현재 페이지)
-]
-</script>
-
-<template>
-  <!-- 기본 사용 -->
-  <Breadcrumb :items="breadcrumbItems" />
-
-  <!-- 커스텀 구분자 -->
-  <Breadcrumb :items="breadcrumbItems" separator=">" />
-
-  <!-- 아이콘 포함 -->
-  <Breadcrumb :items="[
-    { label: '홈', href: '/', icon: 'home' },
-    { label: '설정', href: '/settings', icon: 'cog' },
-    { label: '프로필' }
-  ]" />
-
-  <!-- 긴 경로 축소 -->
-  <Breadcrumb
-    :items="longPathItems"
-    :maxItems="4"
-    collapseFrom="start"
-  />
-</template>
-```
-
-### 라우터 통합
-
-```vue
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { Breadcrumb } from '@portal/design-system'
-
-const route = useRoute()
-
-const breadcrumbItems = computed(() => {
-  const paths = route.path.split('/').filter(Boolean)
-  return [
-    { label: '홈', href: '/' },
-    ...paths.map((path, index) => ({
-      label: path.charAt(0).toUpperCase() + path.slice(1),
-      href: '/' + paths.slice(0, index + 1).join('/'),
-    }))
-  ]
-})
-</script>
-
-<template>
-  <Breadcrumb :items="breadcrumbItems" />
-</template>
-```
-
----
-
 ## 🔗 관련 문서
 
-- [입력 컴포넌트](./components-input.md) - Button, Input, Select 등
+- [입력 컴포넌트](./components-input.md) - Button, Input, Select, FormField 등
 - [피드백 컴포넌트](./components-feedback.md) - Modal, Toast, Badge 등
+- [내비게이션 컴포넌트](./components-navigation.md) - Breadcrumb, Tabs 등
 - [컴포넌트 사용 가이드](../guides/using-components.md)
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-02-06

@@ -4,17 +4,18 @@ title: 입력 컴포넌트 API
 type: api
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: documenter
 tags: [design-system, api, input, components, vue3]
 related:
   - api-design-system
   - guide-using-components
+  - api-components-button
 ---
 
 # 입력 컴포넌트 API
 
-> Button, Input, Textarea, Select, Checkbox, Radio, Switch, SearchBar
+> Input, Textarea, Select, Checkbox, Radio, Switch, SearchBar, FormField
 
 ---
 
@@ -24,7 +25,6 @@ related:
 
 | 컴포넌트 | 용도 | v-model |
 |---------|------|---------|
-| Button | 클릭 가능한 버튼 | ❌ |
 | Input | 단일 줄 텍스트 입력 | ✅ |
 | Textarea | 여러 줄 텍스트 입력 | ✅ |
 | Select | 드롭다운 선택 | ✅ |
@@ -32,91 +32,13 @@ related:
 | Radio | 라디오 버튼 (단일 선택) | ✅ |
 | Switch | 토글 스위치 | ✅ |
 | SearchBar | 검색 입력창 | ✅ |
+| FormField | 폼 필드 래퍼 (라벨, 오류 표시) | ❌ |
+
+**Button 컴포넌트**는 [components-button.md](./components-button.md)를 참조하세요.
 
 ---
 
-## 1️⃣ Button
-
-클릭 가능한 버튼 컴포넌트
-
-### Props
-
-| Prop | Type | Default | Required | Description |
-|------|------|---------|----------|-------------|
-| `variant` | `'primary' \| 'secondary' \| 'outline' \| 'ghost' \| 'danger'` | `'primary'` | ❌ | 버튼 스타일 변형 |
-| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | ❌ | 버튼 크기 |
-| `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
-| `loading` | `boolean` | `false` | ❌ | 로딩 상태 (스피너 표시) |
-| `type` | `'button' \| 'submit' \| 'reset'` | `'button'` | ❌ | HTML button type |
-| `fullWidth` | `boolean` | `false` | ❌ | 전체 너비 사용 |
-
-### Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `click` | `MouseEvent` | 버튼 클릭 시 |
-
-### Slots
-
-| Slot | Description |
-|------|-------------|
-| `default` | 버튼 레이블 |
-| `icon` | 버튼 아이콘 (좌측) |
-
-### TypeScript Interface
-
-```typescript
-interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  disabled?: boolean
-  loading?: boolean
-  type?: 'button' | 'submit' | 'reset'
-  fullWidth?: boolean
-}
-```
-
-### 사용 예시
-
-```vue
-<script setup lang="ts">
-import { Button } from '@portal/design-system'
-
-const handleClick = () => {
-  console.log('Button clicked!')
-}
-</script>
-
-<template>
-  <!-- 기본 사용 -->
-  <Button variant="primary" @click="handleClick">
-    저장하기
-  </Button>
-
-  <!-- 크기 변형 -->
-  <Button size="sm">Small</Button>
-  <Button size="md">Medium</Button>
-  <Button size="lg">Large</Button>
-
-  <!-- 변형 종류 -->
-  <Button variant="primary">Primary</Button>
-  <Button variant="secondary">Secondary</Button>
-  <Button variant="outline">Outline</Button>
-  <Button variant="ghost">Ghost</Button>
-  <Button variant="danger">Danger</Button>
-
-  <!-- 상태 -->
-  <Button disabled>비활성</Button>
-  <Button loading>로딩 중...</Button>
-
-  <!-- 전체 너비 -->
-  <Button fullWidth>전체 너비 버튼</Button>
-</template>
-```
-
----
-
-## 2️⃣ Input
+## 1️⃣ Input
 
 단일 줄 텍스트 입력 컴포넌트
 
@@ -124,39 +46,39 @@ const handleClick = () => {
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `modelValue` | `string` | `''` | ❌ | 입력값 (v-model) |
+| `modelValue` | `string \| number` | `''` | ❌ | 입력값 (v-model) |
 | `type` | `'text' \| 'password' \| 'email' \| 'number' \| 'tel' \| 'url'` | `'text'` | ❌ | 입력 타입 |
 | `placeholder` | `string` | `''` | ❌ | 플레이스홀더 텍스트 |
-| `label` | `string` | - | ❌ | 입력 필드 라벨 |
+| `label` | `string` | `''` | ❌ | 입력 필드 라벨 |
 | `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
-| `readonly` | `boolean` | `false` | ❌ | 읽기 전용 |
 | `required` | `boolean` | `false` | ❌ | 필수 입력 표시 |
 | `error` | `boolean` | `false` | ❌ | 오류 상태 표시 |
-| `errorMessage` | `string` | - | ❌ | 오류 메시지 |
+| `errorMessage` | `string` | `''` | ❌ | 오류 메시지 |
 | `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 입력 필드 크기 |
+| `name` | `string` | - | ❌ | HTML name 속성 |
+| `id` | `string` | - | ❌ | HTML id 속성 |
 
 ### Events
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `update:modelValue` | `string` | 입력값 변경 시 |
-| `focus` | `FocusEvent` | 포커스 시 |
-| `blur` | `FocusEvent` | 포커스 해제 시 |
+| `update:modelValue` | `string \| number` | 입력값 변경 시 |
 
 ### TypeScript Interface
 
 ```typescript
 interface InputProps {
-  modelValue?: string
+  modelValue?: string | number
   type?: 'text' | 'password' | 'email' | 'number' | 'tel' | 'url'
   placeholder?: string
   label?: string
   disabled?: boolean
-  readonly?: boolean
   required?: boolean
   error?: boolean
   errorMessage?: string
   size?: 'sm' | 'md' | 'lg'
+  name?: string
+  id?: string
 }
 ```
 
@@ -164,7 +86,7 @@ interface InputProps {
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Input } from '@portal/design-system'
 
 const email = ref('')
@@ -198,7 +120,7 @@ const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.valu
 
 ---
 
-## 3️⃣ Textarea
+## 2️⃣ Textarea
 
 여러 줄 텍스트 입력 컴포넌트
 
@@ -206,24 +128,39 @@ const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.valu
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `modelValue` | `string` | `''` | ❌ | 입력값 (v-model) |
+| `modelValue` | `string \| number` | `''` | ❌ | 입력값 (v-model) |
 | `placeholder` | `string` | `''` | ❌ | 플레이스홀더 텍스트 |
-| `label` | `string` | - | ❌ | 입력 필드 라벨 |
-| `rows` | `number` | `3` | ❌ | 표시할 줄 수 |
+| `label` | `string` | `''` | ❌ | 입력 필드 라벨 |
+| `rows` | `number` | `5` | ❌ | 표시할 줄 수 |
 | `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
-| `readonly` | `boolean` | `false` | ❌ | 읽기 전용 |
 | `required` | `boolean` | `false` | ❌ | 필수 입력 표시 |
 | `error` | `boolean` | `false` | ❌ | 오류 상태 표시 |
-| `maxLength` | `number` | - | ❌ | 최대 글자 수 |
-| `resize` | `'none' \| 'vertical' \| 'horizontal' \| 'both'` | `'vertical'` | ❌ | 리사이즈 방향 |
+| `errorMessage` | `string` | `''` | ❌ | 오류 메시지 |
+| `name` | `string` | - | ❌ | HTML name 속성 |
+| `id` | `string` | - | ❌ | HTML id 속성 |
 
 ### Events
 
 | Event | Payload | Description |
 |-------|---------|-------------|
 | `update:modelValue` | `string` | 입력값 변경 시 |
-| `focus` | `FocusEvent` | 포커스 시 |
-| `blur` | `FocusEvent` | 포커스 해제 시 |
+
+### TypeScript Interface
+
+```typescript
+interface TextareaProps {
+  modelValue?: string | number
+  placeholder?: string
+  label?: string
+  rows?: number
+  disabled?: boolean
+  required?: boolean
+  error?: boolean
+  errorMessage?: string
+  name?: string
+  id?: string
+}
+```
 
 ### 사용 예시
 
@@ -240,15 +177,14 @@ const message = ref('')
     v-model="message"
     label="메시지"
     placeholder="내용을 입력하세요..."
-    rows="5"
-    :maxLength="500"
+    :rows="5"
   />
 </template>
 ```
 
 ---
 
-## 4️⃣ Select
+## 3️⃣ Select
 
 드롭다운 선택 컴포넌트
 
@@ -256,14 +192,19 @@ const message = ref('')
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `modelValue` | `string \| number` | - | ❌ | 선택된 값 (v-model) |
+| `modelValue` | `string \| number \| null` | `null` | ❌ | 선택된 값 (v-model) |
 | `options` | `SelectOption[]` | `[]` | ✅ | 선택 옵션 목록 |
 | `placeholder` | `string` | `'선택하세요'` | ❌ | 플레이스홀더 텍스트 |
 | `label` | `string` | - | ❌ | 셀렉트 라벨 |
 | `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
 | `required` | `boolean` | `false` | ❌ | 필수 선택 표시 |
 | `error` | `boolean` | `false` | ❌ | 오류 상태 표시 |
+| `errorMessage` | `string` | - | ❌ | 오류 메시지 |
 | `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 셀렉트 크기 |
+| `clearable` | `boolean` | `false` | ❌ | 선택 해제 버튼 표시 |
+| `searchable` | `boolean` | `false` | ❌ | 검색 기능 활성화 |
+| `name` | `string` | - | ❌ | HTML name 속성 |
+| `id` | `string` | - | ❌ | HTML id 속성 |
 
 ### Types
 
@@ -273,14 +214,33 @@ interface SelectOption {
   value: string | number
   disabled?: boolean
 }
+
+interface SelectProps {
+  modelValue?: string | number | null
+  options: SelectOption[]
+  placeholder?: string
+  label?: string
+  disabled?: boolean
+  required?: boolean
+  error?: boolean
+  errorMessage?: string
+  size?: 'sm' | 'md' | 'lg'
+  clearable?: boolean
+  searchable?: boolean
+  name?: string
+  id?: string
+}
 ```
 
 ### Events
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `update:modelValue` | `string \| number` | 선택 변경 시 |
-| `change` | `string \| number` | 선택 변경 시 |
+| `update:modelValue` | `string \| number \| null` | 선택 변경 시 |
+| `change` | `string \| number \| null` | 선택 변경 시 |
+| `open` | - | 드롭다운 열림 |
+| `close` | - | 드롭다운 닫힘 |
+| `search` | `string` | 검색어 입력 시 (searchable=true) |
 
 ### 사용 예시
 
@@ -310,7 +270,7 @@ const roleOptions = [
 
 ---
 
-## 5️⃣ Checkbox
+## 4️⃣ Checkbox
 
 체크박스 컴포넌트
 
@@ -322,7 +282,12 @@ const roleOptions = [
 | `label` | `string` | - | ❌ | 체크박스 라벨 |
 | `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
 | `error` | `boolean` | `false` | ❌ | 오류 상태 표시 |
+| `errorMessage` | `string` | - | ❌ | 오류 메시지 |
 | `indeterminate` | `boolean` | `false` | ❌ | 불확정 상태 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 체크박스 크기 |
+| `value` | `string \| number` | - | ❌ | HTML value 속성 |
+| `name` | `string` | - | ❌ | HTML name 속성 |
+| `id` | `string` | - | ❌ | HTML id 속성 |
 
 ### Events
 
@@ -330,6 +295,23 @@ const roleOptions = [
 |-------|---------|-------------|
 | `update:modelValue` | `boolean` | 체크 상태 변경 시 |
 | `change` | `boolean` | 체크 상태 변경 시 |
+
+### TypeScript Interface
+
+```typescript
+interface CheckboxProps {
+  modelValue?: boolean
+  label?: string
+  disabled?: boolean
+  error?: boolean
+  errorMessage?: string
+  indeterminate?: boolean
+  size?: 'sm' | 'md' | 'lg'
+  value?: string | number
+  name?: string
+  id?: string
+}
+```
 
 ### 사용 예시
 
@@ -352,7 +334,7 @@ const agreeTerms = ref(false)
 
 ---
 
-## 6️⃣ Radio
+## 5️⃣ Radio
 
 라디오 버튼 그룹 컴포넌트
 
@@ -365,6 +347,9 @@ const agreeTerms = ref(false)
 | `name` | `string` | - | ✅ | 라디오 그룹 이름 |
 | `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
 | `direction` | `'horizontal' \| 'vertical'` | `'vertical'` | ❌ | 배치 방향 |
+| `error` | `boolean` | `false` | ❌ | 오류 상태 표시 |
+| `errorMessage` | `string` | - | ❌ | 오류 메시지 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 라디오 버튼 크기 |
 
 ### Types
 
@@ -374,6 +359,17 @@ interface RadioOption {
   value: string | number
   disabled?: boolean
 }
+
+interface RadioProps {
+  modelValue?: string | number
+  options: RadioOption[]
+  name: string
+  disabled?: boolean
+  direction?: 'horizontal' | 'vertical'
+  error?: boolean
+  errorMessage?: string
+  size?: 'sm' | 'md' | 'lg'
+}
 ```
 
 ### Events
@@ -381,6 +377,7 @@ interface RadioOption {
 | Event | Payload | Description |
 |-------|---------|-------------|
 | `update:modelValue` | `string \| number` | 선택 변경 시 |
+| `change` | `string \| number` | 선택 변경 시 |
 
 ### 사용 예시
 
@@ -409,7 +406,7 @@ const planOptions = [
 
 ---
 
-## 7️⃣ Switch
+## 6️⃣ Switch
 
 토글 스위치 컴포넌트
 
@@ -421,6 +418,10 @@ const planOptions = [
 | `label` | `string` | - | ❌ | 스위치 라벨 |
 | `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
 | `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 스위치 크기 |
+| `labelPosition` | `'left' \| 'right'` | `'right'` | ❌ | 라벨 위치 |
+| `activeColor` | `string` | - | ❌ | 활성 상태 색상 |
+| `name` | `string` | - | ❌ | HTML name 속성 |
+| `id` | `string` | - | ❌ | HTML id 속성 |
 
 ### Events
 
@@ -429,19 +430,32 @@ const planOptions = [
 | `update:modelValue` | `boolean` | 토글 상태 변경 시 |
 | `change` | `boolean` | 토글 상태 변경 시 |
 
+### TypeScript Interface
+
+```typescript
+interface SwitchProps {
+  modelValue?: boolean
+  label?: string
+  disabled?: boolean
+  size?: 'sm' | 'md' | 'lg'
+  labelPosition?: 'left' | 'right'
+  activeColor?: string
+  name?: string
+  id?: string
+}
+```
+
 ### 사용 예시
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Switch } from '@portal/design-system'
-import { useTheme } from '@portal/design-system'
 
 const isDarkMode = ref(false)
-const { toggleTheme } = useTheme()
 
 const handleToggle = (value: boolean) => {
-  toggleTheme()
+  console.log('Dark mode:', value)
 }
 </script>
 
@@ -456,7 +470,7 @@ const handleToggle = (value: boolean) => {
 
 ---
 
-## 8️⃣ SearchBar
+## 7️⃣ SearchBar
 
 검색 입력 컴포넌트
 
@@ -464,12 +478,11 @@ const handleToggle = (value: boolean) => {
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `modelValue` | `string` | `''` | ❌ | 검색어 (v-model) |
+| `modelValue` | `string` | - | ✅ | 검색어 (v-model) |
 | `placeholder` | `string` | `'검색...'` | ❌ | 플레이스홀더 텍스트 |
 | `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
 | `loading` | `boolean` | `false` | ❌ | 로딩 상태 |
-| `showClearButton` | `boolean` | `true` | ❌ | 초기화 버튼 표시 |
-| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 검색바 크기 |
+| `autofocus` | `boolean` | `false` | ❌ | 자동 포커스 |
 
 ### Events
 
@@ -478,6 +491,18 @@ const handleToggle = (value: boolean) => {
 | `update:modelValue` | `string` | 검색어 변경 시 |
 | `search` | `string` | Enter 키 또는 검색 버튼 클릭 시 |
 | `clear` | - | 초기화 버튼 클릭 시 |
+
+### TypeScript Interface
+
+```typescript
+interface SearchBarProps {
+  modelValue: string
+  placeholder?: string
+  loading?: boolean
+  disabled?: boolean
+  autofocus?: boolean
+}
+```
 
 ### 사용 예시
 
@@ -517,12 +542,100 @@ const handleClear = () => {
 
 ---
 
+## 8️⃣ FormField
+
+폼 필드 래퍼 컴포넌트 - 라벨, 오류 메시지, 도움말 텍스트를 자동으로 처리합니다.
+
+### Props
+
+| Prop | Type | Default | Required | Description |
+|------|------|---------|----------|-------------|
+| `label` | `string` | - | ❌ | 필드 라벨 |
+| `required` | `boolean` | `false` | ❌ | 필수 입력 표시 |
+| `error` | `boolean` | `false` | ❌ | 오류 상태 표시 |
+| `errorMessage` | `string` | - | ❌ | 오류 메시지 |
+| `helperText` | `string` | - | ❌ | 도움말 텍스트 |
+| `id` | `string` | - | ❌ | 필드 ID (자동 생성됨) |
+| `disabled` | `boolean` | `false` | ❌ | 비활성화 상태 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 필드 크기 |
+
+### Slots
+
+| Slot | Description |
+|------|-------------|
+| `default` | 폼 필드 내용 (Input, Select 등) |
+| `label` | 커스텀 라벨 |
+| `helper` | 커스텀 도움말 텍스트 |
+| `error` | 커스텀 오류 메시지 |
+
+### TypeScript Interface
+
+```typescript
+interface FormFieldProps {
+  label?: string
+  required?: boolean
+  error?: boolean
+  errorMessage?: string
+  helperText?: string
+  id?: string
+  disabled?: boolean
+  size?: 'sm' | 'md' | 'lg'
+}
+```
+
+### 사용 예시
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { FormField, Input } from '@portal/design-system'
+
+const email = ref('')
+const hasError = ref(false)
+</script>
+
+<template>
+  <!-- 기본 사용 -->
+  <FormField
+    label="이메일"
+    required
+    helperText="회사 이메일을 입력하세요"
+  >
+    <Input v-model="email" type="email" />
+  </FormField>
+
+  <!-- 오류 표시 -->
+  <FormField
+    label="비밀번호"
+    required
+    :error="hasError"
+    errorMessage="비밀번호는 최소 8자 이상이어야 합니다"
+  >
+    <Input type="password" />
+  </FormField>
+
+  <!-- 커스텀 슬롯 -->
+  <FormField>
+    <template #label>
+      <span class="font-bold">사용자 이름 *</span>
+    </template>
+    <Input />
+    <template #helper>
+      <span class="text-xs">2-20자 사이로 입력하세요</span>
+    </template>
+  </FormField>
+</template>
+```
+
+---
+
 ## 🔗 관련 문서
 
+- [버튼 컴포넌트](./components-button.md) - Button
 - [피드백 컴포넌트](./components-feedback.md) - Modal, Toast, Badge 등
 - [레이아웃 컴포넌트](./components-layout.md) - Card, Container, Stack 등
 - [컴포넌트 사용 가이드](../guides/using-components.md)
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-02-06

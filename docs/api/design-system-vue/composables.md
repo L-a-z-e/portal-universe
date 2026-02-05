@@ -4,7 +4,7 @@ title: Composables API
 type: api
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: documenter
 tags: [design-system, api, composables, vue3, hooks]
 related:
@@ -14,7 +14,7 @@ related:
 
 # Composables API
 
-> useTheme, useToast - Vue 3 Composition API 유틸리티
+> useTheme, useToast, useApiError - Vue 3 Composition API 유틸리티
 
 ---
 
@@ -26,6 +26,7 @@ Design System은 Vue 3 Composition API 기반의 재사용 가능한 Composables
 |------------|------|----------|
 | useTheme | 테마 관리 (Light/Dark, 서비스별) | 전역 |
 | useToast | 토스트 알림 관리 | 전역 |
+| useApiError | API 에러 처리 및 메시지 추출 | 없음 |
 
 ---
 
@@ -460,6 +461,333 @@ const validateAndSubmit = () => {
 
 ---
 
+## 3️⃣ useApiError
+
+API 에러 처리 및 메시지 추출 Composable
+
+### Import
+
+```typescript
+import { useApiError } from '@portal/design-system'
+import type { ApiErrorInfo, FieldError } from '@portal/design-system'
+```
+
+### 반환 값
+
+```typescript
+interface UseApiErrorReturn {
+  // 메서드
+  handleError: (error: unknown, fallbackMessage?: string) => ApiErrorInfo
+  getErrorMessage: (error: unknown, fallback?: string) => string
+  getErrorCode: (error: unknown) => string | null
+  getFieldErrors: (error: unknown) => Record<string, string>
+}
+```
+
+### Types
+
+```typescript
+interface ApiErrorInfo {
+  message: string
+  code: string | null
+  details: FieldError[]
+}
+
+interface FieldError {
+  field: string
+  message: string
+}
+```
+
+### 메서드 상세
+
+| Method | Parameters | Description | Return Type |
+|--------|------------|-------------|-------------|
+| `handleError` | `error: unknown, fallbackMessage?: string` | 에러 처리 및 토스트 표시, 에러 정보 반환 | `ApiErrorInfo` |
+| `getErrorMessage` | `error: unknown, fallback?: string` | 에러 메시지 추출 (토스트 미표시) | `string` |
+| `getErrorCode` | `error: unknown` | 에러 코드 추출 (예: "U001") | `string \| null` |
+| `getFieldErrors` | `error: unknown` | 필드별 유효성 검사 에러 추출 | `Record<string, string>` |
+
+### 기본 사용 예시
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useApiError } from '@portal/design-system'
+import { Button } from '@portal/design-system'
+
+const { handleError } = useApiError()
+const isLoading = ref(false)
+
+const saveData = async () => {
+  isLoading.value = true
+
+  try {
+    await api.saveData(formData)
+    toast.success('저장되었습니다.')
+  } catch (error) {
+    // 에러 처리 + 토스트 자동 표시
+    // Backend ErrorDetails 있으면 message/code 자동 추출
+    handleError(error, '저장에 실패했습니다.')
+  } finally {
+    isLoading.value = false
+  }
+}
+</script>
+
+<template>
+  <Button :loading="isLoading" @click="saveData">
+    저장
+  </Button>
+</template>
+```
+
+### API 호출 에러 처리
+
+```vue
+<script setup lang="ts">
+import { useApiError } from '@portal/design-system'
+
+const { handleError, getErrorCode } = useApiError()
+
+const fetchUser = async (userId: string) => {
+  try {
+    const response = await api.getUser(userId)
+    return response.data
+  } catch (error) {
+    // 에러 정보를 받아서 추가 처리 가능
+    const errorInfo = handleError(error, '사용자 정보를 불러올 수 없습니다.')
+
+    // 에러 코드 기반 특정 처리
+    if (errorInfo.code === 'U404') {
+      console.warn('User not found:', userId)
+      router.push('/users')
+    }
+
+    return null
+  }
+}
+</script>
+```
+
+### 폼 유효성 검사 에러 표시
+
+```vue
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+import { useApiError } from '@portal/design-system'
+import { Input, Button } from '@portal/design-system'
+
+const { handleError, getFieldErrors } = useApiError()
+
+const formData = reactive({
+  email: '',
+  password: '',
+  name: ''
+})
+
+const fieldErrors = ref<Record<string, string>>({})
+
+const submitForm = async () => {
+  fieldErrors.value = {}
+
+  try {
+    await api.register(formData)
+    toast.success('회원가입이 완료되었습니다.')
+  } catch (error) {
+    // 1. 전체 에러 메시지 토스트 표시
+    handleError(error, '회원가입에 실패했습니다.')
+
+    // 2. 필드별 에러 메시지 추출 (form 하단에 표시)
+    const errors = getFieldErrors(error)
+    if (Object.keys(errors).length > 0) {
+      fieldErrors.value = errors
+    }
+  }
+}
+</script>
+
+<template>
+  <form @submit.prevent="submitForm">
+    <Input
+      v-model="formData.email"
+      label="이메일"
+      type="email"
+      :error="fieldErrors.email"
+    />
+    <Input
+      v-model="formData.name"
+      label="이름"
+      :error="fieldErrors.name"
+    />
+    <Input
+      v-model="formData.password"
+      label="비밀번호"
+      type="password"
+      :error="fieldErrors.password"
+    />
+    <Button type="submit">가입하기</Button>
+  </form>
+</template>
+```
+
+### 에러 코드 기반 분기 처리
+
+```vue
+<script setup lang="ts">
+import { useApiError } from '@portal/design-system'
+import { useRouter } from 'vue-router'
+
+const { handleError, getErrorCode } = useApiError()
+const router = useRouter()
+
+const deleteItem = async (itemId: string) => {
+  try {
+    await api.deleteItem(itemId)
+    toast.success('삭제되었습니다.')
+  } catch (error) {
+    const errorInfo = handleError(error, '삭제에 실패했습니다.')
+
+    // 에러 코드별 후속 처리
+    switch (errorInfo.code) {
+      case 'AUTH401':
+        // 인증 만료 → 로그인 페이지로
+        router.push('/login')
+        break
+      case 'AUTH403':
+        // 권한 없음 → 이전 페이지로
+        router.back()
+        break
+      case 'ITEM404':
+        // 이미 삭제된 항목 → 목록 새로고침
+        refreshList()
+        break
+      default:
+        // 기타 에러는 이미 토스트로 표시됨
+        break
+    }
+  }
+}
+</script>
+```
+
+### 에러 메시지만 추출 (토스트 미표시)
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useApiError } from '@portal/design-system'
+
+const { getErrorMessage } = useApiError()
+const errorMessage = ref<string | null>(null)
+
+const checkAvailability = async (username: string) => {
+  try {
+    await api.checkUsername(username)
+    errorMessage.value = null
+  } catch (error) {
+    // 토스트는 표시하지 않고 에러 메시지만 추출
+    // (form 하단에 인라인으로 표시)
+    errorMessage.value = getErrorMessage(error, '중복 확인에 실패했습니다.')
+  }
+}
+</script>
+
+<template>
+  <div>
+    <Input
+      v-model="username"
+      @blur="checkAvailability(username)"
+    />
+    <p v-if="errorMessage" class="text-red-600 text-sm mt-1">
+      {{ errorMessage }}
+    </p>
+  </div>
+</template>
+```
+
+### 내부 동작
+
+```mermaid
+sequenceDiagram
+    participant C as Component
+    participant A as useApiError
+    participant T as useToast
+    participant E as extractErrorDetails
+
+    C->>A: handleError(error)
+    A->>E: extractErrorDetails(error)
+
+    alt error.errorDetails 존재
+        E-->>A: ErrorDetails
+    else error.response.data.error 존재
+        E-->>A: ErrorDetails
+    else 그 외
+        E-->>A: null
+    end
+
+    A->>A: getErrorMessage(ErrorDetails)
+    A->>A: getErrorCode(ErrorDetails)
+    A->>A: getFieldErrors(ErrorDetails)
+
+    alt code 존재
+        A->>T: error("메시지 (코드)")
+    else code 없음
+        A->>T: error("메시지")
+    end
+
+    A-->>C: { message, code, details }
+```
+
+### 주의사항
+
+#### Backend ErrorDetails 형식
+
+`useApiError`는 Backend에서 다음 형식의 에러 응답을 예상합니다:
+
+```typescript
+// ApiResponse wrapper 구조
+{
+  success: false,
+  error: {
+    code: "U001",           // 에러 코드 (선택)
+    message: "이메일이 중복됩니다.",  // 사용자 메시지
+    details: [              // 필드별 에러 (선택)
+      { field: "email", message: "이미 사용 중인 이메일입니다." }
+    ]
+  }
+}
+
+// 또는 Axios 인터셉터에서 error.errorDetails에 주입된 경우
+error.errorDetails = {
+  code: "U001",
+  message: "이메일이 중복됩니다.",
+  details: [...]
+}
+```
+
+#### fallbackMessage 사용
+
+```typescript
+// ✅ Good: 사용자 친화적 fallback 메시지 제공
+handleError(error, '저장에 실패했습니다.')
+
+// ❌ Bad: fallback 없이 사용 → "알 수 없는 오류가 발생했습니다." 표시
+handleError(error)
+```
+
+#### 토스트 표시 여부 선택
+
+```typescript
+// 토스트 자동 표시 + 에러 정보 반환
+const errorInfo = handleError(error, '오류가 발생했습니다.')
+
+// 토스트 표시 없이 메시지만 추출 (인라인 표시용)
+const message = getErrorMessage(error, '오류가 발생했습니다.')
+```
+
+---
+
 ## 🔄 Composable 조합
 
 여러 Composable을 함께 사용하는 패턴:
@@ -495,4 +823,4 @@ const handleThemeToggle = () => {
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-02-06

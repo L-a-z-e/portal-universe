@@ -4,17 +4,18 @@ title: 피드백 컴포넌트 API
 type: api
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: documenter
 tags: [design-system, api, feedback, components, vue3]
 related:
   - api-design-system
   - guide-using-components
+  - api-composables
 ---
 
 # 피드백 컴포넌트 API
 
-> Modal, Toast, Badge, Tag, Alert, Spinner, Skeleton
+> Modal, Toast, ToastContainer, Alert, Badge, Tag, Spinner, Skeleton
 
 ---
 
@@ -26,9 +27,10 @@ related:
 |---------|------|------|
 | Modal | 팝업 대화상자 | 오버레이 |
 | Toast | 일시적 알림 메시지 | 알림 |
+| ToastContainer | Toast 컨테이너 | 알림 |
+| Alert | 인라인 알림 메시지 | 알림 |
 | Badge | 상태 표시 뱃지 | 표시 |
 | Tag | 태그/라벨 | 표시 |
-| Alert | 인라인 알림 메시지 | 알림 |
 | Spinner | 로딩 스피너 | 로딩 |
 | Skeleton | 스켈레톤 로더 | 로딩 |
 
@@ -42,42 +44,37 @@ related:
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `open` | `boolean` | `false` | ❌ | 모달 표시 상태 (v-model:open) |
+| `modelValue` | `boolean` | `false` | ❌ | 모달 표시 상태 (v-model) |
 | `title` | `string` | - | ❌ | 모달 제목 |
-| `size` | `'sm' \| 'md' \| 'lg' \| 'xl' \| 'full'` | `'md'` | ❌ | 모달 크기 |
-| `closable` | `boolean` | `true` | ❌ | X 버튼 표시 여부 |
-| `closeOnOverlay` | `boolean` | `true` | ❌ | 오버레이 클릭 시 닫기 |
-| `closeOnEsc` | `boolean` | `true` | ❌ | ESC 키로 닫기 |
-| `persistent` | `boolean` | `false` | ❌ | 닫기 방지 (확인 필수) |
+| `size` | `'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | ❌ | 모달 크기 |
+| `showClose` | `boolean` | `true` | ❌ | X 버튼 표시 여부 |
+| `closeOnBackdrop` | `boolean` | `true` | ❌ | 백드롭 클릭 시 닫기 |
+| `closeOnEscape` | `boolean` | `true` | ❌ | ESC 키로 닫기 |
 
 ### Events
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `update:open` | `boolean` | 모달 상태 변경 시 |
+| `update:modelValue` | `boolean` | 모달 상태 변경 시 |
 | `close` | - | 모달 닫힘 시 |
-| `opened` | - | 모달 열림 애니메이션 완료 |
-| `closed` | - | 모달 닫힘 애니메이션 완료 |
 
 ### Slots
 
 | Slot | Description |
 |------|-------------|
 | `default` | 모달 본문 콘텐츠 |
-| `header` | 커스텀 헤더 (title 대체) |
 | `footer` | 모달 하단 버튼 영역 |
 
 ### TypeScript Interface
 
 ```typescript
 interface ModalProps {
-  open?: boolean
+  modelValue?: boolean
   title?: string
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
-  closable?: boolean
-  closeOnOverlay?: boolean
-  closeOnEsc?: boolean
-  persistent?: boolean
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  showClose?: boolean
+  closeOnBackdrop?: boolean
+  closeOnEscape?: boolean
 }
 ```
 
@@ -99,7 +96,7 @@ const handleConfirm = () => {
 <template>
   <Button @click="isOpen = true">모달 열기</Button>
 
-  <Modal v-model:open="isOpen" title="확인" size="md">
+  <Modal v-model="isOpen" title="확인" size="md">
     <p>정말로 이 작업을 수행하시겠습니까?</p>
 
     <template #footer>
@@ -118,8 +115,8 @@ const handleConfirm = () => {
 
 ```vue
 <template>
-  <Modal v-model:open="isOpen" title="삭제 확인" size="sm">
-    <Alert type="warning">
+  <Modal v-model="isOpen" title="삭제 확인" size="sm">
+    <Alert variant="warning">
       이 작업은 되돌릴 수 없습니다.
     </Alert>
     <p class="mt-4">정말로 삭제하시겠습니까?</p>
@@ -150,19 +147,20 @@ const { add, remove, clear } = useToast()
 
 | Method | Parameters | Description |
 |--------|------------|-------------|
-| `add` | `ToastOptions` | 새 토스트 추가 |
+| `add` | `Omit<ToastItem, 'id'>` | 새 토스트 추가 |
 | `remove` | `id: string` | 특정 토스트 제거 |
 | `clear` | - | 모든 토스트 제거 |
 
-### ToastOptions
+### ToastItem Interface
 
 ```typescript
-interface ToastOptions {
-  type: 'success' | 'error' | 'warning' | 'info'
-  message: string
+interface ToastItem {
+  id: string
+  variant?: 'info' | 'success' | 'warning' | 'error'
   title?: string
-  duration?: number  // ms, 기본값 3000
-  closable?: boolean
+  message: string
+  duration?: number  // ms, 기본값 5000
+  dismissible?: boolean
   action?: {
     label: string
     onClick: () => void
@@ -180,7 +178,7 @@ const { add } = useToast()
 
 const showSuccess = () => {
   add({
-    type: 'success',
+    variant: 'success',
     message: '저장되었습니다!',
     duration: 3000
   })
@@ -188,7 +186,7 @@ const showSuccess = () => {
 
 const showError = () => {
   add({
-    type: 'error',
+    variant: 'error',
     title: '오류 발생',
     message: '저장 중 오류가 발생했습니다.',
     duration: 5000,
@@ -201,9 +199,9 @@ const showError = () => {
 
 const showWarning = () => {
   add({
-    type: 'warning',
+    variant: 'warning',
     message: '저장되지 않은 변경사항이 있습니다.',
-    closable: true
+    dismissible: true
   })
 }
 </script>
@@ -215,24 +213,142 @@ const showWarning = () => {
 </template>
 ```
 
-### ToastProvider 설정
+> **참고**: ToastProvider 설정은 [Composables API 문서](./composables.md#usetoast)를 참조하세요.
+
+---
+
+## 3️⃣ ToastContainer
+
+Toast를 화면에 표시하는 컨테이너 컴포넌트
+
+### Props
+
+| Prop | Type | Default | Required | Description |
+|------|------|---------|----------|-------------|
+| `position` | `ToastPosition` | `'top-right'` | ❌ | 토스트 표시 위치 |
+| `maxToasts` | `number` | `5` | ❌ | 최대 토스트 개수 |
+
+### ToastPosition Type
+
+```typescript
+type ToastPosition =
+  | 'top-right'
+  | 'top-left'
+  | 'top-center'
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'bottom-center'
+```
+
+### TypeScript Interface
+
+```typescript
+interface ToastContainerProps {
+  position?: ToastPosition
+  maxToasts?: number
+}
+```
+
+### 사용 예시
 
 ```vue
 <!-- App.vue (루트 컴포넌트) -->
 <script setup lang="ts">
-import { ToastProvider } from '@portal/design-system'
+import { ToastContainer } from '@portal/design-system'
 </script>
 
 <template>
-  <ToastProvider position="top-right" :max="5">
-    <router-view />
-  </ToastProvider>
+  <ToastContainer position="top-right" :maxToasts="5" />
+  <router-view />
 </template>
 ```
 
 ---
 
-## 3️⃣ Badge
+## 4️⃣ Alert
+
+인라인 알림 메시지 컴포넌트
+
+### Props
+
+| Prop | Type | Default | Required | Description |
+|------|------|---------|----------|-------------|
+| `variant` | `'info' \| 'success' \| 'warning' \| 'error'` | `'info'` | ❌ | 알림 타입 |
+| `title` | `string` | - | ❌ | 알림 제목 |
+| `dismissible` | `boolean` | `false` | ❌ | 닫기 버튼 표시 |
+| `showIcon` | `boolean` | `true` | ❌ | 아이콘 표시 |
+| `bordered` | `boolean` | `false` | ❌ | 테두리 표시 |
+
+### Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `dismiss` | - | 닫기 버튼 클릭 시 |
+
+### Slots
+
+| Slot | Description |
+|------|-------------|
+| `default` | 알림 메시지 내용 |
+| `icon` | 커스텀 아이콘 |
+| `action` | 액션 버튼 영역 |
+
+### TypeScript Interface
+
+```typescript
+interface AlertProps {
+  variant?: 'info' | 'success' | 'warning' | 'error'
+  title?: string
+  dismissible?: boolean
+  showIcon?: boolean
+  bordered?: boolean
+}
+```
+
+### 사용 예시
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Alert, Button } from '@portal/design-system'
+
+const showAlert = ref(true)
+</script>
+
+<template>
+  <!-- 기본 알림 -->
+  <Alert variant="info">
+    중요한 정보를 확인하세요.
+  </Alert>
+
+  <!-- 제목이 있는 알림 -->
+  <Alert variant="warning" title="주의">
+    이 작업은 되돌릴 수 없습니다.
+  </Alert>
+
+  <!-- 닫을 수 있는 알림 -->
+  <Alert
+    v-if="showAlert"
+    variant="success"
+    dismissible
+    @dismiss="showAlert = false"
+  >
+    성공적으로 저장되었습니다!
+  </Alert>
+
+  <!-- 액션이 있는 알림 -->
+  <Alert variant="error" title="오류 발생">
+    네트워크 오류가 발생했습니다.
+    <template #action>
+      <Button size="sm" variant="outline">재시도</Button>
+    </template>
+  </Alert>
+</template>
+```
+
+---
+
+## 5️⃣ Badge
 
 상태 표시 뱃지 컴포넌트
 
@@ -240,11 +356,21 @@ import { ToastProvider } from '@portal/design-system'
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `variant` | `'default' \| 'primary' \| 'success' \| 'warning' \| 'error' \| 'info'` | `'default'` | ❌ | 뱃지 색상 변형 |
-| `size` | `'xs' \| 'sm' \| 'md'` | `'md'` | ❌ | 뱃지 크기 |
-| `rounded` | `boolean` | `false` | ❌ | 완전 둥근 모양 |
-| `outline` | `boolean` | `false` | ❌ | 외곽선 스타일 |
-| `dot` | `boolean` | `false` | ❌ | 점 표시 (내용 없음) |
+| `variant` | `BadgeVariant` | `'default'` | ❌ | 뱃지 색상 변형 |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 뱃지 크기 |
+
+### BadgeVariant Type
+
+```typescript
+type BadgeVariant =
+  | 'default'
+  | 'primary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'outline'
+```
 
 ### Slots
 
@@ -256,11 +382,8 @@ import { ToastProvider } from '@portal/design-system'
 
 ```typescript
 interface BadgeProps {
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
-  size?: 'xs' | 'sm' | 'md'
-  rounded?: boolean
-  outline?: boolean
-  dot?: boolean
+  variant?: BadgeVariant
+  size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 ```
 
@@ -275,31 +398,23 @@ import { Badge } from '@portal/design-system'
   <!-- 상태 뱃지 -->
   <Badge variant="success">완료</Badge>
   <Badge variant="warning">대기 중</Badge>
-  <Badge variant="error">실패</Badge>
+  <Badge variant="danger">실패</Badge>
   <Badge variant="info">진행 중</Badge>
 
   <!-- 크기 변형 -->
   <Badge size="xs">XS</Badge>
   <Badge size="sm">SM</Badge>
   <Badge size="md">MD</Badge>
+  <Badge size="lg">LG</Badge>
 
   <!-- 외곽선 스타일 -->
-  <Badge variant="primary" outline>Outline</Badge>
-
-  <!-- 둥근 모양 -->
-  <Badge variant="success" rounded>99+</Badge>
-
-  <!-- 점 표시 -->
-  <span class="relative">
-    알림
-    <Badge variant="error" dot class="absolute -top-1 -right-1" />
-  </span>
+  <Badge variant="outline">Outline</Badge>
 </template>
 ```
 
 ---
 
-## 4️⃣ Tag
+## 6️⃣ Tag
 
 태그/라벨 컴포넌트
 
@@ -307,23 +422,46 @@ import { Badge } from '@portal/design-system'
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `color` | `string` | - | ❌ | 커스텀 배경색 |
-| `closable` | `boolean` | `false` | ❌ | X 버튼 표시 |
-| `size` | `'sm' \| 'md'` | `'md'` | ❌ | 태그 크기 |
-| `variant` | `'filled' \| 'outline'` | `'filled'` | ❌ | 태그 스타일 |
+| `variant` | `TagVariant` | `'default'` | ❌ | 태그 스타일 변형 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | ❌ | 태그 크기 |
+| `removable` | `boolean` | `false` | ❌ | 제거 버튼 표시 |
+| `clickable` | `boolean` | `false` | ❌ | 클릭 가능 여부 |
+
+### TagVariant Type
+
+```typescript
+type TagVariant =
+  | 'default'
+  | 'primary'
+  | 'success'
+  | 'error'
+  | 'warning'
+  | 'info'
+```
 
 ### Events
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `close` | - | 닫기 버튼 클릭 시 |
-| `click` | `MouseEvent` | 태그 클릭 시 |
+| `click` | - | 태그 클릭 시 (clickable일 때) |
+| `remove` | - | 제거 버튼 클릭 시 |
 
 ### Slots
 
 | Slot | Description |
 |------|-------------|
 | `default` | 태그 내용 |
+
+### TypeScript Interface
+
+```typescript
+interface TagProps {
+  variant?: TagVariant
+  size?: 'sm' | 'md' | 'lg'
+  removable?: boolean
+  clickable?: boolean
+}
+```
 
 ### 사용 예시
 
@@ -344,94 +482,28 @@ const removeTag = (tag: string) => {
     <Tag
       v-for="tag in tags"
       :key="tag"
-      closable
-      @close="removeTag(tag)"
+      removable
+      @remove="removeTag(tag)"
     >
       #{{ tag }}
     </Tag>
   </div>
 
-  <!-- 커스텀 색상 -->
-  <Tag color="#20C997">커스텀 색상</Tag>
+  <!-- 클릭 가능한 태그 -->
+  <Tag variant="primary" clickable @click="handleTagClick">
+    클릭 가능
+  </Tag>
 
-  <!-- 외곽선 스타일 -->
-  <Tag variant="outline">Outline Tag</Tag>
+  <!-- 다양한 변형 -->
+  <Tag variant="success">성공</Tag>
+  <Tag variant="warning">경고</Tag>
+  <Tag variant="error">오류</Tag>
 </template>
 ```
 
 ---
 
-## 5️⃣ Alert
-
-인라인 알림 메시지 컴포넌트
-
-### Props
-
-| Prop | Type | Default | Required | Description |
-|------|------|---------|----------|-------------|
-| `type` | `'info' \| 'success' \| 'warning' \| 'error'` | `'info'` | ❌ | 알림 타입 |
-| `title` | `string` | - | ❌ | 알림 제목 |
-| `closable` | `boolean` | `false` | ❌ | 닫기 버튼 표시 |
-| `showIcon` | `boolean` | `true` | ❌ | 아이콘 표시 |
-| `bordered` | `boolean` | `true` | ❌ | 테두리 표시 |
-
-### Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `close` | - | 닫기 버튼 클릭 시 |
-
-### Slots
-
-| Slot | Description |
-|------|-------------|
-| `default` | 알림 메시지 내용 |
-| `action` | 액션 버튼 영역 |
-
-### 사용 예시
-
-```vue
-<script setup lang="ts">
-import { ref } from 'vue'
-import { Alert, Button } from '@portal/design-system'
-
-const showAlert = ref(true)
-</script>
-
-<template>
-  <!-- 기본 알림 -->
-  <Alert type="info">
-    중요한 정보를 확인하세요.
-  </Alert>
-
-  <!-- 제목이 있는 알림 -->
-  <Alert type="warning" title="주의">
-    이 작업은 되돌릴 수 없습니다.
-  </Alert>
-
-  <!-- 닫을 수 있는 알림 -->
-  <Alert
-    v-if="showAlert"
-    type="success"
-    closable
-    @close="showAlert = false"
-  >
-    성공적으로 저장되었습니다!
-  </Alert>
-
-  <!-- 액션이 있는 알림 -->
-  <Alert type="error" title="오류 발생">
-    네트워크 오류가 발생했습니다.
-    <template #action>
-      <Button size="sm" variant="outline">재시도</Button>
-    </template>
-  </Alert>
-</template>
-```
-
----
-
-## 6️⃣ Spinner
+## 7️⃣ Spinner
 
 로딩 스피너 컴포넌트
 
@@ -440,8 +512,18 @@ const showAlert = ref(true)
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
 | `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | ❌ | 스피너 크기 |
-| `color` | `string` | `'brand-primary'` | ❌ | 스피너 색상 |
-| `label` | `string` | - | ❌ | 스크린 리더용 라벨 |
+| `color` | `'primary' \| 'current' \| 'white'` | `'primary'` | ❌ | 스피너 색상 |
+| `label` | `string` | `'Loading'` | ❌ | 스크린 리더용 라벨 |
+
+### TypeScript Interface
+
+```typescript
+interface SpinnerProps {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  color?: 'primary' | 'current' | 'white'
+  label?: string
+}
+```
 
 ### 사용 예시
 
@@ -470,9 +552,14 @@ const handleClick = async () => {
   <Spinner size="lg" />
   <Spinner size="xl" />
 
+  <!-- 색상 변형 -->
+  <Spinner color="primary" />
+  <Spinner color="current" />
+  <Spinner color="white" />
+
   <!-- 버튼 내 스피너 -->
   <Button :disabled="isLoading" @click="handleClick">
-    <Spinner v-if="isLoading" size="sm" class="mr-2" />
+    <Spinner v-if="isLoading" size="sm" color="current" class="mr-2" />
     {{ isLoading ? '로딩 중...' : '저장' }}
   </Button>
 
@@ -485,7 +572,7 @@ const handleClick = async () => {
 
 ---
 
-## 7️⃣ Skeleton
+## 8️⃣ Skeleton
 
 스켈레톤 로더 컴포넌트
 
@@ -493,11 +580,23 @@ const handleClick = async () => {
 
 | Prop | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `width` | `string` | `'100%'` | ❌ | 스켈레톤 너비 |
-| `height` | `string` | `'20px'` | ❌ | 스켈레톤 높이 |
-| `count` | `number` | `1` | ❌ | 반복 횟수 |
-| `variant` | `'text' \| 'circular' \| 'rectangular'` | `'text'` | ❌ | 스켈레톤 모양 |
+| `variant` | `'text' \| 'circular' \| 'rectangular' \| 'rounded'` | `'text'` | ❌ | 스켈레톤 모양 |
+| `width` | `string` | - | ❌ | 스켈레톤 너비 |
+| `height` | `string` | - | ❌ | 스켈레톤 높이 |
 | `animation` | `'pulse' \| 'wave' \| 'none'` | `'pulse'` | ❌ | 애니메이션 타입 |
+| `lines` | `number` | `1` | ❌ | 텍스트 라인 수 (variant='text'일 때) |
+
+### TypeScript Interface
+
+```typescript
+interface SkeletonProps {
+  variant?: 'text' | 'circular' | 'rectangular' | 'rounded'
+  width?: string
+  height?: string
+  animation?: 'pulse' | 'wave' | 'none'
+  lines?: number
+}
+```
 
 ### 사용 예시
 
@@ -523,8 +622,8 @@ const data = ref(null)
         </div>
       </div>
 
-      <!-- 텍스트 스켈레톤 -->
-      <Skeleton count="3" height="16px" class="mb-2" />
+      <!-- 텍스트 스켈레톤 (여러 줄) -->
+      <Skeleton variant="text" :lines="3" height="16px" class="mb-2" />
 
       <!-- 이미지 스켈레톤 -->
       <Skeleton variant="rectangular" width="100%" height="200px" />
@@ -546,7 +645,7 @@ const data = ref(null)
     <Card v-for="i in 3" :key="i">
       <Skeleton variant="rectangular" height="150px" class="mb-4" />
       <Skeleton width="70%" height="20px" class="mb-2" />
-      <Skeleton count="2" height="14px" />
+      <Skeleton variant="text" :lines="2" height="14px" />
     </Card>
   </div>
 </template>
@@ -562,4 +661,4 @@ const data = ref(null)
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-02-06

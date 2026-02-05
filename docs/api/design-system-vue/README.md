@@ -4,7 +4,7 @@ title: Design System API Documentation
 type: api
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: documenter
 tags: [design-system, api, components, vue3, typescript]
 related:
@@ -26,6 +26,8 @@ related:
 | **프레임워크** | Vue 3 (Composition API) |
 | **언어** | TypeScript |
 | **패키지명** | `@portal/design-system` |
+| **총 컴포넌트** | 26개 |
+| **총 Composables** | 3개 |
 
 ---
 
@@ -35,15 +37,18 @@ related:
 
 | 문서 | 설명 | 컴포넌트 수 |
 |------|------|-------------|
-| [입력 컴포넌트](./components-input.md) | Button, Input, Textarea, Select, Checkbox, Radio, Switch, SearchBar | 8개 |
-| [피드백 컴포넌트](./components-feedback.md) | Modal, Toast, Badge, Tag, Alert, Spinner, Skeleton | 7개 |
-| [레이아웃 컴포넌트](./components-layout.md) | Card, Container, Stack, Divider, FormField, Breadcrumb | 6개 |
+| [버튼 컴포넌트](./components-button.md) | DsButton | 1개 |
+| [입력 컴포넌트](./components-input.md) | Input, Textarea, Select, Checkbox, Radio, Switch, SearchBar, FormField | 8개 |
+| [피드백 컴포넌트](./components-feedback.md) | Modal, Toast, ToastContainer, Badge, Tag, Alert, Spinner, Skeleton | 8개 |
+| [레이아웃 컴포넌트](./components-layout.md) | Card, Container, Stack, Divider | 4개 |
+| [내비게이션 컴포넌트](./components-navigation.md) | Link, Dropdown, Tabs, Breadcrumb | 4개 |
+| [데이터 표시 컴포넌트](./components-data-display.md) | Avatar | 1개 |
 
 ### Composables API
 
-| 문서 | 설명 |
-|------|------|
-| [Composables](./composables.md) | useTheme, useToast |
+| 문서 | 설명 | Composables 수 |
+|------|------|----------------|
+| [Composables](./composables.md) | useTheme, useToast, useApiError | 3개 |
 
 ---
 
@@ -129,7 +134,14 @@ const isModalOpen = ref(false);
 ### 공통 크기 (size)
 
 ```typescript
-type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+// 기본 크기 (Button, Badge 등)
+type Size = 'xs' | 'sm' | 'md' | 'lg';
+
+// 확장 크기 (Avatar 등)
+type ExtendedSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+
+// 폼 크기 (Input, Select 등)
+type FormSize = 'sm' | 'md' | 'lg';
 ```
 
 ### 공통 변형 (variant)
@@ -138,11 +150,26 @@ type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 // Button
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger';
 
-// Badge, Alert, Toast, Tag
+// Badge
+type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' | 'gray';
+
+// Status (Alert, Toast, Tag)
 type StatusVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info';
+
+// Tag
+type TagVariant = StatusVariant;
 
 // Card
 type CardVariant = 'elevated' | 'outlined' | 'flat' | 'glass' | 'interactive';
+
+// Link
+type LinkVariant = 'default' | 'primary' | 'muted';
+
+// Tab
+type TabVariant = 'underline' | 'pills' | 'enclosed';
+
+// Divider
+type DividerVariant = 'solid' | 'dashed' | 'dotted';
 ```
 
 ---
@@ -216,4 +243,4 @@ Storybook URL: `http://localhost:6006`
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-02-06
