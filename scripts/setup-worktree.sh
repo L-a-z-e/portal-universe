@@ -37,15 +37,24 @@ fi
 
 cd "$WORKTREE_PATH"
 
-# Symlink helper function (이미 존재하면 스킵)
+# Symlink helper function
+# git checkout이 tracked 파일로 인해 디렉토리를 먼저 생성할 수 있으므로,
+# 실제 파일/디렉토리가 존재하면 삭제 후 symlink 생성
 safe_symlink() {
     local src=$1
     local dest=$2
-    if [ -e "$src" ] && [ ! -e "$dest" ] && [ ! -L "$dest" ]; then
+    if [ ! -e "$src" ]; then
+        return
+    fi
+    if [ -L "$dest" ]; then
+        echo "  - $dest (already linked, skipped)"
+    elif [ -e "$dest" ]; then
+        rm -rf "$dest"
+        ln -s "$src" "$dest"
+        echo "  - $dest → $src (replaced existing)"
+    else
         ln -s "$src" "$dest"
         echo "  - $dest → $src"
-    elif [ -L "$dest" ]; then
-        echo "  - $dest (already linked, skipped)"
     fi
 }
 
