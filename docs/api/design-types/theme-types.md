@@ -4,17 +4,65 @@ title: Theme Types Reference
 type: api
 status: current
 created: 2026-01-19
-updated: 2026-01-19
+updated: 2026-02-06
 author: documenter
 tags: [api, typescript, theme-types]
 related:
   - component-types
-  - typescript-usage
+  - api-types
 ---
 
 # Theme Types Reference
 
-Common 타입 정의 레퍼런스입니다. 컴포넌트 Props에서 사용되는 기본 타입들을 정의합니다.
+Common 타입 정의 레퍼런스입니다. 컴포넌트 Props에서 사용되는 기본 타입들과 서비스별 테마 설정 타입을 정의합니다.
+
+> Source: `frontend/design-types/src/common.ts`, `frontend/design-types/src/index.ts`
+
+## Theme Config Types
+
+### ServiceType
+
+Portal Universe 서비스 식별자입니다. `data-service` HTML 속성과 연동됩니다.
+
+```ts
+type ServiceType = 'portal' | 'blog' | 'shopping';
+```
+
+| Value | Description | Port |
+|-------|-------------|------|
+| `portal` | 메인 포털 셸 | 30000 |
+| `blog` | 블로그 서비스 | 30001 |
+| `shopping` | 쇼핑 서비스 | 30002 |
+
+### ThemeMode
+
+테마 모드입니다.
+
+```ts
+type ThemeMode = 'light' | 'dark' | 'system';
+```
+
+| Value | Description |
+|-------|-------------|
+| `light` | 라이트 모드 |
+| `dark` | 다크 모드 |
+| `system` | OS 설정 따르기 (`prefers-color-scheme`) |
+
+### ThemeConfig
+
+테마 설정 객체입니다.
+
+```ts
+interface ThemeConfig {
+  service: ServiceType;
+  mode: ThemeMode;
+}
+```
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `service` | `ServiceType` | 현재 활성 서비스 |
+| `mode` | `ThemeMode` | 현재 테마 모드 |
 
 ## Size Types
 
@@ -156,6 +204,8 @@ type GapSize = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 ```ts
 type PaddingSize = 'none' | 'sm' | 'md' | 'lg' | 'xl';
 ```
+
+> **참고**: `ContainerProps.padding`과 `DividerProps.spacing`은 `Exclude<PaddingSize, 'xl'>` 타입으로 `'xl'`을 제외합니다. `CardProps.padding`은 전체 `PaddingSize`를 사용합니다.
 
 ### MaxWidth
 
