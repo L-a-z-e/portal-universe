@@ -1,11 +1,13 @@
 package com.portal.universe.shoppingservice;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * ShoppingServiceApplication의 기본 통합 테스트 클래스입니다.
  * {@link IntegrationTest}를 상속받아 테스트 환경을 구성합니다.
  */
+@Disabled("통합 테스트 - Docker/Testcontainers 환경 필요")
 class ShoppingServiceApplicationTests extends IntegrationTest {
 
     /**
