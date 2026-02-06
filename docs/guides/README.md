@@ -26,7 +26,6 @@ Docker, Kubernetes, CI/CD 등 배포 관련 가이드
 
 ## 관련 문서
 
-- [테스트](../testing/) - 테스트 전략 및 계획
 - [아키텍처](../architecture/) - 시스템 및 서비스 아키텍처
 - [API](../api/) - REST API 명세
 - [Runbooks](../runbooks/) - 운영 절차서

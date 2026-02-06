@@ -14,7 +14,6 @@ docs/
 ├── api/             # REST API 명세서
 ├── adr/             # 아키텍처 결정 기록
 ├── guides/          # 개발/배포/운영 가이드
-├── testing/         # 테스트 전략 및 계획
 ├── learning/        # 기술 스택별 학습 자료
 ├── runbooks/        # 운영 절차서
 ├── troubleshooting/ # 문제 해결 기록
@@ -86,7 +85,6 @@ docs/
 - [개발 가이드](guides/development/)
 - [배포 가이드](guides/deployment/)
 - [운영 가이드](guides/operations/)
-- [테스트](testing/)
 - [Runbooks](runbooks/)
 - [Troubleshooting](troubleshooting/)
 

@@ -96,7 +96,6 @@ tags: [development, guide, index]
 
 ## 관련 문서
 
-- [테스트 문서](../../testing/) - 테스트 전략 및 계획
 - [아키텍처 문서](../../architecture/) - 시스템 및 서비스 아키텍처
 - [API 문서](../../api/) - REST API 명세
 - [ADR](../../adr/) - 아키텍처 결정 기록
