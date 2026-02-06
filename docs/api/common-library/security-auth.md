@@ -486,7 +486,7 @@ public ResponseEntity<ApiResponse<Content>> getPremiumContent(
 - [Core](./core-api.md) - 응답 포맷, 예외 처리
 - [입력 검증](./security-validation.md) - XSS, SQL Injection 방어
 - [감사 로그](./security-audit.md) - 보안 이벤트 추적
-- [인증 시스템 설계](../../architecture/system/auth-system-design.md)
+- [Identity Model](../../architecture/system/identity-model.md)
 
 ---
 

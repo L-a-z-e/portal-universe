@@ -134,5 +134,5 @@ cd services/auth-service
 ## 관련 문서
 
 - [테스트 전략](../test-strategy.md)
-- [Architecture - Auth System Design](../../architecture/auth-system-design.md)
+- [Architecture - Identity Model](../../architecture/system/identity-model.md)
 - [Diagrams - Auth ERD](../../diagrams/source/auth-erd.md)

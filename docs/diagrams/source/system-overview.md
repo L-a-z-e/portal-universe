@@ -121,6 +121,6 @@ sequenceDiagram
 
 ## 관련 문서
 
-- [Architecture - Auth System Design](../../architecture/auth-system-design.md)
-- [Architecture - Signup Flow](../../architecture/signup-flow.md)
+- [Architecture - Identity Model](../../architecture/system/identity-model.md)
+- [Architecture - Signup Flow](../../old-docs/signup-flow.md)
 - [PRD-001 E-commerce Core](../../prd/PRD-001-ecommerce-core.md)

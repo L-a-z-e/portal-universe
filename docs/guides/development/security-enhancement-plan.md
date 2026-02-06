@@ -1173,7 +1173,7 @@ Monthly Security Audit:
 ## 10. 참고 자료
 
 ### 10.1 내부 문서
-- `/docs/architecture/auth-system-design.md` - 인증 시스템 설계
+- `/docs/architecture/system/identity-model.md` - 사용자 식별 체계 아키텍처
 - `/docs/adr/ADR-003-authorization-strategy.md` - 권한 검증 전략
 - `/docs/runbooks/secret-rotation.md` - Secret Rotation 절차
 

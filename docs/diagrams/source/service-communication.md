@@ -155,6 +155,6 @@ graph LR
 
 ## 관련 문서
 
-- [Architecture - Auth System Design](../../architecture/auth-system-design.md)
+- [Architecture - Identity Model](../../architecture/system/identity-model.md)
 - [Learning - Saga Pattern](../../learning/notes/02-saga-pattern.md)
 - [PRD-001 E-commerce Core](../../prd/PRD-001-ecommerce-core.md)

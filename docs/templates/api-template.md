@@ -446,7 +446,7 @@ curl -X GET "$API_BASE_URL/api/[service]/[resource]" \
 ## 📖 관련 문서
 
 - [서비스 아키텍처](../architecture/[service]/README.md)
-- [인증 시스템](../architecture/system/auth-system-design.md)
+- [Identity Model](../architecture/system/identity-model.md)
 - [배포 가이드](../guides/deployment/[service]-deploy.md)
 - [Troubleshooting](../troubleshooting/README.md)
 

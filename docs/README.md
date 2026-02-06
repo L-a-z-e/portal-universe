@@ -2,7 +2,7 @@
 
 > MSA + MFA 프로젝트의 중앙 문서 저장소
 
-**마지막 업데이트**: 2026-02-06
+**마지막 업데이트**: 2026-02-06 (서비스 간 통신 아키텍처 문서 추가)
 
 ---
 
@@ -48,8 +48,12 @@ docs/
 ### 시스템
 | 문서 | 설명 |
 |------|------|
-| [시스템 아키텍처](architecture/system/) | 전체 시스템 구조, 서비스 간 통신 |
-| [인증 시스템](architecture/system/auth-system-design.md) | JWT + Redis 인증 |
+| [시스템 아키텍처](architecture/system/) | 전체 시스템 구조 인덱스 |
+| [Identity Model](architecture/system/identity-model.md) | 사용자 식별 체계 아키텍처 |
+| [Security Architecture](architecture/system/security-architecture.md) | 시스템 보안 아키텍처 |
+| [Common Library](architecture/system/common-library.md) | 공유 라이브러리 아키텍처 |
+| [Service Communication](architecture/system/service-communication.md) | 서비스 간 통신 패턴 |
+| [Event-Driven Architecture](architecture/system/event-driven-architecture.md) | Kafka 기반 비동기 통신 (17개 토픽) |
 | [ERD](architecture/database/) | 서비스별 데이터베이스 스키마 |
 
 ---

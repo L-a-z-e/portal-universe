@@ -74,7 +74,7 @@
 ## 🔗 관련 리소스
 
 ### 프로젝트 문서
-- [보안 강화 계획](../../security/security-enhancement-plan.md)
+- [보안 강화 계획](../../guides/development/security-enhancement-plan.md)
 - [ADR-010: 보안 아키텍처](../../adr/ADR-010-security-enhancement-architecture.md)
 - [구현 명세](../../guides/security-implementation-spec.md)
 

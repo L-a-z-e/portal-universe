@@ -32,7 +32,7 @@ docs/
 
 ### 서비스 이해하기
 1. [전체 시스템 아키텍처](architecture/system/README.md)
-2. [인증 시스템](architecture/system/auth-system-design.md)
+2. [Identity Model](architecture/system/identity-model.md)
 3. [서비스 간 통신](architecture/system/service-communication.md)
 
 ### 운영 작업
@@ -48,8 +48,8 @@ docs/
 | 문서 | 설명 |
 |------|------|
 | [시스템 아키텍처](architecture/system/README.md) | 전체 시스템 구조 |
-| [인증 시스템](architecture/system/auth-system-design.md) | JWT + Redis 인증 아키텍처 |
-| [보안 설계](architecture/system/security-cryptography.md) | 암호화 및 보안 전략 |
+| [Identity Model](architecture/system/identity-model.md) | 사용자 식별 체계 아키텍처 |
+| [보안 설계](architecture/system/security-architecture.md) | 시스템 보안 아키텍처 |
 
 ### 백엔드 서비스
 | 서비스 | 설명 | 아키텍처 | API |
