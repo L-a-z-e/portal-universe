@@ -1,775 +1,701 @@
 ---
 id: arch-data-flow
-title: Shopping Frontend Data Flow
+title: Shopping Frontend 데이터 흐름 아키텍처
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: Laze
-tags: [architecture, data-flow, react, zustand, module-federation]
+tags:
+  - shopping-frontend
+  - react
+  - data-flow
+  - portal-bridge
+  - zustand
+  - sse
 related:
   - arch-system-overview
+  - arch-module-federation
 ---
 
-# Shopping Frontend Data Flow
+# Shopping Frontend 데이터 흐름 아키텍처
 
 ## 📋 개요
 
-Shopping Frontend는 React 18 기반의 마이크로 프론트엔드로, API Gateway를 통해 shopping-service와 통신하며, Zustand를 사용하여 클라이언트 상태를 관리합니다. Portal Shell에서 주입받은 `apiClient`를 통해 인증된 요청을 전송하고, 응답 데이터를 컴포넌트에 반영합니다.
+Shopping Frontend는 React 18 기반 마이크로서비스로, Module Federation을 통해 Portal Shell에 통합되며 독립 실행(Standalone) 모드도 지원합니다.
 
-**핵심 특징**:
-- Portal Shell에서 주입된 `apiClient` (axios 인스턴스) 사용
-- API Gateway를 통한 중앙집중식 라우팅 (`/api/v1/shopping/**`)
-- Zustand를 활용한 경량 상태 관리
-- LocalStorage를 통한 장바구니 영속성
-- Embedded/Standalone 듀얼 모드 지원
-- React Router v7을 통한 SPA 라우팅
+### 핵심 특징
+
+- **API Client 통합**: `@portal/react-bridge`의 `getPortalApiClient()`를 통해 Portal Shell의 `portal/api` apiClient 사용
+  - Embedded 모드: 토큰 자동 갱신, 401/429 재시도 기능이 포함된 완전한 apiClient
+  - Standalone 모드: local axios fallback으로 graceful degradation
+- **중앙집중식 API 라우팅**: API Gateway를 통한 `/api/v1/shopping/**` 경로
+- **클라이언트 상태 관리**: Zustand cartStore (devtools middleware)
+- **Portal 통합**: Portal Bridge hooks (usePortalTheme, usePortalAuth)
+- **실시간 통신**: SSE 스트림 (대기열 순서, 재고 변동)
+
+### 기술 스택
+
+| 영역 | 기술 |
+|------|------|
+| Framework | React 18.3.1 |
+| State | Zustand 5.0 |
+| Routing | React Router 7.1 |
+| HTTP Client | Axios (via portal/api or local) |
+| Bridge | @portal/react-bridge, @portal/react-bootstrap |
+| Real-time | SSE (EventSource) |
+| Styling | Tailwind CSS 4.0 |
 
 ---
 
-## 🔄 전체 데이터 흐름 아키텍처
+## 🏗️ 전체 데이터 흐름 아키텍처
 
 ```mermaid
 graph TB
-    subgraph "Portal Shell"
+    subgraph "Portal Shell (Vue 3)"
         PS[Portal Shell App]
-        AC[apiClient<br/>axios instance]
-        TS[themeStore<br/>Pinia Store]
+        AC[apiClient<br/>portal/api]
+        TS[themeStore<br/>Pinia]
+        AS[authStore<br/>Pinia]
     end
 
-    subgraph "Shopping Frontend"
+    subgraph "Shopping Frontend (React 18)"
         APP[App.tsx]
-        RT[ShoppingRouter<br/>React Router v7]
-        BC[React Components<br/>ProductListPage, CartPage, CheckoutPage]
-        API[API Functions<br/>productApi, cartApi, orderApi]
-        ZS[Zustand Stores<br/>cartStore, themeStore]
-        LS[(LocalStorage)]
+        RT[ShoppingRouter]
+        BC[React Pages]
+        API[API Layer<br/>17 modules]
+        CS[cartStore<br/>Zustand]
+        PBH[Portal Bridge Hooks]
+        HK[Custom Hooks<br/>14 hooks]
     end
 
     subgraph "Backend"
         GW[API Gateway<br/>:8080]
-        SS[shopping-service<br/>:8083]
+        SS[Shopping Service<br/>:8083]
         DB[(MySQL)]
     end
 
-    PS -->|expose| AC
-    PS -->|expose| TS
-    AC -->|import via getApiClient| API
-    TS -->|import in Embedded mode| ZS
-    APP -->|mount| RT
-    RT -->|route| BC
-    BC -->|call| API
-    BC -->|read/write| ZS
-    ZS -->|persist| LS
-    API -->|HTTP Request| GW
-    GW -->|route /api/v1/shopping/**| SS
-    SS -->|query| DB
-    DB -->|result| SS
-    SS -->|response| GW
-    GW -->|response| API
-    API -->|return data| BC
+    AC -.->|getPortalApiClient| API
+    TS -.->|usePortalTheme| PBH
+    AS -.->|usePortalAuth| PBH
+
+    APP --> RT --> BC
+    BC --> HK --> API
+    BC --> CS
+    API -->|HTTP| GW -->|Route| SS -->|Query| DB
 ```
+
+### 주요 레이어
+
+1. **Portal Shell Integration Layer**: Module Federation을 통해 apiClient, themeStore, authStore 공유
+2. **Application Layer**: App.tsx → Router → Pages
+3. **State Management Layer**: Zustand cartStore
+4. **API Layer**: 17개 API 모듈 (product, cart, order, payment, coupon, time-deal, queue 등)
+5. **Bridge Layer**: Portal Bridge hooks로 Shell과 통신
+6. **Backend Layer**: API Gateway → Shopping Service → MySQL
 
 ---
 
-## 📨 주요 데이터 흐름
-
-### 1. 애플리케이션 마운트 흐름
+## 🚀 앱 마운트 흐름
 
 ```mermaid
 sequenceDiagram
     participant PS as Portal Shell
     participant BS as bootstrap.tsx
-    participant RD as ReactDOM
+    participant RB as @portal/react-bootstrap
     participant APP as App.tsx
     participant RT as ShoppingRouter
-    participant TS as themeStore
+    participant PB as Portal Bridge
 
-    PS->>BS: mountShoppingApp(container, context)
-    Note over BS: context = { apiClient, onNavigate }
-    BS->>BS: createRoot(container)
-    BS->>RD: root.render(<App context={context} />)
-    RD->>APP: Component mount
-    APP->>APP: mode detection (Embedded/Standalone)
-
-    alt Embedded Mode
-        APP->>TS: import('portal/stores')
-        TS-->>APP: Portal themeStore
-        APP->>APP: watch isDark changes
-    else Standalone Mode
-        APP->>APP: MutationObserver setup
-        APP->>APP: watch class="dark" on <html>
-    end
-
-    APP->>RT: Initialize React Router
-    RT->>RT: NavigationSync setup
-    RT-->>APP: Router ready
-    APP-->>PS: Mount complete
+    PS->>BS: import('shopping/bootstrap')
+    BS->>RB: createAppBootstrap({<br/>name, App, dataService, router })
+    RB-->>BS: { mount }
+    PS->>BS: mount(container, options)
+    Note over RB: createRoot<br/>data-service="shopping"<br/>CSS setup
+    RB->>APP: render(<App {...props} />)
+    APP->>PB: usePortalTheme()
+    PB-->>APP: { isDark, isConnected }
+    APP->>RT: <ShoppingRouter />
+    RT->>RT: createRouter<br/>(Memory or Browser)
+    RT-->>PS: Mount complete
 ```
 
-**설명**:
-1. Portal Shell이 `bootstrap.tsx`의 `mountShoppingApp` 함수 호출
-2. React 애플리케이션을 지정된 컨테이너에 마운트
-3. `App.tsx`가 Embedded/Standalone 모드 감지
-4. Embedded 모드: Portal의 `themeStore`를 import하여 테마 동기화
-5. Standalone 모드: `MutationObserver`로 `<html class="dark">` 감지
-6. `ShoppingRouter` 초기화 및 `NavigationSync` 설정
-7. 첫 화면 렌더링 완료
+### 마운트 단계
+
+1. **Bootstrap 로드**: Portal Shell이 `shopping/bootstrap` 모듈 import
+2. **Bootstrap 생성**: `createAppBootstrap()`으로 mount 함수 생성
+3. **마운트 실행**:
+   - React root 생성 (React 18 createRoot API)
+   - `data-service="shopping"` 속성 설정 (테마 변수 활성화)
+   - CSS 로드 (embedded 모드에서는 조건부)
+4. **앱 렌더링**: App.tsx 렌더링
+5. **Bridge 연결**: Portal Bridge hooks로 테마/인증 동기화
+6. **라우터 초기화**:
+   - Embedded: Memory Router (Shell의 라우팅에 통합)
+   - Standalone: Browser Router (독립 히스토리)
 
 ---
 
-### 2. 상품 목록 조회 (Pagination)
+## 🔌 API Client 초기화 흐름
+
+```typescript
+// services/api/index.ts - getApiClient()
+
+1. getPortalApiClient() 시도 (@portal/react-bridge)
+   ├─ Bridge 준비 완료?
+   │  └─ Yes → portal/api의 apiClient 반환
+   │           (토큰 갱신, 401/429 재시도 포함)
+   └─ Bridge 미준비?
+      └─ No → null 반환
+
+2. null이면 getLocalClient() fallback
+   └─ local axios 인스턴스 생성 (lazy)
+      ├─ Request interceptor:
+      │  └─ bridge adapter 또는 window 전역변수에서 토큰 획득
+      └─ Response interceptor:
+         └─ 401 → window.__PORTAL_ON_AUTH_ERROR__() 호출
+```
+
+### API Client 비교
+
+| 항목 | portal/api (Embedded) | local client (Standalone) |
+|------|----------------------|--------------------------|
+| 토큰 관리 | Portal Shell authStore 연동 | window.__PORTAL_GET_TOKEN__ 또는 localStorage |
+| 토큰 갱신 | 자동 갱신 (401 → 재시도) | 수동 갱신 (Shell 콜백 호출) |
+| 429 재시도 | 자동 재시도 | 없음 |
+| Base URL | Portal Shell 환경 변수 | local .env 설정 |
+| 에러 처리 | 통합 에러 핸들링 | 기본 에러 핸들링 |
+
+---
+
+## 📦 상품 조회 흐름
+
+### Custom Hook 패턴
+
+대부분의 API 호출은 custom hook을 통해 이루어집니다.
+
+```typescript
+// hooks/useAdminProducts.ts 예시
+
+const [products, setProducts] = useState([])
+const [loading, setLoading] = useState(false)
+const [error, setError] = useState<string | null>(null)
+
+useEffect(() => {
+  fetchProducts()
+}, [page, category])
+
+// State + Fetch + Loading + Error 관리
+```
+
+### API 호출 플로우
+
+```
+Page Component
+  └─ Custom Hook (useProducts, useProductDetail 등)
+     └─ API Module (productApi.ts)
+        └─ getApiClient()
+           └─ HTTP Request
+              └─ API Gateway (:8080)
+                 └─ Shopping Service (:8083)
+                    └─ MySQL
+```
+
+### 주요 상품 API Hooks
+
+| Hook | 역할 | API Endpoint |
+|------|------|--------------|
+| `useProducts` | 상품 목록 조회 | GET /products |
+| `useProductDetail` | 상품 상세 조회 | GET /products/{id} |
+| `useProductSearch` | 상품 검색 | GET /search/products |
+| `useInventory` | 재고 조회 | GET /inventory/{productId} |
+| `useAdminProducts` | 관리자 상품 관리 | POST/PUT /admin/products |
+
+---
+
+## 🛒 장바구니 흐름 (Zustand cartStore)
+
+### Store 구조
+
+```typescript
+interface CartStore {
+  // State
+  cart: Cart | null
+  loading: boolean
+  error: string | null
+  itemCount: number
+  totalAmount: number
+
+  // Actions
+  fetchCart: () => Promise<void>
+  addItem: (productId, name, price, quantity) => Promise<void>
+  updateItemQuantity: (itemId, quantity) => Promise<void>
+  removeItem: (itemId) => Promise<void>
+  clearCart: () => Promise<void>
+  reset: () => void
+}
+```
+
+### 장바구니 담기 플로우
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant C as ProductListPage
-    participant API as productApi
-    participant AC as apiClient
-    participant G as API Gateway
-    participant S as shopping-service
-    participant D as MySQL
-
-    U->>C: 페이지 방문
-    C->>C: useEffect()
-    C->>API: getProducts({ page: 0, size: 20 })
-    API->>API: getApiClient()
-    Note over API: Embedded: portal/api<br/>Standalone: local axios
-    API->>AC: GET /api/v1/shopping/products?page=0&size=20
-    Note over AC: Authorization: Bearer {JWT}
-    AC->>G: HTTP Request
-    G->>G: JWT 검증
-    G->>S: Forward to shopping-service
-    S->>D: SELECT * FROM products LIMIT 20 OFFSET 0
-    D-->>S: List<Product>
-    S-->>G: ApiResponse<PageResponse<Product>>
-    G-->>AC: HTTP 200 OK
-    AC-->>API: axios response
-    API-->>C: PageResponse<ProductResponse>
-    C->>C: setProducts(response.content)
-    C->>U: 상품 목록 렌더링
-```
-
-**설명**:
-1. 사용자가 `ProductListPage` 방문
-2. `useEffect()` 훅에서 `productApi.getProducts()` 호출
-3. `getApiClient()`가 모드에 따라 적절한 axios 인스턴스 반환
-   - **Embedded**: Portal Shell에서 주입받은 `apiClient` (JWT 자동 첨부)
-   - **Standalone**: 로컬 axios 인스턴스 (인증 없음)
-4. API Gateway가 JWT 검증 후 shopping-service로 라우팅
-5. shopping-service가 MySQL 쿼리 후 페이지네이션 응답 반환
-6. `setProducts()`로 상태 업데이트
-7. React의 상태 변경이 컴포넌트 리렌더링 트리거
-
----
-
-### 3. 장바구니 관리 흐름 (Zustand + LocalStorage)
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant C as ProductCard
+    participant P as ProductDetailPage
     participant CS as cartStore (Zustand)
     participant API as cartApi
-    participant LS as LocalStorage
-    participant S as shopping-service
+    participant SS as Shopping Service
 
-    U->>C: "장바구니 추가" 버튼 클릭
-    C->>CS: addItem(product)
-
-    alt Backend 연동 (로그인 상태)
-        CS->>API: addToCart(productId, quantity)
-        API->>S: POST /api/v1/shopping/cart/items
-        S-->>API: CartResponse
-        API-->>CS: Success
-    end
-
-    CS->>CS: items.push(newItem)
-    CS->>CS: totalAmount += price * quantity
-    CS->>CS: itemCount += quantity
-    CS->>LS: localStorage.setItem('cart', JSON.stringify(cart))
-    CS-->>C: State updated
-    C->>U: Toast 알림 표시
-
-    Note over U,S: 장바구니 페이지 방문
-    U->>C: CartPage 이동
-    C->>CS: fetchCart()
-    CS->>LS: localStorage.getItem('cart')
-    LS-->>CS: Stored cart data
-
-    alt Backend 동기화
-        CS->>API: getCart()
-        API->>S: GET /api/v1/shopping/cart
-        S-->>API: CartResponse
-        API-->>CS: Backend cart data
-        CS->>CS: merge local + backend
-    end
-
-    CS-->>C: items, totalAmount, itemCount
-    C->>U: 장바구니 목록 렌더링
+    U->>P: "장바구니 담기" 클릭
+    P->>CS: addItem(productId, name, price, qty)
+    CS->>CS: set({ loading: true })
+    CS->>API: cartApi.addItem({ productId, quantity })
+    API->>SS: POST /api/v1/shopping/cart/items
+    SS-->>API: Cart (updated)
+    API-->>CS: response.data
+    CS->>CS: set({ cart, itemCount, totalAmount })
+    CS-->>P: State updated → re-render
+    P-->>U: Toast 알림
 ```
 
-**설명**:
+### 특별 케이스 처리
 
-#### 3.1 장바구니 추가 (`addItem`)
-1. 사용자가 상품 카드에서 "장바구니 추가" 버튼 클릭
-2. `cartStore.addItem(product)` 호출
-3. 로그인 상태면 `cartApi.addToCart()` 호출하여 Backend에도 저장
-4. Zustand 상태 업데이트: `items`, `totalAmount`, `itemCount`
-5. **LocalStorage에 영속화**: `localStorage.setItem('cart', ...)`
-6. Toast 알림 표시
+1. **신규 사용자 (404 응답)**:
+   ```typescript
+   // fetchCart() 에서
+   if (error.response?.status === 404) {
+     set({ cart: null, itemCount: 0, totalAmount: 0 })
+     return // 에러가 아닌 정상 상태
+   }
+   ```
 
-#### 3.2 장바구니 조회 (`fetchCart`)
-1. 사용자가 `CartPage` 방문
-2. `cartStore.fetchCart()` 호출
-3. LocalStorage에서 기존 장바구니 데이터 로드
-4. 로그인 상태면 Backend 장바구니와 병합 (merge)
-5. 상태 반영 후 UI 렌더링
+2. **수량 업데이트**:
+   - 낙관적 업데이트 없음 (서버 응답 후 반영)
+   - 재고 부족 시 서버에서 에러 반환
 
-#### 3.3 수량 변경 (`updateItemQuantity`)
-- `cartStore.updateItemQuantity(productId, newQuantity)` 호출
-- Backend API 호출 (로그인 상태)
-- LocalStorage 동기화
-
-#### 3.4 상품 삭제 (`removeItem`)
-- `cartStore.removeItem(productId)` 호출
-- Backend API 호출 (로그인 상태)
-- LocalStorage에서도 제거
-
-#### 3.5 장바구니 비우기 (`clearCart`)
-- `cartStore.clearCart()` 호출
-- Backend API 호출 (로그인 상태)
-- LocalStorage 초기화
+3. **에러 처리**:
+   ```typescript
+   set({ error: errorMessage, loading: false })
+   ```
 
 ---
 
-### 4. 주문 생성 및 결제 흐름
+## 💳 주문/결제 흐름
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant CP as CartPage
-    participant CHP as CheckoutPage
-    participant CS as cartStore
+    participant CK as CheckoutPage
     participant OA as orderApi
     participant PA as paymentApi
-    participant G as API Gateway
-    participant S as shopping-service
-    participant D as MySQL
+    participant CS as cartStore
+    participant SS as Shopping Service
 
-    U->>CP: 장바구니 확인
-    CP->>U: "주문하기" 버튼 표시
-    U->>CP: "주문하기" 클릭
-    CP->>CHP: Navigate to /checkout
+    U->>CK: 배송지 입력 → "결제하기"
+    CK->>OA: createOrder({ shippingAddress, ... })
+    OA->>SS: POST /api/v1/shopping/orders
+    SS-->>OA: Order { orderNumber }
+    OA-->>CK: orderNumber
 
-    CHP->>CS: getState()
-    CS-->>CHP: items, totalAmount
-    CHP->>U: 주문 정보 입력 폼 렌더링
+    CK->>PA: processPayment({ orderNumber, method })
+    PA->>SS: POST /api/v1/shopping/payments
+    SS-->>PA: Payment { transactionId }
+    PA-->>CK: 결제 완료
 
-    U->>CHP: 배송지 입력 및 "결제하기" 클릭
-    CHP->>OA: createOrder({ items, shippingAddress })
-    OA->>G: POST /api/v1/shopping/orders
-    G->>S: Forward
-    S->>D: INSERT INTO orders (...)
-    D-->>S: Order created
-    S->>D: INSERT INTO order_items (...)
-    D-->>S: Order items created
-    S-->>G: ApiResponse<OrderResponse>
-    G-->>OA: HTTP 201 Created
-    OA-->>CHP: OrderResponse { orderNumber, ... }
-
-    CHP->>PA: processPayment({ orderNumber, method: 'CARD' })
-    PA->>G: POST /api/v1/shopping/payments
-    G->>S: Forward
-    S->>S: 결제 처리 로직 (PG 연동)
-    Note over S: 실제 구현 시 PG사 API 호출
-    S->>D: UPDATE orders SET status='PAID'
-    S-->>G: ApiResponse<PaymentResponse>
-    G-->>PA: HTTP 200 OK
-    PA-->>CHP: PaymentResponse { transactionId, ... }
-
-    CHP->>CS: clearCart()
-    CS->>CS: items = [], totalAmount = 0
-    CS->>LS: localStorage.clear('cart')
-
-    CHP->>U: Navigate to /orders/:orderNumber
-    U->>U: 주문 완료 화면 렌더링
+    CK->>CS: clearCart()
+    CK-->>U: Navigate to /orders/:orderNumber
 ```
 
-**설명**:
+### 주문 생성 단계
 
-#### Phase 1: 주문 생성
-1. 사용자가 `CartPage`에서 "주문하기" 버튼 클릭
-2. `CheckoutPage`로 이동 (`/checkout`)
-3. `cartStore`에서 장바구니 정보 가져오기
-4. 배송지 정보 입력 폼 렌더링
-5. "결제하기" 버튼 클릭 시 `orderApi.createOrder()` 호출
-6. shopping-service가 `orders` 및 `order_items` 테이블에 INSERT
-7. **orderNumber** 반환
+1. **장바구니 검증**: 비어있지 않은지, 재고 확인
+2. **배송지 입력**: 수령인, 주소, 연락처
+3. **주문 생성**: POST /orders → orderNumber 획득
+4. **결제 처리**: POST /payments → transactionId 획득
+5. **장바구니 초기화**: clearCart()
+6. **주문 완료 페이지**: 이동 및 주문 상세 표시
 
-#### Phase 2: 결제 처리
-1. `paymentApi.processPayment()` 호출 (orderNumber, method)
-2. shopping-service가 결제 로직 실행 (실제로는 PG사 API 호출)
-3. 결제 성공 시 `orders.status = 'PAID'` 업데이트
-4. **transactionId** 반환
+### 주문 취소
 
-#### Phase 3: 장바구니 비우기 및 완료 화면
-1. `cartStore.clearCart()` 호출
-2. LocalStorage 장바구니 데이터 삭제
-3. `/orders/:orderNumber` 페이지로 이동
-4. `OrderDetailPage`에서 주문 상세 정보 렌더링
+```typescript
+// orderApi.cancelOrder(orderNumber)
+POST /api/v1/shopping/orders/{orderNumber}/cancel
+
+// 조건: 결제 완료 후 24시간 이내, 배송 시작 전
+```
 
 ---
 
-### 5. 테마 동기화 흐름 (Dark Mode)
+## 🎟️ 쿠폰 발급/사용 흐름
 
 ```mermaid
 sequenceDiagram
-    participant PS as Portal Shell
-    participant PTS as Portal themeStore
-    participant APP as App.tsx
-    participant ZTS as Zustand themeStore
-    participant DOM as DOM (document.documentElement)
+    participant U as User
+    participant CLP as CouponListPage
+    participant CA as couponApi
+    participant SS as Shopping Service
 
-    Note over PS,DOM: === Embedded Mode ===
+    U->>CLP: 쿠폰 목록 조회
+    CLP->>CA: getAvailableCoupons()
+    CA->>SS: GET /api/v1/shopping/coupons
+    SS-->>CA: Coupon[]
+    CA-->>CLP: 발급 가능 쿠폰 표시
 
-    PS->>PTS: User toggles dark mode
-    PTS->>PTS: isDark.value = !isDark.value
-    APP->>PTS: watch isDark (Vue reactivity)
-    PTS-->>APP: isDark changed
-    APP->>ZTS: setTheme(isDark ? 'dark' : 'light')
-    ZTS->>DOM: setAttribute('data-theme', 'dark')
-    DOM->>DOM: CSS variables update
-    DOM-->>APP: Theme applied
-
-    Note over PS,DOM: === Standalone Mode ===
-
-    APP->>DOM: MutationObserver on <html>
-    DOM->>APP: class="dark" added/removed
-    APP->>APP: detectThemeFromClass()
-    APP->>ZTS: setTheme(theme)
-    ZTS->>DOM: setAttribute('data-theme', theme)
-    DOM-->>APP: Theme applied
+    U->>CLP: "발급받기" 클릭
+    CLP->>CA: issueCoupon(couponId)
+    CA->>SS: POST /api/v1/shopping/coupons/{id}/issue
+    SS-->>CA: UserCoupon
+    CA-->>CLP: 발급 완료 → 내 쿠폰 반영
 ```
 
-**설명**:
+### 쿠폰 API 엔드포인트
 
-#### Embedded Mode (Portal Shell 통합)
-1. Portal Shell에서 사용자가 다크 모드 토글
-2. Portal의 `themeStore.isDark` 값 변경 (Vue ref)
-3. `App.tsx`에서 `watch(isDark, ...)` 콜백 실행
-4. Zustand `themeStore.setTheme()` 호출
-5. `document.documentElement.setAttribute('data-theme', 'dark')`
-6. TailwindCSS가 `data-theme="dark"`에 반응하여 스타일 적용
+| API | Endpoint | 역할 |
+|-----|----------|------|
+| getAvailableCoupons | GET /coupons | 발급 가능한 쿠폰 목록 |
+| issueCoupon | POST /coupons/{id}/issue | 쿠폰 발급 |
+| getMyCoupons | GET /coupons/my | 내 쿠폰 목록 |
+| getMyAvailableCoupons | GET /coupons/my/available | 사용 가능한 내 쿠폰 |
 
-#### Standalone Mode (독립 실행)
-1. `App.tsx`의 `useEffect`에서 `MutationObserver` 설정
-2. `<html class="dark">` 속성 변경 감지
-3. `detectThemeFromClass()` 함수로 테마 추출
-4. Zustand `themeStore.setTheme()` 호출
-5. `data-theme` 속성 업데이트
-6. TailwindCSS 스타일 적용
+### 쿠폰 사용
 
-**주의사항**:
-- Portal Shell은 `class="dark"`를 사용하고, Shopping Frontend는 `data-theme="dark"`를 사용합니다.
-- 두 방식을 동기화하기 위해 위 로직이 필요합니다.
+결제 페이지에서 사용 가능한 쿠폰 조회 → 선택 → 주문 생성 시 couponId 포함
 
 ---
 
-### 6. 라우팅 동기화 흐름 (Parent ↔ Child Navigation)
+## ⏰ 타임딜 구매 흐름
 
 ```mermaid
 sequenceDiagram
-    participant PS as Portal Shell
-    participant APP as App.tsx
-    participant RT as ShoppingRouter
-    participant NS as NavigationSync
-    participant Page as ProductListPage
+    participant U as User
+    participant TDL as TimeDealListPage
+    participant TDD as TimeDealDetailPage
+    participant TA as timeDealApi
+    participant SS as Shopping Service
 
-    Note over PS,Page: === Parent → Child Navigation ===
+    U->>TDL: 타임딜 목록
+    TDL->>TA: getActiveTimeDeals()
+    TA->>SS: GET /api/v1/shopping/time-deals
+    SS-->>TA: TimeDeal[]
+    TA-->>TDL: 진행중 타임딜 표시
 
-    PS->>PS: User clicks sidebar menu
-    PS->>APP: onParentNavigate('/shopping/products')
-    APP->>APP: navigateTo(path)
-    APP->>RT: routerInstance.navigate(path)
-    RT->>Page: Route to ProductListPage
-    Page-->>PS: Page rendered
+    U->>TDD: 타임딜 상세
+    TDD->>TA: getTimeDeal(id)
+    TA->>SS: GET /api/v1/shopping/time-deals/{id}
+    SS-->>TA: TimeDeal 상세
+    TA-->>TDD: 할인가, 남은 수량 표시
 
-    Note over PS,Page: === Child → Parent Navigation ===
-
-    Page->>Page: User clicks link
-    Page->>RT: <Link to="/shopping/cart">
-    RT->>NS: NavigationSync intercept
-    NS->>APP: navigationCallback(path)
-    APP->>PS: onNavigate('/shopping/cart') via context
-    PS->>PS: Update sidebar active state
-    PS->>PS: Sync URL in browser
-    RT->>Page: Route to CartPage
-    Page-->>PS: Page rendered
+    U->>TDD: "구매하기"
+    TDD->>TA: purchaseTimeDeal(timeDealProductId, qty)
+    TA->>SS: POST /api/v1/shopping/time-deals/purchase
+    SS-->>TA: Purchase result
+    TA-->>TDD: 구매 완료
 ```
 
-**설명**:
+### 타임딜 특징
 
-#### 6.1 Parent → Child Navigation (Portal Shell → Shopping Frontend)
-1. Portal Shell의 사이드바에서 "쇼핑" 메뉴 클릭
-2. Portal Shell이 `onParentNavigate('/shopping/products')` 콜백 호출
-3. `App.tsx`의 `navigateTo()` 함수 실행
-4. `routerInstance.navigate(path)` 호출 (React Router)
-5. `ProductListPage` 렌더링
-
-#### 6.2 Child → Parent Navigation (Shopping Frontend → Portal Shell)
-1. 사용자가 Shopping Frontend 내부에서 링크 클릭 (예: "장바구니" 버튼)
-2. React Router의 `<Link>` 컴포넌트가 라우팅 실행
-3. `NavigationSync` 컴포넌트가 라우팅 이벤트 감지
-4. `useEffect`에서 `navigationCallback(pathname)` 호출
-5. `App.tsx`의 `onNavigate` prop을 통해 Portal Shell에 알림
-6. Portal Shell이 사이드바 활성 상태 및 브라우저 URL 동기화
-7. 동시에 Shopping Frontend의 페이지도 변경됨
-
-**주의사항**:
-- 양방향 동기화를 위해 `onParentNavigate`와 `onNavigate` 콜백이 모두 필요합니다.
-- 무한 루프 방지를 위해 `navigateTo()` 함수에서 중복 네비게이션 체크를 수행합니다.
+- **시간 제한**: startTime ~ endTime 범위에서만 활성
+- **수량 제한**: 선착순 재고 소진 시 종료
+- **할인율**: 정가 대비 할인 가격 적용
+- **1인당 제한**: 최대 구매 수량 제한 가능
 
 ---
 
-## 📊 API 호출 패턴
+## 🎫 대기열(Queue) SSE 흐름
 
-### API Client 구조
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant QW as QueueWaitingPage
+    participant QA as queueApi
+    participant SS as Shopping Service
+
+    U->>QW: 대기열 진입
+    QW->>QA: enterQueue(eventType, eventId)
+    QA->>SS: POST /api/v1/shopping/queue/{type}/{id}/enter
+    SS-->>QA: QueueStatusResponse<br/>{ entryToken, position, estimatedWaitSeconds }
+
+    QW->>QW: new EventSource(getSubscribeUrl(...))
+    Note over QW,SS: SSE 연결
+    loop 위치 업데이트
+        SS-->>QW: data: {"position": N, "estimatedWaitSeconds": T}
+        QW->>QW: 대기 순서 UI 업데이트
+    end
+
+    Note over QW: 순서 도달 시
+    SS-->>QW: data: {"position": 0, "allowEntry": true}
+    QW-->>U: 접근 허용 → 리다이렉트
+```
+
+### SSE 엔드포인트
+
+```
+GET /api/v1/shopping/queue/{eventType}/{eventId}/subscribe/{entryToken}
+```
+
+### 이벤트 타입
+
+- `TIME_DEAL`: 타임딜 대기열
+- `PRE_ORDER`: 선주문 대기열
+- Custom event types
+
+### 대기열 상태 체크
 
 ```typescript
-// utils/apiClient.ts
-import axios, { AxiosInstance } from 'axios';
+// queueApi.getQueueStatus(eventType, eventId, entryToken)
+GET /api/v1/shopping/queue/{type}/{id}/status?entryToken={token}
+```
 
-let apiClientInstance: AxiosInstance | null = null;
+---
 
-export function getApiClient(): AxiosInstance {
-  if (apiClientInstance) {
-    return apiClientInstance;
+## 📊 재고 스트림(SSE) 흐름
+
+### Hook: useInventoryStream
+
+```typescript
+// hooks/useInventoryStream.ts
+
+const useInventoryStream = (productIds: number[]) => {
+  const [inventories, setInventories] = useState<Map<number, number>>()
+
+  useEffect(() => {
+    const url = inventoryStreamApi.getStreamUrl(productIds)
+    const eventSource = new EventSource(url)
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      setInventories(prev => new Map(prev).set(data.productId, data.quantity))
+    }
+
+    return () => eventSource.close()
+  }, [productIds])
+
+  return inventories
+}
+```
+
+### SSE 엔드포인트
+
+```
+GET /api/v1/shopping/inventory/stream?productIds=1&productIds=2&productIds=3
+```
+
+### 사용 사례
+
+1. **상품 목록**: 여러 상품의 실시간 재고 표시
+2. **상품 상세**: 단일 상품의 재고 변동 감지
+3. **관리자 대시보드**: 전체 재고 모니터링
+
+---
+
+## 🎨 테마/인증 동기화 (Portal Bridge)
+
+### 테마 동기화
+
+```typescript
+// App.tsx
+import { usePortalTheme } from '@portal/react-bridge'
+
+const App = ({ isEmbedded, initialTheme }) => {
+  const [theme, setTheme] = useState(initialTheme || 'light')
+  const portalTheme = usePortalTheme()
+
+  // Embedded 모드에서는 Portal Shell의 테마 우선
+  const isDark = isEmbedded && portalTheme.isConnected
+    ? portalTheme.isDark
+    : theme === 'dark'
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark)
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+  }, [isDark])
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme, isDark }}>
+      {/* ... */}
+    </ThemeContext.Provider>
+  )
+}
+```
+
+### 인증 동기화
+
+```typescript
+// components/RequireRole.tsx
+import { usePortalAuth } from '@portal/react-bridge'
+
+const RequireRole = ({ roles, children }) => {
+  const { roles: userRolesRaw } = usePortalAuth()
+
+  // 역할 정규화 (ROLE_ 접두사 제거)
+  const userRoles = userRolesRaw.map(r =>
+    r.replace(/^ROLE_/, '').toLowerCase()
+  )
+
+  const hasRequiredRole = roles.some(r => userRoles.includes(r))
+
+  if (!hasRequiredRole) {
+    return <Navigate to="/access-denied" replace />
   }
 
-  // Standalone 모드: 로컬 axios 인스턴스 생성
-  apiClientInstance = axios.create({
-    baseURL: 'http://localhost:8080',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  return apiClientInstance;
-}
-
-export function setApiClient(client: AxiosInstance): void {
-  apiClientInstance = client;
+  return <>{children}</>
 }
 ```
 
-**사용 방식**:
-- **Embedded 모드**: `bootstrap.tsx`에서 Portal의 `apiClient`를 `setApiClient()`로 주입
-- **Standalone 모드**: `getApiClient()`가 로컬 axios 인스턴스 반환
-
----
-
-### API 함수 예시
+### Bridge 연결 상태
 
 ```typescript
-// api/products.ts
-import { getApiClient } from '../utils/apiClient';
+// Portal Bridge가 준비되지 않은 경우
+portalTheme.isConnected === false
+// → Standalone 모드 또는 Shell 마운트 전
 
-export async function getProducts(params: { page: number; size: number }) {
-  const client = getApiClient();
-  const response = await client.get('/api/v1/shopping/products', { params });
-  return response.data;
-}
-
-// api/cart.ts
-export async function addToCart(productId: string, quantity: number) {
-  const client = getApiClient();
-  const response = await client.post('/api/v1/shopping/cart/items', {
-    productId,
-    quantity,
-  });
-  return response.data;
-}
-
-// api/orders.ts
-export async function createOrder(orderData: CreateOrderRequest) {
-  const client = getApiClient();
-  const response = await client.post('/api/v1/shopping/orders', orderData);
-  return response.data;
-}
+// Bridge 연결 완료
+portalTheme.isConnected === true
+// → Portal Shell과 정상 통신
 ```
 
 ---
 
-## 🗂️ 상태 관리 (Zustand Stores)
+## ⚠️ 에러 처리 패턴
 
-### cartStore
+### API Client 레벨
+
+#### portal/api (Embedded)
 
 ```typescript
-// stores/cartStore.ts
-import { create } from 'zustand';
-
-interface CartItem {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface CartState {
-  items: CartItem[];
-  totalAmount: number;
-  itemCount: number;
-
-  addItem: (product: Product) => void;
-  removeItem: (productId: string) => void;
-  updateItemQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
-  fetchCart: () => Promise<void>;
-}
-
-export const useCartStore = create<CartState>((set, get) => ({
-  items: [],
-  totalAmount: 0,
-  itemCount: 0,
-
-  addItem: (product) => {
-    // Backend API 호출 (로그인 상태)
-    // cartApi.addToCart(product.id, 1);
-
-    const { items } = get();
-    const existingItem = items.find(item => item.productId === product.id);
-
-    if (existingItem) {
-      // 수량 증가
-      set({
-        items: items.map(item =>
-          item.productId === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        ),
-      });
-    } else {
-      // 새 상품 추가
-      set({
-        items: [...items, {
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-        }],
-      });
-    }
-
-    // totalAmount, itemCount 재계산
-    const newState = get();
-    set({
-      totalAmount: newState.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-      itemCount: newState.items.reduce((sum, item) => sum + item.quantity, 0),
-    });
-
-    // LocalStorage 동기화
-    localStorage.setItem('cart', JSON.stringify(get()));
-  },
-
-  removeItem: (productId) => {
-    // Backend API 호출
-    // cartApi.removeFromCart(productId);
-
-    set(state => ({
-      items: state.items.filter(item => item.productId !== productId),
-    }));
-
-    // 재계산 및 LocalStorage 동기화
-    const newState = get();
-    set({
-      totalAmount: newState.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-      itemCount: newState.items.reduce((sum, item) => sum + item.quantity, 0),
-    });
-    localStorage.setItem('cart', JSON.stringify(get()));
-  },
-
-  updateItemQuantity: (productId, quantity) => {
-    // Backend API 호출
-    // cartApi.updateQuantity(productId, quantity);
-
-    if (quantity <= 0) {
-      get().removeItem(productId);
-      return;
-    }
-
-    set(state => ({
-      items: state.items.map(item =>
-        item.productId === productId
-          ? { ...item, quantity }
-          : item
-      ),
-    }));
-
-    // 재계산 및 LocalStorage 동기화
-    const newState = get();
-    set({
-      totalAmount: newState.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-      itemCount: newState.items.reduce((sum, item) => sum + item.quantity, 0),
-    });
-    localStorage.setItem('cart', JSON.stringify(get()));
-  },
-
-  clearCart: () => {
-    // Backend API 호출
-    // cartApi.clearCart();
-
-    set({
-      items: [],
-      totalAmount: 0,
-      itemCount: 0,
-    });
-    localStorage.removeItem('cart');
-  },
-
-  fetchCart: async () => {
-    // LocalStorage에서 로드
-    const stored = localStorage.getItem('cart');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      set(parsed);
-    }
-
-    // Backend와 동기화 (로그인 상태)
-    // const backendCart = await cartApi.getCart();
-    // merge logic...
-  },
-}));
+// 401 Unauthorized → 토큰 갱신 후 재시도
+// 429 Too Many Requests → 지연 후 재시도
+// 자동 처리, 애플리케이션 코드에서 신경 쓸 필요 없음
 ```
 
----
-
-### themeStore
+#### local client (Standalone)
 
 ```typescript
-// stores/themeStore.ts
-import { create } from 'zustand';
-
-interface ThemeState {
-  theme: 'light' | 'dark';
-  setTheme: (theme: 'light' | 'dark') => void;
-}
-
-export const useThemeStore = create<ThemeState>((set) => ({
-  theme: 'light',
-
-  setTheme: (theme) => {
-    set({ theme });
-    document.documentElement.setAttribute('data-theme', theme);
-  },
-}));
-```
-
----
-
-## 📋 이벤트 흐름 요약
-
-| 이벤트 | 발생 위치 | 처리 로직 | 결과 |
-|--------|----------|----------|------|
-| **App Mount** | `bootstrap.tsx` | ReactDOM.render() → App.tsx → Router 초기화 | 첫 화면 렌더링 |
-| **Product List Load** | `ProductListPage` | useEffect → productApi.getProducts() | 상품 목록 표시 |
-| **Add to Cart** | `ProductCard` | cartStore.addItem() → Backend + LocalStorage | 장바구니 추가, Toast 알림 |
-| **Cart Update** | `CartPage` | cartStore.updateItemQuantity() | 수량 변경, 금액 재계산 |
-| **Order Create** | `CheckoutPage` | orderApi.createOrder() → paymentApi.processPayment() | 주문 생성, 결제 처리 |
-| **Theme Toggle** | Portal Shell | watch isDark → setTheme() | 다크 모드 전환 |
-| **Navigation (Parent)** | Portal Shell | onParentNavigate() → router.navigate() | 라우팅 변경 |
-| **Navigation (Child)** | Shopping Frontend | <Link> → NavigationSync → onNavigate() | Portal에 알림, URL 동기화 |
-
----
-
-## 🔄 데이터 동기화 전략
-
-### 1. 장바구니 동기화
-- **LocalStorage**: 클라이언트 측 영속성 (새로고침 시 유지)
-- **Backend API**: 로그인 사용자의 경우 서버에도 저장
-- **Merge Logic**: `fetchCart()` 시 Local + Backend 데이터 병합
-
-### 2. 테마 동기화
-- **Embedded**: Portal `themeStore` (Vue) → Shopping `themeStore` (Zustand)
-- **Standalone**: `MutationObserver` → `class="dark"` 감지 → `data-theme` 업데이트
-
-### 3. 라우팅 동기화
-- **Parent → Child**: `onParentNavigate` prop
-- **Child → Parent**: `onNavigate` callback
-- **중복 방지**: `navigateTo()` 함수에서 현재 경로 체크
-
----
-
-## 🛠️ 에러 처리 패턴
-
-### API 호출 에러
-
-```typescript
-// pages/ProductListPage.tsx
-useEffect(() => {
-  async function loadProducts() {
-    try {
-      const response = await productApi.getProducts({ page: 0, size: 20 });
-      setProducts(response.content);
-    } catch (error) {
-      console.error('Failed to load products:', error);
-      // Toast 알림 표시
-      setError('상품 목록을 불러오는데 실패했습니다.');
-    }
+// Response interceptor
+response => response,
+error => {
+  if (error.response?.status === 401) {
+    window.__PORTAL_ON_AUTH_ERROR__?.()
   }
-  loadProducts();
-}, []);
+
+  // API 응답에서 error.message 추출
+  const apiError = error.response?.data?.error?.message
+  if (apiError) {
+    error.message = apiError
+  }
+
+  throw error
+}
 ```
 
-### Zustand 액션 에러
+### Zustand Store 레벨
 
 ```typescript
-addItem: async (product) => {
+// cartStore.addItem 예시
+addItem: async (productId, name, price, quantity) => {
+  set({ loading: true, error: null })
   try {
-    // Backend API 호출
-    await cartApi.addToCart(product.id, 1);
-
-    // 상태 업데이트
-    // ...
+    const response = await cartApi.addItem({ productId, quantity })
+    set({
+      cart: response,
+      itemCount: response.items.length,
+      totalAmount: response.totalAmount,
+      loading: false
+    })
   } catch (error) {
-    console.error('Failed to add to cart:', error);
-    // 롤백 로직 (필요시)
+    set({
+      error: error instanceof Error ? error.message : 'Failed to add item',
+      loading: false
+    })
   }
-},
+}
+```
+
+### 특별 케이스: 404 처리
+
+```typescript
+// cartStore.fetchCart
+try {
+  const cart = await cartApi.getCart()
+  set({ cart, itemCount: cart.items.length, totalAmount: cart.totalAmount })
+} catch (error) {
+  // 신규 사용자: 장바구니 없음 → 정상 상태
+  if (axios.isAxiosError(error) && error.response?.status === 404) {
+    set({ cart: null, itemCount: 0, totalAmount: 0, error: null })
+    return
+  }
+
+  // 그 외 에러는 에러 상태로 설정
+  set({ error: error.message })
+}
+```
+
+### UI 레벨
+
+```typescript
+// Page Component
+const { error } = useCartStore()
+
+if (error) {
+  return <ErrorMessage message={error} />
+}
 ```
 
 ---
 
-## 📝 미완성 항목 및 TODO
+## 🔗 API 엔드포인트 요약
 
-### 1. API 통합
-- [ ] `productApi`, `cartApi`, `orderApi`, `paymentApi` 실제 구현
-- [ ] Backend 응답 타입 정의 (TypeScript 인터페이스)
-- [ ] 에러 핸들링 고도화 (axios interceptor)
+모든 엔드포인트는 `/api/v1/shopping` 접두사를 가집니다.
 
-### 2. 상태 관리
-- [ ] Zustand DevTools 통합
-- [ ] cartStore의 Backend 동기화 로직 완성
-- [ ] optimistic update 패턴 적용
+### 상품 관련
 
-### 3. 컴포넌트
-- [ ] ProductListPage, ProductDetailPage, CartPage, CheckoutPage, OrderDetailPage 구현
-- [ ] 로딩 상태 UI (Skeleton, Spinner)
-- [ ] 에러 바운더리 (Error Boundary)
+| API Module | 주요 Endpoints | 역할 |
+|-----------|---------------|------|
+| productApi | GET /products<br/>GET /products/{id}<br/>GET /search/products | 상품 목록/상세/검색 |
+| inventoryApi | GET /inventory/{productId}<br/>POST /inventory/batch | 재고 조회 (단일/배치) |
+| inventoryStreamApi | SSE /inventory/stream | 실시간 재고 변동 |
+| productReviewApi | GET /products/{id}/with-reviews | 상품 + 리뷰 통합 조회 |
+| stockMovementApi | GET /inventory/{productId}/movements | 재고 입출고 내역 |
 
-### 4. 테스트
-- [ ] 단위 테스트 (Jest + React Testing Library)
-- [ ] E2E 테스트 (Playwright)
+### 장바구니/주문
+
+| API Module | 주요 Endpoints | 역할 |
+|-----------|---------------|------|
+| cartApi | GET /cart<br/>POST /cart/items<br/>PUT /cart/items/{id}<br/>DELETE /cart/items/{id} | 장바구니 CRUD |
+| orderApi | GET /orders<br/>GET /orders/{orderNumber}<br/>POST /orders<br/>POST /orders/{orderNumber}/cancel | 주문 조회/생성/취소 |
+| paymentApi | GET /payments/{orderNumber}<br/>POST /payments<br/>POST /payments/{orderNumber}/cancel | 결제 조회/처리/취소 |
+| deliveryApi | GET /deliveries/order/{orderNumber}<br/>GET /deliveries/{trackingNumber} | 배송 조회 |
+
+### 프로모션
+
+| API Module | 주요 Endpoints | 역할 |
+|-----------|---------------|------|
+| couponApi | GET /coupons<br/>POST /coupons/{id}/issue<br/>GET /coupons/my<br/>GET /coupons/my/available | 쿠폰 조회/발급 |
+| timeDealApi | GET /time-deals<br/>GET /time-deals/{id}<br/>POST /time-deals/purchase | 타임딜 조회/구매 |
+| queueApi | POST /queue/{type}/{id}/enter<br/>GET /queue/{type}/{id}/status<br/>SSE /queue/{type}/{id}/subscribe/{token} | 대기열 진입/조회/구독 |
+
+### 검색
+
+| API Module | 주요 Endpoints | 역할 |
+|-----------|---------------|------|
+| searchApi | GET /search/suggest<br/>GET /search/popular<br/>GET /search/recent | 검색어 제안/인기/최근 |
+
+### 관리자
+
+| API Module | 주요 Endpoints | 역할 |
+|-----------|---------------|------|
+| adminProductApi | POST /admin/products<br/>PUT /admin/products/{id}<br/>PATCH /admin/products/{id}/stock | 상품 생성/수정/재고 조정 |
+| adminCouponApi | GET /admin/coupons<br/>POST /admin/coupons<br/>DELETE /admin/coupons/{id} | 쿠폰 관리 |
+| adminTimeDealApi | GET /admin/time-deals<br/>POST /admin/time-deals<br/>DELETE /admin/time-deals/{id} | 타임딜 관리 |
+| adminOrderApi | GET /admin/orders<br/>PUT /admin/orders/{orderNumber}/status | 주문 관리 |
+| adminQueueApi | POST /admin/queue/{type}/{id}/activate<br/>POST /admin/queue/{type}/{id}/deactivate<br/>POST /admin/queue/{type}/{id}/process | 대기열 관리 |
+| adminPaymentApi | POST /payments/{paymentNumber}/refund | 결제 환불 |
 
 ---
 
-## 🔗 관련 문서
+## 📚 관련 문서
 
-- [System Overview](./system-overview.md)
-- [API Documentation](../api/README.md)
-- [Developer Guides](../guides/README.md)
-- [Portal Universe CLAUDE.md](../../../../../CLAUDE.md)
-
----
-
-**최종 업데이트**: 2026-01-18
+- [System Overview](./system-overview.md) - Shopping Frontend 시스템 개요
+- [Module Federation](./module-federation.md) - Module Federation 통합 구조
+- [API 명세](../../api/shopping-service/shopping-api.md) - Shopping Service REST API
+- [Portal Bridge 가이드](../../guides/portal-bridge.md) - Portal Bridge 사용 가이드

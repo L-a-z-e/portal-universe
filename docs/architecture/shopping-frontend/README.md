@@ -1,49 +1,34 @@
-# Architecture 문서
+# Architecture Documentation
 
-> Shopping Frontend의 아키텍처 문서 목록
-
----
-
-## 📋 문서 목록
-
-| ID | 제목 | 상태 | 최종 업데이트 |
-|----|------|------|---------------|
-| arch-system-overview | [System Overview](./system-overview.md) | current | 2026-01-18 |
-| arch-data-flow | [Data Flow](./data-flow.md) | current | 2026-01-18 |
+Shopping Frontend 아키텍처 문서 목록입니다.
 
 ---
 
-## 📌 마지막 ID
+## 📚 문서 목록
 
-- **arch-data-flow** (2026-01-18)
-
----
-
-## 📁 문서 구조
-
-```
-architecture/
-├── README.md               # 이 파일
-├── system-overview.md      # ✅ 시스템 전체 구조
-└── data-flow.md            # ✅ 데이터 흐름, 상태 관리, API 통신
-```
+| ID | 문서 | 상태 | 마지막 업데이트 | 설명 |
+|----|------|------|-----------------|------|
+| arch-system-overview | [System Overview](./system-overview.md) | ✅ Current | 2026-02-06 | 시스템 전체 구조, 기술 스택, 라우팅, 보안 |
+| arch-data-flow | [Data Flow](./data-flow.md) | ✅ Current | 2026-02-06 | 데이터 흐름, API 통신, 상태 관리, SSE 스트림 |
+| arch-module-federation | [Module Federation](./module-federation.md) | ✅ Current | 2026-02-06 | MF 설정, Shared Dependencies, 트러블슈팅 |
 
 ---
 
-## ✅ 작성 완료
+## 📖 읽는 순서
 
-- [x] system-overview.md - React 18 기반 Module Federation Remote 구조
-- [x] data-flow.md - 상품 조회, 장바구니, 주문 흐름, 테마/라우팅 동기화
-
----
-
-## 🚧 작성 예정
-
-- [ ] module-federation.md - Portal Shell 통합 상세
-- [ ] state-management.md - Zustand Store 구조
-- [ ] router-architecture.md - React Router v7 구조 및 네비게이션 패턴
-- [ ] theme-system.md - 테마 시스템 및 디자인 토큰
+1. **System Overview** - 전체 아키텍처, 기술 스택, 디렉토리 구조 파악
+2. **Module Federation** - Portal Shell 통합 방식, Embedded/Standalone 모드 이해
+3. **Data Flow** - 상세 데이터 흐름, API 패턴, 상태 관리
 
 ---
 
-**최종 업데이트**: 2026-01-18
+## 🔗 관련 리소스
+
+- [API Documentation](../../api/shopping-service/README.md)
+- [Architecture 템플릿](../../templates/architecture-template.md)
+- [Portal Shell Architecture](../portal-shell/)
+- [Blog Frontend Architecture](../blog-frontend/)
+
+---
+
+**최종 업데이트**: 2026-02-06
