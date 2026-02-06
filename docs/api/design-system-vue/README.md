@@ -237,7 +237,7 @@ Storybook URL: `http://localhost:6006`
 
 ## 🔗 관련 문서
 
-- [Architecture Overview](../../architecture/design-system/vue-system-overview.md)
+- [Architecture Overview](../../architecture/design-system/vue-components.md)
 - [Usage Guide](../../guides/development/getting-started.md)
 - [Theme Customization Guide](../../guides/development/theming-guide.md)
 

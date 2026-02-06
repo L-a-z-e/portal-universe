@@ -41,7 +41,7 @@ frontend/design-types/src/
 
 ## 관련 문서
 
-- [Design System Architecture](../../architecture/design-system/vue-system-overview.md)
+- [Design System Architecture](../../architecture/design-system/system-overview.md)
 
 ---
 

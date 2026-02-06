@@ -51,7 +51,7 @@ cn()
 
 ## 관련 문서
 
-- [Architecture Overview](../../architecture/design-system/react-system-overview.md)
+- [Architecture Overview](../../architecture/design-system/react-components.md)
 
 ---
 

@@ -22,7 +22,7 @@ Design Token (CSS 변수) 명세 문서입니다.
 
 ## 🔗 관련 문서
 
-- [Token System Architecture](../../architecture/design-system/tokens-token-system.md)
+- [Token System Architecture](../../architecture/design-system/token-system.md)
 
 ---
 
