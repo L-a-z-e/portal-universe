@@ -688,4 +688,4 @@ Vue와 동일한 컴포넌트에 추가로:
 ## 다음 단계
 
 - [Getting Started](./getting-started.md) -- 토큰 패키지 설치 및 기본 설정
-- [Customization Guide](./customization.md) -- 테마 커스터마이징 방법
+- [Theming Guide](./theming-guide.md) -- 테마 커스터마이징 방법

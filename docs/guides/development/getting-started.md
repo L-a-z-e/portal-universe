@@ -285,4 +285,4 @@ Base 토큰 대신 Semantic 토큰을 사용하세요.
 
 - [Token System Architecture](../architecture/token-system.md) - 토큰 시스템 이해
 - [CSS Variables Reference](../api/css-variables.md) - 전체 변수 목록
-- [Customization Guide](./customization.md) - 커스터마이징 방법
+- [Theming Guide](./theming-guide.md) - 커스터마이징 방법
