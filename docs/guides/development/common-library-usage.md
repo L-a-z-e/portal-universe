@@ -1,5 +1,5 @@
 ---
-id: GUIDE-001
+id: common-library-usage
 title: Common Library 사용 가이드
 type: guide
 status: current

@@ -314,7 +314,7 @@ public void login(String email) {
 ---
 
 ## 관련 문서
-- [GUIDE-001: Common Library 사용 가이드](../../guides/development/GUIDE-001-common-library-usage.md)
+- [Common Library 사용 가이드](../../guides/development/common-library-usage.md)
 - [Security Architecture](./security-architecture.md)
 - [Identity Model](./identity-model.md)
 - [API Gateway Architecture](../api-gateway/README.md)

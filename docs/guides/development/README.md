@@ -81,17 +81,8 @@ tags: [development, guide, index]
 
 | 문서 | 설명 |
 |------|------|
-| [Common Library 사용법](./GUIDE-001-common-library-usage.md) | 공유 라이브러리 활용 |
+| [Common Library 사용법](./common-library-usage.md) | 공유 라이브러리 활용 |
 | [Kafka 이벤트](./kafka-events.md) | 이벤트 기반 통신 |
-
----
-
-## 테스트
-
-| 문서 | 설명 |
-|------|------|
-| [테스트 전략](./test-strategy.md) | 전체 테스트 방법론 |
-| [테스트 플랜](./test-plan/) | 서비스별 테스트 계획 |
 
 ---
 
@@ -105,6 +96,7 @@ tags: [development, guide, index]
 
 ## 관련 문서
 
+- [테스트 문서](../../testing/) - 테스트 전략 및 계획
 - [아키텍처 문서](../../architecture/) - 시스템 및 서비스 아키텍처
 - [API 문서](../../api/) - REST API 명세
 - [ADR](../../adr/) - 아키텍처 결정 기록

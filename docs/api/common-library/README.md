@@ -82,7 +82,7 @@ com.portal.universe.commonlibrary/
 
 ## 관련 문서
 
-- [Common Library 사용 가이드](../../guides/development/GUIDE-001-common-library-usage.md)
+- [Common Library 사용 가이드](../../guides/development/common-library-usage.md)
 - [Auth Service API](../auth-service/README.md)
 
 ---

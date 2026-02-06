@@ -7,7 +7,7 @@
 ## 카테고리
 
 ### [개발 가이드](./development/)
-로컬 환경 구성, 아키텍처 패턴, 보안, 테스트 등 개발 관련 가이드 (28개)
+로컬 환경 구성, 아키텍처 패턴, 보안 등 개발 관련 가이드 (24개)
 
 **주요 문서**:
 - [로컬 개발 환경 구성](./development/local-dev-setup.md) - Zero to Running 전체 환경 구성
@@ -26,6 +26,7 @@ Docker, Kubernetes, CI/CD 등 배포 관련 가이드
 
 ## 관련 문서
 
+- [테스트](../testing/) - 테스트 전략 및 계획
 - [아키텍처](../architecture/) - 시스템 및 서비스 아키텍처
 - [API](../api/) - REST API 명세
 - [Runbooks](../runbooks/) - 운영 절차서
