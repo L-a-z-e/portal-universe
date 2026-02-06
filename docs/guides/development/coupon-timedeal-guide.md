@@ -913,7 +913,7 @@ try {
 - [Coupon API](../../api/shopping-frontend/) - 쿠폰 API <!-- TODO: verify coupon API location -->
 - [TimeDeal API](../../api/shopping-frontend/) - 타임딜 API <!-- TODO: verify timedeal API location -->
 - [ADR-002](../../adr/) - 대기열 시스템 설계 <!-- TODO: verify ADR-002 location -->
-- [Admin UI Guide](./admin-ui-guide.md) - 관리자 UI 가이드
+- [Admin 가이드](./admin-guide.md) - Shopping Admin 가이드
 
 ---
 

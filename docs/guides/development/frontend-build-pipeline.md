@@ -153,7 +153,7 @@ ls frontend/shopping-frontend/dist/
 - [Execution Guide](../../../.claude/rules/execution.md) - 실행 명령어 전체
 - [Module Federation 상세](../../../.claude/skills/module-federation.md) - MF 설정 및 트러블슈팅
 - [Design System Architecture](design-system-architecture.md) - 디자인 시스템 구조
-- [Federation Integration](federation-integration.md) - Module Federation 통합
+- [Module Federation 통합 가이드](module-federation-guide.md) - Module Federation 통합
 
 ---
 

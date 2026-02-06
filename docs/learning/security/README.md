@@ -76,7 +76,7 @@
 ### 프로젝트 문서
 - [보안 강화 계획](../../guides/development/security-enhancement-plan.md)
 - [ADR-010: 보안 아키텍처](../../adr/ADR-010-security-enhancement-architecture.md)
-- [구현 명세](../../guides/security-implementation-spec.md)
+- [보안 헤더](../../guides/development/security-headers.md)
 
 ### 외부 리소스
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)

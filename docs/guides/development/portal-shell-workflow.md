@@ -9,7 +9,7 @@ author: Laze
 tags: [portal-shell, development, workflow, debugging, testing, vue3]
 related:
   - portal-shell-getting-started
-  - portal-shell-adding-remote
+  - module-federation-guide
 ---
 
 # Portal Shell - Development Workflow
@@ -770,7 +770,7 @@ apiClient.interceptors.request.use(config => {
 
 ## ➡️ 다음 단계
 
-1. **Remote 모듈 추가**: [adding-remote.md](./adding-remote.md)
+1. **Remote 모듈 추가**: [Module Federation 통합 가이드](./module-federation-guide.md)
 2. **Architecture 문서**: [../architecture/](../architecture/)
 3. **API 명세**: [../api/](../api/)
 4. **Troubleshooting 가이드**: [../troubleshooting/](../troubleshooting/)

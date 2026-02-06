@@ -9,7 +9,7 @@ author: Laze
 tags: [swagger, actuator, security, spring-boot, prometheus]
 related:
   - guide-jwt-rbac-setup
-  - guide-security-implementation-spec
+  - guide-security-headers
 ---
 
 # Swagger/Actuator 보안 설정 가이드

@@ -258,7 +258,7 @@ export default defineConfig({
 
 ### Module Federation 가이드
 - [Module Federation 개요](../../architecture/portal-shell/module-federation.md)
-- [Remote 모듈 개발 가이드](../../guides/development/adding-remote.md)
+- [Module Federation 통합 가이드](../../guides/development/module-federation-guide.md)
 
 ### 아키텍처 문서
 - [프론트엔드 아키텍처](../../architecture/portal-shell/system-overview.md)

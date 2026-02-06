@@ -46,12 +46,11 @@ tags: [development, guide, index]
 
 | 문서 | 설명 |
 |------|------|
-| [JWT RBAC 설정](./jwt-rbac-setup.md) | JWT 기반 역할 권한 설정 |
+| [JWT RBAC 설정](./jwt-rbac-setup.md) | JWT 기반 역할 권한 설정 + 로그인 보안 |
 | [RBAC 리팩토링](./rbac-refactoring.md) | 역할 기반 접근 제어 개선 |
-| [보안 구현 스펙](./security-implementation-spec.md) | 보안 기능 구현 명세 |
 | [보안 모듈](./security-module.md) | 보안 관련 공통 모듈 |
-| [보안 헤더 테스트](./security-headers-testing.md) | HTTP 보안 헤더 검증 |
-| [보안 감사 로그](./security-audit-log-setup.md) | 감사 로그 설정 |
+| [보안 헤더](./security-headers.md) | HTTP 보안 헤더 구현 및 검증 |
+| [보안 감사 로그](./security-audit-log-setup.md) | 감사 로그 구현 및 설정 |
 | [Swagger/Actuator 보안](./swagger-actuator-security.md) | API 문서 및 모니터링 엔드포인트 보호 |
 
 ---
@@ -60,8 +59,7 @@ tags: [development, guide, index]
 
 | 문서 | 설명 |
 |------|------|
-| [Admin UI 가이드](./admin-ui-guide.md) | 관리자 인터페이스 |
-| [Admin 상품 가이드](./admin-product-guide.md) | 상품 관리 기능 |
+| [Admin 가이드](./admin-guide.md) | Shopping Admin 접근/권한/상품 관리/개발 레퍼런스 |
 | [쿠폰/타임딜 가이드](./coupon-timedeal-guide.md) | 프로모션 기능 |
 | [Rate Limiting](./rate-limiting.md) | API 요청 제한 |
 
@@ -71,8 +69,7 @@ tags: [development, guide, index]
 
 | 문서 | 설명 |
 |------|------|
-| [Module Federation 통합](./federation-integration.md) | MFE 통합 가이드 |
-| [Remote 앱 추가](./adding-remote.md) | 새 Remote 앱 연결 |
+| [Module Federation 통합 가이드](./module-federation-guide.md) | Remote 추가/통합/트러블슈팅 |
 | [빌드 파이프라인](./frontend-build-pipeline.md) | 프론트엔드 빌드 프로세스 |
 
 ---

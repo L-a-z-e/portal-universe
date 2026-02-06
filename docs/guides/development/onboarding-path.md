@@ -95,7 +95,7 @@ tags: [onboarding, guide, getting-started]
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
 | 4 | [API Gateway](../../architecture/) | 라우팅, JWT 검증, Circuit Breaker | <!-- TODO: verify api gateway docs location -->
-| 5 | [`/docs/guides/security-implementation-spec.md`](security-implementation-spec.md) | Rate Limiting, 감사 로깅 |
+| 5 | [`/docs/guides/development/rate-limiting.md`](rate-limiting.md) | Rate Limiting |
 
 ---
 
