@@ -1,6 +1,6 @@
-# Portal Universe 문서
+# Portal Universe Document
 
-> MSA + MFA 프로젝트의 중앙 문서 저장소
+> MSA + MFA Polyglot Project 중앙 문서 저장소
 
 **마지막 업데이트**: 2026-02-06 (서비스 간 통신 아키텍처 문서 추가)
 

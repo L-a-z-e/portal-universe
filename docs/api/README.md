@@ -13,6 +13,7 @@
 | Blog Service | [blog-service/](./blog-service/) | 게시물, 댓글, 시리즈, 태그, 좋아요 | 1 |
 | Shopping Service | [shopping-service/](./shopping-service/) | 상품, 주문, 결제, 배송, 쿠폰, 타임딜, 대기열 | 10 |
 | Notification Service | [notification-service/](./notification-service/) | 알림 CRUD, WebSocket, Kafka Events, Redis Pub/Sub | 2 |
+| Chatbot Service | [chatbot-service/](./chatbot-service/) | RAG 기반 AI 채팅, 문서 관리, SSE 스트리밍 | 1 |
 
 ## Frontend Applications
 
@@ -43,6 +44,7 @@
 | Blog | B | B001 ~ B099 |
 | Shopping | S | S001 ~ S099 |
 | Notification | N | N001 ~ N099 |
+| Chatbot | CB | CB001 ~ CB099 |
 
 ---
 
