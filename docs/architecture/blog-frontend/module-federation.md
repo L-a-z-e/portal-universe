@@ -4,7 +4,7 @@ title: Blog Frontend Module Federation 설정
 type: architecture
 status: current
 created: 2026-01-23
-updated: 2026-01-30
+updated: 2026-02-06
 author: Laze
 tags: [blog-frontend, module-federation, vue, architecture]
 ---
@@ -240,54 +240,28 @@ watch(
 
 ## CSS 격리 및 관리
 
-### 문제점
+### CSS Lifecycle 관리
 
-Blog Frontend의 CSS가 Portal Shell에 오염될 수 있습니다:
-
-```html
-<!-- 문제: Blog의 <style> 태그가 <head>에 남음 -->
-<head>
-  <style>/* Portal CSS */</style>
-  <style>/* Blog CSS */ [data-service="blog"] { ... }</style>  <!-- 남겨짐 -->
-</head>
-```
-
-### 해결책
-
-#### 1. bootstrap.ts에서 CSS 정리
+CSS lifecycle은 **Portal Shell(RemoteWrapper)에서 중앙 관리**합니다. Remote app(Blog Frontend)은 Vue app unmount와 DOM 정리만 담당합니다.
 
 ```typescript
+// bootstrap.ts - unmount 함수
 unmount: () => {
-  // 1. Vue 앱 언마운트
+  // 1. Vue App Unmount
   app.unmount();
-  
-  // 2. <style> 태그 정리
-  const styleTags = document.querySelectorAll('style');
-  styleTags.forEach((tag) => {
-    const content = tag.textContent || '';
-    if (content.includes('[data-service="blog"]') ||
-        content.includes('blog-')) {
-      tag.remove();
-    }
-  });
-  
-  // 3. <link> 태그 정리
-  const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
-  linkTags.forEach((tag) => {
-    const href = tag.getAttribute('href') || '';
-    if (href.includes('blog')) {
-      tag.remove();
-    }
-  });
-  
-  // 4. data-service 속성 정리
+
+  // 2. DOM Cleanup (CSS는 Portal Shell에서 관리)
+  el.innerHTML = '';
+
   if (document.documentElement.getAttribute('data-service') === 'blog') {
     document.documentElement.removeAttribute('data-service');
   }
 }
 ```
 
-#### 2. Scoped CSS 사용
+### CSS 격리 전략
+
+#### 1. Scoped CSS 사용
 
 ```vue
 <style scoped>
@@ -296,16 +270,11 @@ unmount: () => {
 </style>
 ```
 
-#### 3. CSS Modules
+#### 2. Service-Specific Theme
 
-```vue
-<script setup>
-import styles from './PostCard.module.css';
-</script>
-
-<template>
-  <div :class="styles.card">...</div>
-</template>
+```html
+<!-- data-service 속성으로 서비스별 스타일 격리 -->
+<html data-service="blog">
 ```
 
 ## 환경별 빌드
@@ -503,10 +472,10 @@ const remoteURL = 'http://localhost:30001/remoteEntry.js?v=' + Date.now();
 
 ## 관련 문서
 
-- [README.md](./README.md) - 모듈 개요
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - 아키텍처 상세
-- [COMPONENTS.md](./COMPONENTS.md) - 컴포넌트 가이드
+- [README.md](./README.md) - 문서 목록
+- [System Overview](./system-overview.md) - 아키텍처 상세
+- [Data Flow](./data-flow.md) - 데이터 흐름 및 API 맵핑
 
 ---
 
-**최종 업데이트**: 2026-01-30
+**최종 업데이트**: 2026-02-06

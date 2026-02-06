@@ -4,34 +4,36 @@ Blog Frontend 아키텍처 문서 목록입니다.
 
 ---
 
-## 📚 문서 목록
+## 문서 목록
 
 | ID | 문서 | 상태 | 마지막 업데이트 | 설명 |
 |----|------|------|-----------------|------|
-| arch-system-overview | [System Overview](./system-overview.md) | ✅ Current | 2026-01-18 | 시스템 전체 구조 및 핵심 특징 |
-| arch-data-flow | [Data Flow](./data-flow.md) | ✅ Current | 2026-01-18 | 데이터 흐름, API 통신, 인증, Pinia 상태 관리 |
-| arch-module-federation | [Module Federation](./module-federation.md) | ✅ Current | 2026-01-18 | Module Federation 상세 설정 및 통합 가이드 |
+| arch-system-overview | [System Overview](./system-overview.md) | ✅ Current | 2026-02-06 | 시스템 전체 구조 및 핵심 특징 |
+| arch-data-flow | [Data Flow](./data-flow.md) | ✅ Current | 2026-02-06 | 데이터 흐름, API 통신, 인증, Pinia 상태 관리 |
+| arch-module-federation | [Module Federation](./module-federation.md) | ✅ Current | 2026-02-06 | Module Federation 상세 설정 및 통합 가이드 |
 
 ---
 
-## 📋 작성 예정 문서
+## 주제별 참조 가이드
 
-| 문서명 | 우선순위 | 설명 |
-|--------|---------|------|
-| `dual-mode.md` | P2 | Standalone/Embedded 모드 상세 설명 |
-| `router-architecture.md` | P2 | 라우터 구조 및 네비게이션 패턴 |
-| `theme-system.md` | P2 | 테마 시스템 및 디자인 토큰 |
-| `state-management.md` | P3 | Pinia Stores 구조 |
+아래 주제들은 기존 문서에 통합되어 있습니다.
 
----
-
-## 🔗 관련 리소스
-
-- [API Documentation](../api/README.md)
-- [Developer Guides](../guides/README.md)
-- [Architecture 템플릿](../../templates/architecture-template.md)
-- [Portal Universe 전체 문서](../../../../README.md)
+| 주제 | 참조 문서 | 섹션 |
+|------|-----------|------|
+| Standalone/Embedded Dual Mode | [system-overview.md](./system-overview.md) | Dual Mode Architecture, Entry Points |
+| Router Architecture & Auth Guard | [system-overview.md](./system-overview.md) | Router Configuration |
+| Theme System & Dark Mode | [system-overview.md](./system-overview.md) | Theme & Styling |
+| State Management (Pinia) | [data-flow.md](./data-flow.md) | Pinia 상태 관리 흐름 |
 
 ---
 
-**최종 업데이트**: 2026-01-18
+## 관련 리소스
+
+- [Blog Service API Documentation](../../api/blog-service/)
+- [Blog Service Architecture](../blog-service/)
+- [Auth Service Architecture](../auth-service/)
+- [Portal Shell Architecture](../portal-shell/)
+
+---
+
+**최종 업데이트**: 2026-02-06

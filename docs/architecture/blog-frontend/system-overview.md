@@ -4,7 +4,7 @@ title: Blog Frontend System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: Laze
 tags: [architecture, vue3, micro-frontend, module-federation, dual-mode]
 related:
@@ -14,15 +14,17 @@ related:
 
 # Blog Frontend System Overview
 
-## 📋 개요
+## 개요
 
 Blog Frontend는 Vue 3 기반의 마이크로 프론트엔드 애플리케이션으로, Module Federation을 통해 Portal Shell에 통합되거나 독립 실행(Standalone) 가능한 **Dual Mode** 아키텍처를 제공합니다.
 
-블로그 게시물의 CRUD(생성, 조회, 수정, 삭제) 기능을 제공하며, ToastUI Editor를 통한 마크다운 편집, 이미지 업로드, 태그/시리즈 관리 등의 기능을 포함합니다.
+블로그 게시물의 CRUD(생성, 조회, 수정, 삭제) 기능 외에도 **좋아요**, **팔로우**, **시리즈 관리**, **태그 탐색**, **사용자 블로그 프로필**, **통계 대시보드**, **고급 검색** 기능을 포함하는 종합 블로그 플랫폼입니다.
+
+**Cross-service 통신**: blog-service(게시물, 댓글, 시리즈, 태그, 좋아요)와 auth-service(팔로우, 사용자 프로필)를 동시에 호출하는 멀티 서비스 아키텍처입니다.
 
 ---
 
-## 🎯 핵심 특징
+## 핵심 특징
 
 ### 1. Dual Mode Architecture
 - **Standalone Mode**: 독립 실행 가능한 SPA (Web History)
@@ -32,12 +34,11 @@ Blog Frontend는 Vue 3 기반의 마이크로 프론트엔드 애플리케이션
 ### 2. Module Federation Integration
 - Vite + @originjs/vite-plugin-federation
 - `./bootstrap` 모듈을 Portal Shell에 노출
-- Portal Shell의 `apiClient`, `themeStore` 재사용
+- Portal Shell의 `apiClient` 재사용 (MF `portal/api`)
 
-### 3. Design System Integration
-- `@portal/design-system` 공유 컴포넌트 사용
-- `data-service="blog"` 속성을 통한 서비스별 테마 적용
-- Portal Shell의 다크모드 동기화
+### 3. Cross-Service API
+- **blog-service**: 게시물, 댓글, 시리즈, 태그, 좋아요, 통계, 파일 업로드
+- **auth-service**: 팔로우, 사용자 프로필, username 관리
 
 ### 4. Rich Editor
 - ToastUI Editor 기반 마크다운 편집
@@ -46,7 +47,7 @@ Blog Frontend는 Vue 3 기반의 마이크로 프론트엔드 애플리케이션
 
 ---
 
-## 🏗️ High-Level Architecture
+## High-Level Architecture
 
 ```mermaid
 graph TB
@@ -55,327 +56,494 @@ graph TB
     end
 
     subgraph "Blog Frontend (Port 30001)"
-        B[main.ts<br/>Entry Point]
-        C[bootstrap.ts<br/>Mount Function]
-        D[App.vue<br/>Root Component]
+        B[main.ts / bootstrap.ts<br/>Entry Points]
 
         subgraph "Router Layer"
-            E[Router<br/>Memory/Web History]
+            R[Vue Router<br/>12 routes + Auth Guard]
         end
 
-        subgraph "View Layer"
-            F1[PostListPage]
-            F2[PostDetailPage]
-            F3[PostWritePage]
-            F4[PostEditPage]
+        subgraph "View Layer (12 Views)"
+            V_POST[Post 도메인<br/>List, Detail, Write, Edit]
+            V_SOCIAL[Social 도메인<br/>UserBlog, MyPage]
+            V_DISCOVER[탐색 도메인<br/>Tags, Categories, Series]
+            V_UTIL[유틸 도메인<br/>AdvancedSearch, Stats]
         end
 
-        subgraph "Component Layer"
-            G1[PostCard]
-            G2[Design System<br/>Components]
+        subgraph "Component Layer (17 Components)"
+            C_POST[Post: PostCard, PostNavigation, RelatedPosts]
+            C_COMMENT[Comment: CommentList, CommentItem, CommentForm]
+            C_SOCIAL[Social: LikeButton, FollowButton, LikersModal, FollowerModal]
+            C_SERIES[Series: SeriesBox, SeriesCard]
+            C_USER[User/My: UserProfileCard, ProfileEditForm, MyPostList, MySeriesList]
+            C_TAG[Tag: TagAutocomplete]
         end
 
-        subgraph "State Management"
-            H[Pinia Stores<br/>searchStore]
+        subgraph "State Management (Pinia)"
+            SS[searchStore]
+            FS[followStore]
         end
 
-        subgraph "API Layer"
-            I[API Client<br/>from Portal Shell]
+        subgraph "API Layer (8 Modules)"
+            API_BLOG[blog-service APIs<br/>posts, comments, likes,<br/>series, tags, files]
+            API_AUTH[auth-service APIs<br/>follow, users]
+        end
+
+        subgraph "Composables (2)"
+            COMP[useRelativeTime<br/>useThemeDetection]
         end
     end
 
     subgraph "Portal Shell"
-        J[apiClient]
-        K[themeStore]
+        PS_API[apiClient via portal/api]
+        PS_AUTH[authStore via portal/stores]
     end
 
     subgraph "Backend"
-        L[API Gateway<br/>:8080]
-        M[Blog Service<br/>:8082]
+        GW[API Gateway :8080]
+        BS[blog-service :8082]
+        AS[auth-service :8081]
     end
 
     subgraph "Storage"
-        N[(MongoDB)]
-        O[S3]
+        DB[(MongoDB)]
+        RDB[(MySQL)]
+        S3[S3]
     end
 
     A --> B
-    B --> C
-    B --> D
-    C --> D
-    D --> E
-    E --> F1
-    E --> F2
-    E --> F3
-    E --> F4
-    F1 --> G1
-    F2 --> G1
-    F1 --> G2
-    F2 --> G2
-    F3 --> G2
-    F4 --> G2
-    F1 --> H
-    F2 --> H
-    F3 --> H
-    F4 --> H
-    F1 --> I
-    F2 --> I
-    F3 --> I
-    F4 --> I
+    B --> R
+    R --> V_POST & V_SOCIAL & V_DISCOVER & V_UTIL
+    V_POST --> C_POST & C_COMMENT & C_SOCIAL & C_SERIES
+    V_SOCIAL --> C_USER & C_SOCIAL
+    V_DISCOVER --> C_TAG & C_SERIES
+    V_POST & V_SOCIAL & V_DISCOVER & V_UTIL --> SS & FS
+    V_POST & V_SOCIAL & V_DISCOVER & V_UTIL --> API_BLOG & API_AUTH
+    C_POST & C_COMMENT & C_SOCIAL & C_USER --> COMP
 
-    I -.imports.-> J
-    D -.imports.-> K
+    API_BLOG & API_AUTH -.->|import| PS_API
+    V_POST -.->|import| PS_AUTH
 
-    I --> L
-    L --> M
-    M --> N
-    M --> O
+    API_BLOG --> GW --> BS --> DB & S3
+    API_AUTH --> GW --> AS --> RDB
 ```
 
 ---
 
-## 📦 컴포넌트 상세
+## Entry Points
 
-### 1. Entry Points
+### main.ts (Standalone Mode)
 
-#### main.ts (Standalone Mode)
 | 항목 | 내용 |
 |------|------|
 | **역할** | 독립 실행 시 진입점 |
-| **History** | Web History (브라우저 URL 관리) |
+| **History** | Web History (`createWebHistory('/')`) |
 | **Router** | `createStandaloneBlogRouter()` |
 | **감지 방법** | `window.__POWERED_BY_PORTAL_SHELL__ !== true` |
+| **인증** | `window.__PORTAL_ACCESS_TOKEN__` 존재 여부로 판단 |
 
-#### bootstrap.ts (Embedded Mode)
+### bootstrap.ts (Embedded Mode)
+
 | 항목 | 내용 |
 |------|------|
 | **역할** | Portal Shell 통합 시 진입점 |
 | **Export** | `mountBlogApp(el, options)` 함수 |
-| **History** | Memory History (Portal Shell이 URL 관리) |
+| **History** | Memory History (`createMemoryHistory('/')`) |
 | **Router** | `createBlogRouter('/')` |
-| **Lifecycle** | `router`, `onParentNavigate`, `unmount` 반환 |
+| **Lifecycle** | `router`, `onParentNavigate`, `unmount`, `onActivated`, `onDeactivated` 반환 |
+| **CSS 관리** | CSS lifecycle은 Portal Shell(RemoteWrapper)에서 중앙 관리. Remote app은 Vue app unmount와 DOM 정리만 담당 |
 
 ---
 
-### 2. Router Configuration
+## Router Configuration
 
-```mermaid
-graph LR
-    A[/] --> B[PostListPage]
-    C[/:postId] --> D[PostDetailPage]
-    E[/write] --> F[PostWritePage]
-    G[/edit/:postId] --> H[PostEditPage]
-```
+### Route 테이블 (12개)
 
-| Route | Component | Description |
-|-------|-----------|-------------|
-| `/` | PostListPage | 게시물 목록 (검색, 필터링) |
-| `/:postId` | PostDetailPage | 게시물 상세 (댓글, 태그) |
-| `/write` | PostWritePage | 새 게시물 작성 |
-| `/edit/:postId` | PostEditPage | 게시물 수정 |
+| Route | Name | Component | Auth | Props | 설명 |
+|-------|------|-----------|------|-------|------|
+| `/` | PostList | PostListPage | - | - | 게시물 목록 (검색, 필터링) |
+| `/tags` | TagList | TagListPage | - | - | 전체 태그 목록 |
+| `/tags/:tagName` | TagDetail | TagDetailPage | - | `true` | 태그별 게시물 목록 |
+| `/categories` | CategoryList | CategoryListPage | - | - | 카테고리 목록 및 통계 |
+| `/search/advanced` | AdvancedSearch | AdvancedSearchPage | - | - | 고급 검색 (다중 조건) |
+| `/stats` | Stats | StatsPage | - | - | 블로그 통계 대시보드 |
+| `/write` | PostWrite | PostWritePage | - | - | 새 게시물 작성 |
+| `/edit/:postId` | PostEdit | PostEditPage | - | `true` | 게시물 수정 |
+| `/series/:seriesId` | SeriesDetail | SeriesDetailPage | - | `true` | 시리즈 상세 및 포스트 목록 |
+| `/my` | MyPage | MyPage | ✅ | - | 내 블로그 관리 (글, 시리즈) |
+| `/@:username` | UserBlog | UserBlogPage | - | `true` | 사용자 블로그 프로필 |
+| `/:postId` | PostDetail | PostDetailPage | - | `true` | 게시물 상세 (댓글, 좋아요) |
 
-**Router 모드**:
-- **Standalone**: Web History (`createWebHistory('/')`)
-- **Embedded**: Memory History (`createMemoryHistory('/')`)
+### Auth Guard (`addAuthGuard`)
 
----
+`meta.requiresAuth: true`인 라우트에 대해 인증을 검사합니다.
 
-### 3. View Layer
+- **Embedded 모드**: `portal/stores`의 `authStore.isAuthenticated` 확인
+- **Standalone 모드**: `window.__PORTAL_ACCESS_TOKEN__` 존재 여부 확인
+- **미인증 시**: `window.__PORTAL_SHOW_LOGIN__()` 호출하여 Portal Shell에 로그인 모달 요청
 
-#### PostListPage
-- 게시물 목록 조회 (페이징)
-- 검색 기능 (Pinia searchStore 연동)
-- 태그/시리즈 필터링
-- PostCard 컴포넌트 렌더링
+### Router 모드
 
-#### PostDetailPage
-- 게시물 상세 조회
-- 마크다운 렌더링
-- 댓글 목록/작성
-- 태그, 시리즈 정보 표시
-
-#### PostWritePage
-- ToastUI Editor 통합
-- 이미지 업로드 (S3)
-- 태그/시리즈 선택
-- 임시 저장 기능
-
-#### PostEditPage
-- 기존 게시물 불러오기
-- ToastUI Editor 수정 모드
-- 수정 사항 저장
+- **Standalone**: Web History (`createWebHistory('/')`) - 브라우저 URL 직접 관리
+- **Embedded**: Memory History (`createMemoryHistory('/')`) - Portal Shell이 URL 관리
 
 ---
 
-### 4. Component Layer
+## View Layer (12 Views)
 
-#### PostCard.vue
-| 항목 | 내용 |
-|------|------|
-| **역할** | 게시물 카드 UI |
-| **Props** | `post: PostSummaryResponse` |
-| **표시 정보** | 제목, 요약, 태그, 작성일, 조회수 |
+### Post 도메인
 
-#### Design System Components
-- `Button`, `Card`, `Badge`, `Input`, `Modal`, `Tag`, `Avatar`, `SearchBar`
-- `@portal/design-system`에서 import
-- Semantic 클래스 사용 (`bg-bg-page`, `text-text-body` 등)
+| View | 역할 | 주요 API | 사용 컴포넌트 |
+|------|------|----------|--------------|
+| **PostListPage** | 게시물 목록, 검색, 페이징, 무한 스크롤 | `getPublishedPosts`, `searchPosts`, `getTrendingPosts` | PostCard |
+| **PostDetailPage** | 게시물 상세, 댓글, 좋아요, 시리즈, 네비게이션, 관련글 | `getPostById`, `getCommentsByPostId`, `getLikeStatus`, `getSeriesByPostId`, `getPostNavigation`, `getRelatedPosts` | CommentList, CommentForm, LikeButton, SeriesBox, PostNavigation, RelatedPosts, LikersModal |
+| **PostWritePage** | 새 게시물 작성 (ToastUI Editor) | `createPost`, `uploadFile`, `getMySeries` | TagAutocomplete |
+| **PostEditPage** | 기존 게시물 수정 | `getPostById`, `updatePost`, `uploadFile` | TagAutocomplete |
+
+### Social 도메인
+
+| View | 역할 | 주요 API | 사용 컴포넌트 |
+|------|------|----------|--------------|
+| **UserBlogPage** | 사용자 공개 프로필 + 게시물 목록 | `getPublicProfile` (auth-service), `getPostsByAuthor` (blog-service) | UserProfileCard, FollowButton, PostCard, FollowerModal |
+| **MyPage** | 내 블로그 관리 (게시물, 시리즈, 프로필 편집) | `getMyProfile`, `getMyPosts`, `getMySeries`, `updateProfile` | MyPostList, MySeriesList, ProfileEditForm |
+
+### 탐색 도메인
+
+| View | 역할 | 주요 API | 사용 컴포넌트 |
+|------|------|----------|--------------|
+| **TagListPage** | 전체 태그 목록 (인기 태그 포함) | `getAllTags`, `getPopularTags` | - |
+| **TagDetailPage** | 특정 태그의 게시물 목록 | `getTagByName`, `getPostsByTag` | PostCard |
+| **CategoryListPage** | 카테고리 목록 및 통계 | `getCategoryStats` | - |
+| **SeriesDetailPage** | 시리즈 상세 + 포함 포스트 목록 | `getSeriesById`, `getSeriesPosts` | SeriesCard, PostCard |
+
+### 유틸 도메인
+
+| View | 역할 | 주요 API | 사용 컴포넌트 |
+|------|------|----------|--------------|
+| **AdvancedSearchPage** | 다중 조건 검색 (키워드, 카테고리, 태그, 작성자, 기간) | `searchPostsAdvanced` | PostCard, TagAutocomplete |
+| **StatsPage** | 블로그 통계 대시보드 | `getBlogStats`, `getCategoryStats`, `getPopularTags` | - |
 
 ---
 
-### 5. State Management (Pinia)
+## Component Layer (17 Components)
 
-#### searchStore
+### Post (3)
+
+| Component | 역할 | Props |
+|-----------|------|-------|
+| **PostCard** | 게시물 카드 UI (목록용) | `post: PostSummaryResponse` |
+| **PostNavigation** | 이전/다음 게시물 네비게이션 | `postId: string`, `scope: string` |
+| **RelatedPosts** | 관련 게시물 목록 | `postId: string` |
+
+### Comment (3)
+
+| Component | 역할 | Props |
+|-----------|------|-------|
+| **CommentList** | 댓글 목록 표시 (트리 구조) | `postId: string` |
+| **CommentItem** | 개별 댓글 렌더링 (수정/삭제) | `comment: CommentResponse` |
+| **CommentForm** | 댓글 작성 폼 | `postId: string`, `parentCommentId?: string` |
+
+### Social (4)
+
+| Component | 역할 | Props |
+|-----------|------|-------|
+| **LikeButton** | 좋아요 토글 버튼 (낙관적 업데이트) | `postId: string` |
+| **FollowButton** | 팔로우/언팔로우 버튼 (followStore 연동) | `username: string`, `targetUuid: string` |
+| **LikersModal** | 좋아요한 사용자 목록 모달 | `postId: string` |
+| **FollowerModal** | 팔로워/팔로잉 목록 모달 | `username: string`, `type: 'followers' | 'following'` |
+
+### Series (2)
+
+| Component | 역할 | Props |
+|-----------|------|-------|
+| **SeriesBox** | 게시물 상세에서 시리즈 정보 표시 | `seriesId: string` |
+| **SeriesCard** | 시리즈 카드 UI (목록용) | `series: SeriesListResponse` |
+
+### User / My (4)
+
+| Component | 역할 | Props |
+|-----------|------|-------|
+| **UserProfileCard** | 사용자 프로필 카드 (프로필 이미지, bio, 팔로워 수) | `profile: UserProfileResponse` |
+| **ProfileEditForm** | 프로필 편집 폼 (닉네임, bio, 이미지, 웹사이트) | `profile: UserProfileResponse` |
+| **MyPostList** | 내 게시물 목록 (상태별 필터) | - |
+| **MySeriesList** | 내 시리즈 목록 (CRUD) | - |
+
+### Tag (1)
+
+| Component | 역할 | Props |
+|-----------|------|-------|
+| **TagAutocomplete** | 태그 자동완성 입력 | `modelValue: string[]` |
+
+---
+
+## Composables (2)
+
+| Composable | 역할 | 사용처 |
+|------------|------|--------|
+| **useRelativeTime** | 상대 시간 계산 (`방금 전`, `N분 전`, `N일 전`) | PostCard, CommentItem |
+| **useThemeDetection** | `data-theme` 속성 변경 감지하여 다크모드 상태 관리 (MutationObserver) | App.vue, PostDetailPage |
+
+---
+
+## State Management (Pinia)
+
+### searchStore
+
 | 항목 | 내용 |
 |------|------|
 | **역할** | 검색 상태 관리 |
-| **State** | `keyword`, `results`, `isSearching`, `error`, `currentPage`, `hasMore` |
+| **State** | `keyword`, `results`, `isSearching`, `error`, `currentPage`, `totalPages`, `hasMore` |
 | **Actions** | `search(keyword)`, `loadMore()`, `clear()` |
-| **API 연동** | `searchPosts(keyword, page, size)` |
+| **API 연동** | `searchPosts(keyword, page, size)` → blog-service |
+
+### followStore
+
+| 항목 | 내용 |
+|------|------|
+| **역할** | 팔로우 상태 관리 + 캐시 |
+| **State** | `followingIds`, `followingIdsLoaded`, `loading`, `error`, `followersCache`, `followingsCache` |
+| **Getters** | `isFollowing(uuid)`, `followingCount` |
+| **Actions** | `loadFollowingIds()`, `toggleFollow(username, targetUuid)`, `getFollowers()`, `getFollowings()`, `checkFollowStatus()`, `clearCache()`, `reset()` |
+| **API 연동** | `follow.ts` → auth-service (`/api/v1/users`) |
+| **캐시 전략** | `followersCache` / `followingsCache`를 Map으로 관리. 팔로우 토글 시 해당 사용자 캐시 무효화 |
 
 ---
 
-### 6. API Layer
+## API Layer (8 Modules)
 
-#### API Client
+### blog-service 호출 (6 모듈)
+
+| 모듈 | Base Path | 함수 수 | 주요 기능 |
+|------|-----------|---------|-----------|
+| **posts.ts** | `/api/v1/blog/posts` | 22 | CRUD, 목록(전체/내글/작성자별/카테고리별/태그별/인기/트렌딩/최근/관련), 검색(간단/고급), 상태변경, 통계(카테고리/태그/작성자/블로그), 네비게이션, 피드 |
+| **comments.ts** | `/api/v1/blog/comments` | 4 | 댓글 CRUD (게시글별 조회, 작성, 수정, 삭제) |
+| **likes.ts** | `/api/v1/blog/posts/{postId}` | 3 | 좋아요 토글, 상태 확인, 좋아요 사용자 목록 |
+| **series.ts** | `/api/v1/blog/series` | 10 | 시리즈 CRUD, 포스트 추가/제거/순서변경, 내 시리즈, 포스트별 시리즈 |
+| **tags.ts** | `/api/v1/blog/tags` | 6 | 태그 목록, 상세, 인기 태그, 태그 검색, 태그별 포스트 |
+| **files.ts** | `/api/v1/blog/file` | 2 | 파일 업로드(S3), 파일 삭제 |
+
+### auth-service 호출 (2 모듈) - Cross-Service
+
+| 모듈 | Base Path | 함수 수 | 주요 기능 |
+|------|-----------|---------|-----------|
+| **follow.ts** | `/api/v1/users` | 5 | 팔로우 토글, 팔로워/팔로잉 목록, 팔로우 상태, 내 팔로잉 ID 목록 |
+| **users.ts** | `/api/v1/users` + `/api/v1/blog/posts` | 5 | 프로필 조회(공개/내), 프로필 수정, username 설정/중복확인 |
+
+### API Client
+
 ```typescript
 // src/api/index.ts
-import { apiClient } from 'portal/api';  // Portal Shell의 axios 인스턴스 재사용
+import { apiClient } from 'portal/api';
 export default apiClient;
 ```
 
-| 파일 | 역할 |
-|------|------|
-| `api/posts.ts` | 게시물 CRUD, 검색 |
-| `api/comments.ts` | 댓글 CRUD |
-| `api/files.ts` | 이미지 업로드 |
-| `api/index.ts` | Portal Shell의 apiClient import |
-
-**주요 특징**:
-- Portal Shell의 인증된 axios 인스턴스 재사용
-- JWT 토큰 자동 첨부 (Portal Shell의 interceptor)
-- 공통 에러 처리
+Portal Shell의 인증된 axios 인스턴스를 Module Federation을 통해 재사용합니다.
 
 ---
 
-### 7. DTO Layer
+## DTO Layer (9 Files)
 
-| 파일 | 역할 |
-|------|------|
-| `dto/post.ts` | `PostSummaryResponse`, `PostDetailResponse`, `CreatePostRequest`, `UpdatePostRequest` |
-| `dto/comment.ts` | `CommentResponse`, `CreateCommentRequest` |
-| `dto/tag.ts` | `TagResponse` |
-| `dto/series.ts` | `SeriesResponse` |
-| `dto/file.ts` | `FileUploadResponse` |
+| 파일 | 주요 타입 |
+|------|-----------|
+| **post.ts** | `PostResponse`, `PostSummaryResponse`, `PostCreateRequest`, `PostUpdateRequest`, `PostStatusChangeRequest`, `PostSearchRequest`, `AuthorStats`, `BlogStats`, `CategoryStats` |
+| **comment.ts** | `CommentResponse`, `CommentCreateRequest`, `CommentUpdateRequest` |
+| **like.ts** | `LikeToggleResponse`, `LikeStatusResponse`, `LikerResponse` |
+| **follow.ts** | `FollowResponse`, `FollowUserResponse`, `FollowListResponse`, `FollowStatusResponse`, `FollowingIdsResponse` |
+| **user.ts** | `UserProfileResponse`, `UserProfileUpdateRequest`, `UsernameSetRequest`, `UsernameCheckResponse` |
+| **series.ts** | `SeriesResponse`, `SeriesCreateRequest`, `SeriesUpdateRequest`, `SeriesListResponse`, `SeriesPostOrderRequest` |
+| **tag.ts** | `TagResponse`, `TagCreateRequest`, `TagStatsResponse` |
+| **navigation.ts** | `PostNavigationResponse`, `PostNavigationItem` |
+| **file.ts** | `FileUploadResponse`, `FileDeleteRequest` |
 
 ---
 
-## 💾 데이터 흐름
+## 디렉토리 구조
 
-### 게시물 조회 (Read)
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant V as PostListPage
-    participant A as API Client
-    participant G as API Gateway
-    participant B as Blog Service
-    participant M as MongoDB
-
-    U->>V: Navigate to "/"
-    V->>A: getPosts(page, size)
-    A->>G: GET /api/v1/blog/posts
-    G->>B: Forward Request
-    B->>M: Query posts collection
-    M-->>B: Posts data
-    B-->>G: PageResponse<PostSummary>
-    G-->>A: Response
-    A-->>V: Update view
-    V-->>U: Render PostCard[]
+```
+blog-frontend/
+├── src/
+│   ├── main.ts                    # Standalone 모드 진입점
+│   ├── bootstrap.ts               # Embedded 모드 진입점 (mountBlogApp)
+│   ├── App.vue                    # Root 컴포넌트
+│   ├── style.css                  # Global styles
+│   │
+│   ├── router/
+│   │   └── index.ts               # Router 설정 (12 routes, Auth Guard)
+│   │
+│   ├── views/                     # 페이지 컴포넌트 (12)
+│   │   ├── PostListPage.vue       # 게시물 목록 (검색, 무한 스크롤)
+│   │   ├── PostDetailPage.vue     # 게시물 상세 (댓글, 좋아요, 시리즈)
+│   │   ├── PostWritePage.vue      # 게시물 작성 (ToastUI Editor)
+│   │   ├── PostEditPage.vue       # 게시물 수정
+│   │   ├── TagListPage.vue        # 태그 목록
+│   │   ├── TagDetailPage.vue      # 태그별 게시물
+│   │   ├── CategoryListPage.vue   # 카테고리 목록
+│   │   ├── SeriesDetailPage.vue   # 시리즈 상세
+│   │   ├── AdvancedSearchPage.vue # 고급 검색
+│   │   ├── StatsPage.vue          # 통계 대시보드
+│   │   ├── UserBlogPage.vue       # 사용자 블로그 (@username)
+│   │   └── MyPage.vue             # 내 블로그 관리 (requiresAuth)
+│   │
+│   ├── components/                # 재사용 컴포넌트 (17)
+│   │   ├── PostCard.vue           # 게시물 카드
+│   │   ├── PostNavigation.vue     # 이전/다음 네비게이션
+│   │   ├── RelatedPosts.vue       # 관련 게시물
+│   │   ├── CommentList.vue        # 댓글 목록
+│   │   ├── CommentItem.vue        # 개별 댓글
+│   │   ├── CommentForm.vue        # 댓글 작성 폼
+│   │   ├── LikeButton.vue         # 좋아요 버튼
+│   │   ├── FollowButton.vue       # 팔로우 버튼
+│   │   ├── LikersModal.vue        # 좋아요 사용자 모달
+│   │   ├── FollowerModal.vue      # 팔로워/팔로잉 모달
+│   │   ├── SeriesBox.vue          # 시리즈 정보 박스
+│   │   ├── SeriesCard.vue         # 시리즈 카드
+│   │   ├── UserProfileCard.vue    # 프로필 카드
+│   │   ├── ProfileEditForm.vue    # 프로필 편집 폼
+│   │   ├── MyPostList.vue         # 내 게시물 목록
+│   │   ├── MySeriesList.vue       # 내 시리즈 목록
+│   │   └── TagAutocomplete.vue    # 태그 자동완성
+│   │
+│   ├── api/                       # API 클라이언트 (8 + index)
+│   │   ├── index.ts               # apiClient import (from portal/api)
+│   │   ├── posts.ts               # 게시물 API (22 함수)
+│   │   ├── comments.ts            # 댓글 API (4 함수)
+│   │   ├── likes.ts               # 좋아요 API (3 함수)
+│   │   ├── series.ts              # 시리즈 API (10 함수)
+│   │   ├── tags.ts                # 태그 API (6 함수)
+│   │   ├── files.ts               # 파일 API (2 함수)
+│   │   ├── follow.ts              # 팔로우 API (5 함수) → auth-service
+│   │   └── users.ts               # 사용자 API (5 함수) → auth-service
+│   │
+│   ├── stores/                    # Pinia Stores (2)
+│   │   ├── searchStore.ts         # 검색 상태 관리
+│   │   └── followStore.ts         # 팔로우 상태 + 캐시
+│   │
+│   ├── composables/               # Vue Composables (2)
+│   │   ├── useRelativeTime.ts     # 상대 시간 계산
+│   │   └── useThemeDetection.ts   # 다크모드 감지
+│   │
+│   ├── dto/                       # Data Transfer Objects (9)
+│   │   ├── post.ts                # 게시물 관련 DTO
+│   │   ├── comment.ts             # 댓글 DTO
+│   │   ├── like.ts                # 좋아요 DTO
+│   │   ├── follow.ts              # 팔로우 DTO
+│   │   ├── user.ts                # 사용자 프로필 DTO
+│   │   ├── series.ts              # 시리즈 DTO
+│   │   ├── tag.ts                 # 태그 DTO
+│   │   ├── navigation.ts          # 포스트 네비게이션 DTO
+│   │   └── file.ts                # 파일 업로드 DTO
+│   │
+│   ├── types/                     # TypeScript 타입 정의
+│   │   ├── index.ts               # 통합 re-export
+│   │   ├── common.ts              # ApiResponse, PageResponse 등
+│   │   └── federation.d.ts        # Module Federation 타입
+│   │
+│   ├── config/
+│   │   └── assets.ts              # Asset 경로 설정
+│   │
+│   └── assets/                    # 정적 파일 (이미지, 아이콘)
+│
+├── vite.config.ts                 # Vite 설정 (Module Federation)
+├── tsconfig.json                  # TypeScript 설정
+├── tailwind.config.js             # TailwindCSS 설정
+├── package.json
+└── README.md
 ```
 
-### 게시물 작성 (Create)
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant W as PostWritePage
-    participant E as ToastUI Editor
-    participant A as API Client
-    participant G as API Gateway
-    participant B as Blog Service
-    participant M as MongoDB
-    participant S as S3
+---
 
-    U->>W: Click "Write"
-    W->>E: Initialize editor
-    U->>E: Write content + Upload image
-    E->>A: uploadFile(file)
-    A->>G: POST /api/v1/blog/files
-    G->>B: Forward Request
-    B->>S: Upload to S3
-    S-->>B: File URL
-    B-->>A: FileUploadResponse
-    A-->>E: Insert image URL
-    U->>E: Click "Submit"
-    E->>W: Get markdown content
-    W->>A: createPost(request)
-    A->>G: POST /api/v1/blog/posts
-    G->>B: Forward Request
-    B->>M: Insert post document
-    M-->>B: Created post
-    B-->>A: PostDetailResponse
-    A-->>W: Navigate to post detail
-```
+## 기술 스택
+
+### Core
+
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| Vue | 3.5.21 | UI 프레임워크 |
+| Vite | 7.1.7 | 빌드 도구 |
+| TypeScript | ~5.9.3 | 타입 안전성 |
+| Pinia | 3.0.3 | 상태 관리 |
+| Vue Router | 4.5.1 | 라우팅 |
+
+### Module Federation
+
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| @originjs/vite-plugin-federation | 1.4.1 | Vite Module Federation 지원 |
+
+### Editor
+
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| @toast-ui/editor | 3.2.2 | 마크다운 편집기 |
+| @toast-ui/editor-plugin-code-syntax-highlight | 3.1.0 | 코드 하이라이팅 |
+| Prism.js | 1.30.0 | 신택스 하이라이팅 |
+
+### HTTP & Auth
+
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| axios | 1.12.2 | HTTP 클라이언트 (Portal Shell에서 제공) |
+| oidc-client-ts | 3.3.0 | OAuth2/OIDC 인증 |
+
+### Design System
+
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| @portal/design-system-vue | * | 공유 Vue 컴포넌트 |
+| @portal/design-tokens | * | 디자인 토큰 |
+| TailwindCSS | 3.4.15 | 유틸리티 CSS |
 
 ---
 
-## 🔗 Module Federation 구성
+## 인증 & 인가
 
-### Vite Configuration
+### Embedded 모드 인증 흐름
+1. Portal Shell에서 OAuth2/OIDC 인증 완료
+2. Portal Shell의 `apiClient`에 JWT 토큰 자동 첨부
+3. Blog Frontend는 Portal Shell의 `apiClient` 재사용 (MF `portal/api`)
+4. API Gateway에서 JWT 검증 후 blog-service/auth-service로 라우팅
+
+### Standalone 모드 인증
+- `window.__PORTAL_ACCESS_TOKEN__` 존재 여부로 인증 상태 판단
+- Auth Guard가 `requiresAuth` 라우트 접근 시 토큰 확인
+
+### Auth Guard 동작
+
 ```typescript
-// vite.config.ts
-federation({
-  name: 'blog',
-  remotes: {
-    portal: env.VITE_PORTAL_SHELL_REMOTE_URL,  // http://localhost:30000/assets/remoteEntry.js
-    shopping: env.VITE_SHOPPING_REMOTE_URL     // http://localhost:30002/assets/remoteEntry.js
-  },
-  filename: 'remoteEntry.js',
-  exposes: {
-    './bootstrap': './src/bootstrap.ts'  // Portal Shell에서 import 가능
-  },
-  shared: ['vue', 'pinia', 'axios']      // 중복 번들 방지
-})
+// Embedded: Portal Shell의 authStore 사용
+const { useAuthStore } = await import('portal/stores');
+const authStore = useAuthStore();
+if (authStore.isAuthenticated.value) return true;
+
+// Standalone: 글로벌 토큰 확인
+if (window.__PORTAL_ACCESS_TOKEN__) return true;
+
+// 미인증: 로그인 모달 요청
+window.__PORTAL_SHOW_LOGIN__();
+return false;
 ```
 
-### Portal Shell에서의 사용
-```typescript
-// Portal Shell에서 Blog 앱 마운트
-import { mountBlogApp } from 'blog/bootstrap';
+### 권한
 
-const blogInstance = mountBlogApp(containerEl, {
-  initialPath: '/123',
-  onNavigate: (path) => {
-    console.log('Blog navigated to:', path);
-  }
-});
-
-// 언마운트
-blogInstance.unmount();
-```
+| 기능 | 인증 요구 |
+|------|-----------|
+| 게시물/태그/시리즈 조회 | 불필요 |
+| 게시물 작성/수정/삭제 | 필요 |
+| 댓글 작성/수정/삭제 | 필요 |
+| 좋아요 토글 | 필요 |
+| 팔로우 토글 | 필요 |
+| MyPage 접근 | 필요 (`requiresAuth`) |
+| 프로필 수정 | 필요 |
 
 ---
 
-## 🎨 Theme & Styling
+## Theme & Styling
 
 ### Design Token Integration
 ```css
 /* Base Layer */
 --color-green-600: #10b981;
-
 /* Semantic Layer */
 --color-brand-primary: var(--color-green-600);
-
 /* Component Layer */
 .bg-brand-primary { background-color: var(--color-brand-primary); }
 ```
@@ -386,131 +554,39 @@ blogInstance.unmount();
 <script setup>
 onMounted(() => {
   document.documentElement.setAttribute('data-service', 'blog');
-  // CSS: [data-service="blog"] { /* blog-specific styles */ }
 });
 </script>
 ```
 
-### Dark Mode Sync
+### Dark Mode (useThemeDetection)
+
+`useThemeDetection` composable이 `data-theme` 속성을 MutationObserver로 감지하여 다크모드 상태를 관리합니다.
+
 ```typescript
-// Embedded Mode: Portal Shell의 themeStore 연동
-import { useThemeStore } from 'portal/stores';
-const themeStore = useThemeStore();
-
-watch(() => themeStore.isDark, (isDark) => {
-  document.documentElement.classList.toggle('dark', isDark);
-});
+const { isDarkMode } = useThemeDetection();
+// isDarkMode는 data-theme="dark" 일 때 true
 ```
 
 ---
 
-## 🛠️ 기술 스택
+## 외부 연동
 
-### Core
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Vue | 3.5.21 | UI 프레임워크 |
-| Vite | 7.1.7 | 빌드 도구 |
-| TypeScript | 5.9.3 | 타입 안전성 |
-| Pinia | 3.0.3 | 상태 관리 |
-| Vue Router | 4.5.1 | 라우팅 |
-
-### Module Federation
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| @originjs/vite-plugin-federation | 1.4.1 | Vite Module Federation 지원 |
-
-### Editor
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| @toast-ui/editor | 3.2.2 | 마크다운 편집기 |
-| @toast-ui/editor-plugin-code-syntax-highlight | 3.1.0 | 코드 하이라이팅 |
-| Prism.js | 1.30.0 | 신택스 하이라이팅 |
-
-### HTTP & Auth
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| axios | 1.12.2 | HTTP 클라이언트 (Portal Shell에서 제공) |
-| oidc-client-ts | 3.3.0 | OAuth2/OIDC 인증 |
-
-### Design System
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| @portal/design-system | * | 공유 Vue 컴포넌트 |
-| TailwindCSS | 3.4.15 | 유틸리티 CSS |
+| 시스템 | 용도 | 프로토콜 | URL |
+|--------|------|----------|-----|
+| API Gateway | 백엔드 API 호출 | REST | http://localhost:8080 |
+| blog-service | 게시물, 댓글, 시리즈, 태그, 좋아요, 통계, 파일 | REST | Gateway 경유 (:8082) |
+| auth-service | 팔로우, 사용자 프로필, username 관리 | REST | Gateway 경유 (:8081) |
+| S3 | 이미지 업로드 | HTTP | blog-service가 처리 |
+| Portal Shell | apiClient, authStore 제공 | Module Federation | http://localhost:30000 |
 
 ---
 
-## 📁 디렉토리 구조
-
-```
-blog-frontend/
-├── src/
-│   ├── main.ts                # Standalone 모드 진입점
-│   ├── bootstrap.ts           # Embedded 모드 진입점 (mountBlogApp)
-│   ├── App.vue                # Root 컴포넌트
-│   ├── style.css              # Global styles
-│   │
-│   ├── router/
-│   │   └── index.ts           # Router 설정 (Dual Mode)
-│   │
-│   ├── views/                 # 페이지 컴포넌트
-│   │   ├── PostListPage.vue
-│   │   ├── PostDetailPage.vue
-│   │   ├── PostWritePage.vue
-│   │   └── PostEditPage.vue
-│   │
-│   ├── components/            # 공통 컴포넌트
-│   │   ├── PostCard.vue
-│   │   └── HelloWorld.vue
-│   │
-│   ├── api/                   # API 클라이언트
-│   │   ├── index.ts           # apiClient import (from Portal Shell)
-│   │   ├── posts.ts           # 게시물 API
-│   │   ├── comments.ts        # 댓글 API
-│   │   └── files.ts           # 파일 업로드 API
-│   │
-│   ├── stores/                # Pinia Stores
-│   │   └── searchStore.ts     # 검색 상태 관리
-│   │
-│   ├── dto/                   # Data Transfer Objects
-│   │   ├── post.ts
-│   │   ├── comment.ts
-│   │   ├── tag.ts
-│   │   ├── series.ts
-│   │   └── file.ts
-│   │
-│   ├── types/                 # TypeScript 타입 정의
-│   │   ├── index.ts
-│   │   ├── common.ts
-│   │   └── federation.d.ts    # Module Federation 타입
-│   │
-│   ├── config/
-│   │   └── assets.ts          # Asset 경로 설정
-│   │
-│   └── assets/                # 정적 파일 (이미지, 아이콘)
-│
-├── docs/                      # 문서
-│   ├── architecture/
-│   │   └── system-overview.md # 이 문서
-│   ├── api/
-│   └── guides/
-│
-├── vite.config.ts             # Vite 설정 (Module Federation)
-├── tsconfig.json              # TypeScript 설정
-├── tailwind.config.js         # TailwindCSS 설정
-├── package.json
-└── README.md
-```
-
----
-
-## 🚀 빌드 & 실행
+## 빌드 & 실행
 
 ### 개발 모드
 ```bash
 npm run dev
-# Standalone 모드로 실행: http://localhost:30001
+# build --watch + preview 동시 실행: http://localhost:30001
 ```
 
 ### 빌드
@@ -520,91 +596,15 @@ npm run build:docker   # Docker 환경
 npm run build:k8s      # Kubernetes 환경
 ```
 
-### 프리뷰
-```bash
-npm run preview
-# 빌드된 앱을 http://localhost:30001에서 실행
-```
-
 ---
 
-## 📊 성능 목표
-
-| 지표 | 목표 | 현재 |
-|------|------|------|
-| 초기 로딩 시간 | < 1s | TBD |
-| Time to Interactive | < 2s | TBD |
-| 번들 크기 (gzip) | < 200KB | TBD |
-| Lighthouse 점수 | > 90 | TBD |
-
----
-
-## 🔐 인증 & 인가
-
-### 인증 흐름
-1. Portal Shell에서 OAuth2/OIDC 인증 완료
-2. Portal Shell의 `apiClient`에 JWT 토큰 자동 첨부
-3. Blog Frontend는 Portal Shell의 `apiClient` 재사용
-4. API Gateway에서 JWT 검증 후 Blog Service로 라우팅
-
-### 권한
-- **게시물 조회**: 인증 불필요
-- **게시물 작성/수정/삭제**: 인증 필요
-- **댓글 작성**: 인증 필요
-
----
-
-## 🔗 외부 연동
-
-| 시스템 | 용도 | 프로토콜 | URL |
-|--------|------|----------|-----|
-| API Gateway | 백엔드 API 호출 | REST | http://localhost:8080 |
-| Blog Service | 게시물 CRUD | REST | http://localhost:8082 (Gateway 경유) |
-| S3 | 이미지 업로드 | HTTP | AWS S3 (Blog Service가 처리) |
-| Portal Shell | apiClient, themeStore 제공 | Module Federation | http://localhost:30000 |
-
----
-
-## 🧪 테스트 전략
-
-### Unit Tests
-- Vue 컴포넌트 (Vitest + Vue Test Utils)
-- Pinia Stores
-- API 클라이언트 (Mocked)
-
-### Integration Tests
-- Router 네비게이션
-- API 연동 (MSW)
-
-### E2E Tests
-- Playwright
-- Standalone & Embedded 모드 테스트
-
----
-
-## 🐛 알려진 제약사항
-
-### 1. API Client 의존성
-- Portal Shell의 `apiClient`에 의존
-- Standalone 모드에서는 별도 axios 인스턴스 필요 (현재 미구현)
-
-### 2. Design System 제한
-- Vue 컴포넌트만 제공 (React 미지원)
-- 일부 컴포넌트만 구현됨 (8개)
-
-### 3. Router History 모드
-- Embedded 모드에서 Memory History 사용으로 인한 브라우저 뒤로가기 제한
-- Portal Shell이 URL 히스토리를 관리해야 함
-
----
-
-## 🔗 관련 문서
+## 관련 문서
 
 - [Data Flow Architecture](./data-flow.md)
-- [Module Federation](../FEDERATION.md)
-- [API Documentation](../api/README.md)
-- [Developer Guide](../guides/getting-started.md)
+- [Module Federation](./module-federation.md)
+- [Blog Service Architecture](../blog-service/)
+- [Auth Service Architecture](../auth-service/)
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-02-06
