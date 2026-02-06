@@ -25,7 +25,149 @@ dependencies {
 }
 ```
 
-## 2. Logback 설정
+## 2. 구현 코드
+
+### SecurityAuditEvent 엔티티
+
+**위치**: `services/common-library/src/main/java/...security/audit/entity/SecurityAuditEvent.java`
+
+```java
+@Entity
+@Table(name = "security_audit_events", indexes = {
+    @Index(name = "idx_event_type", columnList = "event_type"),
+    @Index(name = "idx_user_id", columnList = "user_id"),
+    @Index(name = "idx_timestamp", columnList = "timestamp"),
+    @Index(name = "idx_ip_address", columnList = "ip_address")
+})
+@Getter @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor @Builder
+public class SecurityAuditEvent {
+
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "VARCHAR(36)")
+    private UUID eventId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private EventType eventType;
+
+    @Column(length = 100)
+    private String userId;
+
+    @Column(nullable = false, length = 45)
+    private String ipAddress;
+
+    @Column(length = 500)
+    private String userAgent;
+
+    @Column(length = 100)
+    private String requestUri;
+
+    @Column(length = 10)
+    private String requestMethod;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private Map<String, Object> details;
+
+    @Column(nullable = false)
+    private LocalDateTime timestamp;
+
+    public enum EventType {
+        LOGIN_SUCCESS, LOGIN_FAILURE, LOGOUT,
+        PASSWORD_CHANGE, PASSWORD_RESET_REQUEST,
+        ACCOUNT_LOCKED, ACCOUNT_UNLOCKED,
+        PERMISSION_DENIED, SENSITIVE_DATA_ACCESS,
+        TOKEN_REFRESH, TWO_FACTOR_ENABLED, TWO_FACTOR_DISABLED
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (timestamp == null) { timestamp = LocalDateTime.now(); }
+    }
+}
+```
+
+### SecurityAuditService 인터페이스
+
+**위치**: `services/common-library/src/main/java/...security/audit/service/SecurityAuditService.java`
+
+```java
+public interface SecurityAuditService {
+    void logEvent(SecurityAuditEvent event);
+    void logLoginSuccess(String userId, String ipAddress, String userAgent);
+    void logLoginFailure(String username, String ipAddress, String userAgent, String reason);
+    void logLogout(String userId, String ipAddress);
+    void logPermissionDenied(String userId, String ipAddress, String requestUri, String requiredRole);
+    void logAccountLocked(String userId, String ipAddress, int attemptCount);
+    void logSensitiveDataAccess(String userId, String ipAddress, String resource);
+    void logCustomEvent(EventType eventType, String userId, String ipAddress, Map<String, Object> details);
+}
+```
+
+### @AuditLog 어노테이션 (AOP)
+
+**위치**: `services/common-library/src/main/java/...security/audit/annotation/AuditLog.java`
+
+```java
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface AuditLog {
+    EventType eventType();
+    String description() default "";
+}
+```
+
+**SecurityAuditAspect** (`services/common-library/src/main/java/...security/audit/aspect/SecurityAuditAspect.java`):
+
+```java
+@Slf4j @Aspect @Component @RequiredArgsConstructor
+public class SecurityAuditAspect {
+
+    private final SecurityAuditService auditService;
+
+    @AfterReturning("@annotation(auditLog)")
+    public void logAfterMethod(JoinPoint joinPoint, AuditLog auditLog) {
+        try {
+            HttpServletRequest request = getCurrentRequest();
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String userId = auth != null ? auth.getName() : "anonymous";
+            String ipAddress = getClientIp(request);
+
+            Map<String, Object> details = new HashMap<>();
+            details.put("method", joinPoint.getSignature().getName());
+            details.put("description", auditLog.description());
+
+            auditService.logCustomEvent(auditLog.eventType(), userId, ipAddress, details);
+        } catch (Exception e) {
+            log.error("Failed to log audit event", e);
+        }
+    }
+}
+```
+
+### DB 스키마
+
+```sql
+CREATE TABLE security_audit_events (
+    event_id VARCHAR(36) PRIMARY KEY,
+    event_type VARCHAR(50) NOT NULL,
+    user_id VARCHAR(100),
+    ip_address VARCHAR(45) NOT NULL,
+    user_agent VARCHAR(500),
+    request_uri VARCHAR(100),
+    request_method VARCHAR(10),
+    details JSON,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_event_type (event_type),
+    INDEX idx_user_id (user_id),
+    INDEX idx_timestamp (timestamp),
+    INDEX idx_ip_address (ip_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+## 3. Logback 설정
 
 ### 2.1. 별도 로그 파일 분리
 `src/main/resources/logback-spring.xml`에 보안 감사 로그 전용 appender를 추가합니다.

@@ -37,6 +37,61 @@ Client → API Gateway (Rate Limiter) → Redis (Token Bucket) → Backend Servi
 | 공개 API (Blog, Shopping 조회) | 30회/분 | IP | 비인증 사용자 |
 | 파일 업로드 | 100회/분 | User ID | 인증된 사용자 |
 
+## Gateway 설정
+
+**위치**: `services/api-gateway/src/main/resources/application.yml`
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: shopping-service
+          uri: lb://shopping-service
+          predicates:
+            - Path=/api/v1/products/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 50
+                key-resolver: "#{@userKeyResolver}"
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+```
+
+### 엔드포인트별 상세 정책
+
+| 엔드포인트 | replenishRate | burstCapacity | 키 전략 | 이유 |
+|-----------|---------------|---------------|---------|------|
+| `/api/v1/auth/login` | 3 | 5 | IP | Brute-force 공격 방지 |
+| `/api/v1/auth/register` | 2 | 3 | IP | 대량 계정 생성 방지 |
+| `/api/v1/auth/password-reset` | 1 | 2 | IP | 악용 방지 |
+| `/api/v1/products/**` | 20 | 50 | User | 일반 조회 트래픽 허용 |
+| `/api/v1/orders/**` | 10 | 20 | User | 주문 API 보호 |
+| `/api/v1/admin/**` | 30 | 60 | User | Admin 작업 여유 제공 |
+
 ## 구성 요소
 
 ### 1. RateLimiterConfig
@@ -45,6 +100,43 @@ Client → API Gateway (Rate Limiter) → Redis (Token Bucket) → Backend Servi
   - Redis Rate Limiter Bean 정의
   - KeyResolver 구현 (IP, User ID, 복합)
   - 다양한 Rate Limiter 정책 제공
+
+#### KeyResolver 구현
+
+```java
+@Configuration
+public class RateLimiterConfig {
+
+    @Bean
+    public KeyResolver ipKeyResolver() {
+        return exchange -> {
+            String forwardedFor = exchange.getRequest()
+                .getHeaders().getFirst("X-Forwarded-For");
+            if (forwardedFor != null && !forwardedFor.isEmpty()) {
+                return Mono.just(forwardedFor.split(",")[0].trim());
+            }
+            return Mono.just(exchange.getRequest()
+                .getRemoteAddress().getAddress().getHostAddress());
+        };
+    }
+
+    @Bean
+    public KeyResolver userKeyResolver() {
+        return exchange -> {
+            String auth = exchange.getRequest()
+                .getHeaders().getFirst("Authorization");
+            if (auth != null && auth.startsWith("Bearer ")) {
+                String token = auth.substring(7);
+                String userId = extractUserIdFromToken(token);
+                if (userId != null) {
+                    return Mono.just("user:" + userId);
+                }
+            }
+            return ipKeyResolver().resolve(exchange);
+        };
+    }
+}
+```
 
 ### 2. RateLimitHeaderFilter
 - **위치**: `filter/RateLimitHeaderFilter.java`
@@ -216,6 +308,16 @@ tail -f logs/api-gateway.log | grep -i redis
 ### 문제: 분산 환경에서 Rate Limit이 일관되지 않음
 **원인**: 각 Gateway 인스턴스가 독립적으로 계산
 **해결**: Redis를 공유 저장소로 사용 (이미 구현됨)
+
+## 의존성
+
+```xml
+<!-- services/api-gateway/pom.xml -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+</dependency>
+```
 
 ## 참고 자료
 

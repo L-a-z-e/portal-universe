@@ -560,6 +560,99 @@ public class MethodSecurityConfig {
 }
 ```
 
+## 로그인 보안 강화
+
+Brute-force 공격 방지를 위한 로그인 시도 제한 및 계정 잠금 기능입니다.
+
+### LoginAttemptService
+
+**위치**: `services/auth-service/src/main/java/...security/service/LoginAttemptService.java`
+
+```java
+public interface LoginAttemptService {
+    void recordFailure(String key);
+    void recordSuccess(String key);
+    boolean isBlocked(String key);
+    int getAttemptCount(String key);
+    void reset(String key);
+    long getLockDuration(String key);
+}
+```
+
+### Redis 기반 구현
+
+**위치**: `services/auth-service/src/main/java/...security/service/impl/LoginAttemptServiceImpl.java`
+
+Redis를 사용하여 로그인 시도 횟수를 추적하고, 단계별 잠금 정책을 적용합니다.
+
+#### Redis 키 구조
+
+| 키 패턴 | 값 타입 | TTL | 설명 |
+|---------|---------|-----|------|
+| `login_attempt:{ip}:{username}` | Integer | 24h | 로그인 실패 시도 횟수 |
+| `login_lock:{ip}:{username}` | Boolean | 동적 | 계정 잠금 플래그 |
+
+#### 잠금 정책
+
+| 실패 횟수 | 잠금 시간 | 적용 시점 |
+|----------|----------|----------|
+| 1-2회 | 없음 | - |
+| 3-4회 | 1분 (60초) | 3회째 실패 시 |
+| 5-9회 | 5분 (300초) | 5회째 실패 시 |
+| 10회 이상 | 30분 (1800초) | 10회째 실패 시 |
+
+### AuthService 통합
+
+```java
+@Override
+@Transactional
+public LoginResponse login(LoginRequest request, String ipAddress, String userAgent) {
+    String key = ipAddress + ":" + request.getEmail();
+
+    // 1. 잠금 상태 확인
+    if (loginAttemptService.isBlocked(key)) {
+        long remainingSeconds = loginAttemptService.getLockDuration(key);
+        auditService.logLoginFailure(request.getEmail(), ipAddress, userAgent,
+            "Account locked for " + remainingSeconds + " seconds");
+        throw new CustomBusinessException(
+            AuthErrorCode.ACCOUNT_TEMPORARILY_LOCKED,
+            Map.of("retryAfter", remainingSeconds));
+    }
+
+    // 2. 사용자 조회 및 비밀번호 검증
+    User user = userRepository.findByEmail(request.getEmail())
+        .orElseThrow(() -> {
+            loginAttemptService.recordFailure(key);
+            return new CustomBusinessException(AuthErrorCode.INVALID_CREDENTIALS);
+        });
+
+    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        loginAttemptService.recordFailure(key);
+        throw new CustomBusinessException(AuthErrorCode.INVALID_CREDENTIALS);
+    }
+
+    // 3. 로그인 성공 - 시도 횟수 초기화
+    loginAttemptService.recordSuccess(key);
+    auditService.logLoginSuccess(user.getUserId(), ipAddress, userAgent);
+
+    // 4. JWT 토큰 생성 및 반환
+    return LoginResponse.builder()
+        .accessToken(jwtTokenProvider.generateAccessToken(user))
+        .refreshToken(jwtTokenProvider.generateRefreshToken(user))
+        .build();
+}
+```
+
+### 에러 코드
+
+```java
+public enum AuthErrorCode implements ErrorCode {
+    ACCOUNT_TEMPORARILY_LOCKED("A010",
+        "계정이 일시적으로 잠겼습니다. {retryAfter}초 후 다시 시도해주세요.",
+        HttpStatus.FORBIDDEN),
+}
+```
+
 ## 참고 문서
 
 - [Spring Security OAuth2 Resource Server](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/index.html)
