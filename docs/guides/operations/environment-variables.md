@@ -13,6 +13,52 @@ tags: [environment, configuration, secrets, guide]
 
 **난이도**: ⭐⭐ | **예상 시간**: 15분 | **카테고리**: Operations
 
+## 설정 파일 구조
+
+Portal Universe는 각 서비스에 설정 파일을 직접 포함하는 방식으로 설정을 관리합니다. 프로필 기반 설정을 통해 환경별 설정을 분리합니다.
+
+### 애플리케이션 프로필
+
+| 프로필 | 환경 | 설명 |
+|--------|------|------|
+| `local` | 로컬 개발 | IDE에서 직접 실행 (기본값) |
+| `docker` | Docker Compose | 컨테이너 환경 |
+| `kubernetes` | Kubernetes | 클러스터 환경 |
+
+### 프로필 활성화
+
+```bash
+# 환경 변수
+SPRING_PROFILES_ACTIVE=docker
+
+# JVM 옵션
+java -Dspring.profiles.active=docker -jar app.jar
+
+# Gradle 실행
+SPRING_PROFILES_ACTIVE=local ./gradlew :services:auth-service:bootRun
+```
+
+### 설정 파일 레이아웃
+
+각 서비스는 다음과 같은 설정 파일 구조를 가집니다:
+
+```
+services/{service-name}/src/main/resources/
+├── application.yml              # 공통 설정 (기본값)
+├── application-local.yml        # 로컬 환경 (localhost)
+├── application-docker.yml       # Docker Compose 환경
+└── application-kubernetes.yml   # Kubernetes 환경
+```
+
+### 환경별 인프라 호스트
+
+| 설정 | local | docker | kubernetes |
+|------|-------|--------|------------|
+| DB Host | localhost | mysql-db | mysql-db |
+| Kafka | localhost:9092 | kafka:29092 | kafka:29092 |
+| MongoDB | localhost:27017 | mongodb:27017 | mongodb:27017 |
+| Redis | localhost:6379 | redis:6379 | redis:6379 |
+
 ## 사전 요구사항
 
 - Git
@@ -438,10 +484,31 @@ kubectl get secret portal-universe-secret -n portal-universe -o jsonpath='{.data
 kubectl exec -it <pod-name> -n portal-universe -- env | grep MYSQL
 ```
 
+## Kubernetes ConfigMap
+
+Kubernetes 환경에서는 ConfigMap을 통해 공통 환경 변수를 관리합니다.
+
+**파일 위치**: `k8s/infrastructure/configmap.yaml`
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: portal-universe-config
+  namespace: portal-universe
+data:
+  SPRING_PROFILES_ACTIVE: "kubernetes"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
+  MYSQL_HOST: "mysql-db"
+  MONGODB_HOST: "mongodb"
+```
+
 ## 참고
 
 - [Docker Compose 배포 가이드](../deployment/docker-compose.md)
 - [Kubernetes 배포 가이드](../deployment/k8s-deployment-guide.md)
 - [프로젝트 README](../../README.md)
+- [Spring Boot Profiles](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.profiles)
 - [Spring Boot Externalized Configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config)
+- [Kubernetes ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/)
 - [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
