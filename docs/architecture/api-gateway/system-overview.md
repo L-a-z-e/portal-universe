@@ -1,716 +1,665 @@
 ---
-id: api-gateway-architecture-system-overview
-title: API Gateway 시스템 아키텍처
+id: arch-system-overview
+title: API Gateway System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: Laze
-tags: [api-gateway, spring-cloud-gateway, security, oauth2, jwt]
-related: []
+tags: [api-gateway, spring-cloud-gateway, security, jwt, rate-limiting, circuit-breaker]
+related:
+  - arch-data-flow
+  - api-gateway-routing
+  - api-gateway-security
 ---
 
-# API Gateway 시스템 아키텍처
+# API Gateway System Overview
 
-## 1. 시스템 개요
+## 1. 개요
 
-Portal Universe의 API Gateway는 Spring Cloud Gateway를 기반으로 구축된 중앙 진입점으로, 다음과 같은 핵심 역할을 수행합니다:
+API Gateway는 Portal Universe 플랫폼의 **단일 진입점(Single Entry Point)**으로, Spring Cloud Gateway WebFlux 기반의 비동기 논블로킹 게이트웨이입니다. 7개 백엔드 서비스로의 라우팅, 인증/인가, Rate Limiting, 장애 격리 등을 담당합니다.
 
-### 주요 역할
+### 핵심 역할
 
-- **단일 진입점(Single Entry Point)**: 모든 클라이언트 요청을 받아 적절한 마이크로서비스로 라우팅
-- **보안 게이트웨이**: JWT 기반 인증/인가 처리 및 OAuth2 Resource Server 역할
-- **CORS 관리**: 프론트엔드 애플리케이션의 CORS 정책 중앙 관리
-- **요청/응답 로깅**: 통합 로깅을 통한 API 호출 추적 및 모니터링
-- **회로 차단(Circuit Breaker)**: Resilience4j를 통한 장애 격리 및 Fallback 처리
-- **프로토콜 변환**: OIDC 인증 흐름 지원을 위한 헤더 변환
+| # | 역할 | 설명 |
+|---|------|------|
+| 1 | **라우팅** | 27개 라우트를 통해 7개 백엔드 서비스로 요청 분배 |
+| 2 | **JWT 인증** | HMAC-SHA256 서명 검증, 다중 키 로테이션 지원 |
+| 3 | **RBAC 인가** | 역할 기반 접근 제어 (SUPER_ADMIN, SHOPPING_ADMIN, BLOG_ADMIN, SELLER) |
+| 4 | **Rate Limiting** | Redis Token Bucket 기반 5단계 속도 제한 |
+| 5 | **Circuit Breaker** | Resilience4j로 5개 서비스별 장애 격리 |
+| 6 | **보안 헤더** | CSP, HSTS, X-Frame-Options 등 8종 보안 헤더 주입 |
+| 7 | **Token Blacklist** | Redis 기반 로그아웃 토큰 무효화 |
+| 8 | **Health Aggregation** | 7개 서비스 + Kubernetes 통합 상태 모니터링 |
+| 9 | **요청/응답 로깅** | 구조화 로깅 (IP, 메서드, 경로, 응답시간) |
 
-### 기술적 특징
+### 서비스 정보
 
-- **비동기 논블로킹**: Spring WebFlux 기반으로 높은 처리량 달성
-- **선언적 라우팅**: application.yml을 통한 간결한 라우팅 설정
-- **필터 체인**: 요청 전/후 처리를 위한 확장 가능한 필터 아키텍처
+- **Port**: 8080
+- **Base Path**: `/api/v1/*` (서비스별 prefix)
+- **Health Check**: `http://localhost:8080/actuator/health`
+- **Health Dashboard**: `http://localhost:8080/api/health/services`
 
-## 2. 아키텍처 다이어그램
+---
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Client Applications                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
-│  │ Portal Shell │  │Blog Frontend │  │Shopping FE   │         │
-│  │  (Vue 3)     │  │  (Vue 3)     │  │  (React)     │         │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘         │
-│         │                 │                  │                   │
-└─────────┼─────────────────┼──────────────────┼───────────────────┘
-          │                 │                  │
-          │  HTTP Requests (with JWT token)    │
-          └─────────────────┼──────────────────┘
-                            ▼
-          ┌─────────────────────────────────────────┐
-          │         API Gateway (Port 8080)         │
-          │     Spring Cloud Gateway (WebFlux)      │
-          ├─────────────────────────────────────────┤
-          │                                         │
-          │  ┌────────────────────────────────┐    │
-          │  │   Pre-Filters (Request Path)   │    │
-          │  │   - RequestPathLoggingFilter   │    │
-          │  │   - CorsWebFilter              │    │
-          │  │   - GlobalLoggingFilter        │    │
-          │  └────────────────────────────────┘    │
-          │              │                          │
-          │              ▼                          │
-          │  ┌────────────────────────────────┐    │
-          │  │     SecurityConfig              │    │
-          │  │  - JWT Validation (jwk-set-uri)│    │
-          │  │  - Public/Private Path Split   │    │
-          │  │  - CORS Configuration          │    │
-          │  └────────────────────────────────┘    │
-          │              │                          │
-          │              ▼                          │
-          │  ┌────────────────────────────────┐    │
-          │  │      Route Predicates           │    │
-          │  │  /api/v1/auth/**               │    │
-          │  │  /api/v1/blog/**               │    │
-          │  │  /api/v1/shopping/**           │    │
-          │  │  /api/v1/notifications/**      │    │
-          │  └────────────────────────────────┘    │
-          │              │                          │
-          │              ▼                          │
-          │  ┌────────────────────────────────┐    │
-          │  │   Gateway Filters               │    │
-          │  │  - OidcPrefixGatewayFilter     │    │
-          │  │  - Circuit Breaker Filter      │    │
-          │  │  - RewritePath Filter          │    │
-          │  └────────────────────────────────┘    │
-          │              │                          │
-          │              ▼                          │
-          │  ┌────────────────────────────────┐    │
-          │  │   Post-Filters                  │    │
-          │  │  - GlobalLoggingFilter (resp)  │    │
-          │  └────────────────────────────────┘    │
-          │                                         │
-          └──────────────┬──────────────────────────┘
-                         │
-        ┌────────────────┼────────────────┐
-        │                │                │
-        ▼                ▼                ▼
-┌───────────────┐ ┌───────────────┐ ┌───────────────┐
-│ Auth Service  │ │ Blog Service  │ │Shopping Svc   │
-│   (Port 8081) │ │   (Port 8082) │ │   (Port 8083) │
-│               │ │               │ │               │
-│ - OAuth2      │ │ - MongoDB     │ │ - MySQL       │
-│ - MySQL       │ │ - S3          │ │ - Feign       │
-│ - Kafka       │ │               │ │               │
-└───────────────┘ └───────────────┘ └───────────────┘
-```
+## 2. 핵심 특징
 
-## 3. 핵심 컴포넌트
+### 1. 비동기 논블로킹 아키텍처
+Spring WebFlux + Netty 기반으로 높은 처리량을 달성합니다. 모든 필터와 서비스 호출이 Reactive 스트림으로 처리됩니다.
 
-### 3.1 SecurityConfig.java
+### 2. 커스텀 JWT 인증 (HMAC-SHA256)
+OAuth2 Resource Server가 아닌 **직접 구현한 `JwtAuthenticationFilter`**로 JWT를 검증합니다. Auth Service와 동일한 HMAC secret key를 공유하며, `kid` 헤더를 통한 키 로테이션을 지원합니다.
 
-API Gateway의 보안 정책을 정의하는 핵심 컴포넌트입니다.
+### 3. 3단계 공개 경로 관리
+`PublicPathProperties`를 통해 공개 경로를 3가지 레벨로 분류합니다:
+- **permitAll**: 모든 HTTP 메서드에 인증 없이 접근 가능
+- **permitAllGet**: GET만 인증 없이 접근 가능 (POST/PUT 등은 인증 필요)
+- **skipJwtParsing**: JWT 파싱 자체를 건너뛰는 경로 (공개 경로여도 JWT가 있으면 파싱하여 사용자 정보 추출)
 
-**주요 기능:**
+### 4. Header Sanitization
+외부에서 주입된 `X-User-*` 헤더를 필터 진입 시 제거하여 **Header Injection 공격**을 방지합니다. JWT 검증 후 게이트웨이가 직접 `X-User-Id`, `X-User-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name` 헤더를 설정합니다.
 
-- **공개 경로 처리 (Order 1)**:
-  ```java
-  /auth-service/**        // 인증 엔드포인트
-  /api/users/**          // 사용자 공개 API
-  /actuator/**           // 헬스체크 및 메트릭
-  ```
-  → `permitAll()` 적용, JWT 검증 없이 접근 가능
+### 5. Redis 기반 Rate Limiting
+5종의 `RedisRateLimiter`와 3종의 `KeyResolver`를 조합하여 엔드포인트별 차별화된 속도 제한을 적용합니다. 개발 환경(local/docker)에서는 자동으로 완화된 제한을 적용합니다.
 
-- **비공개 경로 처리 (Order 2)**:
-  ```java
-  /**                    // 기타 모든 경로
-  ```
-  → `authenticated()` 적용, JWT 인증 필수
+### 6. Kubernetes 네이티브 Health Aggregation
+`ServiceHealthAggregator`가 7개 서비스의 상태를 WebClient로 병렬 조회하고, K8s 프로필에서는 Fabric8 클라이언트를 통해 Deployment/Pod 정보를 보강합니다.
 
-- **JWT 검증 설정**:
-  - `jwk-set-uri`: Auth Service에서 공개 키 가져오기
-  - `issuer-uri`: 토큰 발급자 검증
-  - Bearer Token 자동 파싱
+---
 
-- **CORS 설정**:
-  - `FrontendProperties`에서 허용할 Origin 목록 주입
-  - 프로필별 동적 CORS 정책 적용
+## 3. High-Level Architecture
 
-**보안 흐름:**
-```
-Request → CORS 검증 → Public/Private 경로 판단 → JWT 검증 (비공개 경로) → 라우팅
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        PS[portal-shell<br/>Vue 3 :30000]
+        BF[blog-frontend<br/>Vue 3 :30001]
+        SF[shopping-frontend<br/>React 18 :30002]
+        PF[prism-frontend<br/>React 18 :30003]
+    end
+
+    subgraph "API Gateway :8080"
+        direction TB
+        GW[Spring Cloud Gateway<br/>WebFlux + Netty]
+
+        subgraph "Filter Chain"
+            CORS[CorsWebFilter]
+            FWD[GlobalForwardedHeadersFilter]
+            LOG[GlobalLoggingFilter]
+            SEC[SecurityHeadersFilter]
+            JWT[JwtAuthenticationFilter]
+            RL[RequestRateLimiter]
+            CB[CircuitBreaker]
+            RLH[RateLimitHeaderFilter]
+        end
+
+        subgraph "Security"
+            SC[SecurityConfig<br/>RBAC Rules]
+            TBC[TokenBlacklistChecker]
+            AEP[CustomAuthenticationEntryPoint]
+            ADH[CustomAccessDeniedHandler]
+        end
+
+        subgraph "Health"
+            SHA[ServiceHealthAggregator]
+            SHC[ServiceHealthController]
+        end
+
+        FC[FallbackController<br/>GW001-GW004]
+    end
+
+    REDIS[(Redis<br/>Rate Limit + Blacklist)]
+
+    subgraph "Backend Services"
+        AS[auth-service<br/>:8081]
+        BS[blog-service<br/>:8082]
+        SS[shopping-service<br/>:8083]
+        NS[notification-service<br/>:8084]
+        PRS[prism-service<br/>:8085]
+        CS[chatbot-service<br/>:8086]
+    end
+
+    PS --> GW
+    BF --> GW
+    SF --> GW
+    PF --> GW
+
+    GW --> AS
+    GW --> BS
+    GW --> SS
+    GW --> NS
+    GW --> PRS
+    GW --> CS
+    GW --> REDIS
+
+    style GW fill:#2196F3,color:#fff
+    style REDIS fill:#DC382D,color:#fff
+    style JWT fill:#4CAF50,color:#fff
 ```
 
-### 3.2 GlobalLoggingFilter.java
+---
 
-모든 API 요청/응답을 로깅하는 전역 필터입니다.
+## 4. 핵심 컴포넌트
 
-**실행 순서:** `Ordered.HIGHEST_PRECEDENCE + 2`
+### 4.1 SecurityConfig
+**패키지**: `config.SecurityConfig`
 
-**로깅 내용:**
-- **요청 정보**:
-  - HTTP Method, Request URI
-  - Client IP
-  - User-Agent
-  - Authorization Header (마스킹)
+Spring Security WebFlux 보안 필터 체인을 구성합니다.
 
-- **응답 정보**:
-  - HTTP Status Code
-  - 처리 시간 (ms)
+**주요 기능**:
+- `PublicPathProperties` 기반 동적 경로 접근 제어
+- RBAC 규칙 (역할별 경로 접근 제한)
+- `JwtAuthenticationFilter`를 `AUTHENTICATION` 단계에 등록
+- CorsWebFilter (HIGHEST_PRECEDENCE + 1)
+- 기본 인증 비활성화 (httpBasic, formLogin, csrf 모두 disabled)
+- 커스텀 에러 핸들러 등록 (401/403)
 
-**특징:**
-- WebFlux의 `Mono` 체인을 활용한 비동기 로깅
-- 민감 정보(JWT 토큰) 자동 마스킹
-- Micrometer를 통한 메트릭 수집 연동 가능
+**RBAC 규칙**:
 
-### 3.3 OidcPrefixGatewayFilterFactory.java
+| 경로 패턴 | 필요 권한 |
+|----------|----------|
+| `/api/v1/admin/seller/**` | SHOPPING_ADMIN, SUPER_ADMIN |
+| `/api/v1/admin/**` | SUPER_ADMIN |
+| `/api/v1/shopping/admin/**` | SHOPPING_ADMIN, SUPER_ADMIN |
+| `/api/v1/blog/admin/**` | BLOG_ADMIN, SUPER_ADMIN |
+| `/api/v1/shopping/seller/**` | SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
+| 나머지 | authenticated (로그인 필요) |
 
-OIDC(OpenID Connect) 인증 흐름을 지원하기 위한 커스텀 필터입니다.
+### 4.2 JwtAuthenticationFilter
+**패키지**: `filter.JwtAuthenticationFilter`
 
-**역할:**
-- `X-Forwarded-Prefix` 헤더 추가
-- OIDC 콜백 URL을 Gateway 경로로 리다이렉트
-- Auth Service와 프론트엔드 간 인증 흐름 중계
+커스텀 JWT 검증 WebFilter입니다. Spring Security의 `AUTHENTICATION` 단계에서 실행됩니다.
 
-**적용 대상:** `/api/v1/auth/**` 경로
+**검증 흐름**:
+1. 외부 주입된 `X-User-*` 헤더 제거 (Header Sanitization)
+2. `skipJwtParsing` 공개 경로 확인 → 공개 경로면 검증 생략
+3. `Authorization: Bearer` 헤더에서 토큰 추출
+4. JWT 헤더의 `kid`(Key ID) 추출 → 해당 키로 HMAC-SHA256 서명 검증
+5. Redis Token Blacklist 확인 (reactive)
+6. Claims에서 `roles`, `memberships`, `nickname`, `username` 추출
+7. `UsernamePasswordAuthenticationToken` 생성 (복수 Authority 지원)
+8. 하위 서비스 전달 헤더 설정: `X-User-Id`, `X-User-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name`
 
-**사용 예시:**
-```yaml
-spring:
-  cloud:
-    gateway:
-      routes:
-        - id: auth-service
-          filters:
-            - OidcPrefix
+**에러 응답**:
+
+| 에러 코드 | 메시지 | 상황 |
+|----------|--------|------|
+| GW-A005 | Token revoked | Blacklist에 등록된 토큰 |
+| GW-A006 | Token expired | 만료된 토큰 |
+| GW-A007 | Invalid token | 서명 검증 실패 등 |
+
+### 4.3 PublicPathProperties
+**패키지**: `config.PublicPathProperties`
+
+`gateway.public-paths` YAML 설정과 매핑되는 Properties 클래스입니다. YAML이 Single Source of Truth이며, Java 코드에 기본값이 없습니다.
+
+**3가지 카테고리**:
+
+| 카테고리 | 용도 | 예시 |
+|---------|------|------|
+| `permitAll` | 모든 메서드 인증 불필요 | `/api/v1/auth/**`, `/actuator/**` |
+| `permitAllGet` | GET만 인증 불필요 | `/api/v1/blog/**` (조회는 공개, 작성은 인증 필요) |
+| `skipJwtParsing` | JWT 파싱 자체 생략 | `/api/v1/auth/`, `/actuator/` |
+
+> **permitAll과 skipJwtParsing의 차이**: `/api/v1/blog/**`은 `permitAllGet`이지만 `skipJwtParsing`에 없으므로, JWT가 있으면 파싱하여 사용자 정보(X-User-Id 등)를 추출합니다. 이를 통해 비로그인 사용자도 블로그를 읽되, 로그인 사용자는 본인 글 여부를 확인할 수 있습니다.
+
+### 4.4 TokenBlacklistChecker
+**패키지**: `service.TokenBlacklistChecker`
+
+Redis에서 블랙리스트 토큰을 조회합니다. Auth Service의 `TokenBlacklistService`와 동일한 키 패턴(`blacklist:{accessToken}`)을 사용합니다.
+
+- **Redis 장애 시**: 토큰을 허용 (가용성 우선 정책)
+- **Reactive**: `ReactiveRedisTemplate` 사용
+
+### 4.5 RateLimiterConfig
+**패키지**: `config.RateLimiterConfig`
+
+Redis Token Bucket 알고리즘 기반 Rate Limiting을 구성합니다.
+
+**5종 Rate Limiter**:
+
+| Bean 이름 | 용도 | Production | Dev(local/docker) |
+|----------|------|-----------|-------------------|
+| `defaultRedisRateLimiter` | 기본 | 10 req/s, burst 20 | 50 req/s, burst 200 |
+| `strictRedisRateLimiter` | 로그인 (Brute Force 방어) | 1 req/s, burst 5 | 20 req/s, burst 50 |
+| `signupRedisRateLimiter` | 회원가입 | 1 req/s, burst 3 | 20 req/s, burst 50 |
+| `authenticatedRedisRateLimiter` | 인증된 사용자 | 2 req/s, burst 100 | 50 req/s, burst 500 |
+| `unauthenticatedRedisRateLimiter` | 비인증 사용자 | 1 req/s, burst 30 | 50 req/s, burst 200 |
+
+**3종 KeyResolver**:
+
+| Bean 이름 | 키 형식 | 설명 |
+|----------|--------|------|
+| `ipKeyResolver` (Primary) | `{clientIP}` | X-Forwarded-For 우선, RemoteAddress fallback |
+| `userKeyResolver` | `user:{userId}` | X-User-Id 헤더 기반, 비인증 시 IP fallback |
+| `compositeKeyResolver` | `{clientIP}:{path}` | IP + 엔드포인트 조합 (로그인 등 특정 경로별 제한) |
+
+### 4.6 SecurityHeadersFilter
+**패키지**: `config.SecurityHeadersFilter`
+
+모든 응답에 보안 헤더를 추가하는 GlobalFilter입니다.
+
+**추가되는 헤더**:
+
+| 헤더 | 값 | 설정 키 |
+|------|---|---------|
+| X-Content-Type-Options | `nosniff` | `security.headers.content-type-options` |
+| X-Frame-Options | `DENY` | `security.headers.frame-options` |
+| X-XSS-Protection | `1; mode=block` | `security.headers.xss-protection` |
+| Referrer-Policy | `strict-origin-when-cross-origin` | `security.headers.referrer-policy` |
+| Permissions-Policy | `geolocation=(), microphone=(), camera=()` | `security.headers.permissions-policy` |
+| Content-Security-Policy | `default-src 'self'; ...` | `security.headers.csp.policy` |
+| Strict-Transport-Security | `max-age=31536000; includeSubDomains` | `security.headers.hsts.*` (HTTPS만) |
+| Cache-Control | `no-store, no-cache, must-revalidate` | 인증 관련 경로에만 적용 |
+
+### 4.7 GlobalLoggingFilter
+**패키지**: `config.GlobalLoggingFilter`
+
+모든 요청/응답을 구조화된 형식으로 로깅합니다. `XForwardedRemoteAddressResolver`로 실제 클라이언트 IP를 추출하며, `authorization`, `cookie` 헤더는 마스킹합니다.
+
+**로그 형식**:
+```
+API_REQUEST - Method: GET, Path: /api/v1/blog/posts, IP: 192.168.1.1, Headers: {...}
+API_RESPONSE - Path: /api/v1/blog/posts, Status: 200, Duration: 45ms
 ```
 
-### 3.4 FallbackController.java
+### 4.8 GlobalForwardedHeadersFilter
+**패키지**: `config.GlobalForwardedHeadersFilter`
 
-Resilience4j Circuit Breaker가 열렸을 때 실행되는 Fallback 핸들러입니다.
+`FrontendProperties` 기반으로 모든 요청에 `X-Forwarded-*` 헤더를 주입합니다.
 
-**주요 Fallback 엔드포인트:**
-```java
-/fallback/auth          → Auth Service 장애 시
-/fallback/blog          → Blog Service 장애 시
-/fallback/shopping      → Shopping Service 장애 시
-/fallback/notification  → Notification Service 장애 시
-```
+**주입 헤더**:
+- `X-Forwarded-Host`: FrontendProperties.host (예: `portal-universe:30000`)
+- `X-Forwarded-Proto`: FrontendProperties.scheme (예: `https`)
+- `X-Forwarded-Port`: FrontendProperties.port (예: `30000`)
+- `X-Forwarded-For`: 클라이언트 IP (X-Forwarded-For → X-Real-IP → RemoteAddress 순)
 
-**응답 형식:**
-```json
-{
-  "success": false,
-  "code": "GATEWAY_ERROR",
-  "message": "[서비스명] is temporarily unavailable. Please try again later.",
-  "data": null
-}
-```
+### 4.9 ServiceHealthAggregator
+**패키지**: `health.ServiceHealthAggregator`
 
-**Circuit Breaker 설정:**
-- Failure Rate Threshold: 50%
-- Wait Duration in Open State: 10초
-- Sliding Window Size: 10 requests
+7개 서비스의 Health Check를 **병렬**로 수행하고 결과를 집계합니다.
 
-### 3.5 FrontendProperties.java
+**기능**:
+- WebClient로 각 서비스의 health endpoint 호출 (타임아웃 3초)
+- Gateway 자체는 `HealthEndpoint`를 직접 호출 (self-call timeout 방지)
+- Spring Boot Actuator 형식(`{"status": "UP"}`) 및 커스텀 형식(`{"success": true}`) 모두 지원
+- Kubernetes 프로필에서 Fabric8 클라이언트로 Deployment replicas, Pod 상태 보강
 
-프론트엔드 애플리케이션의 URL을 프로필별로 관리하는 설정 클래스입니다.
+**모니터링 대상**:
 
-**설정 예시 (application-local.yml):**
-```yaml
-frontend:
-  urls:
-    - http://localhost:30000  # Portal Shell
-    - http://localhost:30001  # Blog Frontend
-    - http://localhost:30002  # Shopping Frontend
-```
+| 서비스 | Health Path | K8s Deployment |
+|--------|-----------|----------------|
+| api-gateway | /actuator/health | api-gateway |
+| auth-service | /actuator/health | auth-service |
+| blog-service | /actuator/health | blog-service |
+| shopping-service | /actuator/health | shopping-service |
+| notification-service | /actuator/health | notification-service |
+| prism-service | /api/v1/health | prism-service |
+| chatbot-service | /api/v1/chat/health | chatbot-service |
 
-**사용처:**
-- SecurityConfig의 CORS allowedOrigins
-- Redirect URL 검증
+### 4.10 FallbackController
+**패키지**: `controller.FallbackController`
 
-## 4. 필터 체인 순서
+Circuit Breaker가 OPEN 상태일 때 클라이언트에게 `ApiResponse` 형식의 Fallback 응답을 반환합니다.
 
-API Gateway의 필터는 다음 순서로 실행됩니다:
+| 경로 | 에러 코드 | 메시지 |
+|------|----------|--------|
+| `/fallback/auth` | GW001 | 인증 서비스를 일시적으로 사용할 수 없습니다 |
+| `/fallback/blog` | GW002 | 블로그 서비스를 일시적으로 사용할 수 없습니다 |
+| `/fallback/shopping` | GW003 | 쇼핑 서비스를 일시적으로 사용할 수 없습니다 |
+| `/fallback/notification` | GW004 | 알림 서비스를 일시적으로 사용할 수 없습니다 |
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Request Processing                          │
-└─────────────────────────────────────────────────────────────────┘
+### 4.11 Custom Error Handlers
 
-1. requestPathLoggingFilter (Ordered.HIGHEST_PRECEDENCE)
-   ↓ 요청 경로 및 메서드 로깅
+**CustomAuthenticationEntryPoint** (`security.CustomAuthenticationEntryPoint`):
+- 인증 실패 시 JSON 응답 반환 (`401 Unauthorized`)
+- Spring Security 기본 `WWW-Authenticate` 헤더를 제거하여 브라우저 Basic Auth 팝업 방지
+- 에러 코드: `A001`
 
-2. CorsWebFilter (HIGHEST_PRECEDENCE + 1)
-   ↓ CORS Preflight 처리 (OPTIONS), Origin 검증
+**CustomAccessDeniedHandler** (`security.CustomAccessDeniedHandler`):
+- 권한 부족 시 JSON 응답 반환 (`403 Forbidden`)
+- 에러 코드: `A002`
 
-3. GlobalLoggingFilter (HIGHEST_PRECEDENCE + 2)
-   ↓ 요청 상세 정보 로깅 (IP, User-Agent, Header)
+### 4.12 RateLimitHeaderFilter
+**패키지**: `filter.RateLimitHeaderFilter`
 
-4. Security Filters (Spring Security)
-   ↓ JWT 토큰 추출 및 검증
-   ↓ 공개/비공개 경로 판단
-   ↓ SecurityContext 설정
+Rate Limiting 응답 헤더를 로깅하고, 429 응답 시 `Retry-After` 헤더와 ApiResponse 형식의 에러 응답을 제공합니다.
 
-5. Gateway Route Predicates
-   ↓ Path, Method, Header 기반 라우팅 규칙 평가
+**응답 헤더** (RedisRateLimiter 기본 제공):
+- `X-RateLimit-Remaining`: 남은 요청 횟수
+- `X-RateLimit-Replenish-Rate`: 초당 토큰 충전 속도
+- `X-RateLimit-Burst-Capacity`: 최대 버스트 용량
 
-6. Gateway Filters (per-route)
-   ↓ OidcPrefixGatewayFilter (auth 경로)
-   ↓ CircuitBreakerFilter (모든 경로)
-   ↓ RewritePathFilter (경로 변환)
+---
 
-7. Load Balancer Client Filter
-   ↓ Eureka를 통한 서비스 인스턴스 선택
+## 5. 필터 체인 실행 순서
 
-8. NettyRoutingFilter
-   ↓ 실제 HTTP 요청 전송 (WebFlux Reactor Netty)
+### Request 필터 (요청 처리 순서)
 
-┌─────────────────────────────────────────────────────────────────┐
-│                     Response Processing                          │
-└─────────────────────────────────────────────────────────────────┘
+| 순서 | 필터 | 타입 | Order | 설명 |
+|------|------|------|-------|------|
+| 1 | `requestPathLoggingFilter` | WebFilter | HIGHEST_PRECEDENCE | 요청 경로/메서드 디버그 로깅 |
+| 2 | `CorsWebFilter` | WebFilter | HIGHEST_PRECEDENCE + 1 | CORS Preflight 처리 |
+| 3 | `GlobalForwardedHeadersFilter` | GlobalFilter | HIGHEST_PRECEDENCE + 1 | X-Forwarded-* 헤더 주입 |
+| 4 | `GlobalLoggingFilter` | GlobalFilter | HIGHEST_PRECEDENCE + 2 | 요청 로깅 (IP, Headers) |
+| 5 | `SecurityHeadersFilter` | GlobalFilter | HIGHEST_PRECEDENCE | 보안 헤더 추가 (beforeCommit) |
+| 6 | `JwtAuthenticationFilter` | WebFilter | AUTHENTICATION | JWT 검증 + X-User-* 헤더 설정 |
+| 7 | SecurityConfig RBAC | - | - | 경로별 권한 확인 |
+| 8 | `RequestRateLimiter` | Route Filter | - | Redis Rate Limiting |
+| 9 | `CircuitBreaker` | Route Filter | - | 서비스 호출 + 장애 감지 |
 
-1. NettyRoutingFilter
-   ↑ 백엔드 서비스로부터 응답 수신
+### Response 필터 (응답 처리 순서)
 
-2. Gateway Filters (reverse order)
-   ↑ 응답 헤더 변환 등
-
-3. GlobalLoggingFilter
-   ↑ 응답 상태 코드, 처리 시간 로깅
-
-4. CORS 응답 헤더 추가
-   ↑ Access-Control-Allow-* 헤더
-
-5. Client에게 응답 반환
-```
-
-### 필터 우선순위 설정 이유
-
-| Order | 필터 | 이유 |
-|-------|------|------|
-| `HIGHEST_PRECEDENCE` | requestPathLoggingFilter | 모든 요청을 가장 먼저 기록하여 디버깅 용이 |
-| `HIGHEST_PRECEDENCE + 1` | CorsWebFilter | CORS Preflight은 보안 검증 전에 처리 필요 |
-| `HIGHEST_PRECEDENCE + 2` | GlobalLoggingFilter | CORS 통과 후 상세 로깅 |
-| (default) | Security Filters | 인증/인가는 라우팅 전에 처리 |
-
-## 5. 보안 흐름
-
-### 5.1 공개 경로 (Public Endpoints)
-
-**허용 대상:**
-```
-/auth-service/**         → 로그인, 회원가입, 토큰 발급
-/api/users/**           → 사용자 조회 (읽기 전용)
-/actuator/**            → 헬스체크, 메트릭
-/.well-known/**         → OIDC Discovery
-```
-
-**흐름:**
-```
-Client → Gateway → Public Path SecurityFilterChain (Order 1)
-                → permitAll() → Routing → Backend Service
-```
-
-### 5.2 비공개 경로 (Protected Endpoints)
-
-**대상:** 공개 경로를 제외한 모든 경로
-
-**흐름:**
-```
-Client (with JWT) → Gateway
-    ↓
-    CORS 검증
-    ↓
-    JWT 추출 (Authorization: Bearer <token>)
-    ↓
-    JWT 검증 (jwk-set-uri 통해 공개 키 가져오기)
-    ↓
-    - 서명 검증 (RS256)
-    - 만료 시간 검증 (exp claim)
-    - 발급자 검증 (iss claim = issuer-uri)
-    - 대상 검증 (aud claim)
-    ↓
-    SecurityContext 설정 (Authentication 객체 생성)
-    ↓
-    Private Path SecurityFilterChain (Order 2)
-    ↓
-    authenticated() 통과 → Routing → Backend Service
-```
-
-### 5.3 JWT 검증 상세
-
-**jwk-set-uri:**
-```
-http://auth-service:8081/.well-known/jwks.json
-```
-→ Auth Service의 RSA 공개 키 세트를 가져와 JWT 서명 검증
-
-**issuer-uri:**
-```
-http://auth-service:8081
-```
-→ JWT의 `iss` claim이 이 값과 일치하는지 검증
-
-**JWT Payload 예시:**
-```json
-{
-  "sub": "user123",
-  "iss": "http://auth-service:8081",
-  "aud": ["api-gateway"],
-  "exp": 1737234567,
-  "iat": 1737230967,
-  "scope": ["read", "write"]
-}
-```
-
-### 5.4 에러 처리
-
-**401 Unauthorized:**
-- JWT 토큰 없음
-- JWT 만료
-- 서명 불일치
-- 잘못된 형식
-
-**403 Forbidden:**
-- 인증은 성공했으나 권한 부족
-- Scope 불일치
-
-**Gateway 응답 형식:**
-```json
-{
-  "timestamp": "2026-01-18T10:30:00.000Z",
-  "path": "/api/v1/blog/posts",
-  "status": 401,
-  "error": "Unauthorized",
-  "message": "Full authentication is required to access this resource"
-}
-```
-
-## 6. 기술 스택
-
-### Core Framework
-
-| 기술 | 버전 | 역할 |
+| 순서 | 필터 | 설명 |
 |------|------|------|
-| Spring Boot | 3.5.5 | 애플리케이션 기반 프레임워크 |
-| Spring Cloud | 2025.0.0 | 마이크로서비스 인프라 |
-| Java | 17 | 런타임 환경 |
+| 1 | Route Filters | 라우트별 응답 처리 |
+| 2 | `SecurityHeadersFilter` | 보안 헤더 추가 (beforeCommit 콜백) |
+| 3 | `RateLimitHeaderFilter` | Rate Limit 헤더 로깅 |
+| 4 | `DedupeResponseHeader` | 중복 CORS 헤더 제거 |
+| 5 | `GlobalLoggingFilter` | 응답 로깅 (Status, Duration) |
 
-### Gateway & Routing
+---
 
-| 기술 | 설명 |
-|------|------|
-| Spring Cloud Gateway | WebFlux 기반 비동기 게이트웨이 |
-| Reactor Netty | HTTP 클라이언트/서버 엔진 |
-| Project Reactor | Reactive Streams 구현 |
+## 6. 보안 모델
 
-### Security
+### 6.1 JWT 인증
 
-| 기술 | 역할 |
-|------|------|
-| Spring Security | 인증/인가 프레임워크 |
-| OAuth2 Resource Server | JWT 검증 및 Bearer Token 처리 |
-| JJWT (nimbus-jose-jwt) | JWT 파싱 및 서명 검증 |
+| 항목 | 값 |
+|------|---|
+| 알고리즘 | **HMAC-SHA256** (HS256) |
+| 라이브러리 | jjwt v0.12.6 |
+| 키 공유 | Auth Service와 동일한 secret key |
+| 키 로테이션 | `jwt.keys` 맵으로 다중 키 지원, `kid` 헤더로 식별 |
+| 키 만료 | `expiresAt` 설정 시 자동 거부 |
 
-### Service Discovery
+**JWT Claims → 헤더 매핑**:
 
-| 기술 | 설명 |
-|------|------|
-| Eureka Client | 서비스 레지스트리 연동 (현재 비활성화 옵션 있음) |
+| JWT Claim | 전달 헤더 | 비고 |
+|----------|----------|------|
+| `sub` | X-User-Id | UUID |
+| `roles` | X-User-Roles | 쉼표 구분 (예: `ROLE_USER,ROLE_SELLER`) |
+| `memberships` | X-User-Memberships | JSON 문자열 (예: `{"shopping":"PREMIUM"}`) |
+| `nickname` | X-User-Nickname | URL 인코딩 |
+| `username` | X-User-Name | URL 인코딩 |
 
-### Resilience
+### 6.2 Token Blacklist
 
-| 기술 | 역할 |
-|------|------|
-| Resilience4j | Circuit Breaker, Retry, Rate Limiter |
-| Spring Cloud CircuitBreaker | Resilience4j 추상화 레이어 |
+- **저장소**: Redis
+- **키 패턴**: `blacklist:{accessToken}`
+- **동작**: Auth Service의 로그아웃 시 Redis에 토큰 저장 → Gateway에서 조회
+- **장애 처리**: Redis 연결 실패 시 토큰 허용 (가용성 우선)
 
-### Observability
+### 6.3 Header Sanitization
 
-| 기술 | 역할 |
-|------|------|
-| Micrometer | 메트릭 수집 추상화 |
-| Prometheus | 메트릭 저장소 (Micrometer Registry) |
-| Zipkin | 분산 추적 (Distributed Tracing) |
-| Spring Boot Actuator | 헬스체크, 메트릭 엔드포인트 |
+JwtAuthenticationFilter 진입 시 외부 주입된 헤더를 제거합니다:
+- `X-User-Id`, `X-User-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name`
 
-### Configuration
+이를 통해 악의적인 클라이언트가 직접 X-User-Id 헤더를 설정하여 다른 사용자로 위장하는 것을 방지합니다.
 
-| 기술 | 설명 |
-|------|------|
-| Spring Cloud Config Client | Config Service 연동 |
-| Git Config Repository | 외부 설정 저장소 |
+### 6.4 CORS 정책
 
-### 의존성 버전 관리
+| 항목 | 값 |
+|------|---|
+| 허용 Origins | `http://localhost:30000`, `https://localhost:30000`, `http://localhost:8080`, `https://portal-universe:30000` |
+| 허용 Methods | GET, POST, PUT, PATCH, DELETE, OPTIONS |
+| 허용 Headers | Authorization, Content-Type, Accept, Origin, X-Requested-With, Cache-Control |
+| Credentials | true |
+| Preflight 캐시 | 3600초 (1시간) |
 
-**build.gradle:**
-```gradle
-dependencies {
-    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
-}
-```
+---
 
 ## 7. 라우팅 규칙
 
-### 7.1 라우팅 테이블
+### 7.1 서비스별 라우트 요약
 
-| 경로 | 대상 서비스 | 포트 | 설명 |
-|------|------------|------|------|
-| `/api/v1/auth/**` | auth-service | 8081 | 인증/인가 API |
-| `/api/v1/blog/**` | blog-service | 8082 | 블로그 CRUD |
-| `/api/v1/shopping/**` | shopping-service | 8083 | 전자상거래 |
-| `/api/v1/notifications/**` | notification-service | 8084 | 알림 |
+총 **27개 라우트**가 정의되어 있습니다. 서비스 URL은 환경별 프로필(`application-{local,docker,kubernetes}.yml`)에서 `services.*.url`로 정의됩니다.
 
-### 7.2 경로 변환 (RewritePath)
+#### Actuator Health Routes (외부 접근 허용 - health/info만)
 
-**예시:**
-```
-Client Request:  /api/v1/blog/posts
-     ↓
-Gateway Rewrite: /posts
-     ↓
-Blog Service:    /posts (실제 엔드포인트)
-```
+| Route ID | Path | 대상 | 필터 |
+|----------|------|------|------|
+| auth-service-actuator-health | `/api/v1/auth/actuator/{health,info}` | auth-service | RewritePath |
+| blog-service-actuator-health | `/api/v1/blog/actuator/{health,info}` | blog-service | RewritePath |
+| shopping-service-actuator-health | `/api/v1/shopping/actuator/{health,info}` | shopping-service | RewritePath |
 
-**설정 (application.yml):**
-```yaml
-spring:
-  cloud:
-    gateway:
-      routes:
-        - id: blog-service
-          uri: lb://blog-service
-          predicates:
-            - Path=/api/v1/blog/**
-          filters:
-            - RewritePath=/api/v1/blog(?<segment>/?.*), ${segment}
-            - name: CircuitBreaker
-              args:
-                name: blogCircuitBreaker
-                fallbackUri: forward:/fallback/blog
-```
+#### Auth Service (12 routes)
 
-## 8. 배포 및 운영
+| Route ID | Path | Method | Rate Limiter | Key Resolver |
+|----------|------|--------|-------------|-------------|
+| auth-service-login | `/api/v1/auth/login` | POST | strict (1/s, burst 5) | composite |
+| auth-service-signup | `/api/v1/users/signup` | POST | signup (1/s, burst 3) | composite |
+| auth-service-oauth2-authorization | `/auth-service/oauth2/authorization/**` | ALL | - | - |
+| auth-service-oauth2-callback | `/auth-service/login/oauth2/code/**` | ALL | - | - |
+| auth-service-api-prefixed | `/auth-service/api/v1/auth/**` | ALL | unauthenticated | ip |
+| auth-service-profile | `/auth-service/api/v1/profile/**` | ALL | authenticated | user |
+| auth-service-users | `/api/v1/users/**` | ALL | unauthenticated | ip |
+| auth-service-api | `/api/v1/auth/**` | ALL | unauthenticated | ip |
+| auth-service-admin | `/api/v1/admin/{rbac,memberships,seller}/**` | ALL | authenticated | user |
+| auth-service-memberships | `/api/v1/memberships/**` | ALL | authenticated | user |
+| auth-service-seller | `/api/v1/seller/**` | ALL | authenticated | user |
+| auth-service-permissions | `/api/v1/permissions/**` | ALL | authenticated | user |
 
-### 8.1 프로필별 설정
+#### Blog Service (2 routes)
 
-**local:**
-- Config Server: localhost:8888
-- Eureka: localhost:8761
-- Frontend URLs: localhost:30000-30002
+| Route ID | Path | 필터 | 비고 |
+|----------|------|------|------|
+| blog-service-file-route | `/api/v1/blog/file/**` | StripPrefix=3, RequestSize=100MB | 파일 업로드 |
+| blog-service-route | `/api/v1/blog/**` | StripPrefix=3 | 일반 API |
 
-**docker:**
-- Config Server: config-service:8888
-- Eureka: eureka-server:8761
-- Frontend URLs: host.docker.internal:30000-30002
+#### Shopping Service (1 route)
 
-**k8s:**
-- Config Server: config-service.default.svc.cluster.local:8888
-- Eureka: eureka-server.default.svc.cluster.local:8761
-- Frontend URLs: 프로덕션 도메인
+| Route ID | Path | 필터 |
+|----------|------|------|
+| shopping-service-route | `/api/v1/shopping/**` | StripPrefix=3, unauthenticated rate limiter |
 
-### 8.2 Health Check
+#### Notification Service (2 routes)
 
-**엔드포인트:** `/actuator/health`
+| Route ID | Path | 비고 |
+|----------|------|------|
+| notification-service-websocket | `/notification/ws/**` | WebSocket, StripPrefix=1 |
+| notification-service-route | `/notification/api/v1/notifications/**`, `/api/v1/notifications/**` | REST API |
 
-**응답 예시:**
-```json
-{
-  "status": "UP",
-  "components": {
-    "diskSpace": {"status": "UP"},
-    "ping": {"status": "UP"},
-    "reactiveGateway": {"status": "UP"},
-    "circuitBreakers": {
-      "status": "UP",
-      "details": {
-        "authCircuitBreaker": "CLOSED",
-        "blogCircuitBreaker": "CLOSED"
-      }
-    }
-  }
-}
-```
+#### Chatbot Service (4 routes)
 
-### 8.3 메트릭
+| Route ID | Path | 비고 |
+|----------|------|------|
+| chatbot-service-health | `/api/v1/chat/health` | 공개, CB 없음 |
+| chatbot-service-stream | `/api/v1/chat/stream` (POST) | SSE, authenticated |
+| chatbot-service-documents | `/api/v1/chat/documents/**` | Admin 문서 관리 |
+| chatbot-service-route | `/api/v1/chat/**` | 일반 채팅 API |
 
-**Prometheus 엔드포인트:** `/actuator/prometheus`
+#### Prism Service (3 routes)
 
-**주요 메트릭:**
-- `spring_cloud_gateway_requests_total`: 총 요청 수
-- `spring_cloud_gateway_requests_seconds`: 요청 처리 시간
-- `resilience4j_circuitbreaker_state`: Circuit Breaker 상태
-- `jvm_memory_used_bytes`: JVM 메모리 사용량
+| Route ID | Path | 비고 |
+|----------|------|------|
+| prism-service-health | `/api/v1/prism/{health,ready}` | 공개, RewritePath |
+| prism-service-sse | `/api/v1/prism/sse/**` | SSE, Rate Limit 없음 |
+| prism-service-route | `/api/v1/prism/**` | 일반 API, RewritePath |
 
-### 8.4 분산 추적
+### 7.2 경로 변환 규칙
 
-**Zipkin 연동:**
-- Gateway에서 생성된 Trace ID가 모든 백엔드 서비스로 전파
-- `X-B3-TraceId`, `X-B3-SpanId` 헤더 자동 추가
-- Zipkin UI에서 전체 요청 흐름 시각화
+| 패턴 | 변환 | 대상 서비스 |
+|------|------|-----------|
+| `/api/v1/blog/**` | StripPrefix=3 → `/**` | blog-service |
+| `/api/v1/shopping/**` | StripPrefix=3 → `/**` | shopping-service |
+| `/auth-service/**` | StripPrefix=1 → `/**` | auth-service |
+| `/api/v1/prism/**` | RewritePath → `/api/v1/**` | prism-service |
+| `/api/v1/*/actuator/**` | RewritePath → `/actuator/**` | 각 서비스 |
 
-## 9. 확장 포인트
+### 7.3 서비스 URL (환경별)
 
-### 9.1 커스텀 필터 추가
-
-**방법 1: Global Filter**
-```java
-@Component
-public class CustomGlobalFilter implements GlobalFilter, Ordered {
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 전처리
-        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            // 후처리
-        }));
-    }
-
-    @Override
-    public int getOrder() {
-        return -1; // 우선순위 설정
-    }
-}
-```
-
-**방법 2: Gateway Filter Factory**
-```java
-@Component
-public class CustomGatewayFilterFactory extends AbstractGatewayFilterFactory<CustomGatewayFilterFactory.Config> {
-    @Override
-    public GatewayFilter apply(Config config) {
-        return (exchange, chain) -> {
-            // 필터 로직
-            return chain.filter(exchange);
-        };
-    }
-
-    public static class Config {
-        // 설정 프로퍼티
-    }
-}
-```
-
-### 9.2 커스텀 라우팅 로직
-
-**Route Locator Bean 정의:**
-```java
-@Bean
-public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-    return builder.routes()
-        .route("custom_route", r -> r
-            .path("/custom/**")
-            .and()
-            .header("X-Custom-Header", "value")
-            .filters(f -> f
-                .addRequestHeader("X-Gateway", "portal-universe")
-                .circuitBreaker(c -> c.setFallbackUri("forward:/fallback/custom")))
-            .uri("lb://custom-service"))
-        .build();
-}
-```
-
-### 9.3 인증 전략 확장
-
-**OAuth2 Scope 기반 권한 검증:**
-```java
-http.authorizeExchange(exchanges -> exchanges
-    .pathMatchers("/api/v1/admin/**").hasAuthority("SCOPE_admin")
-    .pathMatchers("/api/v1/user/**").hasAuthority("SCOPE_user")
-    .anyExchange().authenticated()
-);
-```
-
-## 10. 트러블슈팅
-
-### 10.1 CORS 에러
-
-**증상:** 브라우저 콘솔에서 CORS 에러 발생
-
-**원인:**
-- `FrontendProperties.urls`에 프론트엔드 URL 미등록
-- OPTIONS 요청이 보안 필터에서 차단
-
-**해결:**
-```yaml
-frontend:
-  urls:
-    - http://localhost:30000
-    - https://portal-universe.com
-```
-
-### 10.2 JWT 검증 실패
-
-**증상:** 401 Unauthorized, "Invalid token" 메시지
-
-**체크리스트:**
-- Auth Service의 jwk-set-uri가 접근 가능한가?
-- JWT의 `iss` claim이 issuer-uri와 일치하는가?
-- JWT가 만료되지 않았는가? (`exp` claim)
-- 서명 알고리즘이 RS256인가?
-
-**로그 확인:**
-```bash
-kubectl logs -f api-gateway-pod | grep "JWT"
-```
-
-### 10.3 Circuit Breaker 열림
-
-**증상:** Fallback 응답 반환, "Service temporarily unavailable"
-
-**원인:**
-- 백엔드 서비스 장애
-- 네트워크 지연
-- Failure Rate Threshold 초과 (기본 50%)
-
-**복구:**
-- 백엔드 서비스 재시작
-- 10초 대기 후 Circuit Breaker 자동 Half-Open
-- Actuator로 Circuit Breaker 상태 확인:
-  ```bash
-  curl http://localhost:8080/actuator/circuitbreakers
-  ```
-
-### 10.4 라우팅 실패
-
-**증상:** 404 Not Found, "No matching route"
-
-**디버깅:**
-```bash
-# 등록된 라우트 확인
-curl http://localhost:8080/actuator/gateway/routes
-
-# 특정 경로 매칭 테스트
-curl -v http://localhost:8080/api/v1/blog/posts
-```
-
-**주의사항:**
-- Path Predicate의 대소문자 구분
-- RewritePath 정규식 오류
-- Eureka에 서비스 미등록
-
-## 11. 참고 자료
-
-### 공식 문서
-- [Spring Cloud Gateway Reference](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/)
-- [Spring Security OAuth2 Resource Server](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html)
-- [Resilience4j User Guide](https://resilience4j.readme.io/docs)
-
-### 프로젝트 내부 문서
-- [API Gateway 설정 파일](../config/README.md)
-- [보안 정책 가이드](../security/oauth2-flow.md)
-- [운영 가이드](../../../docs/runbooks/api-gateway-operations.md)
-
-### 관련 서비스 문서
-- [Auth Service 아키텍처](../../auth-service/docs/architecture/oauth2-server.md)
-- [Config Service 설정 관리](../../config-service/docs/architecture/centralized-config.md)
+| 서비스 | Local | Docker | Kubernetes |
+|--------|-------|--------|------------|
+| auth | localhost:8081 | auth-service:8081 | auth-service:8081 |
+| blog | localhost:8082 | blog-service:8082 | blog-service:8082 |
+| shopping | localhost:8083 | shopping-service:8083 | shopping-service:8083 |
+| notification | localhost:8084 | notification-service:8084 | notification-service:8084 |
+| prism | localhost:8085 | prism-service:8085 | prism-service:8085 |
+| chatbot | localhost:8086 | chatbot-service:8086 | chatbot-service:8086 |
 
 ---
 
-**문서 버전:** 1.0.0
-**최종 검토:** 2026-01-18
-**다음 리뷰 예정:** 2026-04-18
+## 8. 기술 스택
+
+### 핵심 의존성 (build.gradle)
+
+| 카테고리 | 의존성 | 버전 | 용도 |
+|---------|--------|-----|------|
+| **Gateway** | spring-cloud-starter-gateway-server-webflux | Spring Cloud 2025.0.0 | 비동기 API Gateway |
+| **Circuit Breaker** | spring-cloud-starter-circuitbreaker-reactor-resilience4j | Spring Cloud 2025.0.0 | 장애 격리 |
+| **Security** | spring-boot-starter-security | Spring Boot 3.5.5 | WebFlux Security |
+| **JWT** | jjwt-api / jjwt-impl / jjwt-jackson | 0.12.6 | HMAC JWT 검증 |
+| **Redis** | spring-boot-starter-data-redis-reactive | Spring Boot 3.5.5 | Rate Limiting + Blacklist |
+| **Actuator** | spring-boot-starter-actuator | Spring Boot 3.5.5 | Health Check, Metrics |
+| **Prometheus** | micrometer-registry-prometheus | - | Prometheus 메트릭 노출 |
+| **Tracing** | micrometer-tracing-bridge-brave | - | 분산 추적 |
+| **Zipkin** | zipkin-reporter-brave | - | Trace 리포팅 |
+| **Kubernetes** | kubernetes-client (Fabric8) | 6.13.4 | K8s API 연동 |
+| **Logging** | logstash-logback-encoder | 8.0 | 구조화 JSON 로깅 |
+
+### 미사용 (문서 정정)
+
+다음은 이전 문서에 기재되어 있었으나 **실제 코드에 없는** 의존성입니다:
+- ~~Eureka Client~~ → 서비스 디스커버리 미사용, 직접 URL 라우팅
+- ~~Spring Cloud Config Client~~ → 로컬 YAML 설정 사용
+- ~~OAuth2 Resource Server~~ → 커스텀 JwtAuthenticationFilter 사용
+- ~~`lb://` URI~~ → 직접 서비스 URL 사용
+
+---
+
+## 9. Circuit Breaker (Resilience4j)
+
+### 기본 설정
+
+| 설정 | 값 |
+|------|---|
+| Sliding Window Type | COUNT_BASED |
+| Sliding Window Size | 20 |
+| Failure Rate Threshold | 50% |
+| Wait Duration (Open → Half-Open) | 10초 |
+| Permitted Calls (Half-Open) | 5 |
+| Auto Transition | Open → Half-Open 자동 전환 |
+
+### 서비스별 인스턴스
+
+| 인스턴스 | Timeout | Fallback |
+|---------|---------|----------|
+| authCircuitBreaker | 5s (default) | `/fallback/auth` (GW001) |
+| blogCircuitBreaker | 5s (default) | `/fallback/blog` (GW002) |
+| shoppingCircuitBreaker | 5s (default) | `/fallback/shopping` (GW003) |
+| prismCircuitBreaker | **60s** | `/fallback/prism` |
+| chatbotCircuitBreaker | **120s** | `/fallback/chatbot` |
+
+> Prism(AI 오케스트레이션)과 Chatbot(RAG + AI) 서비스는 AI 응답 대기를 위해 타임아웃이 확장되어 있습니다.
+
+### 상태 전이
+
+```mermaid
+stateDiagram-v2
+    [*] --> CLOSED
+    CLOSED --> OPEN : 실패율 >= 50%<br/>(최근 20건 중)
+    OPEN --> HALF_OPEN : 10초 대기 후<br/>자동 전환
+    HALF_OPEN --> CLOSED : 5건 중 성공
+    HALF_OPEN --> OPEN : 5건 중 실패율 >= 50%
+```
+
+---
+
+## 10. 배포 및 운영
+
+### 10.1 프로필별 설정
+
+| 프로필 | 서비스 URL | Redis | Frontend | 비고 |
+|--------|----------|-------|----------|------|
+| `local` | localhost:{port} | localhost:6379 | http://localhost:30000 | HSTS 비활성화 |
+| `docker` | {service-name}:{port} | redis:6379 | https://portal-universe:30000 | Zipkin 연동 |
+| `kubernetes` | {service-name}:{port} | redis:6379 | - | Liveness/Readiness Probe |
+
+### 10.2 Actuator 엔드포인트
+
+| 엔드포인트 | 용도 | 외부 접근 |
+|-----------|------|----------|
+| `/actuator/health` | 서비스 상태 | O |
+| `/actuator/info` | 서비스 정보 | O |
+| `/actuator/prometheus` | Prometheus 메트릭 | 내부망 전용 |
+| `/actuator/metrics` | Micrometer 메트릭 | 내부망 전용 |
+
+> `/swagger-ui`, `/api-docs`는 Gateway를 통한 접근이 차단되며, 각 서비스 포트로 직접 접근해야 합니다.
+
+### 10.3 Health Dashboard
+
+`GET /api/health/services` 엔드포인트로 모든 서비스의 통합 상태를 조회합니다.
+
+**응답 예시**:
+```json
+{
+  "overallStatus": "degraded",
+  "timestamp": "2026-02-06T12:00:00Z",
+  "services": [
+    {
+      "name": "api-gateway",
+      "displayName": "API Gateway",
+      "status": "up",
+      "responseTime": 5
+    },
+    {
+      "name": "auth-service",
+      "displayName": "Auth Service",
+      "status": "up",
+      "responseTime": 45,
+      "replicas": 2,
+      "readyReplicas": 2,
+      "pods": [
+        {"name": "auth-service-abc123", "phase": "Running", "ready": true, "restarts": 0}
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 11. 트러블슈팅
+
+### CORS 문제
+- **증상**: Preflight 요청 실패, `Access-Control-Allow-Origin` 헤더 누락
+- **확인**: `CorsWebFilter`의 allowedOrigins에 프론트엔드 URL이 포함되어 있는지 확인
+- **주의**: `DedupeResponseHeader` 필터가 중복 CORS 헤더를 제거하므로, 백엔드 서비스에서 별도 CORS 설정 시 충돌 가능
+
+### JWT 검증 실패
+- **GW-A006 (Token expired)**: Access Token 만료. 프론트엔드에서 Refresh Token으로 갱신 필요
+- **GW-A007 (Invalid token)**: `kid`에 해당하는 키가 없거나 만료됨. `jwt.keys` 설정 확인
+- **GW-A005 (Token revoked)**: 로그아웃된 토큰. Redis blacklist 확인
+
+### Rate Limiting
+- **429 Too Many Requests**: `X-RateLimit-Remaining` 헤더로 남은 횟수 확인
+- **개발 환경에서 429 발생**: `local`/`docker` 프로필이 활성화되어 있는지 확인 (완화된 제한 적용)
+- **Redis 연결 실패**: Rate Limiting이 무시되어 모든 요청 허용. Redis 상태 확인 필요
+
+### Circuit Breaker
+- **GW001-GW004 Fallback 응답**: 해당 서비스가 다운되었거나 타임아웃 초과
+- **Prism/Chatbot 타임아웃**: AI 응답 지연 시 60초/120초까지 대기 후 OPEN 상태 전환
+
+---
+
+## 12. 관련 문서
+
+### Architecture
+- [Data Flow](./data-flow.md) - 요청 처리 흐름 상세
+
+### API 문서
+- [Routing Specification](../../api/api-gateway/routing-specification.md)
+- [Security & Authentication](../../api/api-gateway/security-authentication.md)
+- [Rate Limiting](../../api/api-gateway/rate-limiting.md)
+- [Resilience](../../api/api-gateway/resilience.md)
+- [Error Reference](../../api/api-gateway/error-reference.md)
+- [Health Monitoring](../../api/api-gateway/health-monitoring.md)
+
+---
+
+## 13. 변경 이력
+
+| 날짜 | 버전 | 변경 내용 | 작성자  |
+|------|------|----------|------|
+| 2026-01-18 | 1.0 | 초기 문서 작성 | Laze |
+| 2026-02-06 | 2.0 | 코드베이스 기준 전면 재작성 (24개 Java 파일, application.yml 검증) | Laze |
