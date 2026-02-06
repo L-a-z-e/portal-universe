@@ -188,7 +188,7 @@ services/new-service/
 | 4 | `docker-compose.yml`에 서비스 추가 | [Docker Compose Guide](docker-compose.md) |
 | 5 | API Gateway에 라우트 추가 | [API Gateway](../../architecture/) | <!-- TODO: verify api gateway docs location -->
 | 6 | Kafka 이벤트 연동 (필요시) | [`/docs/learning/README.md`](../learning/README.md) PART 1 |
-| 7 | K8s Deployment 작성 (필요시) | [`/docs/guides/kubernetes.md`](kubernetes.md) |
+| 7 | K8s Deployment 작성 (필요시) | [K8s 배포 가이드](../deployment/k8s-deployment-guide.md) |
 
 ### Step 4. 문서 작성
 

@@ -886,7 +886,7 @@ kubectl rollout restart deployment --all -n portal-universe
 
 ### 프로젝트 관련 문서
 - [ADR-001: Module Federation 아키텍처](../adr/ADR-001-module-federation.md)
-- [Docker 환경 배포 가이드](./docker-deployment-guide.md)
+- [Docker Compose 배포 가이드](./docker-compose.md)
 - [Troubleshooting 문서](../troubleshooting/)
 
 ### 리소스

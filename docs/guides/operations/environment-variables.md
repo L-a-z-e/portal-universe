@@ -428,7 +428,7 @@ kubectl exec -it <pod-name> -n portal-universe -- env | grep MYSQL
 ## 참고
 
 - [Docker Compose 배포 가이드](./docker-compose.md)
-- [Kubernetes 배포 가이드](./kubernetes.md)
+- [Kubernetes 배포 가이드](../deployment/k8s-deployment-guide.md)
 - [프로젝트 README](../../README.md)
 - [Spring Boot Externalized Configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config)
 - [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
