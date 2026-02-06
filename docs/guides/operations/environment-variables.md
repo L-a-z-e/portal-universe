@@ -9,11 +9,12 @@
 ## 빠른 시작
 
 ```bash
-# 1. 로컬 개발용 환경 변수 설정
-cp .env.local.example .env.local
-vi .env.local  # 또는 원하는 에디터로 편집
+# 1. 로컬 개발용 환경 변수 (서비스별 .env.local)
+# auth-service, prism-service는 이미 설정되어 있음. 아래는 참고용.
+# services/auth-service/.env.local   (OAuth2 client ID/Secret)
+# services/prism-service/.env.local  (DB, Kafka, Redis, Encryption Key)
 
-# 2. Docker Compose용 환경 변수 설정
+# 2. Docker Compose용 환경 변수 (프로젝트 루트)
 cp .env.docker.example .env.docker
 vi .env.docker
 
@@ -22,20 +23,22 @@ cp k8s/base/secret.yaml.example k8s/base/secret.yaml
 vi k8s/base/secret.yaml
 ```
 
-> **⚠️ 중요**: 생성한 `.env.local`, `.env.docker`, `secret.yaml` 파일은 Git에 커밋되지 않습니다. 이미 `.gitignore`에 등록되어 있습니다.
+> **⚠️ 중요**: `.env.local`, `.env.docker`, `secret.yaml` 파일은 Git에 커밋되지 않습니다. 이미 `.gitignore`에 등록되어 있습니다.
 
 ## 환경별 설정
 
 ### 1. 로컬 개발 (IDE/로컬 실행)
 
-**파일**: `.env.local`
+**파일**: 서비스별 `.env.local` (각 서비스 디렉토리에 위치)
+
+| 서비스 | 경로 | 내용 |
+|--------|------|------|
+| auth-service | `services/auth-service/.env.local` | OAuth2 client ID/Secret |
+| prism-service | `services/prism-service/.env.local` | DB, Kafka, Redis, Encryption Key |
 
 **용도**: IDE에서 직접 서비스를 실행하거나 로컬 테스트 시 사용
 
-```bash
-# .env.local.example을 복사하여 생성
-cp .env.local.example .env.local
-```
+> **참고**: 위 `.env.local` 파일은 이미 설정되어 있습니다. 새로 복사할 필요 없습니다.
 
 **Spring Boot 프로필**: `local` (기본값)
 

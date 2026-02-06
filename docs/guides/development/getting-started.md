@@ -59,7 +59,7 @@ Tailwind CSS를 사용하는 경우 프리셋을 추가합니다.
 ```js
 // tailwind.config.js
 module.exports = {
-  presets: [require('@portal/design-tokens/tailwind.preset')],
+  presets: [(await import('@portal/design-tokens/tailwind')).default],
   content: ['./src/**/*.{vue,ts,tsx,js,jsx}'],
 };
 ```

@@ -60,7 +60,7 @@ docker compose up -d api-gateway auth-service blog-service shopping-service noti
 
 | 서비스 | 포트 | URL |
 |--------|------|-----|
-| Portal Shell | 30000 | https://localhost:30000 |
+| Portal Shell | 30000 | http://localhost:30000 |
 | Blog Frontend | 30001 | http://localhost:30001 |
 
 ### 데이터 저장소
