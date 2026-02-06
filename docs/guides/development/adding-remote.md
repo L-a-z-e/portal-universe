@@ -594,7 +594,7 @@ sharedModules.eventBus.on('payment:success', (data) => {
 
 ## ➡️ 다음 단계
 
-1. **개발 워크플로우**: [development.md](./development.md)
+1. **개발 워크플로우**: [portal-shell-workflow.md](./portal-shell-workflow.md)
 2. **Remote 애플리케이션 개발 가이드**: [../../../blog-frontend/docs/guides/](../../../blog-frontend/docs/guides/)
 3. **Architecture 심화**: [../architecture/remote-registry.md](../architecture/remote-registry.md)
 

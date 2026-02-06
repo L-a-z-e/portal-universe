@@ -20,7 +20,7 @@ tags: [development, guide, index]
 | 문서 | 설명 | 대상 |
 |------|------|------|
 | [로컬 개발 환경 구성](./local-dev-setup.md) | Zero to Running 전체 환경 구성 | 신규 개발자 |
-| [로컬 개발 가이드](./local-development.md) | 개발 워크플로우 및 도구 | 신규 개발자 |
+| [Notification 로컬 개발](./notification-local-dev.md) | Notification Service 로컬 개발 | 서비스 개발자 |
 | [온보딩 패스](./onboarding-path.md) | 단계별 학습 경로 | 신규 개발자 |
 | [빠른 시작 가이드](./getting-started.md) | 기본 설정 및 도구 사용법 | 신규 개발자 |
 
@@ -99,7 +99,7 @@ tags: [development, guide, index]
 
 | 문서 | 설명 |
 |------|------|
-| [개발 환경](./development.md) | 개발 도구 및 설정 |
+| [Portal Shell 워크플로우](./portal-shell-workflow.md) | Portal Shell 개발 워크플로우 |
 
 ---
 
