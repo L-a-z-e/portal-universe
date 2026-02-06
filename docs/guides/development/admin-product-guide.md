@@ -716,8 +716,8 @@ API 상태 확인:
 ## 추가 지원
 
 ### 문서
-- [API Reference](../api/shopping-api-reference.md)
-- [Admin API Design](../api/admin-products-api.md)
+- [API Reference](../../api/shopping-service/README.md)
+- [Admin API Design](../../api/shopping-service/admin-product-api.md)
 
 ### 연락처
 - Technical: dev-team@portal-universe.com

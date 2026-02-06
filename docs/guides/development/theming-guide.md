@@ -292,8 +292,8 @@ export default {
 ## 🔗 관련 문서
 
 - [컴포넌트 사용 가이드](./using-components.md) - 테마가 적용된 컴포넌트 사용법
-- [API Reference](../api/README.md) - CSS 변수 전체 목록
-- [Architecture](../architecture/theming.md) - 테마 시스템 아키텍처
+- [API Reference](../../api/README.md) - CSS 변수 전체 목록
+- [Architecture](../../architecture/design-system/theming.md) - 테마 시스템 아키텍처
 
 ---
 

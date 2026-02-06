@@ -12,9 +12,9 @@ tags: [rbac, auth, security, refactoring, guide]
 # RBAC 리팩토링 구현 가이드
 
 ## 관련 ADR
-- [ADR-011: 계층적 RBAC + 멤버십 기반 인증/인가 시스템](../adr/ADR-011-hierarchical-rbac-membership-system.md)
-- [ADR-003: Admin 권한 검증 전략](../adr/ADR-003-authorization-strategy.md)
-- [ADR-004: JWT RBAC 자동 설정 전략](../adr/ADR-004-jwt-rbac-auto-configuration.md)
+- [ADR-011: 계층적 RBAC + 멤버십 기반 인증/인가 시스템](../../adr/ADR-011-hierarchical-rbac-membership-system.md)
+- [ADR-003: Admin 권한 검증 전략](../../adr/ADR-003-authorization-strategy.md)
+- [ADR-004: JWT RBAC 자동 설정 전략](../../adr/ADR-004-jwt-rbac-auto-configuration.md)
 
 ## 목차
 

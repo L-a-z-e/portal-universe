@@ -21,15 +21,15 @@
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
 | 4 | [`/docs/architecture/README.md`](../architecture/README.md) | 시스템 설계 문서 목록 |
-| 5 | [`/docs/adr/README.md`](../adr/README.md) | 14개 아키텍처 결정 기록 (훑어보기) |
+| 5 | [`/docs/adr/README.md`](../../adr/README.md) | 14개 아키텍처 결정 기록 (훑어보기) |
 | 6 | [`/docs/old-docs/diagrams/`](../../old-docs/diagrams/) | 시스템 전체 구조, 서비스 간 통신 다이어그램 |
 
 ### Step 3. 환경 구성 & 실행
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 7 | [`/docs/guides/docker-compose.md`](docker-compose.md) | Docker Compose 로컬 개발 환경 구성 |
-| 8 | [`/docs/guides/environment-variables.md`](environment-variables.md) | 환경 변수 설정 |
+| 7 | [`/docs/guides/deployment/docker-compose.md`](../deployment/docker-compose.md) | Docker Compose 로컬 개발 환경 구성 |
+| 8 | [`/docs/guides/operations/environment-variables.md`](../operations/environment-variables.md) | 환경 변수 설정 |
 
 ### Step 4. 심화 (선택)
 
@@ -59,8 +59,8 @@
 |------|------|----------|
 | 4 | [Auth Service README](../../api/) | 서비스 개요, 아키텍처 | <!-- TODO: verify auth service docs location -->
 | 5 | [Auth API](../../api/) | 11개 컨트롤러, 38+ API 엔드포인트 | <!-- TODO: verify auth API location -->
-| 6 | [`/docs/adr/ADR-003-authorization-strategy.md`](../adr/ADR-003-authorization-strategy.md) | 권한 검증 전략 |
-| 7 | [`/docs/adr/ADR-004-jwt-rbac-auto-configuration.md`](../adr/ADR-004-jwt-rbac-auto-configuration.md) | JWT 자동 설정 |
+| 6 | [`/docs/adr/ADR-003-authorization-strategy.md`](../../adr/ADR-003-authorization-strategy.md) | 권한 검증 전략 |
+| 7 | [`/docs/adr/ADR-004-jwt-rbac-auto-configuration.md`](../../adr/ADR-004-jwt-rbac-auto-configuration.md) | JWT 자동 설정 |
 
 ### B-2. Shopping Service
 
@@ -69,7 +69,7 @@
 | 4 | [Shopping Service README](../../api/shopping-frontend/) | 서비스 개요, Saga 패턴 |
 | 5 | [Shopping API](../../api/shopping-frontend/) | 상품 CRUD API |
 | 6 | [`/docs/scenarios/SCENARIO-002-order-saga.md`](../scenarios/SCENARIO-002-order-saga.md) | 주문/결제 Saga 흐름 |
-| 7 | [`/docs/api/shopping-api-reference.md`](../api/shopping-api-reference.md) | 전체 Shopping API 레퍼런스 |
+| 7 | [Shopping API Reference](../../api/shopping-service/README.md) | 전체 Shopping API 레퍼런스 |
 
 ### B-3. Blog Service
 
@@ -154,7 +154,7 @@
 
 | 순서 | 문서 | 왜 읽는가 |
 |------|------|----------|
-| 1 | [`/docs/adr/README.md`](../adr/README.md) | 기존 아키텍처 결정 검토 |
+| 1 | [`/docs/adr/README.md`](../../adr/README.md) | 기존 아키텍처 결정 검토 |
 | 2 | [`/.claude/rules/spring.md`](../../.claude/rules/spring.md) | Layer 구조, 패턴 확인 |
 | 3 | 기존 서비스 하나 선택하여 `README.md` + 코드 구조 분석 | 디렉토리 레이아웃 참고 |
 
@@ -185,7 +185,7 @@ services/new-service/
 
 | 순서 | 작업 | 참고 문서 |
 |------|------|----------|
-| 4 | `docker-compose.yml`에 서비스 추가 | [Docker Compose Guide](docker-compose.md) |
+| 4 | `docker-compose.yml`에 서비스 추가 | [Docker Compose Guide](../deployment/docker-compose.md) |
 | 5 | API Gateway에 라우트 추가 | [API Gateway](../../architecture/) | <!-- TODO: verify api gateway docs location -->
 | 6 | Kafka 이벤트 연동 (필요시) | [`/docs/learning/README.md`](../learning/README.md) PART 1 |
 | 7 | K8s Deployment 작성 (필요시) | [K8s 배포 가이드](../deployment/k8s-deployment-guide.md) |

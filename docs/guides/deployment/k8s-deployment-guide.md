@@ -885,7 +885,7 @@ kubectl rollout restart deployment --all -n portal-universe
 - [mkcert](https://github.com/FiloSottile/mkcert)
 
 ### 프로젝트 관련 문서
-- [ADR-001: Module Federation 아키텍처](../adr/ADR-001-module-federation.md)
+- [Module Federation 아키텍처](../../architecture/portal-shell/module-federation.md)
 - [Docker Compose 배포 가이드](./docker-compose.md)
 - [Troubleshooting 문서](../troubleshooting/)
 

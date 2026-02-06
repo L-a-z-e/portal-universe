@@ -604,7 +604,7 @@ sharedModules.eventBus.on('payment:success', (data) => {
 
 - [Module Federation 공식 문서](https://webpack.js.org/concepts/module-federation/)
 - [Vite Plugin Federation](https://github.com/originjs/vite-plugin-federation)
-- [Portal Shell Architecture](../architecture/system-overview.md)
+- [Portal Shell Architecture](../../architecture/portal-shell/system-overview.md)
 
 ---
 

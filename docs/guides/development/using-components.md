@@ -401,7 +401,7 @@ const handleSearch = () => {
 
 ## 🔗 관련 문서
 
-- [API Reference](../api/README.md) - Props, Events, Slots 상세 명세
+- [API Reference](../../api/README.md) - Props, Events, Slots 상세 명세
 - [테마 적용 가이드](./theming-guide.md) - 컴포넌트 스타일 커스터마이징
 - [Storybook](http://localhost:6006) - 컴포넌트 인터랙티브 문서
 

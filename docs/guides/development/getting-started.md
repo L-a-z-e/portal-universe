@@ -283,6 +283,6 @@ Base 토큰 대신 Semantic 토큰을 사용하세요.
 
 ## 다음 단계
 
-- [Token System Architecture](../architecture/token-system.md) - 토큰 시스템 이해
-- [CSS Variables Reference](../api/css-variables.md) - 전체 변수 목록
+- [Token System Architecture](../../architecture/design-system/token-system.md) - 토큰 시스템 이해
+- [CSS Variables Reference](../../api/design-tokens/css-variables.md) - 전체 변수 목록
 - [Theming Guide](./theming-guide.md) - 커스터마이징 방법

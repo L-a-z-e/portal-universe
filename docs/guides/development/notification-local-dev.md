@@ -591,7 +591,7 @@ docker exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 \
 
 ## 10. 다음 단계
 
-- [Notification Service 아키텍처](../architecture/README.md)
+- [Notification Service 아키텍처](../../architecture/notification-service/README.md)
 - [Kafka 설정 가이드](./kafka-configuration.md)
 - [이메일 템플릿 가이드](./email-templates.md)
 - [알림 발송 전략](./notification-strategy.md)

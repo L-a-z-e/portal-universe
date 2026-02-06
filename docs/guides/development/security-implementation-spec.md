@@ -1296,9 +1296,9 @@ spring:
 ## 관련 문서
 
 - [JWT RBAC 설정 가이드](./jwt-rbac-setup.md)
-- [환경 변수 설정 가이드](./environment-variables.md)
-- [ADR-004: JWT RBAC 자동 설정 전략](../adr/ADR-004-jwt-rbac-auto-configuration.md)
-- [ADR-005: 민감 데이터 관리 전략](../adr/ADR-005-sensitive-data-management.md)
+- [환경 변수 설정 가이드](../operations/environment-variables.md)
+- [ADR-004: JWT RBAC 자동 설정 전략](../../adr/ADR-004-jwt-rbac-auto-configuration.md)
+- [ADR-005: 민감 데이터 관리 전략](../../adr/ADR-005-sensitive-data-management.md)
 
 ---
 

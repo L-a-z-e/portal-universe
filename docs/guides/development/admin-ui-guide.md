@@ -754,8 +754,8 @@ const normalizeImageUrl = (url: string) => {
 
 - [Getting Started](./getting-started.md) - 개발 환경 설정
 - [Module Federation 통합](./federation-integration.md) - Portal Shell 통합
-- [API Client](../api/api-client.md) - API 통신 가이드
-- [Data Flow](../architecture/data-flow.md) - 데이터 흐름 이해
+- [API Client](../../api/portal-shell/api-client.md) - API 통신 가이드
+- [Data Flow](../../architecture/shopping-frontend/data-flow.md) - 데이터 흐름 이해
 
 ---
 
