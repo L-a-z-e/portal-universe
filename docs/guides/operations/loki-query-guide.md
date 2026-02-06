@@ -1,4 +1,17 @@
+---
+id: loki-query-guide
+title: Loki 로그 조회 가이드
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-02-06
+author: Laze
+tags: [loki, grafana, logging, logql, guide]
+---
+
 # Loki 로그 조회 가이드
+
+**난이도**: ⭐⭐ | **예상 시간**: 20분 | **카테고리**: Operations
 
 ## 1. Grafana UI 사용법
 

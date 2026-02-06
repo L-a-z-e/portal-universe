@@ -1,16 +1,18 @@
-# Network Policy Documentation
-
 ---
 id: network-policy
 title: Network Policy 구성 가이드
 type: guide
 status: current
 created: 2026-01-19
-updated: 2026-01-19
+updated: 2026-02-06
 author: Laze
 tags: [kubernetes, network-policy, security, microservices]
 related: []
 ---
+
+# Network Policy Documentation
+
+**난이도**: ⭐⭐⭐ | **예상 시간**: 30분 | **카테고리**: Operations
 
 ## 개요
 

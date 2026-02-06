@@ -1,4 +1,17 @@
+---
+id: monitoring
+title: Monitoring Stack Documentation
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-02-06
+author: Laze
+tags: [monitoring, prometheus, grafana, zipkin, guide]
+---
+
 # Monitoring Stack Documentation
+
+**난이도**: ⭐⭐⭐ | **예상 시간**: 30분 | **카테고리**: Operations
 
 ## 모니터링 스택 개요
 

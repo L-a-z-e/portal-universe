@@ -1,4 +1,17 @@
+---
+id: configuration
+title: 설정 관리 가이드
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-02-06
+author: Laze
+tags: [configuration, profiles, spring-boot, guide]
+---
+
 # 설정 관리 가이드
+
+**난이도**: ⭐⭐ | **예상 시간**: 15분 | **카테고리**: Operations
 
 ## 개요
 

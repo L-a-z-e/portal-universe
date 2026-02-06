@@ -1,4 +1,17 @@
+---
+id: environment-variables
+title: 환경 변수 설정 가이드
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-02-06
+author: Laze
+tags: [environment, configuration, secrets, guide]
+---
+
 # 환경 변수 설정 가이드
+
+**난이도**: ⭐⭐ | **예상 시간**: 15분 | **카테고리**: Operations
 
 ## 사전 요구사항
 

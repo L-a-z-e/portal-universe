@@ -1,4 +1,17 @@
+---
+id: docker-compose
+title: Docker Compose 배포 가이드
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-02-06
+author: Laze
+tags: [docker, docker-compose, deployment, guide]
+---
+
 # Docker Compose 배포 가이드
+
+**난이도**: ⭐⭐ | **예상 시간**: 20분 | **카테고리**: Deployment
 
 ## 사전 요구사항
 

@@ -1,4 +1,17 @@
+---
+id: k8s-deployment-guide
+title: Portal Universe Kubernetes 배포 가이드
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-02-06
+author: Laze
+tags: [kubernetes, kind, deployment, ingress, guide]
+---
+
 # Portal Universe Kubernetes 배포 가이드
+
+**난이도**: ⭐⭐⭐⭐ | **예상 시간**: 2시간 | **카테고리**: Deployment
 
 ## 1. 개요
 
