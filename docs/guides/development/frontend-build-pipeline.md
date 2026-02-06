@@ -1,3 +1,14 @@
+---
+id: frontend-build-pipeline
+title: Frontend 빌드 파이프라인 가이드
+type: guide
+status: current
+created: 2026-02-05
+updated: 2026-02-06
+author: Laze
+tags: [frontend, build, pipeline, monorepo, guide]
+---
+
 # Frontend 빌드 파이프라인 가이드
 
 **난이도**: ⭐⭐ | **예상 시간**: 15분 | **카테고리**: Development

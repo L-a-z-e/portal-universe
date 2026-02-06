@@ -11,6 +11,8 @@ tags: [rbac, auth, security, refactoring, guide]
 
 # RBAC 리팩토링 구현 가이드
 
+**난이도**: ⭐⭐⭐⭐ | **예상 시간**: 2시간 | **카테고리**: Development
+
 ## 관련 ADR
 - [ADR-011: 계층적 RBAC + 멤버십 기반 인증/인가 시스템](../../adr/ADR-011-hierarchical-rbac-membership-system.md)
 - [ADR-003: Admin 권한 검증 전략](../../adr/ADR-003-authorization-strategy.md)

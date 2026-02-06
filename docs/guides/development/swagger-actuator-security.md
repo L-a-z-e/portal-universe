@@ -14,6 +14,8 @@ related:
 
 # Swagger/Actuator 보안 설정 가이드
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 30분 | **카테고리**: Development
+
 ## 개요
 
 Portal Universe 프로젝트의 모든 서비스에 대한 Swagger UI 및 Actuator 엔드포인트 보안 정책과 접근 방법을 설명합니다.

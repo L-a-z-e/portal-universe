@@ -1,3 +1,14 @@
+---
+id: kafka-events
+title: Kafka 이벤트 구현 가이드
+type: guide
+status: current
+created: 2026-02-05
+updated: 2026-02-06
+author: Laze
+tags: [kafka, event-driven, guide, backend]
+---
+
 # Kafka 이벤트 구현 가이드
 
 **난이도**: ⭐⭐⭐ | **예상 시간**: 1시간 | **카테고리**: Development

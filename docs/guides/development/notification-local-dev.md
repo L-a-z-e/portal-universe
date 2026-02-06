@@ -12,6 +12,8 @@ related: []
 
 # Notification Service 로컬 개발 가이드
 
+**난이도**: ⭐⭐ | **예상 시간**: 20분 | **카테고리**: Development
+
 이 가이드는 Notification Service를 로컬 환경에서 개발하고 테스트하는 방법을 설명합니다.
 
 ## 1. 사전 요구사항

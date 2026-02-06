@@ -11,6 +11,8 @@ tags: [common-library, security, audit, logging, logback]
 
 # 보안 감사 로그 설정 가이드
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 30분 | **카테고리**: Development
+
 ## 개요
 common-library에서 제공하는 보안 감사 로깅 모듈을 각 서비스에서 활용하는 방법을 설명합니다.
 

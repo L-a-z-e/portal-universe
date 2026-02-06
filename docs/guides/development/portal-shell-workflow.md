@@ -14,6 +14,8 @@ related:
 
 # Portal Shell - Development Workflow
 
+**난이도**: ⭐⭐ | **예상 시간**: 20분 | **카테고리**: Development
+
 > Portal Shell 개발 프로세스 및 베스트 프랙티스
 
 ---

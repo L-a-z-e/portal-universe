@@ -15,6 +15,8 @@ related:
 
 # Getting Started with Design Tokens
 
+**난이도**: ⭐ | **예상 시간**: 15분 | **카테고리**: Development
+
 Design Tokens 패키지를 프로젝트에 설정하고 사용하는 방법을 안내합니다.
 
 ## 설치

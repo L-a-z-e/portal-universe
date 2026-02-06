@@ -14,6 +14,8 @@ related:
 
 # Storybook Guide
 
+**난이도**: ⭐⭐ | **예상 시간**: 15분 | **카테고리**: Development
+
 Design System Vue의 Storybook 사용 방법을 안내합니다.
 
 ## Storybook 실행

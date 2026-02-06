@@ -13,6 +13,8 @@ related:
 
 # Module Federation 통합 가이드
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 1시간 | **카테고리**: Development
+
 > Shopping Frontend를 Portal Shell에 통합하는 Module Federation 가이드
 
 ---

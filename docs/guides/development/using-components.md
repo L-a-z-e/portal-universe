@@ -14,6 +14,8 @@ related:
 
 # 컴포넌트 사용 가이드
 
+**난이도**: ⭐ | **예상 시간**: 15분 | **카테고리**: Development
+
 > @portal/design-system Vue 컴포넌트 상세 사용법
 
 ---

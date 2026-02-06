@@ -11,6 +11,8 @@ tags: [api-gateway, rate-limiting, redis, security]
 
 # API Gateway - Redis Rate Limiting
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 30분 | **카테고리**: Development
+
 ## 개요
 
 API Gateway에 Redis 기반 Rate Limiting을 구현하여 API 남용 및 DDoS 공격을 방어합니다.

@@ -11,6 +11,8 @@ tags: [common-library, security, xss, sql-injection]
 
 # Security Module
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 30분 | **카테고리**: Development
+
 common-library의 보안 모듈은 XSS(Cross-Site Scripting) 및 SQL Injection 공격을 방어하기 위한 유틸리티와 Bean Validation 어노테이션을 제공합니다.
 
 ## 목차

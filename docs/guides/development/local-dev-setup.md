@@ -1,8 +1,17 @@
+---
+id: local-dev-setup
+title: 로컬 개발 환경 구성 가이드
+type: guide
+status: current
+created: 2026-02-05
+updated: 2026-02-06
+author: Laze
+tags: [local-development, setup, docker, guide]
+---
+
 # 로컬 개발 환경 구성 가이드
 
-**난이도**: ⭐⭐
-**예상 시간**: 30분
-**카테고리**: Development
+**난이도**: ⭐⭐ | **예상 시간**: 30분 | **카테고리**: Development
 
 ## 개요
 Portal Universe 프로젝트를 로컬 환경에서 실행하기 위한 전체 구성 가이드입니다.

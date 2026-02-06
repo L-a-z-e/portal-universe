@@ -14,6 +14,8 @@ related:
 
 # Portal Shell - Adding Remote Module
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 30분 | **카테고리**: Development
+
 > 새로운 Remote 모듈을 Portal Shell에 추가하는 가이드
 
 ---

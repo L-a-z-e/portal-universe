@@ -11,6 +11,8 @@ tags: [admin, ui, authentication, authorization, product-management]
 
 # Shopping Frontend - Admin UI 가이드
 
+**난이도**: ⭐⭐ | **예상 시간**: 30분 | **카테고리**: Development
+
 ## 📋 개요
 
 이 가이드는 Shopping Frontend의 Admin UI를 사용하고 개발하는 방법을 설명합니다.

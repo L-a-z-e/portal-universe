@@ -11,6 +11,8 @@ tags: [api-gateway, security, headers, testing]
 
 # Security Headers Filter - 테스트 가이드
 
+**난이도**: ⭐⭐ | **예상 시간**: 20분 | **카테고리**: Development
+
 ## 구현 내용
 
 ### 1. SecurityHeadersProperties

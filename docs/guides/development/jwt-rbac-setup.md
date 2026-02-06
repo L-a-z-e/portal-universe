@@ -20,6 +20,8 @@ related:
 
 # JWT RBAC 설정 가이드
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 1시간 | **카테고리**: Development
+
 ## 사전 요구사항
 
 - Spring Boot 3.x

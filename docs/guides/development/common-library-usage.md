@@ -14,6 +14,8 @@ related:
 
 # Common Library 사용 가이드
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 1시간 | **카테고리**: Development
+
 ## 개요
 
 이 가이드는 각 마이크로서비스에서 `common-library`를 실제로 사용하는 방법을 단계별로 설명합니다. common-library는 Portal Universe의 모든 서비스에서 **API 응답 표준화**, **예외 처리**, **JWT 보안**, **이벤트 기반 통신**을 일관되게 구현하기 위한 공유 라이브러리입니다.

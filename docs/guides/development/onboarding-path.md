@@ -1,4 +1,17 @@
+---
+id: onboarding-path
+title: Portal Universe - 문서 읽기 순서 가이드
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-02-06
+author: Laze
+tags: [onboarding, guide, getting-started]
+---
+
 # Portal Universe - 문서 읽기 순서 가이드
+
+**난이도**: ⭐ | **예상 시간**: 10분 | **카테고리**: Development
 
 > 프로젝트를 빠르게 파악하고, 기존 서비스 개발이나 신규 서비스 추가 시 어떤 문서를 어떤 순서로 읽어야 하는지 안내합니다.
 

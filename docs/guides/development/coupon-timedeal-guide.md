@@ -11,6 +11,8 @@ tags: [coupon, timedeal, queue, sse, user-guide]
 
 # Shopping Frontend - 쿠폰, 타임딜, 대기열 가이드
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 1시간 | **카테고리**: Development
+
 ## 📋 개요
 
 이 가이드는 Shopping Frontend의 쿠폰, 타임딜, 대기열 기능을 사용하고 개발하는 방법을 설명합니다.

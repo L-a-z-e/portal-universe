@@ -1,4 +1,17 @@
+---
+id: admin-product-guide
+title: Admin 상품 관리 가이드
+type: guide
+status: current
+created: 2026-01-19
+updated: 2026-02-06
+author: Laze
+tags: [admin, product, shopping, guide]
+---
+
 # Admin 상품 관리 가이드
+
+**난이도**: ⭐⭐ | **예상 시간**: 20분 | **카테고리**: Development
 
 ## 목차
 1. [개요](#개요)
