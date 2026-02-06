@@ -15,6 +15,8 @@ related:
 
 # Design System Architecture - End-to-End Flow
 
+**난이도**: ⭐⭐⭐ | **예상 시간**: 30분 | **카테고리**: Development
+
 `PostCard.vue` 하나를 기준으로 토큰 정의부터 컴포넌트 렌더링까지 전체 흐름을 추적합니다.
 
 ---
