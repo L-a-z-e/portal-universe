@@ -6,15 +6,15 @@ Portal Universe는 마이크로서비스 아키텍처로 각 서비스가 독립
 
 ## Service Database Summary
 
-| Service | Database | Purpose | ERD 링크 |
-|---------|----------|---------|----------|
-| **Shopping Service** | MySQL 8.0 | 쇼핑몰 (상품, 주문, 결제, 배송, 재고) | [shopping-service-schema.md](./shopping-service-schema.md) |
-| **Auth Service** | MySQL 8.0 | 인증/인가 (사용자, 역할, 권한, 멤버십) | [auth-service-schema.md](./auth-service-schema.md) |
-| **Blog Service** | MongoDB 7.0 | 블로그 (게시물, 댓글, 시리즈, 태그) | [blog-service-schema.md](./blog-service-schema.md) |
-| **Notification Service** | MySQL 8.0 | 알림 (실시간 푸시, WebSocket) | [notification-service-schema.md](./notification-service-schema.md) |
-| **API Gateway** | - | 라우팅 전용 (DB 없음) | - |
-| **Prism Service** | PostgreSQL | AI 기반 서비스 (향후) | - |
-| **Chatbot Service** | PostgreSQL | 챗봇 대화 이력 (향후) | - |
+| Service | Database | Entity 수 | Purpose | ERD 링크 |
+|---------|----------|----------|---------|----------|
+| **Shopping Service** | MySQL 8.0 + Elasticsearch + Redis | 19 (18 JPA + 1 ES) | 쇼핑몰 (상품, 주문, 결제, 배송, 재고, 타임딜, 대기열) | [shopping-service-schema.md](./shopping-service-schema.md) |
+| **Auth Service** | MySQL 8.0 | 14 | 인증/인가 (사용자, 역할, 권한, 멤버십) | [auth-service-schema.md](./auth-service-schema.md) |
+| **Blog Service** | MongoDB 7.0 | 5 컬렉션 | 블로그 (게시물, 댓글, 시리즈, 태그) | [blog-service-schema.md](./blog-service-schema.md) |
+| **Notification Service** | MySQL 8.0 | 1 | 알림 (실시간 푸시, WebSocket) | [notification-service-schema.md](./notification-service-schema.md) |
+| **Prism Service** | PostgreSQL | 5 | AI 에이전트 (Provider, Agent, Board, Task, Execution) | [prism-service-schema.md](./prism-service-schema.md) |
+| **Chatbot Service** | Redis + ChromaDB | - | 대화 이력 (Redis) + RAG 벡터 검색 (ChromaDB) | [chatbot-service-schema.md](./chatbot-service-schema.md) |
+| **API Gateway** | - | - | 라우팅 전용 (DB 없음) | - |
 
 ## Architecture Overview
 
@@ -26,6 +26,8 @@ graph TB
 
     subgraph "Shopping Service"
         ShoppingDB[(MySQL<br/>Shopping)]
+        ShoppingES[(Elasticsearch<br/>Search)]
+        ShoppingRedis[(Redis<br/>Cache)]
     end
 
     subgraph "Blog Service"
@@ -38,6 +40,11 @@ graph TB
 
     subgraph "Prism Service"
         PrismDB[(PostgreSQL<br/>Prism)]
+    end
+
+    subgraph "Chatbot Service"
+        ChatbotRedis[(Redis<br/>Conversations)]
+        ChatbotChroma[(ChromaDB<br/>Vectors)]
     end
 
     Kafka[Kafka Event Bus]
@@ -63,10 +70,25 @@ graph TB
 - **전문 검색**: Text Index로 한글 검색 최적화
 - **빠른 읽기**: 조회 중심 워크로드
 
-### PostgreSQL (Prism, Chatbot)
-- **JSON 지원**: 비정규 데이터 저장 필요
-- **고급 기능**: Full-Text Search, Array, JSONB
-- **확장성**: AI 기능 확장 대비
+### PostgreSQL (Prism)
+- **JSONB 지원**: AI Provider 모델 목록 등 비정규 데이터
+- **Enum Types**: TypeORM enum으로 상태/역할 관리
+- **확장성**: AI 에이전트 기능 확장 대비
+
+### Redis (Shopping Cache, Chatbot Conversations)
+- **Shopping**: 대기열 관리, 세션 캐시
+- **Chatbot**: 대화 이력 저장 (Hash + List), 7일 TTL 자동 만료
+- **고성능**: 인메모리 읽기/쓰기로 실시간 처리
+
+### Elasticsearch (Shopping Search)
+- **상품 검색**: ProductDocument 인덱싱
+- **전문 검색**: 상품명, 설명 기반 검색
+- **실시간 동기화**: Product 변경 시 ES 문서 업데이트
+
+### ChromaDB (Chatbot RAG)
+- **벡터 저장**: 문서 임베딩 영속화
+- **유사 검색**: RAG 파이프라인용 similarity search
+- **Persist Mode**: 디스크 영속화 (`./data/chroma`)
 
 ## 서비스 간 데이터 참조
 
@@ -115,8 +137,8 @@ Notification Service:
 
 ## 주요 Entity 개수
 
-### Shopping Service (MySQL)
-- **16개 테이블**:
+### Shopping Service (MySQL + Elasticsearch + Redis)
+- **19개 (18 JPA + 1 ES)**:
   - 주문: `orders`, `order_items`, `saga_states`
   - 결제: `payments`
   - 배송: `deliveries`, `delivery_histories`
@@ -124,8 +146,9 @@ Notification Service:
   - 재고: `inventory`, `stock_movements`
   - 상품: `products`
   - 쿠폰: `coupons`, `user_coupons`
-  - 타임딜: `time_deals`, `time_deal_purchases`
-  - 대기열: `queue_entries`
+  - 타임딜: `time_deals`, `time_deal_products`, `time_deal_purchases`
+  - 대기열: `waiting_queues`, `queue_entries`
+  - 검색: `ProductDocument` (Elasticsearch)
 
 ### Auth Service (MySQL)
 - **14개 테이블**:
@@ -142,6 +165,19 @@ Notification Service:
 ### Notification Service (MySQL)
 - **1개 테이블**:
   - `notifications`
+
+### Prism Service (PostgreSQL)
+- **5개 테이블**:
+  - AI: `ai_providers`, `agents`
+  - 보드: `boards`, `tasks`
+  - 실행: `executions`
+
+### Chatbot Service (Redis + ChromaDB)
+- **Redis**: 대화 이력 (Hash + List)
+  - `chatbot:conversations:{user_id}` (대화 목록)
+  - `chatbot:messages:{user_id}:{conversation_id}` (메시지)
+- **ChromaDB**: 문서 임베딩
+  - Collection: `chatbot_documents`
 
 ## 데이터 일관성 전략
 
@@ -257,8 +293,8 @@ public void initCollections(MongoDatabase db) {
 
 ## 다음 단계
 
-- [ ] Prism Service ERD 작성 (PostgreSQL)
-- [ ] Chatbot Service ERD 작성 (PostgreSQL)
+- [x] Prism Service ERD 작성 (PostgreSQL)
+- [x] Chatbot Service Data Store 작성 (Redis + ChromaDB)
 - [ ] 서비스별 샘플 데이터 생성 스크립트
 - [ ] 데이터베이스 성능 테스트
 - [ ] 백업 자동화 스크립트

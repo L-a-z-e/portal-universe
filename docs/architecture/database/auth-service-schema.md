@@ -97,21 +97,21 @@ erDiagram
 
     MembershipTier {
         Long id PK
-        String tierKey UK
+        String serviceName "UK(service_name, tier_key)"
+        String tierKey "UK(service_name, tier_key)"
         String displayName
-        String description
-        Integer tierLevel
-        BigDecimal monthlyFee
-        Boolean system
+        BigDecimal priceMonthly
+        BigDecimal priceYearly
+        int sortOrder
         Boolean active
         LocalDateTime createdAt
-        LocalDateTime updatedAt
     }
 
     UserMembership {
         Long id PK
-        String userId
-        Long tierI FK
+        String userId "UK(user_id, service_name)"
+        String serviceName "UK(user_id, service_name)"
+        Long tierId FK
         MembershipStatus status
         LocalDateTime startedAt
         LocalDateTime expiresAt
@@ -122,9 +122,8 @@ erDiagram
 
     MembershipTierPermission {
         Long id PK
-        Long tierI FK
-        Long permissionId FK
-        LocalDateTime assignedAt
+        Long tierId FK "UK(tier_id, permission_id)"
+        Long permissionId FK "UK(tier_id, permission_id)"
     }
 
     AuthAuditLog {
@@ -189,8 +188,8 @@ erDiagram
 | PermissionEntity | 권한 정의 | id, permissionKey, resource, action |
 | UserRole | 사용자-역할 매핑 | id, userId, roleId, expiresAt |
 | RolePermission | 역할-권한 매핑 | id, roleId, permissionId |
-| MembershipTier | 멤버십 등급 | id, tierKey, tierLevel, monthlyFee |
-| UserMembership | 사용자 멤버십 | id, userId, tierId, status, expiresAt |
+| MembershipTier | 멤버십 등급 | id, serviceName, tierKey, displayName, priceMonthly, priceYearly, sortOrder |
+| UserMembership | 사용자 멤버십 | id, userId, serviceName, tierId, status, startedAt, expiresAt, autoRenew |
 | MembershipTierPermission | 멤버십-권한 매핑 | id, tierId, permissionId |
 | AuthAuditLog | 인증 감사 로그 | id, userId, eventType, ipAddress, success |
 | SellerApplication | 판매자 신청 | id, userId, businessName, status |
@@ -212,9 +211,11 @@ erDiagram
 - RoleEntity: 계층 구조 지원 (parentRoleId)
 
 ### 멤버십
-- User 1:N UserMembership: 사용자는 멤버십 이력 보유
+- User 1:N UserMembership: 사용자는 서비스별 멤버십 보유
 - MembershipTier 1:N UserMembership: 멤버십 등급별 구독자
 - MembershipTier M:N PermissionEntity (via MembershipTierPermission): 멤버십 등급별 권한
+- MembershipTier: `(service_name, tier_key)` 복합 Unique로 서비스별 등급 관리
+- UserMembership: `(user_id, service_name)` 복합 Unique로 서비스당 하나의 멤버십
 
 ### 감사 및 판매자
 - User 1:N AuthAuditLog: 사용자 인증 이벤트 추적
@@ -278,6 +279,8 @@ erDiagram
 - **권한 상속**: 부모 역할의 권한 자동 상속
 
 ### 멤버십
+- **서비스별 등급**: `serviceName`으로 서비스별 독립적 멤버십 등급 체계
+- **월간/연간 가격**: `priceMonthly`, `priceYearly`로 결제 주기별 가격 관리
 - **자동 갱신**: autoRenew=true 시 만료일에 자동 연장
 - **멤버십 권한**: 등급별 추가 권한 부여
 

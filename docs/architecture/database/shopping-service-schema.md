@@ -1,6 +1,7 @@
 # Shopping Service Database Schema
 
-**Database**: MySQL
+**Database**: MySQL 8.0 + Elasticsearch + Redis
+**Entity Count**: 19 (18 JPA + 1 Elasticsearch Document)
 **Last Updated**: 2026-02-06
 
 ## ERD
@@ -172,14 +173,37 @@ erDiagram
         LocalDateTime updatedAt
     }
 
+    TimeDealProduct {
+        Long id PK
+        Long timeDealId FK
+        Long productId FK
+        BigDecimal dealPrice
+        Integer dealQuantity
+        Integer soldQuantity
+        Integer maxPerUser
+    }
+
     TimeDealPurchase {
         Long id PK
         String userId
         Long timeDealProductId FK
         Integer quantity
         BigDecimal purchasePrice
-        Long orderId FK
+        Long orderId
         LocalDateTime purchasedAt
+    }
+
+    WaitingQueue {
+        Long id PK
+        String eventType
+        Long eventId
+        Integer maxCapacity
+        Integer entryBatchSize
+        Integer entryIntervalSeconds
+        Boolean isActive
+        LocalDateTime createdAt
+        LocalDateTime activatedAt
+        LocalDateTime deactivatedAt
     }
 
     QueueEntry {
@@ -225,8 +249,20 @@ erDiagram
     Coupon ||--o{ UserCoupon : issued-to
     UserCoupon }o--|| Order : used-in
 
-    TimeDeal ||--o{ TimeDealPurchase : includes
+    TimeDeal ||--o{ TimeDealProduct : contains
+    TimeDealProduct }o--|| Product : references
+    TimeDealProduct ||--o{ TimeDealPurchase : purchased
+
+    WaitingQueue ||--o{ QueueEntry : manages
 ```
+
+### Elasticsearch Document
+
+| Document | Index | 설명 | 주요 필드 |
+|----------|-------|------|----------|
+| ProductDocument | (동적) | 상품 검색 인덱스 | id, name, description, price, stock |
+
+> ProductDocument는 JPA 엔티티가 아닌 Elasticsearch 문서입니다. Product 엔티티에서 변환하여 색인합니다.
 
 ## Entities
 
@@ -245,7 +281,9 @@ erDiagram
 | Coupon | 쿠폰 | id, code, discountType, discountValue, totalQuantity |
 | UserCoupon | 사용자 발급 쿠폰 | id, userId, couponId, status, usedOrderId |
 | TimeDeal | 타임딜 이벤트 | id, name, status, startsAt, endsAt |
-| TimeDealPurchase | 타임딜 구매 기록 | id, userId, quantity, orderId |
+| TimeDealProduct | 타임딜 상품 | id, timeDealId, productId, dealPrice, dealQuantity, soldQuantity, maxPerUser |
+| TimeDealPurchase | 타임딜 구매 기록 | id, userId, timeDealProductId, quantity, purchasePrice |
+| WaitingQueue | 대기열 설정 | id, eventType, eventId, maxCapacity, entryBatchSize, isActive |
 | QueueEntry | 대기열 엔트리 | id, queueId, userId, entryToken, status |
 | SagaState | Saga 오케스트레이션 상태 | id, sagaId, orderId, currentStep, status |
 
@@ -271,14 +309,19 @@ erDiagram
 ### 배송
 - Delivery 1:N DeliveryHistory: 배송 상태 변경 이력 추적
 
-### 타임딜 및 대기열
-- TimeDeal 1:N TimeDealPurchase: 타임딜 이벤트는 여러 구매 기록
-- QueueEntry는 대기열 관리 (WaitingQueue와 연관)
+### 타임딜
+- TimeDeal 1:N TimeDealProduct: 타임딜 이벤트는 여러 상품을 포함
+- TimeDealProduct N:1 Product: 타임딜 상품은 실제 상품 참조
+- TimeDealProduct 1:N TimeDealPurchase: 타임딜 상품별 구매 기록
+
+### 대기열
+- WaitingQueue 1:N QueueEntry: 대기열 설정별 사용자 엔트리 관리
+- WaitingQueue: eventType/eventId로 타임딜 등 이벤트와 논리적 연결
 
 ## 주요 특징
 
 ### 1. 재고 관리
-- **Pessimistic Lock**: 동시성 제어
+- **Optimistic Lock** (`@Version`): 동시성 제어 (Inventory 엔티티의 `version` 필드)
 - **Available/Reserved/Total**: 3단계 재고 상태 관리
 - **StockMovement**: 모든 재고 변경 감사 추적
 
@@ -306,6 +349,9 @@ erDiagram
 - `idx_delivery_tracking_number`: 운송장 번호로 배송 조회
 - `idx_inventory_product_id`: 상품별 재고 조회 (UK)
 - `idx_stock_movement_reference`: 참조 타입/ID로 재고 이력 조회
+- `idx_tdp_user_product`: 사용자-타임딜상품별 구매 조회
+- `idx_queue_entry_queue_user`: 대기열-사용자별 조회
+- `idx_queue_entry_token`: 엔트리 토큰으로 조회
 
 ## Business Rules
 
