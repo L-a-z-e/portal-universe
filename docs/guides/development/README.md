@@ -1,124 +1,115 @@
 ---
-id: guide-design-system-index
-title: Design System 개발자 가이드
+id: guide-development-index
+title: 개발 가이드
 type: guide
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: Laze
-tags: [design-system, guide, vue3, index]
+tags: [development, guide, index]
 ---
 
-# Design System 개발자 가이드
+# 개발 가이드
+
+> Portal Universe 프로젝트 개발을 위한 가이드 문서 모음입니다.
+
+---
+
+## 시작하기
+
+| 문서 | 설명 | 대상 |
+|------|------|------|
+| [로컬 개발 환경 구성](./local-dev-setup.md) | Zero to Running 전체 환경 구성 | 신규 개발자 |
+| [로컬 개발 가이드](./local-development.md) | 개발 워크플로우 및 도구 | 신규 개발자 |
+| [온보딩 패스](./onboarding-path.md) | 단계별 학습 경로 | 신규 개발자 |
+| [빠른 시작 가이드](./getting-started.md) | 기본 설정 및 도구 사용법 | 신규 개발자 |
+
+---
+
+## Design System
 
 > @portal/design-system 사용을 위한 개발자 가이드 문서입니다.
 
 ---
 
-## 📚 문서 목록
-
-| ID | 문서 | 설명 | 상태 |
-|----|------|------|------|
-| guide-getting-started | [빠른 시작 가이드](./getting-started.md) | 설치 및 기본 설정 | ✅ Current |
-| guide-using-components | [컴포넌트 사용 가이드](./using-components.md) | Vue 컴포넌트 사용법 | ✅ Current |
-| guide-theming | [테마 적용 가이드](./theming-guide.md) | Light/Dark 모드, 서비스별 테마 | ✅ Current |
-| guide-contributing | [기여 가이드](./contributing.md) | 새 컴포넌트 추가 방법 | ✅ Current |
-
----
-
-## 🎯 대상 독자
-
-- **프론트엔드 개발자**: Vue 3 Composition API 기반 앱 개발자
-- **UI 개발자**: Design System을 활용한 인터페이스 구축
-- **기여자**: Design System에 새로운 컴포넌트를 추가하고자 하는 개발자
+| 문서 | 설명 |
+|------|------|
+| [컴포넌트 사용 가이드](./using-components.md) | Vue 컴포넌트 사용법 |
+| [테마 적용 가이드](./theming-guide.md) | Light/Dark 모드, 서비스별 테마 |
+| [Design System 아키텍처](./design-system-architecture.md) | 구조 및 설계 원칙 |
+| [기여 가이드](./contributing.md) | 새 컴포넌트 추가 방법 |
+| [Storybook](./storybook.md) | 컴포넌트 카탈로그 사용법 |
 
 ---
 
-## 🏗️ Design System 개요
+## 보안 및 인증
 
-### 아키텍처
-
-```
-@portal/design-system
-├── Vue 3 컴포넌트 (Composition API)
-├── 3계층 디자인 토큰 (Base → Semantic → Component)
-├── Tailwind CSS 통합
-├── 서비스별 테마 (Blog, Shopping, Portal)
-└── Light/Dark 모드 지원
-```
-
-### 핵심 기능
-
-1. **통합 컴포넌트 라이브러리**: Button, Card, Badge, Input, Modal, Tag, Avatar, SearchBar 등
-2. **테마 시스템**: useTheme composable을 통한 동적 테마 전환
-3. **디자인 토큰**: CSS Variables 기반 일관된 스타일링
-4. **Storybook**: 컴포넌트 카탈로그 및 문서화
+| 문서 | 설명 |
+|------|------|
+| [JWT RBAC 설정](./jwt-rbac-setup.md) | JWT 기반 역할 권한 설정 |
+| [RBAC 리팩토링](./rbac-refactoring.md) | 역할 기반 접근 제어 개선 |
+| [보안 구현 스펙](./security-implementation-spec.md) | 보안 기능 구현 명세 |
+| [보안 모듈](./security-module.md) | 보안 관련 공통 모듈 |
+| [보안 헤더 테스트](./security-headers-testing.md) | HTTP 보안 헤더 검증 |
+| [보안 감사 로그](./security-audit-log-setup.md) | 감사 로그 설정 |
+| [Swagger/Actuator 보안](./swagger-actuator-security.md) | API 문서 및 모니터링 엔드포인트 보호 |
 
 ---
 
-## 📖 가이드 읽는 순서
+## Shopping/Admin 기능
 
-### 신규 사용자
-
-```
-1. 빠른 시작 가이드 (getting-started.md)
-   ↓
-2. 컴포넌트 사용 가이드 (using-components.md)
-   ↓
-3. 테마 적용 가이드 (theming-guide.md)
-```
-
-### 기여자
-
-```
-1. 빠른 시작 가이드 (getting-started.md)
-   ↓
-2. 기여 가이드 (contributing.md)
-```
+| 문서 | 설명 |
+|------|------|
+| [Admin UI 가이드](./admin-ui-guide.md) | 관리자 인터페이스 |
+| [Admin 상품 가이드](./admin-product-guide.md) | 상품 관리 기능 |
+| [쿠폰/타임딜 가이드](./coupon-timedeal-guide.md) | 프로모션 기능 |
+| [Rate Limiting](./rate-limiting.md) | API 요청 제한 |
 
 ---
 
-## 🚀 빠른 참조
+## 프론트엔드 아키텍처
 
-### 설치
-
-```bash
-cd frontend
-npm install
-```
-
-### Import
-
-```vue
-<script setup>
-import { Button, Input } from '@portal/design-system'
-import '@portal/design-system/style.css'
-</script>
-```
-
-### 테마 전환
-
-```vue
-<script setup>
-import { useTheme } from '@portal/design-system'
-
-const { toggleTheme, setService } = useTheme()
-</script>
-
-<template>
-  <button @click="toggleTheme">Dark/Light</button>
-  <button @click="setService('blog')">Blog 테마</button>
-</template>
-```
+| 문서 | 설명 |
+|------|------|
+| [Module Federation 통합](./federation-integration.md) | MFE 통합 가이드 |
+| [Remote 앱 추가](./adding-remote.md) | 새 Remote 앱 연결 |
+| [빌드 파이프라인](./frontend-build-pipeline.md) | 프론트엔드 빌드 프로세스 |
 
 ---
 
-## 🔗 관련 문서
+## 백엔드 아키텍처
 
-- [Architecture](../architecture/README.md) - 시스템 아키텍처
-- [API Reference](../api/README.md) - 컴포넌트 API 명세
-- [Storybook](http://localhost:6006) - 컴포넌트 카탈로그
+| 문서 | 설명 |
+|------|------|
+| [Common Library 사용법](./GUIDE-001-common-library-usage.md) | 공유 라이브러리 활용 |
+| [Kafka 이벤트](./kafka-events.md) | 이벤트 기반 통신 |
 
 ---
 
-**최종 업데이트**: 2026-01-18
+## 테스트
+
+| 문서 | 설명 |
+|------|------|
+| [테스트 전략](./test-strategy.md) | 전체 테스트 방법론 |
+| [테스트 플랜](./test-plan/) | 서비스별 테스트 계획 |
+
+---
+
+## 기타
+
+| 문서 | 설명 |
+|------|------|
+| [개발 환경](./development.md) | 개발 도구 및 설정 |
+
+---
+
+## 관련 문서
+
+- [아키텍처 문서](../../architecture/) - 시스템 및 서비스 아키텍처
+- [API 문서](../../api/) - REST API 명세
+- [ADR](../../adr/) - 아키텍처 결정 기록
+- [Troubleshooting](../../troubleshooting/) - 문제 해결 기록
+
+---
+
+작성자: Laze
