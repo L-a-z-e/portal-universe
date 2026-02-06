@@ -11,7 +11,7 @@
 
 **주요 문서**:
 - [로컬 개발 환경 구성](./development/local-dev-setup.md) - Zero to Running 전체 환경 구성
-- [Notification 로컬 개발](./development/notification-local-dev.md) - Notification Service 로컬 개발
+- [Design Tokens 시작하기](./development/getting-started.md) - Design System 시작 가이드
 - [Module Federation 통합 가이드](./development/module-federation-guide.md) - MFE 통합
 - [JWT RBAC 설정](./development/jwt-rbac-setup.md) - 인증/권한 설정
 - [Kafka 이벤트](./development/kafka-events.md) - 이벤트 기반 통신
