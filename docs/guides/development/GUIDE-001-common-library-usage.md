@@ -9,7 +9,7 @@ author: Laze
 tags: [common-library, guide, tutorial, api-response, exception-handling, jwt, event-driven]
 related:
   - ARCH-001
-  - API-001
+  - api-core
 ---
 
 # Common Library 사용 가이드

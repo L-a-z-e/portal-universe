@@ -1,5 +1,5 @@
 ---
-id: API-001
+id: api-core
 title: Common Library - Core API 명세
 type: api
 status: current
@@ -9,9 +9,9 @@ updated: 2026-02-06
 author: Laze
 tags: [api, common-library, java, spring-boot, response, exception]
 related:
-  - API-002
-  - API-003
-  - API-004
+  - api-security-auth
+  - api-security-validation
+  - api-security-audit
 ---
 
 # Common Library - Core API 명세
@@ -34,10 +34,10 @@ common-library는 모든 마이크로서비스에서 공통으로 사용하는 �
 
 | 분류 | 문서 | 설명 |
 |------|------|------|
-| **Core** | 이 문서 (API-001) | 응답 포맷, 예외 처리 |
-| **인증** | [API-002](./API-002-security-auth.md) | JWT, Gateway 필터, 사용자 컨텍스트, 상수 |
-| **입력 검증** | [API-003](./API-003-security-validation.md) | XSS/SQL Injection 방어, 유틸리티 |
-| **감사 로그** | [API-004](./API-004-security-audit.md) | 보안 감사 이벤트 추적 |
+| **Core** | 이 문서 | 응답 포맷, 예외 처리 |
+| **인증** | [security-auth](./security-auth.md) | JWT, Gateway 필터, 사용자 컨텍스트, 상수 |
+| **입력 검증** | [security-validation](./security-validation.md) | XSS/SQL Injection 방어, 유틸리티 |
+| **감사 로그** | [security-audit](./security-audit.md) | 보안 감사 이벤트 추적 |
 
 ---
 
@@ -560,9 +560,9 @@ sequenceDiagram
 
 ## 관련 문서
 
-- [API-002: 인증 시스템](./API-002-security-auth.md) - JWT, Gateway, 사용자 컨텍스트
-- [API-003: 입력 검증](./API-003-security-validation.md) - XSS, SQL Injection 방어
-- [API-004: 감사 로그](./API-004-security-audit.md) - 보안 이벤트 추적
+- [인증 시스템](./security-auth.md) - JWT, Gateway, 사용자 컨텍스트
+- [입력 검증](./security-validation.md) - XSS, SQL Injection 방어
+- [감사 로그](./security-audit.md) - 보안 이벤트 추적
 
 ---
 

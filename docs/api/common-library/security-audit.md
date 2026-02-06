@@ -1,5 +1,5 @@
 ---
-id: API-004
+id: api-security-audit
 title: Common Library - Security Audit API 명세
 type: api
 status: current
@@ -9,9 +9,9 @@ updated: 2026-02-06
 author: Laze
 tags: [api, common-library, security, audit, logging]
 related:
-  - API-001
-  - API-002
-  - API-003
+  - api-core
+  - api-security-auth
+  - api-security-validation
 ---
 
 # Common Library - Security Audit API 명세
@@ -329,9 +329,9 @@ public class ElasticsearchAuditService implements SecurityAuditService {
 
 ## 관련 문서
 
-- [API-001: Core](./API-001-common-library.md) - 응답 포맷, 예외 처리
-- [API-002: 인증 시스템](./API-002-security-auth.md) - JWT, Gateway, 사용자 컨텍스트
-- [API-003: 입력 검증](./API-003-security-validation.md) - XSS, SQL Injection 방어
+- [Core](./core-api.md) - 응답 포맷, 예외 처리
+- [인증 시스템](./security-auth.md) - JWT, Gateway, 사용자 컨텍스트
+- [입력 검증](./security-validation.md) - XSS, SQL Injection 방어
 
 ---
 

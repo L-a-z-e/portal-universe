@@ -1,5 +1,5 @@
 ---
-id: API-003
+id: api-security-validation
 title: Common Library - Security Validation API 명세
 type: api
 status: current
@@ -9,9 +9,9 @@ updated: 2026-02-06
 author: Laze
 tags: [api, common-library, security, xss, sql-injection, validation]
 related:
-  - API-001
-  - API-002
-  - API-004
+  - api-core
+  - api-security-auth
+  - api-security-audit
 ---
 
 # Common Library - Security Validation API 명세
@@ -443,9 +443,9 @@ public ResponseEntity<ApiResponse<TokenResponse>> login(
 
 ## 관련 문서
 
-- [API-001: Core](./API-001-common-library.md) - 응답 포맷, 예외 처리
-- [API-002: 인증 시스템](./API-002-security-auth.md) - JWT, Gateway, 사용자 컨텍스트
-- [API-004: 감사 로그](./API-004-security-audit.md) - 보안 이벤트 추적
+- [Core](./core-api.md) - 응답 포맷, 예외 처리
+- [인증 시스템](./security-auth.md) - JWT, Gateway, 사용자 컨텍스트
+- [감사 로그](./security-audit.md) - 보안 이벤트 추적
 
 ---
 
