@@ -4,22 +4,30 @@ title: Module Federation Architecture
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: Laze
 tags: [architecture, module-federation, microfrontend, vite, remote-modules]
 related:
   - arch-portal-shell-system-overview
+  - arch-portal-shell-cross-framework-bridge
 ---
 
-# Module Federation Architecture
+# Portal Shell 아키텍처: Module Federation
 
-## 📋 개요
+## 개요
 
-Portal Shell은 Vite Plugin Federation(@originjs/vite-plugin-federation)을 사용하여 마이크로 프론트엔드 아키텍처를 구현합니다. Host 애플리케이션으로서 여러 Remote 모듈을 런타임에 동적으로 로드하고 통합합니다.
+Portal Shell은 Vite Plugin Federation(@originjs/vite-plugin-federation)을 사용하여 마이크로 프론트엔드 아키텍처를 구현합니다. Host 애플리케이션으로서 Vue 3, React 18 Remote 모듈을 런타임에 동적으로 로드하고, CSS 생명주기 관리/keep-alive/양방향 네비게이션 동기화를 통해 통합합니다.
+
+| 항목 | 내용 |
+|------|------|
+| **범위** | Component |
+| **주요 기술** | @originjs/vite-plugin-federation, Vite 7.x |
+| **배포 환경** | Docker Compose, Kubernetes |
+| **관련 서비스** | Blog (:30001), Shopping (:30002), Prism (:30003) |
 
 ---
 
-## 🏗️ Module Federation 구조
+## 아키텍처 다이어그램
 
 ```mermaid
 graph TB
@@ -27,35 +35,32 @@ graph TB
         HOST[Host App<br/>shellEntry.js]
 
         subgraph "Exposed Modules"
-            E1[./api]
-            E2[./stores]
+            E1["./api<br/>(apiClient)"]
+            E2["./stores<br/>(auth, theme, storeAdapter)"]
         end
 
         subgraph "Shared Dependencies"
-            S1[vue]
-            S2[pinia]
-            S3[axios]
+            S1[vue 3.5.x]
+            S2[pinia 2.3.x]
+            S3[axios 1.7.x]
         end
     end
 
-    subgraph "Blog Remote"
+    subgraph "Blog Remote (Vue 3)"
         BR[blog/bootstrap]
-        BRE[remoteEntry.js]
-
+        BRE[remoteEntry.js :30001]
         BRE --> BR
     end
 
-    subgraph "Shopping Remote"
+    subgraph "Shopping Remote (React 18)"
         SR[shopping/bootstrap]
-        SRE[remoteEntry.js]
-
+        SRE[remoteEntry.js :30002]
         SRE --> SR
     end
 
-    subgraph "Prism Remote"
+    subgraph "Prism Remote (React 18)"
         PR[prism/bootstrap]
-        PRE[remoteEntry.js]
-
+        PRE[remoteEntry.js :30003]
         PRE --> PR
     end
 
@@ -65,33 +70,15 @@ graph TB
 
     BR -.->|Uses| E1
     BR -.->|Uses| E2
-
     SR -.->|Uses| E1
     SR -.->|Uses| E2
-
     PR -.->|Uses| E1
     PR -.->|Uses| E2
-
-    BR -.->|Shares| S1
-    BR -.->|Shares| S2
-    BR -.->|Shares| S3
-
-    SR -.->|Shares| S1
-    SR -.->|Shares| S2
-
-    PR -.->|Shares| S1
-    PR -.->|Shares| S2
-
-    classDef host fill:#e1f5ff,stroke:#0288d1
-    classDef remote fill:#fff9c4,stroke:#fbc02d
-
-    class HOST,E1,E2,S1,S2,S3 host
-    class BR,BRE,SR,SRE,PR,PRE remote
 ```
 
 ---
 
-## 📄 vite.config.ts 설정
+## vite.config.ts 설정
 
 ```typescript
 federation({
@@ -118,396 +105,294 @@ federation({
 
 ---
 
-## 🔄 Remote Registry 패턴
+## 핵심 컴포넌트
 
-### 환경별 Remote URL 관리
+### 1. Remote Registry
 
-Portal Shell은 `remoteRegistry.ts`를 통해 환경별 Remote 설정을 관리합니다.
+**소스**: `src/config/remoteRegistry.ts`
+
+환경별(dev/docker/k8s) Remote 설정을 관리합니다.
 
 ```typescript
-// src/config/remoteRegistry.ts
-
 type RemoteConfig = {
-  name: string;              // 표시 이름
-  key: string;               // federation key
-  url: string;               // remoteEntry.js URL
-  module: string;            // 로드할 모듈 경로
-  mountFn: string;           // mount 함수 이름
-  basePath: string;          // 라우팅 base path
-  icon?: string;             // 아이콘
-  description?: string;      // 설명
+  name: string;         // 표시 이름
+  key: string;          // federation key
+  url: string;          // remoteEntry.js URL
+  module: string;       // 로드할 모듈 경로
+  mountFn: string;      // mount 함수 이름
+  basePath: string;     // 라우팅 base path
+  icon?: string;        // 아이콘
+  description?: string; // 설명
 };
+```
 
-const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
-  dev: [
-    {
-      name: 'Blog',
-      key: 'blog',
-      url: 'http://localhost:30001/assets/remoteEntry.js',
-      module: 'blog/bootstrap',
-      mountFn: 'mountBlogApp',
-      basePath: '/blog',
-    },
-    {
-      name: 'Shopping',
-      key: 'shopping',
-      url: 'http://localhost:30002/assets/remoteEntry.js',
-      module: 'shopping/bootstrap',
-      mountFn: 'mountShoppingApp',
-      basePath: '/shopping',
-    },
-    {
-      name: 'Prism',
-      key: 'prism',
-      url: 'http://localhost:30004/assets/remoteEntry.js',
-      module: 'prism/bootstrap',
-      mountFn: 'mountPrismApp',
-      basePath: '/prism',
-    },
-  ],
-  docker: [...],
-  k8s: [...],
-};
+| Remote | key | basePath | mountFn | 포트 |
+|--------|-----|----------|---------|------|
+| Blog | blog | /blog | mountBlogApp | 30001 |
+| Shopping | shopping | /shopping | mountShoppingApp | 30002 |
+| Prism | prism | /prism | mountPrismApp | 30003 |
+
+### 2. RemoteLoader
+
+**소스**: `src/services/remoteLoader.ts`
+
+Remote 모듈의 로딩과 캐싱을 담당하는 싱글톤 서비스입니다.
+
+**로딩 단계**:
+1. `remoteEntry.js` 동적 import (캐싱)
+2. `remoteEntry.get('./bootstrap')` → module factory
+3. `moduleFactory()` → 모듈 실행
+4. `module[config.mountFn]` → mount 함수 추출
+5. 캐시 저장
+
+### 3. RemoteWrapper
+
+**소스**: `src/components/RemoteWrapper.vue`
+
+Remote 모듈의 전체 생명주기를 관리하는 Vue 컴포넌트입니다.
+
+---
+
+## Remote App 인터페이스 계약
+
+Remote 앱의 mount 함수가 반환해야 하는 인터페이스:
+
+```typescript
+interface RemoteAppInstance {
+  unmount?: () => void;                    // 언마운트
+  onParentNavigate?: (path: string) => void; // Shell 라우트 변경 수신
+  onActivated?: () => void;                // keep-alive 활성화
+  onDeactivated?: () => void;              // keep-alive 비활성화
+  onThemeChange?: (theme: string) => void; // 테마 변경 수신
+}
+
+// mount 함수 시그니처
+type MountFn = (
+  container: HTMLElement,
+  options: {
+    initialPath: string;
+    onNavigate: (path: string) => void;  // Remote → Shell 네비게이션
+    theme: 'dark' | 'light';
+  }
+) => RemoteAppInstance;
 ```
 
 ---
 
-## 📦 Remote 모듈 로딩 흐름
+## CSS 생명주기 관리
 
-```mermaid
-sequenceDiagram
-    participant Router as Vue Router
-    participant RW as RemoteWrapper
-    participant Reg as remoteRegistry
-    participant Script as <script> Tag
-    participant Remote as Remote Module
-    participant Container as DOM Container
+Remote 앱이 `document.head`에 동적으로 `<link>` / `<style>`을 삽입하면, RemoteWrapper가 이를 추적하고 관리합니다.
 
-    Router->>RW: /blog 라우트 매칭
-    RW->>Reg: getRemoteConfig('/blog')
-    Reg-->>RW: RemoteConfig 반환
+**소스**: `src/components/RemoteWrapper.vue` (module-level `cssRegistry`)
 
-    RW->>RW: mounted() 훅 실행
-    RW->>RW: remoteContainer ref 생성
+### 동작 흐름
 
-    RW->>Script: remoteEntry.js 동적 로드
-    Note over RW,Script: new Promise((resolve) => {<br/>  const script = document.createElement('script');<br/>  script.src = config.url;<br/>  script.onload = resolve;<br/>})
-
-    Script-->>RW: 로드 완료
-
-    RW->>Remote: window[config.key] 접근
-    Remote-->>RW: 모듈 객체 반환
-
-    RW->>Remote: get(config.module)
-    Remote-->>RW: bootstrap 함수 반환
-
-    RW->>Container: DOM 컨테이너 전달
-    RW->>Remote: bootstrap(container, shellConfig)
-
-    Note over Remote: Vue 앱 생성 및 마운트<br/>Host의 apiClient, authStore 사용
-
-    Remote-->>Container: 렌더링 완료
 ```
+1. onMounted → startCssTracking()
+   MutationObserver가 document.head의 childList 변경 감시
+   <link rel="stylesheet"> 및 <style> 추가 시 cssRegistry에 기록
+
+2. Remote 로드 완료 → stopCssTracking()
+   Observer 해제
+
+3. onUnmounted → disableTrackedCss()
+   <link>: el.disabled = true
+   <style>: el.setAttribute('media', 'not all')
+   DOM에서 제거하지 않고 비활성화 (재마운트 시 재활용)
+
+4. 재마운트 시 → enableTrackedCss()
+   이미 tracked된 CSS가 있으면 observer 생략, CSS 재활성화
+```
+
+### 설계 결정
+
+- **DOM 제거 대신 비활성화**: 재마운트 시 네트워크 재요청 없이 CSS 즉시 복원
+- **Module-level 레지스트리**: `<script>` (non-setup) 블록에서 `cssRegistry` 선언. 컴포넌트 인스턴스 간 공유
+- **key 기반 분리**: `cssRegistry.get(config.key)`로 Remote별 독립 관리
 
 ---
 
-## 🎯 RemoteWrapper.vue 구현
+## Keep-alive 지원
 
-### 역할
-- Remote 모듈의 remoteEntry.js를 동적으로 로드
-- bootstrap 함수 호출하여 Remote 앱 마운트
-- 라우팅 경로 및 Shell Config 전달
-
-### 핵심 코드
+App.vue에서 `<KeepAlive>` 래핑 시, RemoteWrapper가 `onActivated` / `onDeactivated` 훅을 Remote 앱에 전달합니다.
 
 ```vue
-<template>
-  <div
-    ref="remoteContainer"
-    :data-service="config.key"
-    class="remote-app-container"
-  />
-</template>
+<!-- App.vue -->
+<KeepAlive v-if="route.meta.keepAlive" :max="3">
+  <component :is="Component" :key="route.meta.remoteName || route.name" />
+</KeepAlive>
+```
 
-<script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import type { RemoteConfig } from '@/config/remoteRegistry';
+**RemoteWrapper 동작**:
+- `onActivated`: `isComponentActive = true` → `remoteApp.onActivated?.()` → CSS 활성화
+- `onDeactivated`: `isComponentActive = false` → `remoteApp.onDeactivated?.()` → route watch 스킵
 
-const props = defineProps<{
-  config: RemoteConfig;
-  initialPath?: string;
-}>();
+---
 
-const remoteContainer = ref<HTMLElement | null>(null);
-let unmountFn: (() => void) | null = null;
+## 양방향 네비게이션 동기화
 
-onMounted(async () => {
-  if (!remoteContainer.value) return;
+Shell(Vue Router)과 Remote 앱(내부 라우터) 간 양방향 네비게이션을 동기화합니다.
 
-  // 1. remoteEntry.js 로드
-  await loadRemoteEntry(props.config.url);
+### Shell → Remote (Parent Navigate)
 
-  // 2. bootstrap 함수 가져오기
-  const bootstrap = await getBootstrapFunction(props.config);
+```
+Shell route 변경 → watch(shellRoute.path) → debouncedParentNavigate(50ms)
+→ remoteApp.onParentNavigate(remotePath)
+```
 
-  // 3. Remote 앱 마운트
-  unmountFn = await bootstrap(remoteContainer.value, {
-    initialPath: props.initialPath,
-    basePath: props.config.basePath,
-  });
-});
+**보호 조건**:
+- `isComponentActive` 확인 (비활성 시 스킵)
+- `newPath.startsWith(config.basePath)` 확인 (다른 Remote 라우트 무시)
+- `isNavigating` 플래그 (반대 방향 전파 중 순환 방지)
+- `lastNavigatedPath` 중복 방지
 
-onBeforeUnmount(() => {
-  // Remote 앱 언마운트
-  unmountFn?.();
-});
-</script>
+### Remote → Shell
+
+```
+Remote 내부 네비게이션 → onNavigate(path) callback
+→ onRemoteNavigate() → shellRouter.push(basePath + path)
+→ isNavigating = true (100ms 후 해제)
+```
+
+### 순환 방지
+
+```
+isNavigating 플래그:
+  Remote → Shell: isNavigating = true → 100ms timeout → false
+  Shell → Remote: isNavigating 체크 → true이면 스킵
 ```
 
 ---
 
-## 🌐 환경별 Remote URL
+## 테마 변경 전파
 
-### Local Dev
-```bash
-VITE_BLOG_REMOTE_URL=http://localhost:30001/assets/remoteEntry.js
-VITE_SHOPPING_REMOTE_URL=http://localhost:30002/assets/remoteEntry.js
-VITE_PRISM_REMOTE_URL=http://localhost:30004/assets/remoteEntry.js
+RemoteWrapper가 `themeStore.isDark`를 watch하여 Remote 앱에 테마 변경을 전파합니다.
+
+```typescript
+watch(() => themeStore.isDark, (isDark) => {
+  if (remoteApp?.onThemeChange && isComponentActive) {
+    remoteApp.onThemeChange(isDark ? 'dark' : 'light');
+  }
+});
 ```
 
-### Docker Compose
-```yaml
-environment:
-  VITE_BLOG_REMOTE_URL: http://blog-frontend:30001/assets/remoteEntry.js
-  VITE_SHOPPING_REMOTE_URL: http://shopping-frontend:30002/assets/remoteEntry.js
-  VITE_PRISM_REMOTE_URL: http://prism-frontend:30004/assets/remoteEntry.js
-```
-
-### Kubernetes
-```yaml
-env:
-  - name: VITE_BLOG_REMOTE_URL
-    value: "http://blog-frontend-service/assets/remoteEntry.js"
-  - name: VITE_SHOPPING_REMOTE_URL
-    value: "http://shopping-frontend-service/assets/remoteEntry.js"
-  - name: VITE_PRISM_REMOTE_URL
-    value: "http://prism-frontend-service/assets/remoteEntry.js"
-```
+초기 마운트 시에도 현재 테마를 `options.theme`으로 전달합니다.
 
 ---
 
-## 📤 Exposed Modules
+## Exposed Modules
 
 Portal Shell이 Remote 모듈에 제공하는 모듈입니다.
 
-### 1. api
+### portal/api
 
 ```typescript
 // src/api/index.ts
 export { default as apiClient } from './apiClient';
-
-// src/api/apiClient.ts
-export const apiClient = axios.create({
-  baseURL: '/api',
-  timeout: 10000,
-});
-
-// Interceptor: JWT 토큰 자동 첨부
-apiClient.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 ```
 
-**Remote 모듈 사용 예시:**
-```typescript
-import { apiClient } from 'portal/api';
+- Axios 인스턴스 (JWT 자동 첨부, 401 재시도, 429 rate-limit)
+- Remote에서 `import { apiClient } from 'portal/api'`로 사용
 
-const response = await apiClient.get('/blog/posts');
-```
-
-### 2. stores
+### portal/stores
 
 ```typescript
 // src/store/index.ts
 export { useAuthStore } from './auth';
 export { useThemeStore } from './theme';
-
-// src/store/auth.ts
-export const useAuthStore = defineStore('auth', () => {
-  const user = ref<PortalUser | null>(null);
-  const isAuthenticated = computed(() => user.value !== null);
-  const displayName = computed(() => user.value?.profile.nickname || 'Guest');
-
-  function setUser(oidcUser: User) { /* ... */ }
-  function logout() { /* ... */ }
-  function hasRole(role: string): boolean { /* ... */ }
-
-  return { user, isAuthenticated, displayName, hasRole, setUser, logout };
-});
-
-// src/store/theme.ts
-export const useThemeStore = defineStore('theme', {
-  state: () => ({ isDark: false }),
-  actions: {
-    toggle() { /* ... */ },
-    initialize() { /* ... */ },
-  },
-});
+export { themeAdapter, authAdapter, portalStoreAdapter } from './storeAdapter';
 ```
 
-**Remote 모듈 사용 예시:**
-```typescript
-import { useAuthStore, useThemeStore } from 'portal/stores';
-
-const authStore = useAuthStore();
-console.log(authStore.displayName); // "사용자 닉네임"
-console.log(authStore.hasRole('ROLE_ADMIN')); // true/false
-
-const themeStore = useThemeStore();
-themeStore.toggle(); // Light ↔ Dark 전환
-```
+- Vue Remote: `useAuthStore()`, `useThemeStore()` 직접 사용
+- React Remote: `storeAdapter`의 `getState()`/`subscribe()` 사용 → [Cross-Framework Bridge](./cross-framework-bridge.md) 참조
 
 ---
 
-## 🔁 Shared Dependencies
+## Shared Dependencies
 
-Host와 Remote 간 공유되는 의존성입니다. 버전 호환성이 중요합니다.
-
-| Package | Version | 공유 여부 | 비고 |
-|---------|---------|-----------|------|
-| vue | 3.5.13 | ✅ 공유 | 필수 |
-| pinia | 2.3.1 | ✅ 공유 | Store 상태 공유 |
-| axios | 1.7.9 | ✅ 공유 | HTTP 클라이언트 |
-| vue-router | 4.5.0 | ❌ 독립 | 각 앱이 별도 관리 |
-
----
-
-## ⚠️ 주의사항
-
-### 1. Remote 모듈 독립성 보장
-
-Remote 모듈은 **standalone 모드**에서도 실행 가능해야 합니다.
-
-```typescript
-// blog-frontend/src/bootstrap.ts
-
-export function mountBlogApp(container: HTMLElement, config?: ShellConfig) {
-  const app = createApp(App);
-
-  // Standalone 모드: 자체 Router, Store 사용
-  if (!config) {
-    app.use(createRouter({ ... }));
-    app.use(createPinia());
-  } else {
-    // Integrated 모드: Shell의 리소스 사용
-    const authStore = useAuthStore(); // portal/stores
-  }
-
-  app.mount(container);
-  return () => app.unmount();
-}
-```
-
-### 2. 라우팅 충돌 방지
-
-Remote 모듈은 basePath 내에서만 라우팅합니다.
-
-- Portal Shell: `/`, `/signup`, `/callback`
-- Blog Remote: `/blog/*` (내부적으로는 `/`, `/posts`, `/posts/:id`)
-- Shopping Remote: `/shopping/*`
-- Prism Remote: `/prism/*`
-
-### 3. 순환 의존성 방지
-
-Host → Remote 방향만 허용. Remote → Host 의존 금지.
-
-```
-✅ Remote가 Host의 apiClient 사용
-❌ Host가 Remote의 컴포넌트 import
-```
+| Package | 공유 여부 | 비고 |
+|---------|-----------|------|
+| vue | 공유 | 필수 (Vue Remote) |
+| pinia | 공유 | Store 상태 공유 |
+| axios | 공유 | apiClient 공유 시 필수 |
+| react | 공유 | React Remote 간 공유 |
+| react-dom | 공유 | React Remote 필수 |
+| react-dom/client | 공유 | createRoot 사용 시 필수 (누락 시 Error #321) |
+| vue-router | 독립 | 각 앱이 별도 관리 |
 
 ---
 
-## 🔍 트러블슈팅
+## 에러 폴백 및 재시도
+
+RemoteWrapper는 로드 실패 시 사용자 친화적 에러 UI를 표시합니다.
+
+**에러 UI 구성**:
+- 서비스 아이콘 및 설명
+- "다시 시도" 버튼 → `retry()` → 캐시 클리어 후 재로드
+- "홈으로 돌아가기" 버튼
+- 개발 환경: Remote key, module path, 에러 메시지 상세 표시
+
+**retry() 동작**:
+1. 기존 앱 unmount 및 정리
+2. `remoteLoader.clearCache(config.key)`
+3. loading → true, error → null
+4. 재로드 시도
+
+---
+
+## 환경별 Remote URL
+
+### Local Dev
+```
+Blog:     http://localhost:30001/assets/remoteEntry.js
+Shopping: http://localhost:30002/assets/remoteEntry.js
+Prism:    http://localhost:30003/assets/remoteEntry.js
+```
+
+### Docker / Kubernetes
+환경변수로 관리:
+- `VITE_BLOG_REMOTE_URL`
+- `VITE_SHOPPING_REMOTE_URL`
+- `VITE_PRISM_REMOTE_URL`
+
+---
+
+## 기술적 결정
+
+### 선택한 패턴
+
+- **CSS 비활성화 (제거 아님)**: `<link disabled>`, `<style media="not all">`로 비활성화하여 재마운트 시 네트워크 재요청 없이 복원
+- **Module-level CSS Registry**: `<script>` (non-setup) 블록에서 Map 선언. 컴포넌트 인스턴스 재생성과 무관하게 CSS 추적 유지
+- **debounce 50ms Parent Navigate**: 빠른 연속 라우트 변경 시 불필요한 Remote 라우터 호출 방지
+- **isNavigating 100ms 플래그**: 양방향 네비게이션의 순환 전파 방지
+- **dynamic import로 remoteEntry 로드**: `<script>` 태그 대신 `import()`으로 ESM 모듈 직접 로드
+
+### 제약사항
+
+- Shared 의존성 버전이 불일치하면 런타임 에러 발생 (특히 React 버전 통일 필수)
+- `react-dom/client`를 shared에 누락하면 Error #321 발생
+- Host → Remote 방향만 허용. Remote → Host 컴포넌트 import 금지
+
+---
+
+## 트러블슈팅
 
 ### Remote 모듈 로드 실패
-
-**증상:** `Failed to fetch remoteEntry.js`
-
-**해결:**
-1. Remote URL 확인: `console.log(env.VITE_BLOG_REMOTE_URL)`
-2. Remote 앱이 실행 중인지 확인: `curl http://localhost:30001/assets/remoteEntry.js`
-3. CORS 설정 확인
+**증상**: `Failed to fetch remoteEntry.js`
+**해결**: Remote 앱 실행 확인, URL 확인, CORS 설정 확인
 
 ### Shared Dependencies 버전 불일치
+**증상**: Error #525 (React), 런타임 TypeError
+**해결**: `npm ls react`로 버전 확인, `overrides`로 통일
 
-**증상:** `Uncaught TypeError: Cannot read property of undefined`
-
-**해결:**
-- `package.json`에서 vue, pinia, axios 버전 일치 확인
-- `npm list vue pinia axios` 실행
-
-### Remote 앱이 마운트되지 않음
-
-**증상:** DOM 컨테이너가 비어 있음
-
-**해결:**
-1. `bootstrap` 함수가 정상적으로 export되는지 확인
-2. `mountFn` 이름이 정확한지 확인 (remoteRegistry.ts)
-3. Browser DevTools Console 확인
+### React Error #321
+**증상**: Invalid hook call
+**해결**: shared에 `react-dom/client` 추가
 
 ---
 
-## 📊 성능 최적화
-
-### 1. Remote 모듈 Pre-load
-
-```typescript
-// 자주 사용되는 Remote는 미리 로드
-router.beforeEach(async (to) => {
-  if (to.path.startsWith('/blog')) {
-    await loadRemoteEntry(blogConfig.url);
-  }
-});
-```
-
-### 2. Shared Dependencies 최소화
-
-```typescript
-// 필요한 것만 공유
-shared: ['vue', 'pinia', 'axios'] // ✅
-shared: ['vue', 'pinia', 'axios', 'lodash', 'dayjs'] // ❌ (불필요)
-```
-
-### 3. Build 최적화
-
-```typescript
-build: {
-  minify: false, // 디버깅 시
-  target: 'esnext',
-  rollupOptions: {
-    output: {
-      manualChunks: {
-        vendor: ['vue', 'pinia', 'axios'],
-      },
-    },
-  },
-}
-```
-
----
-
-## 🔗 관련 문서
+## 관련 문서
 
 - [System Overview](./system-overview.md)
-- [Blog Frontend Architecture](../../blog-frontend/docs/architecture/)
-- [Shopping Frontend Architecture](../../shopping-frontend/docs/architecture/)
-- [Module Federation 공식 문서](https://module-federation.github.io/)
-
----
-
-**최종 업데이트**: 2026-01-30
+- [Cross-Framework Bridge](./cross-framework-bridge.md) - storeAdapter 상세
+- [Authentication](./authentication.md) - portal/api 인증 인터셉터

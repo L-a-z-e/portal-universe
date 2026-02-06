@@ -4,285 +4,285 @@ title: Portal Shell System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: Laze
 tags: [architecture, portal-shell, vue3, module-federation, host-application]
 related:
   - arch-portal-shell-module-federation
   - arch-portal-shell-authentication
+  - arch-portal-shell-realtime-communication
+  - arch-portal-shell-cross-framework-bridge
 ---
 
-# Portal Shell System Overview
+# Portal Shell 아키텍처: System Overview
 
-## 📋 개요
+## 개요
 
-Portal Shell은 마이크로 프론트엔드 아키텍처의 Host 애플리케이션입니다. Vue 3와 Module Federation을 기반으로 여러 Remote 모듈(blog, shopping)을 런타임에 동적으로 통합하고, 인증, 라우팅, 테마 등 공통 기능을 제공합니다.
+Portal Shell은 마이크로 프론트엔드 아키텍처의 Host 애플리케이션입니다. Vue 3와 Module Federation을 기반으로 Remote 모듈(Blog, Shopping, Prism)을 런타임에 동적으로 통합하고, 인증/라우팅/테마/실시간 통신 등 공통 기능을 제공합니다.
 
----
-
-## 🎯 핵심 특징
-
-- **Module Federation Host**: Remote 모듈 동적 로딩 및 통합
-- **OAuth2 PKCE 인증**: Spring Authorization Server와 연동한 표준 인증
-- **Shared Resources**: apiClient, authStore, themeStore를 Remote 모듈에 노출
-- **Isolated Environment**: Remote 모듈은 독립적으로 개발/배포 가능
-- **Service Theming**: data-service 속성으로 서비스별 테마 전환
+| 항목 | 내용 |
+|------|------|
+| **범위** | System |
+| **주요 기술** | Vue 3, Vite 7.x, TypeScript 5.9, Pinia, Module Federation |
+| **배포 환경** | Docker Compose, Kubernetes |
+| **관련 서비스** | api-gateway, auth-service, notification-service, chatbot-service, blog-service, shopping-service, prism-service |
 
 ---
 
-## 🏗️ High-Level Architecture
+## 아키텍처 다이어그램
 
 ```mermaid
 graph TB
-    subgraph "Portal Shell (Host)"
-        PS[Portal Shell App<br/>Vue 3 + Vite<br/>Port 30000]
+    subgraph "Portal Shell (Host :30000)"
+        PS[App.vue]
+
+        subgraph "Core"
+            RW[RemoteWrapper]
+            SIDE[Sidebar]
+            LM[LoginModal]
+            CHAT[ChatWidget]
+        end
 
         subgraph "Exposed Modules"
-            API[apiClient]
+            EAPI["portal/api<br/>(apiClient)"]
+            ESTORE["portal/stores<br/>(auth, theme, storeAdapter)"]
+        end
+
+        subgraph "Stores"
             AUTH[authStore]
             THEME[themeStore]
+            NOTIF[notificationStore]
+            SA[storeAdapter]
         end
 
-        subgraph "Core Components"
-            RW[RemoteWrapper]
-            RR[Router]
-            LOGIN[LoginModal]
+        subgraph "Services"
+            AS[authService]
+            NS[notificationService]
+            RL[remoteLoader]
         end
 
-        PS --> API
-        PS --> AUTH
-        PS --> THEME
-        PS --> RW
-        PS --> RR
+        subgraph "Composables"
+            WS[useWebSocket]
+            UC[useChat]
+            UN[useNotifications]
+        end
     end
 
     subgraph "Remote Modules"
-        BLOG[Blog Frontend<br/>Port 30001]
-        SHOP[Shopping Frontend<br/>Port 30002]
+        BLOG[Blog :30001<br/>Vue 3]
+        SHOP[Shopping :30002<br/>React 18]
+        PRISM[Prism :30003<br/>React 18]
     end
 
-    subgraph "Backend Services"
-        GW[API Gateway<br/>Port 8080]
-        AS[Auth Service<br/>Port 8081]
+    subgraph "Backend"
+        GW[api-gateway :8080]
+        AUTHBE[auth-service :8081]
+        NOTIFBE[notification-service :8084]
+        CHATBE[chatbot-service :8086]
     end
 
     RW -.->|Dynamic Load| BLOG
     RW -.->|Dynamic Load| SHOP
+    RW -.->|Dynamic Load| PRISM
 
-    BLOG -.->|Use| API
-    BLOG -.->|Use| AUTH
-    BLOG -.->|Use| THEME
-
-    SHOP -.->|Use| API
-    SHOP -.->|Use| AUTH
-
-    API -->|HTTP Proxy| GW
-    AUTH -->|OAuth2 PKCE| AS
-
-    classDef host fill:#e1f5ff,stroke:#0288d1
-    classDef remote fill:#fff9c4,stroke:#fbc02d
-    classDef backend fill:#ffebee,stroke:#c62828
-
-    class PS,API,AUTH,THEME,RW,RR,LOGIN host
-    class BLOG,SHOP remote
-    class GW,AS backend
+    EAPI -->|HTTP| GW
+    AS -->|JWT Auth| AUTHBE
+    WS -->|STOMP/SockJS| NOTIFBE
+    UC -->|REST + SSE| CHATBE
 ```
 
 ---
 
-## 📦 컴포넌트 상세
+## 핵심 컴포넌트
 
-### Portal Shell (Host Application)
+### 1. Portal Shell (Host Application)
+
+**역할**: MFA Host, 공통 기능 제공, Remote 모듈 통합
 
 | 항목 | 내용 |
 |------|------|
-| **역할** | MFA Host, 공통 기능 제공 |
-| **기술 스택** | Vue 3, Vite 7.x, TypeScript 5.9, Pinia, Vue Router 4 |
+| **기술 스택** | Vue 3 (Composition API + `<script setup>`), Vite 7.x, TypeScript 5.9 |
 | **포트** | 30000 |
-| **의존성** | @originjs/vite-plugin-federation, oidc-client-ts |
+| **상태 관리** | Pinia (auth, theme, notification, settings) |
+| **MF 플러그인** | @originjs/vite-plugin-federation |
+| **HTTP** | Axios (apiClient), Fetch (authService, useChat SSE) |
+| **실시간** | @stomp/stompjs + sockjs-client (알림), SSE (챗봇) |
+| **디자인** | @portal/design-system-vue, TailwindCSS |
 
-### RemoteWrapper
+### 2. Remote Modules
 
-| 항목 | 내용 |
-|------|------|
-| **역할** | Remote 모듈 동적 로딩 및 마운트 |
-| **타입** | Vue 3 Component |
-| **주요 기능** | remoteEntry.js 로드, bootstrap 함수 호출, 서비스별 테마 적용 |
+| Remote | 포트 | 프레임워크 | basePath | 설명 |
+|--------|------|-----------|----------|------|
+| Blog | 30001 | Vue 3 | `/blog` | 블로그 서비스 |
+| Shopping | 30002 | React 18 | `/shopping` | 쇼핑 서비스 |
+| Prism | 30003 | React 18 | `/prism` | AI 에이전트 오케스트레이션 |
 
-### Router
+### 3. Stores
 
-| 항목 | 내용 |
-|------|------|
-| **역할** | 라우팅 관리 (Shell + Remote) |
-| **타입** | Vue Router 4 |
-| **라우트** | /, /signup, /callback, /blog/*, /shopping/* |
-
-### Auth Store (Pinia)
-
-| 항목 | 내용 |
-|------|------|
-| **역할** | 사용자 인증 상태 관리 |
-| **State** | user (PortalUser), isAuthenticated, displayName |
-| **Actions** | setUser, logout, hasRole |
-
-### Theme Store (Pinia)
-
-| 항목 | 내용 |
-|------|------|
-| **역할** | Light/Dark 모드 관리 |
-| **State** | isDark |
-| **Actions** | toggle, initialize |
+| Store | 소스 | 역할 |
+|-------|------|------|
+| `useAuthStore` | `src/store/auth.ts` | 인증 상태, RBAC, `portal:auth-changed` 이벤트 |
+| `useThemeStore` | `src/store/theme.ts` | Light/Dark/System 모드, localStorage 영속화 |
+| `useNotificationStore` | `src/store/notification.ts` | 알림 목록, 미읽음 카운트, 페이지네이션 |
+| `useSettingsStore` | `src/store/settings.ts` | 사용자 설정 |
+| `storeAdapter` | `src/store/storeAdapter.ts` | Pinia → React 브릿지 (themeAdapter, authAdapter) |
 
 ---
 
-## 💾 데이터 저장소
+## 데이터 플로우
+
+### 애플리케이션 초기화
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Main as main.ts
+    participant Pinia
+    participant AuthStore as useAuthStore
+    participant AS as authService
+    participant Backend as auth-service
+    participant App as App.vue
+    participant WS as useWebSocket
+
+    User->>Main: 앱 접속
+    Main->>Pinia: createPinia()
+    Main->>AuthStore: checkAuth()
+    AuthStore->>AS: autoRefreshIfNeeded()
+    AS->>Backend: POST /auth-service/api/v1/auth/refresh<br/>(HttpOnly Cookie)
+    alt Cookie 존재
+        Backend-->>AS: { accessToken }
+        AS->>AS: 메모리 저장
+        AuthStore->>AuthStore: setUserFromInfo()
+        AuthStore->>AuthStore: dispatch 'portal:auth-changed'
+    else Cookie 없음
+        Backend-->>AS: 401
+        AS-->>AuthStore: 실패 (무시)
+    end
+    Main->>Main: app.use(router), app.mount('#app')
+    App->>App: themeStore.initialize()
+    App->>WS: useWebSocket()
+    alt 인증됨
+        WS->>WS: STOMP connect
+    end
+    App-->>User: 렌더링 완료
+```
+
+---
+
+## 데이터 저장소
 
 | 저장소 | 용도 | 기술 |
 |--------|------|------|
-| localStorage | OIDC 토큰, 테마 설정 | Browser API |
-| Pinia Store | 런타임 상태 (user, theme) | Vue Reactive State |
+| JavaScript 메모리 | Access Token | `AuthenticationService.accessToken` |
+| HttpOnly Cookie | Refresh Token | auth-service Set-Cookie |
+| localStorage | 테마 설정, 사이드바 상태 | Browser API |
+| Pinia Store | 런타임 상태 (user, theme, notifications) | Vue Reactive State |
 
 ---
 
-## 🔗 외부 연동
+## 외부 연동
 
 | 시스템 | 용도 | 프로토콜 | URL |
 |--------|------|----------|-----|
-| API Gateway | 백엔드 API 호출 | HTTP Proxy | http://localhost:8080 |
-| Auth Service | OAuth2 인증 | OIDC PKCE | http://localhost:8081 |
+| api-gateway | 백엔드 API 호출 | HTTP (Axios) | http://localhost:8080 |
+| auth-service | JWT 인증, 소셜 로그인 | HTTP (Fetch) | http://localhost:8081 |
+| notification-service | 실시간 알림 | STOMP/SockJS | http://localhost:8080/notification/ws/notifications |
+| chatbot-service | AI 챗봇 | REST + SSE | http://localhost:8080/api/v1/chat/* |
 | Blog Remote | Remote 모듈 로딩 | Module Federation | http://localhost:30001 |
 | Shopping Remote | Remote 모듈 로딩 | Module Federation | http://localhost:30002 |
+| Prism Remote | Remote 모듈 로딩 | Module Federation | http://localhost:30003 |
 
 ---
 
-## 📂 소스 구조
+## 소스 구조
 
 ```
 src/
-├── api/                   # API 클라이언트 (axios)
-│   └── apiClient.ts       # Exposed to Remote
-├── components/            # 공통 컴포넌트
-│   ├── RemoteWrapper.vue  # Remote 모듈 래퍼
-│   ├── LoginModal.vue     # 로그인 모달
-│   └── ThemeToggle.vue    # 테마 전환
+├── api/                      # API 클라이언트
+│   ├── apiClient.ts          # Axios (MF portal/api로 노출)
+│   ├── index.ts              # Export barrel
+│   └── types.ts              # API 에러 타입
+├── components/               # 공통 컴포넌트
+│   ├── RemoteWrapper.vue     # Remote 모듈 래퍼 (CSS 관리, keep-alive)
+│   ├── LoginModal.vue        # 로그인 모달
+│   ├── Sidebar.vue           # 사이드바 네비게이션
+│   ├── QuickActions.vue      # Cmd+K 명령 팔레트
+│   └── chat/                 # 챗봇 위젯
+│       └── ChatWidget.vue
+├── composables/              # Vue Composables
+│   ├── useWebSocket.ts       # STOMP/SockJS 알림
+│   ├── useChat.ts            # AI 챗봇 (REST + SSE)
+│   └── useNotifications.ts   # 알림 폴링 폴백
 ├── config/
-│   └── remoteRegistry.ts  # Remote 설정 (dev/docker/k8s)
+│   └── remoteRegistry.ts     # Remote 설정 (dev/docker/k8s)
+├── constants/
+│   └── roles.ts              # RBAC 역할 상수
 ├── router/
-│   └── index.ts           # Vue Router 설정
+│   └── index.ts              # Vue Router 설정
 ├── services/
-│   ├── authService.ts     # OAuth2 인증 서비스
-│   └── remoteLoader.ts    # Remote 동적 로딩
+│   ├── authService.ts        # JWT 인증 (메모리 토큰, HttpOnly Cookie)
+│   ├── notificationService.ts # 알림 REST API
+│   └── remoteLoader.ts       # Remote 동적 로딩 (캐싱)
 ├── store/
-│   ├── auth.ts            # Exposed to Remote
-│   └── theme.ts           # Exposed to Remote
+│   ├── auth.ts               # MF portal/stores로 노출
+│   ├── theme.ts              # MF portal/stores로 노출
+│   ├── notification.ts       # 알림 상태
+│   ├── settings.ts           # 사용자 설정
+│   ├── storeAdapter.ts       # Pinia → React 브릿지
+│   └── index.ts              # Store + Adapter 통합 export
 ├── types/
-│   └── user.ts            # TypeScript 타입 정의
+│   ├── user.ts               # PortalUser, UserProfile, UserAuthority
+│   ├── notification.ts       # Notification, NotificationType
+│   ├── chat.ts               # ChatMessage, StreamEvent
+│   └── global.d.ts           # Window 전역 타입
 ├── utils/
-│   └── jwt.ts             # JWT 파싱
-├── views/                 # 페이지 컴포넌트
+│   ├── jwt.ts                # JWT 파싱
+│   └── base64.ts             # Base64 URL 디코딩
+├── views/
 │   ├── HomePage.vue
 │   ├── SignupPage.vue
-│   ├── CallbackPage.vue   # OAuth Callback
+│   ├── OAuth2Callback.vue    # 소셜 로그인 콜백
 │   └── NotFound.vue
-├── App.vue
-└── main.ts
+├── App.vue                   # 루트 (Sidebar, ChatWidget, KeepAlive)
+└── main.ts                   # 진입점 (Pinia → checkAuth → Router → Mount)
 ```
 
 ---
 
-## 📊 성능 목표
+## 기술적 결정
 
-| 지표 | 목표 | 현재 |
-|------|------|------|
-| 초기 로드 시간 | < 1s | - |
-| Remote 로드 시간 | < 500ms | - |
-| 인증 처리 시간 | < 300ms | - |
-| 라우팅 전환 시간 | < 100ms | - |
+### 선택한 패턴
 
----
+- **Module Federation Host**: 런타임 Remote 통합으로 독립 배포 가능. Vite Plugin Federation 사용
+- **Cross-framework 지원**: Vue Host에서 React Remote를 storeAdapter로 연결. `useSyncExternalStore` 호환
+- **JWT + HttpOnly Cookie**: Access Token 메모리 저장 (XSS 방어), Refresh Token HttpOnly Cookie (CSRF 방어)
+- **STOMP/SockJS + 폴링 폴백**: 실시간 알림은 WebSocket 우선, 연결 불가 시 30초 폴링
+- **SSE 스트리밍 챗봇**: `useChat`에서 `ReadableStream`으로 토큰 단위 스트리밍
+- **Dark-first 테마**: Linear 스타일, dark/light/system 3모드, `data-service` 속성으로 서비스별 테마 전환
 
-## 🔐 보안
+### 제약사항
 
-### 인증 방식
-- OAuth2 Authorization Code + PKCE Flow
-- JWT Access Token (Bearer Token)
-- Silent Renewal (자동 토큰 갱신)
-
-### 토큰 저장
-- localStorage (WebStorageStateStore)
-- 만료 시 자동 로그아웃
-
-### CORS 정책
-- API Gateway에서 CORS 처리
-- Vite Proxy: /auth-service, /api
+- Module Federation은 ESM 기반으로 빌드 시 shared 의존성 버전 통일 필수
+- React Remote는 Pinia를 직접 사용할 수 없으므로 storeAdapter 브릿지 필요
+- SSE 스트리밍은 HTTP/1.1에서 동시 연결 수 제한 (브라우저당 6개)
 
 ---
 
-## 🌐 환경별 설정
+## 환경별 설정
 
-| 환경 | VITE_PROFILE | Remote URL |
-|------|--------------|------------|
-| Local Dev | dev | http://localhost:3000X |
-| Docker | docker | 환경변수 VITE_BLOG_REMOTE_URL |
-| Kubernetes | k8s | 환경변수 VITE_BLOG_REMOTE_URL |
-
----
-
-## 🔄 주요 흐름
-
-### 1. 애플리케이션 초기화
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant PS as Portal Shell
-    participant AS as Auth Service
-    participant Store as Pinia Store
-
-    User->>PS: 앱 접속
-    PS->>PS: main.ts 실행
-    PS->>Store: Theme Store 초기화
-    PS->>AS: OIDC 메타데이터 로드
-    PS->>Store: Auth Store 확인
-    alt 토큰 있음
-        PS->>AS: 토큰 검증
-        AS-->>PS: 유효
-        PS->>Store: setUser()
-        PS-->>User: 로그인 상태
-    else 토큰 없음
-        PS-->>User: 로그아웃 상태
-    end
-```
-
-### 2. Remote 모듈 로딩
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Router
-    participant RW as RemoteWrapper
-    participant Remote as Blog Remote
-
-    User->>Router: /blog 이동
-    Router->>RW: route.path 전달
-    RW->>RW: config 조회 (remoteRegistry)
-    RW->>Remote: remoteEntry.js 로드
-    Remote-->>RW: bootstrap 함수 반환
-    RW->>RW: DOM 컨테이너 생성
-    RW->>Remote: bootstrap(container, config)
-    Remote->>Remote: Vue 앱 마운트
-    Remote-->>User: 블로그 화면 렌더링
-```
+| 환경 | VITE_PROFILE | Remote URL | API Base |
+|------|--------------|------------|----------|
+| Local Dev | dev | http://localhost:3000X | http://localhost:8080 |
+| Docker | docker | 환경변수 | 환경변수 |
+| Kubernetes | k8s | 환경변수 | 환경변수 |
 
 ---
 
-## 🔗 관련 문서
+## 관련 문서
 
 - [Module Federation 상세](./module-federation.md)
 - [Authentication 흐름](./authentication.md)
-- [API 명세](../api/)
-- [가이드](../guides/)
-
----
-
-**최종 업데이트**: 2026-01-18
+- [Realtime Communication](./realtime-communication.md)
+- [Cross-Framework Bridge](./cross-framework-bridge.md)
+- [API Gateway Architecture](../api-gateway/system-overview.md)
+- [Auth Service Architecture](../auth-service/system-overview.md)
