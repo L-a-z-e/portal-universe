@@ -163,6 +163,6 @@ Portal Universe 프로젝트는 Spring Cloud 기반으로 다음 서비스들을
 
 ---
 
-**작성자**: Claude Code
+**작성자**: Laze
 **검토자**: -
 **최종 업데이트**: 2026-01-20

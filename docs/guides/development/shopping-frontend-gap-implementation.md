@@ -353,7 +353,7 @@ return ResponseEntity.ok(ApiResponse.success(orderService.getOrders(...)));
 
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
-| 2026-01-28 | 초기 작성 - 10개 Gap 구현 완료 보고서 | Claude |
+| 2026-01-28 | 초기 작성 - 10개 Gap 구현 완료 보고서 | Laze |
 
 ---
 

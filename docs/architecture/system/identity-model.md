@@ -184,5 +184,5 @@ graph TB
 
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
-| 2026-02-06 | `identity-model.md`로 이름 변경, architecture-template 형식 보완, 미완성 섹션 정리 | Claude |
-| 2026-02-06 | 최초 작성 (`auth-system-design.md`) | Claude |
+| 2026-02-06 | `identity-model.md`로 이름 변경, architecture-template 형식 보완, 미완성 섹션 정리 | Laze |
+| 2026-02-06 | 최초 작성 (`auth-system-design.md`) | Laze |

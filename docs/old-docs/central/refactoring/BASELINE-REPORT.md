@@ -182,5 +182,5 @@ npm run test:debug
 
 ---
 
-**작성자**: Claude (Refactoring Assistant)
+**작성자**: Laze
 **다음 업데이트**: Phase 1 완료 후

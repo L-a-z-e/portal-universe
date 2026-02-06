@@ -184,7 +184,7 @@ A: [Adding Remote Module](./adding-remote.md) 가이드 참조 또는 [공식 �
 
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
-| 2026-01-18 | 초기 가이드 작성 (Getting Started, Adding Remote, Development) | Claude (Documenter Agent) |
+| 2026-01-18 | 초기 가이드 작성 (Getting Started, Adding Remote, Development) | Laze |
 
 ---
 

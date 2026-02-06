@@ -894,4 +894,4 @@ https://auth.portal-universe.com  ✅ 프로덕션 환경
 
 | 버전 | 날짜 | 작성자 | 변경 내용 |
 |------|------|--------|----------|
-| 1.0.0 | 2026-01-19 | Claude Code | 초기 Security API 명세 작성 |
+| 1.0.0 | 2026-01-19 | Laze | 초기 Security API 명세 작성 |

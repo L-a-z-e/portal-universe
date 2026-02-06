@@ -35,44 +35,47 @@ Portal Universe의 **전체 시스템 보안 아키텍처**를 설명합니다. 
 ```mermaid
 flowchart TB
     subgraph "Client Layer"
-        C[Client<br/>Vue 3 / React 18]
+        C["Client<br/>Vue 3 / React 18"]
     end
 
     subgraph "Gateway Layer"
-        G[API Gateway :8080]
-        GF1[JwtAuthenticationFilter<br/>JWT 검증 + kid 기반 키 선택]
-        GF2[SecurityHeadersFilter<br/>보안 헤더 추가]
-        GF3[Header Injection 방어<br/>외부 X-User-* strip]
+        G["API Gateway :8080"]
+        GF1["JwtAuthenticationFilter<br/>JWT 검증 + kid 기반 키 선택"]
+        GF2["SecurityHeadersFilter<br/>보안 헤더 추가"]
+        GF3["Header Injection 방어<br/>외부 X-User-* strip"]
     end
 
     subgraph "Service Layer"
-        AS[Auth Service :8081<br/>JWT 발급 + RBAC 관리]
-        BS[Blog Service :8082]
-        SS[Shopping Service :8083]
-        NS[Notification Service :8084]
+        AS["Auth Service :8081<br/>JWT 발급 + RBAC 관리"]
+        BS["Blog Service :8082"]
+        SS["Shopping Service :8083"]
+        NS["Notification Service :8084"]
     end
 
     subgraph "Data Layer"
-        R[(Redis<br/>Token Blacklist<br/>Login Attempts)]
-        M[(MySQL<br/>Users, Roles, Permissions)]
+        R[("Redis<br/>Token Blacklist<br/>Login Attempts")]
+        M[("MySQL<br/>Users, Roles, Permissions")]
     end
 
+    %% 로그인 프로세스
     C -->|1. 로그인 요청| G
     G --> AS
     AS --> M
     AS --> R
-    AS -->|2. Access Token<br/>+ Refresh Token| G
-    G -->|Access Token<br/>Refresh Token<br/>HttpOnly Cookie| C
+    AS -->|"2. Access Token<br/>+ Refresh Token"| G
+    G -->|"Access Token<br/>Refresh Token<br/>HttpOnly Cookie"| C
 
-    C -->|3. API 요청<br/>Authorization: Bearer {token}| G
+    %% API 요청 프로세스
+    C -->|"3. API 요청<br/>Authorization: Bearer {token}"| G
     G --> GF3
     GF3 --> GF1
     GF1 --> R
-    GF1 -->|JWT 검증 성공<br/>+ X-User-Id, X-User-Roles 추가| GF2
+    GF1 -->|"JWT 검증 성공<br/>+ X-User-Id, X-User-Roles 추가"| GF2
     GF2 -->|보안 헤더 추가| BS
     GF2 -->|보안 헤더 추가| SS
     GF2 -->|보안 헤더 추가| NS
 
+    %% 스타일 정의
     style AS fill:#FFE6CC
     style GF1 fill:#E1F5FE
     style GF2 fill:#F3E5F5
@@ -599,7 +602,7 @@ sequenceDiagram
     AS->>R: SET blacklist:{sha256(access-token)}<br/>TTL = 남은 만료 시간
     AS->>R: DEL refresh:{userId}
     AS->>R: 감사 로그 기록<br/>(TOKEN_REVOKED)
-    AS-->>C: 200 OK<br/>Set-Cookie: refreshToken=; Max-Age=0
+    AS-->>C: 200 OK<br/>Set-Cookie: refreshToken=#59; Max-Age=0
 ```
 
 **주요 포인트**:
