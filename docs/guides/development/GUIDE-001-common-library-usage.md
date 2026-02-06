@@ -1458,11 +1458,6 @@ graph TB
 - [Spring Security OAuth2 Resource Server](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/index.html)
 - [Spring for Apache Kafka](https://spring.io/projects/spring-kafka)
 
-### Portal Universe 내부 문서
-- [Common Library Architecture](../ARCHITECTURE.md)
-- [Common Library API Reference](../API.md)
-- [Backend Code Patterns](/.claude/rules/backend-patterns.md)
-- [Error Handling Rules](/.claude/rules/error-handling.md)
 
 ---
 

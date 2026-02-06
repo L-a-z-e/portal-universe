@@ -696,7 +696,7 @@ sequenceDiagram
 
 ## ➡️ 다음 단계
 
-1. **API 통합**: Portal Shell의 axios 사용 ([API 클라이언트 가이드](./api-client-integration.md))
+1. **API 통합**: Portal Shell의 axios 사용
 2. **인증 연동**: authStore와 연동하여 보호된 라우트 구현
 3. **상태 관리**: Portal Shell과 데이터 공유 전략
 4. **성능 최적화**: Code Splitting, Lazy Loading
@@ -705,8 +705,7 @@ sequenceDiagram
 
 ## 🔗 관련 문서
 
-- [Architecture - MFE 통합](../architecture/mfe-integration.md)
-- [API - remoteEntry.js](../api/remote-entry.md)
+- [Module Federation Architecture](../../architecture/portal-shell/module-federation.md)
 - [Troubleshooting - Federation 오류](../troubleshooting/)
 
 ---

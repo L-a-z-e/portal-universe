@@ -778,7 +778,6 @@ apiClient.interceptors.request.use(config => {
 ## 🔗 관련 문서
 
 - [Getting Started](./getting-started.md)
-- [Commit Convention](../../../../../.claude/rules/commit-convention.md)
 - [Vue 3 Best Practices](https://vuejs.org/guide/best-practices/)
 - [Vite Documentation](https://vite.dev/)
 

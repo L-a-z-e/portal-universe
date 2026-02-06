@@ -15,7 +15,7 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **관련 PRD** | [PRD-001-ecommerce-core](../../prd/PRD-001-ecommerce-core.md) |
+| **관련 PRD** | PRD-001-ecommerce-core |
 | **테스트 범위** | 인증/인가 흐름 전체 |
 | **테스트 환경** | Local, CI, Staging |
 
@@ -135,4 +135,3 @@ cd services/auth-service
 
 - [테스트 전략](../test-strategy.md)
 - [Architecture - Identity Model](../../../architecture/system/identity-model.md)
-- [Diagrams - Auth ERD](../../diagrams/source/auth-erd.md)

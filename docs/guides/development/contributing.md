@@ -316,7 +316,6 @@ feat(design-system): add NewComponent
 
 ## 🔗 관련 문서
 
-- [Architecture](../architecture/README.md) - 시스템 아키텍처
 - [Token System](../../architecture/design-system/token-system.md) - 토큰 시스템
 - [API Reference](../../api/README.md) - API 문서
 

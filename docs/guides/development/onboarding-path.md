@@ -13,15 +13,12 @@
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
 | 1 | [`/README.md`](../../README.md) | 기술 스택, 서비스 포트, 모니터링 |
-| 2 | [`/.claude/CLAUDE.md`](../../.claude/CLAUDE.md) | 아키텍처 원칙, 디렉토리 구조, Quick Commands |
-| 3 | [`/.claude/rules/common.md`](../../.claude/rules/common.md) | 커밋 컨벤션, 에러 처리 패턴, API 응답 표준 |
 
 ### Step 2. 아키텍처 이해
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 4 | [`/docs/architecture/README.md`](../architecture/README.md) | 시스템 설계 문서 목록 |
-| 5 | [`/docs/adr/README.md`](../../adr/README.md) | 14개 아키텍처 결정 기록 (훑어보기) |
+| 4 | [`/docs/adr/README.md`](../../adr/README.md) | 14개 아키텍처 결정 기록 (훑어보기) |
 | 6 | [`/docs/old-docs/diagrams/`](../../old-docs/diagrams/) | 시스템 전체 구조, 서비스 간 통신 다이어그램 |
 
 ### Step 3. 환경 구성 & 실행
@@ -35,9 +32,7 @@
 
 | 문서 | 핵심 내용 |
 |------|----------|
-| [`/docs/learning/README.md`](../learning/README.md) | PART 0~11 포괄적 학습 자료 |
-| [`/docs/scenarios/README.md`](../scenarios/README.md) | 13개 업무 시나리오 |
-| [`/docs/prd/`](../prd/) | 제품 요구사항 문서 |
+| [`/docs/prd/`](../../prd/) | 제품 요구사항 문서 |
 
 ---
 
@@ -49,9 +44,7 @@
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 1 | [`/.claude/rules/spring.md`](../../.claude/rules/spring.md) | Controller → Service → Repository 패턴, DTO, Validation |
-| 2 | [`/services/common-library/docs/README.md`](../../services/common-library/docs/README.md) | ApiResponse, ErrorCode, GlobalExceptionHandler |
-| 3 | [`/docs/guides/jwt-rbac-setup.md`](jwt-rbac-setup.md) | JWT 인증, RBAC 권한 설정 |
+| 1 | [`/docs/guides/development/jwt-rbac-setup.md`](jwt-rbac-setup.md) | JWT 인증, RBAC 권한 설정 |
 
 ### B-1. Auth Service
 
@@ -68,8 +61,7 @@
 |------|------|----------|
 | 4 | [Shopping Service README](../../api/shopping-frontend/) | 서비스 개요, Saga 패턴 |
 | 5 | [Shopping API](../../api/shopping-frontend/) | 상품 CRUD API |
-| 6 | [`/docs/scenarios/SCENARIO-002-order-saga.md`](../scenarios/SCENARIO-002-order-saga.md) | 주문/결제 Saga 흐름 |
-| 7 | [Shopping API Reference](../../api/shopping-service/README.md) | 전체 Shopping API 레퍼런스 |
+| 6 | [Shopping API Reference](../../api/shopping-service/README.md) | 전체 Shopping API 레퍼런스 |
 
 ### B-3. Blog Service
 
@@ -77,7 +69,6 @@
 |------|------|----------|
 | 4 | [Blog Service README](../../api/blog-frontend/) | 서비스 개요, MongoDB |
 | 5 | [Blog API](../../api/blog-frontend/) | Blog API 명세 |
-| 6 | [`/docs/scenarios/SCENARIO-008-like-post.md`](../scenarios/SCENARIO-008-like-post.md) | 좋아요 기능 시나리오 |
 
 ### B-4. Notification Service
 
@@ -101,24 +92,20 @@
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 1 | [`/.claude/rules/typescript.md`](../../.claude/rules/typescript.md) | TypeScript strict mode, 타입 컨벤션, Import 순서 |
-| 2 | [`/.claude/rules/tailwind.md`](../../.claude/rules/tailwind.md) | 반응형 패턴, Design Token 3-tier, 다크모드 |
-| 3 | [Module Federation Architecture](../../architecture/portal-shell/module-federation.md) | Host-Remote 아키텍처 전체 이해 |
+| 1 | [Module Federation Architecture](../../architecture/portal-shell/module-federation.md) | Host-Remote 아키텍처 전체 이해 |
 
 ### C-1. Portal Shell (Vue 3 - Host)
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 4 | [`/.claude/rules/vue.md`](../../.claude/rules/vue.md) | Composition API, Pinia, Composable 패턴 |
-| 5 | [Portal Shell](../../architecture/portal-shell/) | Host 개요, 라우팅, 인증 |
+| 2 | [Portal Shell](../../architecture/portal-shell/) | Host 개요, 라우팅, 인증 |
 | 6 | [Portal Shell API](../../api/) | apiClient, authStore, themeStore 명세 | <!-- TODO: verify portal shell API location -->
 
 ### C-2. Blog Frontend (Vue 3 - Remote)
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 4 | [`/.claude/rules/vue.md`](../../.claude/rules/vue.md) | Vue 3 패턴 |
-| 5 | [Blog Frontend](../../api/blog-frontend/) | Remote 개요 |
+| 2 | [Blog Frontend](../../api/blog-frontend/) | Remote 개요 |
 | 6 | [Blog Federation](../../api/blog-frontend/) | Module Federation 설정 | <!-- TODO: verify blog federation docs location -->
 | 7 | [Blog Components](../../api/blog-frontend/) | 27개 컴포넌트 레퍼런스 | <!-- TODO: verify blog components docs location -->
 
@@ -126,8 +113,7 @@
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 4 | [`/.claude/rules/react.md`](../../.claude/rules/react.md) | React 컴포넌트, Hooks, Zustand, Module Federation 필수 설정 |
-| 5 | [Shopping Frontend](../../api/shopping-frontend/) | Remote 개요 |
+| 2 | [Shopping Frontend](../../api/shopping-frontend/) | Remote 개요 |
 | 6 | [Shopping Federation](../../api/shopping-frontend/) | Federation 연동 | <!-- TODO: verify shopping federation docs location -->
 | 7 | [React Learning](../../learning/) | React 학습 시리즈 (01~07) | <!-- TODO: verify react learning docs location -->
 
@@ -135,8 +121,7 @@
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 4 | [`/.claude/rules/react.md`](../../.claude/rules/react.md) | React 패턴 |
-| 5 | [Prism Frontend](../../api/) | AI 칸반 대시보드 개요 | <!-- TODO: verify prism frontend docs location -->
+| 2 | [Prism Frontend](../../api/) | AI 칸반 대시보드 개요 | <!-- TODO: verify prism frontend docs location -->
 
 ### C-5. Design System
 
@@ -155,8 +140,7 @@
 | 순서 | 문서 | 왜 읽는가 |
 |------|------|----------|
 | 1 | [`/docs/adr/README.md`](../../adr/README.md) | 기존 아키텍처 결정 검토 |
-| 2 | [`/.claude/rules/spring.md`](../../.claude/rules/spring.md) | Layer 구조, 패턴 확인 |
-| 3 | 기존 서비스 하나 선택하여 `README.md` + 코드 구조 분석 | 디렉토리 레이아웃 참고 |
+| 2 | 기존 서비스 하나 선택하여 `README.md` + 코드 구조 분석 | 디렉토리 레이아웃 참고 |
 
 ### Step 2. 구현
 
@@ -185,10 +169,9 @@ services/new-service/
 
 | 순서 | 작업 | 참고 문서 |
 |------|------|----------|
-| 4 | `docker-compose.yml`에 서비스 추가 | [Docker Compose Guide](../deployment/docker-compose.md) |
-| 5 | API Gateway에 라우트 추가 | [API Gateway](../../architecture/) | <!-- TODO: verify api gateway docs location -->
-| 6 | Kafka 이벤트 연동 (필요시) | [`/docs/learning/README.md`](../learning/README.md) PART 1 |
-| 7 | K8s Deployment 작성 (필요시) | [K8s 배포 가이드](../deployment/k8s-deployment-guide.md) |
+| 3 | `docker-compose.yml`에 서비스 추가 | [Docker Compose Guide](../deployment/docker-compose.md) |
+| 4 | API Gateway에 라우트 추가 | [API Gateway](../../architecture/) | <!-- TODO: verify api gateway docs location -->
+| 5 | K8s Deployment 작성 (필요시) | [K8s 배포 가이드](../deployment/k8s-deployment-guide.md) |
 
 ### Step 4. 문서 작성
 
@@ -207,7 +190,6 @@ services/new-service/
 | 순서 | 문서 | 왜 읽는가 |
 |------|------|----------|
 | 1 | [Module Federation Architecture](../../architecture/portal-shell/module-federation.md) | Host 설정, exposes, remotes 구조 |
-| 2 | [`/.claude/rules/react.md`](../../.claude/rules/react.md) 또는 [`vue.md`](../../.claude/rules/vue.md) | Module Federation 체크리스트 (특히 React `react-dom/client` 필수) |
 
 ### Step 2. 구현
 

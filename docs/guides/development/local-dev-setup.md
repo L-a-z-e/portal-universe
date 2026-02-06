@@ -276,16 +276,12 @@ docker logs kafka
 
 ## 다음 단계
 
-이 가이드를 완료했다면:
-1. [API 테스트 가이드](../testing/api-testing.md) - Postman/curl을 이용한 API 검증
-2. [E2E 테스트 실행](../testing/e2e-testing.md) - Playwright 테스트 실행
-3. [개발 워크플로우](./development-workflow.md) - 브랜치 전략, 커밋 규칙, PR 프로세스
+이 가이드를 완료했다면 아래 참고 자료를 확인하세요.
 
 ---
 
 ## 참고 자료
 - [실행 가이드 상세 규칙](../../../.claude/rules/execution.md)
-- [Docker 개발 환경](../../architecture/infrastructure/docker-setup.md)
 - [서비스 진단 스킬](../../../.claude/skills/service-diagnostics.md)
 - [Module Federation 트러블슈팅](../../../.claude/skills/module-federation.md)
 

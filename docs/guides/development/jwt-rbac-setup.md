@@ -565,4 +565,4 @@ public class MethodSecurityConfig {
 - [Common Library 소스 코드](/services/common-library/src/main/java/com/portal/universe/commonlibrary/security/)
 - [Shopping Service SecurityConfig 예시](/services/shopping-service/src/main/java/com/portal/universe/shoppingservice/common/config/SecurityConfig.java)
 - [API Gateway SecurityConfig 예시](/services/api-gateway/src/main/java/com/portal/universe/apigateway/config/SecurityConfig.java)
-- [에러 처리 가이드](/.claude/rules/error-handling.md)
+

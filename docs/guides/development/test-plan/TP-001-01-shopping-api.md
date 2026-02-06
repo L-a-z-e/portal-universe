@@ -15,7 +15,7 @@ related:
 
 | 항목 | 내용 |
 |------|------|
-| **관련 PRD** | [PRD-001-ecommerce-core](../../prd/PRD-001-ecommerce-core.md) |
+| **관련 PRD** | PRD-001-ecommerce-core |
 | **테스트 범위** | Shopping Service REST API |
 | **테스트 환경** | Local (H2), CI (Testcontainers) |
 
@@ -143,5 +143,3 @@ cd services/shopping-service
 ## 관련 문서
 
 - [테스트 전략](../test-strategy.md)
-- [PRD-001 E-commerce Core](../../prd/PRD-001-ecommerce-core.md)
-- [Learning - Domain Model](../../learning/notes/01-domain-model.md)
