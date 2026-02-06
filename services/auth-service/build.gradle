@@ -58,6 +58,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web (MVC)
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation API
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // Spring Data JPA
+    implementation 'org.flywaydb:flyway-core' // Database migration
+    implementation 'org.flywaydb:flyway-mysql' // Flyway MySQL support
     runtimeOnly 'com.mysql:mysql-connector-j' // MySQL Driver
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis for token storage
