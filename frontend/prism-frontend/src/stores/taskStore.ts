@@ -16,6 +16,8 @@ interface TaskState {
   assignAgent: (taskId: number, agentId: number) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
   executeTask: (taskId: number) => Promise<void>;
+  approveTask: (taskId: number) => Promise<void>;
+  rejectTask: (taskId: number, feedback?: string) => Promise<void>;
   clearError: () => void;
 
   // SSE event handlers
@@ -74,7 +76,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     try {
       const task = await api.createTask(data);
       set((state) => {
-        const newTasks = [...state.tasks, task];
+        // If SSE event arrived first, update with full API response (includes agent info)
+        const existingIndex = state.tasks.findIndex((t) => t.id === task.id);
+        let newTasks: Task[];
+        if (existingIndex >= 0) {
+          // Merge: API response has more complete data (e.g., agentName)
+          newTasks = state.tasks.map((t) => (t.id === task.id ? task : t));
+        } else {
+          newTasks = [...state.tasks, task];
+        }
         return {
           tasks: newTasks,
           columns: buildColumns(newTasks),
@@ -192,6 +202,48 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to execute task',
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  approveTask: async (taskId: number) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await api.approveTask(taskId);
+      set((state) => {
+        const newTasks = state.tasks.map((t) => (t.id === taskId ? updated : t));
+        return {
+          tasks: newTasks,
+          columns: buildColumns(newTasks),
+          loading: false,
+        };
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to approve task',
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  rejectTask: async (taskId: number, feedback?: string) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await api.rejectTask(taskId, feedback);
+      set((state) => {
+        const newTasks = state.tasks.map((t) => (t.id === taskId ? updated : t));
+        return {
+          tasks: newTasks,
+          columns: buildColumns(newTasks),
+          loading: false,
+        };
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to reject task',
         loading: false,
       });
       throw error;

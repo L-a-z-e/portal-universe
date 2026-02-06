@@ -46,7 +46,7 @@ troubleshooting/
 3. 파일명: `TS-YYYYMMDD-XXX-[title].md`
 4. 이 README에 항목 추가
 
-[Troubleshooting 작성 가이드](../../docs_template/guide/troubleshooting/how-to-write.md) 참조
+[Troubleshooting 템플릿](../templates/troubleshooting-template.md) 참조
 
 ## 빠른 검색
 

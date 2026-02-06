@@ -31,7 +31,7 @@ Portal Universe 운영 절차서 모음입니다.
 
 ## 작성 가이드
 
-- [Runbook 작성 가이드](../../docs_template/guide/runbooks/how-to-write.md) 참조
+- [Runbook 템플릿](../templates/runbook-template.md) 참조
 - 모든 명령어는 복사해서 바로 실행 가능해야 함
 - 각 Step마다 **예상 결과** 필수 기재
 - 롤백/에스컬레이션 정보 필수 포함

@@ -14,6 +14,7 @@ export enum ProviderType {
   ANTHROPIC = 'ANTHROPIC',
   OLLAMA = 'OLLAMA',
   AZURE_OPENAI = 'AZURE_OPENAI',
+  LOCAL = 'LOCAL',
 }
 
 @Entity('ai_providers')

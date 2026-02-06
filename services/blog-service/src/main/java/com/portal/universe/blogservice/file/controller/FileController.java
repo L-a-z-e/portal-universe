@@ -5,6 +5,7 @@ import com.portal.universe.blogservice.file.dto.FileUploadResponse;
 import com.portal.universe.blogservice.file.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -66,7 +67,7 @@ public class FileController {
     )
     @DeleteMapping("/delete")
     @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ResponseEntity<Void> deleteFile(@RequestBody FileDeleteRequest request) {
+    public ResponseEntity<Void> deleteFile(@Valid @RequestBody FileDeleteRequest request) {
         log.info("File delete request - url: {}", request.getUrl());
 
         fileService.deleteFile(request.getUrl());

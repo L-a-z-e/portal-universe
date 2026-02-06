@@ -20,6 +20,7 @@ export class AIProviderFactory {
         // Azure uses OpenAI SDK with different base URL
         return new OpenAIProvider(apiKey, baseUrl);
       case ProviderType.OLLAMA:
+      case ProviderType.LOCAL:
         return new OllamaProvider(baseUrl);
       default: {
         const exhaustiveCheck: never = type;

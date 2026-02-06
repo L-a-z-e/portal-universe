@@ -12,7 +12,7 @@ import com.portal.universe.authservice.password.domain.PasswordHistory;
 import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.authservice.auth.service.RbacInitializationService;
-import com.portal.universe.common.event.UserSignedUpEvent;
+import com.portal.universe.event.auth.UserSignedUpEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

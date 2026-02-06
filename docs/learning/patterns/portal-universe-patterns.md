@@ -485,4 +485,4 @@
 - [Saga 패턴 심화](./saga-pattern-deep-dive.md)
 - [State Machine 패턴](./state-machine-pattern.md)
 - [Circuit Breaker 패턴](./circuit-breaker-resilience.md)
-- [Module Federation](../../frontend/portal-shell/docs/learning/mfe/module-federation-host.md)
+- [Module Federation](../../architecture/portal-shell/module-federation.md)

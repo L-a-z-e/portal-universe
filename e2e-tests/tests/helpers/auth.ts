@@ -20,38 +20,69 @@ export async function waitForAuthReady(page: Page, timeout = 10000): Promise<boo
  * This handles the case where refresh token rotation invalidated the stored token.
  */
 async function ensureAuthenticated(page: Page): Promise<void> {
-  // Check if login modal is showing
-  const loginModal = page.locator('h3:has-text("로그인")')
-  const isModalVisible = await loginModal.isVisible({ timeout: 2000 }).catch(() => false)
+  // Check if already logged in
+  const isLoggedIn = await page.locator('button:has-text("Logout")').isVisible().catch(() => false)
+  if (isLoggedIn) return
 
-  if (isModalVisible) {
-    // Fill and submit login form
-    await page.locator('input[placeholder="your@email.com"]').first().fill('test@example.com')
-    await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('password123')
-    await page.getByRole('button', { name: '로그인', exact: true }).click()
+  // Wait a moment for any modal to appear/settle
+  await page.waitForTimeout(1000)
 
-    // Wait for login to complete
-    await page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout: 10000 }).catch(() => {})
+  // Try to find login form elements directly (they will be visible if modal is open)
+  const emailInput = page.locator('input[placeholder="your@email.com"], input[type="email"]').first()
+  const passwordInput = page.locator('input[placeholder="••••••••"], input[type="password"]').first()
+  const loginBtn = page.locator('button').filter({ hasText: /^로그인$/ }).first()
+
+  const hasEmailInput = await emailInput.isVisible().catch(() => false)
+  const hasPasswordInput = await passwordInput.isVisible().catch(() => false)
+
+  // If login form is visible (modal is showing), fill it
+  if (hasEmailInput || hasPasswordInput) {
+    if (hasEmailInput) {
+      await emailInput.fill('test@example.com')
+    }
+    if (hasPasswordInput) {
+      await passwordInput.fill('password123')
+    }
+
+    if (await loginBtn.isVisible().catch(() => false)) {
+      await loginBtn.click()
+      // Wait for login to complete
+      await page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
+    }
     return
   }
 
-  // Check if Login button is in sidebar (no modal yet)
-  const isLoggedIn = await page.locator('button:has-text("Logout")').isVisible()
-  if (!isLoggedIn) {
-    const loginButton = page.locator('button:has-text("Login")')
-    if (await loginButton.isVisible()) {
-      await loginButton.click()
+  // Check again if logged in (might have auto-logged in during wait)
+  const nowLoggedIn = await page.locator('button:has-text("Logout")').isVisible().catch(() => false)
+  if (nowLoggedIn) return
 
-      // Wait for modal
-      await page.locator('h3:has-text("로그인")').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
+  // No modal visible - try clicking Login button in sidebar
+  // Use force:true to click even if intercepted, which will trigger modal
+  const loginButton = page.locator('button:has-text("Login")')
+  if (await loginButton.isVisible().catch(() => false)) {
+    try {
+      await loginButton.click({ force: true, timeout: 5000 })
+    } catch {
+      // If click failed due to interception, modal might already be open
+      // Wait and retry authentication
+      await page.waitForTimeout(500)
+      await ensureAuthenticated(page)
+      return
+    }
 
-      // Fill and submit
-      await page.locator('input[placeholder="your@email.com"]').first().fill('test@example.com')
-      await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('password123')
-      await page.getByRole('button', { name: '로그인', exact: true }).click()
+    // Wait for modal to appear
+    await page.waitForTimeout(1000)
 
-      // Wait for login to complete
-      await page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout: 10000 }).catch(() => {})
+    // Fill and submit login form
+    if (await emailInput.isVisible().catch(() => false)) {
+      await emailInput.fill('test@example.com')
+    }
+    if (await passwordInput.isVisible().catch(() => false)) {
+      await passwordInput.fill('password123')
+    }
+    if (await loginBtn.isVisible().catch(() => false)) {
+      await loginBtn.click()
+      await page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
     }
   }
 }

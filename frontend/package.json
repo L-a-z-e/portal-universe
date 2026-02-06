@@ -11,6 +11,7 @@
     "portal-shell",
     "blog-frontend",
     "react-bridge",
+    "react-bootstrap",
     "shopping-frontend",
     "prism-frontend"
   ],
@@ -30,6 +31,10 @@
     "build:react": "npm run build -w design-system-react",
     "===== 디자인 시스템 통합 =====": "",
     "build:design": "npm run build:tokens && npm run build:types && npm run build:vue && npm run build:react",
+    "===== 공유 라이브러리 =====": "",
+    "build:react-bridge": "npm run build -w react-bridge",
+    "build:react-bootstrap": "npm run build -w react-bootstrap",
+    "build:libs": "npm run build:react-bridge && npm run build:react-bootstrap",
     "===== 앱 빌드 =====": "",
     "build:shell": "npm run build -w portal-shell",
     "build:blog": "npm run build -w blog-frontend",
@@ -48,8 +53,8 @@
     "build:prism:docker": "npm run build:docker -w prism-frontend",
     "build:prism:k8s": "npm run build:k8s -w prism-frontend",
     "===== 전체 빌드 =====": "",
-    "build": "npm run build:design && npm run build:apps",
-    "build:all:dev": "npm run build:design && npm run build:apps:dev",
+    "build": "npm run build:design && npm run build:libs && npm run build:apps",
+    "build:all:dev": "npm run build:design && npm run build:libs && npm run build:apps:dev",
     "===== Storybook =====": "",
     "storybook": "npm run storybook -w design-system-vue",
     "storybook:react": "npm run storybook -w design-system-react",
@@ -69,9 +74,14 @@
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/browser": "^4.0.17",
     "@vitest/coverage-v8": "^4.0.17",
+    "ajv": "^8.17.1",
     "playwright": "^1.56.1",
     "typescript": "~5.9.3",
     "vite": "^7.1.12",
     "vitest": "^4.0.17"
+  },
+  "overrides": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   }
 }

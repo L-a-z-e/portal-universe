@@ -123,6 +123,12 @@ services:
       KAFKA_CLUSTER_ID: "5L6g3nShT-eMCtK--X86sw"
     networks:
       - portal-universe-net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   api-gateway:
     build:
@@ -538,7 +544,8 @@ services:
       - "--topic.filter=.*"
       - "--group.filter=.*"
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     networks:
       - portal-universe-net
     restart: unless-stopped

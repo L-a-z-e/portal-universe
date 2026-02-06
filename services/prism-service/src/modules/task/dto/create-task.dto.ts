@@ -1,4 +1,6 @@
 import {
+  IsArray,
+  IsDateString,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -34,4 +36,18 @@ export class CreateTaskDto {
   @IsInt()
   @IsPositive()
   agentId?: number;
+
+  @ApiPropertyOptional({ example: '2026-02-28', description: 'Due date' })
+  @IsOptional()
+  @IsDateString()
+  dueDate?: string;
+
+  @ApiPropertyOptional({
+    example: [1, 2],
+    description: 'IDs of tasks to reference',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  referencedTaskIds?: number[];
 }

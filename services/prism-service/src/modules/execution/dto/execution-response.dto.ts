@@ -11,6 +11,9 @@ export class ExecutionResponseDto {
   @ApiProperty({ example: 1 })
   agentId: number;
 
+  @ApiPropertyOptional({ example: 'Code Assistant', nullable: true })
+  agentName: string | null;
+
   @ApiProperty({ example: 1 })
   executionNumber: number;
 
@@ -52,6 +55,7 @@ export class ExecutionResponseDto {
     dto.id = entity.id;
     dto.taskId = entity.taskId;
     dto.agentId = entity.agentId;
+    dto.agentName = entity.agent?.name || null;
     dto.executionNumber = entity.executionNumber;
     dto.status = entity.status;
     dto.inputPrompt = entity.inputPrompt;

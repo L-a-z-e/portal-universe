@@ -67,6 +67,47 @@ management:
       application: ${spring.application.name}
       environment: kubernetes
 
+# 공개 경로 설정 (환경별 명시적 관리)
+gateway:
+  public-paths:
+    permit-all:
+      - "/notification/ws/**"
+      - "/auth-service/**"
+      - "/api/v1/auth/**"
+      - "/api/v1/users/**"
+      - "/api/v1/shopping/products"
+      - "/api/v1/shopping/products/**"
+      - "/api/v1/shopping/categories"
+      - "/api/v1/shopping/categories/**"
+      - "/api/v1/shopping/coupons"
+      - "/api/v1/shopping/time-deals"
+      - "/api/v1/shopping/time-deals/**"
+      - "/api/v1/shopping/inventory/batch"
+      - "/api/v1/shopping/inventory/stream"
+      - "/api/v1/prism/health"
+      - "/api/v1/prism/ready"
+      - "/api/v1/chat/health"
+      - "/api/health/**"
+      - "/actuator/**"
+      - "/api/v1/*/actuator/**"
+    permit-all-get:
+      - "/api/v1/blog/**"
+      - "/api/v1/memberships/tiers/**"
+      - "/api/v1/shopping/search/products"
+      - "/api/v1/shopping/search/suggest"
+      - "/api/v1/shopping/search/popular"
+    skip-jwt-parsing:
+      - "/auth-service/"
+      - "/api/v1/auth/"
+      - "/api/v1/users/"
+      - "/api/health/"
+      - "/actuator/"
+      - "/api/v1/shopping/products"
+      - "/api/v1/shopping/categories"
+      - "/api/v1/prism/health"
+      - "/api/v1/prism/ready"
+      - "/api/v1/chat/health"
+
 # 운영 환경 로그
 logging:
   level:

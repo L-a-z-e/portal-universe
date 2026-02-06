@@ -1,8 +1,9 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import type { ErrorDetails } from '@portal/design-types';
-import { isBridgeReady, getAdapter } from '@portal/react-bridge';
+import { getPortalApiClient, isBridgeReady, getAdapter } from '@portal/react-bridge';
 import type {
   ApiResponse,
+  ApiErrorResponse,
+  ErrorDetails,
   Provider,
   CreateProviderRequest,
   Agent,
@@ -31,6 +32,15 @@ export class ApiError extends Error {
   }
 }
 
+// Backend Task API response type (includes agent object instead of agentName)
+interface TaskApiResponse extends Omit<Task, 'agentName'> {
+  agent?: {
+    id: number;
+    name: string;
+    role: string;
+  };
+}
+
 // API Base URL 설정 (환경별)
 const getBaseUrl = (): string => {
   if (import.meta.env.VITE_API_BASE_URL) {
@@ -43,10 +53,21 @@ const getBaseUrl = (): string => {
 };
 
 class ApiService {
-  private client: AxiosInstance;
+  private _client: AxiosInstance | null = null;
 
-  constructor() {
-    this.client = axios.create({
+  /**
+   * portal/api가 있으면 완전판 사용 (토큰 갱신, 401/429 재시도),
+   * 없으면 local fallback (Standalone 모드)
+   */
+  private get client(): AxiosInstance {
+    // portal/api의 apiClient가 있으면 우선 사용
+    const portalClient = getPortalApiClient();
+    if (portalClient) return portalClient;
+
+    // local fallback (lazy 생성)
+    if (this._client) return this._client;
+
+    this._client = axios.create({
       baseURL: getBaseUrl(),
       timeout: 30000,
       headers: {
@@ -55,19 +76,15 @@ class ApiService {
       withCredentials: true,
     });
 
-    // Request Interceptor: 토큰 자동 첨부
-    this.client.interceptors.request.use(
+    this._client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        // 1. Bridge에서 토큰 가져오기 (우선)
         let token: string | null | undefined = null;
         if (isBridgeReady()) {
           token = getAdapter('auth').getAccessToken?.();
         }
-        // 2. Fallback: window globals
         if (!token) {
           token = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__;
         }
-        // 3. localStorage (standalone 모드)
         if (!token) {
           token = localStorage.getItem('access_token');
         }
@@ -76,31 +93,22 @@ class ApiService {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
-        if (import.meta.env.DEV) {
-          console.log(`[Prism API] ${config.method?.toUpperCase()} ${config.url}`);
-        }
-
         return config;
       }
     );
 
-    // Response Interceptor: 에러 핸들링
-    this.client.interceptors.response.use(
+    this._client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError<ApiResponse<null>>) => {
+      (error: AxiosError<ApiErrorResponse>) => {
         const status = error.response?.status;
 
         if (status === 401) {
           console.warn('[Prism API] Unauthorized - token may be expired');
-          // Portal Shell에게 인증 만료 알림
           if (window.__PORTAL_ON_AUTH_ERROR__) {
             window.__PORTAL_ON_AUTH_ERROR__();
           }
-        } else if (status === 403) {
-          console.warn('[Prism API] Forbidden - insufficient permissions');
         }
 
-        // 에러 응답에서 errorDetails 추출하여 보존
         const errorData = error.response?.data?.error;
         if (errorData) {
           const apiError = new ApiError(
@@ -114,6 +122,8 @@ class ApiService {
         return Promise.reject(error);
       }
     );
+
+    return this._client;
   }
 
   private async request<T>(
@@ -127,21 +137,40 @@ class ApiService {
       data,
     });
 
-    if (!response.data.success) {
-      const errorData = response.data.error;
-      throw new ApiError(
-        errorData?.message || 'Request failed',
-        errorData?.code,
-        errorData ?? undefined,
-      );
-    }
+    return response.data.data;
+  }
 
-    return response.data.data as T;
+  // Helper to map backend task response to frontend Task type
+  private mapTaskResponse(task: TaskApiResponse): Task {
+    return {
+      ...task,
+      agentName: task.agent?.name,
+    };
   }
 
   // Provider APIs
   async getProviders(): Promise<Provider[]> {
-    return this.request<Provider[]>('get', '/api/v1/prism/providers');
+    interface ProviderApiResponse {
+      id: number;
+      providerType: string;
+      name: string;
+      baseUrl?: string;
+      isActive: boolean;
+      createdAt: string;
+      updatedAt: string;
+    }
+    const result = await this.request<{ items: ProviderApiResponse[] }>('get', '/api/v1/prism/providers');
+    const items = result.items ?? [];
+    // Map API response to frontend type
+    return items.map((p) => ({
+      id: p.id,
+      name: p.name,
+      type: p.providerType as Provider['type'],
+      baseUrl: p.baseUrl,
+      isActive: p.isActive,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    }));
   }
 
   async getProvider(id: number): Promise<Provider> {
@@ -149,16 +178,62 @@ class ApiService {
   }
 
   async createProvider(data: CreateProviderRequest): Promise<Provider> {
-    return this.request<Provider>('post', '/api/v1/prism/providers', data);
+    // Map frontend 'type' to backend 'providerType'
+    const backendData = {
+      name: data.name,
+      providerType: data.type,
+      apiKey: data.apiKey,
+      baseUrl: data.baseUrl,
+    };
+    return this.request<Provider>('post', '/api/v1/prism/providers', backendData);
   }
 
   async deleteProvider(id: number): Promise<void> {
     return this.request<void>('delete', `/api/v1/prism/providers/${id}`);
   }
 
+  async getProviderModels(id: number): Promise<string[]> {
+    return this.request<string[]>('get', `/api/v1/prism/providers/${id}/models`);
+  }
+
   // Agent APIs
   async getAgents(): Promise<Agent[]> {
-    return this.request<Agent[]>('get', '/api/v1/prism/agents');
+    interface AgentApiResponse {
+      id: number;
+      providerId: number;
+      provider: {
+        id: number;
+        name: string;
+        providerType: string;
+      };
+      name: string;
+      role: string;
+      description?: string;
+      systemPrompt: string;
+      model: string;
+      temperature: number;
+      maxTokens: number;
+      createdAt: string;
+      updatedAt: string;
+    }
+    const result = await this.request<{ items: AgentApiResponse[] }>('get', '/api/v1/prism/agents');
+    const items = result.items ?? [];
+    // Map API response to frontend type
+    return items.map((a) => ({
+      id: a.id,
+      name: a.name,
+      role: (a.role || 'CUSTOM') as Agent['role'],
+      description: a.description,
+      providerId: a.providerId,
+      providerName: a.provider?.name ?? 'Unknown',
+      model: a.model,
+      systemPrompt: a.systemPrompt,
+      temperature: a.temperature,
+      maxTokens: a.maxTokens,
+      isActive: true, // Backend doesn't have isActive for agents, default to true
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+    }));
   }
 
   async getAgent(id: number): Promise<Agent> {
@@ -201,33 +276,64 @@ class ApiService {
 
   // Task APIs
   async getTasks(boardId: number): Promise<Task[]> {
-    return this.request<Task[]>('get', `/api/v1/prism/boards/${boardId}/tasks`);
+    const tasks = await this.request<TaskApiResponse[]>('get', `/api/v1/prism/boards/${boardId}/tasks`);
+    return tasks.map((t) => this.mapTaskResponse(t));
   }
 
   async getTask(id: number): Promise<Task> {
-    return this.request<Task>('get', `/api/v1/prism/tasks/${id}`);
+    const task = await this.request<TaskApiResponse>('get', `/api/v1/prism/tasks/${id}`);
+    return this.mapTaskResponse(task);
   }
 
   async createTask(data: CreateTaskRequest): Promise<Task> {
     const { boardId, ...taskData } = data;
-    return this.request<Task>('post', `/api/v1/prism/boards/${boardId}/tasks`, taskData);
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/boards/${boardId}/tasks`, taskData);
+    return this.mapTaskResponse(task);
   }
 
   async updateTask(id: number, data: UpdateTaskRequest): Promise<Task> {
-    return this.request<Task>('put', `/api/v1/prism/tasks/${id}`, data);
+    const task = await this.request<TaskApiResponse>('put', `/api/v1/prism/tasks/${id}`, data);
+    return this.mapTaskResponse(task);
   }
 
   async moveTask(id: number, data: MoveTaskRequest): Promise<Task> {
-    return this.request<Task>('patch', `/api/v1/prism/tasks/${id}/position`, data);
+    const task = await this.request<TaskApiResponse>('patch', `/api/v1/prism/tasks/${id}/position`, data);
+    return this.mapTaskResponse(task);
   }
 
   async assignAgent(taskId: number, agentId: number): Promise<Task> {
     // Backend uses UpdateTaskDto for agent assignment via PUT /tasks/:id
-    return this.request<Task>('put', `/api/v1/prism/tasks/${taskId}`, { agentId });
+    const task = await this.request<TaskApiResponse>('put', `/api/v1/prism/tasks/${taskId}`, { agentId });
+    return this.mapTaskResponse(task);
   }
 
   async deleteTask(id: number): Promise<void> {
     return this.request<void>('delete', `/api/v1/prism/tasks/${id}`);
+  }
+
+  // Task Actions
+  async approveTask(id: number): Promise<Task> {
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/tasks/${id}/approve`);
+    return this.mapTaskResponse(task);
+  }
+
+  async rejectTask(id: number, feedback?: string): Promise<Task> {
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/tasks/${id}/reject`, { feedback });
+    return this.mapTaskResponse(task);
+  }
+
+  async cancelTask(id: number): Promise<Task> {
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/tasks/${id}/cancel`);
+    return this.mapTaskResponse(task);
+  }
+
+  async reopenTask(id: number): Promise<Task> {
+    const task = await this.request<TaskApiResponse>('post', `/api/v1/prism/tasks/${id}/reopen`);
+    return this.mapTaskResponse(task);
+  }
+
+  async getTaskContext(id: number): Promise<{ previousExecutions: Execution[]; referencedTasks: Array<{ taskId: number; taskTitle: string; lastExecution: Execution | null }> }> {
+    return this.request('get', `/api/v1/prism/tasks/${id}/context`);
   }
 
   // Execution APIs

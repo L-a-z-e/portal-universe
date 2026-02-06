@@ -24,6 +24,7 @@ import { ExecutionService } from '../execution/execution.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto, ChangePositionDto } from './dto/update-task.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
+import { TaskContextResponseDto } from './dto/task-context.dto';
 import { ExecutionResponseDto } from '../execution/dto/execution-response.dto';
 import { CurrentUserId } from '../../common/decorators/current-user.decorator';
 
@@ -66,6 +67,20 @@ export class TaskController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<TaskResponseDto> {
     return this.taskService.findOne(userId, id);
+  }
+
+  @Get('tasks/:id/context')
+  @ApiOperation({
+    summary: 'Get execution context for a task',
+    description:
+      'Returns previous executions and results from referenced tasks',
+  })
+  @ApiResponse({ status: 200, type: TaskContextResponseDto })
+  async getContext(
+    @CurrentUserId() userId: string,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<TaskContextResponseDto> {
+    return this.taskService.getContext(userId, id);
   }
 
   @Put('tasks/:id')

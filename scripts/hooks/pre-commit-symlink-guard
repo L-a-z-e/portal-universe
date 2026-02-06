@@ -1,0 +1,69 @@
+#!/bin/bash
+# Pre-commit Hook: Symlink Guard
+# 보호 대상 경로가 symlink인 경우 커밋 차단
+#
+# 설치: ./scripts/install-hooks.sh
+
+set -e
+
+# 보호 대상 패턴 (정확한 경로 또는 접두사)
+PROTECTED_PATTERNS=(
+    ".claude"
+    "certs"
+    ".env"
+    ".env.local"
+    ".env.dev"
+    ".env.docker"
+    ".env.k8s"
+    ".mcp.json"
+    "k8s/base/secret.yaml"
+    "k8s/base/jwt-secrets.yaml"
+)
+
+# 새로 추가된 파일 목록 가져오기
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=A 2>/dev/null || true)
+
+if [ -z "$STAGED_FILES" ]; then
+    exit 0
+fi
+
+BLOCKED_FILES=()
+
+while IFS= read -r file; do
+    [ -z "$file" ] && continue
+
+    for pattern in "${PROTECTED_PATTERNS[@]}"; do
+        # 정확히 일치하거나 해당 경로 하위인 경우
+        if [[ "$file" == "$pattern" || "$file" == "$pattern/"* ]]; then
+            # symlink인지 확인
+            if [ -L "$file" ]; then
+                BLOCKED_FILES+=("$file")
+            fi
+            break
+        fi
+    done
+done <<< "$STAGED_FILES"
+
+if [ ${#BLOCKED_FILES[@]} -gt 0 ]; then
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "❌ COMMIT BLOCKED: Symlink 보호 정책 위반"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "다음 파일은 symlink이므로 git에 커밋할 수 없습니다:"
+    for blocked in "${BLOCKED_FILES[@]}"; do
+        echo "  ⚠ $blocked → $(readlink "$blocked")"
+    done
+    echo ""
+    echo "해결 방법:"
+    echo "  1. git reset HEAD <file>  # staging에서 제거"
+    echo "  2. 실제 파일을 커밋하려면 symlink 대신 실제 파일을 사용하세요"
+    echo ""
+    echo "참고: 이 파일들은 worktree 간 공유를 위해 symlink로 관리됩니다."
+    echo "      .env.*.example 파일을 참조하여 새 환경 파일을 생성하세요."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    exit 1
+fi
+
+exit 0

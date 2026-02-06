@@ -9,7 +9,7 @@ export interface Provider {
   updatedAt: string;
 }
 
-export type ProviderType = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE' | 'LOCAL';
+export type ProviderType = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE' | 'OLLAMA' | 'LOCAL';
 
 export interface CreateProviderRequest {
   name: string;
@@ -19,9 +19,12 @@ export interface CreateProviderRequest {
 }
 
 // Agent Types
+export type AgentRole = 'PM' | 'BACKEND' | 'FRONTEND' | 'DEVOPS' | 'TESTER' | 'CUSTOM';
+
 export interface Agent {
   id: number;
   name: string;
+  role: AgentRole;
   description?: string;
   providerId: number;
   providerName: string;
@@ -36,6 +39,7 @@ export interface Agent {
 
 export interface CreateAgentRequest {
   name: string;
+  role: AgentRole;
   description?: string;
   providerId: number;
   model: string;
@@ -70,6 +74,8 @@ export interface Task {
   agentName?: string;
   position: number;
   dueDate?: string;
+  referencedTaskIds?: number[];
+  availableActions?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -84,6 +90,7 @@ export interface CreateTaskRequest {
   priority?: TaskPriority;
   agentId?: number;
   dueDate?: string;
+  referencedTaskIds?: number[];
 }
 
 export interface UpdateTaskRequest {
@@ -92,6 +99,7 @@ export interface UpdateTaskRequest {
   priority?: TaskPriority;
   agentId?: number;
   dueDate?: string;
+  referencedTaskIds?: number[];
 }
 
 export interface MoveTaskRequest {
@@ -104,6 +112,7 @@ export interface Execution {
   id: number;
   taskId: number;
   agentId: number;
+  agentName?: string;
   executionNumber: number;
   status: ExecutionStatus;
   inputPrompt: string;
@@ -119,16 +128,8 @@ export interface Execution {
 
 export type ExecutionStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
-// API Response (axios interceptor에서 성공/실패 모두 파싱하기 위해 union 형태 유지)
-// Canonical API types: @portal/design-types의 ApiResponse, ApiErrorResponse 참조
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T | null;
-  error: {
-    code: string;
-    message: string;
-  } | null;
-}
+// API Types (from @portal/design-types)
+export type { ApiResponse, ApiErrorResponse, ErrorDetails, FieldError } from '@portal/design-types';
 
 // Kanban DnD Types
 export interface KanbanColumn {

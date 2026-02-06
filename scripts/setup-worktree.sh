@@ -37,33 +37,58 @@ fi
 
 cd "$WORKTREE_PATH"
 
-# Symlink helper function (이미 존재하면 스킵)
+# Symlink helper function
+# git checkout이 tracked 파일로 인해 디렉토리를 먼저 생성할 수 있으므로,
+# 실제 파일/디렉토리가 존재하면 삭제 후 symlink 생성
 safe_symlink() {
     local src=$1
     local dest=$2
-    if [ -e "$src" ] && [ ! -e "$dest" ] && [ ! -L "$dest" ]; then
+    if [ ! -e "$src" ]; then
+        return
+    fi
+    if [ -L "$dest" ]; then
+        echo "  - $dest (already linked, skipped)"
+    elif [ -e "$dest" ]; then
+        rm -rf "$dest"
+        ln -s "$src" "$dest"
+        echo "  - $dest → $src (replaced existing)"
+    else
         ln -s "$src" "$dest"
         echo "  - $dest → $src"
-    elif [ -L "$dest" ]; then
-        echo "  - $dest (already linked, skipped)"
     fi
 }
 
 echo "Creating symlinks..."
 
 # Symlink 대상 목록 (gitignored files/folders)
+# 루트 레벨 파일/폴더
 SYMLINK_TARGETS=(
     ".claude"
     "certs"
     ".env"
     ".env.local"
+    ".env.dev"
     ".env.docker"
+    ".env.k8s"
     ".mcp.json"
+)
+
+# k8s 시크릿 파일
+K8S_SYMLINK_TARGETS=(
+    "k8s/base/secret.yaml"
+    "k8s/base/jwt-secrets.yaml"
 )
 
 for target in "${SYMLINK_TARGETS[@]}"; do
     safe_symlink "$MAIN_REPO/$target" "$target"
 done
+
+# k8s 디렉토리가 있으면 시크릿 파일도 symlink
+if [ -d "k8s/base" ]; then
+    for target in "${K8S_SYMLINK_TARGETS[@]}"; do
+        safe_symlink "$MAIN_REPO/$target" "$target"
+    done
+fi
 
 # Worktree의 common git dir에 exclude 패턴 추가
 # Git worktree는 info/exclude를 common git dir에서 읽음 (worktree-specific dir 아님)
@@ -92,11 +117,16 @@ for target in "${SYMLINK_TARGETS[@]}"; do
     add_exclude_pattern "$target"
 done
 
+for target in "${K8S_SYMLINK_TARGETS[@]}"; do
+    add_exclude_pattern "$target"
+done
+
 # 검증: symlink가 git에 의해 무시되는지 확인
 echo ""
 echo "Verifying symlinks are properly ignored..."
 LEAKED=""
-for target in "${SYMLINK_TARGETS[@]}"; do
+ALL_TARGETS=("${SYMLINK_TARGETS[@]}" "${K8S_SYMLINK_TARGETS[@]}")
+for target in "${ALL_TARGETS[@]}"; do
     if [ -e "$target" ] || [ -L "$target" ]; then
         STATUS=$(git status --porcelain "$target" 2>/dev/null)
         if [ -n "$STATUS" ]; then
@@ -113,6 +143,11 @@ if [ -n "$LEAKED" ]; then
 else
     echo "  ✓ All symlinks are properly ignored by git"
 fi
+
+# Pre-commit hook 설치
+echo ""
+echo "Installing git hooks..."
+"$MAIN_REPO/scripts/install-hooks.sh"
 
 echo ""
 echo "✓ Worktree 설정 완료: $WORKTREE_PATH ($BRANCH)"

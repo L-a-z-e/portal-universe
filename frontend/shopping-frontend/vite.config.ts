@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
         exposes: {
           './bootstrap': './src/bootstrap.tsx'
         },
-        shared: ['react', 'react-dom', 'react-dom/client'],
+        shared: ['react', 'react-dom', 'react-dom/client', 'axios'],
       }),
     ],
 
@@ -55,10 +55,6 @@ export default defineConfig(({ mode }) => {
         '@portal/design-system-react': resolve(
           __dirname,
           '../design-system-react/src/index.ts'
-        ),
-        '@portal/react-bridge': resolve(
-          __dirname,
-          '../react-bridge/src/index.ts'
         ),
         '@': path.resolve(__dirname, './src'),
         '@components': path.resolve(__dirname, './src/components'),

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Button, Input, Select, Textarea } from '@portal/design-system-react';
 import { useAgentStore } from '@/stores/agentStore';
+import { useTaskStore } from '@/stores/taskStore';
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskPriority } from '@/types';
 
 interface TaskModalProps {
@@ -28,6 +29,7 @@ export function TaskModal({
   onDelete,
 }: TaskModalProps) {
   const { agents, fetchAgents } = useAgentStore();
+  const { tasks } = useTaskStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -35,6 +37,7 @@ export function TaskModal({
     priority: 'MEDIUM' as TaskPriority,
     agentId: '',
     dueDate: '',
+    referencedTaskIds: [] as number[],
   });
 
   useEffect(() => {
@@ -47,6 +50,7 @@ export function TaskModal({
           priority: task.priority,
           agentId: task.agentId?.toString() || '',
           dueDate: task.dueDate?.split('T')[0] || '',
+          referencedTaskIds: task.referencedTaskIds || [],
         });
       } else {
         setFormData({
@@ -55,6 +59,7 @@ export function TaskModal({
           priority: 'MEDIUM',
           agentId: '',
           dueDate: '',
+          referencedTaskIds: [],
         });
       }
     }
@@ -73,6 +78,7 @@ export function TaskModal({
         priority: formData.priority,
         agentId: formData.agentId ? parseInt(formData.agentId) : undefined,
         dueDate: formData.dueDate || undefined,
+        referencedTaskIds: formData.referencedTaskIds.length > 0 ? formData.referencedTaskIds : undefined,
       };
       await onSubmit(data);
       onClose();
@@ -158,6 +164,51 @@ export function TaskModal({
           onChange={(value) => setFormData({ ...formData, agentId: String(value ?? '') })}
           options={agentOptions}
         />
+
+        {/* Referenced Tasks - Multi-select */}
+        <div>
+          <label className="block text-sm font-medium text-text-body mb-2">
+            Referenced Tasks
+          </label>
+          <p className="text-xs text-text-meta mb-2">
+            Select tasks whose results can be referenced by the AI agent
+          </p>
+          <div className="border border-border-default rounded-lg max-h-40 overflow-y-auto">
+            {tasks
+              .filter((t) => t.id !== task?.id && t.status === 'DONE')
+              .map((t) => (
+                <label
+                  key={t.id}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-bg-hover cursor-pointer border-b border-border-default last:border-b-0"
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.referencedTaskIds.includes(t.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          referencedTaskIds: [...formData.referencedTaskIds, t.id],
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          referencedTaskIds: formData.referencedTaskIds.filter((id) => id !== t.id),
+                        });
+                      }
+                    }}
+                    className="rounded border-border-default text-brand-primary focus:ring-brand-primary"
+                  />
+                  <span className="text-sm text-text-body">{t.title}</span>
+                </label>
+              ))}
+            {tasks.filter((t) => t.id !== task?.id && t.status === 'DONE').length === 0 && (
+              <p className="px-3 py-4 text-sm text-text-meta text-center">
+                No completed tasks available to reference
+              </p>
+            )}
+          </div>
+        </div>
 
         <div className="flex justify-between pt-4 border-t">
           <div>

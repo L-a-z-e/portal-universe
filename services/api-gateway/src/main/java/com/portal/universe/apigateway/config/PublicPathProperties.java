@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,6 +13,10 @@ import java.util.List;
  *
  * <p>SecurityConfig와 JwtAuthenticationFilter에서 공유하며,
  * 경로 추가 시 YAML만 수정하면 됩니다.</p>
+ *
+ * <p><b>중요:</b> 기본값은 YAML에서 관리합니다. Java 코드에는 기본값이 없으며,
+ * 반드시 환경별 YAML(application.yml 또는 application-{profile}.yml)에서
+ * 경로를 정의해야 합니다.</p>
  */
 @Data
 @Component
@@ -21,48 +26,17 @@ public class PublicPathProperties {
     /**
      * 모든 HTTP method에 대해 인증 없이 접근 가능한 경로 (SecurityConfig permitAll)
      */
-    private List<String> permitAll = List.of(
-            "/auth-service/**",
-            "/api/v1/auth/**",
-            "/api/v1/users/**",
-            "/api/v1/shopping/products",
-            "/api/v1/shopping/products/**",
-            "/api/v1/shopping/categories",
-            "/api/v1/shopping/categories/**",
-            "/api/v1/shopping/coupons",
-            "/api/v1/shopping/time-deals",
-            "/api/v1/shopping/time-deals/**",
-            "/api/v1/prism/sse/**",
-            "/api/v1/prism/health",
-            "/api/v1/prism/ready",
-            "/api/health/**",
-            "/actuator/**",
-            "/api/v1/*/actuator/**"
-    );
+    private List<String> permitAll = new ArrayList<>();
 
     /**
      * GET method에 대해서만 인증 없이 접근 가능한 경로 (SecurityConfig permitAll GET)
      */
-    private List<String> permitAllGet = List.of(
-            "/api/v1/blog/**",
-            "/api/v1/memberships/tiers/**"
-    );
+    private List<String> permitAllGet = new ArrayList<>();
 
     /**
      * JWT 파싱 자체를 skip하는 경로 prefix (JwtAuthenticationFilter용).
      * SecurityConfig의 permitAll과는 별도로 관리됩니다.
      * 예: /api/v1/blog/** GET은 permitAll이지만 JWT가 있으면 파싱하여 사용자 정보를 추출합니다.
      */
-    private List<String> skipJwtParsing = List.of(
-            "/auth-service/",
-            "/api/v1/auth/",
-            "/api/v1/users/",
-            "/api/health/",
-            "/actuator/",
-            "/api/v1/shopping/products",
-            "/api/v1/shopping/categories",
-            "/api/v1/prism/health",
-            "/api/v1/prism/ready",
-            "/api/v1/prism/sse/"
-    );
+    private List<String> skipJwtParsing = new ArrayList<>();
 }

@@ -1,11 +1,11 @@
 /**
  * API Client Configuration
  *
- * @portal/react-bridge의 createPortalApiClient를 기반으로
- * shopping-specific 설정을 추가합니다.
+ * Embedded 모드: portal/api의 apiClient 사용 (토큰 자동 갱신, 401/429 재시도 포함)
+ * Standalone 모드: local fallback client 사용
  */
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios'
-import { isBridgeReady, getAdapter } from '@portal/react-bridge'
+import { getPortalApiClient, isBridgeReady, getAdapter } from '@portal/react-bridge'
 
 // API Base URL 설정 (환경별)
 const getBaseUrl = (): string => {
@@ -21,10 +21,14 @@ const getBaseUrl = (): string => {
 }
 
 /**
- * Axios 인스턴스 생성
+ * Standalone용 local Axios 인스턴스 (lazy 생성)
  */
-const createApiClient = (): AxiosInstance => {
-  const client = axios.create({
+let localClient: AxiosInstance | null = null
+
+const getLocalClient = (): AxiosInstance => {
+  if (localClient) return localClient
+
+  localClient = axios.create({
     baseURL: getBaseUrl(),
     timeout: 30000,
     headers: {
@@ -34,16 +38,14 @@ const createApiClient = (): AxiosInstance => {
   })
 
   // Request Interceptor: 토큰 자동 첨부
-  client.interceptors.request.use(
+  localClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       let token: string | null | undefined = null
 
-      // Bridge에서 토큰 가져오기 (우선)
       if (isBridgeReady()) {
         token = getAdapter('auth').getAccessToken?.()
       }
 
-      // Fallback: window globals
       if (!token) {
         token = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__
       }
@@ -52,57 +54,41 @@ const createApiClient = (): AxiosInstance => {
         config.headers.Authorization = `Bearer ${token}`
       }
 
-      if (import.meta.env.DEV) {
-        console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`)
-      }
-
       return config
     },
-    (error: AxiosError) => {
-      console.error('[API] Request error:', error)
-      return Promise.reject(error)
-    }
+    (error: AxiosError) => Promise.reject(error)
   )
 
   // Response Interceptor: 에러 핸들링
-  client.interceptors.response.use(
+  localClient.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
       const status = error.response?.status
 
-      // ApiResponse 에러 형식 파싱
       const apiError = (error.response?.data as Record<string, unknown>)?.error as Record<string, unknown> | undefined
       if (apiError?.message) {
         error.message = apiError.message as string
       }
 
       if (status === 401) {
-        console.warn('[API] Unauthorized - token may be expired')
+        console.warn('[Shopping API] Unauthorized - token may be expired')
         window.__PORTAL_ON_AUTH_ERROR__?.()
-      } else if (status === 403) {
-        console.warn('[API] Forbidden - insufficient permissions')
-      } else if (status === 404) {
-        console.warn('[API] Not Found')
-      } else if (status && status >= 500) {
-        console.error('[API] Server Error:', error.response?.data)
       }
 
       return Promise.reject(error)
     }
   )
 
-  return client
+  return localClient
 }
 
-// 싱글톤 인스턴스
-export const apiClient = createApiClient()
-
-// Host에서 apiClient가 주입된 경우 사용
+/**
+ * API Client 반환
+ * portal/api가 있으면 완전판 사용 (토큰 갱신, 401/429 재시도),
+ * 없으면 local fallback (Standalone 모드)
+ */
 export const getApiClient = (): AxiosInstance => {
-  if (window.__PORTAL_API_CLIENT__) {
-    return window.__PORTAL_API_CLIENT__ as AxiosInstance
-  }
-  return apiClient
+  return getPortalApiClient() ?? getLocalClient()
 }
 
-export default apiClient
+export default getApiClient

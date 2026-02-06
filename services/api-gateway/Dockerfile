@@ -5,8 +5,29 @@ FROM gradle:8.9-jdk17 AS builder
 
 WORKDIR /app
 
-COPY . .
+# ---------------------------------------------
+# Layer 1: 의존성 파일만 복사 (Layer Cache 활용)
+# ---------------------------------------------
+COPY build.gradle settings.gradle ./
+COPY gradle/ gradle/
+COPY gradlew ./
+COPY services/api-gateway/build.gradle services/api-gateway/
 
+# ---------------------------------------------
+# Layer 2: 의존성 다운로드 (의존성 변경 없으면 캐시)
+# ---------------------------------------------
+RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
+    --mount=type=cache,target=/home/gradle/.gradle/wrapper \
+    ./gradlew :services:api-gateway:dependencies --no-daemon || true
+
+# ---------------------------------------------
+# Layer 3: 소스 코드 복사
+# ---------------------------------------------
+COPY services/api-gateway/ services/api-gateway/
+
+# ---------------------------------------------
+# Layer 4: 빌드 (소스만 변경 시 여기서만 재실행)
+# ---------------------------------------------
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
     ./gradlew :services:api-gateway:build --no-daemon -x test
@@ -29,6 +50,6 @@ COPY --from=builder /app/services/api-gateway/build/libs/api-gateway-0.0.1-SNAPS
 USER appuser
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,0 +1,15 @@
+# Archive Index - 2026-02
+
+| Feature | Match Rate | Archived | Documents |
+|---------|:----------:|----------|-----------|
+| authstore-handling | 100% | 2026-02-02 | [Plan](authstore-handling/authstore-handling.plan.md), [Analysis](authstore-handling/authstore-handling.analysis.md), [Report](authstore-handling/authstore-handling.report.md) |
+| e2e-test-refactoring | 96% | 2026-02-02 | [Plan](e2e-test-refactoring/e2e-test-refactoring.plan.md), [Analysis](e2e-test-refactoring/e2e-test-refactoring.analysis.md), [Report](e2e-test-refactoring/e2e-test-refactoring.report.md) |
+| notification-refactoring | 97% | 2026-02-02 | [Plan](notification-refactoring/notification-refactoring.plan.md), [Design](notification-refactoring/notification-refactoring.design.md), [Analysis](notification-refactoring/notification-refactoring.analysis.md), [Report](notification-refactoring/notification-refactoring.report.md) |
+| browser-test | 95% | 2026-02-02 | [Plan](browser-test/browser-test.plan.md), [Analysis](browser-test/browser-test.analysis.md), [Report](browser-test/browser-test.report.md) |
+| portal-shell-chatbot | 100% | 2026-02-02 | [Plan](portal-shell-chatbot/portal-shell-chatbot.plan.md), [Design](portal-shell-chatbot/portal-shell-chatbot.design.md), [Analysis](portal-shell-chatbot/portal-shell-chatbot.analysis.md), [Report](portal-shell-chatbot/portal-shell-chatbot.report.md) |
+| testing | 93% | 2026-02-03 | [Plan](testing/testing.plan.md), [Design](testing/testing.design.md), [Analysis](testing/testing.analysis.md), [Report](testing/testing.report.md) |
+| e2e-functional-test | 100% | 2026-02-03 | [Plan](e2e-functional-test/e2e-functional-test.plan.md), [Design](e2e-functional-test/e2e-functional-test.design.md), [Analysis](e2e-functional-test/e2e-functional-test.analysis.md), [Report](e2e-functional-test/e2e-functional-test.report.md) |
+| event-library-separation | 100% | 2026-02-03 | [Plan](event-library-separation/event-library-separation.plan.md), [Design](event-library-separation/event-library-separation.design.md), [Analysis](event-library-separation/event-library-separation.analysis.md), [Report](event-library-separation/event-library-separation.report.md) |
+| websocket-realtime-notification | 100% | 2026-02-03 | [Plan](websocket-realtime-notification/websocket-realtime-notification.plan.md), [Design](websocket-realtime-notification/websocket-realtime-notification.design.md), [Analysis](websocket-realtime-notification/websocket-realtime-notification.analysis.md), [Report](websocket-realtime-notification/websocket-realtime-notification.report.md) |
+| dockerfile-optimization | 92% | 2026-02-04 | [Plan](dockerfile-optimization/dockerfile-optimization.plan.md), [Design](dockerfile-optimization/dockerfile-optimization.design.md), [Analysis](dockerfile-optimization/dockerfile-optimization.analysis.md), [Report](dockerfile-optimization/dockerfile-optimization.report.md) |
+| bug-fix-prism | 100% | 2026-02-04 | [Plan](bug-fix-prism/bug-fix-prism.plan.md), [Design](bug-fix-prism/bug-fix-prism.design.md), [Analysis](bug-fix-prism/bug-fix-prism.analysis.md), [Report](bug-fix-prism/bug-fix-prism.report.md) |

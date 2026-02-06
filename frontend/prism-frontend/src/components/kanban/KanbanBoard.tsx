@@ -17,10 +17,11 @@ import type { Task, TaskStatus } from '@/types';
 
 interface KanbanBoardProps {
   onEditTask?: (task: Task) => void;
+  onViewTask?: (task: Task) => void;
   onAddTask?: () => void;
 }
 
-export function KanbanBoard({ onEditTask, onAddTask }: KanbanBoardProps) {
+export function KanbanBoard({ onEditTask, onViewTask, onAddTask }: KanbanBoardProps) {
   const { columns, moveTask, executeTask } = useTaskStore();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
@@ -104,13 +105,14 @@ export function KanbanBoard({ onEditTask, onAddTask }: KanbanBoardProps) {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-4 w-full min-w-0 overflow-x-auto pb-4">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}
             column={column}
             onEditTask={onEditTask}
             onExecuteTask={handleExecuteTask}
+            onViewTask={onViewTask}
             onAddTask={column.id === 'TODO' ? onAddTask : undefined}
           />
         ))}

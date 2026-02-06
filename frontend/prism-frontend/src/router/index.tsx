@@ -2,13 +2,19 @@
  * React Router Configuration for Prism Frontend
  *
  * AI Agent Orchestration 라우팅 설정
- * Shopping과 유사한 패턴으로 Parent 내비게이션 연동 지원
+ * Shopping과 동일한 패턴으로 Parent 내비게이션 연동 지원
+ *
+ * IMPORTANT: Layout은 lazy load하지 않음
+ * - lazy load된 컴포넌트가 react-router-dom을 별도 import하면
+ * - Module Federation에서 다른 React 인스턴스와 충돌 (Error #525)
+ * - Outlet은 이 파일에서 직접 import하여 사용
  */
 import React, { Suspense, lazy, useEffect, useRef } from 'react'
 import {
   createBrowserRouter,
   createMemoryRouter,
   RouterProvider,
+  Outlet,
   useLocation
 } from 'react-router-dom'
 
@@ -20,7 +26,6 @@ const BoardListPage = lazy(() => import('@/pages/BoardListPage'))
 const BoardPage = lazy(() => import('@/pages/BoardPage'))
 const AgentsPage = lazy(() => import('@/pages/AgentsPage'))
 const ProvidersPage = lazy(() => import('@/pages/ProvidersPage'))
-const AppLayout = lazy(() => import('@/components/Layout'))
 
 // Guards
 import { RequireAuth } from '@portal/react-bridge'
@@ -87,7 +92,7 @@ const LayoutWithSync: React.FC = () => (
   <>
     <NavigationSync />
     <Suspense fallback={<PageLoader />}>
-      <AppLayout />
+      <Outlet />
     </Suspense>
   </>
 )
@@ -101,11 +106,11 @@ const routes = [
       {
         index: true,
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <RequireAuth>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
               <BoardListPage />
-            </RequireAuth>
-          </Suspense>
+            </Suspense>
+          </RequireAuth>
         )
       },
       {

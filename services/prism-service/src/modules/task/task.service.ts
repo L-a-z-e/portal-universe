@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Task, TaskStatus } from './task.entity';
 import { Board } from '../board/board.entity';
 import { Agent } from '../agent/agent.entity';
+import { Execution } from '../execution/execution.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto, ChangePositionDto } from './dto/update-task.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
+import { TaskContextResponseDto } from './dto/task-context.dto';
+import { ExecutionResponseDto } from '../execution/dto/execution-response.dto';
 import { TaskStateMachine, TaskAction } from './task-state-machine';
 import { BusinessException } from '../../common/filters/business.exception';
 import { SseService } from '../sse/sse.service';
@@ -20,6 +23,8 @@ export class TaskService {
     private readonly boardRepository: Repository<Board>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(Execution)
+    private readonly executionRepository: Repository<Execution>,
     private readonly sseService: SseService,
   ) {}
 
@@ -60,6 +65,8 @@ export class TaskService {
       description: dto.description,
       priority: dto.priority,
       agentId: dto.agentId,
+      dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+      referencedTaskIds: dto.referencedTaskIds?.map(Number) ?? null,
       status: TaskStatus.TODO,
       position: (maxPosition?.maxPos ?? -1) + 1,
     });
@@ -127,6 +134,12 @@ export class TaskService {
     if (dto.title !== undefined) task.title = dto.title;
     if (dto.description !== undefined) task.description = dto.description;
     if (dto.priority !== undefined) task.priority = dto.priority;
+    if (dto.dueDate !== undefined) {
+      task.dueDate = dto.dueDate ? new Date(dto.dueDate) : null;
+    }
+    if (dto.referencedTaskIds !== undefined) {
+      task.referencedTaskIds = dto.referencedTaskIds?.map(Number) ?? null;
+    }
 
     await this.taskRepository.save(task);
     const result = await this.findOne(userId, id);
@@ -211,6 +224,55 @@ export class TaskService {
    */
   async getTaskEntity(userId: string, id: number): Promise<Task> {
     return this.findByIdAndUser(userId, id);
+  }
+
+  /**
+   * Get execution context for a task (previous executions + referenced task results)
+   */
+  async getContext(
+    userId: string,
+    id: number,
+  ): Promise<TaskContextResponseDto> {
+    const task = await this.findByIdAndUser(userId, id);
+
+    // Get previous executions for this task (with agent info)
+    const previousExecutions = await this.executionRepository.find({
+      where: { taskId: id },
+      relations: ['agent'],
+      order: { executionNumber: 'DESC' },
+      take: 10,
+    });
+
+    // Get referenced tasks with their last execution
+    const referencedTasks: TaskContextResponseDto['referencedTasks'] = [];
+
+    if (task.referencedTaskIds && task.referencedTaskIds.length > 0) {
+      const refTasks = await this.taskRepository.find({
+        where: { id: In(task.referencedTaskIds) },
+      });
+
+      for (const refTask of refTasks) {
+        const lastExecution = await this.executionRepository.findOne({
+          where: { taskId: refTask.id },
+          order: { executionNumber: 'DESC' },
+        });
+
+        referencedTasks.push({
+          taskId: refTask.id,
+          taskTitle: refTask.title,
+          lastExecution: lastExecution
+            ? ExecutionResponseDto.from(lastExecution)
+            : null,
+        });
+      }
+    }
+
+    return {
+      previousExecutions: previousExecutions.map((e) =>
+        ExecutionResponseDto.from(e),
+      ),
+      referencedTasks,
+    };
   }
 
   /**
