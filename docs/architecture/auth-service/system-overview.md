@@ -4,504 +4,414 @@ title: Auth Service System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: Laze
-tags: [architecture, auth, oauth2, security, spring-authorization-server]
+tags: [architecture, auth, jwt, redis, rbac, security]
 related:
   - arch-data-flow
+  - arch-security-mechanisms
   - api-auth
 ---
 
 # Auth Service System Overview
 
-## 📋 개요
+## 개요
 
-auth-service는 Portal Universe 플랫폼의 중앙 인증/인가 서비스입니다. Spring Authorization Server를 기반으로 OAuth2 프로토콜을 구현하여 안전한 사용자 인증과 JWT 토큰 발급을 담당합니다.
+Auth Service는 Portal Universe의 중앙 인증/인가 서비스로, JWT Stateless + Redis 기반 하이브리드 아키텍처를 채택하여 확장성과 보안을 동시에 달성합니다.
 
-### 핵심 역할
-- OAuth2 Authorization Server로 동작
-- JWT Access Token 및 Refresh Token 발급
-- 사용자 인증 및 세션 관리
-- 소셜 로그인 통합 (Google OAuth2)
-- 사용자 생명주기 이벤트 발행 (Kafka)
+| 항목 | 내용 |
+|------|------|
+| 범위 | Service |
+| 주요 기술 | Spring Boot 3.x, Spring Security, JWT (HMAC-SHA256), Redis, MySQL, Kafka |
+| 배포 환경 | Docker Compose, Kubernetes |
+| 관련 서비스 | API Gateway, notification-service, shopping-service, blog-service |
 
-### 서비스 정보
-- **Port**: 8081
-- **Base Path**: `/api/v1/auth`
-- **Gateway Route**: `http://localhost:8080/api/v1/auth/**`
-- **Health Check**: `http://localhost:8081/actuator/health`
+## 핵심 특징
 
----
+1. **JWT + Redis 하이브리드 인증**: Access Token Stateless + Refresh Token/Blacklist Redis 조합으로 확장성과 즉시 무효화 기능을 모두 확보
+2. **RBAC (Role-Based Access Control)**: 6개 엔티티 기반 역할/권한 관리 시스템으로 세밀한 접근 제어
+3. **멤버십 시스템**: 서비스별 티어 관리 (shopping/blog, FREE/PREMIUM/VIP)로 차등화된 기능 제공
+4. **소셜 로그인**: Google, Naver, Kakao OAuth2 지원, 조건부 활성화로 유연한 구성
+5. **Kafka 이벤트 발행**: user-signup 토픽으로 TransactionalEventListener AFTER_COMMIT 기반 안전한 이벤트 전파
 
-## 🎯 핵심 특징
+## 서비스 정보
 
-### 1. OAuth2 Authorization Code Flow with PKCE
-- 표준 OAuth2 프로토콜 준수
-- PKCE (Proof Key for Code Exchange) 지원으로 보안 강화
-- Authorization Code → Access Token 교환 방식
+| 항목 | 값 |
+|------|-----|
+| Port | 8081 |
+| Base Path | /api/v1 |
+| Gateway Route | /api/v1/auth/**, /api/v1/users/** |
+| Health Check | /actuator/health |
+| Profiles | local, docker, kubernetes |
 
-### 2. JWT 토큰 전략
-| 토큰 타입 | 유효 기간 | 저장 위치 | 용도 |
-|----------|----------|----------|------|
-| Access Token | 2분 | 메모리 (프론트엔드) | API 요청 인증 |
-| Refresh Token | 7일 | HTTP-Only 쿠키 | Access Token 갱신 |
-
-### 3. 소셜 로그인
-- Google OAuth2 연동
-- 신규 사용자 자동 등록
-- 기존 계정 연동 지원
-
-### 4. 세션 기반 로그인 (레거시)
-- 개발/테스트 환경용
-- 프로덕션에서는 OAuth2 사용 권장
-
-### 5. 이벤트 기반 아키텍처
-- Kafka를 통한 사용자 이벤트 발행
-- 다른 서비스와의 느슨한 결합
-
----
-
-## 🏗️ High-Level Architecture
+## 아키텍처 다이어그램
 
 ```mermaid
-graph TB
-    subgraph "Client Layer"
-        FE[Frontend<br/>portal-shell]
-        MFA[Micro Frontends<br/>blog/shopping]
+graph TD
+    Client[Client Application]
+    Gateway[API Gateway]
+    Auth[Auth Service]
+
+    subgraph Auth Service
+        Security[Security Layer<br/>JwtAuthenticationFilter<br/>SecurityConfig]
+        AuthLayer[Auth Layer<br/>AuthController<br/>TokenService<br/>RefreshTokenService<br/>TokenBlacklistService]
+        UserLayer[User Layer<br/>UserController<br/>UserService<br/>ProfileService<br/>ProfileController]
+        OAuth2Layer[OAuth2 Layer<br/>CustomOAuth2UserService<br/>SuccessHandler]
+        RBACLayer[RBAC Layer<br/>RbacService<br/>MembershipService<br/>SellerApplicationService]
     end
 
-    subgraph "Gateway Layer"
-        GW[API Gateway<br/>:8080]
-    end
+    MySQL[(MySQL<br/>14 Tables)]
+    Redis[(Redis<br/>RT, Blacklist<br/>Login Attempts)]
+    Kafka[Kafka<br/>user-signup]
 
-    subgraph "Auth Service :8081"
-        direction TB
-        AS[Auth Service<br/>Spring Boot 3.5.5]
+    Client --> Gateway
+    Gateway --> Auth
+    Auth --> Security
+    Security --> AuthLayer
+    Security --> UserLayer
+    Security --> OAuth2Layer
+    Security --> RBACLayer
 
-        subgraph "Security Layer"
-            SC[SecurityConfig]
-            ASC[AuthorizationServerConfig]
-            JWT[JWT Token Provider]
-        end
-
-        subgraph "Business Layer"
-            AUTH[AuthService]
-            USER[UserService]
-            SOCIAL[SocialAuthService]
-        end
-
-        subgraph "Data Layer"
-            REPO[Repository Layer]
-        end
-    end
-
-    subgraph "External Systems"
-        GOOGLE[Google OAuth2]
-        MYSQL[(MySQL<br/>User DB)]
-        KAFKA[Kafka<br/>Event Bus]
-    end
-
-    subgraph "Dependent Services"
-        NOTIF[Notification Service<br/>:8084]
-    end
-
-    FE --> GW
-    MFA --> GW
-    GW -->|JWT Validation| AS
-
-    AS --> SC
-    AS --> ASC
-    AS --> JWT
-    SC --> AUTH
-    ASC --> USER
-    AUTH --> SOCIAL
-
-    USER --> REPO
-    SOCIAL --> REPO
-    REPO --> MYSQL
-
-    SOCIAL -.->|OAuth2 Login| GOOGLE
-    USER -->|Publish Events| KAFKA
-    KAFKA -.->|Subscribe| NOTIF
-
-    style AS fill:#4CAF50
-    style GW fill:#2196F3
-    style MYSQL fill:#FF9800
-    style KAFKA fill:#9C27B0
+    AuthLayer --> MySQL
+    UserLayer --> MySQL
+    RBACLayer --> MySQL
+    AuthLayer --> Redis
+    UserLayer --> Kafka
 ```
 
-### 인증 흐름 시퀀스
-
-```mermaid
-sequenceDiagram
-    participant FE as Frontend
-    participant GW as API Gateway
-    participant AS as Auth Service
-    participant DB as MySQL
-    participant KF as Kafka
-
-    rect rgb(200, 220, 250)
-        Note over FE,AS: OAuth2 Authorization Code Flow
-        FE->>AS: /oauth2/authorize (PKCE)
-        AS->>FE: Authorization Code
-        FE->>AS: /oauth2/token + Code Verifier
-        AS->>DB: Validate User
-        AS->>FE: Access Token + Refresh Token
-    end
-
-    rect rgb(200, 250, 220)
-        Note over FE,GW: API Request with JWT
-        FE->>GW: API Request + JWT
-        GW->>GW: Validate JWT
-        GW->>AS: Forward Request
-        AS->>DB: Query Data
-        AS->>GW: Response
-        GW->>FE: Response
-    end
-
-    rect rgb(250, 220, 200)
-        Note over AS,KF: Event Publishing
-        AS->>KF: user.registered Event
-        KF->>KF: Store Event
-    end
-```
-
----
-
-## 📦 컴포넌트 상세
-
-### 1. SecurityConfig
-**경로**: `com.portal.auth.config.SecurityConfig`
-
-**역할**:
-- Spring Security 설정
-- HTTP 보안 규칙 정의
-- CORS 설정
-- Password Encoder 빈 등록
-
-**주요 설정**:
-```java
-- Public Endpoints: /login, /oauth2/**, /actuator/**
-- Protected Endpoints: 나머지 모든 엔드포인트
-- CSRF: Disabled (JWT 사용)
-- Session: Stateless (토큰 기반 인증)
-```
-
-### 2. AuthorizationServerConfig
-**경로**: `com.portal.auth.config.AuthorizationServerConfig`
-
-**역할**:
-- OAuth2 Authorization Server 설정
-- JWT 토큰 생성 설정
-- Client 정보 관리
-- Token Endpoint 커스터마이징
-
-**주요 설정**:
-```java
-- Token Format: JWT (자체 서명)
-- Token Endpoint: /oauth2/token
-- Authorization Endpoint: /oauth2/authorize
-- Issuer: http://localhost:8081
-```
-
-### 3. JWT Token Provider
-**역할**:
-- JWT 생성 및 검증
-- Token Customizer 구현
-- Claims 추가 (userId, roles, email)
-
-### 4. Service Layer
-
-#### AuthService
-- 사용자 인증 처리
-- 로그인/로그아웃 비즈니스 로직
-- 세션 관리
-
-#### UserService
-- 사용자 CRUD 작업
-- 사용자 프로필 관리
-- Kafka 이벤트 발행
-
-#### SocialAuthService
-- Google OAuth2 연동
-- 소셜 계정 매핑
-- 신규 사용자 자동 생성
-
-### 5. Repository Layer
-- UserRepository
-- UserProfileRepository
-- SocialAccountRepository
-
----
-
-## 💾 데이터 저장소
-
-### MySQL Database: `auth_db`
-
-#### 테이블 구조
-
-**1. users**
-```sql
-- id (PK, BIGINT)
-- username (UNIQUE, VARCHAR)
-- email (UNIQUE, VARCHAR)
-- password (VARCHAR, nullable for social login)
-- enabled (BOOLEAN)
-- account_non_expired (BOOLEAN)
-- account_non_locked (BOOLEAN)
-- credentials_non_expired (BOOLEAN)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-**2. user_profiles**
-```sql
-- id (PK, BIGINT)
-- user_id (FK → users.id)
-- full_name (VARCHAR)
-- nickname (VARCHAR)
-- bio (TEXT)
-- avatar_url (VARCHAR)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-**3. social_accounts**
-```sql
-- id (PK, BIGINT)
-- user_id (FK → users.id)
-- provider (VARCHAR: google, github, etc.)
-- provider_id (VARCHAR)
-- access_token (TEXT, encrypted)
-- refresh_token (TEXT, encrypted, nullable)
-- expires_at (TIMESTAMP, nullable)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-- UNIQUE(provider, provider_id)
-```
-
-#### 관계
-```mermaid
-erDiagram
-    users ||--o| user_profiles : has
-    users ||--o{ social_accounts : has
-
-    users {
-        bigint id PK
-        varchar username UK
-        varchar email UK
-        varchar password
-        boolean enabled
-        timestamp created_at
-    }
-
-    user_profiles {
-        bigint id PK
-        bigint user_id FK
-        varchar full_name
-        varchar nickname
-        text bio
-        varchar avatar_url
-    }
-
-    social_accounts {
-        bigint id PK
-        bigint user_id FK
-        varchar provider
-        varchar provider_id
-        text access_token
-        text refresh_token
-    }
-```
-
----
-
-## 🔗 외부 연동
-
-### 1. Google OAuth2
-**연동 방식**: Spring Security OAuth2 Client
-
-**설정 위치**: `application-local.yml`
-```yaml
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope: profile, email
-            redirect-uri: http://localhost:8081/login/oauth2/code/google
-```
-
-**흐름**:
-1. 사용자가 "Google로 로그인" 클릭
-2. Google 인증 페이지로 리다이렉트
-3. 사용자 인증 후 Authorization Code 수신
-4. auth-service가 Google에 Access Token 요청
-5. 사용자 정보 조회 및 로컬 계정 생성/연동
-6. Portal Universe JWT 토큰 발급
-
-### 2. Kafka Event Bus
-**Topic**: `user-events`
-
-**발행 이벤트**:
-| Event Type | Payload | 구독자 |
-|-----------|---------|--------|
-| `user.registered` | userId, email, timestamp | notification-service |
-| `user.updated` | userId, changes | (미래 확장) |
-| `user.deleted` | userId | (미래 확장) |
-
-**Producer 설정**:
-```java
-@Service
-public class UserEventPublisher {
-    @Autowired
-    private KafkaTemplate<String, UserEvent> kafkaTemplate;
-
-    public void publishUserRegistered(User user) {
-        UserEvent event = new UserEvent("user.registered", user);
-        kafkaTemplate.send("user-events", event);
-    }
-}
-```
-
-### 3. API Gateway 연동
-**Gateway JWT 검증**:
-- auth-service가 발급한 JWT를 Gateway가 검증
-- Gateway는 auth-service의 공개키로 서명 검증
-- 검증 통과 시 요청을 백엔드 서비스로 전달
-
-**설정 공유**:
-- JWT Issuer URI: `http://auth-service:8081`
-- JWK Set URI: `http://auth-service:8081/.well-known/jwks.json`
-
----
-
-## 📊 성능 목표
-
-### Response Time (P95)
-| Endpoint | Target | Current |
-|----------|--------|---------|
-| POST /oauth2/token | < 200ms | 150ms |
-| POST /login | < 100ms | 80ms |
-| GET /userinfo | < 50ms | 30ms |
-| Google OAuth2 Callback | < 500ms | 400ms |
-
-### Throughput
-- **동시 접속**: 1,000 users
-- **Token 발급**: 100 req/s
-- **Token 검증 (Gateway)**: 1,000 req/s
-
-### Availability
-- **목표**: 99.9% (Three Nines)
-- **Downtime 허용**: 43분/월
-
-### Scalability
-- **Horizontal Scaling**: Kubernetes HPA 지원
-- **Database Connection Pool**: 최대 20개
-- **Kafka Producer**: 비동기 처리로 블로킹 없음
-
----
-
-## 🔐 보안 고려사항
-
-### 1. 토큰 보안
-- Access Token: 짧은 유효기간 (2분)
-- Refresh Token: HTTP-Only 쿠키로 XSS 방어
-- JWT 서명: RS256 알고리즘 사용
-
-### 2. 비밀번호 보안
-- BCrypt 해싱 (strength 10)
-- 소금(salt) 자동 생성
-- 레인보우 테이블 공격 방어
-
-### 3. CSRF 방어
-- JWT 사용으로 CSRF 토큰 불필요
-- SameSite 쿠키 정책 적용
-
-### 4. Rate Limiting
-- API Gateway 레벨에서 적용
-- IP 기반 요청 제한
-
-### 5. 민감 정보 암호화
-- Social Account Access Token: DB 암호화 저장
-- 환경 변수로 시크릿 관리
-
----
-
-## 🚀 배포 환경별 설정
-
-### Local Development
-```yaml
-server:
-  port: 8081
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/auth_db
-  kafka:
-    bootstrap-servers: localhost:9092
-```
-
-### Docker Compose
-```yaml
-server:
-  port: 8081
-spring:
-  datasource:
-    url: jdbc:mysql://mysql:3306/auth_db
-  kafka:
-    bootstrap-servers: kafka:9092
-```
-
-### Kubernetes
-```yaml
-server:
-  port: 8081
-spring:
-  datasource:
-    url: jdbc:mysql://mysql-service:3306/auth_db
-  kafka:
-    bootstrap-servers: kafka-service:9092
-```
-
----
-
-## 📈 모니터링 및 관측성
-
-### Metrics (Micrometer + Prometheus)
-- `auth.token.issued.total`: 토큰 발급 건수
-- `auth.login.attempts.total`: 로그인 시도 (성공/실패)
-- `auth.social.login.total`: 소셜 로그인 건수
-
-### Distributed Tracing (Zipkin)
-- Trace ID를 통한 요청 추적
-- Gateway → Auth Service → Database 흐름 시각화
-
-### Health Checks
-- `/actuator/health`: 서비스 상태
-- `/actuator/health/readiness`: Kubernetes Readiness Probe
-- `/actuator/health/liveness`: Kubernetes Liveness Probe
-
-### Logging
-- 로그 레벨: INFO (운영), DEBUG (개발)
-- 구조화 로깅: JSON 형식
-- 민감 정보 마스킹 (비밀번호, 토큰)
-
----
-
-## 🔄 관련 문서
-
-- [Data Flow Architecture](./data-flow.md)
-- [API Specification](../api/auth-api.md)
-- [Deployment Guide](../guides/deployment.md)
-- [Troubleshooting Guide](../troubleshooting/README.md)
-
----
-
-## 📝 변경 이력
-
-| 날짜 | 버전 | 변경 내용 | 작성자 |
-|------|------|----------|--------|
-| 2026-01-18 | 1.0 | 초기 문서 작성 | Claude |
+## 컴포넌트 상세
+
+### Controller (10개)
+
+Auth Service는 인증, 사용자 관리, RBAC, 멤버십, 셀러 관리를 위한 10개의 Controller를 제공합니다.
+
+| Controller | Base Path | 역할 |
+|------------|-----------|------|
+| AuthController | /api/v1/auth | 로그인, 토큰 갱신, 로그아웃, 비밀번호 정책 조회 |
+| UserController | /api/v1/users | 회원가입, 프로필 조회 |
+| ProfileController | /api/v1/profile | 내 프로필 관리, 비밀번호 변경, 계정 탈퇴 |
+| FollowController | /api/v1/users | 팔로우/언팔로우, 팔로워/팔로잉 목록 |
+| PermissionController | /api/v1/permissions | 내 권한 조회 |
+| MembershipController | /api/v1/memberships | 내 멤버십 조회/변경 |
+| RbacAdminController | /api/v1/admin/rbac | [SUPER_ADMIN] 역할 관리 |
+| MembershipAdminController | /api/v1/admin/memberships | [SUPER_ADMIN] 멤버십 관리 |
+| SellerController | /api/v1/seller | 셀러 신청/조회 |
+| SellerAdminController | /api/v1/admin/seller | [SHOPPING_ADMIN, SUPER_ADMIN] 셀러 심사 |
+
+### Service (13개+)
+
+#### 인증 및 토큰 관리
+
+| Service | 역할 |
+|---------|------|
+| TokenService | JWT Access Token/Refresh Token 생성 및 검증 (HMAC-SHA256, kid 기반 Key Rotation 지원) |
+| RefreshTokenService | Redis에 Refresh Token 저장/조회/삭제, Lua Script를 통한 원자적 Rotation 처리 |
+| TokenBlacklistService | Redis 기반 Access Token 블랙리스트 관리 (SHA-256 해시 키 사용) |
+| LoginAttemptServiceImpl | Redis 기반 로그인 시도 추적, 단계적 계정 잠금 (3/5/10회) |
+| CustomUserDetailsService | Spring Security UserDetailsService 구현, DB에서 사용자 정보 로드 |
+
+#### RBAC 및 멤버십
+
+| Service | 역할 |
+|---------|------|
+| RbacService | 역할 관리, 권한 Resolution (역할 권한 + 멤버십 티어 권한 합산) |
+| RbacInitializationService | 신규 사용자 RBAC 초기화 (ROLE_USER + FREE 멤버십 자동 할당) |
+| RbacDataMigrationRunner | 기존 사용자 RBAC 데이터 마이그레이션 (CommandLineRunner) |
+| MembershipService | 멤버십 티어 조회/변경/취소, 서비스별(shopping/blog) 티어 관리 |
+| SellerApplicationService | 셀러 신청/심사 워크플로우, 승인 시 ROLE_SELLER 자동 할당 |
+
+#### 사용자 관리
+
+| Service | 역할 |
+|---------|------|
+| UserService | 회원가입, 프로필 관리, 비밀번호 변경, Username 설정 |
+| ProfileService | 프로필 조회/수정, 계정 탈퇴 |
+| FollowService | 팔로우/언팔로우, 팔로워/팔로잉 목록 조회 |
+
+#### OAuth2 및 비밀번호 정책
+
+- **CustomOAuth2UserService**: OAuth2 소셜 로그인 사용자 처리 (Google, Naver, Kakao)
+- **OAuth2AuthenticationSuccessHandler**: OAuth2 로그인 성공 후 JWT 발급 및 프론트엔드 리다이렉트
+- **PasswordValidatorImpl**: 10가지 비밀번호 정책 검증 (길이, 복잡도, 재사용 금지 등)
+
+### Repository (13개)
+
+Auth Service는 14개 이상의 엔티티를 관리하기 위한 JPA Repository를 제공합니다.
+
+| Repository | 엔티티 | 주요 역할 |
+|------------|--------|----------|
+| UserRepository | User | 사용자 핵심 정보 CRUD |
+| UserProfileRepository | UserProfile | 프로필 정보 CRUD |
+| PasswordHistoryRepository | PasswordHistory | 비밀번호 변경 이력 관리 |
+| FollowRepository | Follow | 팔로우 관계 관리 |
+| SocialAccountRepository | SocialAccount | 소셜 로그인 연동 정보 |
+| RoleEntityRepository | RoleEntity | 역할 정의 관리 |
+| UserRoleRepository | UserRole | 사용자-역할 매핑 |
+| PermissionRepository | PermissionEntity | 권한 정의 관리 |
+| RolePermissionRepository | RolePermission | 역할-권한 매핑 |
+| MembershipTierRepository | MembershipTier | 멤버십 티어 정의 |
+| MembershipTierPermissionRepository | MembershipTierPermission | 티어-권한 매핑 |
+| UserMembershipRepository | UserMembership | 사용자-멤버십 매핑 |
+| AuthAuditLogRepository | AuthAuditLog | 감사 로그 저장 |
+| SellerApplicationRepository | SellerApplication | 셀러 신청서 관리 |
+
+## 데이터 저장소
+
+### MySQL 엔티티 (14개+)
+
+Auth Service는 사용자, 인증, RBAC, 멤버십을 위한 14개 이상의 MySQL 테이블을 사용합니다.
+
+| 엔티티 | 테이블 | 역할 |
+|--------|--------|------|
+| User | users | 사용자 핵심 정보 (email, password, uuid, status, 잠금 상태) |
+| UserProfile | user_profiles | 프로필 (nickname, username, bio, image) |
+| SocialAccount | social_accounts | 소셜 로그인 연동 (provider, providerId) |
+| PasswordHistory | password_history | 비밀번호 변경 이력 (재사용 방지) |
+| Follow | follows | 팔로우 관계 (follower_id, following_id) |
+| RoleEntity | roles | 역할 정의 (ROLE_USER, ROLE_SELLER, ROLE_ADMIN 등) |
+| PermissionEntity | permissions | 권한 정의 (READ_POST, CREATE_PRODUCT 등) |
+| UserRole | user_roles | 사용자-역할 매핑 (M:N) |
+| RolePermission | role_permissions | 역할-권한 매핑 (M:N) |
+| MembershipTier | membership_tiers | 멤버십 티어 정의 (서비스별: shopping/blog) |
+| MembershipTierPermission | membership_tier_permissions | 티어-권한 매핑 (M:N) |
+| UserMembership | user_memberships | 사용자-멤버십 매핑 (서비스별 현재 티어) |
+| AuthAuditLog | auth_audit_log | 감사 로그 (로그인 성공/실패, 권한 변경 등) |
+| SellerApplication | seller_applications | 셀러 신청서 (상태: PENDING/APPROVED/REJECTED) |
+
+#### ERD 주요 관계
+
+- User 1:1 UserProfile
+- User 1:N SocialAccount (다중 소셜 계정 연동 가능)
+- User M:N RoleEntity (via UserRole)
+- RoleEntity M:N PermissionEntity (via RolePermission)
+- User M:N MembershipTier (via UserMembership, 서비스별)
+- MembershipTier M:N PermissionEntity (via MembershipTierPermission)
+
+### Redis 키 패턴
+
+Redis는 Refresh Token, Access Token Blacklist, 로그인 시도 추적에 사용됩니다.
+
+| 키 패턴 | 값 타입 | TTL | 용도 |
+|---------|---------|-----|------|
+| refresh_token:{userId} | String (JWT) | 7일 | Refresh Token 저장 |
+| blacklist:{sha256Hash} | String ("blacklisted") | AT 남은 만료 시간 | Access Token 블랙리스트 |
+| login_attempt:count:{ip:email} | Integer (실패 횟수) | 1시간 | 로그인 실패 추적 |
+| login_attempt:lock:{ip:email} | String (Unix Timestamp) | 잠금 시간 (1분/5분/15분) | 계정 잠금 |
+
+#### Redis 운영 특징
+
+- **Refresh Token Rotation**: Lua Script를 사용한 원자적 GET-DELETE-SET 작업으로 재사용 공격 방지
+- **Blacklist TTL**: Access Token의 남은 만료 시간만큼만 블랙리스트 유지하여 메모리 효율성 확보
+- **단계적 계정 잠금**: 로그인 실패 횟수에 따라 1분 → 5분 → 15분 단계적 잠금 시간 증가
+
+## 에러 코드 체계
+
+Auth Service는 42개의 커스텀 에러 코드를 정의하여 클라이언트에게 명확한 오류 정보를 제공합니다.
+
+### 인증 관련 (A001-A009)
+
+| 코드 | 메시지 | HTTP 상태 |
+|------|--------|----------|
+| A001 | 이미 존재하는 이메일입니다 | 409 CONFLICT |
+| A002 | 이메일 또는 비밀번호가 일치하지 않습니다 | 401 UNAUTHORIZED |
+| A003 | Refresh Token이 유효하지 않습니다 | 401 UNAUTHORIZED |
+| A004 | 존재하지 않는 사용자입니다 | 404 NOT_FOUND |
+| A005 | 유효하지 않은 소셜 로그인 제공자입니다 | 400 BAD_REQUEST |
+| A006 | 이미 연동된 소셜 계정입니다 | 409 CONFLICT |
+| A007 | 존재하지 않는 소셜 계정입니다 | 404 NOT_FOUND |
+| A008 | 이메일 인증이 필요합니다 | 403 FORBIDDEN |
+| A009 | 이메일 인증 토큰이 만료되었습니다 | 400 BAD_REQUEST |
+
+### Username 관련 (A011-A013)
+
+| 코드 | 메시지 | HTTP 상태 |
+|------|--------|----------|
+| A011 | 이미 사용 중인 사용자명입니다 | 409 CONFLICT |
+| A012 | 사용자명은 한 번만 설정할 수 있습니다 | 400 BAD_REQUEST |
+| A013 | 사용자명은 3-20자의 영문, 숫자, 언더스코어만 가능합니다 | 400 BAD_REQUEST |
+
+### 팔로우 관련 (A014-A017)
+
+| 코드 | 메시지 | HTTP 상태 |
+|------|--------|----------|
+| A014 | 이미 팔로우 중입니다 | 409 CONFLICT |
+| A015 | 팔로우하지 않은 사용자입니다 | 400 BAD_REQUEST |
+| A016 | 자기 자신을 팔로우할 수 없습니다 | 400 BAD_REQUEST |
+| A017 | 팔로우 대상 사용자를 찾을 수 없습니다 | 404 NOT_FOUND |
+
+### 계정 잠금 (A018-A019)
+
+| 코드 | 메시지 | HTTP 상태 |
+|------|--------|----------|
+| A018 | 로그인 시도 실패로 계정이 일시적으로 잠겼습니다 | 423 LOCKED |
+| A019 | 로그인 시도 횟수를 초과했습니다 | 429 TOO_MANY_REQUESTS |
+
+### 비밀번호 정책 (A020-A026)
+
+| 코드 | 메시지 | HTTP 상태 |
+|------|--------|----------|
+| A020 | 비밀번호는 최소 8자 이상이어야 합니다 | 400 BAD_REQUEST |
+| A021 | 비밀번호는 영문, 숫자, 특수문자를 모두 포함해야 합니다 | 400 BAD_REQUEST |
+| A022 | 최근 사용한 비밀번호는 재사용할 수 없습니다 | 400 BAD_REQUEST |
+| A023 | 현재 비밀번호가 일치하지 않습니다 | 400 BAD_REQUEST |
+| A024 | 비밀번호에 이메일 주소가 포함될 수 없습니다 | 400 BAD_REQUEST |
+| A025 | 비밀번호에 연속된 문자가 포함될 수 없습니다 | 400 BAD_REQUEST |
+| A026 | 비밀번호에 반복된 문자가 포함될 수 없습니다 | 400 BAD_REQUEST |
+
+### RBAC 관련 (A030-A034)
+
+| 코드 | 메시지 | HTTP 상태 |
+|------|--------|----------|
+| A030 | 존재하지 않는 역할입니다 | 404 NOT_FOUND |
+| A031 | 이미 할당된 역할입니다 | 409 CONFLICT |
+| A032 | 시스템 역할은 수정할 수 없습니다 | 403 FORBIDDEN |
+| A033 | 할당되지 않은 역할입니다 | 400 BAD_REQUEST |
+| A034 | 존재하지 않는 권한입니다 | 404 NOT_FOUND |
+
+### 멤버십 관련 (A035-A038)
+
+| 코드 | 메시지 | HTTP 상태 |
+|------|--------|----------|
+| A035 | 멤버십을 찾을 수 없습니다 | 404 NOT_FOUND |
+| A036 | 멤버십 티어를 찾을 수 없습니다 | 404 NOT_FOUND |
+| A037 | 이미 멤버십이 존재합니다 | 409 CONFLICT |
+| A038 | 멤버십 다운그레이드는 허용되지 않습니다 | 400 BAD_REQUEST |
+
+### 셀러 관련 (A040-A042)
+
+| 코드 | 메시지 | HTTP 상태 |
+|------|--------|----------|
+| A040 | 이미 대기 중인 셀러 신청이 있습니다 | 409 CONFLICT |
+| A041 | 셀러 신청을 찾을 수 없습니다 | 404 NOT_FOUND |
+| A042 | 이미 처리된 셀러 신청입니다 | 400 BAD_REQUEST |
+
+모든 에러 코드는 `AuthErrorCode` enum에 정의되며, `CustomBusinessException`을 통해 발생합니다. 에러 응답은 `ApiResponse` wrapper를 통해 일관된 형식으로 클라이언트에 전달됩니다.
+
+## 외부 연동
+
+### API Gateway
+
+Auth Service는 API Gateway와 긴밀하게 통합되어 있습니다.
+
+- **JWT 서명 키 공유**: HMAC 공유 시크릿을 통해 Gateway에서도 Access Token의 서명을 검증할 수 있습니다
+- **Stateless 검증**: Gateway는 Redis 조회 없이 Access Token만으로 요청을 검증하고 서비스로 전달합니다
+- **User Context 전달**: Gateway가 검증한 사용자 정보(userId, roles)를 헤더(`X-User-Id`, `X-User-Roles`)로 전달합니다
+
+### OAuth2 Provider
+
+Auth Service는 3개의 소셜 로그인 제공자를 지원합니다.
+
+- **지원 Provider**: Google, Naver, Kakao
+- **조건부 활성화**: `ClientRegistrationRepository` Bean이 있을 때만 OAuth2 로그인 활성화
+- **유연한 구성**: 설정이 없는 환경(예: 테스트)에서도 서비스가 정상적으로 기동됩니다
+- **자동 계정 연동**: 소셜 로그인 시 기존 계정이 있으면 연동, 없으면 신규 계정 생성
+
+### Kafka
+
+Auth Service는 사용자 가입 이벤트를 Kafka로 발행합니다.
+
+- **토픽**: `user-signup`
+- **이벤트**: `UserSignedUpEvent` (userId, email, nickname)
+- **발행 시점**: `@TransactionalEventListener(phase = AFTER_COMMIT)` - 트랜잭션 커밋 후에만 발행
+- **소비자**: notification-service (환영 이메일, SMS 발송)
+- **실패 처리**: Kafka 발행 실패 시 로그 기록, 사용자 가입 트랜잭션은 롤백되지 않음
+
+## 기술적 결정
+
+Auth Service의 핵심 설계 결정은 다음 ADR 문서에서 확인할 수 있습니다.
+
+### ADR-008: JWT Stateless + Redis 인증 아키텍처
+
+- **결정**: Access Token Stateless + Refresh Token/Blacklist Redis 하이브리드
+- **배경**: 기존 OIDC Authorization Code Flow에서 전환
+- **근거**:
+  - Access Token 검증 시 DB/Redis 조회 불필요 → 수평 확장 용이
+  - Refresh Token은 Redis에 저장하여 강제 로그아웃 지원
+  - Blacklist로 Access Token 즉시 무효화 가능
+- **트레이드오프**: Redis 의존성 증가 vs 확장성 및 즉시 무효화 기능 확보
+- **상세**: [ADR-008](../../adr/ADR-008-jwt-stateless-redis.md)
+
+### ADR-003: 심층 방어 (Defense in Depth)
+
+- **결정**: Frontend Route Guard + Backend @PreAuthorize 조합
+- **4계층 방어**:
+  1. Frontend Route Guard (사용자 경험)
+  2. API Gateway JWT 검증 (첫 번째 방어선)
+  3. Backend Service @PreAuthorize (두 번째 방어선)
+  4. Business Logic 권한 체크 (최종 방어선)
+- **근거**: 단일 계층 방어의 취약성 방지, 보안 심도 강화
+- **상세**: [ADR-003](../../adr/ADR-003-authorization-strategy.md)
+
+### 기타 설계 결정
+
+- **비밀번호 해싱**: BCrypt (work factor 10)
+- **JWT 알고리즘**: HMAC-SHA256 (대칭키), kid 기반 Key Rotation 지원
+- **Access Token TTL**: 1시간
+- **Refresh Token TTL**: 7일
+- **로그인 시도 제한**: 3회/5회/10회 단계적 잠금 (1분/5분/15분)
+- **비밀번호 재사용 방지**: 최근 5개 비밀번호 이력 보관
+
+## 배포 및 확장
+
+### 환경별 차이
+
+Auth Service는 local, docker, kubernetes 세 가지 프로파일을 지원합니다.
+
+| 항목 | local | docker | kubernetes |
+|------|-------|--------|------------|
+| DB | localhost MySQL:3306 | docker-compose MySQL | RDS 또는 StatefulSet |
+| Redis | localhost:6379 | docker-compose Redis | ElastiCache 또는 StatefulSet |
+| OAuth2 | .env.local 설정 시 활성화 | 환경변수로 주입 | Secret으로 관리 |
+| Kafka | localhost:9092 | docker-compose Kafka | MSK 또는 StatefulSet |
+| 포트 | 8081 | 8081 | Service ClusterIP |
+
+### 수평 확장 전략
+
+Auth Service는 Stateless 아키텍처를 채택하여 수평 확장이 용이합니다.
+
+#### 확장 가능 요소
+
+- **Auth Service 인스턴스**: Access Token 검증이 Stateless이므로 인스턴스를 자유롭게 스케일 아웃할 수 있습니다
+- **로드 밸런싱**: API Gateway 또는 Kubernetes Service가 라운드 로빈 방식으로 요청을 분산합니다
+- **세션 공유 불필요**: 모든 상태(RT, Blacklist)는 Redis에 저장되므로 sticky session이 필요 없습니다
+
+#### 병목 지점 및 대응
+
+- **Redis 병목**: Refresh Token 조회/Blacklist 확인이 Redis에 의존
+  - **대응**: Redis Cluster 또는 Sentinel 구성으로 HA 확보
+  - **캐싱**: Blacklist 조회는 로컬 캐시(Caffeine) 적용 가능
+- **MySQL 읽기 부하**: 사용자 프로필 조회, RBAC 권한 Resolution
+  - **대응**: Read Replica 구성으로 읽기 부하 분산
+  - **캐싱**: 사용자별 권한 정보를 Spring Cache(Redis 또는 Caffeine)로 캐싱
+- **Kafka 처리 지연**: user-signup 이벤트 발행 실패 시 재시도 로직 필요
+  - **대응**: Kafka Producer의 `retries` 설정 조정, Dead Letter Queue 구성
+
+### 모니터링 및 알람
+
+- **Actuator 엔드포인트**: `/actuator/health`, `/actuator/metrics`
+- **주요 메트릭**:
+  - 로그인 성공/실패율
+  - Access Token 발급/검증 시간
+  - Refresh Token Rotation 성공/실패율
+  - 계정 잠금 발생 횟수
+  - Kafka 이벤트 발행 성공/실패율
+- **알람 기준**:
+  - 로그인 실패율 > 10%
+  - Redis 연결 실패
+  - MySQL 슬로우 쿼리 (> 1초)
+  - Kafka 이벤트 발행 실패 > 5%
+
+## 관련 문서
+
+- **[Data Flow](./data-flow.md)**: 로그인, 토큰 갱신, 로그아웃 등 인증 플로우 상세 설명
+- **[Security Mechanisms](./security-mechanisms.md)**: JWT, Redis Blacklist, 비밀번호 정책 등 보안 메커니즘 상세
+- **[ADR-008: JWT Stateless + Redis](../../adr/ADR-008-jwt-stateless-redis.md)**: 인증 아키텍처 결정 배경 및 근거
+- **[ADR-003: Admin 권한 검증 전략](../../adr/ADR-003-authorization-strategy.md)**: 심층 방어 전략 및 4계층 방어 구조
+- **[Auth API 문서](../../api/auth-service/README.md)**: REST API 엔드포인트 명세 및 예제
+
+## 변경 이력
+
+| 날짜 | 작성자 | 변경 내용 |
+|------|--------|----------|
+| 2026-01-18 | Laze | 최초 작성 |
+| 2026-02-06 | Laze | 전체 재작성: 컴포넌트 상세, 에러 코드, 배포 전략 추가 |

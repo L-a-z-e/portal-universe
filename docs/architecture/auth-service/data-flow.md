@@ -4,421 +4,587 @@ title: Auth Service Data Flow
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-06
 author: Laze
-tags: [architecture, data-flow, oauth2, jwt, pkce, kafka]
+tags: [architecture, data-flow, jwt, redis, kafka, authentication]
 related:
   - arch-system-overview
+  - arch-security-mechanisms
   - api-auth
 ---
 
 # Auth Service Data Flow
 
-## 📋 개요
+## 1. 개요
 
-Auth Service는 OAuth2 Authorization Code Flow with PKCE를 기반으로 인증/인가를 처리하며, JWT 토큰을 발급합니다. 사용자 등록, 로그인, 토큰 갱신 등의 주요 데이터 흐름을 관리하고, Kafka를 통해 다른 서비스와 비동기로 통신합니다.
+Auth Service의 JWT 기반 인증 플로우를 설명합니다. 모든 인증은 Stateless JWT + Redis 조합으로 동작하며, Access Token은 stateless하게 검증되고, Refresh Token과 블랙리스트는 Redis에서 관리됩니다.
 
 ### 핵심 컴포넌트
 
-- **OAuth2 Authorization Server**: Spring Authorization Server 기반 인증 서버
-- **Token Issuer**: JWT Access Token (2분), Refresh Token 발급
-- **User Repository**: MySQL 기반 사용자 정보 저장
-- **Kafka Producer**: 사용자 이벤트 발행 (회원가입, 로그인 등)
+| 컴포넌트 | 역할 | 저장소 |
+|----------|------|--------|
+| `TokenService` | AT/RT 생성/검증 | - |
+| `RefreshTokenService` | RT Redis 관리, Rotation | Redis |
+| `TokenBlacklistService` | AT 블랙리스트 | Redis |
+| `LoginAttemptServiceImpl` | 로그인 시도 추적/잠금 | Redis |
+| `JwtAuthenticationFilter` | 요청별 JWT 검증 | - |
 
----
+### 주요 특징
 
-## 🔄 주요 데이터 흐름
+- **Stateless JWT**: Access Token은 서명 검증만으로 인증 가능
+- **Redis 기반 관리**: Refresh Token 저장, 블랙리스트, 로그인 시도 추적
+- **Token Rotation**: 매 갱신 시 새로운 Refresh Token 발급
+- **이벤트 기반 통신**: Kafka를 통한 비동기 이벤트 발행
 
-### 1. OAuth2 Authorization Code Flow with PKCE
+## 2. 로그인 (POST /api/v1/auth/login)
 
-PKCE(Proof Key for Code Exchange)는 Authorization Code 탈취 공격을 방지하기 위한 보안 메커니즘입니다.
+사용자가 이메일과 비밀번호로 로그인하는 플로우입니다.
 
 ```mermaid
 sequenceDiagram
-    participant F as Frontend
-    participant A as Auth Service
-    participant DB as MySQL
-    participant U as User
+    participant C as Client
+    participant AC as AuthController
+    participant LA as LoginAttemptService
+    participant UR as UserRepository
+    participant PE as PasswordEncoder
+    participant TS as TokenService
+    participant RTS as RefreshTokenService
+    participant CH as CookieHelper
+    participant R as Redis
 
-    Note over F: 1. PKCE 준비
-    F->>F: code_verifier 생성 (랜덤 문자열)
-    F->>F: code_challenge = SHA256(code_verifier)
-
-    Note over F,A: 2. Authorization Request
-    F->>A: GET /oauth2/authorize<br/>?response_type=code<br/>&client_id=portal-client<br/>&redirect_uri=...<br/>&scope=openid profile read write<br/>&code_challenge=...<br/>&code_challenge_method=S256
-
-    A->>A: 세션에 code_challenge 저장
-    A->>F: 302 Redirect to /login
-
-    Note over U,A: 3. 사용자 인증
-    F->>U: 로그인 페이지 표시
-    U->>F: 이메일/비밀번호 입력
-    F->>A: POST /login
-    A->>DB: 사용자 조회 및 비밀번호 검증
-    DB-->>A: User 정보 반환
-
-    Note over A,F: 4. Authorization Code 발급
-    A->>A: Authorization Code 생성
-    A->>F: 302 Redirect to redirect_uri<br/>?code=AUTHORIZATION_CODE
-
-    Note over F,A: 5. Token Request
-    F->>A: POST /oauth2/token<br/>grant_type=authorization_code<br/>&code=AUTHORIZATION_CODE<br/>&redirect_uri=...<br/>&client_id=portal-client<br/>&code_verifier=...
-
-    A->>A: code_challenge 검증<br/>SHA256(code_verifier) == 저장된 code_challenge
-    A->>A: JWT 토큰 생성
-    A-->>F: JSON Response<br/>{<br/>  "access_token": "eyJ...",<br/>  "refresh_token": "eyJ...",<br/>  "expires_in": 120,<br/>  "token_type": "Bearer"<br/>}
-
-    Note over F: 6. 토큰 저장
-    F->>F: localStorage/sessionStorage에 저장
+    C->>AC: POST /api/v1/auth/login {email, password}
+    AC->>LA: isBlocked(ip:email)?
+    LA->>R: GET login_attempt:lock:{ip}:{email}
+    R-->>LA: 잠금 여부
+    LA-->>AC: false
+    AC->>UR: findByEmailWithProfile(email)
+    UR-->>AC: User
+    AC->>PE: matches(password, user.password)
+    PE-->>AC: true
+    AC->>LA: recordSuccess(ip:email)
+    LA->>R: DEL login_attempt:fail:{ip}:{email}
+    AC->>TS: generateAccessToken(user)
+    Note over TS: HMAC-SHA256, kid=currentKeyId<br/>roles[], memberships{}, email, nickname, username
+    TS-->>AC: accessToken (15분)
+    AC->>TS: generateRefreshToken(user)
+    TS-->>AC: refreshToken (7일)
+    AC->>RTS: saveRefreshToken(uuid, refreshToken)
+    RTS->>R: SET refresh_token:{uuid} {refreshToken} EX 604800
+    AC->>CH: setCookie(response, refreshToken)
+    Note over CH: HttpOnly, Secure, SameSite=Lax
+    AC-->>C: 200 {accessToken, refreshToken, expiresIn}
 ```
 
-#### PKCE 보안 메커니즘
+### 로그인 실패 처리
 
-| 항목 | 설명 |
-|------|------|
-| **code_verifier** | 클라이언트가 생성한 랜덤 문자열 (43-128자) |
-| **code_challenge** | `SHA256(code_verifier)` 해시 값 |
-| **검증 방식** | 토큰 요청 시 code_verifier를 받아 SHA256 해시 후 저장된 code_challenge와 비교 |
-| **보안 효과** | Authorization Code가 탈취되어도 code_verifier 없이는 토큰 발급 불가 |
+로그인 실패 시 `LoginAttemptService.recordFailure(ip:email)`가 호출됩니다:
 
----
+1. Redis에 `login_attempt:fail:{ip}:{email}` 키로 실패 횟수 증가 (INCR)
+2. 3회 실패: 5분 잠금
+3. 5회 실패: 15분 잠금
+4. 10회 이상 실패: 계정 잠금 (User.status = LOCKED)
 
-### 2. 회원가입 플로우
+잠금 상태에서는 `AuthErrorCode.ACCOUNT_LOCKED` 예외가 발생합니다.
 
-사용자 회원가입 시 MySQL에 데이터를 저장하고, Kafka를 통해 notification-service에 이벤트를 전달합니다.
+## 3. 토큰 갱신 (POST /api/v1/auth/refresh)
+
+Access Token이 만료되었을 때 Refresh Token으로 새로운 토큰 쌍을 발급받는 플로우입니다.
 
 ```mermaid
 sequenceDiagram
-    participant F as Frontend
-    participant C as UserController
-    participant S as UserService
-    participant DB as MySQL
+    participant C as Client
+    participant AC as AuthController
+    participant TS as TokenService
+    participant UR as UserRepository
+    participant RTS as RefreshTokenService
+    participant CH as CookieHelper
+    participant R as Redis
+
+    C->>AC: POST /api/v1/auth/refresh (Cookie 우선, Body fallback)
+    AC->>AC: resolveRefreshToken(cookie, body)
+    AC->>TS: validateRefreshToken(refreshToken)
+    Note over TS: JWT 서명 검증 (kid → 해당 키)
+    TS-->>AC: Claims (sub=userId)
+    AC->>UR: findByUuidWithProfile(userId)
+    UR-->>AC: User
+    AC->>TS: generateAccessToken(user)
+    TS-->>AC: newAccessToken
+    AC->>TS: generateRefreshToken(user)
+    TS-->>AC: newRefreshToken
+    AC->>RTS: rotateRefreshToken(userId, oldRT, newRT)
+    Note over RTS: Lua Script 원자적 교체 (oldRT 일치 시에만)
+    RTS->>R: EVAL "if redis.call('GET', KEYS[1]) == ARGV[1]<br/>then redis.call('SET', KEYS[1], ARGV[2], 'EX', ARGV[3])<br/>return 1 else return 0 end"
+    R-->>RTS: 1 (교체 성공)
+    RTS-->>AC: true
+    AC->>CH: setCookie(response, newRefreshToken)
+    AC-->>C: 200 {accessToken, refreshToken, expiresIn}
+```
+
+### Refresh Token Rotation
+
+매 갱신 시 새로운 Refresh Token을 발급하고 이전 Refresh Token을 무효화합니다. 이는 토큰 탈취 시 피해를 최소화하기 위한 보안 메커니즘입니다.
+
+**Lua Script를 사용하는 이유**:
+- Redis 단일 명령으로 원자성 보장
+- 동시에 여러 갱신 요청이 들어와도 하나만 성공
+- Race condition 방지
+
+### Refresh Token 검증 실패
+
+다음 경우 `AuthErrorCode.INVALID_REFRESH_TOKEN` 예외가 발생합니다:
+- 서명이 유효하지 않음
+- 만료됨
+- Redis에 저장된 값과 불일치 (이미 교체됨)
+
+## 4. 로그아웃 (POST /api/v1/auth/logout)
+
+사용자가 명시적으로 로그아웃하는 플로우입니다.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant AC as AuthController
+    participant TU as TokenUtils
+    participant TS as TokenService
+    participant TBS as TokenBlacklistService
+    participant RTS as RefreshTokenService
+    participant CH as CookieHelper
+    participant R as Redis
+
+    C->>AC: POST /api/v1/auth/logout (Authorization: Bearer {AT})
+    AC->>TU: extractBearerToken(authorization)
+    TU-->>AC: accessToken
+    AC->>TS: parseClaimsAllowExpired(accessToken)
+    Note over TS: 만료된 토큰도 서명 검증 후 Claims 반환
+    TS-->>AC: Claims (sub=userId)
+    AC->>TS: getRemainingExpiration(accessToken)
+    TS-->>AC: remainingMs
+    AC->>TBS: addToBlacklist(AT, remainingMs)
+    Note over TBS: Redis SET blacklist:{SHA256(AT)} "1" PX {remainingMs}
+    TBS->>R: SET blacklist:{SHA256(AT)} "1" PX {remainingMs}
+    AC->>RTS: deleteRefreshToken(userId)
+    RTS->>R: DEL refresh_token:{userId}
+    AC->>CH: clearCookie(response)
+    Note over CH: Set-Cookie: refreshToken=; Max-Age=0
+    AC-->>C: 200 {message: "로그아웃 성공"}
+```
+
+### Access Token 블랙리스트
+
+로그아웃 시 Access Token을 블랙리스트에 추가하여 해당 토큰으로는 더 이상 API 호출을 할 수 없도록 합니다.
+
+- Redis 키: `blacklist:{SHA256(accessToken)}`
+- TTL: Access Token의 남은 유효 시간 (만료되면 자동 삭제)
+- 값: "1" (존재 여부만 확인하므로 간단한 값 사용)
+
+### 만료된 토큰 처리
+
+`parseClaimsAllowExpired()`는 만료된 토큰도 서명이 유효하면 Claims를 반환합니다. 이를 통해 로그아웃 시 만료된 토큰도 블랙리스트에 추가할 수 있습니다.
+
+## 5. 회원가입 (POST /api/v1/users/signup)
+
+새로운 사용자가 회원가입하는 플로우입니다.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant UC as UserController
+    participant US as UserService
+    participant UR as UserRepository
+    participant PV as PasswordValidator
+    participant PE as PasswordEncoder
+    participant PHR as PasswordHistoryRepository
+    participant RBAC as RbacInitializationService
+    participant EP as EventPublisher
+    participant SEH as UserSignupEventHandler
     participant K as Kafka
-    participant N as Notification Service
 
-    F->>C: POST /api/users/signup<br/>{<br/>  "email": "user@example.com",<br/>  "password": "password123",<br/>  "nickname": "john_doe"<br/>}
-
-    C->>S: registerUser(request)
-
-    Note over S,DB: 1. 중복 확인
-    S->>DB: SELECT * FROM users WHERE email = ?
-    DB-->>S: 결과 반환
-    alt 이메일 중복
-        S-->>C: throw CustomBusinessException<br/>(AUTH_EMAIL_DUPLICATE)
-        C-->>F: 409 Conflict
-    end
-
-    Note over S: 2. 비밀번호 암호화
-    S->>S: passwordEncoder.encode(password)
-
-    Note over S,DB: 3. 사용자 저장
-    S->>DB: INSERT INTO users (uuid, email, password_hash, ...)
-    S->>DB: INSERT INTO user_profiles (user_id, nickname, ...)
-    DB-->>S: 저장 완료
-
-    Note over S,K: 4. Kafka 이벤트 발행
-    S->>K: publish("user-signup", {<br/>  "uuid": "550e8400-...",<br/>  "email": "user@example.com",<br/>  "nickname": "john_doe"<br/>})
-
-    S-->>C: UserResponse
-    C-->>F: 201 Created<br/>{<br/>  "success": true,<br/>  "data": {...}<br/>}
-
-    Note over K,N: 5. 비동기 처리
-    K->>N: consume("user-signup")
-    N->>N: 환영 이메일 발송
+    C->>UC: POST /api/v1/users/signup {email, password, nickname, ...}
+    UC->>US: registerUser(command)
+    US->>UR: findByEmail(email)
+    Note over US: 중복 확인
+    US->>PV: validate(password)
+    Note over PV: 10가지 정책 검증<br/>(길이, 복잡도, 연속문자 등)
+    PV-->>US: valid
+    US->>PE: encode(password)
+    PE-->>US: encodedPassword
+    US->>US: User + UserProfile 생성
+    US->>UR: save(user)
+    UR-->>US: savedUser
+    US->>PHR: save(passwordHistory)
+    US->>RBAC: initializeNewUser(uuid)
+    Note over RBAC: ROLE_USER 할당<br/>shopping/blog FREE 멤버십
+    US->>EP: publishEvent(UserSignedUpEvent)
+    Note over EP: Spring ApplicationEvent 발행
+    US-->>UC: userId
+    UC-->>C: 201 {userId, email, nickname}
+    Note over SEH: @TransactionalEventListener(AFTER_COMMIT)
+    SEH->>K: send("user-signup", UserSignedUpEvent)
 ```
 
-#### 회원가입 데이터베이스 트랜잭션
+### 비밀번호 정책 검증
 
-```java
-@Transactional
-public UserResponse registerUser(SignupRequest request) {
-    // 1. 중복 확인
-    if (userRepository.existsByEmail(request.getEmail())) {
-        throw new CustomBusinessException(AuthErrorCode.AUTH_EMAIL_DUPLICATE);
-    }
+`PasswordValidator`는 다음 10가지 정책을 검증합니다:
 
-    // 2. User 엔티티 생성 및 저장
-    User user = User.builder()
-        .uuid(UUID.randomUUID().toString())
-        .email(request.getEmail())
-        .passwordHash(passwordEncoder.encode(request.getPassword()))
-        .build();
-    userRepository.save(user);
+1. 최소 길이 (8자)
+2. 최대 길이 (100자)
+3. 영문 대문자 포함
+4. 영문 소문자 포함
+5. 숫자 포함
+6. 특수문자 포함
+7. 공백 미포함
+8. 연속된 문자 3개 이상 금지 (예: aaa, 111)
+9. 연속된 숫자 3개 이상 금지 (예: 123, 321)
+10. 이메일/닉네임과 유사도 체크
 
-    // 3. UserProfile 저장
-    UserProfile profile = UserProfile.builder()
-        .user(user)
-        .nickname(request.getNickname())
-        .build();
-    userProfileRepository.save(profile);
+### RBAC 초기화
 
-    // 4. Kafka 이벤트 발행 (트랜잭션 커밋 후)
-    kafkaTemplate.send("user-signup", new UserSignupEvent(user));
+`RbacInitializationService.initializeNewUser()`는 다음 작업을 수행합니다:
 
-    return UserResponse.from(user);
-}
-```
+1. `ROLE_USER` 역할 할당
+2. Shopping Service FREE 멤버십 할당
+3. Blog Service FREE 멤버십 할당
 
----
+멤버십 정보는 UserMembership 엔티티로 저장되며, 이후 JWT Access Token의 `memberships` 클레임에 포함됩니다.
 
-### 3. Token Refresh 플로우
+### 이벤트 발행 시점
 
-Access Token 만료 시 Refresh Token을 사용하여 새로운 토큰을 발급받습니다.
+`UserSignupEventHandler`는 `@TransactionalEventListener(phase = AFTER_COMMIT)`로 트랜잭션 커밋 후에만 Kafka 이벤트를 발행합니다. 이를 통해:
+
+- DB 저장이 실패하면 이벤트가 발행되지 않음
+- 이벤트 발행 실패가 회원가입 트랜잭션에 영향을 주지 않음
+- At-Least-Once 방식으로 이벤트 전달 보장
+
+## 6. 소셜 로그인 (OAuth2)
+
+Google, Naver, Kakao 등 외부 인증 제공자를 통한 로그인 플로우입니다.
 
 ```mermaid
 sequenceDiagram
-    participant F as Frontend
-    participant A as Auth Service
-    participant DB as MySQL
+    participant C as Client
+    participant AS as AuthService
+    participant P as Provider (Google/Naver/Kakao)
+    participant OAuth2US as CustomOAuth2UserService
+    participant SAR as SocialAccountRepository
+    participant UR as UserRepository
+    participant RBAC as RbacInitializationService
+    participant SH as OAuth2SuccessHandler
+    participant TS as TokenService
+    participant RTS as RefreshTokenService
+    participant CH as CookieHelper
 
-    Note over F: Access Token 만료 (2분 경과)
-    F->>A: POST /oauth2/token<br/>grant_type=refresh_token<br/>&refresh_token=eyJ...<br/>&client_id=portal-client
-
-    Note over A,DB: 1. Refresh Token 검증
-    A->>A: JWT 서명 검증
-    A->>DB: SELECT * FROM oauth2_authorization<br/>WHERE token = ?
-    DB-->>A: Token 정보 반환
-
-    alt Refresh Token 유효하지 않음
-        A-->>F: 401 Unauthorized<br/>{<br/>  "error": "invalid_grant"<br/>}
-        Note over F: 재로그인 필요
+    C->>AS: GET /oauth2/authorization/{provider}
+    AS->>P: OAuth2 인증 요청
+    P-->>C: 로그인 페이지
+    C->>P: 사용자 인증 (ID/PW)
+    P-->>AS: GET /login/oauth2/code/{provider} (authorization code)
+    AS->>P: Access Token 교환
+    P-->>AS: Provider Access Token + User Info
+    AS->>OAuth2US: loadUser(userRequest)
+    OAuth2US->>SAR: findByProviderAndProviderId(provider, providerId)
+    alt 기존 소셜 계정 존재
+        SAR-->>OAuth2US: SocialAccount
+        OAuth2US->>UR: findByUuid(socialAccount.userUuid)
+        Note over OAuth2US: 로그인
+    else 동일 이메일 기존 계정 존재
+        OAuth2US->>UR: findByEmail(email)
+        UR-->>OAuth2US: User
+        OAuth2US->>SAR: save(new SocialAccount)
+        Note over OAuth2US: 소셜 계정 연동
+    else 신규 사용자
+        OAuth2US->>UR: save(new User + UserProfile)
+        OAuth2US->>SAR: save(new SocialAccount)
+        OAuth2US->>RBAC: initializeNewUser(uuid)
+        Note over OAuth2US: 신규 회원가입
     end
-
-    Note over A: 2. 새 토큰 발급
-    A->>A: 새 Access Token 생성 (2분)
-    A->>A: Refresh Token 갱신 (선택적)
-    A->>DB: UPDATE oauth2_authorization SET ...
-
-    A-->>F: JSON Response<br/>{<br/>  "access_token": "eyJ...",<br/>  "refresh_token": "eyJ...",<br/>  "expires_in": 120<br/>}
-
-    Note over F: 3. 토큰 업데이트
-    F->>F: localStorage 토큰 갱신
+    OAuth2US-->>AS: CustomOAuth2User
+    AS->>SH: onAuthenticationSuccess()
+    SH->>TS: generateAccessToken(user)
+    TS-->>SH: accessToken
+    SH->>TS: generateRefreshToken(user)
+    TS-->>SH: refreshToken
+    SH->>RTS: saveRefreshToken(uuid, refreshToken)
+    SH->>CH: setCookie(response, refreshToken)
+    SH-->>C: 302 Redirect → /oauth2/callback#access_token={AT}&expires_in={sec}
 ```
 
-#### Frontend Axios Interceptor 패턴
+### OAuth2 제공자별 사용자 정보 추출
 
-```typescript
-// Access Token 만료 시 자동 갱신
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+`CustomOAuth2UserService`는 제공자별 UserInfo 객체를 생성합니다:
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+- **Google**: `GoogleOAuth2UserInfo` (email, name, picture)
+- **Naver**: `NaverOAuth2UserInfo` (email, name, profile_image)
+- **Kakao**: `KakaoOAuth2UserInfo` (email, nickname, profile_image)
 
-      try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        const response = await axios.post('/oauth2/token', {
-          grant_type: 'refresh_token',
-          refresh_token: refreshToken,
-          client_id: 'portal-client'
-        });
+### 소셜 계정 연동
 
-        const { access_token } = response.data;
-        localStorage.setItem('access_token', access_token);
+동일한 이메일로 일반 회원가입과 소셜 로그인을 모두 사용할 수 있습니다. 이 경우 User 엔티티는 하나이며, 여러 SocialAccount 레코드가 연결됩니다.
 
-        // 원래 요청 재시도
-        originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
-        return axios(originalRequest);
-      } catch (refreshError) {
-        // Refresh Token도 만료 → 로그인 페이지로 이동
-        router.push('/login');
-        return Promise.reject(refreshError);
-      }
-    }
+### OAuth2 조건부 활성화
 
-    return Promise.reject(error);
-  }
-);
+OAuth2는 `ClientRegistrationRepository` 빈이 존재할 때만 활성화됩니다. 이는 다음 설정으로 제어됩니다:
+
+```yaml
+spring.security.oauth2.client.registration:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
+  naver:
+    client-id: ${NAVER_CLIENT_ID}
+    client-secret: ${NAVER_CLIENT_SECRET}
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    client-secret: ${KAKAO_CLIENT_SECRET}
 ```
 
----
+환경 변수가 설정되지 않으면 OAuth2 기능이 비활성화됩니다.
 
-## 🔐 JWT 토큰 구조
+## 7. JWT 인증 필터 (JwtAuthenticationFilter)
 
-### Access Token (유효기간: 2분)
-
-```json
-{
-  "sub": "550e8400-e29b-41d4-a716-446655440000",
-  "aud": "portal-client",
-  "scope": "openid profile read write",
-  "iss": "http://localhost:8081",
-  "exp": 1737000120,
-  "iat": 1737000000,
-  "roles": ["ROLE_USER"],
-  "nickname": "john_doe"
-}
-```
-
-| Claim | 설명 | 예시 |
-|-------|------|------|
-| `sub` | 사용자 고유 식별자 (UUID) | `550e8400-e29b-41d4-a716-446655440000` |
-| `aud` | 토큰 대상 클라이언트 | `portal-client` |
-| `scope` | 권한 범위 | `openid profile read write` |
-| `iss` | 토큰 발급자 (Issuer) | `http://localhost:8081` |
-| `exp` | 만료 시간 (Unix timestamp) | `1737000120` |
-| `iat` | 발급 시간 (Issued At) | `1737000000` |
-| `roles` | 사용자 역할 | `["ROLE_USER", "ROLE_ADMIN"]` |
-| `nickname` | 사용자 닉네임 (커스텀 클레임) | `john_doe` |
-
-### Refresh Token (유효기간: 30일)
-
-```json
-{
-  "sub": "550e8400-e29b-41d4-a716-446655440000",
-  "aud": "portal-client",
-  "iss": "http://localhost:8081",
-  "exp": 1739592000,
-  "iat": 1737000000,
-  "token_type": "refresh"
-}
-```
-
-### 토큰 검증 프로세스 (API Gateway)
+모든 API 요청에서 JWT Access Token을 검증하는 필터입니다.
 
 ```mermaid
-graph LR
-    A[API 요청] --> B{Authorization<br/>헤더 존재?}
-    B -->|No| C[401 Unauthorized]
-    B -->|Yes| D[Bearer Token 추출]
-    D --> E{JWT 서명<br/>유효?}
-    E -->|No| F[401 Invalid Token]
-    E -->|Yes| G{토큰<br/>만료?}
-    G -->|Yes| H[401 Token Expired]
-    G -->|No| I{Scope<br/>권한 확인}
-    I -->|Fail| J[403 Forbidden]
-    I -->|Pass| K[요청 전달]
+flowchart TD
+    A[요청 수신] --> B{공개 경로?}
+    B -->|Yes| C[필터 건너뜀]
+    B -->|No| D{Authorization 헤더?}
+    D -->|No| E[인증 없이 진행]
+    D -->|Yes| F[Bearer Token 추출]
+    F --> G{블랙리스트 확인}
+    G -->|블랙리스트| H[401 Unauthorized]
+    G -->|정상| I[TokenService.validateAccessToken]
+    I -->|실패| H
+    I -->|성공| J[Claims에서 roles 추출]
+    J --> K[SecurityContext에 Authentication 설정]
+    K --> L[다음 필터 진행]
+    C --> L
+    E --> L
 ```
 
----
+### 공개 경로 설정
 
-## 📨 이벤트/메시지 흐름 (Kafka)
+`PublicPathProperties`에서 관리하는 공개 경로는 JWT 검증을 거치지 않습니다:
 
-Auth Service는 Kafka를 통해 다른 서비스와 비동기로 통신합니다.
+**Prefix 기반**:
+- `/api/auth/**`
+- `/api/v1/auth/**`
+- `/oauth2/**`
+- `/login/oauth2/**`
+- `/actuator/**`
+- `/api/v1/users/signup`
 
-### 발행하는 이벤트 (Producer)
+**Exact 매칭**:
+- `/ping`
+- `/login`
+- `/logout`
 
-| 토픽 | 이벤트 | 발생 시점 | 컨슈머 서비스 |
-|------|--------|-----------|---------------|
-| `user-signup` | 회원가입 완료 | 신규 사용자 등록 시 | notification-service |
-| `user-login` | 로그인 성공 | OAuth2 토큰 발급 시 | notification-service (선택) |
-| `password-reset` | 비밀번호 재설정 | 비밀번호 변경 요청 시 | notification-service |
+### 블랙리스트 확인
 
-### 이벤트 스키마
+`TokenBlacklistService.isBlacklisted(accessToken)`는 다음 과정을 거칩니다:
 
-#### user-signup 이벤트
+1. Access Token을 SHA-256 해시
+2. Redis에서 `blacklist:{hash}` 키 존재 여부 확인
+3. 존재하면 `true` 반환 (로그아웃된 토큰)
 
-```json
-{
-  "eventId": "evt-20260118-001",
-  "eventType": "USER_SIGNUP",
-  "timestamp": "2026-01-18T12:34:56Z",
-  "payload": {
-    "uuid": "550e8400-e29b-41d4-a716-446655440000",
-    "email": "user@example.com",
-    "nickname": "john_doe",
-    "signupMethod": "EMAIL",
-    "createdAt": "2026-01-18T12:34:56Z"
-  }
-}
-```
+### SecurityContext 설정
 
-#### user-login 이벤트
-
-```json
-{
-  "eventId": "evt-20260118-002",
-  "eventType": "USER_LOGIN",
-  "timestamp": "2026-01-18T13:00:00Z",
-  "payload": {
-    "uuid": "550e8400-e29b-41d4-a716-446655440000",
-    "email": "user@example.com",
-    "loginMethod": "OAUTH2",
-    "ipAddress": "192.168.1.100",
-    "userAgent": "Mozilla/5.0 ..."
-  }
-}
-```
-
-### Kafka Producer 설정
+유효한 토큰인 경우 `UsernamePasswordAuthenticationToken`을 생성하여 `SecurityContextHolder`에 설정합니다:
 
 ```java
-@Configuration
-public class KafkaProducerConfig {
+List<GrantedAuthority> authorities = claims.getRoles().stream()
+    .map(SimpleGrantedAuthority::new)
+    .collect(Collectors.toList());
 
-    @Bean
-    public ProducerFactory<String, UserEvent> producerFactory() {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        config.put(ProducerConfig.ACKS_CONFIG, "all"); // 모든 replica 확인
-        config.put(ProducerConfig.RETRIES_CONFIG, 3);
-        return new DefaultKafkaProducerFactory<>(config);
-    }
+Authentication authentication = new UsernamePasswordAuthenticationToken(
+    userId, null, authorities
+);
+SecurityContextHolder.getContext().setAuthentication(authentication);
+```
+
+이후 컨트롤러에서 `@PreAuthorize("hasRole('ROLE_USER')")` 등의 권한 검증이 가능합니다.
+
+## 8. JWT 토큰 구조
+
+### Access Token (15분)
+
+```json
+{
+  "header": {
+    "alg": "HS256",
+    "kid": "key-2026-01"
+  },
+  "payload": {
+    "sub": "user-uuid-1234",
+    "roles": ["ROLE_USER", "ROLE_SELLER"],
+    "memberships": {
+      "shopping": "PREMIUM",
+      "blog": "FREE"
+    },
+    "email": "user@example.com",
+    "nickname": "닉네임",
+    "username": "myusername",
+    "iat": 1706000000,
+    "exp": 1706000900
+  }
 }
 ```
 
----
+**주요 클레임**:
+- `sub`: User UUID (Primary Key)
+- `roles`: 사용자 역할 배열
+- `memberships`: 서비스별 멤버십 레벨 (Map)
+- `email`, `nickname`, `username`: 사용자 기본 정보
+- `iat`: 발급 시간 (Issued At)
+- `exp`: 만료 시간 (Expiration Time, iat + 15분)
 
-## 📊 데이터 흐름 요약
+### Refresh Token (7일)
 
-```mermaid
-graph TB
-    subgraph "Frontend"
-        FE[Vue/React App]
-    end
-
-    subgraph "Auth Service"
-        AC[UserController]
-        AS[UserService]
-        AO[OAuth2 Server]
-    end
-
-    subgraph "Data Store"
-        DB[(MySQL)]
-        KAFKA[Kafka]
-    end
-
-    subgraph "Other Services"
-        NS[Notification Service]
-    end
-
-    FE -->|1. 회원가입| AC
-    AC --> AS
-    AS -->|2. 저장| DB
-    AS -->|3. 이벤트 발행| KAFKA
-    KAFKA -->|4. 컨슘| NS
-
-    FE -->|5. OAuth2 인증| AO
-    AO -->|6. 사용자 조회| DB
-    AO -->|7. JWT 발급| FE
-
-    FE -->|8. API 요청<br/>(Bearer Token)| AC
-    AC -->|9. 토큰 검증| AO
-    AC -->|10. 데이터 조회| DB
-    AC -->|11. 응답| FE
-
-    style FE fill:#e1f5ff
-    style KAFKA fill:#fff4e1
-    style DB fill:#f0f0f0
+```json
+{
+  "header": {
+    "alg": "HS256",
+    "kid": "key-2026-01"
+  },
+  "payload": {
+    "sub": "user-uuid-1234",
+    "iat": 1706000000,
+    "exp": 1706604800
+  }
+}
 ```
 
----
+**주요 클레임**:
+- `sub`: User UUID
+- `iat`: 발급 시간
+- `exp`: 만료 시간 (iat + 7일)
 
-## 🔍 참고 자료
+Refresh Token은 최소한의 정보만 포함하여 크기를 줄입니다. 역할이나 멤버십 정보는 갱신 시점에 DB에서 다시 조회하여 새로운 Access Token에 반영합니다.
 
-- [OAuth2 Authorization Code Flow RFC](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1)
-- [PKCE RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636)
-- [JWT RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519)
-- Spring Authorization Server Documentation
+### Key ID (kid)
 
----
+JWT 헤더의 `kid` 필드는 어떤 서명 키를 사용했는지 나타냅니다. 이를 통해 Key Rotation을 지원합니다.
 
-## 📝 변경 이력
+**Key Rotation 절차**:
+1. 새 키 생성 (예: `key-2026-02`)
+2. `JwtKeyEntity` 테이블에 새 키 추가
+3. `currentKeyId` 변경
+4. 이전 키의 `expiresAt` 설정 (새 키 발급 시작 시점 + 최대 토큰 수명)
+5. 모든 이전 토큰이 만료되면 이전 키 제거
 
-| 날짜 | 작성자 | 변경 내용 |
-|------|--------|-----------|
-| 2026-01-18 | Claude | 초기 문서 작성 |
+현재 시점에서 유효한 모든 키를 검증에 사용하므로, 키 교체 중에도 기존 토큰이 정상 작동합니다.
+
+## 9. Kafka 이벤트
+
+Auth Service에서 발행하는 Kafka 이벤트 목록입니다.
+
+| 토픽 | 이벤트 | 발행 시점 | 소비자 |
+|------|--------|----------|--------|
+| `user-signup` | `UserSignedUpEvent` | 회원가입 트랜잭션 커밋 후 | notification-service |
+
+### UserSignedUpEvent
+
+```json
+{
+  "userId": "user-uuid-1234",
+  "email": "user@example.com",
+  "nickname": "닉네임",
+  "timestamp": "2026-02-06T12:00:00Z"
+}
+```
+
+### 이벤트 발행 보장
+
+`UserSignupEventHandler`는 `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)`로 트랜잭션 커밋 후에만 이벤트를 발행합니다.
+
+**장점**:
+- DB 저장 실패 시 이벤트가 발행되지 않음 (일관성 보장)
+- 이벤트 발행 실패가 회원가입 트랜잭션에 영향을 주지 않음 (격리)
+
+**트레이드오프**:
+- 이벤트 발행 실패 시 재시도 메커니즘이 필요
+- 현재는 로그만 기록하며, 향후 Outbox Pattern 도입 검토
+
+### 이벤트 소비자
+
+**notification-service**:
+- 환영 이메일 발송
+- 환영 푸시 알림 발송
+
+## 10. 프론트엔드 연동
+
+### apiClient 인터셉터 (portal-shell)
+
+`apiClient`는 모든 API 요청에 대해 다음 작업을 수행합니다:
+
+**요청 인터셉터**:
+```javascript
+// 모든 요청에 Authorization 헤더 추가
+config.headers.Authorization = `Bearer ${accessToken}`;
+```
+
+**응답 인터셉터**:
+```javascript
+// 401 응답 시 자동 토큰 갱신
+if (error.response.status === 401) {
+  const newAccessToken = await refreshAccessToken();
+  // 원래 요청 재시도
+  originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+  return axios(originalRequest);
+}
+```
+
+### refreshAccessToken() 플로우
+
+```mermaid
+sequenceDiagram
+    participant API as API Request
+    participant I as Interceptor
+    participant AS as Auth Service
+    participant LS as LocalStorage
+    participant R as Router
+
+    API->>I: API 응답 401
+    I->>AS: POST /api/v1/auth/refresh (Cookie 포함)
+    alt 갱신 성공
+        AS-->>I: 200 {accessToken, refreshToken}
+        I->>LS: 새 accessToken 저장
+        I->>API: 원래 요청 재시도
+    else 갱신 실패
+        AS-->>I: 401 Unauthorized
+        I->>LS: 토큰 삭제
+        I->>R: 로그인 페이지로 리다이렉트
+    end
+```
+
+### HttpOnly Cookie
+
+Refresh Token은 HttpOnly Cookie로 저장되어 JavaScript에서 접근할 수 없습니다.
+
+**설정**:
+- `HttpOnly`: true (XSS 방지)
+- `Secure`: true (HTTPS only, local 개발 환경에서는 false)
+- `SameSite`: Lax (OAuth2 redirect 지원)
+- `Path`: /api/v1/auth
+- `Max-Age`: 604800 (7일)
+
+**장점**:
+- XSS 공격으로 토큰을 탈취할 수 없음
+- 브라우저가 자동으로 쿠키를 전송 (프론트엔드 코드 불필요)
+
+**트레이드오프**:
+- CSRF 공격에 취약할 수 있으나, SameSite=Lax로 일부 방어
+- 쿠키를 사용할 수 없는 환경 (모바일 앱)에서는 Body 방식 사용
+
+### 토큰 저장
+
+- **Access Token**: LocalStorage (또는 Memory)
+- **Refresh Token**: HttpOnly Cookie
+
+LocalStorage는 XSS에 취약하지만, Access Token의 짧은 수명(15분)으로 위험을 완화합니다. 더 높은 보안이 필요한 경우 Memory 저장을 고려할 수 있습니다.
+
+## 11. 관련 문서
+
+- [System Overview](./system-overview.md) - Auth Service 전체 아키텍처
+- [Security Mechanisms](./security-mechanisms.md) - 보안 메커니즘 상세
+- [Auth API](../../api/auth-service/auth-api.md) - REST API 명세
+- [ADR-008: JWT Stateless + Redis](../../adr/ADR-008-jwt-stateless-redis.md) - 아키텍처 결정 배경
