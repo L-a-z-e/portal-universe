@@ -20,7 +20,7 @@
 ## 관련 문서
 
 - [개발 가이드](../guides/development/) - 개발 가이드 문서
-- [E2E 테스트](../../../e2e-tests/) - Playwright E2E 테스트
+- [E2E 테스트](../../e2e-tests/) - Playwright E2E 테스트
 
 ---
 

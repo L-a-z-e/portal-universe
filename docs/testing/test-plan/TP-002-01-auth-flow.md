@@ -134,4 +134,4 @@ cd services/auth-service
 ## 관련 문서
 
 - [테스트 전략](../test-strategy.md)
-- [Architecture - Identity Model](../../../architecture/system/identity-model.md)
+- [Architecture - Identity Model](../../architecture/system/identity-model.md)
