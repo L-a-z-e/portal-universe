@@ -11,10 +11,15 @@ import java.util.Map;
 /**
  * Gateway에서 전달된 멤버십 정보를 하위 서비스에서 쉽게 사용하기 위한 유틸리티입니다.
  *
+ * <p>Gateway가 전달하는 X-User-Memberships 헤더의 enriched JSON 형식:</p>
+ * <pre>
+ *   {"user:blog": {"tier": "PRO", "order": 2}, "seller:shopping": {"tier": "GOLD", "order": 3}}
+ * </pre>
+ *
  * <p>사용 예시:</p>
  * <pre>
- *   String tier = MembershipContext.getTier(request, "shopping");
- *   boolean isPremium = MembershipContext.hasTierOrAbove(request, "shopping", "PREMIUM");
+ *   String tier = MembershipContext.getTier(request, "user:blog");
+ *   boolean isGold = MembershipContext.hasTierOrAbove(request, "seller:shopping", 3);
  * </pre>
  */
 @Slf4j
@@ -23,22 +28,16 @@ public final class MembershipContext {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String MEMBERSHIPS_ATTRIBUTE = "userMemberships";
 
-    private static final Map<String, Integer> TIER_ORDER = Map.of(
-            "FREE", 0,
-            "BASIC", 1,
-            "PREMIUM", 2,
-            "VIP", 3
-    );
-
     private MembershipContext() {}
 
     /**
-     * 현재 요청에서 전체 멤버십 맵을 추출합니다.
+     * 현재 요청에서 전체 멤버십 맵을 추출합니다 (enriched 형식).
      *
      * @param request HTTP 요청
-     * @return 서비스명 → 티어키 맵 (예: {"shopping": "PREMIUM", "blog": "FREE"})
+     * @return membershipGroup → {tier, order} 맵
      */
-    public static Map<String, String> getMemberships(HttpServletRequest request) {
+    @SuppressWarnings("unchecked")
+    public static Map<String, Map<String, Object>> getMemberships(HttpServletRequest request) {
         Object membershipsAttr = request.getAttribute(MEMBERSHIPS_ATTRIBUTE);
         if (membershipsAttr instanceof String json) {
             try {
@@ -51,28 +50,50 @@ public final class MembershipContext {
     }
 
     /**
-     * 특정 서비스의 멤버십 티어를 조회합니다.
+     * 특정 멤버십 그룹의 티어를 조회합니다.
      *
      * @param request HTTP 요청
-     * @param serviceName 서비스 이름 (예: "shopping")
-     * @return 티어 키 (예: "PREMIUM"), 없으면 "FREE"
+     * @param membershipGroup 멤버십 그룹 (예: "user:blog", "seller:shopping")
+     * @return 티어 키 (예: "PRO"), 없으면 null
      */
-    public static String getTier(HttpServletRequest request, String serviceName) {
-        return getMemberships(request).getOrDefault(serviceName, "FREE");
+    public static String getTier(HttpServletRequest request, String membershipGroup) {
+        Map<String, Object> membership = getMemberships(request).get(membershipGroup);
+        if (membership != null) {
+            Object tier = membership.get("tier");
+            return tier != null ? tier.toString() : null;
+        }
+        return null;
     }
 
     /**
-     * 특정 서비스에서 지정 티어 이상인지 확인합니다.
+     * 특정 멤버십 그룹의 sort_order를 조회합니다.
      *
      * @param request HTTP 요청
-     * @param serviceName 서비스 이름
-     * @param requiredTier 최소 필요 티어 (예: "PREMIUM")
+     * @param membershipGroup 멤버십 그룹
+     * @return sort_order 값, 없으면 -1
+     */
+    public static int getTierOrder(HttpServletRequest request, String membershipGroup) {
+        Map<String, Object> membership = getMemberships(request).get(membershipGroup);
+        if (membership != null) {
+            Object order = membership.get("order");
+            if (order instanceof Number num) {
+                return num.intValue();
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 특정 멤버십 그룹에서 지정 순서 이상인지 확인합니다.
+     * sort_order 값으로 비교합니다 (값이 클수록 상위 티어).
+     *
+     * @param request HTTP 요청
+     * @param membershipGroup 멤버십 그룹
+     * @param requiredOrder 최소 필요 sort_order
      * @return 조건 충족 여부
      */
-    public static boolean hasTierOrAbove(HttpServletRequest request, String serviceName, String requiredTier) {
-        String currentTier = getTier(request, serviceName);
-        int currentOrder = TIER_ORDER.getOrDefault(currentTier.toUpperCase(), 0);
-        int requiredOrder = TIER_ORDER.getOrDefault(requiredTier.toUpperCase(), 0);
+    public static boolean hasTierOrAbove(HttpServletRequest request, String membershipGroup, int requiredOrder) {
+        int currentOrder = getTierOrder(request, membershipGroup);
         return currentOrder >= requiredOrder;
     }
 }

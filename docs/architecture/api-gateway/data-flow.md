@@ -69,7 +69,8 @@ sequenceDiagram
     REDIS-->>JWT: false (유효)
 
     JWT->>JWT: Claims 파싱<br/>(sub, roles, memberships)
-    JWT->>JWT: X-User-Id, X-User-Roles 헤더 설정
+    JWT->>JWT: RoleHierarchyResolver로 역할 계층 확장
+    JWT->>JWT: X-User-Id, X-User-Roles, X-User-Effective-Roles 헤더 설정
     JWT->>JWT: SecurityContext에 Authentication 저장
 
     JWT->>SC: 통과 (authenticated)
@@ -108,6 +109,7 @@ sequenceDiagram
     Note over F: 1. Header Sanitization
     F->>F: X-User-Id 제거
     F->>F: X-User-Roles 제거
+    F->>F: X-User-Effective-Roles 제거
     F->>F: X-User-Memberships 제거
     F->>F: X-User-Nickname 제거
     F->>F: X-User-Name 제거
@@ -163,15 +165,20 @@ sequenceDiagram
         F-->>F: 401 GW-A005 "Token revoked"
     end
 
-    Note over F: 7. Claims → 헤더 변환
+    Note over F: 7. Role Hierarchy Resolution
+    F->>F: RoleHierarchyResolver 호출 (Redis 캐시 → auth-service)
+    F->>F: 원본 roles → effective roles 확장
+
+    Note over F: 8. Claims → 헤더 변환
     F->>F: sub → X-User-Id
-    F->>F: roles[] → X-User-Roles (쉼표 구분)
+    F->>F: roles[] → X-User-Roles (쉼표 구분, 원본)
+    F->>F: effectiveRoles[] → X-User-Effective-Roles (계층 확장)
     F->>F: memberships{} → X-User-Memberships (JSON)
     F->>F: nickname → X-User-Nickname (URL encoded)
     F->>F: username → X-User-Name (URL encoded)
 
-    Note over F: 8. SecurityContext 설정
-    F->>F: UsernamePasswordAuthenticationToken 생성<br/>(authorities = roles)
+    Note over F: 9. SecurityContext 설정
+    F->>F: UsernamePasswordAuthenticationToken 생성<br/>(authorities = effective roles)
     F->>F: ReactiveSecurityContextHolder에 저장
 ```
 

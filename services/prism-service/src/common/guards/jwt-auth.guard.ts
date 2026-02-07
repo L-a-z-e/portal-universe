@@ -32,8 +32,9 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    // X-User-Roles 파싱 (comma-separated: "ROLE_USER,ROLE_SELLER")
-    const rolesHeader = request.headers['x-user-roles'];
+    // X-User-Effective-Roles 우선, 없으면 X-User-Roles fallback
+    const effectiveRolesHeader = request.headers['x-user-effective-roles'];
+    const rolesHeader = effectiveRolesHeader || request.headers['x-user-roles'];
     const roles: string[] =
       typeof rolesHeader === 'string'
         ? rolesHeader
@@ -42,12 +43,15 @@ export class JwtAuthGuard implements CanActivate {
             .filter(Boolean)
         : [];
 
-    // X-User-Memberships 파싱 (Gateway에서 JSON 문자열로 전달: '{"shopping":"FREE","blog":"PREMIUM"}')
+    // X-User-Memberships 파싱 (enriched JSON: {"user:blog": {"tier": "PRO", "order": 2}})
     const membershipsHeader = request.headers['x-user-memberships'];
-    let memberships: Record<string, string> = {};
+    let memberships: Record<string, MembershipInfo> = {};
     if (typeof membershipsHeader === 'string') {
       try {
-        memberships = JSON.parse(membershipsHeader) as Record<string, string>;
+        memberships = JSON.parse(membershipsHeader) as Record<
+          string,
+          MembershipInfo
+        >;
       } catch {
         // fallback: ignore invalid JSON
       }
@@ -64,10 +68,15 @@ export class JwtAuthGuard implements CanActivate {
   }
 }
 
+export interface MembershipInfo {
+  tier: string;
+  order: number;
+}
+
 export interface RequestWithUser extends Request {
   user: {
     id: string;
     roles: string[];
-    memberships: Record<string, string>;
+    memberships: Record<string, MembershipInfo>;
   };
 }

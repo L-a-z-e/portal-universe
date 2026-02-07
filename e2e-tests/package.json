@@ -12,6 +12,7 @@
     "test:blog": "playwright test tests/blog/",
     "test:shopping": "playwright test tests/shopping/",
     "test:prism": "playwright test tests/prism/",
+    "test:admin-frontend": "playwright test tests/admin-frontend/",
     "test:debug": "playwright test --debug",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",

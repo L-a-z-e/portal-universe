@@ -13,14 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * RBAC 초기 데이터 시딩 및 기존 사용자 마이그레이션을 수행합니다.
- * 애플리케이션 시작 시 한 번만 실행되며, 이미 데이터가 존재하면 스킵합니다.
- */
 @Slf4j
 @Component
 @Order(1)
@@ -57,7 +52,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
     private void seedRoles() {
         log.info("Seeding roles...");
 
-        // Global roles
         RoleEntity userRole = roleEntityRepository.save(RoleEntity.builder()
                 .roleKey("ROLE_USER")
                 .displayName("User")
@@ -72,12 +66,13 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                 .system(true)
                 .build());
 
-        // Shopping service roles
-        roleEntityRepository.save(RoleEntity.builder()
-                .roleKey("ROLE_SELLER")
-                .displayName("Seller")
-                .description("Seller who can manage own products")
+        // Shopping service roles (hierarchy: SUPER_ADMIN → SHOPPING_ADMIN → SHOPPING_SELLER → USER)
+        RoleEntity shoppingSeller = roleEntityRepository.save(RoleEntity.builder()
+                .roleKey("ROLE_SHOPPING_SELLER")
+                .displayName("Shopping Seller")
+                .description("Shopping service seller who can manage own products")
                 .serviceScope("shopping")
+                .membershipGroup(MembershipGroupConstants.SELLER_SHOPPING)
                 .parentRole(userRole)
                 .system(true)
                 .build());
@@ -87,17 +82,17 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                 .displayName("Shopping Admin")
                 .description("Shopping service administrator")
                 .serviceScope("shopping")
-                .parentRole(superAdmin)
+                .parentRole(shoppingSeller)
                 .system(true)
                 .build());
 
-        // Blog service roles
+        // Blog service roles (hierarchy: SUPER_ADMIN → BLOG_ADMIN → USER)
         roleEntityRepository.save(RoleEntity.builder()
                 .roleKey("ROLE_BLOG_ADMIN")
                 .displayName("Blog Admin")
                 .description("Blog service administrator")
                 .serviceScope("blog")
-                .parentRole(superAdmin)
+                .parentRole(userRole)
                 .system(true)
                 .build());
 
@@ -107,7 +102,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
     private void seedPermissions() {
         log.info("Seeding permissions...");
 
-        // Shopping permissions
         List<Map<String, String>> shoppingPermissions = List.of(
                 Map.of("key", "shopping:product:create", "resource", "product", "action", "create", "desc", "Create products"),
                 Map.of("key", "shopping:product:read", "resource", "product", "action", "read", "desc", "View products"),
@@ -133,7 +127,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                     .build());
         }
 
-        // Blog permissions
         List<Map<String, String>> blogPermissions = List.of(
                 Map.of("key", "blog:post:create", "resource", "post", "action", "create", "desc", "Create blog posts"),
                 Map.of("key", "blog:post:read", "resource", "post", "action", "read", "desc", "Read blog posts"),
@@ -155,7 +148,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                     .build());
         }
 
-        // Auth permissions
         List<Map<String, String>> authPermissions = List.of(
                 Map.of("key", "auth:role:manage", "resource", "role", "action", "manage", "desc", "Manage roles"),
                 Map.of("key", "auth:permission:manage", "resource", "permission", "action", "manage", "desc", "Manage permissions"),
@@ -181,7 +173,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
     private void mapRolePermissions() {
         log.info("Mapping role-permission relationships...");
 
-        // ROLE_USER: basic read permissions
         RoleEntity userRole = roleEntityRepository.findByRoleKey("ROLE_USER").orElseThrow();
         mapPermissions(userRole, List.of(
                 "shopping:product:read",
@@ -192,8 +183,7 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                 "blog:post:delete"
         ));
 
-        // ROLE_SELLER: product management + own analytics
-        RoleEntity sellerRole = roleEntityRepository.findByRoleKey("ROLE_SELLER").orElseThrow();
+        RoleEntity sellerRole = roleEntityRepository.findByRoleKey("ROLE_SHOPPING_SELLER").orElseThrow();
         mapPermissions(sellerRole, List.of(
                 "shopping:product:create",
                 "shopping:product:read",
@@ -203,7 +193,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                 "shopping:analytics:read"
         ));
 
-        // ROLE_SHOPPING_ADMIN: all shopping permissions
         RoleEntity shoppingAdmin = roleEntityRepository.findByRoleKey("ROLE_SHOPPING_ADMIN").orElseThrow();
         mapPermissions(shoppingAdmin, List.of(
                 "shopping:product:create",
@@ -220,7 +209,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                 "auth:seller:approve"
         ));
 
-        // ROLE_BLOG_ADMIN: all blog permissions
         RoleEntity blogAdmin = roleEntityRepository.findByRoleKey("ROLE_BLOG_ADMIN").orElseThrow();
         mapPermissions(blogAdmin, List.of(
                 "blog:post:create",
@@ -233,8 +221,6 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                 "blog:analytics:read"
         ));
 
-        // ROLE_SUPER_ADMIN: all permissions (no explicit mapping needed, checked by wildcard)
-        // But we map auth management permissions explicitly
         RoleEntity superAdmin = roleEntityRepository.findByRoleKey("ROLE_SUPER_ADMIN").orElseThrow();
         mapPermissions(superAdmin, List.of(
                 "auth:role:manage",
@@ -259,49 +245,51 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
     private void seedMembershipTiers() {
         log.info("Seeding membership tiers...");
 
-        // Shopping tiers
-        membershipTierRepository.save(MembershipTier.builder()
-                .serviceName("shopping").tierKey("FREE").displayName("Free")
-                .sortOrder(0).build());
-        membershipTierRepository.save(MembershipTier.builder()
-                .serviceName("shopping").tierKey("BASIC").displayName("Basic")
-                .priceMonthly(new BigDecimal("4900")).priceYearly(new BigDecimal("49000"))
-                .sortOrder(1).build());
-        membershipTierRepository.save(MembershipTier.builder()
-                .serviceName("shopping").tierKey("PREMIUM").displayName("Premium")
-                .priceMonthly(new BigDecimal("9900")).priceYearly(new BigDecimal("99000"))
-                .sortOrder(2).build());
-        membershipTierRepository.save(MembershipTier.builder()
-                .serviceName("shopping").tierKey("VIP").displayName("VIP")
-                .priceMonthly(new BigDecimal("19900")).priceYearly(new BigDecimal("199000"))
-                .sortOrder(3).build());
+        // user:shopping tiers
+        saveTierIfAbsent(MembershipGroupConstants.USER_SHOPPING, "FREE", "Free", null, null, 0);
+        saveTierIfAbsent(MembershipGroupConstants.USER_SHOPPING, "BASIC", "Basic",
+                new BigDecimal("4900"), new BigDecimal("49000"), 1);
+        saveTierIfAbsent(MembershipGroupConstants.USER_SHOPPING, "PREMIUM", "Premium",
+                new BigDecimal("9900"), new BigDecimal("99000"), 2);
+        saveTierIfAbsent(MembershipGroupConstants.USER_SHOPPING, "VIP", "VIP",
+                new BigDecimal("19900"), new BigDecimal("199000"), 3);
 
-        // Blog tiers
-        membershipTierRepository.save(MembershipTier.builder()
-                .serviceName("blog").tierKey("FREE").displayName("Free")
-                .sortOrder(0).build());
-        membershipTierRepository.save(MembershipTier.builder()
-                .serviceName("blog").tierKey("BASIC").displayName("Basic")
-                .priceMonthly(new BigDecimal("2900")).priceYearly(new BigDecimal("29000"))
-                .sortOrder(1).build());
-        membershipTierRepository.save(MembershipTier.builder()
-                .serviceName("blog").tierKey("PREMIUM").displayName("Premium")
-                .priceMonthly(new BigDecimal("5900")).priceYearly(new BigDecimal("59000"))
-                .sortOrder(2).build());
-        membershipTierRepository.save(MembershipTier.builder()
-                .serviceName("blog").tierKey("VIP").displayName("VIP")
-                .priceMonthly(new BigDecimal("9900")).priceYearly(new BigDecimal("99000"))
-                .sortOrder(3).build());
+        // user:blog tiers (FREE/PRO/MAX)
+        saveTierIfAbsent(MembershipGroupConstants.USER_BLOG, "FREE", "Free", null, null, 0);
+        saveTierIfAbsent(MembershipGroupConstants.USER_BLOG, "PRO", "Pro",
+                new BigDecimal("2900"), new BigDecimal("29000"), 1);
+        saveTierIfAbsent(MembershipGroupConstants.USER_BLOG, "MAX", "Max",
+                new BigDecimal("5900"), new BigDecimal("59000"), 2);
 
-        log.info("Seeded 8 membership tiers (4 shopping + 4 blog)");
+        // seller:shopping tiers (BRONZE/SILVER/GOLD/PLATINUM)
+        saveTierIfAbsent(MembershipGroupConstants.SELLER_SHOPPING, "BRONZE", "Bronze", null, null, 0);
+        saveTierIfAbsent(MembershipGroupConstants.SELLER_SHOPPING, "SILVER", "Silver",
+                new BigDecimal("29000"), new BigDecimal("290000"), 1);
+        saveTierIfAbsent(MembershipGroupConstants.SELLER_SHOPPING, "GOLD", "Gold",
+                new BigDecimal("59000"), new BigDecimal("590000"), 2);
+        saveTierIfAbsent(MembershipGroupConstants.SELLER_SHOPPING, "PLATINUM", "Platinum",
+                new BigDecimal("99000"), new BigDecimal("990000"), 3);
+
+        log.info("Seeded 11 membership tiers (4 user:shopping + 3 user:blog + 4 seller:shopping)");
+    }
+
+    private MembershipTier saveTierIfAbsent(String group, String tierKey, String displayName,
+                                             BigDecimal priceMonthly, BigDecimal priceYearly, int sortOrder) {
+        return membershipTierRepository.findByMembershipGroupAndTierKey(group, tierKey)
+                .orElseGet(() -> membershipTierRepository.save(MembershipTier.builder()
+                        .membershipGroup(group).tierKey(tierKey).displayName(displayName)
+                        .priceMonthly(priceMonthly).priceYearly(priceYearly).sortOrder(sortOrder)
+                        .build()));
     }
 
     private void migrateExistingUsers() {
         log.info("Migrating existing users to RBAC...");
 
         RoleEntity userRoleEntity = roleEntityRepository.findByRoleKey("ROLE_USER").orElseThrow();
-        MembershipTier shoppingFree = membershipTierRepository.findByServiceNameAndTierKey("shopping", "FREE").orElseThrow();
-        MembershipTier blogFree = membershipTierRepository.findByServiceNameAndTierKey("blog", "FREE").orElseThrow();
+        MembershipTier shoppingFree = membershipTierRepository
+                .findByMembershipGroupAndTierKey(MembershipGroupConstants.USER_SHOPPING, "FREE").orElseThrow();
+        MembershipTier blogFree = membershipTierRepository
+                .findByMembershipGroupAndTierKey(MembershipGroupConstants.USER_BLOG, "FREE").orElseThrow();
 
         List<User> allUsers = userRepository.findAll();
         int migratedCount = 0;
@@ -309,31 +297,28 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
         for (User user : allUsers) {
             String uuid = user.getUuid();
 
-            // Skip if already migrated
             if (!userRoleRepository.findByUserId(uuid).isEmpty()) {
                 continue;
             }
 
-            // Assign ROLE_USER to all users
             userRoleRepository.save(UserRole.builder()
                     .userId(uuid)
                     .role(userRoleEntity)
                     .assignedBy("SYSTEM_MIGRATION")
                     .build());
 
-            // Create default FREE memberships
-            if (!userMembershipRepository.existsByUserIdAndServiceName(uuid, "shopping")) {
+            if (!userMembershipRepository.existsByUserIdAndMembershipGroup(uuid, MembershipGroupConstants.USER_SHOPPING)) {
                 userMembershipRepository.save(UserMembership.builder()
                         .userId(uuid)
-                        .serviceName("shopping")
+                        .membershipGroup(MembershipGroupConstants.USER_SHOPPING)
                         .tier(shoppingFree)
                         .build());
             }
 
-            if (!userMembershipRepository.existsByUserIdAndServiceName(uuid, "blog")) {
+            if (!userMembershipRepository.existsByUserIdAndMembershipGroup(uuid, MembershipGroupConstants.USER_BLOG)) {
                 userMembershipRepository.save(UserMembership.builder()
                         .userId(uuid)
-                        .serviceName("blog")
+                        .membershipGroup(MembershipGroupConstants.USER_BLOG)
                         .tier(blogFree)
                         .build());
             }

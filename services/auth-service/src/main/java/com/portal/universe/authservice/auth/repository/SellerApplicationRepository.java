@@ -17,4 +17,6 @@ public interface SellerApplicationRepository extends JpaRepository<SellerApplica
     Page<SellerApplication> findByStatus(SellerApplicationStatus status, Pageable pageable);
 
     Page<SellerApplication> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    long countByStatus(SellerApplicationStatus status);
 }

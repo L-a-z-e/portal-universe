@@ -15,6 +15,7 @@ public final class AuthConstants {
         public static final String BEARER_PREFIX = "Bearer ";
         public static final String USER_ID = "X-User-Id";
         public static final String USER_ROLES = "X-User-Roles";
+        public static final String USER_EFFECTIVE_ROLES = "X-User-Effective-Roles";
         public static final String USER_MEMBERSHIPS = "X-User-Memberships";
         public static final String USER_NICKNAME = "X-User-Nickname";
         public static final String USER_NAME = "X-User-Name";
@@ -49,7 +50,9 @@ public final class AuthConstants {
         public static final String ROLE_USER = "ROLE_USER";
         public static final String ROLE_ADMIN = "ROLE_ADMIN";
         public static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
-        public static final String ROLE_SELLER = "ROLE_SELLER";
+        public static final String ROLE_SHOPPING_SELLER = "ROLE_SHOPPING_SELLER";
+        public static final String ROLE_SHOPPING_ADMIN = "ROLE_SHOPPING_ADMIN";
+        public static final String ROLE_BLOG_ADMIN = "ROLE_BLOG_ADMIN";
 
         private Roles() {}
     }

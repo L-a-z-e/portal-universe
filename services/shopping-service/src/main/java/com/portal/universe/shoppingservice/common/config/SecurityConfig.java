@@ -140,9 +140,9 @@ public class SecurityConfig {
 
                         // 상품 관리 (Seller도 가능)
                         .requestMatchers(HttpMethod.POST, "/products")
-                            .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                            .hasAnyAuthority("ROLE_SHOPPING_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/products/**")
-                            .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                            .hasAnyAuthority("ROLE_SHOPPING_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/products/**")
                             .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 

@@ -84,7 +84,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * JWT claims에서 roles를 복수 Authority로 파싱합니다.
-     * v2 (List): ["ROLE_USER", "ROLE_SELLER"] → 복수 Authority
+     * v2 (List): ["ROLE_USER", "ROLE_SHOPPING_SELLER"] → 복수 Authority
      */
     @SuppressWarnings("unchecked")
     private List<SimpleGrantedAuthority> parseAuthorities(Claims claims) {

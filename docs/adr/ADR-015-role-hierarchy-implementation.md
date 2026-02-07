@@ -1,7 +1,7 @@
 # ADR-015: Role Hierarchy 구현 방안
 
-**Status**: Proposed
-**Date**: Unknown
+**Status**: Accepted (Option A: Gateway 중심 Role Hierarchy — [ADR-021](./ADR-021-role-based-membership-restructure.md))
+**Date**: 2026-02-07
 
 ## Context
 `RoleEntity`에 `parentRole` 필드가 존재하지만 `RbacService`에서 활용하지 않고 있습니다. 현재 권한 검사는 각 역할을 flat하게 비교하는 방식입니다.
@@ -12,7 +12,7 @@
 - `parentRole` 필드가 사용되지 않아 데이터 모델과 실제 동작 불일치
 
 ## Decision
-현재 단계에서는 Role Hierarchy를 구현하지 않고, 향후 필요 시 다음 방안을 고려합니다.
+Gateway 중심 Role Hierarchy 해석을 채택합니다 (Option A: Spring Security RoleHierarchy 기반). Gateway가 DB `parentRole` 관계를 resolve하여 `X-User-Effective-Roles` 헤더로 하위 서비스에 전달합니다.
 
 ## Rationale
 - 현재 역할 수가 적어 수동 관리 가능 (5개: USER, SELLER, BLOG_ADMIN, SHOPPING_ADMIN, SUPER_ADMIN)

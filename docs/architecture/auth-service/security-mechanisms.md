@@ -4,9 +4,9 @@ title: Auth Service Security Mechanisms
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-07
 author: Laze
-tags: [architecture, security, rbac, password-policy, token, audit]
+tags: [architecture, security, rbac, password-policy, token, audit, role-hierarchy]
 related:
   - arch-system-overview
   - arch-data-flow
@@ -370,7 +370,7 @@ erDiagram
 
     MembershipTier {
         long id PK
-        string serviceName
+        string membershipGroup
         string tierName
         int tierLevel
     }
@@ -394,11 +394,11 @@ erDiagram
 
 | 엔티티 | 역할 |
 |--------|------|
-| `RoleEntity` | 역할 정의 (ROLE_USER, ROLE_SELLER 등) |
+| `RoleEntity` | 역할 정의 (ROLE_USER, ROLE_SHOPPING_SELLER 등) |
 | `UserRole` | 사용자-역할 매핑 (다대다 관계) |
 | `PermissionEntity` | 권한 정의 (product:create, order:read 등) |
 | `RolePermission` | 역할-권한 매핑 |
-| `MembershipTier` | 멤버십 티어 정의 (FREE, PREMIUM, VIP) |
+| `MembershipTier` | 멤버십 티어 정의 (membershipGroup별 FREE, PRO, MAX 등) |
 | `UserMembership` | 사용자-멤버십 매핑 |
 | `MembershipTierPermission` | 멤버십 티어-권한 매핑 |
 
@@ -407,7 +407,8 @@ erDiagram
 | Role Key | 설명 | System Role |
 |----------|------|-------------|
 | `ROLE_USER` | 일반 사용자 (기본 할당) | Yes |
-| `ROLE_SELLER` | 판매자 (셀러 승인 시 할당) | No |
+| `ROLE_SHOPPING_SELLER` | 판매자 (셀러 승인 시 할당) | No |
+| `ROLE_BLOG_ADMIN` | 블로그 관리자 | No |
 | `ROLE_SHOPPING_ADMIN` | 쇼핑 관리자 | No |
 | `ROLE_SUPER_ADMIN` | 최고 관리자 | Yes |
 
@@ -472,7 +473,7 @@ Access Token에 역할과 멤버십 정보를 포함하여 각 서비스에서 D
 {
   "sub": "user-uuid-1234",
   "email": "user@example.com",
-  "roles": ["ROLE_USER", "ROLE_SELLER"],
+  "roles": ["ROLE_USER", "ROLE_SHOPPING_SELLER"],
   "memberships": {
     "shopping": "PREMIUM",
     "blog": "FREE"
@@ -488,7 +489,7 @@ Gateway나 각 서비스에서:
 
 ```java
 // JWT Claims에서 직접 확인
-if (claims.getRoles().contains("ROLE_SELLER")) {
+if (claims.getRoles().contains("ROLE_SHOPPING_SELLER")) {
     // 판매자 기능 실행
 }
 
@@ -554,12 +555,12 @@ public void initializeNewUser(String userId) {
 flowchart LR
     A[사용자: 셀러 신청] --> B{PENDING 신청 존재?}
     B -->|Yes| C[에러: 이미 대기 중]
-    B -->|No| D{이미 ROLE_SELLER?}
+    B -->|No| D{이미 ROLE_SHOPPING_SELLER?}
     D -->|Yes| E[에러: 이미 할당됨]
     D -->|No| F[SellerApplication 생성<br/>상태: PENDING]
 
     F --> G[관리자: 심사]
-    G -->|승인| H[ROLE_SELLER<br/>자동 할당]
+    G -->|승인| H[ROLE_SHOPPING_SELLER<br/>자동 할당]
     G -->|거절| I[상태: REJECTED]
 
     H --> J[상태: APPROVED]
@@ -574,7 +575,7 @@ flowchart LR
 | 상태 | 설명 |
 |------|------|
 | `PENDING` | 심사 대기 중 |
-| `APPROVED` | 승인됨 (ROLE_SELLER 할당) |
+| `APPROVED` | 승인됨 (ROLE_SHOPPING_SELLER 할당) |
 | `REJECTED` | 거절됨 |
 
 ### 6.4 API 엔드포인트
@@ -598,7 +599,7 @@ flowchart LR
 관리자가 승인 시:
 
 1. `SellerApplication` 상태를 `APPROVED`로 변경
-2. `ROLE_SELLER` 자동 할당 (RbacService 호출)
+2. `ROLE_SHOPPING_SELLER` 자동 할당 (RbacService 호출)
 3. 감사 로그 기록 (`SELLER_APPLICATION_APPROVED`)
 4. (향후) 알림 발송
 
@@ -638,8 +639,8 @@ flowchart LR
 
 | 이벤트 | 설명 | 예시 상황 |
 |--------|------|----------|
-| `ROLE_ASSIGNED` | 역할 할당 | 관리자가 사용자에게 ROLE_SELLER 할당 |
-| `ROLE_REVOKED` | 역할 해제 | 관리자가 사용자의 ROLE_SELLER 해제 |
+| `ROLE_ASSIGNED` | 역할 할당 | 관리자가 사용자에게 ROLE_SHOPPING_SELLER 할당 |
+| `ROLE_REVOKED` | 역할 해제 | 관리자가 사용자의 ROLE_SHOPPING_SELLER 해제 |
 | `PERMISSION_ADDED` | 권한 추가 | 역할에 새 권한 추가 |
 | `PERMISSION_REMOVED` | 권한 제거 | 역할에서 권한 제거 |
 | `MEMBERSHIP_CREATED` | 멤버십 생성 | 회원가입 시 FREE 멤버십 자동 생성 |

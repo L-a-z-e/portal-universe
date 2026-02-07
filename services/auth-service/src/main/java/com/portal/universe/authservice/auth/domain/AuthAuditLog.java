@@ -29,7 +29,7 @@ public class AuthAuditLog {
     @Column(name = "event_type", nullable = false, length = 50)
     private AuditEventType eventType;
 
-    @Column(name = "target_user_id", nullable = false)
+    @Column(name = "target_user_id")
     private String targetUserId;
 
     @Column(name = "actor_user_id")

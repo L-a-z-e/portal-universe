@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 public record MembershipTierResponse(
         Long id,
-        String serviceName,
+        String membershipGroup,
         String tierKey,
         String displayName,
         BigDecimal priceMonthly,
@@ -16,7 +16,7 @@ public record MembershipTierResponse(
     public static MembershipTierResponse from(MembershipTier tier) {
         return new MembershipTierResponse(
                 tier.getId(),
-                tier.getServiceName(),
+                tier.getMembershipGroup(),
                 tier.getTierKey(),
                 tier.getDisplayName(),
                 tier.getPriceMonthly(),

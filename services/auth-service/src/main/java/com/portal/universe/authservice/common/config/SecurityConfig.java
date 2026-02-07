@@ -106,6 +106,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // 공개
                         .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()  // 내부망에서만 접근 (Gateway에서 차단)
                         .requestMatchers("/actuator/**").denyAll()  // 나머지는 차단
+                        // 내부 API (Gateway에서 직접 호출, 외부 비노출)
+                        .requestMatchers("/api/v1/internal/**").permitAll()
                         // 멤버십 티어 목록은 공개
                         .requestMatchers(HttpMethod.GET, "/api/memberships/tiers/**", "/api/v1/memberships/tiers/**").permitAll()
                         // 관리자 경로: RBAC 기반 접근 제어

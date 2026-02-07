@@ -142,6 +142,7 @@ public enum AuthErrorCode implements ErrorCode {
     ROLE_NOT_ASSIGNED(HttpStatus.NOT_FOUND, "A032", "Role not assigned to user"),
     SYSTEM_ROLE_CANNOT_BE_MODIFIED(HttpStatus.BAD_REQUEST, "A033", "System role cannot be modified or deleted"),
     PERMISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "A034", "Permission not found"),
+    ROLE_KEY_ALREADY_EXISTS(HttpStatus.CONFLICT, "A039", "Role key already exists"),
 
     // Membership
     MEMBERSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "A035", "Membership not found"),

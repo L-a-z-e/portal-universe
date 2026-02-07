@@ -8,6 +8,7 @@ public record RoleResponse(
         String displayName,
         String description,
         String serviceScope,
+        String membershipGroup,
         String parentRoleKey,
         boolean system,
         boolean active
@@ -19,6 +20,7 @@ public record RoleResponse(
                 entity.getDisplayName(),
                 entity.getDescription(),
                 entity.getServiceScope(),
+                entity.getMembershipGroup(),
                 entity.getParentRole() != null ? entity.getParentRole().getRoleKey() : null,
                 entity.isSystem(),
                 entity.isActive()

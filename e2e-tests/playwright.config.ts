@@ -39,21 +39,39 @@ export default defineConfig({
 
   /* 브라우저 설정 */
   projects: [
+    // Auth setup projects
+    {
+      name: 'admin-auth-setup',
+      testMatch: /auth-admin\.setup\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Browser projects
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: /\.setup\.ts/,
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      testIgnore: /\.setup\.ts/,
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      testIgnore: /\.setup\.ts/,
     },
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
+      testIgnore: /\.setup\.ts/,
+    },
+    // Admin frontend tests (depends on admin auth)
+    {
+      name: 'admin-frontend',
+      testDir: './tests/admin-frontend',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['admin-auth-setup'],
     },
   ],
 

@@ -4,14 +4,21 @@ import com.portal.universe.authservice.auth.domain.*;
 import com.portal.universe.authservice.auth.dto.rbac.*;
 import com.portal.universe.authservice.auth.repository.*;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
+import com.portal.universe.authservice.user.domain.UserStatus;
+import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -27,9 +34,32 @@ public class RbacService {
     private final RoleEntityRepository roleEntityRepository;
     private final UserRoleRepository userRoleRepository;
     private final RolePermissionRepository rolePermissionRepository;
+    private final PermissionRepository permissionRepository;
     private final MembershipTierPermissionRepository membershipTierPermissionRepository;
+    private final MembershipTierRepository membershipTierRepository;
     private final UserMembershipRepository userMembershipRepository;
     private final AuthAuditLogRepository auditLogRepository;
+    private final UserRepository userRepository;
+    private final SellerApplicationRepository sellerApplicationRepository;
+
+    private static final Pattern UUID_PATTERN =
+            Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-.*");
+
+    /**
+     * 사용자를 검색합니다.
+     * query가 비어있으면 전체 목록, UUID 패턴이면 exact match, 그 외 LIKE 검색.
+     */
+    public Page<AdminUserResponse> searchUsers(String query, Pageable pageable) {
+        if (query == null || query.isBlank()) {
+            return userRepository.findAllBy(pageable).map(AdminUserResponse::from);
+        }
+        if (UUID_PATTERN.matcher(query.trim()).matches()) {
+            return userRepository.findByUuidWithProfile(query.trim())
+                    .map(u -> (Page<AdminUserResponse>) new PageImpl<>(List.of(AdminUserResponse.from(u)), pageable, 1))
+                    .orElseGet(() -> new PageImpl<>(List.of(), pageable, 0));
+        }
+        return userRepository.searchByQuery(query.trim(), pageable).map(AdminUserResponse::from);
+    }
 
     /**
      * 모든 활성 역할을 조회합니다.
@@ -37,6 +67,133 @@ public class RbacService {
     public List<RoleResponse> getAllActiveRoles() {
         return roleEntityRepository.findByActiveTrue().stream()
                 .map(RoleResponse::from)
+                .toList();
+    }
+
+    /**
+     * 역할 상세 정보를 권한 목록과 함께 조회합니다.
+     */
+    public RoleDetailResponse getRoleDetail(String roleKey) {
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        List<PermissionEntity> permissions = rolePermissionRepository.findByRole(role).stream()
+                .map(RolePermission::getPermission)
+                .toList();
+        return RoleDetailResponse.from(role, permissions);
+    }
+
+    /**
+     * 새 역할을 생성합니다.
+     */
+    @Transactional
+    public RoleResponse createRole(CreateRoleRequest request, String createdBy) {
+        if (roleEntityRepository.existsByRoleKey(request.roleKey())) {
+            throw new CustomBusinessException(AuthErrorCode.ROLE_KEY_ALREADY_EXISTS);
+        }
+
+        RoleEntity parentRole = null;
+        if (request.parentRoleKey() != null && !request.parentRoleKey().isBlank()) {
+            parentRole = roleEntityRepository.findByRoleKey(request.parentRoleKey())
+                    .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        }
+
+        RoleEntity role = RoleEntity.builder()
+                .roleKey(request.roleKey())
+                .displayName(request.displayName())
+                .description(request.description())
+                .serviceScope(request.serviceScope())
+                .membershipGroup(request.membershipGroup())
+                .parentRole(parentRole)
+                .system(false)
+                .build();
+
+        RoleEntity saved = roleEntityRepository.save(role);
+        logAudit(AuditEventType.ROLE_ASSIGNED, createdBy, null, "Role created: " + request.roleKey());
+        log.info("Role created: roleKey={}, by={}", request.roleKey(), createdBy);
+        return RoleResponse.from(saved);
+    }
+
+    /**
+     * 역할의 displayName과 description을 수정합니다.
+     */
+    @Transactional
+    public RoleResponse updateRole(String roleKey, UpdateRoleRequest request, String updatedBy) {
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        role.update(request.displayName(), request.description());
+        log.info("Role updated: roleKey={}, by={}", roleKey, updatedBy);
+        return RoleResponse.from(role);
+    }
+
+    /**
+     * 역할의 활성/비활성 상태를 토글합니다.
+     */
+    @Transactional
+    public RoleResponse toggleRoleActive(String roleKey, boolean active, String updatedBy) {
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        if (active) {
+            role.activate();
+        } else {
+            role.deactivate();
+        }
+        log.info("Role status changed: roleKey={}, active={}, by={}", roleKey, active, updatedBy);
+        return RoleResponse.from(role);
+    }
+
+    /**
+     * 역할에 할당된 권한 목록을 조회합니다.
+     */
+    public List<PermissionResponse> getRolePermissions(String roleKey) {
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        return rolePermissionRepository.findByRole(role).stream()
+                .map(rp -> PermissionResponse.from(rp.getPermission()))
+                .toList();
+    }
+
+    /**
+     * 역할에 권한을 할당합니다.
+     */
+    @Transactional
+    public void assignPermissionToRole(String roleKey, String permissionKey, String assignedBy) {
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        PermissionEntity permission = permissionRepository.findByPermissionKey(permissionKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.PERMISSION_NOT_FOUND));
+
+        if (rolePermissionRepository.existsByRoleAndPermissionId(role, permission.getId())) {
+            return;
+        }
+
+        rolePermissionRepository.save(new RolePermission(role, permission));
+        logAudit(AuditEventType.PERMISSION_ADDED, assignedBy, null,
+                "Permission " + permissionKey + " assigned to role " + roleKey);
+        log.info("Permission assigned: role={}, permission={}, by={}", roleKey, permissionKey, assignedBy);
+    }
+
+    /**
+     * 역할에서 권한을 해제합니다.
+     */
+    @Transactional
+    public void removePermissionFromRole(String roleKey, String permissionKey, String removedBy) {
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        PermissionEntity permission = permissionRepository.findByPermissionKey(permissionKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.PERMISSION_NOT_FOUND));
+
+        rolePermissionRepository.deleteByRoleAndPermissionId(role, permission.getId());
+        logAudit(AuditEventType.PERMISSION_REMOVED, removedBy, null,
+                "Permission " + permissionKey + " removed from role " + roleKey);
+        log.info("Permission removed: role={}, permission={}, by={}", roleKey, permissionKey, removedBy);
+    }
+
+    /**
+     * 모든 활성 권한 목록을 조회합니다.
+     */
+    public List<PermissionResponse> getAllActivePermissions() {
+        return permissionRepository.findByActiveTrue().stream()
+                .map(PermissionResponse::from)
                 .toList();
     }
 
@@ -68,12 +225,12 @@ public class RbacService {
         Map<String, String> memberships = new LinkedHashMap<>();
         List<UserMembership> activeMemberships = userMembershipRepository.findActiveByUserId(userId);
         for (UserMembership membership : activeMemberships) {
-            String serviceName = membership.getServiceName();
+            String membershipGroup = membership.getMembershipGroup();
             String tierKey = membership.getTier().getTierKey();
-            memberships.put(serviceName, tierKey);
+            memberships.put(membershipGroup, tierKey);
 
             List<String> tierPermissions = membershipTierPermissionRepository
-                    .findPermissionKeysByServiceAndTier(serviceName, tierKey);
+                    .findPermissionKeysByGroupAndTier(membershipGroup, tierKey);
             permissions.addAll(tierPermissions);
         }
 
@@ -141,6 +298,109 @@ public class RbacService {
                 "Role revoked: " + roleKey);
 
         log.info("Role revoked: userId={}, role={}, by={}", userId, roleKey, revokedBy);
+    }
+
+    /**
+     * 대시보드 통계를 조합하여 반환합니다.
+     */
+    public DashboardStatsResponse getDashboardStats() {
+        // 1. User stats
+        long totalUsers = userRepository.count();
+        Map<String, Long> userByStatus = new LinkedHashMap<>();
+        for (UserStatus status : UserStatus.values()) {
+            userByStatus.put(status.name(), userRepository.countByStatus(status));
+        }
+        var userStats = new DashboardStatsResponse.UserStats(totalUsers, userByStatus);
+
+        // 2. Role stats
+        List<RoleEntity> activeRoles = roleEntityRepository.findByActiveTrue();
+        int systemCount = (int) activeRoles.stream().filter(RoleEntity::isSystem).count();
+
+        Map<String, Long> roleCounts = new HashMap<>();
+        userRoleRepository.countGroupByRoleKey().forEach(row ->
+                roleCounts.put((String) row[0], (Long) row[1])
+        );
+
+        List<DashboardStatsResponse.RoleAssignmentCount> assignments = activeRoles.stream()
+                .map(r -> new DashboardStatsResponse.RoleAssignmentCount(
+                        r.getRoleKey(), r.getDisplayName(),
+                        roleCounts.getOrDefault(r.getRoleKey(), 0L)
+                ))
+                .toList();
+
+        var roleStats = new DashboardStatsResponse.RoleStats(activeRoles.size(), systemCount, assignments);
+
+        // 3. Membership stats
+        Map<String, List<MembershipTier>> tiersByGroup = membershipTierRepository.findByActiveTrue().stream()
+                .collect(Collectors.groupingBy(MembershipTier::getMembershipGroup));
+
+        Map<String, Map<String, Long>> membershipCounts = new HashMap<>();
+        userMembershipRepository.countActiveGroupByGroupAndTier().forEach(row -> {
+            String group = (String) row[0];
+            String tierKey = (String) row[1];
+            Long count = (Long) row[3];
+            membershipCounts.computeIfAbsent(group, k -> new HashMap<>()).put(tierKey, count);
+        });
+
+        List<String> knownGroups = List.of(
+                MembershipGroupConstants.USER_SHOPPING,
+                MembershipGroupConstants.USER_BLOG,
+                MembershipGroupConstants.SELLER_SHOPPING
+        );
+
+        List<DashboardStatsResponse.GroupStats> groupStatsList = knownGroups.stream().map(group -> {
+            Map<String, Long> tierCountMap = membershipCounts.getOrDefault(group, Map.of());
+            long activeCount = tierCountMap.values().stream().mapToLong(Long::longValue).sum();
+
+            List<MembershipTier> tiers = tiersByGroup.getOrDefault(group, List.of());
+            List<DashboardStatsResponse.TierCount> tierCountList = tiers.stream()
+                    .map(t -> new DashboardStatsResponse.TierCount(
+                            t.getTierKey(), t.getDisplayName(),
+                            tierCountMap.getOrDefault(t.getTierKey(), 0L)
+                    ))
+                    .toList();
+
+            return new DashboardStatsResponse.GroupStats(group, activeCount, tierCountList);
+        }).toList();
+
+        var membershipStats = new DashboardStatsResponse.MembershipStats(groupStatsList);
+
+        // 4. Seller stats
+        long pending = sellerApplicationRepository.countByStatus(SellerApplicationStatus.PENDING);
+        long approved = sellerApplicationRepository.countByStatus(SellerApplicationStatus.APPROVED);
+        long rejected = sellerApplicationRepository.countByStatus(SellerApplicationStatus.REJECTED);
+        var sellerStats = new DashboardStatsResponse.SellerStats(pending, approved, rejected);
+
+        // 5. Recent activity (최근 5건)
+        List<AuthAuditLog> recentLogs = auditLogRepository.findTop5ByOrderByCreatedAtDesc();
+        List<DashboardStatsResponse.RecentActivityItem> recentActivity = recentLogs.stream()
+                .map(l -> new DashboardStatsResponse.RecentActivityItem(
+                        l.getEventType().name(),
+                        l.getTargetUserId(),
+                        l.getActorUserId(),
+                        l.getDetails(),
+                        l.getCreatedAt() != null
+                                ? l.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null
+                ))
+                .toList();
+
+        return new DashboardStatsResponse(userStats, roleStats, membershipStats, sellerStats, recentActivity);
+    }
+
+    /**
+     * 전체 감사 로그를 페이징 조회합니다.
+     */
+    public Page<AuditLogResponse> getAuditLogs(Pageable pageable) {
+        return auditLogRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(AuditLogResponse::from);
+    }
+
+    /**
+     * 특정 사용자의 감사 로그를 페이징 조회합니다.
+     */
+    public Page<AuditLogResponse> getUserAuditLogs(String userId, Pageable pageable) {
+        return auditLogRepository.findByTargetUserId(userId, pageable)
+                .map(AuditLogResponse::from);
     }
 
     private void logAudit(AuditEventType eventType, String actorId, String targetUserId, String details) {

@@ -47,6 +47,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       icon: '🤖',
       description: 'AI 에이전트 오케스트레이션'
     },
+    {
+      name: 'Admin',
+      key: 'admin',
+      url: 'http://localhost:30004/assets/remoteEntry.js',
+      module: 'admin/bootstrap',
+      mountFn: 'mountAdminApp',
+      basePath: '/admin',
+      icon: '⚙️',
+      description: '관리 대시보드'
+    },
   ],
   docker: [
     {
@@ -79,6 +89,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       icon: '🤖',
       description: 'AI 에이전트 오케스트레이션'
     },
+    {
+      name: 'Admin',
+      key: 'admin',
+      url: import.meta.env.VITE_ADMIN_REMOTE_URL || 'http://localhost:30004/assets/remoteEntry.js',
+      module: 'admin/bootstrap',
+      mountFn: 'mountAdminApp',
+      basePath: '/admin',
+      icon: '⚙️',
+      description: '관리 대시보드'
+    },
   ],
   k8s: [
     {
@@ -110,6 +130,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       basePath: '/prism',
       icon: '🤖',
       description: 'AI 에이전트 오케스트레이션'
+    },
+    {
+      name: 'Admin',
+      key: 'admin',
+      url: import.meta.env.VITE_ADMIN_REMOTE_URL,
+      module: 'admin/bootstrap',
+      mountFn: 'mountAdminApp',
+      basePath: '/admin',
+      icon: '⚙️',
+      description: '관리 대시보드'
     },
   ]
 };

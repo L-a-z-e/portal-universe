@@ -39,19 +39,19 @@ public class DataInitializer {
         return args -> {
             // 일반 테스트 유저 생성 (ROLE_USER + FREE 멤버십)
             createTestUser(
-                    "test@example.com",
-                    "password123",
-                    "테스트유저",
-                    "홍길동",
+                    "test@test.com",
+                    "test1234",
+                    "테스트사용자",
+                    "laze",
                     false
             );
 
             // Admin 테스트 유저 생성 (ROLE_USER + ROLE_SUPER_ADMIN + FREE 멤버십)
             createTestUser(
-                    "admin@example.com",
-                    "admin123",
+                    "admin@test.com",
+                    "admin1234",
                     "관리자",
-                    "김관리",
+                    "laze",
                     true
             );
         };

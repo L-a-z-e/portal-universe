@@ -25,6 +25,14 @@ public class MembershipAdminController {
     private final MembershipService membershipService;
 
     /**
+     * 활성 멤버십 그룹 목록을 조회합니다.
+     */
+    @GetMapping("/groups")
+    public ResponseEntity<ApiResponse<List<String>>> getMembershipGroups() {
+        return ResponseEntity.ok(ApiResponse.success(membershipService.getAllMembershipGroups()));
+    }
+
+    /**
      * 특정 사용자의 멤버십 목록을 조회합니다.
      */
     @GetMapping("/users/{userId}")

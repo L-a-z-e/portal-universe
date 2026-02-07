@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import { authService } from '../services/authService';
@@ -49,7 +49,7 @@ const isCollapsed = ref(false);
 const isMobileOpen = ref(false);
 
 // Navigation items
-const navItems = [
+const baseNavItems = [
   {
     name: 'Home',
     path: '/',
@@ -89,6 +89,26 @@ const navItems = [
     ],
   },
 ];
+
+const adminNavItem = {
+  name: 'Admin',
+  path: '/admin',
+  icon: '⚙️',
+  children: [
+    { name: 'Dashboard', path: '/admin' },
+    { name: 'Users', path: '/admin/users' },
+    { name: 'Roles', path: '/admin/roles' },
+    { name: 'Memberships', path: '/admin/memberships' },
+  ],
+};
+
+const navItems = computed(() => {
+  const items = [...baseNavItems];
+  if (authStore.isAdmin) {
+    items.push(adminNavItem);
+  }
+  return items;
+});
 
 // Check if route is active
 const isActive = (path: string, exact = false) => {

@@ -25,7 +25,7 @@ API Gateway는 Portal Universe 플랫폼의 **단일 진입점(Single Entry Poin
 |---|------|------|
 | 1 | **라우팅** | 27개 라우트를 통해 7개 백엔드 서비스로 요청 분배 |
 | 2 | **JWT 인증** | HMAC-SHA256 서명 검증, 다중 키 로테이션 지원 |
-| 3 | **RBAC 인가** | 역할 기반 접근 제어 (SUPER_ADMIN, SHOPPING_ADMIN, BLOG_ADMIN, SELLER) |
+| 3 | **RBAC 인가** | 역할 기반 접근 제어 (SUPER_ADMIN, SHOPPING_ADMIN, BLOG_ADMIN, SHOPPING_SELLER) |
 | 4 | **Rate Limiting** | Redis Token Bucket 기반 5단계 속도 제한 |
 | 5 | **Circuit Breaker** | Resilience4j로 5개 서비스별 장애 격리 |
 | 6 | **보안 헤더** | CSP, HSTS, X-Frame-Options 등 8종 보안 헤더 주입 |
@@ -57,7 +57,10 @@ OAuth2 Resource Server가 아닌 **직접 구현한 `JwtAuthenticationFilter`**�
 - **skipJwtParsing**: JWT 파싱 자체를 건너뛰는 경로 (공개 경로여도 JWT가 있으면 파싱하여 사용자 정보 추출)
 
 ### 4. Header Sanitization
-외부에서 주입된 `X-User-*` 헤더를 필터 진입 시 제거하여 **Header Injection 공격**을 방지합니다. JWT 검증 후 게이트웨이가 직접 `X-User-Id`, `X-User-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name` 헤더를 설정합니다.
+외부에서 주입된 `X-User-*` 헤더를 필터 진입 시 제거하여 **Header Injection 공격**을 방지합니다. JWT 검증 후 게이트웨이가 직접 `X-User-Id`, `X-User-Roles`, `X-User-Effective-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name` 헤더를 설정합니다.
+
+### 4.1 Role Hierarchy Resolution
+`RoleHierarchyResolver`가 auth-service의 내부 API (`/api/v1/internal/role-hierarchy/effective-roles`)를 호출하여 JWT의 역할 목록을 계층적으로 확장합니다. 결과는 Redis에 5분간 캐시됩니다. `X-User-Roles`는 원본 역할, `X-User-Effective-Roles`는 계층 확장된 역할을 담습니다.
 
 ### 5. Redis 기반 Rate Limiting
 5종의 `RedisRateLimiter`와 3종의 `KeyResolver`를 조합하여 엔드포인트별 차별화된 속도 제한을 적용합니다. 개발 환경(local/docker)에서는 자동으로 완화된 제한을 적용합니다.
@@ -162,7 +165,7 @@ Spring Security WebFlux 보안 필터 체인을 구성합니다.
 | `/api/v1/admin/**` | SUPER_ADMIN |
 | `/api/v1/shopping/admin/**` | SHOPPING_ADMIN, SUPER_ADMIN |
 | `/api/v1/blog/admin/**` | BLOG_ADMIN, SUPER_ADMIN |
-| `/api/v1/shopping/seller/**` | SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
+| `/api/v1/shopping/seller/**` | SHOPPING_SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
 | 나머지 | authenticated (로그인 필요) |
 
 ### 4.2 JwtAuthenticationFilter
@@ -177,8 +180,9 @@ Spring Security WebFlux 보안 필터 체인을 구성합니다.
 4. JWT 헤더의 `kid`(Key ID) 추출 → 해당 키로 HMAC-SHA256 서명 검증
 5. Redis Token Blacklist 확인 (reactive)
 6. Claims에서 `roles`, `memberships`, `nickname`, `username` 추출
-7. `UsernamePasswordAuthenticationToken` 생성 (복수 Authority 지원)
-8. 하위 서비스 전달 헤더 설정: `X-User-Id`, `X-User-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name`
+7. `RoleHierarchyResolver`로 역할 계층 확장 (Redis 캐시, auth-service 내부 API 호출)
+8. `UsernamePasswordAuthenticationToken` 생성 (effective roles 기반 Authority)
+9. 하위 서비스 전달 헤더 설정: `X-User-Id`, `X-User-Roles`, `X-User-Effective-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name`
 
 **에러 응답**:
 
@@ -377,7 +381,7 @@ Rate Limiting 응답 헤더를 로깅하고, 429 응답 시 `Retry-After` 헤더
 | JWT Claim | 전달 헤더 | 비고 |
 |----------|----------|------|
 | `sub` | X-User-Id | UUID |
-| `roles` | X-User-Roles | 쉼표 구분 (예: `ROLE_USER,ROLE_SELLER`) |
+| `roles` | X-User-Roles | 쉼표 구분 (예: `ROLE_USER,ROLE_SHOPPING_SELLER`) |
 | `memberships` | X-User-Memberships | JSON 문자열 (예: `{"shopping":"PREMIUM"}`) |
 | `nickname` | X-User-Nickname | URL 인코딩 |
 | `username` | X-User-Name | URL 인코딩 |
@@ -392,7 +396,7 @@ Rate Limiting 응답 헤더를 로깅하고, 429 응답 시 `Retry-After` 헤더
 ### 6.3 Header Sanitization
 
 JwtAuthenticationFilter 진입 시 외부 주입된 헤더를 제거합니다:
-- `X-User-Id`, `X-User-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name`
+- `X-User-Id`, `X-User-Roles`, `X-User-Effective-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name`
 
 이를 통해 악의적인 클라이언트가 직접 X-User-Id 헤더를 설정하여 다른 사용자로 위장하는 것을 방지합니다.
 
