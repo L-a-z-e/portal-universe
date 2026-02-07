@@ -26,6 +26,8 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-018 | [Design System Single Source of Truth](./ADR-018-design-system-architecture.md) | Accepted | 2026-02-01 |
 | ADR-019 | [Frontend Design Refactoring](./ADR-019-frontend-design-refactoring.md) | Accepted | 2026-02-01 |
 | ADR-020 | [Redis Sorted Set 대기열 시스템](./ADR-020-shopping-queue-system.md) | Accepted | 2026-01-19 |
+| ADR-021 | [역할+서비스 복합 멤버십 재구조화](./ADR-021-role-based-membership-restructure.md) | Accepted | 2026-02-07 |
+| ADR-022 | [auth-service 도메인 경계 재정의](./ADR-022-auth-service-domain-boundary.md) | Accepted/Proposed | 2026-02-07 |
 
 ## 상태 정의
 
