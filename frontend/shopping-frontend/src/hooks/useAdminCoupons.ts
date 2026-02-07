@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { adminCouponApi } from '@/api/endpoints'
-import type { Coupon, CouponCreateRequest, PagedResponse } from '@/types'
+import type { Coupon, CouponCreateRequest, PageResponse } from '@/types'
 
 interface UseAdminCouponsOptions {
   page?: number
@@ -16,7 +16,7 @@ interface UseAdminCouponsOptions {
  */
 export function useAdminCoupons(options: UseAdminCouponsOptions = {}) {
   const { page = 0, size = 10 } = options
-  const [data, setData] = useState<PagedResponse<Coupon> | null>(null)
+  const [data, setData] = useState<PageResponse<Coupon> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 

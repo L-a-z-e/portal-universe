@@ -20,7 +20,7 @@ const tagError = ref<string | null>(null);
 
 // 포스트 상태
 const posts = ref<PostSummaryResponse[]>([]);
-const currentPage = ref(0);
+const currentPage = ref(1);
 const pageSize = ref(10);
 const totalPages = ref(0);
 const totalElements = ref(0);
@@ -76,7 +76,7 @@ async function loadTag() {
 }
 
 // 포스트 목록 로드
-async function loadPosts(page: number = 0, append: boolean = false) {
+async function loadPosts(page: number = 1, append: boolean = false) {
   try {
     if (append) {
       isLoadingMore.value = true;
@@ -93,15 +93,15 @@ async function loadPosts(page: number = 0, append: boolean = false) {
     );
 
     if (append) {
-      posts.value = [...posts.value, ...response.content];
+      posts.value = [...posts.value, ...response.items];
     } else {
-      posts.value = response.content;
+      posts.value = response.items;
     }
 
-    currentPage.value = response.number;
+    currentPage.value = response.page;
     totalPages.value = response.totalPages;
     totalElements.value = response.totalElements;
-    hasMore.value = !response.last;
+    hasMore.value = response.page < response.totalPages;
   } catch (err) {
     console.error('Failed to fetch posts:', err);
     error.value = '게시글 목록을 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.';
@@ -119,11 +119,11 @@ function loadMore() {
 
 // 새로고침
 function refresh() {
-  currentPage.value = 0;
+  currentPage.value = 1;
   posts.value = [];
   hasMore.value = true;
   loadTag();
-  loadPosts(0, false);
+  loadPosts(1, false);
 }
 
 // 게시글 클릭
@@ -163,7 +163,7 @@ function setupIntersectionObserver() {
 
 // 초기화
 onMounted(async () => {
-  await Promise.all([loadTag(), loadPosts(0, false)]);
+  await Promise.all([loadTag(), loadPosts(1, false)]);
   setupIntersectionObserver();
 });
 

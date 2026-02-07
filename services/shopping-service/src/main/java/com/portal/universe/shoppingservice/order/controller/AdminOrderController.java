@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.order.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.shoppingservice.order.dto.OrderResponse;
 import com.portal.universe.shoppingservice.order.service.AdminOrderService;
 import lombok.RequiredArgsConstructor;
@@ -33,12 +34,12 @@ public class AdminOrderController {
      * @return 주문 목록
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getOrders(
+    public ResponseEntity<ApiResponse<PageResponse<OrderResponse>>> getOrders(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(
-                ApiResponse.success(adminOrderService.getOrders(status, keyword, pageable)));
+                ApiResponse.success(PageResponse.from(adminOrderService.getOrders(status, keyword, pageable))));
     }
 
     /**

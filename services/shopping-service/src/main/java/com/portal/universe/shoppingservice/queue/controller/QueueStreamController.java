@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.queue.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.commonlibrary.response.SseEnvelope;
 import com.portal.universe.shoppingservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingservice.queue.service.QueueService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -91,11 +92,11 @@ public class QueueStreamController {
     private void sendStatusUpdate(SseEmitter emitter, String eventType, Long eventId, String entryToken) {
         try {
             QueueStatusResponse status = queueService.getQueueStatusByToken(entryToken);
-            String data = objectMapper.writeValueAsString(status);
+            SseEnvelope<QueueStatusResponse> envelope = SseEnvelope.of("queue-status", status);
 
             emitter.send(SseEmitter.event()
                 .name("queue-status")
-                .data(data));
+                .data(objectMapper.writeValueAsString(envelope)));
 
             // 입장 완료 또는 만료 시 연결 종료
             if (status.status() != com.portal.universe.shoppingservice.queue.domain.QueueStatus.WAITING) {

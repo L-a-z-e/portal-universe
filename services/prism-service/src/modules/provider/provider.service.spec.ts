@@ -100,7 +100,7 @@ describe('ProviderService', () => {
       const result = await service.findAll(userId, pagination);
 
       expect(result.items).toHaveLength(2);
-      expect(result.total).toBe(2);
+      expect(result.totalElements).toBe(2);
       expect(result.page).toBe(1);
       expect(result.size).toBe(20);
     });

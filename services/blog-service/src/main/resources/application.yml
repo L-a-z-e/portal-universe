@@ -9,6 +9,12 @@ spring:
   application:
     name: blog-service
 
+  # Pagination 1-based 설정
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+
   # JPA 공통 설정
   jpa:
     open-in-view: false

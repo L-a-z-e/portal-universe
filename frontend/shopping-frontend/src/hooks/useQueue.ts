@@ -106,7 +106,8 @@ export function useQueue(options: UseQueueOptions) {
 
     eventSource.addEventListener('queue-status', (event) => {
       try {
-        const data = JSON.parse(event.data) as QueueStatusResponse
+        const envelope = JSON.parse(event.data) as { type: string; data: QueueStatusResponse; timestamp: string }
+        const data = envelope.data
         setStatus(data)
 
         // 입장 완료 또는 만료 시 연결 종료

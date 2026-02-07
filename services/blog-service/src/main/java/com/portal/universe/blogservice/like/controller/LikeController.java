@@ -5,6 +5,7 @@ import com.portal.universe.blogservice.like.dto.LikeToggleResponse;
 import com.portal.universe.blogservice.like.dto.LikerResponse;
 import com.portal.universe.blogservice.like.service.LikeService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,12 +62,12 @@ public class LikeController {
             description = "해당 포스트를 좋아요한 사용자 목록을 페이징하여 조회합니다. 최신순으로 정렬됩니다."
     )
     @GetMapping("/likes")
-    public ApiResponse<Page<LikerResponse>> getLikers(
+    public ApiResponse<PageResponse<LikerResponse>> getLikers(
             @Parameter(description = "포스트 ID") @PathVariable String postId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable
     ) {
         Page<LikerResponse> response = likeService.getLikers(postId, pageable);
-        return ApiResponse.success(response);
+        return ApiResponse.success(PageResponse.from(response));
     }
 }

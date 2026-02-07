@@ -24,7 +24,7 @@ const query = ref('');
 const users = ref<AdminUserSummary[]>([]);
 const totalPages = ref(0);
 const totalElements = ref(0);
-const currentPage = ref(0);
+const currentPage = ref(1);
 const pageSize = 20;
 const listLoading = ref(false);
 const listError = ref('');
@@ -44,15 +44,15 @@ const detailError = ref('');
 const selectedRoleKey = ref<string | number | null>(null);
 const assignLoading = ref(false);
 
-async function loadUsers(page = 0) {
+async function loadUsers(page = 1) {
   listLoading.value = true;
   listError.value = '';
   try {
     const result = await searchUsers(query.value, page, pageSize);
-    users.value = result.content;
+    users.value = result.items;
     totalPages.value = result.totalPages;
     totalElements.value = result.totalElements;
-    currentPage.value = result.number;
+    currentPage.value = result.page;
   } catch (err) {
     listError.value = 'Failed to load users.';
     console.error('[Admin] User search failed:', err);
@@ -63,13 +63,13 @@ async function loadUsers(page = 0) {
 
 function handleSearch() {
   selectedUser.value = null;
-  loadUsers(0);
+  loadUsers(1);
 }
 
 function handleClear() {
   query.value = '';
   selectedUser.value = null;
-  loadUsers(0);
+  loadUsers(1);
 }
 
 async function selectUser(user: AdminUserSummary) {
@@ -145,7 +145,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 onMounted(async () => {
-  await Promise.all([loadUsers(0), fetchRoles().then((r) => (allRoles.value = r))]);
+  await Promise.all([loadUsers(1), fetchRoles().then((r) => (allRoles.value = r))]);
 });
 </script>
 
@@ -237,13 +237,13 @@ onMounted(async () => {
         class="flex items-center justify-between px-4 py-3 border-t border-border-default"
       >
         <span class="text-xs text-text-meta">
-          Page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} users)
+          Page {{ currentPage }} of {{ totalPages }} ({{ totalElements }} users)
         </span>
         <div class="flex gap-2">
           <Button
             variant="outline"
             size="sm"
-            :disabled="currentPage === 0"
+            :disabled="currentPage === 1"
             @click="loadUsers(currentPage - 1)"
           >
             Prev
@@ -251,7 +251,7 @@ onMounted(async () => {
           <Button
             variant="outline"
             size="sm"
-            :disabled="currentPage >= totalPages - 1"
+            :disabled="currentPage >= totalPages"
             @click="loadUsers(currentPage + 1)"
           >
             Next

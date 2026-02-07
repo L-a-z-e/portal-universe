@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { adminOrderApi } from '@/api/endpoints'
-import type { Order, PagedResponse } from '@/types'
+import type { Order, PageResponse } from '@/types'
 
 interface UseAdminOrdersOptions {
   page?: number
@@ -15,7 +15,7 @@ interface UseAdminOrdersOptions {
 
 export function useAdminOrders(options: UseAdminOrdersOptions = {}) {
   const { page = 0, size = 20, status, keyword } = options
-  const [data, setData] = useState<PagedResponse<Order> | null>(null)
+  const [data, setData] = useState<PageResponse<Order> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 

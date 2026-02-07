@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { stockMovementApi } from '@/api/endpoints'
-import type { StockMovement, PagedResponse } from '@/types'
+import type { StockMovement, PageResponse } from '@/types'
 
 interface UseAdminStockMovementsOptions {
   productId: number | null
@@ -14,7 +14,7 @@ interface UseAdminStockMovementsOptions {
 
 export function useAdminStockMovements(options: UseAdminStockMovementsOptions) {
   const { productId, page = 0, size = 20 } = options
-  const [data, setData] = useState<PagedResponse<StockMovement> | null>(null)
+  const [data, setData] = useState<PageResponse<StockMovement> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 

@@ -4,14 +4,14 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { adminProductApi } from '@/api/endpoints'
-import type { ProductFilters, ProductFormData, PagedResponse } from '@/types/admin'
+import type { ProductFilters, ProductFormData, PageResponse } from '@/types/admin'
 import type { Product } from '@/types'
 
 /**
  * Admin 상품 목록 조회 Hook
  */
 export const useAdminProducts = (filters: ProductFilters) => {
-  const [data, setData] = useState<PagedResponse<Product> | null>(null)
+  const [data, setData] = useState<PageResponse<Product> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 

@@ -57,7 +57,7 @@ export class SseService {
       map((event) => ({
         data: JSON.stringify({
           type: event.type,
-          payload: event.payload,
+          data: event.payload,
           timestamp: event.timestamp,
         }),
         type: event.type,

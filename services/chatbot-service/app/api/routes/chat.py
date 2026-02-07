@@ -85,6 +85,14 @@ async def stream_message(
         content=request.message,
     )
 
+    def _wrap_envelope(event_type: str, payload: dict) -> dict:
+        envelope = {
+            "type": event_type,
+            "data": payload,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return {"event": event_type, "data": json.dumps(envelope, ensure_ascii=False)}
+
     async def event_generator():
         full_answer = []
         sources: list[dict] = []
@@ -92,10 +100,10 @@ async def stream_message(
         async for event in rag_engine.query_stream(request.message):
             if event["type"] == "token":
                 full_answer.append(event["content"])
-                yield {"data": json.dumps(event, ensure_ascii=False)}
+                yield _wrap_envelope("token", event)
             elif event["type"] == "sources":
                 sources = event["sources"]
-                yield {"data": json.dumps(event, ensure_ascii=False)}
+                yield _wrap_envelope("sources", event)
             elif event["type"] == "done":
                 # assistant 메시지 저장
                 answer_text = "".join(full_answer)
@@ -120,7 +128,7 @@ async def stream_message(
                     "message_id": message_id,
                     "conversation_id": conversation_id,
                 }
-                yield {"data": json.dumps(done_event, ensure_ascii=False)}
+                yield _wrap_envelope("done", done_event)
 
     return EventSourceResponse(event_generator())
 

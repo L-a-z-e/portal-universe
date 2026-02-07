@@ -39,7 +39,7 @@ const tabItems = computed<TabItem[]>(() => {
 
 // 일반 목록 상태
 const posts = ref<PostSummaryResponse[]>([]);
-const currentPage = ref(0);
+const currentPage = ref(1);
 const pageSize = ref(10);
 const totalPages = ref(0);
 const totalElements = ref(0);
@@ -92,7 +92,7 @@ const totalCount = computed(() => {
 });
 
 // 일반 게시글 목록 로드
-async function loadPosts(page: number = 0, append: boolean = false) {
+async function loadPosts(page: number = 1, append: boolean = false) {
   try {
     if (append) {
       isLoadingMore.value = true;
@@ -113,24 +113,11 @@ async function loadPosts(page: number = 0, append: boolean = false) {
       // 팔로잉이 없으면 빈 응답 반환
       if (followStore.followingIds.length === 0) {
         response = {
-          content: [],
-          number: 0,
+          items: [],
+          page: 1,
           size: pageSize.value,
           totalElements: 0,
           totalPages: 0,
-          first: true,
-          last: true,
-          empty: true,
-          numberOfElements: 0,
-          pageable: {
-            pageNumber: 0,
-            pageSize: pageSize.value,
-            sort: { empty: true, sorted: false, unsorted: true },
-            offset: 0,
-            paged: true,
-            unpaged: false,
-          },
-          sort: { empty: true, sorted: false, unsorted: true },
         };
       } else {
         response = await getFeed(followStore.followingIds, page, pageSize.value);
@@ -142,15 +129,15 @@ async function loadPosts(page: number = 0, append: boolean = false) {
     }
 
     if (append) {
-      posts.value = [...posts.value, ...response.content];
+      posts.value = [...posts.value, ...response.items];
     } else {
-      posts.value = response.content;
+      posts.value = response.items;
     }
 
-    currentPage.value = response.number;
+    currentPage.value = response.page;
     totalPages.value = response.totalPages;
     totalElements.value = response.totalElements;
-    hasMore.value = !response.last;
+    hasMore.value = response.page < response.totalPages;
 
   } catch (err) {
     console.error('Failed to fetch posts:', err);
@@ -178,10 +165,10 @@ function refresh() {
   if (isSearchMode.value) {
     searchStore.search(searchStore.keyword);
   } else {
-    currentPage.value = 0;
+    currentPage.value = 1;
     posts.value = [];
     hasMore.value = true;
-    loadPosts(0, false);
+    loadPosts(1, false);
   }
 }
 
@@ -195,7 +182,7 @@ function handleClearSearch() {
   searchStore.clear();
   // 일반 목록이 비어있으면 다시 로드
   if (posts.value.length === 0) {
-    loadPosts(0, false);
+    loadPosts(1, false);
   }
 }
 
@@ -209,14 +196,14 @@ function changeTab(tab: TabType) {
   if (currentTab.value === tab) return;
 
   currentTab.value = tab;
-  currentPage.value = 0;
+  currentPage.value = 1;
   posts.value = [];
   hasMore.value = true;
 
   // URL 쿼리 업데이트
   updateQueryParams();
 
-  loadPosts(0, false);
+  loadPosts(1, false);
 }
 
 // 기간 변경
@@ -224,14 +211,14 @@ function changePeriod(period: PeriodType) {
   if (currentPeriod.value === period) return;
 
   currentPeriod.value = period;
-  currentPage.value = 0;
+  currentPage.value = 1;
   posts.value = [];
   hasMore.value = true;
 
   // URL 쿼리 업데이트
   updateQueryParams();
 
-  loadPosts(0, false);
+  loadPosts(1, false);
 }
 
 // URL 쿼리 파라미터 업데이트
@@ -291,7 +278,7 @@ function setupIntersectionObserver() {
 // 초기화
 onMounted(async () => {
   initializeFromQuery();
-  await loadPosts(0, false);
+  await loadPosts(1, false);
   setupIntersectionObserver();
 });
 

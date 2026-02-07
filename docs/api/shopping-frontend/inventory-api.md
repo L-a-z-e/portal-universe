@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, shopping, frontend, inventory, sse, admin]
 related: [api-shopping-types, api-shopping-product]
@@ -175,7 +175,7 @@ getStreamUrl(productIds: number[]): string
 getMovements(productId: number, page = 0, size = 20): Promise<ApiResponse<PagedResponse<StockMovement>>>
 ```
 
-**Endpoint**: `GET /api/v1/shopping/inventory/{productId}/movements?page=0&size=20`
+**Endpoint**: `GET /api/v1/shopping/inventory/{productId}/movements?page=1&size=20`
 
 **Response**
 
@@ -183,7 +183,7 @@ getMovements(productId: number, page = 0, size = 20): Promise<ApiResponse<PagedR
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 1,
         "inventoryId": 1,
@@ -201,6 +201,8 @@ getMovements(productId: number, page = 0, size = 20): Promise<ApiResponse<PagedR
         "createdAt": "2026-02-06T11:00:00Z"
       }
     ],
+    "page": 1,
+    "size": 20,
     "totalElements": 50,
     "totalPages": 3
   }

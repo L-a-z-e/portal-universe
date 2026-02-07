@@ -1,9 +1,9 @@
 // blog-frontend/src/api/posts.ts
 
 import apiClient from './index';
+import type { PageResponse } from '@portal/design-types';
 import type {
   ApiResponse,
-  PageResponse,
   PostResponse,
   PostSummaryResponse,
   PostCreateRequest,
@@ -64,7 +64,7 @@ export function getAllPosts(): Promise<PostResponse[]> {
 
 /** 발행된 게시물 목록 (페이징) */
 export async function getPublishedPosts(
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(BASE_PATH, {
@@ -76,7 +76,7 @@ export async function getPublishedPosts(
 /** 내 게시물 조회 */
 export async function getMyPosts(
   status?: string,
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
@@ -91,7 +91,7 @@ export async function getMyPosts(
 /** 작성자별 게시물 조회 */
 export async function getPostsByAuthor(
   authorId: string,
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
@@ -106,7 +106,7 @@ export async function getPostsByAuthor(
 /** 카테고리별 게시물 */
 export async function getPostsByCategory(
   category: string,
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
@@ -121,7 +121,7 @@ export async function getPostsByCategory(
 /** 태그별 게시물 */
 export async function getPostsByTags(
   tags: string[],
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
@@ -135,7 +135,7 @@ export async function getPostsByTags(
 
 /** 인기 게시물 */
 export async function getPopularPosts(
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
@@ -150,7 +150,7 @@ export async function getPopularPosts(
 /** 트렌딩 게시물 (기간별) */
 export async function getTrendingPosts(
   period: 'today' | 'week' | 'month' | 'year' = 'week',
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
@@ -195,7 +195,7 @@ export async function getPostWithViewIncrement(postId: string): Promise<PostResp
 /** 간단 검색 */
 export async function searchPosts(
   keyword: string,
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
@@ -304,7 +304,7 @@ export async function getPostNavigation(
  */
 export async function getFeed(
   followingIds: string[],
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(

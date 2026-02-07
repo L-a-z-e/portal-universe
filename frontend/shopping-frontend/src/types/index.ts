@@ -7,25 +7,8 @@
 // Common Types
 // ============================================
 
-export interface PageInfo {
-  page: number
-  size: number
-  totalElements: number
-  totalPages: number
-}
-
 // API types from canonical source
-export type { ApiResponse, ApiErrorResponse, ErrorDetails, FieldError } from '@portal/design-types'
-
-export interface PagedResponse<T> {
-  content: T[]
-  pageable: PageInfo
-  totalElements: number
-  totalPages: number
-  first: boolean
-  last: boolean
-  empty: boolean
-}
+export type { ApiResponse, ApiErrorResponse, ErrorDetails, FieldError, PageResponse } from '@portal/design-types'
 
 // ============================================
 // Address

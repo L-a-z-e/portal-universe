@@ -114,8 +114,8 @@ async function handleSearch() {
   searchLoading.value = true;
   showSearchResults.value = true;
   try {
-    const page = await searchUsers(q, 0, 10);
-    searchResults.value = page.content;
+    const page = await searchUsers(q, 1, 10);
+    searchResults.value = page.items;
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Failed to search users';
   } finally {

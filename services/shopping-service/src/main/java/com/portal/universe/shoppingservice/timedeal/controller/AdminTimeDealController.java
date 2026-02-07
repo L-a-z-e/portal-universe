@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.timedeal.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealCreateRequest;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealResponse;
 import com.portal.universe.shoppingservice.timedeal.service.TimeDealService;
@@ -27,9 +28,9 @@ public class AdminTimeDealController {
      * 전체 타임딜 목록을 페이징 조회합니다.
      */
     @GetMapping
-    public ApiResponse<Page<TimeDealResponse>> getTimeDeals(
+    public ApiResponse<PageResponse<TimeDealResponse>> getTimeDeals(
             @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
-        return ApiResponse.success(timeDealService.getAllTimeDeals(pageable));
+        return ApiResponse.success(PageResponse.from(timeDealService.getAllTimeDeals(pageable)));
     }
 
     /**

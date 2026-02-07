@@ -3,10 +3,10 @@
  * 관리자 기능에 필요한 타입들
  */
 
-import type { Product, PagedResponse } from './index'
+import type { Product, PageResponse } from './index'
 
-// Re-export PagedResponse for convenience
-export type { PagedResponse }
+// Re-export PageResponse for convenience
+export type { PageResponse }
 
 // ============================================
 // Product Admin Types

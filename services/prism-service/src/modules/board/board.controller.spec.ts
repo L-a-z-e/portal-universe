@@ -60,9 +60,9 @@ describe('BoardController', () => {
       const pagination = new PaginationDto();
       const expected: PaginatedResult<BoardResponseDto> = {
         items: [makeBoardResponse()],
-        total: 1,
         page: 1,
         size: 20,
+        totalElements: 1,
         totalPages: 1,
       };
       boardService.findAll.mockResolvedValue(expected);
@@ -76,9 +76,9 @@ describe('BoardController', () => {
     it('should pass includeArchived=true to service', async () => {
       boardService.findAll.mockResolvedValue({
         items: [],
-        total: 0,
         page: 1,
         size: 20,
+        totalElements: 0,
         totalPages: 0,
       });
 

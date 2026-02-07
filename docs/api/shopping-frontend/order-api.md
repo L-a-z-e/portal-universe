@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, shopping, frontend, order, payment, delivery, admin]
 related: [api-shopping-types, api-shopping-cart]
@@ -38,7 +38,7 @@ getOrders(page = 0, size = 10): Promise<ApiResponse<PagedResponse<Order>>>
 **Endpoint**
 
 ```http
-GET /api/v1/shopping/orders?page=0&size=10
+GET /api/v1/shopping/orders?page=1&size=10
 Authorization: Bearer {token}
 ```
 
@@ -48,7 +48,7 @@ Authorization: Bearer {token}
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 1,
         "orderNumber": "ORD-20260206-001",
@@ -79,6 +79,8 @@ Authorization: Bearer {token}
         "updatedAt": "2026-02-06T09:05:00Z"
       }
     ],
+    "page": 1,
+    "size": 10,
     "totalElements": 25,
     "totalPages": 3
   }
@@ -472,7 +474,7 @@ getOrders(params: {
 **Endpoint**
 
 ```http
-GET /api/v1/shopping/admin/orders?page=0&size=20&status=PAID
+GET /api/v1/shopping/admin/orders?page=1&size=20&status=PAID
 Authorization: Bearer {admin_token}
 ```
 

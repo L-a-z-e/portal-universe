@@ -38,7 +38,7 @@ const getMovementColor = (type: MovementType): string => {
 const AdminStockMovementPage: React.FC = () => {
   const [productIdInput, setProductIdInput] = useState('')
   const [productId, setProductId] = useState<number | null>(null)
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(1)
 
   const { data, isLoading, error } = useAdminStockMovements({
     productId,
@@ -51,7 +51,7 @@ const AdminStockMovementPage: React.FC = () => {
     const id = parseInt(productIdInput)
     if (!isNaN(id) && id > 0) {
       setProductId(id)
-      setPage(0)
+      setPage(1)
     }
   }
 
@@ -102,14 +102,14 @@ const AdminStockMovementPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-default">
-                {data.content.length === 0 ? (
+                {data.items.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-text-meta">
                       No stock movements found
                     </td>
                   </tr>
                 ) : (
-                  data.content.map((movement) => (
+                  data.items.map((movement) => (
                     <tr key={movement.id} className="hover:bg-bg-hover transition-colors">
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getMovementColor(movement.movementType)}`}>
@@ -153,17 +153,17 @@ const AdminStockMovementPage: React.FC = () => {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={data.first}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
               >
                 Previous
               </Button>
-              <span className="text-sm text-text-meta">{page + 1} / {data.totalPages}</span>
+              <span className="text-sm text-text-meta">{page} / {data.totalPages}</span>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setPage(p => Math.min(data.totalPages - 1, p + 1))}
-                disabled={data.last}
+                onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
+                disabled={page >= data.totalPages}
               >
                 Next
               </Button>

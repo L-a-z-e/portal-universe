@@ -5,7 +5,7 @@ import type { AuditLog, PageResponse } from '@/dto/admin';
 
 const userId = ref('');
 const searchedUserId = ref('');
-const page = ref(0);
+const page = ref(1);
 
 const data = ref<PageResponse<AuditLog> | null>(null);
 const loading = ref(true);
@@ -23,14 +23,14 @@ async function load() {
 
 function search() {
   searchedUserId.value = userId.value;
-  page.value = 0;
+  page.value = 1;
   load();
 }
 
 function clearFilter() {
   searchedUserId.value = '';
   userId.value = '';
-  page.value = 0;
+  page.value = 1;
   load();
 }
 
@@ -81,7 +81,7 @@ onMounted(load);
             <td colspan="5" class="p-4 text-center text-text-meta">Loading...</td>
           </tr>
           <tr
-            v-for="log in data?.content"
+            v-for="log in data?.items"
             :key="log.id"
             class="border-b border-border-default hover:bg-bg-elevated transition-colors"
           >
@@ -99,18 +99,18 @@ onMounted(load);
 
     <div v-if="data && data.totalPages > 1" class="flex justify-center gap-2 mt-4">
       <button
-        @click="page = Math.max(0, page - 1)"
-        :disabled="page === 0"
+        @click="page = Math.max(1, page - 1)"
+        :disabled="page === 1"
         class="px-3 py-1 border border-border-default rounded text-sm text-text-body disabled:opacity-30"
       >
         Prev
       </button>
       <span class="px-3 py-1 text-sm text-text-meta">
-        {{ page + 1 }} / {{ data.totalPages }}
+        {{ page }} / {{ data.totalPages }}
       </span>
       <button
-        @click="page = Math.min(data.totalPages - 1, page + 1)"
-        :disabled="page >= data.totalPages - 1"
+        @click="page = Math.min(data.totalPages, page + 1)"
+        :disabled="page >= data.totalPages"
         class="px-3 py-1 border border-border-default rounded text-sm text-text-body disabled:opacity-30"
       >
         Next

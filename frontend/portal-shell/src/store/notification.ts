@@ -12,7 +12,7 @@ export const useNotificationStore = defineStore('notification', () => {
   const isLoading = ref(false)
   const isDropdownOpen = ref(false)
   const hasMore = ref(true)
-  const currentPage = ref(0)
+  const currentPage = ref(1)
 
   // ==================== Getters ====================
   const hasUnread = computed(() => unreadCount.value > 0)
@@ -26,7 +26,7 @@ export const useNotificationStore = defineStore('notification', () => {
   /**
    * Fetch notifications (with pagination)
    */
-  async function fetchNotifications(page = 0, reset = false) {
+  async function fetchNotifications(page = 1, reset = false) {
     if (isLoading.value) return
     isLoading.value = true
 
@@ -34,13 +34,13 @@ export const useNotificationStore = defineStore('notification', () => {
       const response = await notificationService.getNotifications(page, 20)
 
       if (reset) {
-        notifications.value = response.content
+        notifications.value = response.items
       } else {
-        notifications.value = [...notifications.value, ...response.content]
+        notifications.value = [...notifications.value, ...response.items]
       }
 
-      currentPage.value = response.number
-      hasMore.value = !response.last
+      currentPage.value = response.page
+      hasMore.value = response.page < response.totalPages
     } catch (error) {
       console.error('[NotificationStore] Failed to fetch notifications:', error)
     } finally {
@@ -117,7 +117,7 @@ export const useNotificationStore = defineStore('notification', () => {
 
     // Fetch notifications when opening
     if (isDropdownOpen.value && notifications.value.length === 0) {
-      fetchNotifications(0, true)
+      fetchNotifications(1, true)
     }
   }
 
@@ -146,7 +146,7 @@ export const useNotificationStore = defineStore('notification', () => {
     isLoading.value = false
     isDropdownOpen.value = false
     hasMore.value = true
-    currentPage.value = 0
+    currentPage.value = 1
   }
 
   return {

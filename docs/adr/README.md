@@ -28,7 +28,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-020 | [Redis Sorted Set 대기열 시스템](./ADR-020-shopping-queue-system.md) | Accepted | 2026-01-19 |
 | ADR-021 | [역할+서비스 복합 멤버십 재구조화](./ADR-021-role-based-membership-restructure.md) | Accepted | 2026-02-07 |
 | ADR-022 | [auth-service 도메인 경계 재정의](./ADR-022-auth-service-domain-boundary.md) | Accepted/Proposed | 2026-02-07 |
-| ADR-023 | [API Response Wrapper 표준화](./ADR-023-api-response-wrapper-standardization.md) | Proposed | 2026-02-07 |
+| ADR-023 | [API Response Wrapper 표준화](./ADR-023-api-response-wrapper-standardization.md) | Deprecated | 2026-02-07 |
 | ADR-024 | [Controller 인증 파라미터 표준화](./ADR-024-controller-auth-parameter-standardization.md) | Proposed | 2026-02-07 |
 | ADR-025 | [Shopping Service 분산 데이터 정합성 전략](./ADR-025-distributed-data-consistency.md) | Proposed | 2026-02-07 |
 | ADR-026 | [Saga 보상 액션 실패 처리 정책](./ADR-026-saga-compensation-failure-policy.md) | Proposed | 2026-02-07 |
@@ -36,6 +36,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-028 | [SSE 실시간 엔드포인트 인증 방식](./ADR-028-sse-endpoint-authentication.md) | Proposed | 2026-02-07 |
 | ADR-029 | [Cross-cutting 보안 처리 계층 설계](./ADR-029-cross-cutting-security-layer.md) | Proposed | 2026-02-07 |
 | ADR-030 | [환경별 보안 프로파일 정책](./ADR-030-environment-security-profile.md) | Proposed | 2026-02-07 |
+| ADR-031 | [Unified API Response Strategy](./ADR-031-unified-api-response-strategy.md) | Accepted | 2026-02-08 |
 
 ## 상태 정의
 

@@ -1,9 +1,9 @@
 // blog-frontend/src/api/tags.ts
 
 import apiClient from './index';
+import type { PageResponse } from '@portal/design-types';
 import type {
   ApiResponse,
-  PageResponse,
   TagResponse,
   TagStatsResponse,
   PostSummaryResponse,
@@ -43,12 +43,12 @@ export async function getTagByName(tagName: string): Promise<TagResponse> {
 /**
  * 태그로 포스트 검색
  * @param tagName 태그명
- * @param page 페이지 번호 (기본값: 0)
+ * @param page 페이지 번호 (기본값: 1)
  * @param size 페이지 크기 (기본값: 10)
  */
 export async function getPostsByTag(
   tagName: string,
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(

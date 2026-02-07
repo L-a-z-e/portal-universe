@@ -153,7 +153,7 @@ describe('AgentService', () => {
       const result = await service.findAll(userId, pagination);
 
       expect(result.items).toHaveLength(2);
-      expect(result.total).toBe(2);
+      expect(result.totalElements).toBe(2);
     });
 
     it('should include provider relation', async () => {

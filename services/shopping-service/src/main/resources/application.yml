@@ -19,8 +19,11 @@ spring:
         order_inserts: true
         order_updates: true
 
-  # Redis 공통 설정
+  # Redis, Pagination 공통 설정
   data:
+    web:
+      pageable:
+        one-indexed-parameters: true
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}

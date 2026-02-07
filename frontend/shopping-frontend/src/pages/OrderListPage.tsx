@@ -12,7 +12,7 @@ import { Button, Spinner, Alert, Badge } from '@portal/design-system-react'
 
 const OrderListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
-  const currentPage = parseInt(searchParams.get('page') || '0')
+  const currentPage = parseInt(searchParams.get('page') || '1')
 
   // State
   const [orders, setOrders] = useState<Order[]>([])
@@ -27,7 +27,7 @@ const OrderListPage: React.FC = () => {
 
     try {
       const response = await orderApi.getOrders(currentPage, 10)
-      setOrders(response.data.content)
+      setOrders(response.data.items)
       setTotalPages(response.data.totalPages)
     } catch (err: any) {
       setError(err.response?.data?.error?.message || err.message || 'Failed to fetch orders')
@@ -193,19 +193,19 @@ const OrderListPage: React.FC = () => {
         <div className="flex items-center justify-center gap-2 mt-8">
           <Button
             onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 0}
+            disabled={currentPage === 1}
             variant="secondary"
           >
             Previous
           </Button>
 
           <span className="px-4 py-2 text-text-meta">
-            Page {currentPage + 1} of {totalPages}
+            Page {currentPage} of {totalPages}
           </span>
 
           <Button
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages - 1}
+            disabled={currentPage >= totalPages}
             variant="secondary"
           >
             Next

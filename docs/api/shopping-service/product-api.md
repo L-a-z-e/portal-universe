@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-07
+updated: 2026-02-08
 author: Laze
 tags: [api, shopping-service, product]
 related:
@@ -50,14 +50,14 @@ related:
 ### Request
 
 ```http
-GET /api/shopping/products?page=0&size=12
+GET /api/shopping/products?page=1&size=12
 ```
 
 ### Query Parameters
 
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
-| `page` | integer | ❌ | 페이지 번호 (0부터 시작) | 0 |
+| `page` | integer | ❌ | 페이지 번호 (1부터 시작) | 0 |
 | `size` | integer | ❌ | 페이지 크기 | 12 |
 
 ### Response (200 OK)
@@ -66,7 +66,7 @@ GET /api/shopping/products?page=0&size=12
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 1,
         "name": "Spring Boot 완벽 가이드",
@@ -82,26 +82,10 @@ GET /api/shopping/products?page=0&size=12
         "stock": 50
       }
     ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 12,
-      "sort": {
-        "sorted": false,
-        "unsorted": true,
-        "empty": true
-      },
-      "offset": 0,
-      "paged": true,
-      "unpaged": false
-    },
-    "totalElements": 45,
-    "totalPages": 4,
-    "last": false,
-    "first": true,
+    "page": 1,
     "size": 12,
-    "number": 0,
-    "numberOfElements": 2,
-    "empty": false
+    "totalElements": 45,
+    "totalPages": 4
   },
   "timestamp": "2026-01-30T10:30:00Z"
 }

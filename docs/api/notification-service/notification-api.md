@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-30
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, notification-service, notification, rest]
 related:
@@ -64,7 +64,7 @@ related:
 ### Request
 
 ```http
-GET /api/v1/notifications?page=0&size=20&sort=createdAt,desc
+GET /api/v1/notifications?page=1&size=20&sort=createdAt,desc
 X-User-Id: user-123
 ```
 
@@ -72,7 +72,7 @@ X-User-Id: user-123
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
 |----------|------|------|--------|------|
-| `page` | integer | - | 0 | 페이지 번호 (0부터 시작) |
+| `page` | integer | - | 0 | 페이지 번호 (1부터 시작) |
 | `size` | integer | - | 20 | 페이지당 항목 수 |
 | `sort` | string | - | `createdAt,desc` | 정렬 기준 |
 
@@ -82,7 +82,7 @@ X-User-Id: user-123
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 1,
         "userId": "user-123",
@@ -110,26 +110,10 @@ X-User-Id: user-123
         "readAt": "2026-02-05T16:00:00"
       }
     ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 20,
-      "sort": {
-        "sorted": true,
-        "unsorted": false,
-        "empty": false
-      },
-      "offset": 0,
-      "paged": true,
-      "unpaged": false
-    },
-    "totalElements": 45,
-    "totalPages": 3,
-    "last": false,
-    "first": true,
+    "page": 1,
     "size": 20,
-    "number": 0,
-    "numberOfElements": 20,
-    "empty": false
+    "totalElements": 45,
+    "totalPages": 3
   }
 }
 ```
@@ -145,7 +129,7 @@ X-User-Id: user-123
 ### Request
 
 ```http
-GET /api/v1/notifications/unread?page=0&size=20
+GET /api/v1/notifications/unread?page=1&size=20
 X-User-Id: user-123
 ```
 
@@ -153,7 +137,7 @@ X-User-Id: user-123
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
 |----------|------|------|--------|------|
-| `page` | integer | - | 0 | 페이지 번호 (0부터 시작) |
+| `page` | integer | - | 0 | 페이지 번호 (1부터 시작) |
 | `size` | integer | - | 20 | 페이지당 항목 수 |
 | `sort` | string | - | `createdAt,desc` | 정렬 기준 |
 
@@ -163,7 +147,7 @@ X-User-Id: user-123
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 1,
         "userId": "user-123",
@@ -178,13 +162,10 @@ X-User-Id: user-123
         "readAt": null
       }
     ],
-    "totalElements": 12,
-    "totalPages": 1,
-    "number": 0,
+    "page": 1,
     "size": 20,
-    "first": true,
-    "last": true,
-    "empty": false
+    "totalElements": 12,
+    "totalPages": 1
   }
 }
 ```
@@ -520,6 +501,9 @@ async function markAllAsRead(userId: string): Promise<number> {
 ---
 
 ## 변경 이력
+
+### v1.2.0 (2026-02-08)
+- 페이지네이션 응답 구조 변경 (ADR-031): content → items, number → page (1-based), Spring 내부 필드 제거
 
 ### v1.1.0 (2026-02-06)
 - API prefix `/api/notifications` -> `/api/v1/notifications` 수정

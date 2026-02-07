@@ -40,7 +40,7 @@ const getStatusColor = (status: OrderStatus): string => {
 
 const AdminOrderListPage: React.FC = () => {
   const navigate = useNavigate()
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
   const [keyword, setKeyword] = useState('')
   const [searchInput, setSearchInput] = useState('')
@@ -55,12 +55,12 @@ const AdminOrderListPage: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setKeyword(searchInput)
-    setPage(0)
+    setPage(1)
   }
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value)
-    setPage(0)
+    setPage(1)
   }
 
   const formatPrice = (price: number) =>
@@ -97,7 +97,7 @@ const AdminOrderListPage: React.FC = () => {
           />
           <Button type="submit" variant="primary" size="sm">Search</Button>
           {keyword && (
-            <Button type="button" variant="secondary" size="sm" onClick={() => { setKeyword(''); setSearchInput(''); setPage(0) }}>
+            <Button type="button" variant="secondary" size="sm" onClick={() => { setKeyword(''); setSearchInput(''); setPage(1) }}>
               Clear
             </Button>
           )}
@@ -134,14 +134,14 @@ const AdminOrderListPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-default">
-                {data.content.length === 0 ? (
+                {data.items.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-text-meta">
                       No orders found
                     </td>
                   </tr>
                 ) : (
-                  data.content.map((order) => (
+                  data.items.map((order) => (
                     <tr
                       key={order.id}
                       onClick={() => navigate(`/admin/orders/${order.orderNumber}`)}
@@ -180,19 +180,19 @@ const AdminOrderListPage: React.FC = () => {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={data.first}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
               >
                 Previous
               </Button>
               <span className="text-sm text-text-meta">
-                {page + 1} / {data.totalPages}
+                {page} / {data.totalPages}
               </span>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setPage(p => Math.min(data.totalPages - 1, p + 1))}
-                disabled={data.last}
+                onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
+                disabled={page >= data.totalPages}
               >
                 Next
               </Button>

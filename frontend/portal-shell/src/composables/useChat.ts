@@ -106,7 +106,8 @@ export function useChat() {
           if (!jsonStr) continue
 
           try {
-            const event: StreamEvent = JSON.parse(jsonStr)
+            const envelope = JSON.parse(jsonStr) as { type: string; data: StreamEvent; timestamp: string }
+            const event = envelope.data
 
             const assistantMsg = messages.value[assistantIdx]
             if (!assistantMsg) continue
