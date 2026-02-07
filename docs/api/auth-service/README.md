@@ -72,29 +72,27 @@
 | **Cookie 이름** | `portal_refresh_token` |
 | **Cookie 속성** | HttpOnly, Secure (local: false), SameSite=Lax |
 
-### Controller 현황
+### Controller 구성
 
-| Controller | Endpoints | 주요 기능 |
-|------------|-----------|----------|
-| AuthController | 4개 | 로그인, 토큰 갱신, 로그아웃, 비밀번호 정책 |
-| UserController | 7개 | 회원가입, 프로필, Username, 비밀번호 |
-| ProfileController | 4개 | 프로필 상세, 수정, 비밀번호, 탈퇴 |
-| FollowController | 5개 | 팔로우 토글, 팔로워/팔로잉 목록 |
-| RbacAdminController | 5개 | 역할/권한 관리 (SUPER_ADMIN) |
-| PermissionController | 1개 | 내 권한 조회 |
-| MembershipController | 5개 | 멤버십 조회/변경/취소 |
-| MembershipAdminController | 2개 | 멤버십 관리 (SUPER_ADMIN) |
-| SellerController | 2개 | 셀러 신청/상태 조회 |
-| SellerAdminController | 3개 | 셀러 심사 (SHOPPING_ADMIN) |
-| **합계** | **약 38개** | |
+| 카테고리 | Controllers | 주요 기능 |
+|---------|-------------|----------|
+| 인증 | AuthController | JWT 로그인/로그아웃, 토큰 갱신, 비밀번호 정책 |
+| 사용자 | UserController, ProfileController | 회원가입, 프로필 관리, Username, 비밀번호 변경, 탈퇴 |
+| 소셜 | FollowController | 팔로우/언팔로우, 팔로워/팔로잉 목록 |
+| RBAC 관리 | RbacAdminController, PermissionController | 역할/권한 CRUD, Dashboard, 감사 로그 |
+| 멤버십 | MembershipController, MembershipAdminController | 서비스별 티어, 조회/변경/취소 |
+| 셀러 | SellerController, SellerAdminController | 셀러 신청, 심사 워크플로우 |
+| 내부 | RoleHierarchyController | Gateway 역할 계층 해석 |
 
 ---
 
 ## 관련 문서
 
-- [Architecture Overview](../../architecture/system/system-overview.md)
-- [ADR-006: RBAC Authorization Strategy](../../adr/ADR-006-rbac-authorization.md)
-- [ADR-009: Membership System Design](../../adr/ADR-009-membership-system.md)
+- [Architecture Overview](../../architecture/auth-service/system-overview.md)
+- [ADR-003: Admin 권한 검증 전략](../../adr/ADR-003-authorization-strategy.md)
+- [ADR-008: JWT Stateless + Redis](../../adr/ADR-008-jwt-stateless-redis.md)
+- [ADR-015: Role Hierarchy 구현](../../adr/ADR-015-role-hierarchy-implementation.md)
+- [ADR-021: 역할 기반 멤버십 재구조화](../../adr/ADR-021-role-based-membership-restructure.md)
 
 ---
 
@@ -102,9 +100,10 @@
 
 | 날짜 | 변경사항 |
 |------|----------|
+| 2026-02-07 | Controller 수치 제거, 카테고리 요약으로 전환, ADR 링크 수정 |
 | 2026-02-06 | 전면 재작성: 코드베이스 기준 정확한 정보로 갱신 |
 | 2026-01-18 | 최초 API 문서 작성 (auth-api.md) |
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-07

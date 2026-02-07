@@ -10,8 +10,10 @@ author: Laze
 tags: [api, auth, oauth2, jwt, rbac, membership, follow, seller]
 related:
   - arch-system-overview
-  - ADR-006-rbac-authorization
-  - ADR-009-membership-system
+  - ADR-003-authorization-strategy
+  - ADR-008-jwt-stateless-redis
+  - ADR-021-role-based-membership-restructure
+  - ADR-015-role-hierarchy-implementation
 ---
 
 # Auth Service API
@@ -2881,29 +2883,31 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 
 ## 🔗 관련 문서
 
-- [ADR-006: RBAC Authorization Strategy](../../adr/ADR-006-rbac-authorization.md)
-- [ADR-009: Membership System Design](../../adr/ADR-009-membership-system.md)
-- [Architecture Overview](../../architecture/system/system-overview.md)
+- [ADR-003: Admin 권한 검증 전략](../../adr/ADR-003-authorization-strategy.md)
+- [ADR-008: JWT Stateless + Redis](../../adr/ADR-008-jwt-stateless-redis.md)
+- [ADR-015: Role Hierarchy 구현](../../adr/ADR-015-role-hierarchy-implementation.md)
+- [ADR-021: 역할 기반 멤버십 재구조화](../../adr/ADR-021-role-based-membership-restructure.md)
+- [Architecture Overview](../../architecture/auth-service/system-overview.md)
 
 ---
 
 ## 📝 변경 이력
 
+### v2.4.1 (2026-02-07)
+- 관련 문서 링크 수정 (존재하지 않는 ADR-006/009 → 실제 ADR-003/008/015/021)
+
 ### v2.4.0 (2026-02-07)
 - RbacAdminController에 역할 CRUD 8개 엔드포인트 추가 (상세, 생성, 수정, 상태변경, 권한 조회/할당/해제, 전체 권한 목록)
 - Section 5.10~5.17 추가
 - Error Code A039 (ROLE_KEY_ALREADY_EXISTS) 추가
-- Endpoint 수 ~46→~54
 
 ### v2.3.0 (2026-02-07)
 - RbacAdminController에 사용자 검색 API 추가 (`GET /api/v1/admin/rbac/users`)
 - AdminUserResponse DTO 추가 (email, username, nickname LIKE 검색 + UUID exact match)
-- Endpoint 수 ~45→~46
 
 ### v2.2.0 (2026-02-07)
 - RbacAdminController에 Dashboard Stats API 추가 (`GET /api/v1/admin/rbac/dashboard`)
 - RbacAdminController에 Audit Log API 추가 (`GET /api/v1/admin/rbac/audit`, `GET /api/v1/admin/rbac/users/{userId}/audit`)
-- Endpoint 수 ~42→~45
 
 ### v2.1.0 (2026-02-07)
 - **Membership Group 모델 전환**: `serviceName` → `membershipGroup` (format: `{role_scope}:{service}`)
