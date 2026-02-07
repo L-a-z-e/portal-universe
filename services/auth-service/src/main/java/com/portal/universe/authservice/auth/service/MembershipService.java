@@ -12,10 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * 멤버십 관리 비즈니스 로직을 담당합니다.
- * 사용자 멤버십 조회, 티어 변경, 취소 등을 수행합니다.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,98 +22,91 @@ public class MembershipService {
     private final MembershipTierRepository membershipTierRepository;
     private final AuthAuditLogRepository auditLogRepository;
 
-    /**
-     * 사용자의 모든 멤버십을 조회합니다.
-     */
     public List<MembershipResponse> getUserMemberships(String userId) {
         return userMembershipRepository.findByUserId(userId).stream()
                 .map(MembershipResponse::from)
                 .toList();
     }
 
-    /**
-     * 사용자의 특정 서비스 멤버십을 조회합니다.
-     */
-    public MembershipResponse getUserMembership(String userId, String serviceName) {
+    public MembershipResponse getUserMembership(String userId, String membershipGroup) {
         UserMembership membership = userMembershipRepository
-                .findByUserIdAndServiceName(userId, serviceName)
+                .findByUserIdAndMembershipGroup(userId, membershipGroup)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.MEMBERSHIP_NOT_FOUND));
         return MembershipResponse.from(membership);
     }
 
-    /**
-     * 서비스별 사용 가능한 멤버십 티어를 조회합니다.
-     */
-    public List<MembershipTierResponse> getServiceTiers(String serviceName) {
-        return membershipTierRepository.findByServiceNameOrderBySortOrder(serviceName).stream()
+    public List<String> getAllMembershipGroups() {
+        return membershipTierRepository.findByActiveTrue().stream()
+                .map(MembershipTier::getMembershipGroup)
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
+    public List<MembershipTierResponse> getGroupTiers(String membershipGroup) {
+        return membershipTierRepository.findByMembershipGroupOrderBySortOrder(membershipGroup).stream()
                 .map(MembershipTierResponse::from)
                 .toList();
     }
 
-    /**
-     * 사용자의 멤버십 티어를 변경합니다.
-     */
     @Transactional
     public MembershipResponse changeMembershipTier(String userId, ChangeMembershipRequest request) {
+        MembershipGroupConstants.validate(request.membershipGroup());
+
         MembershipTier newTier = membershipTierRepository
-                .findByServiceNameAndTierKey(request.serviceName(), request.tierKey())
+                .findByMembershipGroupAndTierKey(request.membershipGroup(), request.tierKey())
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.MEMBERSHIP_TIER_NOT_FOUND));
 
         UserMembership membership = userMembershipRepository
-                .findByUserIdAndServiceName(userId, request.serviceName())
+                .findByUserIdAndMembershipGroup(userId, request.membershipGroup())
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.MEMBERSHIP_NOT_FOUND));
 
         String oldTier = membership.getTier().getTierKey();
         membership.changeTier(newTier);
 
         logAudit(AuditEventType.MEMBERSHIP_UPGRADED, userId, userId,
-                String.format("Membership changed: %s %s -> %s", request.serviceName(), oldTier, request.tierKey()));
+                String.format("Membership changed: %s %s -> %s", request.membershipGroup(), oldTier, request.tierKey()));
 
-        log.info("Membership tier changed: userId={}, service={}, {} -> {}",
-                userId, request.serviceName(), oldTier, request.tierKey());
+        log.info("Membership tier changed: userId={}, group={}, {} -> {}",
+                userId, request.membershipGroup(), oldTier, request.tierKey());
         return MembershipResponse.from(membership);
     }
 
-    /**
-     * 관리자가 사용자의 멤버십 티어를 변경합니다.
-     */
     @Transactional
     public MembershipResponse adminChangeMembershipTier(String userId, ChangeMembershipRequest request, String adminId) {
+        MembershipGroupConstants.validate(request.membershipGroup());
+
         MembershipTier newTier = membershipTierRepository
-                .findByServiceNameAndTierKey(request.serviceName(), request.tierKey())
+                .findByMembershipGroupAndTierKey(request.membershipGroup(), request.tierKey())
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.MEMBERSHIP_TIER_NOT_FOUND));
 
         UserMembership membership = userMembershipRepository
-                .findByUserIdAndServiceName(userId, request.serviceName())
-                .orElseGet(() -> createDefaultMembership(userId, request.serviceName(), newTier));
+                .findByUserIdAndMembershipGroup(userId, request.membershipGroup())
+                .orElseGet(() -> createDefaultMembership(userId, request.membershipGroup(), newTier));
 
         String oldTier = membership.getTier().getTierKey();
         membership.changeTier(newTier);
 
         logAudit(AuditEventType.MEMBERSHIP_UPGRADED, adminId, userId,
-                String.format("Admin changed membership: %s %s -> %s", request.serviceName(), oldTier, request.tierKey()));
+                String.format("Admin changed membership: %s %s -> %s", request.membershipGroup(), oldTier, request.tierKey()));
 
-        log.info("Admin changed membership: userId={}, service={}, {} -> {}, by={}",
-                userId, request.serviceName(), oldTier, request.tierKey(), adminId);
+        log.info("Admin changed membership: userId={}, group={}, {} -> {}, by={}",
+                userId, request.membershipGroup(), oldTier, request.tierKey(), adminId);
         return MembershipResponse.from(membership);
     }
 
-    /**
-     * 사용자의 멤버십을 취소합니다.
-     */
     @Transactional
-    public void cancelMembership(String userId, String serviceName) {
+    public void cancelMembership(String userId, String membershipGroup) {
         UserMembership membership = userMembershipRepository
-                .findByUserIdAndServiceName(userId, serviceName)
+                .findByUserIdAndMembershipGroup(userId, membershipGroup)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.MEMBERSHIP_NOT_FOUND));
 
         if (!membership.isActive()) {
             throw new CustomBusinessException(AuthErrorCode.MEMBERSHIP_EXPIRED);
         }
 
-        // FREE 티어로 다운그레이드 (취소 = FREE로 복귀)
         MembershipTier freeTier = membershipTierRepository
-                .findByServiceNameAndTierKey(serviceName, "FREE")
+                .findByMembershipGroupAndTierKey(membershipGroup, "FREE")
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.MEMBERSHIP_TIER_NOT_FOUND));
 
         String oldTier = membership.getTier().getTierKey();
@@ -125,15 +114,15 @@ public class MembershipService {
         membership.cancel();
 
         logAudit(AuditEventType.MEMBERSHIP_CANCELLED, userId, userId,
-                String.format("Membership cancelled: %s (was %s)", serviceName, oldTier));
+                String.format("Membership cancelled: %s (was %s)", membershipGroup, oldTier));
 
-        log.info("Membership cancelled: userId={}, service={}, was={}", userId, serviceName, oldTier);
+        log.info("Membership cancelled: userId={}, group={}, was={}", userId, membershipGroup, oldTier);
     }
 
-    private UserMembership createDefaultMembership(String userId, String serviceName, MembershipTier tier) {
+    private UserMembership createDefaultMembership(String userId, String membershipGroup, MembershipTier tier) {
         UserMembership membership = UserMembership.builder()
                 .userId(userId)
-                .serviceName(serviceName)
+                .membershipGroup(membershipGroup)
                 .tier(tier)
                 .build();
         return userMembershipRepository.save(membership);

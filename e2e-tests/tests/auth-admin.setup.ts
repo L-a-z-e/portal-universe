@@ -1,7 +1,7 @@
 /**
  * Admin Authentication Setup for E2E Tests
  *
- * Logs in as admin@example.com (ROLE_SUPER_ADMIN).
+ * Logs in as admin@test.com (ROLE_SUPER_ADMIN).
  * Always forces a fresh login to capture the access token from the API response.
  */
 import { test as setup, expect } from '@playwright/test'
@@ -47,8 +47,8 @@ setup('authenticate as admin', async ({ page, context }) => {
     await loginButton.click()
     await expect(page.locator('h3:has-text("로그인")')).toBeVisible({ timeout: 5000 })
 
-    await page.locator('input[placeholder="your@email.com"]').first().fill('admin@example.com')
-    await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('admin123')
+    await page.locator('input[placeholder="your@email.com"]').first().fill('admin@test.com')
+    await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('admin1234')
 
     await page.getByRole('button', { name: '로그인', exact: true }).click()
     await page.waitForTimeout(3000)
@@ -64,8 +64,8 @@ setup('authenticate as admin', async ({ page, context }) => {
     await loginBtn.click()
     await expect(page.locator('h3:has-text("로그인")')).toBeVisible({ timeout: 5000 })
 
-    await page.locator('input[placeholder="your@email.com"]').first().fill('admin@example.com')
-    await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('admin123')
+    await page.locator('input[placeholder="your@email.com"]').first().fill('admin@test.com')
+    await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('admin1234')
 
     await page.getByRole('button', { name: '로그인', exact: true }).click()
     await page.waitForTimeout(3000)

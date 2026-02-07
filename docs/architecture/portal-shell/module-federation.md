@@ -4,7 +4,7 @@ title: Module Federation Architecture
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-07
 author: Laze
 tags: [architecture, module-federation, microfrontend, vite, remote-modules]
 related:
@@ -23,7 +23,7 @@ Portal Shell은 Vite Plugin Federation(@originjs/vite-plugin-federation)을 사�
 | **범위** | Component |
 | **주요 기술** | @originjs/vite-plugin-federation, Vite 7.x |
 | **배포 환경** | Docker Compose, Kubernetes |
-| **관련 서비스** | Blog (:30001), Shopping (:30002), Prism (:30003) |
+| **관련 서비스** | Blog (:30001), Shopping (:30002), Prism (:30003), Admin (:30004) |
 
 ---
 
@@ -64,9 +64,16 @@ graph TB
         PRE --> PR
     end
 
+    subgraph "Admin Remote (Vue 3)"
+        AR[admin/bootstrap]
+        ARE[remoteEntry.js :30004]
+        ARE --> AR
+    end
+
     HOST -.->|Consumes| BRE
     HOST -.->|Consumes| SRE
     HOST -.->|Consumes| PRE
+    HOST -.->|Consumes| ARE
 
     BR -.->|Uses| E1
     BR -.->|Uses| E2
@@ -74,6 +81,8 @@ graph TB
     SR -.->|Uses| E2
     PR -.->|Uses| E1
     PR -.->|Uses| E2
+    AR -.->|Uses| E1
+    AR -.->|Uses| E2
 ```
 
 ---
@@ -90,6 +99,7 @@ federation({
     blog: env.VITE_BLOG_REMOTE_URL,
     shopping: env.VITE_SHOPPING_REMOTE_URL,
     prism: env.VITE_PRISM_REMOTE_URL,
+    admin: env.VITE_ADMIN_REMOTE_URL,
   },
 
   // 모듈 노출
@@ -131,6 +141,7 @@ type RemoteConfig = {
 | Blog | blog | /blog | mountBlogApp | 30001 |
 | Shopping | shopping | /shopping | mountShoppingApp | 30002 |
 | Prism | prism | /prism | mountPrismApp | 30003 |
+| Admin | admin | /admin | mountAdminApp | 30004 |
 
 ### 2. RemoteLoader
 
@@ -347,6 +358,7 @@ RemoteWrapper는 로드 실패 시 사용자 친화적 에러 UI를 표시합니
 Blog:     http://localhost:30001/assets/remoteEntry.js
 Shopping: http://localhost:30002/assets/remoteEntry.js
 Prism:    http://localhost:30003/assets/remoteEntry.js
+Admin:    http://localhost:30004/assets/remoteEntry.js
 ```
 
 ### Docker / Kubernetes
@@ -354,6 +366,7 @@ Prism:    http://localhost:30003/assets/remoteEntry.js
 - `VITE_BLOG_REMOTE_URL`
 - `VITE_SHOPPING_REMOTE_URL`
 - `VITE_PRISM_REMOTE_URL`
+- `VITE_ADMIN_REMOTE_URL`
 
 ---
 

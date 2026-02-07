@@ -1,0 +1,37 @@
+{
+  "name": "@portal/admin-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"vite build --watch --mode dev\" \"vite preview --port 30004 --strictPort --mode dev\"",
+    "build": "vue-tsc -b && vite build --mode dev",
+    "build:dev": "vue-tsc -b && vite build --mode dev",
+    "build:docker": "vue-tsc -b && vite build --mode docker",
+    "build:k8s": "vue-tsc -b && vite build --mode k8s",
+    "preview": "vite preview --port 30004 --strictPort",
+    "clean": "rm -rf dist",
+    "type-check": "vue-tsc -b"
+  },
+  "dependencies": {
+    "@portal/design-system-vue": "*",
+    "@portal/design-tokens": "*",
+    "axios": "^1.12.2",
+    "concurrently": "^9.2.1",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.21",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@originjs/vite-plugin-federation": "^1.4.1",
+    "@types/node": "^22.19.7",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.7",
+    "vue-tsc": "^3.0.7"
+  }
+}

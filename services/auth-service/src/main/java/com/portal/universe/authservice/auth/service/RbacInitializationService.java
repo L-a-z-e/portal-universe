@@ -7,11 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * 신규 사용자 등록 시 RBAC 데이터를 즉시 초기화합니다.
- * ROLE_USER 할당 + shopping/blog FREE 멤버십 생성.
- * 이미 초기화된 사용자는 스킵합니다 (멱등성 보장).
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,16 +17,8 @@ public class RbacInitializationService {
     private final MembershipTierRepository membershipTierRepository;
     private final UserMembershipRepository userMembershipRepository;
 
-    /**
-     * 신규 사용자의 RBAC 데이터를 초기화합니다.
-     * - ROLE_USER 할당
-     * - shopping FREE, blog FREE 멤버십 생성
-     *
-     * @param userId 사용자 UUID
-     */
     @Transactional
     public void initializeNewUser(String userId) {
-        // 이미 초기화된 사용자는 스킵
         if (!userRoleRepository.findByUserId(userId).isEmpty()) {
             log.debug("RBAC already initialized for user: {}", userId);
             return;
@@ -55,22 +42,22 @@ public class RbacInitializationService {
     }
 
     private void createDefaultMemberships(String userId) {
-        createMembershipIfAbsent(userId, "shopping");
-        createMembershipIfAbsent(userId, "blog");
+        createMembershipIfAbsent(userId, MembershipGroupConstants.USER_BLOG);
+        createMembershipIfAbsent(userId, MembershipGroupConstants.USER_SHOPPING);
     }
 
-    private void createMembershipIfAbsent(String userId, String serviceName) {
-        if (userMembershipRepository.existsByUserIdAndServiceName(userId, serviceName)) {
+    private void createMembershipIfAbsent(String userId, String membershipGroup) {
+        if (userMembershipRepository.existsByUserIdAndMembershipGroup(userId, membershipGroup)) {
             return;
         }
 
-        MembershipTier freeTier = membershipTierRepository.findByServiceNameAndTierKey(serviceName, "FREE")
+        MembershipTier freeTier = membershipTierRepository.findByMembershipGroupAndTierKey(membershipGroup, "FREE")
                 .orElseThrow(() -> new IllegalStateException(
-                        "Required membership tier FREE not found for service: " + serviceName
+                        "Required membership tier FREE not found for group: " + membershipGroup
                                 + ". Ensure RBAC data is properly initialized."));
         userMembershipRepository.save(UserMembership.builder()
                 .userId(userId)
-                .serviceName(serviceName)
+                .membershipGroup(membershipGroup)
                 .tier(freeTier)
                 .build());
     }

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public record MembershipResponse(
         Long id,
         String userId,
-        String serviceName,
+        String membershipGroup,
         String tierKey,
         String tierDisplayName,
         MembershipStatus status,
@@ -21,7 +21,7 @@ public record MembershipResponse(
         return new MembershipResponse(
                 membership.getId(),
                 membership.getUserId(),
-                membership.getServiceName(),
+                membership.getMembershipGroup(),
                 membership.getTier().getTierKey(),
                 membership.getTier().getDisplayName(),
                 membership.getStatus(),

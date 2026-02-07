@@ -28,4 +28,7 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
 
     @Query("SELECT COUNT(ur) FROM UserRole ur WHERE ur.role.roleKey = :roleKey")
     long countByRoleKey(@Param("roleKey") String roleKey);
+
+    @Query("SELECT ur.role.roleKey, COUNT(ur) FROM UserRole ur GROUP BY ur.role.roleKey")
+    List<Object[]> countGroupByRoleKey();
 }

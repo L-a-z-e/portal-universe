@@ -60,6 +60,7 @@ erDiagram
         String displayName
         String description
         String serviceScope
+        String membershipGroup
         Long parentRoleId FK
         Boolean system
         Boolean active
@@ -97,8 +98,8 @@ erDiagram
 
     MembershipTier {
         Long id PK
-        String serviceName "UK(service_name, tier_key)"
-        String tierKey "UK(service_name, tier_key)"
+        String membershipGroup "UK(membership_group, tier_key)"
+        String tierKey "UK(membership_group, tier_key)"
         String displayName
         BigDecimal priceMonthly
         BigDecimal priceYearly
@@ -109,8 +110,8 @@ erDiagram
 
     UserMembership {
         Long id PK
-        String userId "UK(user_id, service_name)"
-        String serviceName "UK(user_id, service_name)"
+        String userId "UK(user_id, membership_group)"
+        String membershipGroup "UK(user_id, membership_group)"
         Long tierId FK
         MembershipStatus status
         LocalDateTime startedAt
@@ -184,12 +185,12 @@ erDiagram
 | SocialAccount | 소셜 로그인 연동 | id, userId, provider, providerId |
 | Follow | 팔로우 관계 | id, followerId, followingId |
 | PasswordHistory | 비밀번호 변경 이력 | id, userId, passwordHash |
-| RoleEntity | 역할 정의 | id, roleKey, displayName, serviceScope |
+| RoleEntity | 역할 정의 | id, roleKey, displayName, serviceScope, membershipGroup |
 | PermissionEntity | 권한 정의 | id, permissionKey, resource, action |
 | UserRole | 사용자-역할 매핑 | id, userId, roleId, expiresAt |
 | RolePermission | 역할-권한 매핑 | id, roleId, permissionId |
-| MembershipTier | 멤버십 등급 | id, serviceName, tierKey, displayName, priceMonthly, priceYearly, sortOrder |
-| UserMembership | 사용자 멤버십 | id, userId, serviceName, tierId, status, startedAt, expiresAt, autoRenew |
+| MembershipTier | 멤버십 등급 | id, membershipGroup, tierKey, displayName, priceMonthly, priceYearly, sortOrder |
+| UserMembership | 사용자 멤버십 | id, userId, membershipGroup, tierId, status, startedAt, expiresAt, autoRenew |
 | MembershipTierPermission | 멤버십-권한 매핑 | id, tierId, permissionId |
 | AuthAuditLog | 인증 감사 로그 | id, userId, eventType, ipAddress, success |
 | SellerApplication | 판매자 신청 | id, userId, businessName, status |
@@ -214,8 +215,8 @@ erDiagram
 - User 1:N UserMembership: 사용자는 서비스별 멤버십 보유
 - MembershipTier 1:N UserMembership: 멤버십 등급별 구독자
 - MembershipTier M:N PermissionEntity (via MembershipTierPermission): 멤버십 등급별 권한
-- MembershipTier: `(service_name, tier_key)` 복합 Unique로 서비스별 등급 관리
-- UserMembership: `(user_id, service_name)` 복합 Unique로 서비스당 하나의 멤버십
+- MembershipTier: `(membership_group, tier_key)` 복합 Unique로 그룹별 등급 관리
+- UserMembership: `(user_id, membership_group)` 복합 Unique로 그룹당 하나의 멤버십
 
 ### 감사 및 판매자
 - User 1:N AuthAuditLog: 사용자 인증 이벤트 추적
@@ -279,11 +280,26 @@ erDiagram
 - **권한 상속**: 부모 역할의 권한 자동 상속
 
 ### 멤버십
-- **서비스별 등급**: `serviceName`으로 서비스별 독립적 멤버십 등급 체계
+- **역할+서비스 복합 그룹**: `membershipGroup = {role_scope}:{service}` 형태로 역할과 서비스 조합별 독립 티어 체계 (예: `user:blog`, `seller:shopping`)
 - **월간/연간 가격**: `priceMonthly`, `priceYearly`로 결제 주기별 가격 관리
 - **자동 갱신**: autoRenew=true 시 만료일에 자동 연장
 - **멤버십 권한**: 등급별 추가 권한 부여
 
 ### 판매자 신청
 - **승인 프로세스**: PENDING → APPROVED/REJECTED
-- 승인 시 ROLE_SELLER 역할 자동 부여
+- 승인 시 ROLE_SHOPPING_SELLER 역할 자동 부여
+
+## Migrations
+
+### V2: 역할+서비스 복합 멤버십 재구조화 (ADR-021)
+
+| 변경 | 내용 |
+|------|------|
+| `membership_tiers` | `service_name` → `membership_group` 컬럼 변환, UK `uk_group_tier(membership_group, tier_key)` |
+| `user_memberships` | `service_name` → `membership_group` 컬럼 변환, UK `uk_user_group(user_id, membership_group)` |
+| `roles` | `membership_group` 컬럼 추가 (nullable), `ROLE_SELLER` → `ROLE_SHOPPING_SELLER` |
+| `users` | `role` enum 컬럼 삭제 |
+| 새 티어 | `seller:shopping` 그룹: BRONZE, SILVER, GOLD, PLATINUM |
+| 티어 변경 | `user:blog` 그룹: BASIC→PRO, PREMIUM→MAX, VIP 삭제 |
+| 역할 계층 | SHOPPING_ADMIN → SHOPPING_SELLER → USER, BLOG_ADMIN → USER |
+| 인덱스 | `idx_mt_membership_group`, `idx_um_membership_group` 추가 |

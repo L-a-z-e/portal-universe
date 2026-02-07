@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "membership_tiers", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"service_name", "tier_key"})
+        @UniqueConstraint(columnNames = {"membership_group", "tier_key"})
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,8 +24,8 @@ public class MembershipTier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "service_name", nullable = false, length = 50)
-    private String serviceName;
+    @Column(name = "membership_group", nullable = false, length = 50)
+    private String membershipGroup;
 
     @Column(name = "tier_key", nullable = false, length = 50)
     private String tierKey;
@@ -50,9 +50,10 @@ public class MembershipTier {
     private LocalDateTime createdAt;
 
     @Builder
-    public MembershipTier(String serviceName, String tierKey, String displayName,
+    public MembershipTier(String membershipGroup, String tierKey, String displayName,
                           BigDecimal priceMonthly, BigDecimal priceYearly, int sortOrder) {
-        this.serviceName = serviceName;
+        MembershipGroupConstants.validate(membershipGroup);
+        this.membershipGroup = membershipGroup;
         this.tierKey = tierKey;
         this.displayName = displayName;
         this.priceMonthly = priceMonthly;

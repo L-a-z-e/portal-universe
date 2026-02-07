@@ -26,17 +26,19 @@ import java.util.stream.Collectors;
  *
  * Gateway가 JWT를 검증한 후 다음 헤더를 추가합니다:
  * - X-User-Id: 사용자 UUID
- * - X-User-Roles: 사용자 권한 (쉼표 구분, 예: ROLE_USER,ROLE_SELLER)
- * - X-User-Memberships: 서비스별 멤버십 JSON (예: {"shopping":"PREMIUM"})
+ * - X-User-Roles: 사용자 원본 역할 (쉼표 구분)
+ * - X-User-Effective-Roles: Role Hierarchy 상속 포함 전체 유효 역할 (쉼표 구분)
+ * - X-User-Memberships: 멤버십 그룹별 enriched JSON
  * - X-User-Nickname: URL 인코딩된 닉네임
  *
- * 이 필터는 헤더를 읽어서 Spring Security의 SecurityContext에 인증 정보를 설정합니다.
+ * SecurityContext에는 X-User-Effective-Roles를 우선 사용합니다.
  */
 @Slf4j
 public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String USER_ID_HEADER = "X-User-Id";
     public static final String USER_ROLES_HEADER = "X-User-Roles";
+    public static final String USER_EFFECTIVE_ROLES_HEADER = "X-User-Effective-Roles";
     public static final String USER_MEMBERSHIPS_HEADER = "X-User-Memberships";
     public static final String USER_NICKNAME_HEADER = "X-User-Nickname";
     public static final String USER_NAME_HEADER = "X-User-Name";
@@ -49,13 +51,18 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         String userId = request.getHeader(USER_ID_HEADER);
+        String effectiveRoles = request.getHeader(USER_EFFECTIVE_ROLES_HEADER);
         String roles = request.getHeader(USER_ROLES_HEADER);
         String memberships = request.getHeader(USER_MEMBERSHIPS_HEADER);
         String nickname = request.getHeader(USER_NICKNAME_HEADER);
         String username = request.getHeader(USER_NAME_HEADER);
 
         if (StringUtils.hasText(userId)) {
-            log.debug("Gateway authentication - userId: {}, roles: {}, memberships: {}", userId, roles, memberships);
+            // X-User-Effective-Roles 우선, 없으면 X-User-Roles fallback
+            String rolesForAuth = StringUtils.hasText(effectiveRoles) ? effectiveRoles : roles;
+
+            log.debug("Gateway authentication - userId: {}, effectiveRoles: {}, memberships: {}",
+                    userId, rolesForAuth, memberships);
 
             // URL 디코딩
             String decodedNickname = decodeHeader(nickname);
@@ -75,8 +82,8 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
                 request.setAttribute("userMemberships", memberships);
             }
 
-            // 쉼표 구분된 roles를 복수 Authority로 변환
-            List<SimpleGrantedAuthority> authorities = parseAuthorities(roles);
+            // 쉼표 구분된 roles를 복수 Authority로 변환 (effective roles 사용)
+            List<SimpleGrantedAuthority> authorities = parseAuthorities(rolesForAuth);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, authorities);
@@ -89,9 +96,8 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * 쉼표 구분된 roles 문자열을 복수 SimpleGrantedAuthority로 파싱합니다.
-     * v1 호환: 단일 role 문자열도 지원합니다.
      *
-     * @param roles 쉼표 구분 roles (예: "ROLE_USER,ROLE_SELLER")
+     * @param roles 쉼표 구분 roles (예: "ROLE_USER,ROLE_SHOPPING_SELLER")
      * @return Authority 목록
      */
     private List<SimpleGrantedAuthority> parseAuthorities(String roles) {

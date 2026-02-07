@@ -13,7 +13,8 @@
     "react-bridge",
     "react-bootstrap",
     "shopping-frontend",
-    "prism-frontend"
+    "prism-frontend",
+    "admin-frontend"
   ],
   "scripts": {
     "===== 개발 서버 =====": "",
@@ -24,6 +25,7 @@
     "dev:prism": "npm run dev -w prism-frontend",
     "dev:design": "npm run dev -w design-system-vue",
     "dev:design-react": "npm run dev -w design-system-react",
+    "dev:admin": "npm run dev -w admin-frontend",
     "===== 개별 빌드 =====": "",
     "build:tokens": "npm run build -w design-tokens",
     "build:types": "npm run build -w design-types",
@@ -40,6 +42,7 @@
     "build:blog": "npm run build -w blog-frontend",
     "build:shopping": "npm run build -w shopping-frontend",
     "build:prism": "npm run build -w prism-frontend",
+    "build:admin": "npm run build -w admin-frontend",
     "build:apps": "npm run build:shell && npm run build:blog && npm run build:shopping && npm run build:prism",
     "build:apps:dev": "npm run build:dev -w portal-shell && npm run build:dev -w blog-frontend && npm run build:dev -w shopping-frontend && npm run build:dev -w prism-frontend",
     "===== 환경별 앱 빌드 =====": "",

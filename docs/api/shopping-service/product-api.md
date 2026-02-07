@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-30
+updated: 2026-02-07
 author: Laze
 tags: [api, shopping-service, product]
 related:
@@ -33,10 +33,10 @@ related:
 | Method | Endpoint | 설명 | 인증 | 권한 |
 |--------|----------|------|------|------|
 | GET | `/` | 상품 목록 조회 | ❌ | - |
-| POST | `/` | 상품 생성 (deprecated) | ✅ | SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
+| POST | `/` | 상품 생성 (deprecated) | ✅ | SHOPPING_SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
 | GET | `/{productId}` | 상품 조회 | ❌ | - |
-| PUT | `/{productId}` | 상품 수정 (deprecated) | ✅ | SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
-| DELETE | `/{productId}` | 상품 삭제 (deprecated) | ✅ | SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
+| PUT | `/{productId}` | 상품 수정 (deprecated) | ✅ | SHOPPING_SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
+| DELETE | `/{productId}` | 상품 삭제 (deprecated) | ✅ | SHOPPING_SELLER, SHOPPING_ADMIN, SUPER_ADMIN |
 | GET | `/{productId}/with-reviews` | 상품 + 리뷰 조회 | ❌ | - |
 
 > **Note**: POST, PUT, DELETE 엔드포인트는 deprecated 상태입니다. Admin 전용 API는 `AdminProductController`를 사용하세요.
@@ -113,7 +113,7 @@ GET /api/shopping/products?page=0&size=12
 
 > **Deprecated**: Admin 전용 API는 `AdminProductController`를 사용하세요.
 
-새로운 상품을 등록합니다. (SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
+새로운 상품을 등록합니다. (SHOPPING_SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
 
 ### Request
 
@@ -208,7 +208,7 @@ GET /api/shopping/products/{productId}
 
 > **Deprecated**: Admin 전용 API는 `AdminProductController`를 사용하세요.
 
-특정 상품 정보를 수정합니다. (SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
+특정 상품 정보를 수정합니다. (SHOPPING_SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
 
 ### Request
 
@@ -262,7 +262,7 @@ Authorization: Bearer {token}
 
 > **Deprecated**: Admin 전용 API는 `AdminProductController`를 사용하세요.
 
-특정 상품을 삭제합니다. (SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
+특정 상품을 삭제합니다. (SHOPPING_SELLER, SHOPPING_ADMIN, SUPER_ADMIN 권한 필요)
 
 ### Request
 
@@ -343,7 +343,7 @@ GET /api/shopping/products/{productId}/with-reviews
 | `S001` | 404 | 상품을 찾을 수 없습니다 |
 | `S002` | 400 | 유효성 검증 실패 |
 | `C001` | 401 | 인증 필요 |
-| `C002` | 403 | 권한 없음 (SELLER, SHOPPING_ADMIN, SUPER_ADMIN 전용) |
+| `C002` | 403 | 권한 없음 (SHOPPING_SELLER, SHOPPING_ADMIN, SUPER_ADMIN 전용) |
 
 ---
 
@@ -354,4 +354,4 @@ GET /api/shopping/products/{productId}/with-reviews
 
 ---
 
-**최종 업데이트**: 2026-01-30
+**최종 업데이트**: 2026-02-07

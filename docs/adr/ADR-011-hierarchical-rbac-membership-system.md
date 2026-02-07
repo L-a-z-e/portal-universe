@@ -1,6 +1,6 @@
 # ADR-011: 계층적 RBAC + 멤버십 기반 인증/인가 시스템
 
-**Status**: Proposed
+**Status**: Superseded by [ADR-021](./ADR-021-role-based-membership-restructure.md)
 **Date**: 2026-01-28
 
 ## Context

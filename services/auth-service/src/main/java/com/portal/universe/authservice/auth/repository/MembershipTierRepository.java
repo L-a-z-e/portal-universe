@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface MembershipTierRepository extends JpaRepository<MembershipTier, Long> {
 
-    List<MembershipTier> findByServiceNameOrderBySortOrder(String serviceName);
+    List<MembershipTier> findByMembershipGroupOrderBySortOrder(String membershipGroup);
 
-    Optional<MembershipTier> findByServiceNameAndTierKey(String serviceName, String tierKey);
+    Optional<MembershipTier> findByMembershipGroupAndTierKey(String membershipGroup, String tierKey);
 
-    boolean existsByServiceNameAndTierKey(String serviceName, String tierKey);
+    boolean existsByMembershipGroupAndTierKey(String membershipGroup, String tierKey);
 
     List<MembershipTier> findByActiveTrue();
 }

@@ -2,6 +2,7 @@ package com.portal.universe.apigateway.filter;
 
 import com.portal.universe.apigateway.config.JwtProperties;
 import com.portal.universe.apigateway.config.PublicPathProperties;
+import com.portal.universe.apigateway.service.RoleHierarchyResolver;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -12,7 +13,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
  * 키 교체(Key Rotation)를 지원합니다.
  *
  * <p>JWT 헤더의 kid(Key ID)를 확인하여 적절한 키로 서명을 검증합니다.</p>
+ * <p>Role Hierarchy를 resolve하여 X-User-Effective-Roles 헤더를 추가합니다.</p>
  */
 @Slf4j
 public class JwtAuthenticationFilter implements WebFilter {
@@ -43,22 +44,21 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     private final JwtProperties jwtProperties;
     private final TokenBlacklistChecker tokenBlacklistChecker;
+    private final RoleHierarchyResolver roleHierarchyResolver;
     private final String[] skipJwtParsingPrefixes;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JwtAuthenticationFilter(JwtProperties jwtProperties, PublicPathProperties publicPathProperties,
-                                   TokenBlacklistChecker tokenBlacklistChecker) {
+                                   TokenBlacklistChecker tokenBlacklistChecker,
+                                   RoleHierarchyResolver roleHierarchyResolver) {
         this.jwtProperties = jwtProperties;
         this.tokenBlacklistChecker = tokenBlacklistChecker;
+        this.roleHierarchyResolver = roleHierarchyResolver;
         this.skipJwtParsingPrefixes = publicPathProperties.getSkipJwtParsing().toArray(String[]::new);
     }
 
     /**
      * 특정 키 ID에 해당하는 서명용 키를 생성합니다.
-     *
-     * @param keyId 키 ID
-     * @return SecretKey
-     * @throws IllegalArgumentException 키를 찾을 수 없거나 만료된 경우
      */
     private SecretKey getSigningKeyById(String keyId) {
         if (keyId == null || keyId.isBlank()) {
@@ -78,26 +78,13 @@ public class JwtAuthenticationFilter implements WebFilter {
         return getSigningKey(keyConfig.getSecretKey());
     }
 
-    /**
-     * Secret Key 문자열을 SecretKey 객체로 변환합니다.
-     *
-     * @param secretKey 비밀키 문자열
-     * @return SecretKey
-     */
     private SecretKey getSigningKey(String secretKey) {
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    /**
-     * JWT 토큰 헤더에서 kid(Key ID)를 추출합니다.
-     *
-     * @param token JWT 토큰
-     * @return Key ID (없으면 현재 키 ID)
-     */
     private String extractKeyId(String token) {
         try {
-            // 서명 검증 없이 헤더만 파싱
             String[] parts = token.split("\\.");
             if (parts.length < 2) {
                 throw new MalformedJwtException("Invalid JWT token structure");
@@ -128,6 +115,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                 .headers(h -> {
                     h.remove("X-User-Id");
                     h.remove("X-User-Roles");
+                    h.remove("X-User-Effective-Roles");
                     h.remove("X-User-Memberships");
                     h.remove("X-User-Nickname");
                     h.remove("X-User-Name");
@@ -143,7 +131,6 @@ public class JwtAuthenticationFilter implements WebFilter {
         String authHeader = sanitizedRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            // 토큰이 없으면 SecurityConfig의 접근 제어에 위임
             return chain.filter(sanitizedExchange);
         }
 
@@ -161,7 +148,7 @@ public class JwtAuthenticationFilter implements WebFilter {
             return handleUnauthorized(sanitizedExchange, "Invalid token");
         }
 
-        // 블랙리스트 체크 (reactive) → 인증 정보 설정
+        // 블랙리스트 체크 (reactive) → Role Hierarchy resolve → 인증 정보 설정
         return tokenBlacklistChecker.isBlacklisted(token)
                 .flatMap(blacklisted -> {
                     if (Boolean.TRUE.equals(blacklisted)) {
@@ -173,55 +160,54 @@ public class JwtAuthenticationFilter implements WebFilter {
                     String nickname = claims.get("nickname", String.class);
                     String username = claims.get("username", String.class);
 
-                    // JWT v2: roles 파싱
+                    // JWT roles 파싱
                     List<String> rolesList = parseRoles(claims);
                     String rolesHeader = String.join(",", rolesList);
 
-                    // JWT v2: memberships 파싱
+                    // JWT memberships 파싱 (enriched JSON passthrough)
                     String membershipsHeader = parseMemberships(claims);
 
-                    log.debug("JWT validated for user: {}, roles: {}, memberships: {}", userId, rolesList, membershipsHeader);
+                    // Role Hierarchy resolve → effective roles 계산
+                    return roleHierarchyResolver.resolveEffectiveRoles(rolesList)
+                            .map(effectiveRoles -> {
+                                String effectiveRolesHeader = String.join(",", effectiveRoles);
 
-                    // 복수 Authority 생성
-                    List<SimpleGrantedAuthority> authorities = rolesList.stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList());
+                                log.debug("JWT validated for user: {}, roles: {}, effectiveRoles: {}, memberships: {}",
+                                        userId, rolesList, effectiveRoles, membershipsHeader);
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                                // effective roles 기반 Authority 생성
+                                List<SimpleGrantedAuthority> authorities = effectiveRoles.stream()
+                                        .map(SimpleGrantedAuthority::new)
+                                        .collect(Collectors.toList());
 
-                    // 하위 서비스로 전달할 헤더 설정 (sanitized request 기반)
-                    ServerHttpRequest mutatedRequest = sanitizedRequest.mutate()
-                            .header("X-User-Id", userId)
-                            .header("X-User-Roles", rolesHeader)
-                            .header("X-User-Memberships", membershipsHeader)
-                            .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
-                            .header("X-User-Name", username != null ? URLEncoder.encode(username, StandardCharsets.UTF_8) : "")
-                            .build();
+                                UsernamePasswordAuthenticationToken authentication =
+                                        new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
-                    ServerWebExchange mutatedExchange = sanitizedExchange.mutate()
-                            .request(mutatedRequest)
-                            .build();
+                                // 하위 서비스로 전달할 헤더 설정
+                                ServerHttpRequest mutatedRequest = sanitizedRequest.mutate()
+                                        .header("X-User-Id", userId)
+                                        .header("X-User-Roles", rolesHeader)
+                                        .header("X-User-Effective-Roles", effectiveRolesHeader)
+                                        .header("X-User-Memberships", membershipsHeader)
+                                        .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
+                                        .header("X-User-Name", username != null ? URLEncoder.encode(username, StandardCharsets.UTF_8) : "")
+                                        .build();
 
-                    return chain.filter(mutatedExchange)
-                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
+                                ServerWebExchange mutatedExchange = sanitizedExchange.mutate()
+                                        .request(mutatedRequest)
+                                        .build();
+
+                                return Map.entry(mutatedExchange, authentication);
+                            })
+                            .flatMap(entry -> chain.filter(entry.getKey())
+                                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(entry.getValue())));
                 });
     }
 
-    /**
-     * JWT 토큰을 검증하고 Claims를 반환합니다.
-     * JWT 헤더의 kid를 확인하여 적절한 키로 서명을 검증합니다.
-     *
-     * @param token JWT 토큰
-     * @return Claims
-     * @throws JwtException 토큰이 유효하지 않은 경우
-     */
     private Claims validateToken(String token) {
-        // 1. 헤더에서 kid 추출
         String keyId = extractKeyId(token);
         log.debug("Validating token with key ID: {}", keyId);
 
-        // 2. kid에 해당하는 키로 검증
         SecretKey signingKey = getSigningKeyById(keyId);
 
         return Jwts.parser()
@@ -231,10 +217,6 @@ public class JwtAuthenticationFilter implements WebFilter {
                 .getPayload();
     }
 
-    /**
-     * JWT claims에서 roles를 파싱합니다.
-     * v2 (List): ["ROLE_USER", "ROLE_SELLER"] → 그대로 반환
-     */
     @SuppressWarnings("unchecked")
     private List<String> parseRoles(Claims claims) {
         Object rolesClaim = claims.get("roles");
@@ -249,11 +231,6 @@ public class JwtAuthenticationFilter implements WebFilter {
         return Collections.emptyList();
     }
 
-    /**
-     * JWT claims에서 memberships를 JSON 문자열로 변환합니다.
-     * v1 (없음): → "{}"
-     * v2 (Map): {"shopping":"PREMIUM"} → JSON 문자열
-     */
     private String parseMemberships(Claims claims) {
         Object membershipsClaim = claims.get("memberships");
         if (membershipsClaim instanceof Map<?, ?> membershipsMap) {
@@ -266,10 +243,6 @@ public class JwtAuthenticationFilter implements WebFilter {
         return "{}";
     }
 
-    /**
-     * JWT 파싱을 skip하는 공개 경로인지 확인합니다.
-     * PublicPathProperties.skipJwtParsing 기반으로 판단합니다.
-     */
     private boolean isPublicPath(String path) {
         for (String prefix : skipJwtParsingPrefixes) {
             if (path.startsWith(prefix) || path.equals(prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix)) {
@@ -279,9 +252,6 @@ public class JwtAuthenticationFilter implements WebFilter {
         return false;
     }
 
-    /**
-     * 401 Unauthorized 응답을 ApiResponse JSON 형식으로 반환합니다.
-     */
     private Mono<Void> handleUnauthorized(ServerWebExchange exchange, String message) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         exchange.getResponse().getHeaders().add(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");

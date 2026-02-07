@@ -13,7 +13,7 @@ public interface MembershipTierPermissionRepository extends JpaRepository<Member
     List<MembershipTierPermission> findByTier(MembershipTier tier);
 
     @Query("SELECT mtp.permission.permissionKey FROM MembershipTierPermission mtp " +
-            "WHERE mtp.tier.serviceName = :serviceName AND mtp.tier.tierKey = :tierKey")
-    List<String> findPermissionKeysByServiceAndTier(@Param("serviceName") String serviceName,
-                                                    @Param("tierKey") String tierKey);
+            "WHERE mtp.tier.membershipGroup = :membershipGroup AND mtp.tier.tierKey = :tierKey")
+    List<String> findPermissionKeysByGroupAndTier(@Param("membershipGroup") String membershipGroup,
+                                                   @Param("tierKey") String tierKey);
 }

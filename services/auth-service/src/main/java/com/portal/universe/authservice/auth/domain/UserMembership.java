@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_memberships", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "service_name"})
+        @UniqueConstraint(columnNames = {"user_id", "membership_group"})
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -27,8 +27,8 @@ public class UserMembership {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(name = "service_name", nullable = false, length = 50)
-    private String serviceName;
+    @Column(name = "membership_group", nullable = false, length = 50)
+    private String membershipGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tier_id", nullable = false)
@@ -55,10 +55,10 @@ public class UserMembership {
     private LocalDateTime updatedAt;
 
     @Builder
-    public UserMembership(String userId, String serviceName, MembershipTier tier,
+    public UserMembership(String userId, String membershipGroup, MembershipTier tier,
                           LocalDateTime expiresAt, boolean autoRenew) {
         this.userId = userId;
-        this.serviceName = serviceName;
+        this.membershipGroup = membershipGroup;
         this.tier = tier;
         this.status = MembershipStatus.ACTIVE;
         this.startedAt = LocalDateTime.now();

@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 셀러 신청/승인 워크플로우를 담당합니다.
  * 사용자가 셀러 신청을 하면 관리자가 승인/거절하고,
- * 승인 시 ROLE_SELLER 역할을 자동 할당합니다.
+ * 승인 시 ROLE_SHOPPING_SELLER 역할을 자동 할당합니다.
  */
 @Slf4j
 @Service
@@ -26,6 +26,8 @@ public class SellerApplicationService {
     private final SellerApplicationRepository sellerApplicationRepository;
     private final RoleEntityRepository roleEntityRepository;
     private final UserRoleRepository userRoleRepository;
+    private final MembershipTierRepository membershipTierRepository;
+    private final UserMembershipRepository userMembershipRepository;
     private final AuthAuditLogRepository auditLogRepository;
 
     /**
@@ -40,7 +42,7 @@ public class SellerApplicationService {
 
         // 이미 SELLER 역할이 있는지 확인
         boolean alreadySeller = userRoleRepository.findActiveRoleKeysByUserId(userId)
-                .contains("ROLE_SELLER");
+                .contains("ROLE_SHOPPING_SELLER");
         if (alreadySeller) {
             throw new CustomBusinessException(AuthErrorCode.ROLE_ALREADY_ASSIGNED);
         }
@@ -91,7 +93,7 @@ public class SellerApplicationService {
 
     /**
      * 셀러 신청을 심사합니다 (승인 또는 거절).
-     * 승인 시 ROLE_SELLER 역할을 자동 할당합니다.
+     * 승인 시 ROLE_SHOPPING_SELLER 역할을 자동 할당합니다.
      */
     @Transactional
     public SellerApplicationResponse review(Long applicationId, SellerApplicationReviewRequest request, String reviewerId) {
@@ -105,8 +107,8 @@ public class SellerApplicationService {
         if (Boolean.TRUE.equals(request.approved())) {
             application.approve(reviewerId, request.reviewComment());
 
-            // ROLE_SELLER 자동 할당
-            assignSellerRole(application.getUserId(), reviewerId);
+            // ROLE_SHOPPING_SELLER 자동 할당 + seller:shopping BRONZE 멤버십 생성 (원자적)
+            assignSellerRoleAndMembership(application.getUserId(), reviewerId);
 
             logAudit(AuditEventType.SELLER_APPLICATION_APPROVED, reviewerId, application.getUserId(),
                     "Seller application approved: " + application.getBusinessName());
@@ -126,25 +128,39 @@ public class SellerApplicationService {
         return SellerApplicationResponse.from(application);
     }
 
-    private void assignSellerRole(String userId, String assignedBy) {
-        RoleEntity sellerRole = roleEntityRepository.findByRoleKey("ROLE_SELLER")
+    private void assignSellerRoleAndMembership(String userId, String assignedBy) {
+        // 1. ROLE_SHOPPING_SELLER 할당
+        RoleEntity sellerRole = roleEntityRepository.findByRoleKey("ROLE_SHOPPING_SELLER")
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
 
-        // 이미 SELLER 역할이 있으면 스킵
         boolean alreadyAssigned = userRoleRepository.findByUserIdWithRole(userId).stream()
-                .anyMatch(ur -> "ROLE_SELLER".equals(ur.getRole().getRoleKey()) && !ur.isExpired());
-        if (alreadyAssigned) {
-            return;
+                .anyMatch(ur -> "ROLE_SHOPPING_SELLER".equals(ur.getRole().getRoleKey()) && !ur.isExpired());
+        if (!alreadyAssigned) {
+            userRoleRepository.save(UserRole.builder()
+                    .userId(userId)
+                    .role(sellerRole)
+                    .assignedBy(assignedBy)
+                    .build());
+
+            logAudit(AuditEventType.ROLE_ASSIGNED, assignedBy, userId,
+                    "ROLE_SHOPPING_SELLER auto-assigned on application approval");
         }
 
-        userRoleRepository.save(UserRole.builder()
-                .userId(userId)
-                .role(sellerRole)
-                .assignedBy(assignedBy)
-                .build());
+        // 2. seller:shopping BRONZE 멤버십 생성
+        if (!userMembershipRepository.existsByUserIdAndMembershipGroup(userId, MembershipGroupConstants.SELLER_SHOPPING)) {
+            MembershipTier bronzeTier = membershipTierRepository
+                    .findByMembershipGroupAndTierKey(MembershipGroupConstants.SELLER_SHOPPING, "BRONZE")
+                    .orElseThrow(() -> new IllegalStateException("BRONZE tier not found for seller:shopping"));
 
-        logAudit(AuditEventType.ROLE_ASSIGNED, assignedBy, userId,
-                "ROLE_SELLER auto-assigned on application approval");
+            userMembershipRepository.save(UserMembership.builder()
+                    .userId(userId)
+                    .membershipGroup(MembershipGroupConstants.SELLER_SHOPPING)
+                    .tier(bronzeTier)
+                    .build());
+
+            logAudit(AuditEventType.MEMBERSHIP_CREATED, assignedBy, userId,
+                    "seller:shopping BRONZE membership created on seller approval");
+        }
     }
 
     private void logAudit(AuditEventType eventType, String actorId, String targetUserId, String details) {

@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-07
 author: Laze
 tags: [api, auth, oauth2, jwt, rbac, membership, follow, seller]
 related:
@@ -32,8 +32,8 @@ related:
 | **Access Token 유효기간** | 15분 (900초) |
 | **Refresh Token 유효기간** | 7일 (604800초) |
 | **Cookie 이름** | `portal_refresh_token` |
-| **총 Controllers** | 10개 |
-| **총 Endpoints** | 약 40개 |
+| **총 Controllers** | 11개 |
+| **총 Endpoints** | 약 54개 |
 
 ---
 
@@ -51,6 +51,7 @@ related:
 | **MembershipAdminController** | `/api/v1/admin/memberships` | 멤버십 관리 (Admin) | ✅ | SUPER_ADMIN |
 | **SellerController** | `/api/v1/seller` | 셀러 신청 | ✅ | ❌ |
 | **SellerAdminController** | `/api/v1/admin/seller` | 셀러 승인 (Admin) | ✅ | SHOPPING_ADMIN, SUPER_ADMIN |
+| **RoleHierarchyController** | `/api/v1/internal/role-hierarchy` | 역할 계층 해석 (Internal) | ❌ | Gateway 전용 |
 
 ---
 
@@ -62,6 +63,7 @@ related:
 /api/v1/auth/**                     # 모든 인증 API
 POST /api/v1/users/signup            # 회원가입
 GET /api/v1/memberships/tiers/**     # 멤버십 티어 목록
+/api/v1/internal/**                  # Gateway 전용 내부 API
 /oauth2/**                           # OAuth2 소셜 로그인
 /login/oauth2/**                     # OAuth2 콜백
 /.well-known/**                      # OIDC Discovery
@@ -1038,7 +1040,7 @@ Authorization: Bearer {accessToken}
 **인증 필요**: ✅
 **권한 필요**: `ROLE_SUPER_ADMIN`
 
-RBAC (Role-Based Access Control) 관리 API. 역할 조회, 사용자 역할/권한 조회, 역할 부여/회수를 담당합니다.
+RBAC (Role-Based Access Control) 관리 API. 역할 CRUD(조회/생성/수정/상태변경), 역할-권한 관리, 사용자 역할/권한 조회, 역할 부여/회수를 담당합니다.
 
 ### 5.1. 전체 역할 조회 (GET `/api/v1/admin/rbac/roles`)
 
@@ -1061,6 +1063,7 @@ Authorization: Bearer {accessToken}
       "displayName": "Super Administrator",
       "description": "Full system access",
       "serviceScope": "SYSTEM",
+      "membershipGroup": null,
       "parentRoleKey": null,
       "system": true,
       "active": true
@@ -1071,6 +1074,7 @@ Authorization: Bearer {accessToken}
       "displayName": "Blog Administrator",
       "description": "Blog management access",
       "serviceScope": "BLOG",
+      "membershipGroup": null,
       "parentRoleKey": null,
       "system": false,
       "active": true
@@ -1081,6 +1085,7 @@ Authorization: Bearer {accessToken}
       "displayName": "Shopping Administrator",
       "description": "Shopping service management access",
       "serviceScope": "SHOPPING",
+      "membershipGroup": null,
       "parentRoleKey": null,
       "system": false,
       "active": true
@@ -1148,8 +1153,8 @@ Authorization: Bearer {accessToken}
       "blog:comment:moderate"
     ],
     "memberships": {
-      "blog": "PREMIUM",
-      "shopping": "FREE"
+      "user:blog": {"tier": "PRO", "order": 2},
+      "user:shopping": {"tier": "FREE", "order": 0}
     }
   },
   "error": null,
@@ -1250,6 +1255,662 @@ Authorization: Bearer {accessToken}
 
 ---
 
+### 5.6. 대시보드 통계 조회 (GET `/api/v1/admin/rbac/dashboard`)
+
+Admin Dashboard에 표시할 통합 통계 데이터를 반환합니다.
+
+**Request**
+```http
+GET /api/v1/admin/rbac/dashboard
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)** (`DashboardStatsResponse`)
+```json
+{
+  "success": true,
+  "data": {
+    "users": {
+      "total": 2,
+      "byStatus": { "ACTIVE": 2, "DORMANT": 0, "BANNED": 0, "WITHDRAWAL_PENDING": 0 }
+    },
+    "roles": {
+      "total": 5,
+      "systemCount": 5,
+      "assignments": [
+        { "roleKey": "ROLE_SUPER_ADMIN", "displayName": "Super Administrator", "userCount": 1 },
+        { "roleKey": "ROLE_USER", "displayName": "User", "userCount": 2 }
+      ]
+    },
+    "memberships": {
+      "groups": [
+        {
+          "group": "user:shopping",
+          "activeCount": 2,
+          "tiers": [
+            { "tierKey": "FREE", "displayName": "Free", "count": 2 },
+            { "tierKey": "BASIC", "displayName": "Basic", "count": 0 }
+          ]
+        }
+      ]
+    },
+    "sellers": { "pending": 0, "approved": 0, "rejected": 0 },
+    "recentActivity": [
+      {
+        "eventType": "ROLE_ASSIGNED",
+        "targetUserId": "uuid-...",
+        "actorUserId": "SYSTEM_INIT",
+        "details": "Role assigned: ROLE_SUPER_ADMIN",
+        "createdAt": "2026-02-07T10:00:00"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 5.7. 전체 감사 로그 조회 (GET `/api/v1/admin/rbac/audit`)
+
+전체 감사 로그를 페이징으로 조회합니다.
+
+**Request**
+```http
+GET /api/v1/admin/rbac/audit?page=0&size=20
+Authorization: Bearer {accessToken}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|----------|------|------|--------|------|
+| `page` | number | ❌ | 0 | 페이지 번호 |
+| `size` | number | ❌ | 20 | 페이지당 항목 수 |
+
+**Response (200 OK)** (Spring Page of `AuditLogResponse`)
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "eventType": "ROLE_ASSIGNED",
+        "targetUserId": "uuid-...",
+        "actorUserId": "SYSTEM_INIT",
+        "details": "Role assigned: ROLE_SUPER_ADMIN",
+        "ipAddress": null,
+        "createdAt": "2026-02-07T10:00:00"
+      }
+    ],
+    "totalElements": 10,
+    "totalPages": 1,
+    "number": 0
+  }
+}
+```
+
+---
+
+### 5.8. 사용자별 감사 로그 조회 (GET `/api/v1/admin/rbac/users/{userId}/audit`)
+
+특정 사용자의 감사 로그를 페이징으로 조회합니다.
+
+**Request**
+```http
+GET /api/v1/admin/rbac/users/a1b2c3d4-e5f6-7890-abcd-ef1234567890/audit?page=0&size=20
+Authorization: Bearer {accessToken}
+```
+
+**Query Parameters**: 전체 감사 로그 조회와 동일
+
+**Response**: 전체 감사 로그 조회와 동일한 구조 (해당 userId로 필터링)
+
+---
+
+### 5.9. 사용자 검색 (GET `/api/v1/admin/rbac/users`)
+
+사용자를 검색합니다. query가 비어있으면 전체 목록, UUID 패턴이면 exact match, 그 외 email/username/nickname LIKE 검색.
+
+**Request**
+```http
+GET /api/v1/admin/rbac/users?query=admin&page=0&size=20
+Authorization: Bearer {accessToken}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|----------|------|------|--------|------|
+| `query` | string | ❌ | "" | 검색어 (email, username, nickname LIKE 또는 UUID exact match) |
+| `page` | number | ❌ | 0 | 페이지 번호 |
+| `size` | number | ❌ | 20 | 페이지당 항목 수 |
+
+**Response (200 OK)** (Spring Page of `AdminUserResponse`)
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "uuid": "be83af82-b5b6-4384-8c42-45e778159e09",
+        "email": "admin@test.com",
+        "username": null,
+        "nickname": "관리자",
+        "profileImageUrl": null,
+        "status": "ACTIVE",
+        "createdAt": "2026-02-07T15:31:25.582822",
+        "lastLoginAt": null
+      }
+    ],
+    "totalElements": 1,
+    "totalPages": 1,
+    "number": 0
+  }
+}
+```
+
+**Response Fields** (`AdminUserResponse`)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `uuid` | string | 사용자 UUID |
+| `email` | string | 이메일 주소 |
+| `username` | string? | 사용자명 (미설정 시 null) |
+| `nickname` | string? | 닉네임 |
+| `profileImageUrl` | string? | 프로필 이미지 URL |
+| `status` | string | 상태 (ACTIVE, DORMANT, BANNED, WITHDRAWAL_PENDING) |
+| `createdAt` | string | 가입일 (ISO 8601) |
+| `lastLoginAt` | string? | 최근 로그인 (ISO 8601, null 가능) |
+
+---
+
+### 5.10. 역할 상세 조회 (GET `/api/v1/admin/rbac/roles/{roleKey}`)
+
+역할 상세 정보를 권한 목록과 함께 조회합니다.
+
+**Request**
+```http
+GET /api/v1/admin/rbac/roles/ROLE_BLOG_ADMIN
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)** (`RoleDetailResponse`)
+```json
+{
+  "success": true,
+  "data": {
+    "id": 2,
+    "roleKey": "ROLE_BLOG_ADMIN",
+    "displayName": "Blog Administrator",
+    "description": "Blog management access",
+    "serviceScope": "BLOG",
+    "membershipGroup": null,
+    "parentRoleKey": null,
+    "system": false,
+    "active": true,
+    "createdAt": "2026-01-01T00:00:00Z",
+    "updatedAt": "2026-01-15T00:00:00Z",
+    "permissions": [
+      {
+        "id": 10,
+        "permissionKey": "blog:post:create",
+        "service": "BLOG",
+        "resource": "post",
+        "action": "create",
+        "description": "Create blog posts",
+        "active": true
+      },
+      {
+        "id": 11,
+        "permissionKey": "blog:post:update",
+        "service": "BLOG",
+        "resource": "post",
+        "action": "update",
+        "description": "Update blog posts",
+        "active": true
+      }
+    ]
+  },
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Response Fields** (`PermissionResponse`)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `id` | number | 권한 ID |
+| `permissionKey` | string | 권한 키 (예: blog:post:create) |
+| `service` | string | 서비스 (BLOG, SHOPPING 등) |
+| `resource` | string | 리소스 (post, comment 등) |
+| `action` | string | 액션 (create, update, delete 등) |
+| `description` | string | 권한 설명 |
+| `active` | boolean | 활성 상태 |
+
+**Error Response (404 Not Found)**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A030",
+    "message": "Role not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+---
+
+### 5.11. 역할 생성 (POST `/api/v1/admin/rbac/roles`)
+
+새 역할을 생성합니다.
+
+**Request**
+```http
+POST /api/v1/admin/rbac/roles
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "roleKey": "ROLE_BLOG_MODERATOR",
+  "displayName": "Blog Moderator",
+  "description": "Moderate blog comments and posts",
+  "serviceScope": "BLOG",
+  "membershipGroup": null,
+  "parentRoleKey": "ROLE_USER"
+}
+```
+
+**Request Body** (`CreateRoleRequest`)
+
+| 필드 | 타입 | 필수 | 제약조건 | 설명 |
+|------|------|------|----------|------|
+| `roleKey` | string | ✅ | @NotBlank | 역할 키 (예: ROLE_BLOG_MODERATOR) |
+| `displayName` | string | ✅ | @NotBlank | 표시 이름 |
+| `description` | string | ❌ | - | 역할 설명 |
+| `serviceScope` | string | ❌ | - | 서비스 범위 (SYSTEM, BLOG, SHOPPING 등) |
+| `membershipGroup` | string | ❌ | - | 멤버십 그룹 (user:blog 등) |
+| `parentRoleKey` | string | ❌ | - | 상위 역할 키 (계층 구조) |
+
+**Response (201 Created)** (`RoleResponse`)
+```json
+{
+  "success": true,
+  "data": {
+    "id": 10,
+    "roleKey": "ROLE_BLOG_MODERATOR",
+    "displayName": "Blog Moderator",
+    "description": "Moderate blog comments and posts",
+    "serviceScope": "BLOG",
+    "membershipGroup": null,
+    "parentRoleKey": "ROLE_USER",
+    "system": false,
+    "active": true
+  },
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (409 Conflict) - 역할 키 중복**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A039",
+    "message": "Role key already exists"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (404 Not Found) - 부모 역할 없음**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A030",
+    "message": "Parent role not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+---
+
+### 5.12. 역할 수정 (PUT `/api/v1/admin/rbac/roles/{roleKey}`)
+
+역할의 표시 이름과 설명을 수정합니다.
+
+**Request**
+```http
+PUT /api/v1/admin/rbac/roles/ROLE_BLOG_MODERATOR
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "displayName": "Blog Content Moderator",
+  "description": "Moderate all blog content including posts and comments"
+}
+```
+
+**Request Body** (`UpdateRoleRequest`)
+
+| 필드 | 타입 | 필수 | 제약조건 | 설명 |
+|------|------|------|----------|------|
+| `displayName` | string | ✅ | @NotBlank | 표시 이름 |
+| `description` | string | ❌ | - | 역할 설명 |
+
+**Response (200 OK)** (`RoleResponse`)
+```json
+{
+  "success": true,
+  "data": {
+    "id": 10,
+    "roleKey": "ROLE_BLOG_MODERATOR",
+    "displayName": "Blog Content Moderator",
+    "description": "Moderate all blog content including posts and comments",
+    "serviceScope": "BLOG",
+    "membershipGroup": null,
+    "parentRoleKey": "ROLE_USER",
+    "system": false,
+    "active": true
+  },
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (404 Not Found)**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A030",
+    "message": "Role not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+---
+
+### 5.13. 역할 활성/비활성 (PATCH `/api/v1/admin/rbac/roles/{roleKey}/status`)
+
+역할을 활성화하거나 비활성화합니다.
+
+**Request**
+```http
+PATCH /api/v1/admin/rbac/roles/ROLE_BLOG_MODERATOR/status?active=false
+Authorization: Bearer {accessToken}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `active` | boolean | ✅ | true: 활성화, false: 비활성화 |
+
+**Response (200 OK)** (`RoleResponse`)
+```json
+{
+  "success": true,
+  "data": {
+    "id": 10,
+    "roleKey": "ROLE_BLOG_MODERATOR",
+    "displayName": "Blog Content Moderator",
+    "description": "Moderate all blog content including posts and comments",
+    "serviceScope": "BLOG",
+    "membershipGroup": null,
+    "parentRoleKey": "ROLE_USER",
+    "system": false,
+    "active": false
+  },
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (404 Not Found)**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A030",
+    "message": "Role not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (400 Bad Request) - 시스템 역할 비활성화**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A033",
+    "message": "System role cannot be modified"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+---
+
+### 5.14. 역할 권한 조회 (GET `/api/v1/admin/rbac/roles/{roleKey}/permissions`)
+
+특정 역할에 할당된 권한 목록을 조회합니다.
+
+**Request**
+```http
+GET /api/v1/admin/rbac/roles/ROLE_BLOG_ADMIN/permissions
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)** (`List<PermissionResponse>`)
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 10,
+      "permissionKey": "blog:post:create",
+      "service": "BLOG",
+      "resource": "post",
+      "action": "create",
+      "description": "Create blog posts",
+      "active": true
+    },
+    {
+      "id": 11,
+      "permissionKey": "blog:post:update",
+      "service": "BLOG",
+      "resource": "post",
+      "action": "update",
+      "description": "Update blog posts",
+      "active": true
+    }
+  ],
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (404 Not Found)**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A030",
+    "message": "Role not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+---
+
+### 5.15. 역할에 권한 할당 (POST `/api/v1/admin/rbac/roles/{roleKey}/permissions`)
+
+특정 역할에 권한을 할당합니다.
+
+**Request**
+```http
+POST /api/v1/admin/rbac/roles/ROLE_BLOG_ADMIN/permissions?permissionKey=blog:comment:moderate
+Authorization: Bearer {accessToken}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `permissionKey` | string | ✅ | 할당할 권한 키 (예: blog:comment:moderate) |
+
+**Response (201 Created)**
+```json
+{
+  "success": true,
+  "data": "Permission assigned to role successfully",
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (404 Not Found) - 역할 없음**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A030",
+    "message": "Role not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (404 Not Found) - 권한 없음**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A034",
+    "message": "Permission not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+---
+
+### 5.16. 역할에서 권한 해제 (DELETE `/api/v1/admin/rbac/roles/{roleKey}/permissions/{permissionKey}`)
+
+특정 역할에서 권한을 해제합니다.
+
+**Request**
+```http
+DELETE /api/v1/admin/rbac/roles/ROLE_BLOG_ADMIN/permissions/blog:comment:moderate
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": "Permission removed from role successfully",
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (404 Not Found) - 역할 없음**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A030",
+    "message": "Role not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**Error Response (404 Not Found) - 권한 없음**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "A034",
+    "message": "Permission not found"
+  },
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+---
+
+### 5.17. 전체 권한 목록 (GET `/api/v1/admin/rbac/permissions`)
+
+시스템의 모든 활성 권한을 조회합니다. (드롭다운용)
+
+**Request**
+```http
+GET /api/v1/admin/rbac/permissions
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)** (`List<PermissionResponse>`)
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 10,
+      "permissionKey": "blog:post:create",
+      "service": "BLOG",
+      "resource": "post",
+      "action": "create",
+      "description": "Create blog posts",
+      "active": true
+    },
+    {
+      "id": 11,
+      "permissionKey": "blog:post:update",
+      "service": "BLOG",
+      "resource": "post",
+      "action": "update",
+      "description": "Update blog posts",
+      "active": true
+    },
+    {
+      "id": 20,
+      "permissionKey": "shopping:product:create",
+      "service": "SHOPPING",
+      "resource": "product",
+      "action": "create",
+      "description": "Create products",
+      "active": true
+    }
+  ],
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+---
+
 ## 🔓 6. PermissionController (`/api/v1/permissions`)
 
 ### 6.1. 내 권한 조회 (GET `/api/v1/permissions/me`)
@@ -1278,8 +1939,8 @@ Authorization: Bearer {accessToken}
       "blog:comment:moderate"
     ],
     "memberships": {
-      "blog": "PREMIUM",
-      "shopping": "FREE"
+      "user:blog": {"tier": "PRO", "order": 2},
+      "user:shopping": {"tier": "FREE", "order": 0}
     }
   },
   "error": null,
@@ -1313,7 +1974,7 @@ Authorization: Bearer {accessToken}
     {
       "id": 1001,
       "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "serviceName": "blog",
+      "membershipGroup": "user:blog",
       "tierKey": "PREMIUM",
       "tierDisplayName": "Premium",
       "status": "ACTIVE",
@@ -1325,7 +1986,7 @@ Authorization: Bearer {accessToken}
     {
       "id": 1002,
       "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "serviceName": "shopping",
+      "membershipGroup": "user:shopping",
       "tierKey": "FREE",
       "tierDisplayName": "Free",
       "status": "ACTIVE",
@@ -1344,15 +2005,15 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 7.2. 특정 서비스 멤버십 조회 (GET `/api/v1/memberships/me/{serviceName}`)
+### 7.2. 특정 그룹 멤버십 조회 (GET `/api/v1/memberships/me/{membershipGroup}`)
 
 **인증 필요**: ✅
 
-특정 서비스의 멤버십 정보를 조회합니다.
+특정 멤버십 그룹의 멤버십 정보를 조회합니다.
 
 **Request**
 ```http
-GET /api/v1/memberships/me/blog
+GET /api/v1/memberships/me/user:blog
 Authorization: Bearer {accessToken}
 ```
 
@@ -1363,7 +2024,7 @@ Authorization: Bearer {accessToken}
   "data": {
     "id": 1001,
     "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "serviceName": "blog",
+    "membershipGroup": "user:blog",
     "tierKey": "PREMIUM",
     "tierDisplayName": "Premium",
     "status": "ACTIVE",
@@ -1392,15 +2053,15 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 7.3. 서비스 멤버십 티어 조회 (GET `/api/v1/memberships/tiers/{serviceName}`)
+### 7.3. 멤버십 그룹별 티어 조회 (GET `/api/v1/memberships/tiers/{membershipGroup}`)
 
 **인증 필요**: ❌
 
-특정 서비스의 이용 가능한 멤버십 티어 목록을 조회합니다. (공개 API)
+특정 멤버십 그룹의 이용 가능한 티어 목록을 조회합니다. (공개 API)
 
 **Request**
 ```http
-GET /api/v1/memberships/tiers/blog
+GET /api/v1/memberships/tiers/user:blog
 ```
 
 **Response (200 OK)** (`List<MembershipTierResponse>`)
@@ -1410,7 +2071,7 @@ GET /api/v1/memberships/tiers/blog
   "data": [
     {
       "id": 1,
-      "serviceName": "blog",
+      "membershipGroup": "user:blog",
       "tierKey": "FREE",
       "displayName": "Free",
       "priceMonthly": 0,
@@ -1419,7 +2080,7 @@ GET /api/v1/memberships/tiers/blog
     },
     {
       "id": 2,
-      "serviceName": "blog",
+      "membershipGroup": "user:blog",
       "tierKey": "PREMIUM",
       "displayName": "Premium",
       "priceMonthly": 9900,
@@ -1428,7 +2089,7 @@ GET /api/v1/memberships/tiers/blog
     },
     {
       "id": 3,
-      "serviceName": "blog",
+      "membershipGroup": "user:blog",
       "tierKey": "PRO",
       "displayName": "Pro",
       "priceMonthly": 19900,
@@ -1456,7 +2117,7 @@ Authorization: Bearer {accessToken}
 Content-Type: application/json
 
 {
-  "serviceName": "blog",
+  "membershipGroup": "user:blog",
   "tierKey": "PRO"
 }
 ```
@@ -1465,7 +2126,7 @@ Content-Type: application/json
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|------|------|
-| `serviceName` | string | ✅ | 서비스명 (blog, shopping, etc.) |
+| `membershipGroup` | string | ✅ | 멤버십 그룹 (user:blog, user:shopping, seller:shopping) |
 | `tierKey` | string | ✅ | 변경할 티어 (FREE, PREMIUM, PRO) |
 
 **Response (200 OK)** (`MembershipResponse`)
@@ -1475,7 +2136,7 @@ Content-Type: application/json
   "data": {
     "id": 1001,
     "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "serviceName": "blog",
+    "membershipGroup": "user:blog",
     "tierKey": "PRO",
     "tierDisplayName": "Pro",
     "status": "ACTIVE",
@@ -1508,15 +2169,15 @@ Content-Type: application/json
 
 ---
 
-### 7.5. 멤버십 취소 (DELETE `/api/v1/memberships/me/{serviceName}`)
+### 7.5. 멤버십 취소 (DELETE `/api/v1/memberships/me/{membershipGroup}`)
 
 **인증 필요**: ✅
 
-특정 서비스의 멤버십을 취소합니다. (FREE 티어로 전환)
+특정 멤버십 그룹의 멤버십을 취소합니다. (FREE 티어로 전환)
 
 **Request**
 ```http
-DELETE /api/v1/memberships/me/blog
+DELETE /api/v1/memberships/me/user:blog
 Authorization: Bearer {accessToken}
 ```
 
@@ -1539,9 +2200,31 @@ Authorization: Bearer {accessToken}
 
 관리자용 멤버십 관리 API.
 
-### 8.1. 사용자 멤버십 조회 (GET `/api/v1/admin/memberships/users/{userId}`)
+### 8.1. 멤버십 그룹 목록 조회 (GET `/api/v1/admin/memberships/groups`)
 
-특정 사용자의 모든 멤버십을 조회합니다.
+활성 멤버십 그룹 목록을 조회합니다.
+
+**Request**
+```http
+GET /api/v1/admin/memberships/groups
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": ["seller:shopping", "user:blog", "user:shopping"],
+  "error": null,
+  "timestamp": "2026-02-07T10:00:00Z"
+}
+```
+
+---
+
+### 8.2. 사용자 멤버십 조회 (GET `/api/v1/admin/memberships/users/{userId}`)
+
+특정 사용자의 모든 멤버십을 조회합니다. 응답에는 `autoRenew`, `startedAt`, `expiresAt`, `createdAt` 필드가 포함됩니다.
 
 **Request**
 ```http
@@ -1553,7 +2236,7 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### 8.2. 사용자 멤버십 변경 (PUT `/api/v1/admin/memberships/users/{userId}`)
+### 8.3. 사용자 멤버십 변경 (PUT `/api/v1/admin/memberships/users/{userId}`)
 
 관리자가 특정 사용자의 멤버십을 강제로 변경합니다.
 
@@ -1564,7 +2247,7 @@ Authorization: Bearer {accessToken}
 Content-Type: application/json
 
 {
-  "serviceName": "blog",
+  "membershipGroup": "user:blog",
   "tierKey": "PRO"
 }
 ```
@@ -1855,11 +2538,46 @@ Content-Type: application/json
 
 ---
 
-## 🔐 11. OAuth2 소셜 로그인
+## 🔧 11. RoleHierarchyController (`/api/v1/internal/role-hierarchy`)
+
+**인증 필요**: ❌ (permitAll, Gateway 전용 내부 API)
+
+Gateway가 JWT의 역할 목록을 계층적으로 확장하기 위한 내부 API. Gateway 라우트에 노출되지 않으므로 외부 접근 불가.
+
+### 11.1. 유효 역할 조회 (GET `/api/v1/internal/role-hierarchy/effective-roles`)
+
+역할 키 목록을 받아 계층적으로 확장된 전체 유효 역할을 반환합니다.
+
+**Request**
+```http
+GET /api/v1/internal/role-hierarchy/effective-roles?roles=ROLE_SHOPPING_SELLER,ROLE_USER
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `roles` | string | ✅ | 쉼표 구분 역할 키 목록 |
+
+**Response (200 OK)** (`List<String>`)
+```json
+{
+  "success": true,
+  "data": ["ROLE_SHOPPING_SELLER", "ROLE_USER", "ROLE_SHOPPING_BUYER"],
+  "error": null,
+  "timestamp": "2026-02-07T10:30:00Z"
+}
+```
+
+**동작**: 각 역할의 `parentRoleKey`를 재귀적으로 탐색하여 상위 역할이 하위 역할을 포함하도록 확장합니다.
+
+---
+
+## 🔐 12. OAuth2 소셜 로그인
 
 Spring OAuth2 Client를 사용한 소셜 로그인 지원.
 
-### 11.1. 소셜 로그인 시작 (GET `/oauth2/authorization/{provider}`)
+### 12.1. 소셜 로그인 시작 (GET `/oauth2/authorization/{provider}`)
 
 **인증 필요**: ❌
 
@@ -1878,7 +2596,7 @@ GET /oauth2/authorization/naver
 
 ---
 
-### 11.2. OAuth2 콜백 (GET `/login/oauth2/code/{provider}`)
+### 12.2. OAuth2 콜백 (GET `/login/oauth2/code/{provider}`)
 
 **인증 필요**: ❌
 
@@ -1977,6 +2695,7 @@ GET /login/oauth2/code/google?code=AUTHORIZATION_CODE&state=RANDOM_STATE
 | `A036` | 404 Not Found | MEMBERSHIP_TIER_NOT_FOUND |
 | `A037` | 409 Conflict | MEMBERSHIP_ALREADY_EXISTS |
 | `A038` | 403 Forbidden | MEMBERSHIP_EXPIRED |
+| `A039` | 409 Conflict | ROLE_KEY_ALREADY_EXISTS |
 | `A040` | 409 Conflict | SELLER_APPLICATION_ALREADY_PENDING |
 | `A041` | 404 Not Found | SELLER_APPLICATION_NOT_FOUND |
 | `A042` | 400 Bad Request | SELLER_APPLICATION_ALREADY_PROCESSED |
@@ -2133,8 +2852,8 @@ await fetch('http://localhost:8081/api/v1/memberships/me', {
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    serviceName: 'blog',
-    tierKey: 'PREMIUM'
+    membershipGroup: 'user:blog',
+    tierKey: 'PRO'
   })
 });
 ```
@@ -2170,6 +2889,31 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 
 ## 📝 변경 이력
 
+### v2.4.0 (2026-02-07)
+- RbacAdminController에 역할 CRUD 8개 엔드포인트 추가 (상세, 생성, 수정, 상태변경, 권한 조회/할당/해제, 전체 권한 목록)
+- Section 5.10~5.17 추가
+- Error Code A039 (ROLE_KEY_ALREADY_EXISTS) 추가
+- Endpoint 수 ~46→~54
+
+### v2.3.0 (2026-02-07)
+- RbacAdminController에 사용자 검색 API 추가 (`GET /api/v1/admin/rbac/users`)
+- AdminUserResponse DTO 추가 (email, username, nickname LIKE 검색 + UUID exact match)
+- Endpoint 수 ~45→~46
+
+### v2.2.0 (2026-02-07)
+- RbacAdminController에 Dashboard Stats API 추가 (`GET /api/v1/admin/rbac/dashboard`)
+- RbacAdminController에 Audit Log API 추가 (`GET /api/v1/admin/rbac/audit`, `GET /api/v1/admin/rbac/users/{userId}/audit`)
+- Endpoint 수 ~42→~45
+
+### v2.1.0 (2026-02-07)
+- **Membership Group 모델 전환**: `serviceName` → `membershipGroup` (format: `{role_scope}:{service}`)
+- Membership 관련 모든 endpoint path variable 및 request body 필드명 업데이트
+- RoleResponse에 `membershipGroup` 필드 추가
+- 멤버십 enriched format: `{"user:blog": {"tier": "PRO", "order": 2}}`
+- RoleHierarchyController 내부 API 섹션 추가 (Section 11)
+- SecurityConfig에 `/api/v1/internal/**` permitAll 추가
+- Controller 수 10→11, Endpoint 수 ~40→~42
+
 ### v2.0.0 (2026-02-06)
 - **전면 재작성**: 실제 코드베이스와 100% 일치하도록 수정
 - API 경로에 `/api/v1/` prefix 추가
@@ -2189,4 +2933,4 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-07

@@ -3,6 +3,7 @@ package com.portal.universe.apigateway.config;
 import com.portal.universe.apigateway.filter.JwtAuthenticationFilter;
 import com.portal.universe.apigateway.security.CustomAccessDeniedHandler;
 import com.portal.universe.apigateway.security.CustomAuthenticationEntryPoint;
+import com.portal.universe.apigateway.service.RoleHierarchyResolver;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,10 +43,11 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final TokenBlacklistChecker tokenBlacklistChecker;
+    private final RoleHierarchyResolver roleHierarchyResolver;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker);
+        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker, roleHierarchyResolver);
     }
 
     /**
@@ -81,6 +83,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:30000",
                 "https://localhost:30000",
+                "http://localhost:30004",
                 "http://localhost:8080",
                 "https://portal-universe:30000"
                 ));
@@ -139,7 +142,7 @@ public class SecurityConfig {
                         // [판매자] Seller 권한
                         // ========================================
                         .pathMatchers("/api/v1/shopping/seller/**")
-                            .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                            .hasAnyAuthority("ROLE_SHOPPING_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // ========================================
                         // [비공개] 인증 필요

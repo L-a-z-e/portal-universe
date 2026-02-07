@@ -82,8 +82,8 @@ export async function handleLoginModalIfVisible(page: Page): Promise<void> {
   try {
     const modal = page.locator('h3:has-text("로그인")')
     if (await modal.isVisible({ timeout: 2000 })) {
-      await page.locator('input[placeholder="your@email.com"]').first().fill('admin@example.com')
-      await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('admin123')
+      await page.locator('input[placeholder="your@email.com"]').first().fill('admin@test.com')
+      await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('admin1234')
       await page.getByRole('button', { name: '로그인', exact: true }).click()
       await page.waitForTimeout(3000)
     }
