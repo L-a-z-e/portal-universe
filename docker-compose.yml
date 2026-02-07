@@ -8,6 +8,15 @@ services:
   postgresql:
     image: postgres:18-alpine
     container_name: postgresql
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "5432:5432"
     volumes:
@@ -26,6 +35,15 @@ services:
   mysql-db:
     image: mysql:8.0
     container_name: mysql-db
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     ports:
       - "3307:3306"
     volumes:
@@ -41,6 +59,15 @@ services:
   mongodb:
     image: mongo:8.0
     container_name: mongodb
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "27017:27017"
     volumes:
@@ -53,6 +80,15 @@ services:
   redis:
     image: redis:7.4-alpine
     container_name: redis
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
@@ -71,6 +107,15 @@ services:
       context: ./infrastructure/elasticsearch
       dockerfile: Dockerfile
     container_name: elasticsearch
+    mem_limit: 2g
+    memswap_limit: 2g
+    cpus: 2.0
+    pids_limit: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -90,6 +135,15 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:8.18.5
     container_name: kibana
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1.5
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "5601:5601"
     environment:
@@ -103,6 +157,15 @@ services:
   kafka:
     image: apache/kafka:4.1.1
     container_name: kafka
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: 2.0
+    pids_limit: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     ports:
       - "9092:9092"
       - "29092:29092"
@@ -130,11 +193,23 @@ services:
       retries: 5
       start_period: 30s
 
+  # ========================================
+  # Application Services
+  # ========================================
   api-gateway:
     build:
       context: .
       dockerfile: ./services/api-gateway/Dockerfile
     container_name: api-gateway
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "8080:8080"
     environment:
@@ -158,6 +233,15 @@ services:
       context: .
       dockerfile: ./services/auth-service/Dockerfile
     container_name: auth-service
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "8081:8081"
     env_file:
@@ -190,6 +274,15 @@ services:
       context: .
       dockerfile: ./services/blog-service/Dockerfile
     container_name: blog-service
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "8082:8082"
     environment:
@@ -212,6 +305,15 @@ services:
       context: .
       dockerfile: ./services/shopping-service/Dockerfile
     container_name: shopping-service
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "8083:8083"
     environment:
@@ -240,6 +342,15 @@ services:
       context: .
       dockerfile: ./services/notification-service/Dockerfile
     container_name: notification-service
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "8084:8084"
     environment:
@@ -268,6 +379,15 @@ services:
       args:
         BUILD_MODE: docker
     container_name: portal-shell
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "30000:8443"
     volumes:
@@ -285,6 +405,15 @@ services:
       args:
         BUILD_MODE: docker
     container_name: blog-frontend
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "30001:8080"
     depends_on:
@@ -300,6 +429,15 @@ services:
       args:
         BUILD_MODE: docker
     container_name: shopping-frontend
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "30002:8080"
     depends_on:
@@ -316,6 +454,15 @@ services:
       context: ./services/prism-service
       dockerfile: Dockerfile
     container_name: prism-service
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "8085:8085"
     env_file:
@@ -344,6 +491,15 @@ services:
       args:
         BUILD_MODE: docker
     container_name: prism-frontend
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "30003:8080"
     depends_on:
@@ -360,6 +516,15 @@ services:
       context: ./services/chatbot-service
       dockerfile: Dockerfile
     container_name: chatbot-service
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "8086:8086"
     environment:
@@ -394,6 +559,15 @@ services:
   prometheus:
     image: prom/prometheus:v2.53.5
     container_name: prometheus
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./monitoring/prometheus/rules:/etc/prometheus/rules
@@ -413,6 +587,15 @@ services:
   alertmanager:
     image: prom/alertmanager:v0.28.1
     container_name: alertmanager
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
       - ./monitoring/alertmanager/templates:/etc/alertmanager/templates
@@ -429,6 +612,15 @@ services:
   grafana:
     image: grafana/grafana-oss:11.4.0
     container_name: grafana
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env.docker
     environment:
@@ -449,6 +641,15 @@ services:
   loki:
     image: grafana/loki:2.9.0
     container_name: loki
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
       - loki-data:/loki
@@ -462,6 +663,15 @@ services:
   promtail:
     image: grafana/promtail:2.9.0
     container_name: promtail
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -476,6 +686,15 @@ services:
   zipkin:
     image: openzipkin/zipkin:3.4.2
     container_name: zipkin
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "9411:9411"
     environment:
@@ -496,6 +715,15 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: cadvisor
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "8888:8080"
     volumes:
@@ -509,6 +737,15 @@ services:
   mysql-exporter:
     image: prom/mysqld-exporter:v0.15.0
     container_name: mysql-exporter
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "9104:9104"
     volumes:
@@ -523,6 +760,15 @@ services:
   redis-exporter:
     image: oliver006/redis_exporter:v1.66.0
     container_name: redis-exporter
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "9121:9121"
     environment:
@@ -537,6 +783,15 @@ services:
   kafka-exporter:
     image: danielqsj/kafka-exporter:v1.8.0
     container_name: kafka-exporter
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "9308:9308"
     command:
@@ -553,6 +808,15 @@ services:
   localstack:
     image: localstack/localstack:4.3.0
     container_name: localstack
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "4566:4566"
     environment:
@@ -572,6 +836,15 @@ services:
 
   dozzle:
     image: amir20/dozzle:v8.14.5
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
