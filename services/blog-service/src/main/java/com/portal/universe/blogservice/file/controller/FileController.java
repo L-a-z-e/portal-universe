@@ -3,13 +3,13 @@ package com.portal.universe.blogservice.file.controller;
 import com.portal.universe.blogservice.file.dto.FileDeleteRequest;
 import com.portal.universe.blogservice.file.dto.FileUploadResponse;
 import com.portal.universe.blogservice.file.service.FileService;
+import com.portal.universe.commonlibrary.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,7 +38,7 @@ public class FileController {
     )
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<FileUploadResponse> uploadFile(
+    public ApiResponse<FileUploadResponse> uploadFile(
             @RequestParam("file") MultipartFile file
     ) {
         log.info("File upload request - name: {}, size: {}bytes",
@@ -53,7 +53,7 @@ public class FileController {
                 .contentType(file.getContentType())
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ApiResponse.success(response);
     }
 
     /**
@@ -67,11 +67,11 @@ public class FileController {
     )
     @DeleteMapping("/delete")
     @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ResponseEntity<Void> deleteFile(@Valid @RequestBody FileDeleteRequest request) {
+    public ApiResponse<Void> deleteFile(@Valid @RequestBody FileDeleteRequest request) {
         log.info("File delete request - url: {}", request.getUrl());
 
         fileService.deleteFile(request.getUrl());
 
-        return ResponseEntity.noContent().build();
+        return ApiResponse.success(null);
     }
 }

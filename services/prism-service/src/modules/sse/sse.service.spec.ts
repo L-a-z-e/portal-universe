@@ -32,7 +32,7 @@ describe('SseService', () => {
     const result = await resultPromise;
     const parsed = JSON.parse(result.data);
     expect(parsed.type).toBe('task.created');
-    expect(parsed.payload).toEqual({ task: { id: 1 } });
+    expect(parsed.data).toEqual({ task: { id: 1 } });
     expect(result.type).toBe('task.created');
   });
 
@@ -127,7 +127,7 @@ describe('SseService', () => {
       const result = await resultPromise;
       const parsed = JSON.parse(result.data);
       expect(parsed.type).toBe('task.created');
-      expect(parsed.payload.task).toEqual({ id: 1, title: 'New' });
+      expect(parsed.data.task).toEqual({ id: 1, title: 'New' });
     });
 
     it('emitTaskMoved should emit task.moved event', async () => {
@@ -139,7 +139,7 @@ describe('SseService', () => {
       const result = await resultPromise;
       const parsed = JSON.parse(result.data);
       expect(parsed.type).toBe('task.moved');
-      expect(parsed.payload).toEqual({
+      expect(parsed.data).toEqual({
         taskId: 5,
         fromStatus: 'TODO',
         toStatus: 'IN_PROGRESS',

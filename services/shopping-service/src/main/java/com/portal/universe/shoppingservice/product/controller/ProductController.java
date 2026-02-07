@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.product.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.shoppingservice.product.dto.ProductCreateRequest;
 import com.portal.universe.shoppingservice.product.dto.ProductResponse;
 import com.portal.universe.shoppingservice.product.dto.ProductUpdateRequest;
@@ -36,11 +37,11 @@ public class ProductController {
      * @return 페이징된 상품 목록을 담은 ApiResponse
      */
     @GetMapping
-    public ApiResponse<Page<ProductResponse>> getAllProducts(
-            @RequestParam(defaultValue = "0") int page,
+    public ApiResponse<PageResponse<ProductResponse>> getAllProducts(
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "12") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return ApiResponse.success(productService.getAllProducts(pageable));
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return ApiResponse.success(PageResponse.from(productService.getAllProducts(pageable)));
     }
 
     /**

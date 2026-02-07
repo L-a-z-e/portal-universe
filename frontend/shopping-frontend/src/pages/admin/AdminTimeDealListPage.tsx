@@ -25,7 +25,7 @@ function formatPrice(price: number): string {
 export function AdminTimeDealListPage() {
   const { handleError } = useApiError()
   const { success } = useToast()
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(1)
   const { data, isLoading, error, refetch } = useAdminTimeDeals({ page, size: 10 })
   const { mutateAsync: cancelTimeDeal, isPending: isCancelling } = useCancelTimeDeal()
 
@@ -90,14 +90,14 @@ export function AdminTimeDealListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-default">
-                {data.content.length === 0 ? (
+                {data.items.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="px-4 py-8 text-center text-text-muted">
                       등록된 타임딜이 없습니다
                     </td>
                   </tr>
                 ) : (
-                  data.content.map((timeDeal) =>
+                  data.items.map((timeDeal) =>
                     (timeDeal.products ?? []).map((product, idx) => (
                       <tr key={`${timeDeal.id}-${product.id}`} className="hover:bg-bg-hover transition-colors">
                         {idx === 0 && (
@@ -173,19 +173,19 @@ export function AdminTimeDealListPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={data.first}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
               >
                 이전
               </Button>
               <span className="text-sm text-text-meta">
-                {page + 1} / {data.totalPages}
+                {page} / {data.totalPages}
               </span>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setPage((p) => Math.min(data.totalPages - 1, p + 1))}
-                disabled={data.last}
+                onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
+                disabled={page >= data.totalPages}
               >
                 다음
               </Button>

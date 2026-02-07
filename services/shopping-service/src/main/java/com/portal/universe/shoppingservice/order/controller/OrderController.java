@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.order.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.shoppingservice.order.dto.CancelOrderRequest;
 import com.portal.universe.shoppingservice.order.dto.CreateOrderRequest;
 import com.portal.universe.shoppingservice.order.dto.OrderResponse;
@@ -47,10 +48,10 @@ public class OrderController {
      * @return 주문 목록
      */
     @GetMapping
-    public ApiResponse<Page<OrderResponse>> getUserOrders(
+    public ApiResponse<PageResponse<OrderResponse>> getUserOrders(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(orderService.getUserOrders(userId, pageable));
+        return ApiResponse.success(PageResponse.from(orderService.getUserOrders(userId, pageable)));
     }
 
     /**

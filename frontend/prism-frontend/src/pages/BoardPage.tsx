@@ -40,29 +40,29 @@ function BoardPage() {
   const handleSseEvent = useCallback((event: SseEvent) => {
     switch (event.type) {
       case 'task.created':
-        handleTaskCreated(event.payload.task as Task);
+        handleTaskCreated(event.data.task as Task);
         break;
       case 'task.updated':
-        handleTaskUpdated(event.payload.task as Task);
+        handleTaskUpdated(event.data.task as Task);
         break;
       case 'task.moved':
         handleTaskMoved(
-          event.payload.taskId as number,
-          event.payload.toStatus as TaskStatus,
-          event.payload.position as number
+          event.data.taskId as number,
+          event.data.toStatus as TaskStatus,
+          event.data.position as number
         );
         break;
       case 'task.deleted':
-        handleTaskDeleted(event.payload.taskId as number);
+        handleTaskDeleted(event.data.taskId as number);
         break;
       case 'execution.started':
-        handleExecutionStarted(event.payload.taskId as number);
+        handleExecutionStarted(event.data.taskId as number);
         break;
       case 'execution.completed':
-        handleExecutionCompleted(event.payload.taskId as number);
+        handleExecutionCompleted(event.data.taskId as number);
         break;
       case 'execution.failed':
-        handleExecutionFailed(event.payload.taskId as number);
+        handleExecutionFailed(event.data.taskId as number);
         break;
     }
   }, [

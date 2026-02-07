@@ -19,7 +19,7 @@ const router = useRouter();
 
 const loading = ref(false);
 const likers = ref<LikerResponse[]>([]);
-const page = ref(0);
+const page = ref(1);
 const hasMore = ref(false);
 
 async function loadData() {
@@ -27,13 +27,13 @@ async function loadData() {
   try {
     const response: PageResponse<LikerResponse> = await getLikers(props.postId, page.value, 20);
 
-    if (page.value === 0) {
-      likers.value = response.content;
+    if (page.value === 1) {
+      likers.value = response.items;
     } else {
-      likers.value = [...likers.value, ...response.content];
+      likers.value = [...likers.value, ...response.items];
     }
 
-    hasMore.value = !response.last;
+    hasMore.value = response.page < response.totalPages;
   } catch (error) {
     console.error('Failed to load likers:', error);
   } finally {
@@ -56,7 +56,7 @@ function goToProfile(liker: LikerResponse) {
 
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
-    page.value = 0;
+    page.value = 1;
     likers.value = [];
     loadData();
   }
@@ -73,7 +73,7 @@ watch(() => props.isOpen, (isOpen) => {
   >
     <div class="likers-modal-content">
       <!-- 로딩 -->
-      <div v-if="loading && page === 0" class="loading-container">
+      <div v-if="loading && page === 1" class="loading-container">
         <Spinner size="lg" />
       </div>
 

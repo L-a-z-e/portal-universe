@@ -3,6 +3,7 @@ package com.portal.universe.authservice.auth.controller;
 import com.portal.universe.authservice.auth.dto.rbac.*;
 import com.portal.universe.authservice.auth.service.RbacService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,12 +32,12 @@ public class RbacAdminController {
      * 사용자 목록을 검색합니다 (email, username, nickname LIKE 또는 UUID exact match).
      */
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<Page<AdminUserResponse>>> searchUsers(
+    public ResponseEntity<ApiResponse<PageResponse<AdminUserResponse>>> searchUsers(
             @RequestParam(required = false, defaultValue = "") String query,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(ApiResponse.success(
-                rbacService.searchUsers(query, PageRequest.of(page, size))));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(
+                rbacService.searchUsers(query, PageRequest.of(page - 1, size)))));
     }
 
     /**
@@ -179,22 +180,22 @@ public class RbacAdminController {
      * 전체 감사 로그를 페이징 조회합니다.
      */
     @GetMapping("/audit")
-    public ResponseEntity<ApiResponse<Page<AuditLogResponse>>> getAuditLogs(
-            @RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> getAuditLogs(
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(ApiResponse.success(
-                rbacService.getAuditLogs(PageRequest.of(page, size))));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(
+                rbacService.getAuditLogs(PageRequest.of(page - 1, size)))));
     }
 
     /**
      * 특정 사용자의 감사 로그를 페이징 조회합니다.
      */
     @GetMapping("/users/{userId}/audit")
-    public ResponseEntity<ApiResponse<Page<AuditLogResponse>>> getUserAuditLogs(
+    public ResponseEntity<ApiResponse<PageResponse<AuditLogResponse>>> getUserAuditLogs(
             @PathVariable String userId,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(ApiResponse.success(
-                rbacService.getUserAuditLogs(userId, PageRequest.of(page, size))));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(
+                rbacService.getUserAuditLogs(userId, PageRequest.of(page - 1, size)))));
     }
 }

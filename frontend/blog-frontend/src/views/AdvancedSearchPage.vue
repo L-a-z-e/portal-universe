@@ -18,7 +18,7 @@ const endDate = ref('');
 
 // 결과 상태
 const results = ref<PostSummaryResponse[]>([]);
-const currentPage = ref(0);
+const currentPage = ref(1);
 const pageSize = ref(12);
 const totalElements = ref(0);
 const hasMore = ref(false);
@@ -63,7 +63,7 @@ const isEmpty = computed(() => hasSearched.value && !isLoading.value && results.
 const canLoadMore = computed(() => hasMore.value && !isLoadingMore.value && !isLoading.value);
 
 // 검색 실행
-async function handleSearch(page: number = 0, append: boolean = false) {
+async function handleSearch(page: number = 1, append: boolean = false) {
   if (isSearchEmpty.value) {
     error.value = '최소 하나의 검색 조건을 입력해주세요.';
     return;
@@ -93,14 +93,14 @@ async function handleSearch(page: number = 0, append: boolean = false) {
     const response: PageResponse<PostSummaryResponse> = await searchPostsAdvanced(searchRequest);
 
     if (append) {
-      results.value = [...results.value, ...response.content];
+      results.value = [...results.value, ...response.items];
     } else {
-      results.value = response.content;
+      results.value = response.items;
     }
 
-    currentPage.value = response.number;
+    currentPage.value = response.page;
     totalElements.value = response.totalElements;
-    hasMore.value = !response.last;
+    hasMore.value = response.page < response.totalPages;
     hasSearched.value = true;
   } catch (err) {
     console.error('Failed to search posts:', err);
@@ -126,7 +126,7 @@ function resetSearch() {
   startDate.value = '';
   endDate.value = '';
   results.value = [];
-  currentPage.value = 0;
+  currentPage.value = 1;
   totalElements.value = 0;
   hasMore.value = false;
   error.value = null;

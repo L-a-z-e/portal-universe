@@ -1,8 +1,9 @@
 # ADR-023: API Response Wrapper 표준화
 
-**Status**: Accepted
+**Status**: Deprecated
 **Date**: 2026-02-07
 **Author**: Laze
+**Superseded by**: [ADR-031: Unified API Response Strategy](./ADR-031-unified-api-response-strategy.md)
 
 ## Context
 

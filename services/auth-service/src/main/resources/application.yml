@@ -9,6 +9,15 @@ spring:
   application:
     name: auth-service
 
+  # Pagination 1-based + Redis 설정
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   # JPA 공통 설정
   jpa:
     open-in-view: false
@@ -33,12 +42,6 @@ spring:
       connection-timeout: 20000
       idle-timeout: 600000
       max-lifetime: 1800000
-
-  # Redis 공통 설정
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
 
   # OAuth2 Client 설정은 각 프로필별로 정의
   # local 프로필에서 필요시 활성화

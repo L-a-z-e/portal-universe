@@ -17,7 +17,7 @@ const categoriesError = ref<string | null>(null);
 
 // 게시글 목록 상태
 const posts = ref<PostSummaryResponse[]>([]);
-const currentPage = ref(0);
+const currentPage = ref(1);
 const pageSize = ref(10);
 const totalPages = ref(0);
 const totalElements = ref(0);
@@ -59,7 +59,7 @@ async function loadCategories() {
 }
 
 // 게시글 목록 로드
-async function loadPosts(page: number = 0, append: boolean = false) {
+async function loadPosts(page: number = 1, append: boolean = false) {
   try {
     if (append) {
       isLoadingMore.value = true;
@@ -80,15 +80,15 @@ async function loadPosts(page: number = 0, append: boolean = false) {
     }
 
     if (append) {
-      posts.value = [...posts.value, ...response.content];
+      posts.value = [...posts.value, ...response.items];
     } else {
-      posts.value = response.content;
+      posts.value = response.items;
     }
 
-    currentPage.value = response.number;
+    currentPage.value = response.page;
     totalPages.value = response.totalPages;
     totalElements.value = response.totalElements;
-    hasMore.value = !response.last;
+    hasMore.value = response.page < response.totalPages;
 
   } catch (err) {
     console.error('Failed to fetch posts:', err);
@@ -111,14 +111,14 @@ function selectCategory(category: string | null) {
   if (selectedCategory.value === category) return;
 
   selectedCategory.value = category;
-  currentPage.value = 0;
+  currentPage.value = 1;
   posts.value = [];
   hasMore.value = true;
 
   // URL 쿼리 업데이트
   updateQueryParams();
 
-  loadPosts(0, false);
+  loadPosts(1, false);
 }
 
 // URL 쿼리 파라미터 업데이트
@@ -174,7 +174,7 @@ function setupIntersectionObserver() {
 onMounted(async () => {
   initializeFromQuery();
   await loadCategories();
-  await loadPosts(0, false);
+  await loadPosts(1, false);
   setupIntersectionObserver();
 });
 

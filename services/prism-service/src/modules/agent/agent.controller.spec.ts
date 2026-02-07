@@ -71,9 +71,9 @@ describe('AgentController', () => {
       const pagination = new PaginationDto();
       const expected: PaginatedResult<AgentResponseDto> = {
         items: [makeAgentResponse()],
-        total: 1,
         page: 1,
         size: 20,
+        totalElements: 1,
         totalPages: 1,
       };
       agentService.findAll.mockResolvedValue(expected);

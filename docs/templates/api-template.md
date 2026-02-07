@@ -42,9 +42,11 @@
 
 ### 목록 조회 (페이징)
 ```bash
-curl -X GET "http://localhost:8080/api/[service]/[resource]?page=0&size=20" \
+curl -X GET "http://localhost:8080/api/[service]/[resource]?page=1&size=20" \
   -H "Authorization: Bearer $TOKEN"
 ```
+
+> **참고**: `page` 파라미터는 1부터 시작합니다 (ADR-031).
 
 ### 생성
 ```bash
@@ -111,17 +113,17 @@ Auth Service의 `/auth/login` 엔드포인트를 통해 토큰 발급
 {
   "success": true,
   "data": {
-    "content": [ /* 데이터 배열 */ ],
-    "page": {
-      "number": 0,
-      "size": 20,
-      "totalElements": 100,
-      "totalPages": 5
-    }
+    "items": [ /* 데이터 배열 */ ],
+    "page": 1,
+    "size": 20,
+    "totalElements": 100,
+    "totalPages": 5
   },
-  "timestamp": "2026-02-05T10:00:00Z"
+  "timestamp": "2026-02-08T10:00:00Z"
 }
 ```
+
+> **참고**: ADR-031에 따라 페이지네이션은 `PageResponse<T>` 구조를 사용합니다. `page`는 1-based입니다.
 
 ### 에러 (4xx, 5xx)
 ```json
@@ -159,7 +161,7 @@ Auth Service의 `/auth/login` 엔드포인트를 통해 토큰 발급
 **Query Parameters**:
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |---------|------|------|------|--------|
-| `page` | number | N | 페이지 번호 (0부터) | 0 |
+| `page` | number | N | 페이지 번호 (1부터) | 1 |
 | `size` | number | N | 페이지 크기 | 20 |
 | `sort` | string | N | 정렬 (field,asc/desc) | createdAt,desc |
 | `search` | string | N | 검색어 | - |
@@ -169,20 +171,18 @@ Auth Service의 `/auth/login` 엔드포인트를 통해 토큰 발급
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": "uuid",
         "name": "이름",
         "status": "ACTIVE",
-        "createdAt": "2026-02-05T10:00:00Z"
+        "createdAt": "2026-02-08T10:00:00Z"
       }
     ],
-    "page": {
-      "number": 0,
-      "size": 20,
-      "totalElements": 100,
-      "totalPages": 5
-    }
+    "page": 1,
+    "size": 20,
+    "totalElements": 100,
+    "totalPages": 5
   }
 }
 ```
@@ -422,6 +422,38 @@ curl -X GET "$API_BASE_URL/api/[service]/[resource]" \
 
 ---
 
+## 📡 SSE (Server-Sent Events) 응답 형식
+
+SSE를 사용하는 엔드포인트는 모두 `SseEnvelope<T>` 구조를 따릅니다 (ADR-031).
+
+### 표준 SSE 이벤트 형식
+
+```
+event: message
+data: {"type":"update","data":{...},"timestamp":"2026-02-08T10:00:00Z"}
+
+event: heartbeat
+data: {"type":"heartbeat","data":null,"timestamp":"2026-02-08T10:00:01Z"}
+
+event: error
+data: {"type":"error","data":{"message":"에러 메시지"},"timestamp":"2026-02-08T10:00:02Z"}
+
+event: complete
+data: {"type":"complete","data":null,"timestamp":"2026-02-08T10:00:03Z"}
+```
+
+### 필드 설명
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `type` | string | 이벤트 타입 (update, heartbeat, error, complete 등) |
+| `data` | T \| null | 페이로드 데이터 (타입별로 다름) |
+| `timestamp` | string | ISO 8601 형식 타임스탬프 |
+
+> **참고**: 자세한 내용은 [ADR-031: Unified API Response Strategy](../adr/ADR-031-unified-api-response-strategy.md)를 참조하세요.
+
+---
+
 ## 📈 Rate Limiting
 
 | 엔드포인트 유형 | 제한 | 기간 |
@@ -456,8 +488,9 @@ curl -X GET "$API_BASE_URL/api/[service]/[resource]" \
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|-----------|--------|
+| v1.1 | 2026-02-08 | 페이지네이션 응답 구조 변경 (ADR-031) | Laze |
 | v1.0 | 2026-02-05 | 초기 버전 | [이름] |
 
 ---
 
-**마지막 업데이트**: 2026-02-05
+**마지막 업데이트**: 2026-02-08

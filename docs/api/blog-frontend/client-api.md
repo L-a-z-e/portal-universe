@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, axios, typescript, frontend]
 related:
@@ -1201,7 +1201,7 @@ interface PageResponse<T> {
   totalElements: number;  // 전체 요소 수
   totalPages: number;     // 전체 페이지 수
   size: number;           // 페이지 크기
-  number: number;         // 현재 페이지 번호 (0부터 시작)
+  number: number;         // 현재 페이지 번호 (1부터 시작)
   first: boolean;         // 첫 페이지 여부
   last: boolean;          // 마지막 페이지 여부
   empty: boolean;         // 비어있는지 여부
@@ -1214,7 +1214,7 @@ interface PageResponse<T> {
 {
   "success": true,
   "data": {
-    "content": [...],
+    "items": [...],
     "totalElements": 250,
     "totalPages": 25,
     "size": 10,

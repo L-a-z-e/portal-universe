@@ -1,4 +1,5 @@
 // admin-frontend/src/dto/admin.ts
+export type { PageResponse } from '@portal/design-types';
 
 export interface RoleResponse {
   id: number;
@@ -122,13 +123,6 @@ export interface AdminUserSummary {
   status: 'ACTIVE' | 'DORMANT' | 'BANNED' | 'WITHDRAWAL_PENDING';
   createdAt: string;
   lastLoginAt: string | null;
-}
-
-export interface PageResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
 }
 
 export interface ApiResponse<T> {

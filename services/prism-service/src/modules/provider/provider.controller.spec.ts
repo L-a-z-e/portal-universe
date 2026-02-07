@@ -71,9 +71,9 @@ describe('ProviderController', () => {
       const pagination = new PaginationDto();
       const expected: PaginatedResult<ProviderResponseDto> = {
         items: [makeProviderResponse()],
-        total: 1,
         page: 1,
         size: 20,
+        totalElements: 1,
         totalPages: 1,
       };
       providerService.findAll.mockResolvedValue(expected);

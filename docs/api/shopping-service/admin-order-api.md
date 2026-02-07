@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, shopping-service, admin, order]
 related:
@@ -48,12 +48,12 @@ related:
 ### Request
 
 ```http
-GET /api/shopping/admin/orders?status=CONFIRMED&page=0&size=20
+GET /api/shopping/admin/orders?status=CONFIRMED&page=1&size=20
 Authorization: Bearer {token}
 ```
 
 ```http
-GET /api/shopping/admin/orders?keyword=ORD-20260206&page=0&size=20
+GET /api/shopping/admin/orders?keyword=ORD-20260206&page=1&size=20
 Authorization: Bearer {token}
 ```
 
@@ -63,7 +63,7 @@ Authorization: Bearer {token}
 |----------|------|------|------|--------|
 | `status` | string | ❌ | 주문 상태 필터 (아래 표 참조) | - |
 | `keyword` | string | ❌ | 검색어 (주문번호 또는 사용자 ID) | - |
-| `page` | integer | ❌ | 페이지 번호 (0부터) | 0 |
+| `page` | integer | ❌ | 페이지 번호 (1부터) | 0 |
 | `size` | integer | ❌ | 페이지 크기 | 20 |
 
 > `status`와 `keyword`를 동시에 지정하면 `status`가 우선 적용됩니다.
@@ -74,7 +74,7 @@ Authorization: Bearer {token}
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 150,
         "orderNumber": "ORD-20260206-A1B2C3D4",
@@ -107,12 +107,10 @@ Authorization: Bearer {token}
         "updatedAt": "2026-02-06T10:05:00Z"
       }
     ],
-    "page": {
-      "number": 0,
-      "size": 20,
-      "totalElements": 150,
-      "totalPages": 8
-    }
+    "page": 1,
+    "size": 20,
+    "totalElements": 150,
+    "totalPages": 8
   },
   "timestamp": "2026-02-06T14:00:00Z"
 }

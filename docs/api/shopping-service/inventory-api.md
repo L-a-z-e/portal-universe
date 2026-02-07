@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, shopping-service, inventory, stock, sse]
 related:
@@ -272,7 +272,7 @@ Authorization: Bearer {token}
 ### Request
 
 ```http
-GET /api/shopping/inventory/{productId}/movements?page=0&size=20&sort=createdAt,desc
+GET /api/shopping/inventory/{productId}/movements?page=1&size=20&sort=createdAt,desc
 ```
 
 ### Path Parameters
@@ -285,7 +285,7 @@ GET /api/shopping/inventory/{productId}/movements?page=0&size=20&sort=createdAt,
 
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
-| `page` | integer | ❌ | 페이지 번호 (0부터) | 0 |
+| `page` | integer | ❌ | 페이지 번호 (1부터) | 0 |
 | `size` | integer | ❌ | 페이지 크기 | 20 |
 | `sort` | string | ❌ | 정렬 | createdAt,desc |
 
@@ -295,7 +295,7 @@ GET /api/shopping/inventory/{productId}/movements?page=0&size=20&sort=createdAt,
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 150,
         "productId": 10,
@@ -329,12 +329,10 @@ GET /api/shopping/inventory/{productId}/movements?page=0&size=20&sort=createdAt,
         "createdAt": "2026-02-06T10:15:00Z"
       }
     ],
-    "page": {
-      "number": 0,
-      "size": 20,
-      "totalElements": 150,
-      "totalPages": 8
-    }
+    "page": 1,
+    "size": 20,
+    "totalElements": 150,
+    "totalPages": 8
   },
   "timestamp": "2026-02-06T11:30:00Z"
 }

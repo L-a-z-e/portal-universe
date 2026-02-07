@@ -1,6 +1,7 @@
 package com.portal.universe.notificationservice.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.notificationservice.dto.NotificationResponse;
 import com.portal.universe.notificationservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -24,19 +25,19 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getNotifications(
+    public ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> getNotifications(
             @RequestHeader("X-User-Id") String userId,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(
-                notificationService.getNotifications(userId, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(
+                notificationService.getNotifications(userId, pageable))));
     }
 
     @GetMapping("/unread")
-    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getUnreadNotifications(
+    public ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> getUnreadNotifications(
             @RequestHeader("X-User-Id") String userId,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(
-                notificationService.getUnreadNotifications(userId, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(
+                notificationService.getUnreadNotifications(userId, pageable))));
     }
 
     @GetMapping("/unread/count")

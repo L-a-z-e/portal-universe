@@ -8,6 +8,7 @@ import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.post.service.PostService;
 import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,12 +45,12 @@ public class PostController {
     @Operation(summary = "전체 게시물 조회(관리자용)")
     @GetMapping("/all")
     @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ApiResponse<Page<PostResponse>> getAllPosts(
-            @RequestParam(defaultValue = "0") int page,
+    public ApiResponse<PageResponse<PostResponse>> getAllPosts(
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Page<PostResponse> posts = postService.getAllPosts(page, size);
-        return ApiResponse.success(posts);
+        Page<PostResponse> posts = postService.getAllPosts(page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "게시물 상세 조회")
@@ -94,83 +95,83 @@ public class PostController {
 
     @Operation(summary = "발행 게시물 목록 (페이징)")
     @GetMapping
-    public ApiResponse<Page<PostSummaryResponse>> getPublishedPosts(
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+    public ApiResponse<PageResponse<PostSummaryResponse>> getPublishedPosts(
+            @Parameter(description = "페이지 번호 (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
-        Page<PostSummaryResponse> posts = postService.getPublishedPosts(page, size);
-        return ApiResponse.success(posts);
+        Page<PostSummaryResponse> posts = postService.getPublishedPosts(page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "작성자별 게시물 목록 조회")
     @GetMapping("/author/{authorId}")
-    public ApiResponse<Page<PostSummaryResponse>> getPostsByAuthor(
+    public ApiResponse<PageResponse<PostSummaryResponse>> getPostsByAuthor(
             @Parameter(description = "작성자 ID") @PathVariable String authorId,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<PostSummaryResponse> posts = postService.getPostsByAuthor(authorId, page, size);
-        return ApiResponse.success(posts);
+        Page<PostSummaryResponse> posts = postService.getPostsByAuthor(authorId, page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "내 게시물 목록 (로그인)")
     @GetMapping("/my")
-    public ApiResponse<Page<PostSummaryResponse>> getMyPosts(
+    public ApiResponse<PageResponse<PostSummaryResponse>> getMyPosts(
             @RequestParam(required = false) PostStatus status,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal String authorId
     ) {
         if (status != null) {
-            Page<PostSummaryResponse> posts = postService.getPostsByAuthorAndStatus(authorId, status, page, size);
-            return ApiResponse.success(posts);
+            Page<PostSummaryResponse> posts = postService.getPostsByAuthorAndStatus(authorId, status, page - 1, size);
+            return ApiResponse.success(PageResponse.from(posts));
         } else {
-            Page<PostSummaryResponse> posts = postService.getPostsByAuthor(authorId, page, size);
-            return ApiResponse.success(posts);
+            Page<PostSummaryResponse> posts = postService.getPostsByAuthor(authorId, page - 1, size);
+            return ApiResponse.success(PageResponse.from(posts));
         }
     }
 
     @Operation(summary = "카테고리별 게시물 조회")
     @GetMapping("/category/{category}")
-    public ApiResponse<Page<PostSummaryResponse>> getPostsByCategory(
+    public ApiResponse<PageResponse<PostSummaryResponse>> getPostsByCategory(
             @Parameter(description = "카테고리") @PathVariable String category,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<PostSummaryResponse> posts = postService.getPostsByCategory(category, page, size);
-        return ApiResponse.success(posts);
+        Page<PostSummaryResponse> posts = postService.getPostsByCategory(category, page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "태그별 게시물 조회")
     @GetMapping("/tags")
-    public ApiResponse<Page<PostSummaryResponse>> getPostsByTags(
+    public ApiResponse<PageResponse<PostSummaryResponse>> getPostsByTags(
             @Parameter(description = "태그 목록 (쉼표로 구분)") @RequestParam List<String> tags,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<PostSummaryResponse> posts = postService.getPostsByTags(tags, page, size);
-        return ApiResponse.success(posts);
+        Page<PostSummaryResponse> posts = postService.getPostsByTags(tags, page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "인기 게시물 조회")
     @GetMapping("/popular")
-    public ApiResponse<Page<PostSummaryResponse>> getPopularPosts(
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+    public ApiResponse<PageResponse<PostSummaryResponse>> getPopularPosts(
+            @Parameter(description = "페이지 번호 (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
-        Page<PostSummaryResponse> posts = postService.getPopularPosts(page, size);
-        return ApiResponse.success(posts);
+        Page<PostSummaryResponse> posts = postService.getPopularPosts(page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "트렌딩 게시물 조회", description = "기간별 인기 게시물을 조회합니다. (viewCount + likeCount 기준)")
     @GetMapping("/trending")
-    public ApiResponse<Page<PostSummaryResponse>> getTrendingPosts(
+    public ApiResponse<PageResponse<PostSummaryResponse>> getTrendingPosts(
             @Parameter(description = "기간 (today, week, month, year)") @RequestParam(defaultValue = "week") String period,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 번호 (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
-        Page<PostSummaryResponse> posts = postService.getTrendingPosts(period, page, size);
-        return ApiResponse.success(posts);
+        Page<PostSummaryResponse> posts = postService.getTrendingPosts(period, page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "최근 게시물 조회")
@@ -194,22 +195,22 @@ public class PostController {
 
     @Operation(summary = "게시물 단순 검색")
     @GetMapping("/search")
-    public ApiResponse<Page<PostSummaryResponse>> searchPosts(
+    public ApiResponse<PageResponse<PostSummaryResponse>> searchPosts(
             @Parameter(description = "검색 키워드") @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<PostSummaryResponse> posts = postService.searchPosts(keyword, page, size);
-        return ApiResponse.success(posts);
+        Page<PostSummaryResponse> posts = postService.searchPosts(keyword, page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "게시물 고급 검색")
     @PostMapping("/search/advanced")
-    public ApiResponse<Page<PostSummaryResponse>> searchPostsAdvanced(
+    public ApiResponse<PageResponse<PostSummaryResponse>> searchPostsAdvanced(
             @Valid @RequestBody PostSearchRequest searchRequest
     ) {
         Page<PostSummaryResponse> posts = postService.searchPostsAdvanced(searchRequest);
-        return ApiResponse.success(posts);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @Operation(summary = "게시물 상태 변경")
@@ -277,14 +278,14 @@ public class PostController {
 
     @Operation(summary = "피드 조회", description = "팔로잉 사용자들의 게시물을 최신순으로 조회합니다.")
     @GetMapping("/feed")
-    public ApiResponse<Page<PostSummaryResponse>> getFeed(
+    public ApiResponse<PageResponse<PostSummaryResponse>> getFeed(
             @Parameter(description = "팔로잉 사용자 UUID 목록 (쉼표로 구분)")
             @RequestParam List<String> followingIds,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 번호 (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
-        Page<PostSummaryResponse> posts = postService.getFeed(followingIds, page, size);
-        return ApiResponse.success(posts);
+        Page<PostSummaryResponse> posts = postService.getFeed(followingIds, page - 1, size);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     private String resolveDisplayName(GatewayUser user) {

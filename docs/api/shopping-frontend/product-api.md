@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, shopping, frontend, product, admin]
 related: [api-shopping-types, api-shopping-inventory]
@@ -38,7 +38,7 @@ getProducts(page = 0, size = 12, category?: string): Promise<ApiResponse<PagedRe
 **Endpoint**
 
 ```http
-GET /api/v1/shopping/products?page=0&size=12&category=books
+GET /api/v1/shopping/products?page=1&size=12&category=books
 Authorization: Bearer {token}
 ```
 
@@ -46,7 +46,7 @@ Authorization: Bearer {token}
 
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
-| `page` | number | ❌ | 페이지 번호 (0부터 시작) | 0 |
+| `page` | number | ❌ | 페이지 번호 (1부터 시작) | 0 |
 | `size` | number | ❌ | 페이지 크기 | 12 |
 | `category` | string | ❌ | 카테고리 필터 | - |
 
@@ -56,7 +56,7 @@ Authorization: Bearer {token}
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 1,
         "name": "스프링 부트 완벽 가이드",
@@ -68,17 +68,10 @@ Authorization: Bearer {token}
         "createdAt": "2026-01-10T10:00:00Z"
       }
     ],
-    "pageable": {
-      "page": 0,
-      "size": 12,
-      "totalElements": 150,
-      "totalPages": 13
-    },
+    "page": 1,
+    "size": 12,
     "totalElements": 150,
-    "totalPages": 13,
-    "first": true,
-    "last": false,
-    "empty": false
+    "totalPages": 13
   }
 }
 ```
@@ -89,7 +82,7 @@ Authorization: Bearer {token}
 import { productApi } from '@/api/endpoints'
 
 const response = await productApi.getProducts(0, 20, 'books')
-const products = response.data.content
+const products = response.data.items
 ```
 
 ---
@@ -147,7 +140,7 @@ searchProducts(keyword: string, page = 0, size = 12): Promise<ApiResponse<PagedR
 **Endpoint**
 
 ```http
-GET /api/v1/shopping/search/products?keyword=spring&page=0&size=12
+GET /api/v1/shopping/search/products?keyword=spring&page=1&size=12
 Authorization: Bearer {token}
 ```
 
@@ -296,7 +289,7 @@ getProducts(params: {
 **Endpoint**
 
 ```http
-GET /api/v1/shopping/products?page=0&size=20&keyword=spring&sortBy=createdAt&sortOrder=desc
+GET /api/v1/shopping/products?page=1&size=20&keyword=spring&sortBy=createdAt&sortOrder=desc
 Authorization: Bearer {admin_token}
 ```
 
@@ -304,7 +297,7 @@ Authorization: Bearer {admin_token}
 
 | 파라미터 | 타입 | 설명 | 기본값 |
 |----------|------|------|--------|
-| `page` | number | 페이지 번호 | 0 |
+| `page` | number | 페이지 번호 | 1 |
 | `size` | number | 페이지 크기 | 20 |
 | `keyword` | string | 검색 키워드 | - |
 | `category` | string | 카테고리 필터 | - |

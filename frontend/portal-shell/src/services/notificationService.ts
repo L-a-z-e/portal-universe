@@ -9,7 +9,7 @@ const BASE_PATH = '/notification/api/v1/notifications'
  * Get paginated notifications for current user
  */
 export async function getNotifications(
-  page = 0,
+  page = 1,
   size = 20
 ): Promise<NotificationPage> {
   const response = await apiClient.get<{ data: NotificationPage }>(BASE_PATH, {
@@ -22,7 +22,7 @@ export async function getNotifications(
  * Get unread notifications only
  */
 export async function getUnreadNotifications(
-  page = 0,
+  page = 1,
   size = 20
 ): Promise<NotificationPage> {
   const response = await apiClient.get<{ data: NotificationPage }>(

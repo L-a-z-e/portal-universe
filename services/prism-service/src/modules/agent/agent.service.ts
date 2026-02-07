@@ -73,9 +73,9 @@ export class AgentService {
     const size = pagination?.size ?? 20;
     return {
       items,
-      total,
       page: pagination?.page ?? 1,
       size,
+      totalElements: total,
       totalPages: Math.ceil(total / size),
     };
   }

@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-07
+updated: 2026-02-08
 author: Laze
 tags: [api, auth, oauth2, jwt, rbac, membership, follow, seller]
 related:
@@ -918,7 +918,7 @@ Authorization: Bearer {accessToken}
 
 **Request**
 ```http
-GET /api/v1/users/johndoe/followers?page=0&size=20
+GET /api/v1/users/johndoe/followers?page=1&size=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -926,7 +926,7 @@ Authorization: Bearer {accessToken}
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
 |----------|------|------|--------|------|
-| `page` | number | ❌ | 0 | 페이지 번호 (0부터 시작) |
+| `page` | number | ❌ | 0 | 페이지 번호 (1부터 시작) |
 | `size` | number | ❌ | 20 | 페이지당 항목 수 |
 
 **Response (200 OK)** (`FollowListResponse`)
@@ -971,7 +971,7 @@ Authorization: Bearer {accessToken}
 
 **Request**
 ```http
-GET /api/v1/users/johndoe/following?page=0&size=20
+GET /api/v1/users/johndoe/following?page=1&size=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -1318,7 +1318,7 @@ Authorization: Bearer {accessToken}
 
 **Request**
 ```http
-GET /api/v1/admin/rbac/audit?page=0&size=20
+GET /api/v1/admin/rbac/audit?page=1&size=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -1334,7 +1334,7 @@ Authorization: Bearer {accessToken}
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 1,
         "eventType": "ROLE_ASSIGNED",
@@ -1345,9 +1345,10 @@ Authorization: Bearer {accessToken}
         "createdAt": "2026-02-07T10:00:00"
       }
     ],
+    "page": 1,
+    "size": 20,
     "totalElements": 10,
-    "totalPages": 1,
-    "number": 0
+    "totalPages": 1
   }
 }
 ```
@@ -1360,7 +1361,7 @@ Authorization: Bearer {accessToken}
 
 **Request**
 ```http
-GET /api/v1/admin/rbac/users/a1b2c3d4-e5f6-7890-abcd-ef1234567890/audit?page=0&size=20
+GET /api/v1/admin/rbac/users/a1b2c3d4-e5f6-7890-abcd-ef1234567890/audit?page=1&size=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -1376,7 +1377,7 @@ Authorization: Bearer {accessToken}
 
 **Request**
 ```http
-GET /api/v1/admin/rbac/users?query=admin&page=0&size=20
+GET /api/v1/admin/rbac/users?query=admin&page=1&size=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -1393,7 +1394,7 @@ Authorization: Bearer {accessToken}
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "uuid": "be83af82-b5b6-4384-8c42-45e778159e09",
         "email": "admin@test.com",
@@ -1405,9 +1406,10 @@ Authorization: Bearer {accessToken}
         "lastLoginAt": null
       }
     ],
+    "page": 1,
+    "size": 20,
     "totalElements": 1,
-    "totalPages": 1,
-    "number": 0
+    "totalPages": 1
   }
 }
 ```
@@ -2398,7 +2400,7 @@ Authorization: Bearer {accessToken}
 
 **Request**
 ```http
-GET /api/v1/admin/seller/applications/pending?page=0&size=20
+GET /api/v1/admin/seller/applications/pending?page=1&size=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -2414,7 +2416,7 @@ Authorization: Bearer {accessToken}
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": 456,
         "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -2428,14 +2430,10 @@ Authorization: Bearer {accessToken}
         "createdAt": "2026-02-06T10:30:00Z"
       }
     ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 20
-    },
+    "page": 1,
+    "size": 20,
     "totalElements": 45,
-    "totalPages": 3,
-    "last": false,
-    "first": true
+    "totalPages": 3
   },
   "error": null,
   "timestamp": "2026-02-06T10:30:00Z"
@@ -2450,7 +2448,7 @@ Authorization: Bearer {accessToken}
 
 **Request**
 ```http
-GET /api/v1/admin/seller/applications?page=0&size=20
+GET /api/v1/admin/seller/applications?page=1&size=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -2829,7 +2827,7 @@ await fetch('http://localhost:8081/api/v1/users/johndoe/follow', {
 
 // 팔로워 목록 조회
 const followersResponse = await fetch(
-  'http://localhost:8081/api/v1/users/johndoe/followers?page=0&size=20',
+  'http://localhost:8081/api/v1/users/johndoe/followers?page=1&size=20',
   { headers: { 'Authorization': `Bearer ${accessToken}` } }
 );
 const { data } = await followersResponse.json();
@@ -2892,6 +2890,9 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 ---
 
 ## 📝 변경 이력
+
+### v2.4.2 (2026-02-08)
+- 페이지네이션 응답 구조 변경 (ADR-031): content → items, number → page (1-based), Spring 내부 필드 제거
 
 ### v2.4.1 (2026-02-07)
 - 관련 문서 링크 수정 (존재하지 않는 ADR-006/009 → 실제 ADR-003/008/015/021)

@@ -11,7 +11,7 @@ export const useSearchStore = defineStore('search', () => {
   const error = ref<string | null>(null);
 
   // 페이징
-  const currentPage = ref(0);
+  const currentPage = ref(1);
   const totalPages = ref(0);
   const hasMore = ref(true);
 
@@ -19,7 +19,7 @@ export const useSearchStore = defineStore('search', () => {
   async function search(keywordParam: string) {
     keyword.value = keywordParam;
     results.value = [];
-    currentPage.value = 0;
+    currentPage.value = 1;
     totalPages.value = 0;
     hasMore.value = true;
     error.value = null;
@@ -28,11 +28,11 @@ export const useSearchStore = defineStore('search', () => {
 
     isSearching.value = true;
     try {
-      const res: PageResponse<PostSummaryResponse> = await searchPosts(keyword.value, 0, 10);
-      results.value = res.content;
-      currentPage.value = res.number;
+      const res: PageResponse<PostSummaryResponse> = await searchPosts(keyword.value, 1, 10);
+      results.value = res.items;
+      currentPage.value = res.page;
       totalPages.value = res.totalPages;
-      hasMore.value = !res.last;
+      hasMore.value = res.page < res.totalPages;
     } catch (err) {
       error.value = '검색 결과를 불러올 수 없습니다.';
       results.value = [];
@@ -47,10 +47,10 @@ export const useSearchStore = defineStore('search', () => {
     isSearching.value = true;
     try {
       const res: PageResponse<PostSummaryResponse> = await searchPosts(keyword.value, currentPage.value + 1, 10);
-      results.value = [...results.value, ...res.content];
-      currentPage.value = res.number;
+      results.value = [...results.value, ...res.items];
+      currentPage.value = res.page;
       totalPages.value = res.totalPages;
-      hasMore.value = !res.last;
+      hasMore.value = res.page < res.totalPages;
     } catch (err) {
       error.value = '더 많은 검색 결과를 불러올 수 없습니다.';
     } finally {
@@ -62,7 +62,7 @@ export const useSearchStore = defineStore('search', () => {
   function clear() {
     keyword.value = '';
     results.value = [];
-    currentPage.value = 0;
+    currentPage.value = 1;
     totalPages.value = 0;
     hasMore.value = false;
     error.value = null;

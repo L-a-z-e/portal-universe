@@ -15,6 +15,15 @@ spring:
       write-dates-as-timestamps: false
     date-format: yyyy-MM-dd'T'HH:mm:ss
 
+  # Pagination 1-based + Redis 설정
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   # JPA 공통 설정
   jpa:
     open-in-view: false
@@ -45,12 +54,6 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: 1
-
-  # Redis 공통 설정
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
 
   # Kafka 공통 설정
   kafka:

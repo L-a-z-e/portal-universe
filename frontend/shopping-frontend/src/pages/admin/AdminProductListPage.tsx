@@ -14,7 +14,7 @@ export const AdminProductListPage: React.FC = () => {
 
   // 필터 상태
   const [filters, setFilters] = useState<ProductFilters>({
-    page: 0,
+    page: 1,
     size: 10,
     keyword: '',
     sortBy: 'createdAt',
@@ -80,7 +80,7 @@ export const AdminProductListPage: React.FC = () => {
               <p className="text-text-meta">Loading products...</p>
             </div>
           </div>
-        ) : data?.data.content.length === 0 ? (
+        ) : data?.data.items.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-lg text-text-heading mb-2">No products found</p>
             <p className="text-sm text-text-meta mb-6">Get started by creating a new product.</p>
@@ -112,7 +112,7 @@ export const AdminProductListPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-default">
-                  {data?.data.content.map((product) => (
+                  {data?.data.items.map((product) => (
                     <tr
                       key={product.id}
                       className="hover:bg-bg-hover transition-colors cursor-pointer"
@@ -161,9 +161,9 @@ export const AdminProductListPage: React.FC = () => {
             {/* Pagination */}
             {data?.data.totalPages && data.data.totalPages > 1 && (
               <Pagination
-                page={filters.page + 1}
+                page={filters.page}
                 totalPages={data.data.totalPages}
-                onChange={(p: number) => handlePageChange(p - 1)}
+                onChange={(p: number) => handlePageChange(p)}
               />
             )}
           </>

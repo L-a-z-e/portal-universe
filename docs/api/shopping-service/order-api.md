@@ -132,7 +132,7 @@ Authorization: Bearer {token}
 ### Request
 
 ```http
-GET /api/shopping/orders?page=0&size=10
+GET /api/shopping/orders?page=1&size=10
 Authorization: Bearer {token}
 ```
 
@@ -140,7 +140,7 @@ Authorization: Bearer {token}
 
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
-| `page` | int | ❌ | 페이지 번호 (0부터 시작) | 0 |
+| `page` | int | ❌ | 페이지 번호 (1부터 시작) | 0 |
 | `size` | int | ❌ | 페이지 크기 | 10 |
 | `sort` | string | ❌ | 정렬 기준 | createdAt,desc |
 
@@ -150,7 +150,7 @@ Authorization: Bearer {token}
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "orderNumber": "ORD-20260118-001",
         "totalAmount": 70000,
@@ -164,12 +164,10 @@ Authorization: Bearer {token}
         "createdAt": "2026-01-17T15:20:00Z"
       }
     ],
-    "page": {
-      "number": 0,
-      "size": 10,
-      "totalElements": 25,
-      "totalPages": 3
-    }
+    "page": 1,
+    "size": 10,
+    "totalElements": 25,
+    "totalPages": 3
   },
   "timestamp": "2026-01-18T10:30:00Z"
 }

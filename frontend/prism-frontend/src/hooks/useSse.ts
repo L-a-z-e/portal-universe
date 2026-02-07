@@ -3,7 +3,7 @@ import { isBridgeReady, getAdapter } from '@portal/react-bridge';
 
 export interface SseEvent {
   type: string;
-  payload: Record<string, unknown>;
+  data: Record<string, unknown>;
   timestamp: string;
 }
 

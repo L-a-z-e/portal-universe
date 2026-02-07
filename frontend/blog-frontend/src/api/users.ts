@@ -1,9 +1,9 @@
 // blog-frontend/src/api/users.ts
 
 import apiClient from './index';
+import type { PageResponse } from '@portal/design-types';
 import type {
   ApiResponse,
-  PageResponse,
   PostSummaryResponse,
 } from '@/types';
 import type {
@@ -80,12 +80,12 @@ export async function checkUsername(username: string): Promise<UsernameCheckResp
 /**
  * 특정 사용자의 게시글 조회 (authorId 기반)
  * @param authorId 사용자 ID (숫자)
- * @param page 페이지 번호 (0부터 시작)
+ * @param page 페이지 번호 (1부터 시작)
  * @param size 페이지 크기
  */
 export async function getUserPosts(
   authorId: string,
-  page: number = 0,
+  page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(

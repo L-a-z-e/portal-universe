@@ -43,3 +43,26 @@ export interface ApiErrorResponse {
   data: null;
   error: ErrorDetails;
 }
+
+/**
+ * 표준 페이지네이션 응답
+ * - Backend PageResponse(Java), PaginatedResult(NestJS)와 동일 구조
+ * - page는 1-based
+ */
+export interface PageResponse<T> {
+  items: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+/**
+ * SSE 이벤트 표준 envelope
+ * - Backend SseEnvelope(Java), NestJS SSE와 동일 구조
+ */
+export interface SseEvent<T = unknown> {
+  type: string;
+  data: T;
+  timestamp: string;
+}

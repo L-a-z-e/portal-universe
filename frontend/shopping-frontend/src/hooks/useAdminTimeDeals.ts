@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { adminTimeDealApi } from '@/api/endpoints'
-import type { TimeDeal, TimeDealCreateRequest, PagedResponse } from '@/types'
+import type { TimeDeal, TimeDealCreateRequest, PageResponse } from '@/types'
 
 interface UseAdminTimeDealsOptions {
   page?: number
@@ -16,7 +16,7 @@ interface UseAdminTimeDealsOptions {
  */
 export function useAdminTimeDeals(options: UseAdminTimeDealsOptions = {}) {
   const { page = 0, size = 10 } = options
-  const [data, setData] = useState<PagedResponse<TimeDeal> | null>(null)
+  const [data, setData] = useState<PageResponse<TimeDeal> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 

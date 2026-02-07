@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, blog, mongodb, post, comment, series, tag, file, like]
 related:
@@ -257,14 +257,14 @@ Authorization: Bearer {token}
 ### 2. 발행 게시물 목록 조회
 
 ```http
-GET /api/v1/blog/posts?page=0&size=10
+GET /api/v1/blog/posts?page=1&size=10
 ```
 
 #### Query Parameters
 
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
-| `page` | int | ❌ | 페이지 번호 (0부터) | 0 |
+| `page` | int | ❌ | 페이지 번호 (1부터) | 0 |
 | `size` | int | ❌ | 페이지 크기 | 10 |
 
 #### Response (200 OK) - `Page<PostSummaryResponse>`
@@ -273,7 +273,7 @@ GET /api/v1/blog/posts?page=0&size=10
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "id": "677ab123c4d5e6f7g8h9i0j1",
         "title": "Spring Boot 완벽 가이드",
@@ -291,16 +291,10 @@ GET /api/v1/blog/posts?page=0&size=10
         "estimatedReadTime": 8
       }
     ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 10,
-      "offset": 0
-    },
+    "page": 1,
+    "size": 10,
     "totalElements": 42,
-    "totalPages": 5,
-    "last": false,
-    "first": true,
-    "numberOfElements": 10
+    "totalPages": 5
   },
   "timestamp": "2026-01-18T10:30:00"
 }
@@ -313,7 +307,7 @@ GET /api/v1/blog/posts?page=0&size=10
 `ROLE_BLOG_ADMIN` 또는 `ROLE_SUPER_ADMIN` 권한 필요.
 
 ```http
-GET /api/v1/blog/posts/all?page=0&size=20
+GET /api/v1/blog/posts/all?page=1&size=20
 Authorization: Bearer {admin-token}
 ```
 
@@ -321,7 +315,7 @@ Authorization: Bearer {admin-token}
 
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
-| `page` | int | ❌ | 페이지 번호 | 0 |
+| `page` | int | ❌ | 페이지 번호 | 1 |
 | `size` | int | ❌ | 페이지 크기 | 20 |
 
 #### Response (200 OK) - `Page<PostResponse>`
@@ -451,7 +445,7 @@ Authorization: Bearer {token}
 ### 9. 작성자별 게시물 목록
 
 ```http
-GET /api/v1/blog/posts/author/{authorId}?page=0&size=10
+GET /api/v1/blog/posts/author/{authorId}?page=1&size=10
 ```
 
 #### Response (200 OK) - `Page<PostSummaryResponse>`
@@ -463,7 +457,7 @@ GET /api/v1/blog/posts/author/{authorId}?page=0&size=10
 상태 필터링 가능합니다.
 
 ```http
-GET /api/v1/blog/posts/my?status=DRAFT&page=0&size=10
+GET /api/v1/blog/posts/my?status=DRAFT&page=1&size=10
 Authorization: Bearer {token}
 ```
 
@@ -482,7 +476,7 @@ Authorization: Bearer {token}
 ### 11. 카테고리별 게시물 조회
 
 ```http
-GET /api/v1/blog/posts/category/{category}?page=0&size=10
+GET /api/v1/blog/posts/category/{category}?page=1&size=10
 ```
 
 #### Response (200 OK) - `Page<PostSummaryResponse>`
@@ -494,7 +488,7 @@ GET /api/v1/blog/posts/category/{category}?page=0&size=10
 다중 태그 지원합니다.
 
 ```http
-GET /api/v1/blog/posts/tags?tags=spring,java&page=0&size=10
+GET /api/v1/blog/posts/tags?tags=spring,java&page=1&size=10
 ```
 
 #### Query Parameters
@@ -514,7 +508,7 @@ GET /api/v1/blog/posts/tags?tags=spring,java&page=0&size=10
 조회수 기준 인기 게시물을 조회합니다.
 
 ```http
-GET /api/v1/blog/posts/popular?page=0&size=10
+GET /api/v1/blog/posts/popular?page=1&size=10
 ```
 
 #### Response (200 OK) - `Page<PostSummaryResponse>`
@@ -526,7 +520,7 @@ GET /api/v1/blog/posts/popular?page=0&size=10
 기간별 인기 게시물을 조회합니다. viewCount + likeCount 기준.
 
 ```http
-GET /api/v1/blog/posts/trending?period=week&page=0&size=10
+GET /api/v1/blog/posts/trending?period=week&page=1&size=10
 ```
 
 #### Query Parameters
@@ -605,7 +599,7 @@ GET /api/v1/blog/posts/{postId}/related?limit=5
 키워드로 게시물을 검색합니다. 제목, 본문, 요약에서 검색합니다.
 
 ```http
-GET /api/v1/blog/posts/search?keyword=spring&page=0&size=10
+GET /api/v1/blog/posts/search?keyword=spring&page=1&size=10
 ```
 
 #### Query Parameters
@@ -613,7 +607,7 @@ GET /api/v1/blog/posts/search?keyword=spring&page=0&size=10
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
 | `keyword` | string | ✅ | 검색 키워드 | - |
-| `page` | int | ❌ | 페이지 번호 | 0 |
+| `page` | int | ❌ | 페이지 번호 | 1 |
 | `size` | int | ❌ | 페이지 크기 | 10 |
 
 #### Response (200 OK) - `Page<PostSummaryResponse>`
@@ -642,7 +636,7 @@ Content-Type: application/json
 | `endDate` | string | ❌ | 종료 날짜 (ISO 8601) | - |
 | `sortBy` | string | ❌ | 정렬 기준 | `PUBLISHED_AT` |
 | `sortDirection` | string | ❌ | 정렬 방향 | `DESC` |
-| `page` | int | ❌ | 페이지 번호 | 0 |
+| `page` | int | ❌ | 페이지 번호 | 1 |
 | `size` | int | ❌ | 페이지 크기 (최대 50) | 10 |
 
 **sortBy 가능한 값**: `CREATED_AT`, `PUBLISHED_AT`, `VIEW_COUNT`, `LIKE_COUNT`, `TITLE`
@@ -805,7 +799,7 @@ GET /api/v1/blog/posts/product/{productId}
 팔로잉 중인 사용자의 게시물을 최신순으로 조회합니다.
 
 ```http
-GET /api/v1/blog/posts/feed?followingIds=user-1,user-2,user-3&page=0&size=10
+GET /api/v1/blog/posts/feed?followingIds=user-1,user-2,user-3&page=1&size=10
 ```
 
 #### Query Parameters
@@ -813,7 +807,7 @@ GET /api/v1/blog/posts/feed?followingIds=user-1,user-2,user-3&page=0&size=10
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
 | `followingIds` | string[] | ✅ | 팔로잉 사용자 UUID 목록 (쉼표 구분) | - |
-| `page` | int | ❌ | 페이지 번호 | 0 |
+| `page` | int | ❌ | 페이지 번호 | 1 |
 | `size` | int | ❌ | 페이지 크기 | 10 |
 
 > **참고**: 인증 어노테이션이 없으므로 Gateway의 GET permit-all 정책에 따라 인증 없이 호출 가능합니다. 클라이언트에서 팔로잉 목록을 직접 전달해야 합니다.
@@ -946,14 +940,14 @@ Authorization: Bearer {token}
 게시물에 좋아요를 누른 사용자 목록을 **페이징하여** 조회합니다. 최신순 정렬.
 
 ```http
-GET /api/v1/blog/posts/{postId}/likes?page=0&size=20
+GET /api/v1/blog/posts/{postId}/likes?page=1&size=20
 ```
 
 #### Query Parameters (Pageable)
 
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
-| `page` | int | ❌ | 페이지 번호 | 0 |
+| `page` | int | ❌ | 페이지 번호 | 1 |
 | `size` | int | ❌ | 페이지 크기 | 20 |
 | `sort` | string | ❌ | 정렬 기준 | `createdAt,DESC` |
 
@@ -963,21 +957,17 @@ GET /api/v1/blog/posts/{postId}/likes?page=0&size=20
 {
   "success": true,
   "data": {
-    "content": [
+    "items": [
       {
         "userId": "user-123",
         "userName": "홍길동",
         "likedAt": "2026-01-26T10:00:00"
       }
     ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 20
-    },
+    "page": 1,
+    "size": 20,
     "totalElements": 13,
-    "totalPages": 1,
-    "last": true,
-    "first": true
+    "totalPages": 1
   },
   "timestamp": "2026-01-26T10:00:00"
 }
@@ -1640,12 +1630,8 @@ Authorization: Bearer {admin-token}
 {
   "success": true,
   "data": {
-    "content": [ ... ],
-    "pageable": {
-      "pageNumber": 0,
-      "pageSize": 10,
-      "offset": 0
-    },
+    "items": [ ... ],
+    ,
     "totalElements": 100,
     "totalPages": 10,
     "last": false,

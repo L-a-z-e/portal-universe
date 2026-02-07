@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.coupon.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.shoppingservice.coupon.dto.CouponCreateRequest;
 import com.portal.universe.shoppingservice.coupon.dto.CouponResponse;
 import com.portal.universe.shoppingservice.coupon.service.CouponService;
@@ -27,9 +28,9 @@ public class AdminCouponController {
      * 전체 쿠폰 목록을 페이징 조회합니다.
      */
     @GetMapping
-    public ApiResponse<Page<CouponResponse>> getCoupons(
+    public ApiResponse<PageResponse<CouponResponse>> getCoupons(
             @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
-        return ApiResponse.success(couponService.getAllCoupons(pageable));
+        return ApiResponse.success(PageResponse.from(couponService.getAllCoupons(pageable)));
     }
 
     /**

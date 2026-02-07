@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.inventory.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryBatchRequest;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryResponse;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryUpdateRequest;
@@ -89,9 +90,9 @@ public class InventoryController {
      * @return 이동 이력 목록
      */
     @GetMapping("/{productId}/movements")
-    public ApiResponse<Page<StockMovementResponse>> getStockMovements(
+    public ApiResponse<PageResponse<StockMovementResponse>> getStockMovements(
             @PathVariable Long productId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ApiResponse.success(inventoryService.getStockMovements(productId, pageable));
+        return ApiResponse.success(PageResponse.from(inventoryService.getStockMovements(productId, pageable)));
     }
 }

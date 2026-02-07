@@ -42,7 +42,9 @@ export function useInventoryStream({ productIds, enabled = true }: UseInventoryS
 
     eventSource.onmessage = (event) => {
       try {
-        const update: InventoryUpdate = JSON.parse(event.data)
+        const envelope = JSON.parse(event.data) as { type: string; data: InventoryUpdate; timestamp: string }
+        if (envelope.type === 'heartbeat') return
+        const update = envelope.data
         setUpdates(prev => {
           const existing = prev.get(update.productId)
           if (existing && existing.available === update.available && existing.reserved === update.reserved) {

@@ -1,9 +1,9 @@
 // blog-frontend/src/api/likes.ts
 
 import apiClient from './index';
+import type { PageResponse } from '@portal/design-types';
 import type {
   ApiResponse,
-  PageResponse,
   LikeToggleResponse,
   LikeStatusResponse,
   LikerResponse,
@@ -48,7 +48,7 @@ export async function getLikeStatus(postId: string): Promise<LikeStatusResponse>
  */
 export async function getLikers(
   postId: string,
-  page: number = 0,
+  page: number = 1,
   size: number = 20
 ): Promise<PageResponse<LikerResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<LikerResponse>>>(

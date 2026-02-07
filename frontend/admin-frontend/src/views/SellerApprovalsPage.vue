@@ -51,11 +51,11 @@ onMounted(load);
           <tr v-if="loading">
             <td colspan="5" class="p-4 text-center text-text-meta">Loading...</td>
           </tr>
-          <tr v-else-if="data?.content.length === 0">
+          <tr v-else-if="data?.items.length === 0">
             <td colspan="5" class="p-4 text-center text-text-meta">No pending applications</td>
           </tr>
           <tr
-            v-for="app in data?.content"
+            v-for="app in data?.items"
             :key="app.id"
             class="border-b border-border-default hover:bg-bg-elevated transition-colors"
           >

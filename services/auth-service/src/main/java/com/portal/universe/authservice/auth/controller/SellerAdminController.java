@@ -4,6 +4,7 @@ import com.portal.universe.authservice.auth.dto.seller.SellerApplicationResponse
 import com.portal.universe.authservice.auth.dto.seller.SellerApplicationReviewRequest;
 import com.portal.universe.authservice.auth.service.SellerApplicationService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,18 +31,20 @@ public class SellerAdminController {
      * 대기 중인 셀러 신청 목록을 조회합니다.
      */
     @GetMapping("/applications/pending")
-    public ResponseEntity<ApiResponse<Page<SellerApplicationResponse>>> getPendingApplications(
+    public ResponseEntity<ApiResponse<PageResponse<SellerApplicationResponse>>> getPendingApplications(
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(sellerApplicationService.getPendingApplications(pageable)));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(
+                sellerApplicationService.getPendingApplications(pageable))));
     }
 
     /**
      * 모든 셀러 신청 목록을 조회합니다.
      */
     @GetMapping("/applications")
-    public ResponseEntity<ApiResponse<Page<SellerApplicationResponse>>> getAllApplications(
+    public ResponseEntity<ApiResponse<PageResponse<SellerApplicationResponse>>> getAllApplications(
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(sellerApplicationService.getAllApplications(pageable)));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(
+                sellerApplicationService.getAllApplications(pageable))));
     }
 
     /**

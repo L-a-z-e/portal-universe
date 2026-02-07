@@ -16,7 +16,7 @@ import { Button, Spinner, Alert } from '@portal/design-system-react'
 const ProductListPage: React.FC = () => {
   // URL query params
   const [searchParams, setSearchParams] = useSearchParams()
-  const currentPage = parseInt(searchParams.get('page') || '0')
+  const currentPage = parseInt(searchParams.get('page') || '1')
   const searchKeyword = searchParams.get('keyword') || ''
   const category = searchParams.get('category') || ''
 
@@ -41,7 +41,7 @@ const ProductListPage: React.FC = () => {
         response = await productApi.getProducts(currentPage, 12, category || undefined)
       }
 
-      const productsData = response.data.content
+      const productsData = response.data.items
       setProducts(productsData)
       setTotalPages(response.data.totalPages)
 
@@ -83,7 +83,7 @@ const ProductListPage: React.FC = () => {
       // Record recent keyword
       searchApi.addRecentKeyword(keyword).catch(() => {})
     }
-    params.set('page', '0')
+    params.set('page', '1')
     setSearchParams(params)
     setSearchInput(keyword)
   }
@@ -199,7 +199,7 @@ const ProductListPage: React.FC = () => {
             <div className="flex items-center justify-center gap-2 mt-8">
               <Button
                 onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 0}
+                disabled={currentPage === 1}
                 variant="secondary"
               >
                 Previous
@@ -209,11 +209,11 @@ const ProductListPage: React.FC = () => {
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let page: number
                   if (totalPages <= 5) {
-                    page = i
-                  } else if (currentPage < 3) {
-                    page = i
-                  } else if (currentPage > totalPages - 4) {
-                    page = totalPages - 5 + i
+                    page = i + 1
+                  } else if (currentPage < 4) {
+                    page = i + 1
+                  } else if (currentPage > totalPages - 3) {
+                    page = totalPages - 4 + i
                   } else {
                     page = currentPage - 2 + i
                   }
@@ -226,7 +226,7 @@ const ProductListPage: React.FC = () => {
                       size="sm"
                       className="w-10 h-10"
                     >
-                      {page + 1}
+                      {page}
                     </Button>
                   )
                 })}
@@ -234,7 +234,7 @@ const ProductListPage: React.FC = () => {
 
               <Button
                 onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages - 1}
+                disabled={currentPage >= totalPages}
                 variant="secondary"
               >
                 Next
