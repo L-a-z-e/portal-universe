@@ -1,13 +1,30 @@
 # ADR-XXX: [결정 제목]
 
-**Status**: Proposed | Accepted | Rejected | Deprecated
+**Status**: Proposed
+**Date**: YYYY-MM-DD
+**Author**: Laze
 **Supersedes**: [대체된 이전 방식 - 있다면]
+
+<!-- Status 라이프사이클:
+  - Proposed: 의사결정 제안 단계, 아직 구현하지 않음
+  - Accepted: 구현 완료 후 상태 변경
+  - Rejected: 검토 후 채택하지 않음
+  - Deprecated: 새 ADR로 대체됨 (Superseded by 명시)
+-->
 
 ## Context
 [왜 이 결정이 필요한가? 어떤 문제를 해결하는가? 2-3문장]
 
 ## Decision
 [선택한 방식을 한 문장으로]
+
+## Alternatives
+[검토한 대안들과 각각의 장단점]
+
+| 대안 | 장점 | 단점 |
+|------|------|------|
+| ① | | |
+| ② | | |
 
 ## Rationale
 [왜 이 방식을 선택했는가? 핵심 근거 3-5개 bullet points]
@@ -34,4 +51,8 @@
 
 ---
 
-📂 상세 구현 가이드, 대안 비교, 테스트 결과는 [아카이브](../archive/YYYY/MM/ADR-XXX-full.md) 참조
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| YYYY-MM-DD | 초안 작성 | Laze |
