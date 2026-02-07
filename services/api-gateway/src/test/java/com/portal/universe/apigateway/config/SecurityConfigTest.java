@@ -2,6 +2,7 @@ package com.portal.universe.apigateway.config;
 
 import com.portal.universe.apigateway.security.CustomAccessDeniedHandler;
 import com.portal.universe.apigateway.security.CustomAuthenticationEntryPoint;
+import com.portal.universe.apigateway.service.RoleHierarchyResolver;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +35,9 @@ class SecurityConfigTest {
     @Mock
     private TokenBlacklistChecker tokenBlacklistChecker;
 
+    @Mock
+    private RoleHierarchyResolver roleHierarchyResolver;
+
     private SecurityConfig securityConfig;
 
     @BeforeEach
@@ -51,7 +55,8 @@ class SecurityConfigTest {
 
         securityConfig = new SecurityConfig(
                 jwtProperties, publicPathProperties,
-                authenticationEntryPoint, accessDeniedHandler, tokenBlacklistChecker
+                authenticationEntryPoint, accessDeniedHandler, tokenBlacklistChecker,
+                roleHierarchyResolver
         );
     }
 

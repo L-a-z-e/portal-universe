@@ -52,11 +52,11 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
         @Test
         @DisplayName("should_returnActiveMembership_when_tierIsActive")
         void should_returnActiveMembership_when_tierIsActive() {
-            String svc = "test_svc_" + uniqueSuffix;
+            String svc = "test:service" + uniqueSuffix;
             String tierKey = "TIER_A_" + uniqueSuffix;
 
             MembershipTier activeTier = MembershipTier.builder()
-                    .serviceName(svc)
+                    .membershipGroup(svc)
                     .tierKey(tierKey)
                     .displayName("테스트 티어")
                     .priceMonthly(BigDecimal.valueOf(9900))
@@ -66,7 +66,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
 
             UserMembership membership = UserMembership.builder()
                     .userId(testUserId)
-                    .serviceName(svc)
+                    .membershipGroup(svc)
                     .tier(activeTier)
                     .expiresAt(LocalDateTime.now().plusDays(30))
                     .autoRenew(true)
@@ -79,18 +79,18 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
             List<UserMembership> result = userMembershipRepository.findActiveByUserId(testUserId);
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getServiceName()).isEqualTo(svc);
+            assertThat(result.get(0).getMembershipGroup()).isEqualTo(svc);
             assertThat(result.get(0).getTier().getTierKey()).isEqualTo(tierKey);
         }
 
         @Test
         @DisplayName("should_excludeMembership_when_tierIsInactive - Phase 4-4 핵심 검증")
         void should_excludeMembership_when_tierIsInactive() {
-            String svc = "test_inactive_" + uniqueSuffix;
+            String svc = "test:inactive" + uniqueSuffix;
             String tierKey = "TIER_INACT_" + uniqueSuffix;
 
             MembershipTier inactiveTier = MembershipTier.builder()
-                    .serviceName(svc)
+                    .membershipGroup(svc)
                     .tierKey(tierKey)
                     .displayName("비활성 티어")
                     .priceMonthly(BigDecimal.valueOf(4900))
@@ -104,7 +104,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
 
             UserMembership membership = UserMembership.builder()
                     .userId(testUserId)
-                    .serviceName(svc)
+                    .membershipGroup(svc)
                     .tier(inactiveTier)
                     .expiresAt(LocalDateTime.now().plusDays(30))
                     .autoRenew(false)
@@ -122,11 +122,11 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
         @Test
         @DisplayName("should_excludeMembership_when_statusIsNotActive")
         void should_excludeMembership_when_statusIsNotActive() {
-            String svc = "test_cancel_" + uniqueSuffix;
+            String svc = "test:cancel" + uniqueSuffix;
             String tierKey = "TIER_CANCEL_" + uniqueSuffix;
 
             MembershipTier activeTier = MembershipTier.builder()
-                    .serviceName(svc)
+                    .membershipGroup(svc)
                     .tierKey(tierKey)
                     .displayName("취소 테스트 티어")
                     .priceMonthly(BigDecimal.valueOf(0))
@@ -136,7 +136,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
 
             UserMembership membership = UserMembership.builder()
                     .userId(testUserId)
-                    .serviceName(svc)
+                    .membershipGroup(svc)
                     .tier(activeTier)
                     .expiresAt(LocalDateTime.now().plusDays(30))
                     .autoRenew(false)
@@ -159,11 +159,11 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
         @Test
         @DisplayName("should_returnOnlyActiveWithActiveTier_when_mixedData")
         void should_returnOnlyActiveWithActiveTier_when_mixedData() {
-            String svcActive = "test_active_" + uniqueSuffix;
-            String svcInactive = "test_inact2_" + uniqueSuffix;
+            String svcActive = "test:active" + uniqueSuffix;
+            String svcInactive = "test:inactive2" + uniqueSuffix;
 
             MembershipTier activeTier = MembershipTier.builder()
-                    .serviceName(svcActive)
+                    .membershipGroup(svcActive)
                     .tierKey("TIER_GOLD_" + uniqueSuffix)
                     .displayName("골드")
                     .priceMonthly(BigDecimal.valueOf(19900))
@@ -172,7 +172,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
             activeTier = membershipTierRepository.save(activeTier);
 
             MembershipTier inactiveTier = MembershipTier.builder()
-                    .serviceName(svcInactive)
+                    .membershipGroup(svcInactive)
                     .tierKey("TIER_SILVER_" + uniqueSuffix)
                     .displayName("실버")
                     .priceMonthly(BigDecimal.valueOf(9900))
@@ -186,7 +186,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
 
             UserMembership activeMembership = UserMembership.builder()
                     .userId(testUserId)
-                    .serviceName(svcActive)
+                    .membershipGroup(svcActive)
                     .tier(activeTier)
                     .expiresAt(LocalDateTime.now().plusDays(30))
                     .autoRenew(true)
@@ -195,7 +195,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
 
             UserMembership inactiveTierMembership = UserMembership.builder()
                     .userId(testUserId)
-                    .serviceName(svcInactive)
+                    .membershipGroup(svcInactive)
                     .tier(inactiveTier)
                     .expiresAt(LocalDateTime.now().plusDays(30))
                     .autoRenew(false)
@@ -208,7 +208,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
             List<UserMembership> result = userMembershipRepository.findActiveByUserId(testUserId);
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getServiceName()).isEqualTo(svcActive);
+            assertThat(result.get(0).getMembershipGroup()).isEqualTo(svcActive);
         }
     }
 }

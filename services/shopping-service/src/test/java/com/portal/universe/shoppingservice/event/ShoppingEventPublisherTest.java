@@ -238,7 +238,7 @@ class ShoppingEventPublisherTest {
             // given
             setupKafkaTemplate();
             CouponIssuedEvent event = new CouponIssuedEvent(
-                    1L, "SAVE10", "10% OFF", "PERCENTAGE", 10,
+                    "1", "SAVE10", "10% OFF", "PERCENTAGE", 10,
                     LocalDateTime.now().plusDays(30)
             );
 

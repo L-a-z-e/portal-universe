@@ -5,8 +5,10 @@ import com.portal.universe.authservice.auth.dto.seller.SellerApplicationRequest;
 import com.portal.universe.authservice.auth.dto.seller.SellerApplicationResponse;
 import com.portal.universe.authservice.auth.dto.seller.SellerApplicationReviewRequest;
 import com.portal.universe.authservice.auth.repository.AuthAuditLogRepository;
+import com.portal.universe.authservice.auth.repository.MembershipTierRepository;
 import com.portal.universe.authservice.auth.repository.RoleEntityRepository;
 import com.portal.universe.authservice.auth.repository.SellerApplicationRepository;
+import com.portal.universe.authservice.auth.repository.UserMembershipRepository;
 import com.portal.universe.authservice.auth.repository.UserRoleRepository;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
@@ -42,6 +44,12 @@ class SellerApplicationServiceTest {
 
     @Mock
     private UserRoleRepository userRoleRepository;
+
+    @Mock
+    private MembershipTierRepository membershipTierRepository;
+
+    @Mock
+    private UserMembershipRepository userMembershipRepository;
 
     @Mock
     private AuthAuditLogRepository auditLogRepository;
@@ -117,7 +125,7 @@ class SellerApplicationServiceTest {
             when(sellerApplicationRepository.existsByUserIdAndStatus(USER_ID, SellerApplicationStatus.PENDING))
                     .thenReturn(false);
             when(userRoleRepository.findActiveRoleKeysByUserId(USER_ID))
-                    .thenReturn(List.of("ROLE_USER", "ROLE_SELLER"));
+                    .thenReturn(List.of("ROLE_USER", "ROLE_SHOPPING_SELLER"));
 
             // when & then
             assertThatThrownBy(() -> sellerApplicationService.apply(USER_ID, request))
@@ -205,15 +213,26 @@ class SellerApplicationServiceTest {
             }
 
             RoleEntity sellerRole = RoleEntity.builder()
-                    .roleKey("ROLE_SELLER")
-                    .displayName("Seller")
+                    .roleKey("ROLE_SHOPPING_SELLER")
+                    .displayName("Shopping Seller")
                     .system(false)
                     .build();
 
+            MembershipTier bronzeTier = MembershipTier.builder()
+                    .membershipGroup("seller:shopping")
+                    .tierKey("BRONZE")
+                    .displayName("Bronze")
+                    .sortOrder(0)
+                    .build();
+
             when(sellerApplicationRepository.findById(1L)).thenReturn(Optional.of(application));
-            when(roleEntityRepository.findByRoleKey("ROLE_SELLER")).thenReturn(Optional.of(sellerRole));
+            when(roleEntityRepository.findByRoleKey("ROLE_SHOPPING_SELLER")).thenReturn(Optional.of(sellerRole));
             when(userRoleRepository.findByUserIdWithRole(USER_ID)).thenReturn(List.of());
             when(userRoleRepository.save(any(UserRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "seller:shopping")).thenReturn(false);
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("seller:shopping", "BRONZE"))
+                    .thenReturn(Optional.of(bronzeTier));
+            when(userMembershipRepository.save(any(UserMembership.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
             SellerApplicationReviewRequest request = new SellerApplicationReviewRequest(true, "Approved");
 

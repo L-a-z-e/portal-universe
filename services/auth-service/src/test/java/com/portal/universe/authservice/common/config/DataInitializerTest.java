@@ -53,8 +53,8 @@ class DataInitializerTest {
         @DisplayName("should_createTestUsers_when_theyDontExist")
         void should_createTestUsers_when_theyDontExist() throws Exception {
             // given
-            when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-            when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.empty());
+            when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.empty());
+            when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.empty());
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
@@ -95,11 +95,11 @@ class DataInitializerTest {
         @DisplayName("should_skipUserCreation_when_usersAlreadyExist")
         void should_skipUserCreation_when_usersAlreadyExist() throws Exception {
             // given
-            User existingUser = new User("test@example.com", "encodedPassword");
-            User existingAdmin = new User("admin@example.com", "encodedPassword");
+            User existingUser = new User("test@test.com", "encodedPassword");
+            User existingAdmin = new User("admin@test.com", "encodedPassword");
 
-            when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
-            when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(existingAdmin));
+            when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(existingUser));
+            when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(existingAdmin));
 
             // when
             CommandLineRunner runner = dataInitializer.initData();

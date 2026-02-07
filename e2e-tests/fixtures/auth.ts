@@ -15,19 +15,19 @@ export interface TestUser {
  */
 export const defaultTestUser: TestUser = {
   id: 'test-user-1',
-  email: 'test@example.com',
-  password: 'password123',
-  username: '테스트유저',
-  nickname: '홍길동',
+  email: 'test@test.com',
+  password: 'test1234',
+  username: '테스트사용자',
+  nickname: '테스트사용자',
   token: 'mock-jwt-token',
 }
 
 export const adminTestUser: TestUser = {
   id: 'admin-user-1',
-  email: 'admin@example.com',
-  password: 'admin123',
+  email: 'admin@test.com',
+  password: 'admin1234',
   username: '관리자',
-  nickname: '김관리',
+  nickname: '관리자',
   token: 'mock-admin-token',
 }
 

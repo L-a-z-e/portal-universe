@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { defaultTestUser } from '../fixtures/auth';
 
 test.describe('Debug Login Network Traffic', () => {
   test('should log all network requests during a failed login', async ({ page }) => {
@@ -19,7 +20,7 @@ test.describe('Debug Login Network Traffic', () => {
 
     // 2. Fill in incorrect credentials.
     console.log('\n--- Step 2: Filling form ---\n');
-    await page.locator('input[name="username"]').fill('test@example.com');
+    await page.locator('input[name="username"]').fill(defaultTestUser.email);
     await page.locator('input[name="password"]').fill('wrongpassword');
 
     // 3. Click the login button.

@@ -25,35 +25,35 @@ class TestGetCurrentUserId:
 class TestRequireAdmin:
     """require_admin 함수 테스트."""
 
-    def test_require_admin_with_admin_role(self):
-        """admin 역할이 있으면 user_id를 반환한다."""
-        result = require_admin("u1", "admin")
+    def test_require_admin_with_super_admin_role(self):
+        """ROLE_SUPER_ADMIN 역할이 있으면 user_id를 반환한다."""
+        result = require_admin("u1", "ROLE_SUPER_ADMIN")
         assert result == "u1"
 
-    def test_require_admin_with_role_admin(self):
-        """role_admin 역할이 있으면 user_id를 반환한다."""
-        result = require_admin("u1", "role_admin")
+    def test_require_admin_with_blog_admin_role(self):
+        """ROLE_BLOG_ADMIN 역할이 있으면 user_id를 반환한다."""
+        result = require_admin("u1", "ROLE_BLOG_ADMIN")
         assert result == "u1"
 
-    def test_require_admin_case_insensitive(self):
-        """역할 비교는 대소문자를 구분하지 않는다."""
-        result = require_admin("u1", "ADMIN")
+    def test_require_admin_with_shopping_admin_role(self):
+        """ROLE_SHOPPING_ADMIN 역할이 있으면 user_id를 반환한다."""
+        result = require_admin("u1", "ROLE_SHOPPING_ADMIN")
         assert result == "u1"
 
     def test_require_admin_no_user_id(self):
         """user_id가 None이면 401 HTTPException이 발생한다."""
         with pytest.raises(HTTPException) as exc_info:
-            require_admin(None, "admin")
+            require_admin(None, "ROLE_SUPER_ADMIN")
         assert exc_info.value.status_code == 401
 
     def test_require_admin_no_admin_role(self):
         """admin이 아닌 역할이면 403 HTTPException이 발생한다."""
         with pytest.raises(HTTPException) as exc_info:
-            require_admin("u1", "user")
+            require_admin("u1", "ROLE_USER")
         assert exc_info.value.status_code == 403
         assert "Admin access required" in exc_info.value.detail
 
     def test_require_admin_no_roles_header(self):
         """roles 헤더가 None이면 하위 호환으로 user_id를 반환한다."""
-        result = require_admin("u1", None)
+        result = require_admin("u1", None, None)
         assert result == "u1"

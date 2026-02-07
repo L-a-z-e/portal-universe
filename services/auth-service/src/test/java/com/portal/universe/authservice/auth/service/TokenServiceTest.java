@@ -97,7 +97,7 @@ class TokenServiceTest {
 
     private MembershipTier createFreeTier(String serviceName) {
         return MembershipTier.builder()
-                .serviceName(serviceName)
+                .membershipGroup(serviceName)
                 .tierKey("FREE")
                 .displayName("Free")
                 .sortOrder(0)
@@ -116,10 +116,10 @@ class TokenServiceTest {
             when(userRoleRepository.findActiveRoleKeysByUserId(USER_UUID))
                     .thenReturn(List.of("ROLE_USER"));
 
-            MembershipTier freeTier = createFreeTier("shopping");
+            MembershipTier freeTier = createFreeTier("user:shopping");
             UserMembership membership = UserMembership.builder()
                     .userId(USER_UUID)
-                    .serviceName("shopping")
+                    .membershipGroup("user:shopping")
                     .tier(freeTier)
                     .build();
             when(userMembershipRepository.findActiveByUserId(USER_UUID))
@@ -142,8 +142,9 @@ class TokenServiceTest {
             assertThat(roles).containsExactly("ROLE_USER");
 
             @SuppressWarnings("unchecked")
-            Map<String, String> memberships = (Map<String, String>) claims.get("memberships");
-            assertThat(memberships).containsEntry("shopping", "FREE");
+            Map<String, Map<String, Object>> memberships = (Map<String, Map<String, Object>>) claims.get("memberships");
+            assertThat(memberships).containsKey("user:shopping");
+            assertThat(memberships.get("user:shopping").get("tier")).isEqualTo("FREE");
 
             // Verify kid in header
             String[] parts = token.split("\\.");

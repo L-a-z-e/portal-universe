@@ -64,23 +64,23 @@ class RbacInitializationServiceTest {
             when(userRoleRepository.save(any(UserRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
             MembershipTier shoppingFree = MembershipTier.builder()
-                    .serviceName("shopping")
+                    .membershipGroup("user:shopping")
                     .tierKey("FREE")
                     .displayName("Free")
                     .sortOrder(0)
                     .build();
             MembershipTier blogFree = MembershipTier.builder()
-                    .serviceName("blog")
+                    .membershipGroup("user:blog")
                     .tierKey("FREE")
                     .displayName("Free")
                     .sortOrder(0)
                     .build();
 
-            when(userMembershipRepository.existsByUserIdAndServiceName(USER_ID, "shopping")).thenReturn(false);
-            when(userMembershipRepository.existsByUserIdAndServiceName(USER_ID, "blog")).thenReturn(false);
-            when(membershipTierRepository.findByServiceNameAndTierKey("shopping", "FREE"))
+            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:shopping")).thenReturn(false);
+            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:blog")).thenReturn(false);
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:shopping", "FREE"))
                     .thenReturn(Optional.of(shoppingFree));
-            when(membershipTierRepository.findByServiceNameAndTierKey("blog", "FREE"))
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:blog", "FREE"))
                     .thenReturn(Optional.of(blogFree));
             when(userMembershipRepository.save(any(UserMembership.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
@@ -139,14 +139,14 @@ class RbacInitializationServiceTest {
             when(roleEntityRepository.findByRoleKey("ROLE_USER")).thenReturn(Optional.of(userRole));
             when(userRoleRepository.save(any(UserRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-            when(userMembershipRepository.existsByUserIdAndServiceName(USER_ID, "shopping")).thenReturn(false);
-            when(membershipTierRepository.findByServiceNameAndTierKey("shopping", "FREE"))
+            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:blog")).thenReturn(false);
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:blog", "FREE"))
                     .thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> rbacInitializationService.initializeNewUser(USER_ID))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("FREE not found");
+                    .hasMessageContaining("user:blog");
         }
 
         @Test
@@ -164,8 +164,8 @@ class RbacInitializationServiceTest {
             when(userRoleRepository.save(any(UserRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
             // Both memberships already exist
-            when(userMembershipRepository.existsByUserIdAndServiceName(USER_ID, "shopping")).thenReturn(true);
-            when(userMembershipRepository.existsByUserIdAndServiceName(USER_ID, "blog")).thenReturn(true);
+            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:shopping")).thenReturn(true);
+            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:blog")).thenReturn(true);
 
             // when
             rbacInitializationService.initializeNewUser(USER_ID);

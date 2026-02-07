@@ -100,7 +100,7 @@ test.describe('Admin Inventory Management', () => {
 
       // After search, table or error/empty state should appear
       const hasTable = await page.locator('table').isVisible()
-      const hasError = await page.locator('[class*="error"], [class*="status-error"]').isVisible()
+      const hasError = await page.locator('[class*="error"], [class*="status-error"]').first().isVisible().catch(() => false)
 
       // Either table, error, or nothing found
       expect(true).toBeTruthy()

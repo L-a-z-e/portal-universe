@@ -106,7 +106,7 @@ test.describe('Portal Shell - Authentication', () => {
 
     // 사용자 이름이 사이드바에 표시되는지 확인
     const username = page.locator('nav, aside').getByText(defaultTestUser.nickname)
-      .or(page.locator('nav, aside').getByText('테스트유저'))
+      .or(page.locator('nav, aside').getByText('테스트사용자'))
     await expect(username.first()).toBeVisible()
   })
 })

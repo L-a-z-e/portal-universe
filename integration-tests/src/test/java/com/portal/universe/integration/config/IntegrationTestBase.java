@@ -35,11 +35,11 @@ public abstract class IntegrationTestBase {
     protected static final String SHOPPING_SERVICE_URL = "http://localhost:8083";
     protected static final String NOTIFICATION_SERVICE_URL = "http://localhost:8084";
 
-    // Test user credentials
-    protected static final String TEST_USER_EMAIL = "test@portal.com";
-    protected static final String TEST_USER_PASSWORD = "Test1234!";
-    protected static final String TEST_ADMIN_EMAIL = "admin@portal.com";
-    protected static final String TEST_ADMIN_PASSWORD = "Admin1234!";
+    // Test user credentials (must match auth-service DataInitializer)
+    protected static final String TEST_USER_EMAIL = "test@test.com";
+    protected static final String TEST_USER_PASSWORD = "test1234";
+    protected static final String TEST_ADMIN_EMAIL = "admin@test.com";
+    protected static final String TEST_ADMIN_PASSWORD = "admin1234";
 
     // Cached auth tokens
     private static String cachedUserToken;
@@ -116,10 +116,12 @@ public abstract class IntegrationTestBase {
      * Create a new test user and return the token
      */
     protected String createUserAndGetToken(String email, String password, String name) {
-        Map<String, String> signupData = new HashMap<>();
+        Map<String, Object> signupData = new HashMap<>();
         signupData.put("email", email);
         signupData.put("password", password);
-        signupData.put("name", name);
+        signupData.put("nickname", name);
+        signupData.put("realName", name);
+        signupData.put("marketingAgree", false);
 
         Response signupResponse = RestAssured.given()
                 .baseUri(AUTH_SERVICE_URL)
@@ -183,19 +185,26 @@ public abstract class IntegrationTestBase {
     // =======================================
 
     /**
-     * Create a Kafka consumer for testing event publishing
+     * Create a Kafka consumer for testing event publishing.
+     * Uses 'earliest' offset reset with content filtering for reliable message matching,
+     * avoiding partition assignment timing issues with 'latest'.
      */
     protected KafkaConsumer<String, String> createKafkaConsumer(String... topics) {
         Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, TestContainersConfig.getKafkaBootstrapServers());
+        // Use local Kafka (services publish to localhost:9092, not testcontainer Kafka)
+        String kafkaBootstrap = System.getProperty("test.kafka.bootstrap-servers", "localhost:9092");
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrap);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-" + UUID.randomUUID());
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100");
 
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Arrays.asList(topics));
+        // Initial poll to trigger partition assignment
+        consumer.poll(Duration.ofMillis(1000));
         return consumer;
     }
 
@@ -206,6 +215,18 @@ public abstract class IntegrationTestBase {
             KafkaConsumer<String, String> consumer,
             String expectedTopic,
             Duration timeout) {
+        return consumeMessage(consumer, expectedTopic, timeout, null);
+    }
+
+    /**
+     * Wait for and consume a Kafka message with timeout and optional content filter.
+     * When contentFilter is provided, skips messages that don't contain the filter string.
+     */
+    protected Optional<ConsumerRecord<String, String>> consumeMessage(
+            KafkaConsumer<String, String> consumer,
+            String expectedTopic,
+            Duration timeout,
+            String contentFilter) {
 
         long startTime = System.currentTimeMillis();
         long timeoutMillis = timeout.toMillis();
@@ -214,7 +235,10 @@ public abstract class IntegrationTestBase {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
             for (ConsumerRecord<String, String> record : records) {
                 if (record.topic().equals(expectedTopic)) {
-                    return Optional.of(record);
+                    if (contentFilter == null || record.value().contains(contentFilter)) {
+                        return Optional.of(record);
+                    }
+                    log.debug("Skipping Kafka message not matching filter '{}': {}", contentFilter, record.value());
                 }
             }
         }
@@ -330,7 +354,7 @@ public abstract class IntegrationTestBase {
      * Extract error code from ApiResponse
      */
     protected String extractErrorCode(Response response) {
-        return response.jsonPath().getString("code");
+        return response.jsonPath().getString("error.code");
     }
 
     /**

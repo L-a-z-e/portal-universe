@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { defaultTestUser } from '../fixtures/auth';
 
 test.describe('Login Failure Redirect', () => {
   test('should redirect to /login on failed login attempt, not /auth-service/login', async ({ page }) => {
@@ -6,7 +7,7 @@ test.describe('Login Failure Redirect', () => {
     await page.goto('http://localhost:30000/auth-service/login');
 
     // 2. Fill in incorrect credentials.
-    await page.locator('input[name="username"]').fill('test@example.com');
+    await page.locator('input[name="username"]').fill(defaultTestUser.email);
     await page.locator('input[name="password"]').fill('wrongpassword');
 
     let redirectUrl = '';

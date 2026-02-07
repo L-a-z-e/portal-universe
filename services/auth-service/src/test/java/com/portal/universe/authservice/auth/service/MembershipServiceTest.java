@@ -45,7 +45,7 @@ class MembershipServiceTest {
 
     private MembershipTier createTier(String serviceName, String tierKey) {
         return MembershipTier.builder()
-                .serviceName(serviceName)
+                .membershipGroup(serviceName)
                 .tierKey(tierKey)
                 .displayName(tierKey)
                 .sortOrder(0)
@@ -55,7 +55,7 @@ class MembershipServiceTest {
     private UserMembership createMembership(String serviceName, MembershipTier tier) {
         return UserMembership.builder()
                 .userId(USER_ID)
-                .serviceName(serviceName)
+                .membershipGroup(serviceName)
                 .tier(tier)
                 .build();
     }
@@ -68,8 +68,8 @@ class MembershipServiceTest {
         @DisplayName("should_returnMemberships_when_userHasMemberships")
         void should_returnMemberships_when_userHasMemberships() {
             // given
-            MembershipTier tier = createTier("shopping", "FREE");
-            UserMembership membership = createMembership("shopping", tier);
+            MembershipTier tier = createTier("user:shopping", "FREE");
+            UserMembership membership = createMembership("user:shopping", tier);
             when(userMembershipRepository.findByUserId(USER_ID)).thenReturn(List.of(membership));
 
             // when
@@ -77,7 +77,7 @@ class MembershipServiceTest {
 
             // then
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).serviceName()).isEqualTo("shopping");
+            assertThat(result.get(0).membershipGroup()).isEqualTo("user:shopping");
             assertThat(result.get(0).tierKey()).isEqualTo("FREE");
         }
 
@@ -103,13 +103,13 @@ class MembershipServiceTest {
         @DisplayName("should_returnMembership_when_exists")
         void should_returnMembership_when_exists() {
             // given
-            MembershipTier tier = createTier("shopping", "PREMIUM");
-            UserMembership membership = createMembership("shopping", tier);
-            when(userMembershipRepository.findByUserIdAndServiceName(USER_ID, "shopping"))
+            MembershipTier tier = createTier("user:shopping", "PREMIUM");
+            UserMembership membership = createMembership("user:shopping", tier);
+            when(userMembershipRepository.findByUserIdAndMembershipGroup(USER_ID, "user:shopping"))
                     .thenReturn(Optional.of(membership));
 
             // when
-            MembershipResponse result = membershipService.getUserMembership(USER_ID, "shopping");
+            MembershipResponse result = membershipService.getUserMembership(USER_ID, "user:shopping");
 
             // then
             assertThat(result.tierKey()).isEqualTo("PREMIUM");
@@ -119,11 +119,11 @@ class MembershipServiceTest {
         @DisplayName("should_throwException_when_membershipNotFound")
         void should_throwException_when_membershipNotFound() {
             // given
-            when(userMembershipRepository.findByUserIdAndServiceName(USER_ID, "shopping"))
+            when(userMembershipRepository.findByUserIdAndMembershipGroup(USER_ID, "user:shopping"))
                     .thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> membershipService.getUserMembership(USER_ID, "shopping"))
+            assertThatThrownBy(() -> membershipService.getUserMembership(USER_ID, "user:shopping"))
                     .isInstanceOf(CustomBusinessException.class)
                     .satisfies(ex -> {
                         CustomBusinessException cbe = (CustomBusinessException) ex;
@@ -140,13 +140,13 @@ class MembershipServiceTest {
         @DisplayName("should_returnTiers_when_serviceExists")
         void should_returnTiers_when_serviceExists() {
             // given
-            MembershipTier free = createTier("shopping", "FREE");
-            MembershipTier premium = createTier("shopping", "PREMIUM");
-            when(membershipTierRepository.findByServiceNameOrderBySortOrder("shopping"))
+            MembershipTier free = createTier("user:shopping", "FREE");
+            MembershipTier premium = createTier("user:shopping", "PREMIUM");
+            when(membershipTierRepository.findByMembershipGroupOrderBySortOrder("user:shopping"))
                     .thenReturn(List.of(free, premium));
 
             // when
-            List<MembershipTierResponse> result = membershipService.getServiceTiers("shopping");
+            List<MembershipTierResponse> result = membershipService.getGroupTiers("user:shopping");
 
             // then
             assertThat(result).hasSize(2);
@@ -161,14 +161,14 @@ class MembershipServiceTest {
         @DisplayName("should_changeTier_when_validRequest")
         void should_changeTier_when_validRequest() {
             // given
-            MembershipTier freeTier = createTier("shopping", "FREE");
-            MembershipTier premiumTier = createTier("shopping", "PREMIUM");
-            UserMembership membership = createMembership("shopping", freeTier);
+            MembershipTier freeTier = createTier("user:shopping", "FREE");
+            MembershipTier premiumTier = createTier("user:shopping", "PREMIUM");
+            UserMembership membership = createMembership("user:shopping", freeTier);
 
-            ChangeMembershipRequest request = new ChangeMembershipRequest("shopping", "PREMIUM");
-            when(membershipTierRepository.findByServiceNameAndTierKey("shopping", "PREMIUM"))
+            ChangeMembershipRequest request = new ChangeMembershipRequest("user:shopping", "PREMIUM");
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:shopping", "PREMIUM"))
                     .thenReturn(Optional.of(premiumTier));
-            when(userMembershipRepository.findByUserIdAndServiceName(USER_ID, "shopping"))
+            when(userMembershipRepository.findByUserIdAndMembershipGroup(USER_ID, "user:shopping"))
                     .thenReturn(Optional.of(membership));
 
             // when
@@ -183,8 +183,8 @@ class MembershipServiceTest {
         @DisplayName("should_throwException_when_tierNotFound")
         void should_throwException_when_tierNotFound() {
             // given
-            ChangeMembershipRequest request = new ChangeMembershipRequest("shopping", "PLATINUM");
-            when(membershipTierRepository.findByServiceNameAndTierKey("shopping", "PLATINUM"))
+            ChangeMembershipRequest request = new ChangeMembershipRequest("user:shopping", "PLATINUM");
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:shopping", "PLATINUM"))
                     .thenReturn(Optional.empty());
 
             // when & then
@@ -205,17 +205,17 @@ class MembershipServiceTest {
         @DisplayName("should_cancelMembership_when_active")
         void should_cancelMembership_when_active() {
             // given
-            MembershipTier premiumTier = createTier("shopping", "PREMIUM");
-            MembershipTier freeTier = createTier("shopping", "FREE");
-            UserMembership membership = createMembership("shopping", premiumTier);
+            MembershipTier premiumTier = createTier("user:shopping", "PREMIUM");
+            MembershipTier freeTier = createTier("user:shopping", "FREE");
+            UserMembership membership = createMembership("user:shopping", premiumTier);
 
-            when(userMembershipRepository.findByUserIdAndServiceName(USER_ID, "shopping"))
+            when(userMembershipRepository.findByUserIdAndMembershipGroup(USER_ID, "user:shopping"))
                     .thenReturn(Optional.of(membership));
-            when(membershipTierRepository.findByServiceNameAndTierKey("shopping", "FREE"))
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:shopping", "FREE"))
                     .thenReturn(Optional.of(freeTier));
 
             // when
-            membershipService.cancelMembership(USER_ID, "shopping");
+            membershipService.cancelMembership(USER_ID, "user:shopping");
 
             // then
             assertThat(membership.getStatus()).isEqualTo(MembershipStatus.CANCELLED);
@@ -226,15 +226,15 @@ class MembershipServiceTest {
         @DisplayName("should_throwException_when_membershipNotActive")
         void should_throwException_when_membershipNotActive() {
             // given
-            MembershipTier tier = createTier("shopping", "FREE");
-            UserMembership membership = createMembership("shopping", tier);
+            MembershipTier tier = createTier("user:shopping", "FREE");
+            UserMembership membership = createMembership("user:shopping", tier);
             membership.cancel(); // already cancelled
 
-            when(userMembershipRepository.findByUserIdAndServiceName(USER_ID, "shopping"))
+            when(userMembershipRepository.findByUserIdAndMembershipGroup(USER_ID, "user:shopping"))
                     .thenReturn(Optional.of(membership));
 
             // when & then
-            assertThatThrownBy(() -> membershipService.cancelMembership(USER_ID, "shopping"))
+            assertThatThrownBy(() -> membershipService.cancelMembership(USER_ID, "user:shopping"))
                     .isInstanceOf(CustomBusinessException.class)
                     .satisfies(ex -> {
                         CustomBusinessException cbe = (CustomBusinessException) ex;
@@ -251,14 +251,14 @@ class MembershipServiceTest {
         @DisplayName("should_changeTier_when_membershipExists")
         void should_changeTier_when_membershipExists() {
             // given
-            MembershipTier freeTier = createTier("shopping", "FREE");
-            MembershipTier premiumTier = createTier("shopping", "PREMIUM");
-            UserMembership membership = createMembership("shopping", freeTier);
+            MembershipTier freeTier = createTier("user:shopping", "FREE");
+            MembershipTier premiumTier = createTier("user:shopping", "PREMIUM");
+            UserMembership membership = createMembership("user:shopping", freeTier);
 
-            ChangeMembershipRequest request = new ChangeMembershipRequest("shopping", "PREMIUM");
-            when(membershipTierRepository.findByServiceNameAndTierKey("shopping", "PREMIUM"))
+            ChangeMembershipRequest request = new ChangeMembershipRequest("user:shopping", "PREMIUM");
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:shopping", "PREMIUM"))
                     .thenReturn(Optional.of(premiumTier));
-            when(userMembershipRepository.findByUserIdAndServiceName(USER_ID, "shopping"))
+            when(userMembershipRepository.findByUserIdAndMembershipGroup(USER_ID, "user:shopping"))
                     .thenReturn(Optional.of(membership));
 
             // when
@@ -272,12 +272,12 @@ class MembershipServiceTest {
         @DisplayName("should_createDefaultMembership_when_membershipNotExists")
         void should_createDefaultMembership_when_membershipNotExists() {
             // given
-            MembershipTier premiumTier = createTier("shopping", "PREMIUM");
-            ChangeMembershipRequest request = new ChangeMembershipRequest("shopping", "PREMIUM");
+            MembershipTier premiumTier = createTier("user:shopping", "PREMIUM");
+            ChangeMembershipRequest request = new ChangeMembershipRequest("user:shopping", "PREMIUM");
 
-            when(membershipTierRepository.findByServiceNameAndTierKey("shopping", "PREMIUM"))
+            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:shopping", "PREMIUM"))
                     .thenReturn(Optional.of(premiumTier));
-            when(userMembershipRepository.findByUserIdAndServiceName(USER_ID, "shopping"))
+            when(userMembershipRepository.findByUserIdAndMembershipGroup(USER_ID, "user:shopping"))
                     .thenReturn(Optional.empty());
             when(userMembershipRepository.save(any(UserMembership.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));

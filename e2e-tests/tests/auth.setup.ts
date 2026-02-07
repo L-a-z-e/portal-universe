@@ -12,6 +12,7 @@
 import { test as setup, expect } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
+import { defaultTestUser } from '../fixtures/auth'
 
 const authFile = './tests/.auth/user.json'
 const tokenFile = './tests/.auth/access-token.json'
@@ -60,8 +61,8 @@ setup('authenticate', async ({ page }) => {
       await expect(page.locator('h3:has-text("로그인")')).toBeVisible({ timeout: 5000 })
 
       // Fill in the login form in the modal
-      await page.locator('input[placeholder="your@email.com"]').first().fill('test@example.com')
-      await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('password123')
+      await page.locator('input[placeholder="your@email.com"]').first().fill(defaultTestUser.email)
+      await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill(defaultTestUser.password)
 
       // Click login submit button in modal (exact match to avoid OAuth buttons)
       await page.getByRole('button', { name: '로그인', exact: true }).click()

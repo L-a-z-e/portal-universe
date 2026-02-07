@@ -353,7 +353,7 @@ class NotificationConsumerTest {
         void should_createNotification_when_couponIssued() {
             // given
             CouponIssuedEvent event = new CouponIssuedEvent(
-                    1L, "COUPON-001", "신규 가입 쿠폰",
+                    "1", "COUPON-001", "신규 가입 쿠폰",
                     "PERCENTAGE", 10, LocalDateTime.now().plusDays(30)
             );
 
@@ -837,7 +837,7 @@ class NotificationConsumerTest {
         void should_callPushService_with_createdNotification_when_couponIssued() {
             // given
             CouponIssuedEvent event = new CouponIssuedEvent(
-                    2L, "COUPON-002", "할인 쿠폰",
+                    "2", "COUPON-002", "할인 쿠폰",
                     "FIXED", 5000, LocalDateTime.now().plusDays(7)
             );
 

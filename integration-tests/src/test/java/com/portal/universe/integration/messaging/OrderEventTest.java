@@ -47,6 +47,62 @@ class OrderEventTest extends IntegrationTestBase {
     private static Long testOrderId;
     private static String testOrderNumber;
 
+    /**
+     * Helper to build shipping address with correct field names matching AddressRequest DTO.
+     */
+    private static Map<String, String> buildShippingAddress(String name, String phone, String address) {
+        Map<String, String> addr = new HashMap<>();
+        addr.put("receiverName", name);
+        addr.put("receiverPhone", phone);
+        addr.put("address1", address);
+        addr.put("zipCode", "12345");
+        return addr;
+    }
+
+    /**
+     * Helper to build payment request with correct field names matching ProcessPaymentRequest DTO.
+     */
+    private static Map<String, Object> buildPaymentRequest(String orderNumber) {
+        Map<String, Object> request = new HashMap<>();
+        request.put("orderNumber", orderNumber);
+        request.put("paymentMethod", "CARD");
+        request.put("cardNumber", "4111111111111111");
+        request.put("cardExpiry", "12/2025");
+        request.put("cardCvv", "123");
+        return request;
+    }
+
+    /**
+     * Add item to cart, checkout, and create order. Returns the orderNumber.
+     */
+    private String createOrderFlow(String token) {
+        // Add to cart
+        Map<String, Object> cartItem = new HashMap<>();
+        cartItem.put("productId", testProductId);
+        cartItem.put("quantity", 1);
+
+        givenWithToken(token)
+                .body(cartItem)
+                .when()
+                .post("/api/v1/shopping/cart/items");
+
+        // Checkout cart
+        givenWithToken(token)
+                .when()
+                .post("/api/v1/shopping/cart/checkout");
+
+        // Create order - CreateOrderRequest only has shippingAddress (no cartId)
+        Map<String, Object> orderRequest = new HashMap<>();
+        orderRequest.put("shippingAddress", buildShippingAddress("Kafka Test", "010-1234-5678", "Seoul"));
+
+        Response orderResponse = givenWithToken(token)
+                .body(orderRequest)
+                .when()
+                .post("/api/v1/shopping/orders");
+
+        return orderResponse.jsonPath().getString("data.orderNumber");
+    }
+
     @BeforeAll
     void setupTestData() {
         // Get a product for order testing
@@ -71,10 +127,12 @@ class OrderEventTest extends IntegrationTestBase {
             String testEmail = "kafka-event-" + System.currentTimeMillis() + "@test.com";
 
             // When - Create new user
-            Map<String, String> signupData = new HashMap<>();
+            Map<String, Object> signupData = new HashMap<>();
             signupData.put("email", testEmail);
-            signupData.put("password", "KafkaTest123!");
-            signupData.put("name", "Kafka Event Test User");
+            signupData.put("password", "SecurePw8!");
+            signupData.put("nickname", "Kafka Event Test User");
+            signupData.put("realName", "Kafka Event Test User");
+            signupData.put("marketingAgree", false);
 
             Response signupResponse = given()
                     .baseUri(AUTH_SERVICE_URL)
@@ -85,9 +143,9 @@ class OrderEventTest extends IntegrationTestBase {
 
             signupResponse.then().statusCode(anyOf(is(200), is(201)));
 
-            // Then - Verify event published
+            // Then - Verify event published (filter by this test's email)
             Optional<ConsumerRecord<String, String>> record = consumeMessage(
-                    consumer, TOPIC_USER_SIGNUP, Duration.ofSeconds(15));
+                    consumer, TOPIC_USER_SIGNUP, Duration.ofSeconds(15), testEmail);
 
             assertThat(record).isPresent();
 
@@ -116,28 +174,24 @@ class OrderEventTest extends IntegrationTestBase {
         Assumptions.assumeTrue(testProductId != null, "No product available");
 
         try (KafkaConsumer<String, String> consumer = createKafkaConsumer(TOPIC_ORDER_CREATED)) {
-            // Add to cart first
+            // Add to cart
             Map<String, Object> cartItem = new HashMap<>();
             cartItem.put("productId", testProductId);
             cartItem.put("quantity", 1);
 
-            Response cartResponse = givenAuthenticatedUser()
+            givenAuthenticatedUser()
                     .body(cartItem)
                     .when()
                     .post("/api/v1/shopping/cart/items");
 
-            Long cartId = cartResponse.jsonPath().getLong("data.cartId");
+            // Checkout cart (required before order creation)
+            givenAuthenticatedUser()
+                    .when()
+                    .post("/api/v1/shopping/cart/checkout");
 
-            // When - Create order
+            // When - Create order (no cartId, correct address fields)
             Map<String, Object> orderRequest = new HashMap<>();
-            orderRequest.put("cartId", cartId);
-
-            Map<String, String> shippingAddress = new HashMap<>();
-            shippingAddress.put("recipientName", "Kafka Test");
-            shippingAddress.put("phoneNumber", "010-1234-5678");
-            shippingAddress.put("address", "Seoul, Korea");
-            shippingAddress.put("zipCode", "12345");
-            orderRequest.put("shippingAddress", shippingAddress);
+            orderRequest.put("shippingAddress", buildShippingAddress("Kafka Test", "010-1234-5678", "Seoul, Korea"));
 
             Response orderResponse = givenAuthenticatedUser()
                     .body(orderRequest)
@@ -182,20 +236,11 @@ class OrderEventTest extends IntegrationTestBase {
     @Order(3)
     @DisplayName("3. Payment completion should publish event to shopping.payment.completed topic")
     void testPaymentCompletedEventPublished() {
-        Assumptions.assumeTrue(testOrderId != null, "No order available");
+        Assumptions.assumeTrue(testOrderNumber != null, "No order available");
 
         try (KafkaConsumer<String, String> consumer = createKafkaConsumer(TOPIC_PAYMENT_COMPLETED)) {
-            // When - Process payment
-            Map<String, Object> paymentRequest = new HashMap<>();
-            paymentRequest.put("orderId", testOrderId);
-            paymentRequest.put("paymentMethod", "CREDIT_CARD");
-
-            Map<String, String> cardInfo = new HashMap<>();
-            cardInfo.put("cardNumber", "4111111111111111");
-            cardInfo.put("expiryMonth", "12");
-            cardInfo.put("expiryYear", "2025");
-            cardInfo.put("cvv", "123");
-            paymentRequest.put("cardInfo", cardInfo);
+            // When - Process payment with correct DTO (orderNumber, CARD, flat fields)
+            Map<String, Object> paymentRequest = buildPaymentRequest(testOrderNumber);
 
             Response paymentResponse = givenAuthenticatedUser()
                     .body(paymentRequest)
@@ -237,48 +282,39 @@ class OrderEventTest extends IntegrationTestBase {
                 TOPIC_PAYMENT_COMPLETED,
                 TOPIC_ORDER_STATUS_CHANGED)) {
 
+            // Create new order flow with correct DTOs
+            String userToken = getUserToken();
+
             // Add to cart
             Map<String, Object> cartItem = new HashMap<>();
             cartItem.put("productId", testProductId);
             cartItem.put("quantity", 1);
 
-            Response cartResponse = givenAuthenticatedUser()
+            givenWithToken(userToken)
                     .body(cartItem)
                     .when()
                     .post("/api/v1/shopping/cart/items");
 
-            Long cartId = cartResponse.jsonPath().getLong("data.cartId");
+            // Checkout cart
+            givenWithToken(userToken)
+                    .when()
+                    .post("/api/v1/shopping/cart/checkout");
 
             // Create order
             Map<String, Object> orderRequest = new HashMap<>();
-            orderRequest.put("cartId", cartId);
-            Map<String, String> address = Map.of(
-                    "recipientName", "Sequence Test",
-                    "phoneNumber", "010-1234-5678",
-                    "address", "Seoul",
-                    "zipCode", "12345"
-            );
-            orderRequest.put("shippingAddress", address);
+            orderRequest.put("shippingAddress", buildShippingAddress("Sequence Test", "010-1234-5678", "Seoul"));
 
-            Response orderResponse = givenAuthenticatedUser()
+            Response orderResponse = givenWithToken(userToken)
                     .body(orderRequest)
                     .when()
                     .post("/api/v1/shopping/orders");
 
-            Long orderId = orderResponse.jsonPath().getLong("data.id");
+            String orderNumber = orderResponse.jsonPath().getString("data.orderNumber");
 
             // Process payment
-            Map<String, Object> paymentRequest = new HashMap<>();
-            paymentRequest.put("orderId", orderId);
-            paymentRequest.put("paymentMethod", "CREDIT_CARD");
-            paymentRequest.put("cardInfo", Map.of(
-                    "cardNumber", "4111111111111111",
-                    "expiryMonth", "12",
-                    "expiryYear", "2025",
-                    "cvv", "123"
-            ));
+            Map<String, Object> paymentRequest = buildPaymentRequest(orderNumber);
 
-            givenAuthenticatedUser()
+            givenWithToken(userToken)
                     .body(paymentRequest)
                     .when()
                     .post("/api/v1/shopping/payments");
@@ -316,28 +352,27 @@ class OrderEventTest extends IntegrationTestBase {
         Assumptions.assumeTrue(testProductId != null, "No product available");
 
         try (KafkaConsumer<String, String> consumer = createKafkaConsumer(TOPIC_ORDER_CREATED)) {
+            String userToken = getUserToken();
+
             // Add to cart and create order
             Map<String, Object> cartItem = new HashMap<>();
             cartItem.put("productId", testProductId);
             cartItem.put("quantity", 2);
 
-            Response cartResponse = givenAuthenticatedUser()
+            givenWithToken(userToken)
                     .body(cartItem)
                     .when()
                     .post("/api/v1/shopping/cart/items");
 
-            Long cartId = cartResponse.jsonPath().getLong("data.cartId");
+            // Checkout cart
+            givenWithToken(userToken)
+                    .when()
+                    .post("/api/v1/shopping/cart/checkout");
 
             Map<String, Object> orderRequest = new HashMap<>();
-            orderRequest.put("cartId", cartId);
-            orderRequest.put("shippingAddress", Map.of(
-                    "recipientName", "Structure Test",
-                    "phoneNumber", "010-1234-5678",
-                    "address", "Seoul",
-                    "zipCode", "12345"
-            ));
+            orderRequest.put("shippingAddress", buildShippingAddress("Structure Test", "010-1234-5678", "Seoul"));
 
-            givenAuthenticatedUser()
+            givenWithToken(userToken)
                     .body(orderRequest)
                     .when()
                     .post("/api/v1/shopping/orders");
@@ -387,48 +422,40 @@ class OrderEventTest extends IntegrationTestBase {
         try (KafkaConsumer<String, String> consumer = createKafkaConsumer(
                 TOPIC_ORDER_CREATED, TOPIC_PAYMENT_COMPLETED)) {
 
-            // Create order and payment
+            String userToken = getUserToken();
+
+            // Create order flow
             Map<String, Object> cartItem = new HashMap<>();
             cartItem.put("productId", testProductId);
             cartItem.put("quantity", 1);
 
-            Response cartResponse = givenAuthenticatedUser()
+            givenWithToken(userToken)
                     .body(cartItem)
                     .when()
                     .post("/api/v1/shopping/cart/items");
 
-            Long cartId = cartResponse.jsonPath().getLong("data.cartId");
+            // Checkout cart
+            givenWithToken(userToken)
+                    .when()
+                    .post("/api/v1/shopping/cart/checkout");
 
             Map<String, Object> orderRequest = new HashMap<>();
-            orderRequest.put("cartId", cartId);
-            orderRequest.put("shippingAddress", Map.of(
-                    "recipientName", "Ordering Test",
-                    "phoneNumber", "010-1234-5678",
-                    "address", "Seoul",
-                    "zipCode", "12345"
-            ));
+            orderRequest.put("shippingAddress", buildShippingAddress("Ordering Test", "010-1234-5678", "Seoul"));
 
-            Response orderResponse = givenAuthenticatedUser()
+            Response orderResponse = givenWithToken(userToken)
                     .body(orderRequest)
                     .when()
                     .post("/api/v1/shopping/orders");
 
-            Long orderId = orderResponse.jsonPath().getLong("data.id");
+            String orderNumber = orderResponse.jsonPath().getString("data.orderNumber");
 
             // Small delay to ensure order event is published
             try { Thread.sleep(500); } catch (InterruptedException ignored) {}
 
-            Map<String, Object> paymentRequest = new HashMap<>();
-            paymentRequest.put("orderId", orderId);
-            paymentRequest.put("paymentMethod", "CREDIT_CARD");
-            paymentRequest.put("cardInfo", Map.of(
-                    "cardNumber", "4111111111111111",
-                    "expiryMonth", "12",
-                    "expiryYear", "2025",
-                    "cvv", "123"
-            ));
+            // Process payment with correct DTO
+            Map<String, Object> paymentRequest = buildPaymentRequest(orderNumber);
 
-            givenAuthenticatedUser()
+            givenWithToken(userToken)
                     .body(paymentRequest)
                     .when()
                     .post("/api/v1/shopping/payments");

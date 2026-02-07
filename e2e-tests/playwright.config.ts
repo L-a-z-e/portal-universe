@@ -41,6 +41,11 @@ export default defineConfig({
   projects: [
     // Auth setup projects
     {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
       name: 'admin-auth-setup',
       testMatch: /auth-admin\.setup\.ts/,
       use: { ...devices['Desktop Chrome'] },
@@ -49,22 +54,33 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: /\.setup\.ts/,
+      testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
+      dependencies: ['setup'],
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      testIgnore: /\.setup\.ts/,
+      testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
+      dependencies: ['setup'],
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      testIgnore: /\.setup\.ts/,
+      testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
+      dependencies: ['setup'],
     },
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
-      testIgnore: /\.setup\.ts/,
+      testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
+      dependencies: ['setup'],
+    },
+    // Admin tests (tests/admin/ directory)
+    {
+      name: 'admin-chromium',
+      testDir: './tests/admin',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['admin-auth-setup'],
     },
     // Admin frontend tests (depends on admin auth)
     {

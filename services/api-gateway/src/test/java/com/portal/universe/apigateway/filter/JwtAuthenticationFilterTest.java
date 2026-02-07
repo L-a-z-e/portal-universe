@@ -2,6 +2,7 @@ package com.portal.universe.apigateway.filter;
 
 import com.portal.universe.apigateway.config.JwtProperties;
 import com.portal.universe.apigateway.config.PublicPathProperties;
+import com.portal.universe.apigateway.service.RoleHierarchyResolver;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import com.portal.universe.apigateway.util.JwtTestHelper;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +46,9 @@ class JwtAuthenticationFilterTest {
     private TokenBlacklistChecker tokenBlacklistChecker;
 
     @Mock
+    private RoleHierarchyResolver roleHierarchyResolver;
+
+    @Mock
     private WebFilterChain chain;
 
     private JwtAuthenticationFilter filter;
@@ -66,7 +70,7 @@ class JwtAuthenticationFilterTest {
         var publicPathProperties = new PublicPathProperties();
         publicPathProperties.setSkipJwtParsing(List.of("/actuator", "/fallback"));
 
-        filter = new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker);
+        filter = new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker, roleHierarchyResolver);
     }
 
     private JwtAuthenticationFilter createFilterWithKeys(Map<String, JwtProperties.KeyConfig> keys, String currentKeyId) {
@@ -77,7 +81,7 @@ class JwtAuthenticationFilterTest {
         var publicPathProperties = new PublicPathProperties();
         publicPathProperties.setSkipJwtParsing(List.of("/actuator", "/fallback"));
 
-        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker);
+        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker, roleHierarchyResolver);
     }
 
     @Nested
@@ -160,6 +164,14 @@ class JwtAuthenticationFilterTest {
     @Nested
     @DisplayName("유효한 토큰")
     class ValidToken {
+
+        @BeforeEach
+        void setUpRoleHierarchy() {
+            when(roleHierarchyResolver.resolveEffectiveRoles(any())).thenAnswer(invocation -> {
+                List<String> roles = invocation.getArgument(0);
+                return Mono.just(roles);
+            });
+        }
 
         @Test
         @DisplayName("유효한 토큰으로 X-User-* 헤더를 추가한다")
@@ -411,6 +423,10 @@ class JwtAuthenticationFilterTest {
         @Test
         @DisplayName("kid가 있는 토큰은 해당 키로 검증한다")
         void should_validateWithKid_when_tokenHasKid() {
+            when(roleHierarchyResolver.resolveEffectiveRoles(any())).thenAnswer(invocation -> {
+                List<String> roles = invocation.getArgument(0);
+                return Mono.just(roles);
+            });
             String key2Secret = "another-secret-key-that-is-at-least-256-bits-long-for-hmac-sha";
             var key2Config = new JwtProperties.KeyConfig();
             key2Config.setSecretKey(key2Secret);
@@ -443,6 +459,10 @@ class JwtAuthenticationFilterTest {
         @Test
         @DisplayName("kid가 없는 토큰은 currentKeyId로 검증한다")
         void should_useCurrentKeyId_when_noKid() {
+            when(roleHierarchyResolver.resolveEffectiveRoles(any())).thenAnswer(invocation -> {
+                List<String> roles = invocation.getArgument(0);
+                return Mono.just(roles);
+            });
             String token = JwtTestHelper.createToken(SECRET_KEY, null, "user1",
                     List.of("ROLE_USER"), null, null, null, 3600_000L);
             var request = MockServerHttpRequest.get("/api/test")
@@ -503,6 +523,14 @@ class JwtAuthenticationFilterTest {
     @Nested
     @DisplayName("Header Injection 방어")
     class HeaderInjection {
+
+        @BeforeEach
+        void setUpRoleHierarchy() {
+            when(roleHierarchyResolver.resolveEffectiveRoles(any())).thenAnswer(invocation -> {
+                List<String> roles = invocation.getArgument(0);
+                return Mono.just(roles);
+            });
+        }
 
         @Test
         @DisplayName("외부 X-User-* 헤더는 제거되고 JWT의 값으로 교체된다")

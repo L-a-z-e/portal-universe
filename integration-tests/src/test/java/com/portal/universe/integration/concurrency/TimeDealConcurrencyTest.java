@@ -34,8 +34,32 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
     private static final int MAX_PER_USER = 1;
 
     private static Long testTimeDealId;
+    private static Long testTimeDealProductId; // ID of the first TimeDealProduct (nested)
     private static Long testProductId;
     private static List<String> testUserTokens = new ArrayList<>();
+
+    /**
+     * Helper to build a TimeDealCreateRequest with correct nested structure.
+     * TimeDealCreateRequest: name, description, startsAt, endsAt, products (list of TimeDealProductRequest)
+     * TimeDealProductRequest: productId, dealPrice, dealQuantity, maxPerUser
+     */
+    private static Map<String, Object> buildTimeDealRequest(String name, Long productId,
+                                                              int dealPrice, int dealQuantity, int maxPerUser,
+                                                              LocalDateTime startsAt, LocalDateTime endsAt) {
+        Map<String, Object> request = new HashMap<>();
+        request.put("name", name);
+        request.put("startsAt", startsAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        request.put("endsAt", endsAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+        Map<String, Object> product = new HashMap<>();
+        product.put("productId", productId);
+        product.put("dealPrice", dealPrice);
+        product.put("dealQuantity", dealQuantity);
+        product.put("maxPerUser", maxPerUser);
+
+        request.put("products", List.of(product));
+        return request;
+    }
 
     @BeforeAll
     void setupTestData() {
@@ -64,7 +88,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
             futures.add(executor.submit(() -> {
                 String email = "timedeal-test-" + index + "-" + System.currentTimeMillis() + "@test.com";
                 try {
-                    return createUserAndGetToken(email, "Test1234!", "TimeDeal User " + index);
+                    return createUserAndGetToken(email, "SecurePw8!", "TimeDeal User " + index);
                 } catch (Exception e) {
                     log.warn("Failed to create user {}: {}", index, e.getMessage());
                     return null;
@@ -93,18 +117,17 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
     void setupTimeDeal() {
         Assumptions.assumeTrue(testProductId != null, "No product available");
 
-        // Given
-        Map<String, Object> timeDealRequest = new HashMap<>();
-        timeDealRequest.put("name", "Concurrency Test TimeDeal - " + generateTestId());
-        timeDealRequest.put("productId", testProductId);
-        timeDealRequest.put("dealPrice", 5000);
-        timeDealRequest.put("stockQuantity", TIMEDEAL_STOCK);
-        timeDealRequest.put("maxPerUser", MAX_PER_USER);
-
-        // Active period (starts now)
+        // Given - Correct nested products structure
         LocalDateTime now = LocalDateTime.now();
-        timeDealRequest.put("startAt", now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        timeDealRequest.put("endAt", now.plusHours(2).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        Map<String, Object> timeDealRequest = buildTimeDealRequest(
+                "Concurrency Test TimeDeal - " + generateTestId(),
+                testProductId,
+                5000,           // dealPrice
+                TIMEDEAL_STOCK, // dealQuantity
+                MAX_PER_USER,   // maxPerUser
+                now,
+                now.plusHours(2)
+        );
 
         // When
         Response response = givenAuthenticatedAdmin()
@@ -118,10 +141,18 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                 .body("success", is(true));
 
         testTimeDealId = response.jsonPath().getLong("data.id");
-        assertThat(testTimeDealId).isNotNull();
 
-        log.info("Created time-deal with ID: {}, stock: {}, maxPerUser: {}",
-                testTimeDealId, TIMEDEAL_STOCK, MAX_PER_USER);
+        // Extract timeDealProductId from nested products response
+        List<Map<String, Object>> products = response.jsonPath().getList("data.products");
+        if (products != null && !products.isEmpty()) {
+            testTimeDealProductId = Long.valueOf(products.get(0).get("id").toString());
+        }
+
+        assertThat(testTimeDealId).isNotNull();
+        assertThat(testTimeDealProductId).isNotNull();
+
+        log.info("Created time-deal with ID: {}, productId: {}, stock: {}, maxPerUser: {}",
+                testTimeDealId, testTimeDealProductId, TIMEDEAL_STOCK, MAX_PER_USER);
     }
 
     @Test
@@ -129,7 +160,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
     @DisplayName("2. 150 concurrent users purchase 100 items - exactly 100 should succeed")
     void testConcurrentTimeDealPurchase() throws InterruptedException {
         // Skip if setup failed
-        Assumptions.assumeTrue(testTimeDealId != null, "No time-deal created");
+        Assumptions.assumeTrue(testTimeDealProductId != null, "No time-deal product created");
         Assumptions.assumeTrue(testUserTokens.size() >= CONCURRENT_USERS,
                 "Not enough test users: " + testUserTokens.size());
 
@@ -147,8 +178,9 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
 
         ExecutorService executor = Executors.newFixedThreadPool(CONCURRENT_USERS);
 
+        // TimeDealPurchaseRequest uses timeDealProductId (not timeDealId)
         Map<String, Object> purchaseRequest = new HashMap<>();
-        purchaseRequest.put("timeDealId", testTimeDealId);
+        purchaseRequest.put("timeDealProductId", testTimeDealProductId);
         purchaseRequest.put("quantity", 1);
 
         // When - All users try to purchase simultaneously
@@ -167,7 +199,8 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                             .post("/api/v1/shopping/time-deals/purchase");
 
                     int status = response.statusCode();
-                    String code = response.jsonPath().getString("code");
+                    // Error codes are under error.code in ApiResponse wrapper
+                    String code = response.jsonPath().getString("error.code");
 
                     if (status == 200 || status == 201) {
                         successCount.incrementAndGet();
@@ -234,15 +267,17 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                 .when()
                 .get("/api/v1/shopping/time-deals/" + testTimeDealId);
 
-        // Then
+        // Then - Check nested products remainingQuantity
         response.then()
                 .statusCode(200)
                 .body("success", is(true));
 
-        int remainingStock = response.jsonPath().getInt("data.stockQuantity");
-        log.info("TimeDeal remaining stock: {}", remainingStock);
-
-        assertThat(remainingStock).isZero();
+        List<Map<String, Object>> products = response.jsonPath().getList("data.products");
+        if (products != null && !products.isEmpty()) {
+            int remainingStock = Integer.parseInt(products.get(0).get("remainingQuantity").toString());
+            log.info("TimeDeal remaining stock: {}", remainingStock);
+            assertThat(remainingStock).isZero();
+        }
     }
 
     @Test
@@ -251,24 +286,31 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
     void testMaxPerUserEnforcement() throws InterruptedException {
         Assumptions.assumeTrue(testProductId != null, "No product available");
 
-        // Create new time-deal for this test
-        Map<String, Object> timeDealRequest = new HashMap<>();
-        timeDealRequest.put("name", "MaxPerUser Test TimeDeal - " + generateTestId());
-        timeDealRequest.put("productId", testProductId);
-        timeDealRequest.put("dealPrice", 3000);
-        timeDealRequest.put("stockQuantity", 20);
-        timeDealRequest.put("maxPerUser", 1);
-
+        // Create new time-deal for this test with correct nested structure
         LocalDateTime now = LocalDateTime.now();
-        timeDealRequest.put("startAt", now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        timeDealRequest.put("endAt", now.plusHours(1).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        Map<String, Object> timeDealRequest = buildTimeDealRequest(
+                "MaxPerUser Test TimeDeal - " + generateTestId(),
+                testProductId,
+                3000,  // dealPrice
+                20,    // dealQuantity
+                1,     // maxPerUser
+                now,
+                now.plusHours(1)
+        );
 
         Response createResponse = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
                 .post("/api/v1/shopping/admin/time-deals");
 
-        Long maxPerUserTimeDealId = createResponse.jsonPath().getLong("data.id");
+        // Extract timeDealProductId from nested response
+        List<Map<String, Object>> products = createResponse.jsonPath().getList("data.products");
+        Long maxPerUserProductId = null;
+        if (products != null && !products.isEmpty()) {
+            maxPerUserProductId = Long.valueOf(products.get(0).get("id").toString());
+        }
+
+        Assumptions.assumeTrue(maxPerUserProductId != null, "No time-deal product created");
 
         // Single user tries to purchase 5 times concurrently
         String singleUserToken = testUserTokens.get(0);
@@ -280,8 +322,10 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         CountDownLatch latch = new CountDownLatch(CONCURRENT_ATTEMPTS);
         ExecutorService executor = Executors.newFixedThreadPool(CONCURRENT_ATTEMPTS);
 
+        // TimeDealPurchaseRequest uses timeDealProductId
+        final Long finalProductId = maxPerUserProductId;
         Map<String, Object> purchaseRequest = new HashMap<>();
-        purchaseRequest.put("timeDealId", maxPerUserTimeDealId);
+        purchaseRequest.put("timeDealProductId", finalProductId);
         purchaseRequest.put("quantity", 1);
 
         for (int i = 0; i < CONCURRENT_ATTEMPTS; i++) {
@@ -293,7 +337,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                             .post("/api/v1/shopping/time-deals/purchase");
 
                     int status = response.statusCode();
-                    String code = response.jsonPath().getString("code");
+                    String code = response.jsonPath().getString("error.code");
 
                     if (status == 200 || status == 201) {
                         successCount.incrementAndGet();
@@ -330,24 +374,31 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
     void testMaxPerUserTwo() throws InterruptedException {
         Assumptions.assumeTrue(testProductId != null, "No product available");
 
-        // Create time-deal with maxPerUser=2
-        Map<String, Object> timeDealRequest = new HashMap<>();
-        timeDealRequest.put("name", "MaxPerUser2 Test - " + generateTestId());
-        timeDealRequest.put("productId", testProductId);
-        timeDealRequest.put("dealPrice", 4000);
-        timeDealRequest.put("stockQuantity", 50);
-        timeDealRequest.put("maxPerUser", 2); // Allow 2 per user
-
+        // Create time-deal with maxPerUser=2 and correct nested structure
         LocalDateTime now = LocalDateTime.now();
-        timeDealRequest.put("startAt", now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        timeDealRequest.put("endAt", now.plusHours(1).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        Map<String, Object> timeDealRequest = buildTimeDealRequest(
+                "MaxPerUser2 Test - " + generateTestId(),
+                testProductId,
+                4000,  // dealPrice
+                50,    // dealQuantity
+                2,     // maxPerUser = 2
+                now,
+                now.plusHours(1)
+        );
 
         Response createResponse = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
                 .post("/api/v1/shopping/admin/time-deals");
 
-        Long timeDealId = createResponse.jsonPath().getLong("data.id");
+        // Extract timeDealProductId from nested response
+        List<Map<String, Object>> products = createResponse.jsonPath().getList("data.products");
+        Long timeDealProductId = null;
+        if (products != null && !products.isEmpty()) {
+            timeDealProductId = Long.valueOf(products.get(0).get("id").toString());
+        }
+
+        Assumptions.assumeTrue(timeDealProductId != null, "No time-deal product created");
 
         // Single user tries to purchase 5 times
         String singleUserToken = testUserTokens.get(1);
@@ -357,8 +408,10 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         CountDownLatch latch = new CountDownLatch(ATTEMPTS);
         ExecutorService executor = Executors.newFixedThreadPool(ATTEMPTS);
 
+        // TimeDealPurchaseRequest uses timeDealProductId
+        final Long finalProductId = timeDealProductId;
         Map<String, Object> purchaseRequest = new HashMap<>();
-        purchaseRequest.put("timeDealId", timeDealId);
+        purchaseRequest.put("timeDealProductId", finalProductId);
         purchaseRequest.put("quantity", 1);
 
         for (int i = 0; i < ATTEMPTS; i++) {
@@ -399,24 +452,31 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
         final int STRESS_USERS = 300;
         final int STRESS_STOCK = 200;
 
-        // Create stress test time-deal
-        Map<String, Object> timeDealRequest = new HashMap<>();
-        timeDealRequest.put("name", "Stress Test TimeDeal - " + generateTestId());
-        timeDealRequest.put("productId", testProductId);
-        timeDealRequest.put("dealPrice", 2000);
-        timeDealRequest.put("stockQuantity", STRESS_STOCK);
-        timeDealRequest.put("maxPerUser", 1);
-
+        // Create stress test time-deal with correct nested structure
         LocalDateTime now = LocalDateTime.now();
-        timeDealRequest.put("startAt", now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        timeDealRequest.put("endAt", now.plusHours(1).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        Map<String, Object> timeDealRequest = buildTimeDealRequest(
+                "Stress Test TimeDeal - " + generateTestId(),
+                testProductId,
+                2000,        // dealPrice
+                STRESS_STOCK, // dealQuantity
+                1,           // maxPerUser
+                now,
+                now.plusHours(1)
+        );
 
         Response createResponse = givenAuthenticatedAdmin()
                 .body(timeDealRequest)
                 .when()
                 .post("/api/v1/shopping/admin/time-deals");
 
-        Long stressTimeDealId = createResponse.jsonPath().getLong("data.id");
+        // Extract timeDealProductId from nested response
+        List<Map<String, Object>> products = createResponse.jsonPath().getList("data.products");
+        Long stressProductId = null;
+        if (products != null && !products.isEmpty()) {
+            stressProductId = Long.valueOf(products.get(0).get("id").toString());
+        }
+
+        Assumptions.assumeTrue(stressProductId != null, "No time-deal product created");
 
         // Create additional users if needed
         List<String> stressUserTokens = new ArrayList<>(testUserTokens);
@@ -432,7 +492,7 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
                 futures.add(userExecutor.submit(() -> {
                     String email = "td-stress-" + index + "-" + System.currentTimeMillis() + "@test.com";
                     try {
-                        return createUserAndGetToken(email, "Test1234!", "Stress User " + index);
+                        return createUserAndGetToken(email, "SecurePw8!", "Stress User " + index);
                     } catch (Exception e) {
                         return null;
                     }
@@ -462,8 +522,10 @@ class TimeDealConcurrencyTest extends IntegrationTestBase {
 
         ExecutorService executor = Executors.newFixedThreadPool(STRESS_USERS);
 
+        // TimeDealPurchaseRequest uses timeDealProductId
+        final Long finalStressProductId = stressProductId;
         Map<String, Object> purchaseRequest = new HashMap<>();
-        purchaseRequest.put("timeDealId", stressTimeDealId);
+        purchaseRequest.put("timeDealProductId", finalStressProductId);
         purchaseRequest.put("quantity", 1);
 
         for (int i = 0; i < STRESS_USERS; i++) {

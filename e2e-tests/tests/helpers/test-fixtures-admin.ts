@@ -1,6 +1,7 @@
 import { test as base, type Page, expect as baseExpect } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
+import { adminTestUser } from '../../fixtures/auth'
 
 const TOKEN_FILE = path.resolve(__dirname, '../.auth/admin-access-token.json')
 
@@ -82,8 +83,8 @@ export async function handleLoginModalIfVisible(page: Page): Promise<void> {
   try {
     const modal = page.locator('h3:has-text("로그인")')
     if (await modal.isVisible({ timeout: 2000 })) {
-      await page.locator('input[placeholder="your@email.com"]').first().fill('admin@test.com')
-      await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill('admin1234')
+      await page.locator('input[placeholder="your@email.com"]').first().fill(adminTestUser.email)
+      await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill(adminTestUser.password)
       await page.getByRole('button', { name: '로그인', exact: true }).click()
       await page.waitForTimeout(3000)
     }

@@ -42,6 +42,72 @@ class NotificationPushTest extends IntegrationTestBase {
     private static Long testProductId;
     private static WebSocketStompClient stompClient;
 
+    /**
+     * Helper to build shipping address with correct field names matching AddressRequest DTO.
+     */
+    private static Map<String, String> buildShippingAddress(String name) {
+        Map<String, String> addr = new HashMap<>();
+        addr.put("receiverName", name);
+        addr.put("receiverPhone", "010-1234-5678");
+        addr.put("address1", "Seoul");
+        addr.put("zipCode", "12345");
+        return addr;
+    }
+
+    /**
+     * Helper to build payment request with correct field names matching ProcessPaymentRequest DTO.
+     */
+    private static Map<String, Object> buildPaymentRequest(String orderNumber) {
+        Map<String, Object> request = new HashMap<>();
+        request.put("orderNumber", orderNumber);
+        request.put("paymentMethod", "CARD");
+        request.put("cardNumber", "4111111111111111");
+        request.put("cardExpiry", "12/2025");
+        request.put("cardCvv", "123");
+        return request;
+    }
+
+    /**
+     * Full order+payment flow with correct DTOs. Returns orderNumber.
+     */
+    private String triggerPaymentFlow(String token) {
+        // Add to cart
+        Map<String, Object> cartItem = new HashMap<>();
+        cartItem.put("productId", testProductId);
+        cartItem.put("quantity", 1);
+
+        givenWithToken(token)
+                .body(cartItem)
+                .when()
+                .post("/api/v1/shopping/cart/items");
+
+        // Checkout cart (required before order creation)
+        givenWithToken(token)
+                .when()
+                .post("/api/v1/shopping/cart/checkout");
+
+        // Create order - CreateOrderRequest only has shippingAddress (no cartId)
+        Map<String, Object> orderRequest = new HashMap<>();
+        orderRequest.put("shippingAddress", buildShippingAddress("WebSocket Test"));
+
+        Response orderResponse = givenWithToken(token)
+                .body(orderRequest)
+                .when()
+                .post("/api/v1/shopping/orders");
+
+        String orderNumber = orderResponse.jsonPath().getString("data.orderNumber");
+
+        // Process payment
+        Map<String, Object> paymentRequest = buildPaymentRequest(orderNumber);
+
+        givenWithToken(token)
+                .body(paymentRequest)
+                .when()
+                .post("/api/v1/shopping/payments");
+
+        return orderNumber;
+    }
+
     @BeforeAll
     void setup() {
         // Get a product for testing
@@ -126,11 +192,8 @@ class NotificationPushTest extends IntegrationTestBase {
         CompletableFuture<String> notificationReceived = new CompletableFuture<>();
 
         StompSessionHandler sessionHandler = new StompSessionHandlerAdapter() {
-            private StompSession session;
-
             @Override
             public void afterConnected(StompSession session, @NonNull StompHeaders connectedHeaders) {
-                this.session = session;
                 log.info("WebSocket connected for notification test");
 
                 // Subscribe to user notifications
@@ -150,7 +213,7 @@ class NotificationPushTest extends IntegrationTestBase {
 
                 // Trigger order and payment
                 try {
-                    triggerPaymentFlow();
+                    triggerPaymentFlow(userToken);
                 } catch (Exception e) {
                     log.error("Failed to trigger payment flow", e);
                 }
@@ -160,53 +223,6 @@ class NotificationPushTest extends IntegrationTestBase {
             public void handleTransportError(@NonNull StompSession session, @NonNull Throwable exception) {
                 log.error("Transport error: {}", exception.getMessage());
                 notificationReceived.completeExceptionally(exception);
-            }
-
-            private void triggerPaymentFlow() {
-                // Add to cart
-                Map<String, Object> cartItem = new HashMap<>();
-                cartItem.put("productId", testProductId);
-                cartItem.put("quantity", 1);
-
-                Response cartResponse = givenWithToken(userToken)
-                        .body(cartItem)
-                        .when()
-                        .post("/api/v1/shopping/cart/items");
-
-                Long cartId = cartResponse.jsonPath().getLong("data.cartId");
-
-                // Create order
-                Map<String, Object> orderRequest = new HashMap<>();
-                orderRequest.put("cartId", cartId);
-                orderRequest.put("shippingAddress", Map.of(
-                        "recipientName", "WebSocket Test",
-                        "phoneNumber", "010-1234-5678",
-                        "address", "Seoul",
-                        "zipCode", "12345"
-                ));
-
-                Response orderResponse = givenWithToken(userToken)
-                        .body(orderRequest)
-                        .when()
-                        .post("/api/v1/shopping/orders");
-
-                Long orderId = orderResponse.jsonPath().getLong("data.id");
-
-                // Process payment
-                Map<String, Object> paymentRequest = new HashMap<>();
-                paymentRequest.put("orderId", orderId);
-                paymentRequest.put("paymentMethod", "CREDIT_CARD");
-                paymentRequest.put("cardInfo", Map.of(
-                        "cardNumber", "4111111111111111",
-                        "expiryMonth", "12",
-                        "expiryYear", "2025",
-                        "cvv", "123"
-                ));
-
-                givenWithToken(userToken)
-                        .body(paymentRequest)
-                        .when()
-                        .post("/api/v1/shopping/payments");
             }
         };
 
@@ -274,53 +290,9 @@ class NotificationPushTest extends IntegrationTestBase {
                     }
                 });
 
-                // Trigger complete checkout flow
+                // Trigger complete checkout flow with correct DTOs
                 try {
-                    Map<String, Object> cartItem = new HashMap<>();
-                    cartItem.put("productId", testProductId);
-                    cartItem.put("quantity", 1);
-
-                    Response cartResponse = givenWithToken(userToken)
-                            .body(cartItem)
-                            .when()
-                            .post("/api/v1/shopping/cart/items");
-
-                    Long cartId = cartResponse.jsonPath().getLong("data.cartId");
-
-                    Map<String, Object> orderRequest = new HashMap<>();
-                    orderRequest.put("cartId", cartId);
-                    orderRequest.put("shippingAddress", Map.of(
-                            "recipientName", "Multi Notification Test",
-                            "phoneNumber", "010-1234-5678",
-                            "address", "Seoul",
-                            "zipCode", "12345"
-                    ));
-
-                    Response orderResponse = givenWithToken(userToken)
-                            .body(orderRequest)
-                            .when()
-                            .post("/api/v1/shopping/orders");
-
-                    Long orderId = orderResponse.jsonPath().getLong("data.id");
-
-                    // Wait for order notification
-                    Thread.sleep(1000);
-
-                    Map<String, Object> paymentRequest = new HashMap<>();
-                    paymentRequest.put("orderId", orderId);
-                    paymentRequest.put("paymentMethod", "CREDIT_CARD");
-                    paymentRequest.put("cardInfo", Map.of(
-                            "cardNumber", "4111111111111111",
-                            "expiryMonth", "12",
-                            "expiryYear", "2025",
-                            "cvv", "123"
-                    ));
-
-                    givenWithToken(userToken)
-                            .body(paymentRequest)
-                            .when()
-                            .post("/api/v1/shopping/payments");
-
+                    triggerPaymentFlow(userToken);
                 } catch (Exception e) {
                     log.error("Checkout flow failed", e);
                 }
@@ -392,13 +364,14 @@ class NotificationPushTest extends IntegrationTestBase {
                     }
                 });
 
-                // Trigger coupon issuance - first get available coupons
+                // Trigger coupon issuance - coupons endpoint returns List (not Page)
                 try {
                     Response couponsResponse = givenWithToken(userToken)
                             .when()
                             .get("/api/v1/shopping/coupons");
 
-                    List<Map<String, Object>> coupons = couponsResponse.jsonPath().getList("data.content");
+                    // data is a List<CouponResponse>, not Page
+                    List<Map<String, Object>> coupons = couponsResponse.jsonPath().getList("data");
                     if (coupons != null && !coupons.isEmpty()) {
                         Long couponId = Long.valueOf(coupons.get(0).get("id").toString());
 
@@ -468,53 +441,13 @@ class NotificationPushTest extends IntegrationTestBase {
     @Order(6)
     @DisplayName("6. Notification persistence - reconnect should not lose notifications")
     void testNotificationPersistence() throws Exception {
-        String userToken = getUserToken();
         String newUserEmail = generateTestEmail();
-        String newUserToken = createUserAndGetToken(newUserEmail, "Test1234!", "Persistence Test User");
+        String newUserToken = createUserAndGetToken(newUserEmail, "SecurePw8!", "Persistence Test User");
 
-        // Create pending notification by triggering an action
-        Map<String, Object> cartItem = new HashMap<>();
-        cartItem.put("productId", testProductId);
-        cartItem.put("quantity", 1);
+        Assumptions.assumeTrue(testProductId != null, "No product available");
 
-        Response cartResponse = givenWithToken(newUserToken)
-                .body(cartItem)
-                .when()
-                .post("/api/v1/shopping/cart/items");
-
-        Long cartId = cartResponse.jsonPath().getLong("data.cartId");
-
-        Map<String, Object> orderRequest = new HashMap<>();
-        orderRequest.put("cartId", cartId);
-        orderRequest.put("shippingAddress", Map.of(
-                "recipientName", "Persistence Test",
-                "phoneNumber", "010-1234-5678",
-                "address", "Seoul",
-                "zipCode", "12345"
-        ));
-
-        Response orderResponse = givenWithToken(newUserToken)
-                .body(orderRequest)
-                .when()
-                .post("/api/v1/shopping/orders");
-
-        Long orderId = orderResponse.jsonPath().getLong("data.id");
-
-        // Process payment (generates notification)
-        Map<String, Object> paymentRequest = new HashMap<>();
-        paymentRequest.put("orderId", orderId);
-        paymentRequest.put("paymentMethod", "CREDIT_CARD");
-        paymentRequest.put("cardInfo", Map.of(
-                "cardNumber", "4111111111111111",
-                "expiryMonth", "12",
-                "expiryYear", "2025",
-                "cvv", "123"
-        ));
-
-        givenWithToken(newUserToken)
-                .body(paymentRequest)
-                .when()
-                .post("/api/v1/shopping/payments");
+        // Create pending notification by triggering an action with correct DTOs
+        triggerPaymentFlow(newUserToken);
 
         // Wait a bit for notification to be stored
         Thread.sleep(2000);

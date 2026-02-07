@@ -79,9 +79,9 @@ class MembershipAdminControllerTest {
         SecurityContextHolder.clearContext();
     }
 
-    private MembershipResponse createMembershipResponse(String userId, String serviceName, String tierKey) {
+    private MembershipResponse createMembershipResponse(String userId, String membershipGroup, String tierKey) {
         return new MembershipResponse(
-                1L, userId, serviceName, tierKey, tierKey.toUpperCase(),
+                1L, userId, membershipGroup, tierKey, tierKey.toUpperCase(),
                 MembershipStatus.ACTIVE, true,
                 LocalDateTime.now(), LocalDateTime.now().plusMonths(1), LocalDateTime.now()
         );
@@ -96,7 +96,7 @@ class MembershipAdminControllerTest {
         void should_returnUserMemberships_when_adminRequest() throws Exception {
             // given
             List<MembershipResponse> responses = List.of(
-                    createMembershipResponse(TARGET_USER_UUID, "blog", "premium")
+                    createMembershipResponse(TARGET_USER_UUID, "user:blog", "premium")
             );
             when(membershipService.getUserMemberships(TARGET_USER_UUID)).thenReturn(responses);
 
@@ -106,7 +106,7 @@ class MembershipAdminControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
                     .andExpect(jsonPath("$.data[0].userId").value(TARGET_USER_UUID))
-                    .andExpect(jsonPath("$.data[0].serviceName").value("blog"));
+                    .andExpect(jsonPath("$.data[0].membershipGroup").value("user:blog"));
         }
 
         @Test
@@ -131,8 +131,8 @@ class MembershipAdminControllerTest {
         @DisplayName("should_returnUpdatedMembership_when_validAdminRequest")
         void should_returnUpdatedMembership_when_validAdminRequest() throws Exception {
             // given
-            ChangeMembershipRequest request = new ChangeMembershipRequest("blog", "enterprise");
-            MembershipResponse response = createMembershipResponse(TARGET_USER_UUID, "blog", "enterprise");
+            ChangeMembershipRequest request = new ChangeMembershipRequest("user:blog", "enterprise");
+            MembershipResponse response = createMembershipResponse(TARGET_USER_UUID, "user:blog", "enterprise");
 
             when(membershipService.adminChangeMembershipTier(
                     eq(TARGET_USER_UUID), any(ChangeMembershipRequest.class), eq(ADMIN_UUID)
@@ -152,7 +152,7 @@ class MembershipAdminControllerTest {
         @DisplayName("should_returnBadRequest_when_tierKeyIsBlank")
         void should_returnBadRequest_when_tierKeyIsBlank() throws Exception {
             // given
-            ChangeMembershipRequest request = new ChangeMembershipRequest("blog", "");
+            ChangeMembershipRequest request = new ChangeMembershipRequest("user:blog", "");
 
             // when & then
             mockMvc.perform(put(BASE_URL + "/users/" + TARGET_USER_UUID)

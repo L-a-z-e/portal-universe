@@ -123,20 +123,20 @@ class RbacServiceTest {
                     .thenReturn(List.of("blog:read", "blog:write"));
 
             MembershipTier tier = MembershipTier.builder()
-                    .serviceName("shopping")
+                    .membershipGroup("user:shopping")
                     .tierKey("PREMIUM")
                     .displayName("Premium")
                     .sortOrder(1)
                     .build();
             UserMembership membership = UserMembership.builder()
                     .userId(USER_ID)
-                    .serviceName("shopping")
+                    .membershipGroup("user:shopping")
                     .tier(tier)
                     .build();
             when(userMembershipRepository.findActiveByUserId(USER_ID))
                     .thenReturn(List.of(membership));
-            when(membershipTierPermissionRepository.findPermissionKeysByServiceAndTier("shopping", "PREMIUM"))
-                    .thenReturn(List.of("shopping:premium_access"));
+            when(membershipTierPermissionRepository.findPermissionKeysByGroupAndTier("user:shopping", "PREMIUM"))
+                    .thenReturn(List.of("user:shopping:premium_access"));
 
             // when
             UserPermissionsResponse result = rbacService.resolveUserPermissions(USER_ID);
@@ -144,8 +144,8 @@ class RbacServiceTest {
             // then
             assertThat(result.userId()).isEqualTo(USER_ID);
             assertThat(result.roles()).containsExactly("ROLE_USER");
-            assertThat(result.permissions()).contains("blog:read", "blog:write", "shopping:premium_access");
-            assertThat(result.memberships()).containsEntry("shopping", "PREMIUM");
+            assertThat(result.permissions()).contains("blog:read", "blog:write", "user:shopping:premium_access");
+            assertThat(result.memberships()).containsEntry("user:shopping", "PREMIUM");
         }
 
         @Test

@@ -160,7 +160,7 @@ class NotificationEventConverterTest {
         @DisplayName("CouponIssuedEvent (PERCENTAGE 타입)를 올바르게 변환한다")
         void should_convertCouponIssued_percentageType() {
             CouponIssuedEvent event = new CouponIssuedEvent(
-                    100L,
+                    "100",
                     "COUPON-001",
                     "여름 세일 쿠폰",
                     "PERCENTAGE",
@@ -184,7 +184,7 @@ class NotificationEventConverterTest {
         @DisplayName("CouponIssuedEvent (FIXED 타입)를 올바르게 변환한다")
         void should_convertCouponIssued_fixedType() {
             CouponIssuedEvent event = new CouponIssuedEvent(
-                    200L,
+                    "200",
                     "COUPON-002",
                     "신규 가입 쿠폰",
                     "FIXED",
@@ -201,10 +201,10 @@ class NotificationEventConverterTest {
         }
 
         @Test
-        @DisplayName("CouponIssuedEvent의 Long userId가 String으로 변환된다")
+        @DisplayName("CouponIssuedEvent의 userId가 String으로 전달된다")
         void should_convertLongUserId_toString() {
             CouponIssuedEvent event = new CouponIssuedEvent(
-                    999L,
+                    "999",
                     "COUPON-003",
                     "테스트 쿠폰",
                     "PERCENTAGE",

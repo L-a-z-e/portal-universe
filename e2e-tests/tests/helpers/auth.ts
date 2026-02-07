@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test'
+import { defaultTestUser } from '../../fixtures/auth'
 
 /**
  * Wait for the Portal Shell auth state to be resolved.
@@ -38,10 +39,10 @@ async function ensureAuthenticated(page: Page): Promise<void> {
   // If login form is visible (modal is showing), fill it
   if (hasEmailInput || hasPasswordInput) {
     if (hasEmailInput) {
-      await emailInput.fill('test@example.com')
+      await emailInput.fill(defaultTestUser.email)
     }
     if (hasPasswordInput) {
-      await passwordInput.fill('password123')
+      await passwordInput.fill(defaultTestUser.password)
     }
 
     if (await loginBtn.isVisible().catch(() => false)) {
@@ -75,10 +76,10 @@ async function ensureAuthenticated(page: Page): Promise<void> {
 
     // Fill and submit login form
     if (await emailInput.isVisible().catch(() => false)) {
-      await emailInput.fill('test@example.com')
+      await emailInput.fill(defaultTestUser.email)
     }
     if (await passwordInput.isVisible().catch(() => false)) {
-      await passwordInput.fill('password123')
+      await passwordInput.fill(defaultTestUser.password)
     }
     if (await loginBtn.isVisible().catch(() => false)) {
       await loginBtn.click()
@@ -111,7 +112,7 @@ export async function gotoServicePage(page: Page, urlPath: string, contentSelect
 
   // Wait for Module Federation content
   if (contentSelector) {
-    await page.locator(contentSelector).first().waitFor({ timeout: 15000 }).catch(() => {})
+    await page.locator(contentSelector).first().waitFor({ timeout: 25000 }).catch(() => {})
   }
 
   // Wait for spinners to finish

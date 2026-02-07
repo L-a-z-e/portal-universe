@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { defaultTestUser } from '../fixtures/auth';
 
-const AUTH_SERVER_URL = 'http://localhost:8081'; // Assuming auth-service is running on port 8081
+const AUTH_SERVER_URL = 'http://localhost:8081';
 
-async function getAccessToken(username, password) {
+async function getAccessToken(username: string, password: string) {
     const response = await fetch(`${AUTH_SERVER_URL}/oauth2/token`, {
         method: 'POST',
         headers: {
@@ -16,7 +17,7 @@ async function getAccessToken(username, password) {
         }),
     });
     const json = await response.json();
-    if (response.status() !== 200) {
+    if (response.status !== 200) {
         console.error(`Failed to get access token for ${username}: ${json.error_description}`);
         throw new Error(`Failed to get access token for ${username}`);
     }
@@ -25,7 +26,7 @@ async function getAccessToken(username, password) {
 
 test.describe('Role-based Authorization', () => {
     test('USER should not access /api/v1/admin', async ({ request }) => {
-        const accessToken = await getAccessToken('finaltest@example.com', 'password123');
+        const accessToken = await getAccessToken(defaultTestUser.email, defaultTestUser.password);
         const response = await request.get(`${AUTH_SERVER_URL}/api/v1/admin`, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -35,7 +36,7 @@ test.describe('Role-based Authorization', () => {
     });
 
     test('ADMIN should access /api/v1/admin', async ({ request }) => {
-        const accessToken = await getAccessToken('test@example.com', 'password123');
+        const accessToken = await getAccessToken(defaultTestUser.email, defaultTestUser.password);
         const response = await request.get(`${AUTH_SERVER_URL}/api/v1/admin`, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,

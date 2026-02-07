@@ -86,8 +86,8 @@ class MembershipControllerTest {
         void should_returnMembershipList_when_authenticated() throws Exception {
             // given
             List<MembershipResponse> responses = List.of(
-                    createMembershipResponse("blog", "premium"),
-                    createMembershipResponse("shopping", "basic")
+                    createMembershipResponse("user:blog", "premium"),
+                    createMembershipResponse("user:shopping", "basic")
             );
             when(membershipService.getUserMemberships(USER_UUID)).thenReturn(responses);
 
@@ -97,7 +97,7 @@ class MembershipControllerTest {
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
                     .andExpect(jsonPath("$.data.length()").value(2))
-                    .andExpect(jsonPath("$.data[0].serviceName").value("blog"));
+                    .andExpect(jsonPath("$.data[0].membershipGroup").value("user:blog"));
         }
 
         @Test
@@ -122,14 +122,14 @@ class MembershipControllerTest {
         @DisplayName("should_returnMembership_when_serviceNameProvided")
         void should_returnMembership_when_serviceNameProvided() throws Exception {
             // given
-            MembershipResponse response = createMembershipResponse("blog", "premium");
-            when(membershipService.getUserMembership(USER_UUID, "blog")).thenReturn(response);
+            MembershipResponse response = createMembershipResponse("user:blog", "premium");
+            when(membershipService.getUserMembership(USER_UUID, "user:blog")).thenReturn(response);
 
             // when & then
-            mockMvc.perform(get(BASE_URL + "/me/blog"))
+            mockMvc.perform(get(BASE_URL + "/me/user:blog"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.serviceName").value("blog"))
+                    .andExpect(jsonPath("$.data.membershipGroup").value("user:blog"))
                     .andExpect(jsonPath("$.data.tierKey").value("premium"))
                     .andExpect(jsonPath("$.data.status").value("ACTIVE"));
         }
@@ -144,13 +144,13 @@ class MembershipControllerTest {
         void should_returnTiers_when_serviceNameProvided() throws Exception {
             // given
             List<MembershipTierResponse> tiers = List.of(
-                    new MembershipTierResponse(1L, "blog", "free", "Free", BigDecimal.ZERO, BigDecimal.ZERO, 0),
-                    new MembershipTierResponse(2L, "blog", "premium", "Premium", new BigDecimal("9.99"), new BigDecimal("99.99"), 1)
+                    new MembershipTierResponse(1L, "user:blog", "free", "Free", BigDecimal.ZERO, BigDecimal.ZERO, 0),
+                    new MembershipTierResponse(2L, "user:blog", "premium", "Premium", new BigDecimal("9.99"), new BigDecimal("99.99"), 1)
             );
-            when(membershipService.getServiceTiers("blog")).thenReturn(tiers);
+            when(membershipService.getGroupTiers("user:blog")).thenReturn(tiers);
 
             // when & then
-            mockMvc.perform(get(BASE_URL + "/tiers/blog"))
+            mockMvc.perform(get(BASE_URL + "/tiers/user:blog"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data").isArray())
@@ -168,8 +168,8 @@ class MembershipControllerTest {
         @DisplayName("should_returnUpdatedMembership_when_validRequest")
         void should_returnUpdatedMembership_when_validRequest() throws Exception {
             // given
-            ChangeMembershipRequest request = new ChangeMembershipRequest("blog", "premium");
-            MembershipResponse response = createMembershipResponse("blog", "premium");
+            ChangeMembershipRequest request = new ChangeMembershipRequest("user:blog", "premium");
+            MembershipResponse response = createMembershipResponse("user:blog", "premium");
 
             when(membershipService.changeMembershipTier(eq(USER_UUID), any(ChangeMembershipRequest.class)))
                     .thenReturn(response);
@@ -180,7 +180,7 @@ class MembershipControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.serviceName").value("blog"))
+                    .andExpect(jsonPath("$.data.membershipGroup").value("user:blog"))
                     .andExpect(jsonPath("$.data.tierKey").value("premium"));
         }
 
@@ -206,14 +206,14 @@ class MembershipControllerTest {
         @DisplayName("should_returnSuccess_when_validCancellation")
         void should_returnSuccess_when_validCancellation() throws Exception {
             // given
-            doNothing().when(membershipService).cancelMembership(USER_UUID, "blog");
+            doNothing().when(membershipService).cancelMembership(USER_UUID, "user:blog");
 
             // when & then
-            mockMvc.perform(delete(BASE_URL + "/me/blog"))
+            mockMvc.perform(delete(BASE_URL + "/me/user:blog"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            verify(membershipService).cancelMembership(USER_UUID, "blog");
+            verify(membershipService).cancelMembership(USER_UUID, "user:blog");
         }
     }
 }

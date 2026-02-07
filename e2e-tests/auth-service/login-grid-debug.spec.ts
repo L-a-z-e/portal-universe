@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { defaultTestUser } from '../fixtures/auth';
 
 test.describe('Login and Debug Blog Grid Layout', () => {
   test('should login, navigate to blog, and analyze grid layout', async ({ page }) => {
@@ -15,8 +16,8 @@ test.describe('Login and Debug Blog Grid Layout', () => {
     console.log('Auth0 Lock widget is visible.');
 
     // 이메일과 비밀번호 입력
-    await page.getByPlaceholder('yours@example.com').fill('test@example.com');
-    await page.getByPlaceholder('your password').fill('password123');
+    await page.getByPlaceholder('yours@example.com').fill(defaultTestUser.email);
+    await page.getByPlaceholder('your password').fill(defaultTestUser.password);
 
     // 'Sign In' 버튼 클릭
     await page.getByRole('button', { name: 'Sign In' }).click();

@@ -125,7 +125,7 @@ public class CouponServiceImpl implements CouponService {
 
         // 쿠폰 발급 이벤트 발행
         eventPublisher.publishCouponIssued(new CouponIssuedEvent(
-                Long.parseLong(userId),
+                userId,
                 coupon.getCode(),
                 coupon.getName(),
                 coupon.getDiscountType().name(),

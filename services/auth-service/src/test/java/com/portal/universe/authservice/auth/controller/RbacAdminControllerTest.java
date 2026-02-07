@@ -93,9 +93,9 @@ class RbacAdminControllerTest {
         void should_returnAllActiveRoles_when_adminRequest() throws Exception {
             // given
             List<RoleResponse> roles = List.of(
-                    new RoleResponse(1L, "ROLE_USER", "User", "Basic user role", "global", null, true, true),
-                    new RoleResponse(2L, "ROLE_SUPER_ADMIN", "Super Admin", "Full access", "global", null, true, true),
-                    new RoleResponse(3L, "ROLE_BLOG_ADMIN", "Blog Admin", "Blog admin role", "blog", null, false, true)
+                    new RoleResponse(1L, "ROLE_USER", "User", "Basic user role", "global", null, null, true, true),
+                    new RoleResponse(2L, "ROLE_SUPER_ADMIN", "Super Admin", "Full access", "global", null, null, true, true),
+                    new RoleResponse(3L, "ROLE_BLOG_ADMIN", "Blog Admin", "Blog admin role", "blog", null, null, false, true)
             );
             when(rbacService.getAllActiveRoles()).thenReturn(roles);
 

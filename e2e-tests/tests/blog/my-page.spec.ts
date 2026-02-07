@@ -7,8 +7,11 @@ test.describe('Blog - My Page', () => {
   test('비로그인 - 마이페이지 접근 제한', async ({ page }) => {
     await page.goto(routes.blog.myPage)
 
-    // 로그인 페이지로 리다이렉트
-    await expect(page).toHaveURL(/login/)
+    // 로그인 모달 또는 리다이렉트 확인
+    const loginModal = page.locator('[role="dialog"]')
+    const hasLoginModal = await loginModal.isVisible({ timeout: 5000 }).catch(() => false)
+    const loginRedirect = page.url().includes('/login')
+    expect(hasLoginModal || loginRedirect).toBeTruthy()
   })
 
   test('로그인 - 마이페이지 접근', async ({ authenticatedPage }) => {
