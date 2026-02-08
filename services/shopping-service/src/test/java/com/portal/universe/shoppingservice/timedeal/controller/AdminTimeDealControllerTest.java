@@ -80,7 +80,7 @@ class AdminTimeDealControllerTest {
         mockMvc.perform(get("/admin/time-deals"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.content[0].name").value("Flash Sale"));
+                .andExpect(jsonPath("$.data.items[0].name").value("Flash Sale"));
     }
 
     @Test

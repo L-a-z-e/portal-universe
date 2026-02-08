@@ -106,8 +106,8 @@ class LikeControllerTest {
         mockMvc.perform(get("/posts/post-1/likes"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].userId").value("user-2"))
-            .andExpect(jsonPath("$.data.content[0].userName").value("User Two"));
+            .andExpect(jsonPath("$.data.items[0].userId").value("user-2"))
+            .andExpect(jsonPath("$.data.items[0].userName").value("User Two"));
 
         verify(likeService).getLikers(eq("post-1"), any(Pageable.class));
     }
@@ -123,7 +123,7 @@ class LikeControllerTest {
         mockMvc.perform(get("/posts/post-1/likes"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content").isEmpty())
+            .andExpect(jsonPath("$.data.items").isEmpty())
             .andExpect(jsonPath("$.data.totalElements").value(0));
 
         verify(likeService).getLikers(eq("post-1"), any(Pageable.class));

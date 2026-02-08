@@ -2,6 +2,8 @@ package com.portal.universe.apigateway.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Map;
 
@@ -15,8 +17,11 @@ class FallbackControllerTest {
     @Test
     @DisplayName("authServiceFallback은 GW001 코드를 반환한다")
     void should_returnGW001_when_authServiceFallback() {
-        Map<String, Object> result = controller.authServiceFallback().block();
+        ResponseEntity<Map<String, Object>> response = controller.authServiceFallback().block();
 
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        Map<String, Object> result = response.getBody();
         assertThat(result).isNotNull();
         assertThat(result.get("success")).isEqualTo(false);
         assertErrorCode(result, "GW001");
@@ -25,8 +30,10 @@ class FallbackControllerTest {
     @Test
     @DisplayName("blogServiceFallback은 GW002 코드를 반환한다")
     void should_returnGW002_when_blogServiceFallback() {
-        Map<String, Object> result = controller.blogServiceFallback().block();
+        ResponseEntity<Map<String, Object>> response = controller.blogServiceFallback().block();
 
+        assertThat(response).isNotNull();
+        Map<String, Object> result = response.getBody();
         assertThat(result).isNotNull();
         assertErrorCode(result, "GW002");
     }
@@ -34,8 +41,10 @@ class FallbackControllerTest {
     @Test
     @DisplayName("shoppingServiceFallback은 GW003 코드를 반환한다")
     void should_returnGW003_when_shoppingServiceFallback() {
-        Map<String, Object> result = controller.shoppingServiceFallback().block();
+        ResponseEntity<Map<String, Object>> response = controller.shoppingServiceFallback().block();
 
+        assertThat(response).isNotNull();
+        Map<String, Object> result = response.getBody();
         assertThat(result).isNotNull();
         assertErrorCode(result, "GW003");
     }
@@ -43,8 +52,10 @@ class FallbackControllerTest {
     @Test
     @DisplayName("notificationServiceFallback은 GW004 코드를 반환한다")
     void should_returnGW004_when_notificationServiceFallback() {
-        Map<String, Object> result = controller.notificationServiceFallback().block();
+        ResponseEntity<Map<String, Object>> response = controller.notificationServiceFallback().block();
 
+        assertThat(response).isNotNull();
+        Map<String, Object> result = response.getBody();
         assertThat(result).isNotNull();
         assertErrorCode(result, "GW004");
     }
@@ -52,8 +63,10 @@ class FallbackControllerTest {
     @Test
     @DisplayName("fallback 응답에 timestamp가 포함된다")
     void should_containTimestamp_when_fallback() {
-        Map<String, Object> result = controller.authServiceFallback().block();
+        ResponseEntity<Map<String, Object>> response = controller.authServiceFallback().block();
 
+        assertThat(response).isNotNull();
+        Map<String, Object> result = response.getBody();
         assertThat(result).isNotNull();
         @SuppressWarnings("unchecked")
         Map<String, Object> error = (Map<String, Object>) result.get("error");
@@ -63,8 +76,10 @@ class FallbackControllerTest {
     @Test
     @DisplayName("fallback 응답의 data는 빈 맵이다")
     void should_containEmptyData_when_fallback() {
-        Map<String, Object> result = controller.authServiceFallback().block();
+        ResponseEntity<Map<String, Object>> response = controller.authServiceFallback().block();
 
+        assertThat(response).isNotNull();
+        Map<String, Object> result = response.getBody();
         assertThat(result).isNotNull();
         @SuppressWarnings("unchecked")
         Map<String, Object> data = (Map<String, Object>) result.get("data");

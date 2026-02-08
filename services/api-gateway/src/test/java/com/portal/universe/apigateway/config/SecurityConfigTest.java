@@ -53,8 +53,10 @@ class SecurityConfigTest {
         publicPathProperties.setPermitAllGet(List.of("/api/v1/blog/**"));
         publicPathProperties.setSkipJwtParsing(List.of("/actuator", "/fallback"));
 
+        var corsProperties = new CorsProperties();
+
         securityConfig = new SecurityConfig(
-                jwtProperties, publicPathProperties,
+                jwtProperties, publicPathProperties, corsProperties,
                 authenticationEntryPoint, accessDeniedHandler, tokenBlacklistChecker,
                 roleHierarchyResolver
         );

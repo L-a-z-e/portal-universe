@@ -72,10 +72,10 @@ class ProductControllerTest {
         when(productService.getAllProducts(any())).thenReturn(page);
 
         // when/then
-        mockMvc.perform(get("/products").param("page", "0").param("size", "12"))
+        mockMvc.perform(get("/products").param("page", "1").param("size", "12"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.content[0].id").value(1));
+                .andExpect(jsonPath("$.data.items[0].id").value(1));
     }
 
     @Test

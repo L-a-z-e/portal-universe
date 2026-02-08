@@ -285,11 +285,11 @@ class PostControllerTest {
 
         // when & then
         mockMvc.perform(get("/posts")
-                .param("page", "0")
+                .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].id").value("post-1"));
+            .andExpect(jsonPath("$.data.items[0].id").value("post-1"));
 
         verify(postService).getPublishedPosts(0, 10);
     }
@@ -303,11 +303,11 @@ class PostControllerTest {
 
         // when & then
         mockMvc.perform(get("/posts/author/user-1")
-                .param("page", "0")
+                .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].authorId").value("user-1"));
+            .andExpect(jsonPath("$.data.items[0].authorId").value("user-1"));
 
         verify(postService).getPostsByAuthor("user-1", 0, 10);
     }
@@ -321,11 +321,11 @@ class PostControllerTest {
 
         // when & then
         mockMvc.perform(get("/posts/category/Technology")
-                .param("page", "0")
+                .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].category").value("Technology"));
+            .andExpect(jsonPath("$.data.items[0].category").value("Technology"));
 
         verify(postService).getPostsByCategory("Technology", 0, 10);
     }
@@ -340,11 +340,11 @@ class PostControllerTest {
         // when & then
         mockMvc.perform(get("/posts/tags")
                 .param("tags", "tag1", "tag2")
-                .param("page", "0")
+                .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].id").value("post-1"));
+            .andExpect(jsonPath("$.data.items[0].id").value("post-1"));
 
         verify(postService).getPostsByTags(List.of("tag1", "tag2"), 0, 10);
     }
@@ -358,11 +358,11 @@ class PostControllerTest {
 
         // when & then
         mockMvc.perform(get("/posts/popular")
-                .param("page", "0")
+                .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].id").value("post-1"));
+            .andExpect(jsonPath("$.data.items[0].id").value("post-1"));
 
         verify(postService).getPopularPosts(0, 10);
     }
@@ -377,11 +377,11 @@ class PostControllerTest {
         // when & then
         mockMvc.perform(get("/posts/trending")
                 .param("period", "week")
-                .param("page", "0")
+                .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].id").value("post-1"));
+            .andExpect(jsonPath("$.data.items[0].id").value("post-1"));
 
         verify(postService).getTrendingPosts("week", 0, 10);
     }
@@ -412,11 +412,11 @@ class PostControllerTest {
         // when & then
         mockMvc.perform(get("/posts/search")
                 .param("keyword", "keyword")
-                .param("page", "0")
+                .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].id").value("post-1"));
+            .andExpect(jsonPath("$.data.items[0].id").value("post-1"));
 
         verify(postService).searchPosts("keyword", 0, 10);
     }
@@ -447,7 +447,7 @@ class PostControllerTest {
                 .content(objectMapper.writeValueAsString(searchRequest)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].id").value("post-1"));
+            .andExpect(jsonPath("$.data.items[0].id").value("post-1"));
 
         verify(postService).searchPostsAdvanced(any(PostSearchRequest.class));
     }
@@ -518,11 +518,11 @@ class PostControllerTest {
         // when & then
         mockMvc.perform(get("/posts/feed")
                 .param("followingIds", "user-1", "user-2")
-                .param("page", "0")
+                .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content[0].id").value("post-1"));
+            .andExpect(jsonPath("$.data.items[0].id").value("post-1"));
 
         verify(postService).getFeed(List.of("user-1", "user-2"), 0, 10);
     }
