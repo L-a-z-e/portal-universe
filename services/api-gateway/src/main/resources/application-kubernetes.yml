@@ -5,6 +5,11 @@
 server:
   forward-headers-strategy: framework
 
+app:
+  cors:
+    allowed-origins:
+      - https://portal-universe
+
 # 서비스 URL 정의 (K8s DNS - 각 서비스 포트 명시)
 services:
   gateway:

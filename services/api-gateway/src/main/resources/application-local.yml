@@ -6,6 +6,9 @@ server:
   forward-headers-strategy: framework
 
 app:
+  cors:
+    allowed-origins:
+      - http://localhost:30000
   frontend:
     base-url: http://localhost:30000
     host: localhost:30000
