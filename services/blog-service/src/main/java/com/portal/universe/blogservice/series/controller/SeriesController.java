@@ -4,13 +4,12 @@ import com.portal.universe.blogservice.post.dto.PostSummaryResponse;
 import com.portal.universe.blogservice.series.dto.*;
 import com.portal.universe.blogservice.series.service.SeriesService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.commonlibrary.security.context.CurrentUser;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -28,7 +27,7 @@ public class SeriesController {
     @PostMapping
     public ApiResponse<SeriesResponse> createSeries(
             @Valid @RequestBody SeriesCreateRequest request,
-            @CurrentUser GatewayUser user
+            @CurrentUser AuthUser user
     ) {
         SeriesResponse response = seriesService.createSeries(request, user.uuid(), user.nickname());
         return ApiResponse.success(response);
@@ -39,9 +38,9 @@ public class SeriesController {
     public ApiResponse<SeriesResponse> updateSeries(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
             @Valid @RequestBody SeriesUpdateRequest request,
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
-        SeriesResponse response = seriesService.updateSeries(seriesId, request, authorId);
+        SeriesResponse response = seriesService.updateSeries(seriesId, request, user.uuid());
         return ApiResponse.success(response);
     }
 
@@ -49,9 +48,9 @@ public class SeriesController {
     @DeleteMapping("/{seriesId}")
     public ApiResponse<Void> deleteSeries(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
-        seriesService.deleteSeries(seriesId, authorId);
+        seriesService.deleteSeries(seriesId, user.uuid());
         return ApiResponse.success(null);
     }
 
@@ -76,9 +75,9 @@ public class SeriesController {
     @Operation(summary = "내 시리즈 목록 조회")
     @GetMapping("/my")
     public ApiResponse<List<SeriesListResponse>> getMySeries(
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
-        List<SeriesListResponse> responses = seriesService.getSeriesByAuthor(authorId);
+        List<SeriesListResponse> responses = seriesService.getSeriesByAuthor(user.uuid());
         return ApiResponse.success(responses);
     }
 
@@ -96,9 +95,9 @@ public class SeriesController {
     public ApiResponse<SeriesResponse> addPostToSeries(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
-        SeriesResponse response = seriesService.addPostToSeries(seriesId, postId, authorId);
+        SeriesResponse response = seriesService.addPostToSeries(seriesId, postId, user.uuid());
         return ApiResponse.success(response);
     }
 
@@ -107,9 +106,9 @@ public class SeriesController {
     public ApiResponse<SeriesResponse> removePostFromSeries(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
-        SeriesResponse response = seriesService.removePostFromSeries(seriesId, postId, authorId);
+        SeriesResponse response = seriesService.removePostFromSeries(seriesId, postId, user.uuid());
         return ApiResponse.success(response);
     }
 
@@ -118,9 +117,9 @@ public class SeriesController {
     public ApiResponse<SeriesResponse> reorderPosts(
             @Parameter(description = "시리즈 ID") @PathVariable String seriesId,
             @Valid @RequestBody SeriesPostOrderRequest request,
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
-        SeriesResponse response = seriesService.reorderPosts(seriesId, request, authorId);
+        SeriesResponse response = seriesService.reorderPosts(seriesId, request, user.uuid());
         return ApiResponse.success(response);
     }
 

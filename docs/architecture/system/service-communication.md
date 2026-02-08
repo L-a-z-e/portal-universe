@@ -133,10 +133,10 @@ JWT 검증 성공 시 다음 헤더 추가:
 #### Backend 서비스 헤더 소비
 ```java
 // GatewayAuthenticationFilter (각 백엔드 서비스)
-X-User-* 헤더 → GatewayUser 객체 변환 → @CurrentUser 주입
+X-User-* 헤더 → AuthUser 객체 변환 → @CurrentUser 주입
 
 @GetMapping("/my-info")
-public ResponseEntity<UserInfo> getMyInfo(@CurrentUser GatewayUser user) {
+public ResponseEntity<UserInfo> getMyInfo(@CurrentUser AuthUser user) {
     // user.getUserId(), user.getRoles(), user.getMemberships() 사용
 }
 ```
@@ -355,7 +355,8 @@ resilience4j:
 
 | 날짜 | 변경 내용 | 작성자 |
 |------|-----------|--------|
-| 2026-02-06 | 코드 기반 신규 작성 (7개 서비스 통신 패턴 문서화) | System Architect |
+| 2026-02-06 | 코드 기반 신규 작성 (7개 서비스 통신 패턴 문서화) | Laze |
+| 2026-02-08 | GatewayUser → AuthUser 리네이밍 반영 (ADR-024) | Laze |
 
 ---
 

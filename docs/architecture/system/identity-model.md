@@ -150,7 +150,7 @@ graph TB
 ```
 1. Client → API Gateway: Request with JWT
 2. Gateway: JWT 검증 → X-User-Id, X-User-Roles, X-User-Memberships 헤더 주입
-3. Backend Service: GatewayUser/CurrentUser로 사용자 식별
+3. Backend Service: AuthUser/@CurrentUser로 사용자 식별
    - Internal ID가 아닌 uuid 기반 식별
 ```
 
@@ -186,3 +186,4 @@ graph TB
 |------|----------|--------|
 | 2026-02-06 | `identity-model.md`로 이름 변경, architecture-template 형식 보완, 미완성 섹션 정리 | Laze |
 | 2026-02-06 | 최초 작성 (`auth-system-design.md`) | Laze |
+| 2026-02-08 | GatewayUser → AuthUser 리네이밍 반영 (ADR-024) | Laze |

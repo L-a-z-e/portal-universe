@@ -4,8 +4,8 @@ import com.portal.universe.blogservice.like.dto.LikeStatusResponse;
 import com.portal.universe.blogservice.like.dto.LikeToggleResponse;
 import com.portal.universe.blogservice.like.dto.LikerResponse;
 import com.portal.universe.blogservice.like.service.LikeService;
-import com.portal.universe.commonlibrary.security.config.GatewayUserWebConfig;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
+import com.portal.universe.commonlibrary.security.config.AuthUserWebConfig;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,8 +18,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -35,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(LikeController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GatewayUserWebConfig.class)
+@Import(AuthUserWebConfig.class)
 @DisplayName("LikeController 테스트")
 class LikeControllerTest {
 
@@ -45,20 +43,15 @@ class LikeControllerTest {
     @MockitoBean
     private LikeService likeService;
 
-    private GatewayUser gatewayUser;
+    private AuthUser authUser;
 
     @BeforeEach
     void setUp() {
-        gatewayUser = new GatewayUser("user-1", "User Name", "UserNick");
-
-        SecurityContextHolder.getContext().setAuthentication(
-            new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
+        authUser = new AuthUser("user-1", "User Name", "UserNick");
     }
 
     @AfterEach
     void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -70,7 +63,7 @@ class LikeControllerTest {
 
         // when & then
         mockMvc.perform(post("/posts/post-1/like")
-                .requestAttr("gatewayUser", gatewayUser))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.liked").value(true))
@@ -87,7 +80,8 @@ class LikeControllerTest {
         given(likeService.getLikeStatus("post-1", "user-1")).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/posts/post-1/like"))
+        mockMvc.perform(get("/posts/post-1/like")
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.liked").value(true))

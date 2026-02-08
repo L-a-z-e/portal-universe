@@ -9,15 +9,14 @@ import com.portal.universe.blogservice.post.service.PostService;
 import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.commonlibrary.response.PageResponse;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.commonlibrary.security.context.CurrentUser;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -35,7 +34,7 @@ public class PostController {
     @PostMapping
     public ApiResponse<PostResponse> createPost(
             @Valid @RequestBody PostCreateRequest request,
-            @CurrentUser GatewayUser user
+            @CurrentUser AuthUser user
     ) {
         String authorName = resolveDisplayName(user);
         PostResponse response = postService.createPost(request, user.uuid(), authorName);
@@ -66,9 +65,9 @@ public class PostController {
     @GetMapping("/{postId}/view")
     public ApiResponse<PostResponse> getPostWithViewIncrement(
             @Parameter(description = "게시물 ID") @PathVariable String postId,
-            @AuthenticationPrincipal String userId
+            @CurrentUser AuthUser user
     ) {
-        PostResponse response = postService.getPostByIdWithViewIncrement(postId, userId);
+        PostResponse response = postService.getPostByIdWithViewIncrement(postId, user.uuid());
         return ApiResponse.success(response);
     }
 
@@ -77,9 +76,9 @@ public class PostController {
     public ApiResponse<PostResponse> updatePost(
             @Parameter(description = "게시물 ID") @PathVariable String postId,
             @Valid @RequestBody PostUpdateRequest request,
-            @AuthenticationPrincipal String userId
+            @CurrentUser AuthUser user
     ) {
-        PostResponse response = postService.updatePost(postId, request, userId);
+        PostResponse response = postService.updatePost(postId, request, user.uuid());
         return ApiResponse.success(response);
     }
 
@@ -87,9 +86,9 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> deletePost(
             @Parameter(description = "게시물 ID") @PathVariable String postId,
-            @AuthenticationPrincipal String userId
+            @CurrentUser AuthUser user
     ) {
-        postService.deletePost(postId, userId);
+        postService.deletePost(postId, user.uuid());
         return ApiResponse.success(null);
     }
 
@@ -120,13 +119,13 @@ public class PostController {
             @RequestParam(required = false) PostStatus status,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
         if (status != null) {
-            Page<PostSummaryResponse> posts = postService.getPostsByAuthorAndStatus(authorId, status, page - 1, size);
+            Page<PostSummaryResponse> posts = postService.getPostsByAuthorAndStatus(user.uuid(), status, page - 1, size);
             return ApiResponse.success(PageResponse.from(posts));
         } else {
-            Page<PostSummaryResponse> posts = postService.getPostsByAuthor(authorId, page - 1, size);
+            Page<PostSummaryResponse> posts = postService.getPostsByAuthor(user.uuid(), page - 1, size);
             return ApiResponse.success(PageResponse.from(posts));
         }
     }
@@ -218,9 +217,9 @@ public class PostController {
     public ApiResponse<PostResponse> changePostStatus(
             @Parameter(description = "게시물 ID") @PathVariable String postId,
             @Valid @RequestBody PostStatusChangeRequest request,
-            @AuthenticationPrincipal String userId
+            @CurrentUser AuthUser user
     ) {
-        PostResponse response = postService.changePostStatus(postId, request.newStatus(), userId);
+        PostResponse response = postService.changePostStatus(postId, request.newStatus(), user.uuid());
         return ApiResponse.success(response);
     }
 
@@ -288,7 +287,7 @@ public class PostController {
         return ApiResponse.success(PageResponse.from(posts));
     }
 
-    private String resolveDisplayName(GatewayUser user) {
+    private String resolveDisplayName(AuthUser user) {
         if (user.nickname() != null && !user.nickname().isBlank()) {
             return user.nickname();
         }

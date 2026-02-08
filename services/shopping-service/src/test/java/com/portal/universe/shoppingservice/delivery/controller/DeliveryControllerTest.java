@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.delivery.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.delivery.domain.DeliveryStatus;
 import com.portal.universe.shoppingservice.delivery.dto.DeliveryResponse;
 import com.portal.universe.shoppingservice.delivery.dto.UpdateDeliveryStatusRequest;
@@ -11,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,17 +39,7 @@ class DeliveryControllerTest {
     @MockitoBean
     private DeliveryService deliveryService;
 
-    @BeforeEach
-    void setUp() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
 
     private DeliveryResponse createDeliveryResponse() {
         return new DeliveryResponse(1L, "TRK-001", "ORD-001",
@@ -98,7 +87,7 @@ class DeliveryControllerTest {
                 .thenReturn(response);
 
         // when/then
-        mockMvc.perform(put("/deliveries/TRK-001/status")
+        mockMvc.perform(put("/deliveries/TRK-001/status").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -109,7 +98,7 @@ class DeliveryControllerTest {
     @DisplayName("should_returnBadRequest_when_statusIsNull")
     void should_returnBadRequest_when_statusIsNull() throws Exception {
         // when/then
-        mockMvc.perform(put("/deliveries/TRK-001/status")
+        mockMvc.perform(put("/deliveries/TRK-001/status").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"location\": \"Seoul\"}"))
                 .andExpect(status().isBadRequest());

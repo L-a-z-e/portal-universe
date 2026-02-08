@@ -42,7 +42,7 @@ com.portal.universe.commonlibrary/
 ├── security/
 │   ├── config/                # 자동 설정
 │   │   ├── JwtSecurityAutoConfiguration
-│   │   └── GatewayUserWebConfig
+│   │   └── AuthUserWebConfig
 │   ├── converter/             # JWT 변환기
 │   │   ├── JwtAuthenticationConverterAdapter
 │   │   └── ReactiveJwtAuthenticationConverterAdapter
@@ -52,7 +52,7 @@ com.portal.universe.commonlibrary/
 │   ├── context/               # 사용자 컨텍스트
 │   │   ├── @CurrentUser
 │   │   ├── CurrentUserArgumentResolver
-│   │   ├── GatewayUser (Record)
+│   │   ├── AuthUser (Record)
 │   │   ├── SecurityUtils
 │   │   └── MembershipContext
 │   ├── constants/             # 인증 상수
@@ -87,4 +87,4 @@ com.portal.universe.commonlibrary/
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-08

@@ -1,10 +1,12 @@
 package com.portal.universe.shoppingservice.support;
 
+import com.portal.universe.commonlibrary.security.config.AuthUserWebConfig;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.context.annotation.Import;
 
 /**
  * WebMvcTest 전용 설정 클래스.
@@ -19,5 +21,6 @@ import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
         KafkaAutoConfiguration.class,
         RedisAutoConfiguration.class
 })
+@Import(AuthUserWebConfig.class)
 public class WebMvcTestConfig {
 }

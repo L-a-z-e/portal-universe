@@ -1,6 +1,8 @@
 package com.portal.universe.notificationservice.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.notificationservice.domain.NotificationStatus;
 import com.portal.universe.notificationservice.domain.NotificationType;
 import com.portal.universe.notificationservice.dto.NotificationResponse;
@@ -39,6 +41,7 @@ class NotificationControllerTest {
 
     private NotificationResponse sampleResponse;
     private static final String TEST_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
+    private static final AuthUser AUTH_USER = new AuthUser(TEST_USER_ID, "Test User", "tester");
 
     @BeforeEach
     void setUp() {
@@ -66,15 +69,15 @@ class NotificationControllerTest {
                 .willReturn(new PageImpl<>(List.of(sampleResponse)));
 
         // when
-        ResponseEntity<ApiResponse<Page<NotificationResponse>>> result =
-                notificationController.getNotifications(TEST_USER_ID, PageRequest.of(0, 20));
+        ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
+                notificationController.getNotifications(AUTH_USER, PageRequest.of(0, 20));
 
         // then
         assertThat(result.getStatusCode().value()).isEqualTo(200);
         assertThat(result.getBody()).isNotNull();
         assertThat(result.getBody().isSuccess()).isTrue();
-        assertThat(result.getBody().getData().getContent()).hasSize(1);
-        assertThat(result.getBody().getData().getContent().get(0).getTitle()).isEqualTo("주문 접수");
+        assertThat(result.getBody().getData().getItems()).hasSize(1);
+        assertThat(result.getBody().getData().getItems().get(0).getTitle()).isEqualTo("주문 접수");
     }
 
     @Test
@@ -84,7 +87,7 @@ class NotificationControllerTest {
         given(notificationService.getUnreadCount(TEST_USER_ID)).willReturn(5L);
 
         // when
-        ResponseEntity<ApiResponse<Long>> result = notificationController.getUnreadCount(TEST_USER_ID);
+        ResponseEntity<ApiResponse<Long>> result = notificationController.getUnreadCount(AUTH_USER);
 
         // then
         assertThat(result.getBody()).isNotNull();
@@ -98,7 +101,7 @@ class NotificationControllerTest {
         given(notificationService.markAllAsRead(TEST_USER_ID)).willReturn(3);
 
         // when
-        ResponseEntity<ApiResponse<Integer>> result = notificationController.markAllAsRead(TEST_USER_ID);
+        ResponseEntity<ApiResponse<Integer>> result = notificationController.markAllAsRead(AUTH_USER);
 
         // then
         assertThat(result.getBody()).isNotNull();
@@ -109,7 +112,7 @@ class NotificationControllerTest {
     @DisplayName("should_deleteNotification_when_validUser")
     void should_deleteNotification_when_validUser() {
         // when
-        ResponseEntity<ApiResponse<Void>> result = notificationController.delete(1L, TEST_USER_ID);
+        ResponseEntity<ApiResponse<Void>> result = notificationController.delete(1L, AUTH_USER);
 
         // then
         assertThat(result.getStatusCode().value()).isEqualTo(200);
@@ -133,12 +136,12 @@ class NotificationControllerTest {
                     .willReturn(page);
 
             // when
-            ResponseEntity<ApiResponse<Page<NotificationResponse>>> result =
-                    notificationController.getNotifications(TEST_USER_ID, pageable);
+            ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
+                    notificationController.getNotifications(AUTH_USER, pageable);
 
             // then
             assertThat(result.getBody()).isNotNull();
-            assertThat(result.getBody().getData().getNumber()).isEqualTo(1);
+            assertThat(result.getBody().getData().getPage()).isEqualTo(2);
             assertThat(result.getBody().getData().getSize()).isEqualTo(10);
             assertThat(result.getBody().getData().getTotalElements()).isEqualTo(11);
         }
@@ -151,8 +154,8 @@ class NotificationControllerTest {
                     .willReturn(new PageImpl<>(List.of(sampleResponse)));
 
             // when
-            ResponseEntity<ApiResponse<Page<NotificationResponse>>> result =
-                    notificationController.getNotifications(TEST_USER_ID, PageRequest.of(0, 20));
+            ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
+                    notificationController.getNotifications(AUTH_USER, PageRequest.of(0, 20));
 
             // then
             assertThat(result.getBody()).isNotNull();
@@ -170,7 +173,7 @@ class NotificationControllerTest {
                     .willReturn(new PageImpl<>(List.of()));
 
             // when
-            notificationController.getNotifications(TEST_USER_ID, pageable);
+            notificationController.getNotifications(AUTH_USER, pageable);
 
             // then
             verify(notificationService).getNotifications(TEST_USER_ID, pageable);
@@ -198,8 +201,8 @@ class NotificationControllerTest {
                     .willReturn(new PageImpl<>(List.of(unreadResponse)));
 
             // when
-            ResponseEntity<ApiResponse<Page<NotificationResponse>>> result =
-                    notificationController.getUnreadNotifications(TEST_USER_ID, PageRequest.of(0, 20));
+            ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
+                    notificationController.getUnreadNotifications(AUTH_USER, PageRequest.of(0, 20));
 
             // then
             assertThat(result.getStatusCode().value()).isEqualTo(200);
@@ -216,7 +219,7 @@ class NotificationControllerTest {
                     .willReturn(new PageImpl<>(List.of()));
 
             // when
-            notificationController.getUnreadNotifications(TEST_USER_ID, pageable);
+            notificationController.getUnreadNotifications(AUTH_USER, pageable);
 
             // then
             verify(notificationService).getUnreadNotifications(TEST_USER_ID, pageable);
@@ -239,11 +242,11 @@ class NotificationControllerTest {
                     .willReturn(new PageImpl<>(List.of(unread)));
 
             // when
-            ResponseEntity<ApiResponse<Page<NotificationResponse>>> result =
-                    notificationController.getUnreadNotifications(TEST_USER_ID, PageRequest.of(0, 20));
+            ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
+                    notificationController.getUnreadNotifications(AUTH_USER, PageRequest.of(0, 20));
 
             // then
-            assertThat(result.getBody().getData().getContent()).allMatch(
+            assertThat(result.getBody().getData().getItems()).allMatch(
                     r -> r.getStatus() == NotificationStatus.UNREAD);
         }
     }
@@ -259,7 +262,7 @@ class NotificationControllerTest {
             given(notificationService.getUnreadCount(TEST_USER_ID)).willReturn(42L);
 
             // when
-            ResponseEntity<ApiResponse<Long>> result = notificationController.getUnreadCount(TEST_USER_ID);
+            ResponseEntity<ApiResponse<Long>> result = notificationController.getUnreadCount(AUTH_USER);
 
             // then
             assertThat(result.getBody()).isNotNull();
@@ -290,7 +293,7 @@ class NotificationControllerTest {
 
             // when
             ResponseEntity<ApiResponse<NotificationResponse>> result =
-                    notificationController.markAsRead(1L, TEST_USER_ID);
+                    notificationController.markAsRead(1L, AUTH_USER);
 
             // then
             assertThat(result.getStatusCode().value()).isEqualTo(200);
@@ -301,24 +304,24 @@ class NotificationControllerTest {
         void should_passIdAndUserId_when_markAsRead() {
             // given
             Long notificationId = 99L;
-            String userId = "different-user";
+            AuthUser differentUser = new AuthUser("different-user", "Diff", "diff");
 
             NotificationResponse response = NotificationResponse.builder()
                     .id(notificationId)
-                    .userId(userId)
+                    .userId(differentUser.uuid())
                     .type(NotificationType.SYSTEM)
                     .title("알림")
                     .message("메시지")
                     .status(NotificationStatus.READ)
                     .build();
 
-            given(notificationService.markAsRead(notificationId, userId)).willReturn(response);
+            given(notificationService.markAsRead(notificationId, differentUser.uuid())).willReturn(response);
 
             // when
-            notificationController.markAsRead(notificationId, userId);
+            notificationController.markAsRead(notificationId, differentUser);
 
             // then
-            verify(notificationService).markAsRead(notificationId, userId);
+            verify(notificationService).markAsRead(notificationId, differentUser.uuid());
         }
 
         @Test
@@ -339,7 +342,7 @@ class NotificationControllerTest {
 
             // when
             ResponseEntity<ApiResponse<NotificationResponse>> result =
-                    notificationController.markAsRead(1L, TEST_USER_ID);
+                    notificationController.markAsRead(1L, AUTH_USER);
 
             // then
             assertThat(result.getBody()).isNotNull();
@@ -362,7 +365,7 @@ class NotificationControllerTest {
 
             // when
             ResponseEntity<ApiResponse<Integer>> result =
-                    notificationController.markAllAsRead(TEST_USER_ID);
+                    notificationController.markAllAsRead(AUTH_USER);
 
             // then
             assertThat(result.getBody()).isNotNull();
@@ -376,7 +379,7 @@ class NotificationControllerTest {
             given(notificationService.markAllAsRead(TEST_USER_ID)).willReturn(0);
 
             // when
-            notificationController.markAllAsRead(TEST_USER_ID);
+            notificationController.markAllAsRead(AUTH_USER);
 
             // then
             verify(notificationService).markAllAsRead(TEST_USER_ID);
@@ -392,7 +395,7 @@ class NotificationControllerTest {
         void should_returnNullData_when_delete() {
             // when
             ResponseEntity<ApiResponse<Void>> result =
-                    notificationController.delete(1L, TEST_USER_ID);
+                    notificationController.delete(1L, AUTH_USER);
 
             // then
             assertThat(result.getBody()).isNotNull();
@@ -404,7 +407,7 @@ class NotificationControllerTest {
         void should_returnSuccess_when_delete() {
             // when
             ResponseEntity<ApiResponse<Void>> result =
-                    notificationController.delete(5L, TEST_USER_ID);
+                    notificationController.delete(5L, AUTH_USER);
 
             // then
             assertThat(result.getBody()).isNotNull();
@@ -419,7 +422,7 @@ class NotificationControllerTest {
             Long notificationId = 42L;
 
             // when
-            notificationController.delete(notificationId, TEST_USER_ID);
+            notificationController.delete(notificationId, AUTH_USER);
 
             // then
             verify(notificationService).delete(notificationId, TEST_USER_ID);

@@ -5,10 +5,11 @@ import com.portal.universe.shoppingservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingservice.queue.service.QueueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -29,9 +30,9 @@ public class QueueController {
     public ResponseEntity<ApiResponse<QueueStatusResponse>> enterQueue(
             @PathVariable String eventType,
             @PathVariable Long eventId,
-            @AuthenticationPrincipal String userId
+            @CurrentUser AuthUser user
     ) {
-        QueueStatusResponse response = queueService.enterQueue(eventType, eventId, userId);
+        QueueStatusResponse response = queueService.enterQueue(eventType, eventId, user.uuid());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -40,9 +41,9 @@ public class QueueController {
     public ResponseEntity<ApiResponse<QueueStatusResponse>> getQueueStatus(
             @PathVariable String eventType,
             @PathVariable Long eventId,
-            @AuthenticationPrincipal String userId
+            @CurrentUser AuthUser user
     ) {
-        QueueStatusResponse response = queueService.getQueueStatus(eventType, eventId, userId);
+        QueueStatusResponse response = queueService.getQueueStatus(eventType, eventId, user.uuid());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -60,9 +61,9 @@ public class QueueController {
     public ResponseEntity<ApiResponse<Void>> leaveQueue(
             @PathVariable String eventType,
             @PathVariable Long eventId,
-            @AuthenticationPrincipal String userId
+            @CurrentUser AuthUser user
     ) {
-        queueService.leaveQueue(eventType, eventId, userId);
+        queueService.leaveQueue(eventType, eventId, user.uuid());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

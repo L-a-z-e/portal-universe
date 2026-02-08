@@ -68,12 +68,12 @@ com.portal.universe.commonlibrary/
 ├── security/
 │   ├── config/
 │   │   ├── JwtSecurityAutoConfiguration.java  # Servlet/Reactive 자동 감지
-│   │   └── GatewayUserWebConfig.java
+│   │   └── AuthUserWebConfig.java
 │   ├── converter/
 │   │   ├── JwtAuthenticationConverterAdapter.java     # Servlet용 JWT 변환
 │   │   └── ReactiveJwtAuthenticationConverterAdapter.java  # WebFlux용 JWT 변환
 │   ├── context/
-│   │   ├── GatewayUser.java (record)        # userId, email, roles, memberships
+│   │   ├── AuthUser.java (record)        # userId, email, roles, memberships
 │   │   ├── CurrentUser.java (annotation)    # Controller 파라미터 주입
 │   │   ├── CurrentUserArgumentResolver.java
 │   │   ├── SecurityUtils.java               # 권한 검사 유틸
@@ -176,13 +176,13 @@ return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 ```
 1. API Gateway: JWT 검증 → X-User-Id, X-User-Email, X-User-Roles 헤더 추가
 2. Downstream Service: GatewayAuthenticationFilter가 헤더 읽음
-3. SecurityContext에 GatewayUser 객체 저장
+3. SecurityContext에 AuthUser 객체 저장
 4. Controller에서 @CurrentUser 어노테이션으로 주입
 ```
 
-**GatewayUser (record)**:
+**AuthUser (record)**:
 ```java
-public record GatewayUser(
+public record AuthUser(
     String userId,
     String email,
     List<String> roles,
@@ -258,7 +258,7 @@ public void login(String email) {
 ```
 1. Client → API Gateway (JWT 검증)
 2. API Gateway → Downstream Service (X-User-* 헤더 추가)
-3. GatewayAuthenticationFilter → SecurityContext에 GatewayUser 저장
+3. GatewayAuthenticationFilter → SecurityContext에 AuthUser 저장
 4. Controller → @CurrentUser 파라미터로 사용자 정보 주입
 5. Service → SecurityUtils로 권한 검사
 6. Service → @AuditLog AOP로 감사 로그 자동 기록
@@ -326,6 +326,7 @@ public void login(String email) {
 | 날짜 | 변경 내용 |
 |------|-----------|
 | 2026-02-06 | 코드 기반 완전 재작성 (ARCH-001 + security-audit-module 통합, 실제 구조 반영) |
+| 2026-02-08 | GatewayUser → AuthUser 리네이밍 반영 (ADR-024) |
 
 ---
 

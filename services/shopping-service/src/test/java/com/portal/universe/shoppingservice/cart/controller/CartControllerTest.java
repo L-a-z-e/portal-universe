@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.cart.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.cart.domain.CartStatus;
 import com.portal.universe.shoppingservice.cart.dto.AddCartItemRequest;
 import com.portal.universe.shoppingservice.cart.dto.CartResponse;
@@ -12,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,17 +41,7 @@ class CartControllerTest {
     @MockitoBean
     private CartService cartService;
 
-    @BeforeEach
-    void setUp() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
 
     private CartResponse createCartResponse() {
         return new CartResponse(1L, "user-1", CartStatus.ACTIVE, List.of(), 0, 0,
@@ -67,7 +56,7 @@ class CartControllerTest {
         when(cartService.getCart("user-1")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(get("/cart"))
+        mockMvc.perform(get("/cart").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userId").value("user-1"));
@@ -82,7 +71,7 @@ class CartControllerTest {
         when(cartService.addItem(eq("user-1"), any(AddCartItemRequest.class))).thenReturn(response);
 
         // when/then
-        mockMvc.perform(post("/cart/items")
+        mockMvc.perform(post("/cart/items").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -93,7 +82,7 @@ class CartControllerTest {
     @DisplayName("should_returnBadRequest_when_addItemWithInvalidQuantity")
     void should_returnBadRequest_when_addItemWithInvalidQuantity() throws Exception {
         // when/then
-        mockMvc.perform(post("/cart/items")
+        mockMvc.perform(post("/cart/items").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"productId\": 1, \"quantity\": 0}"))
                 .andExpect(status().isBadRequest());
@@ -109,7 +98,7 @@ class CartControllerTest {
                 .thenReturn(response);
 
         // when/then
-        mockMvc.perform(put("/cart/items/1")
+        mockMvc.perform(put("/cart/items/1").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -124,7 +113,7 @@ class CartControllerTest {
         when(cartService.removeItem("user-1", 1L)).thenReturn(response);
 
         // when/then
-        mockMvc.perform(delete("/cart/items/1"))
+        mockMvc.perform(delete("/cart/items/1").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
@@ -137,7 +126,7 @@ class CartControllerTest {
         when(cartService.clearCart("user-1")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(delete("/cart"))
+        mockMvc.perform(delete("/cart").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
@@ -150,7 +139,7 @@ class CartControllerTest {
         when(cartService.checkout("user-1")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(post("/cart/checkout"))
+        mockMvc.perform(post("/cart/checkout").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
@@ -159,7 +148,7 @@ class CartControllerTest {
     @DisplayName("should_returnBadRequest_when_addItemWithNullProductId")
     void should_returnBadRequest_when_addItemWithNullProductId() throws Exception {
         // when/then
-        mockMvc.perform(post("/cart/items")
+        mockMvc.perform(post("/cart/items").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"quantity\": 1}"))
                 .andExpect(status().isBadRequest());

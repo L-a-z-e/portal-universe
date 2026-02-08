@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.inventory.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryBatchRequest;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryResponse;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryUpdateRequest;
@@ -15,8 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,17 +43,7 @@ class InventoryControllerTest {
     @MockitoBean
     private InventoryService inventoryService;
 
-    @BeforeEach
-    void setUp() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
 
     private InventoryResponse createInventoryResponse(Long productId) {
         return new InventoryResponse(1L, productId, 100, 10, 110,
@@ -104,7 +93,7 @@ class InventoryControllerTest {
                 .thenReturn(response);
 
         // when/then
-        mockMvc.perform(post("/inventory/1")
+        mockMvc.perform(post("/inventory/1").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -121,7 +110,7 @@ class InventoryControllerTest {
                 .thenReturn(response);
 
         // when/then
-        mockMvc.perform(put("/inventory/1/add")
+        mockMvc.perform(put("/inventory/1/add").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

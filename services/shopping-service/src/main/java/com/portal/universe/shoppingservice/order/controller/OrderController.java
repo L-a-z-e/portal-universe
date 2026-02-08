@@ -6,13 +6,13 @@ import com.portal.universe.shoppingservice.order.dto.CancelOrderRequest;
 import com.portal.universe.shoppingservice.order.dto.CreateOrderRequest;
 import com.portal.universe.shoppingservice.order.dto.OrderResponse;
 import com.portal.universe.shoppingservice.order.service.OrderService;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -36,8 +36,8 @@ public class OrderController {
     @PostMapping
     public ApiResponse<OrderResponse> createOrder(
             @Valid @RequestBody CreateOrderRequest request,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(orderService.createOrder(userId, request));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(orderService.createOrder(user.uuid(), request));
     }
 
     /**
@@ -50,8 +50,8 @@ public class OrderController {
     @GetMapping
     public ApiResponse<PageResponse<OrderResponse>> getUserOrders(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(PageResponse.from(orderService.getUserOrders(userId, pageable)));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(PageResponse.from(orderService.getUserOrders(user.uuid(), pageable)));
     }
 
     /**
@@ -64,8 +64,8 @@ public class OrderController {
     @GetMapping("/{orderNumber}")
     public ApiResponse<OrderResponse> getOrder(
             @PathVariable String orderNumber,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(orderService.getOrder(userId, orderNumber));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(orderService.getOrder(user.uuid(), orderNumber));
     }
 
     /**
@@ -80,7 +80,7 @@ public class OrderController {
     public ApiResponse<OrderResponse> cancelOrder(
             @PathVariable String orderNumber,
             @Valid @RequestBody CancelOrderRequest request,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(orderService.cancelOrder(userId, orderNumber, request));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(orderService.cancelOrder(user.uuid(), orderNumber, request));
     }
 }

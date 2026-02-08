@@ -4,8 +4,9 @@ import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.shoppingservice.coupon.dto.CouponResponse;
 import com.portal.universe.shoppingservice.coupon.dto.UserCouponResponse;
 import com.portal.universe.shoppingservice.coupon.service.CouponService;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,23 +43,23 @@ public class CouponController {
     @PostMapping("/{couponId}/issue")
     public ApiResponse<UserCouponResponse> issueCoupon(
             @PathVariable Long couponId,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(couponService.issueCoupon(couponId, userId));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(couponService.issueCoupon(couponId, user.uuid()));
     }
 
     /**
      * 내 쿠폰 목록을 조회합니다.
      */
     @GetMapping("/my")
-    public ApiResponse<List<UserCouponResponse>> getMyCoupons(@AuthenticationPrincipal String userId) {
-        return ApiResponse.success(couponService.getUserCoupons(userId));
+    public ApiResponse<List<UserCouponResponse>> getMyCoupons(@CurrentUser AuthUser user) {
+        return ApiResponse.success(couponService.getUserCoupons(user.uuid()));
     }
 
     /**
      * 내 사용 가능한 쿠폰 목록을 조회합니다.
      */
     @GetMapping("/my/available")
-    public ApiResponse<List<UserCouponResponse>> getMyAvailableCoupons(@AuthenticationPrincipal String userId) {
-        return ApiResponse.success(couponService.getAvailableUserCoupons(userId));
+    public ApiResponse<List<UserCouponResponse>> getMyAvailableCoupons(@CurrentUser AuthUser user) {
+        return ApiResponse.success(couponService.getAvailableUserCoupons(user.uuid()));
     }
 }

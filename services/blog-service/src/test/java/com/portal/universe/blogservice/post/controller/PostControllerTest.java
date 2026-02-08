@@ -8,8 +8,8 @@ import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.post.service.PostService;
 import com.portal.universe.blogservice.common.domain.SortDirection;
 import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
-import com.portal.universe.commonlibrary.security.config.GatewayUserWebConfig;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
+import com.portal.universe.commonlibrary.security.config.AuthUserWebConfig;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,8 +22,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -39,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = PostController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GatewayUserWebConfig.class)
+@Import(AuthUserWebConfig.class)
 @DisplayName("PostController 테스트")
 class PostControllerTest {
 
@@ -52,18 +50,13 @@ class PostControllerTest {
     @MockitoBean
     private PostService postService;
 
-    private GatewayUser gatewayUser;
+    private AuthUser authUser;
     private PostResponse postResponse;
     private PostSummaryResponse summaryResponse;
 
     @BeforeEach
     void setUp() {
-        gatewayUser = new GatewayUser("user-1", "User Name", "UserNick");
-
-        // SecurityContext 설정 (@AuthenticationPrincipal 사용 엔드포인트용)
-        SecurityContextHolder.getContext().setAuthentication(
-            new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
+        authUser = new AuthUser("user-1", "User Name", "UserNick");
 
         LocalDateTime now = LocalDateTime.now();
         postResponse = new PostResponse(
@@ -107,7 +100,6 @@ class PostControllerTest {
 
     @AfterEach
     void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -133,7 +125,7 @@ class PostControllerTest {
         mockMvc.perform(post("/posts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .requestAttr("gatewayUser", gatewayUser))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("post-1"))
@@ -163,7 +155,7 @@ class PostControllerTest {
         mockMvc.perform(post("/posts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .requestAttr("gatewayUser", gatewayUser))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isBadRequest());
     }
 
@@ -190,7 +182,8 @@ class PostControllerTest {
         given(postService.getPostByIdWithViewIncrement("post-1", "user-1")).willReturn(postResponse);
 
         // when & then
-        mockMvc.perform(get("/posts/post-1/view"))
+        mockMvc.perform(get("/posts/post-1/view")
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("post-1"));
@@ -218,7 +211,8 @@ class PostControllerTest {
         // when & then
         mockMvc.perform(put("/posts/post-1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("post-1"));
@@ -244,7 +238,8 @@ class PostControllerTest {
         // when & then
         mockMvc.perform(put("/posts/post-1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isBadRequest());
     }
 
@@ -252,7 +247,8 @@ class PostControllerTest {
     @DisplayName("DELETE /posts/{postId} - should_deletePost")
     void should_deletePost() throws Exception {
         // when & then
-        mockMvc.perform(delete("/posts/post-1"))
+        mockMvc.perform(delete("/posts/post-1")
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data").doesNotExist());
@@ -271,7 +267,8 @@ class PostControllerTest {
         // when & then
         mockMvc.perform(patch("/posts/post-1/status")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
