@@ -6,8 +6,8 @@ import com.portal.universe.blogservice.like.dto.LikerResponse;
 import com.portal.universe.blogservice.like.service.LikeService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.commonlibrary.response.PageResponse;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.commonlibrary.security.context.CurrentUser;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -38,7 +37,7 @@ public class LikeController {
     @PostMapping("/like")
     public ApiResponse<LikeToggleResponse> toggleLike(
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @CurrentUser GatewayUser user
+            @CurrentUser AuthUser user
     ) {
         LikeToggleResponse response = likeService.toggleLike(postId, user.uuid(), user.nickname());
         return ApiResponse.success(response);
@@ -51,9 +50,9 @@ public class LikeController {
     @GetMapping("/like")
     public ApiResponse<LikeStatusResponse> getLikeStatus(
             @Parameter(description = "포스트 ID") @PathVariable String postId,
-            @AuthenticationPrincipal String userId
+            @CurrentUser AuthUser user
     ) {
-        LikeStatusResponse response = likeService.getLikeStatus(postId, userId);
+        LikeStatusResponse response = likeService.getLikeStatus(postId, user.uuid());
         return ApiResponse.success(response);
     }
 

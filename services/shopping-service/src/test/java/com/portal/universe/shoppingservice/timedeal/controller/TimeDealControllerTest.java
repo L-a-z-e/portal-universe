@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.timedeal.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealStatus;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealPurchaseRequest;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealPurchaseResponse;
@@ -12,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,17 +41,7 @@ class TimeDealControllerTest {
     @MockitoBean
     private TimeDealService timeDealService;
 
-    @BeforeEach
-    void setUp() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
 
     private TimeDealResponse createTimeDealResponse() {
         return TimeDealResponse.builder()
@@ -86,7 +75,7 @@ class TimeDealControllerTest {
         when(timeDealService.getActiveTimeDeals()).thenReturn(List.of(createTimeDealResponse()));
 
         // when/then
-        mockMvc.perform(get("/time-deals"))
+        mockMvc.perform(get("/time-deals").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].name").value("Flash Sale"));
@@ -99,7 +88,7 @@ class TimeDealControllerTest {
         when(timeDealService.getTimeDeal(1L)).thenReturn(createTimeDealResponse());
 
         // when/then
-        mockMvc.perform(get("/time-deals/1"))
+        mockMvc.perform(get("/time-deals/1").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1));
@@ -117,7 +106,7 @@ class TimeDealControllerTest {
                 .thenReturn(createPurchaseResponse());
 
         // when/then
-        mockMvc.perform(post("/time-deals/purchase")
+        mockMvc.perform(post("/time-deals/purchase").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -132,7 +121,7 @@ class TimeDealControllerTest {
         when(timeDealService.getUserPurchases("user-1")).thenReturn(List.of(createPurchaseResponse()));
 
         // when/then
-        mockMvc.perform(get("/time-deals/my/purchases"))
+        mockMvc.perform(get("/time-deals/my/purchases").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isArray());
@@ -142,7 +131,7 @@ class TimeDealControllerTest {
     @DisplayName("should_returnBadRequest_when_invalidPurchaseRequest")
     void should_returnBadRequest_when_invalidPurchaseRequest() throws Exception {
         // when/then
-        mockMvc.perform(post("/time-deals/purchase")
+        mockMvc.perform(post("/time-deals/purchase").requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"quantity\": 0}"))
                 .andExpect(status().isBadRequest());

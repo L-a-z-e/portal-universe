@@ -5,8 +5,8 @@ import com.portal.universe.blogservice.comment.dto.CommentCreateRequest;
 import com.portal.universe.blogservice.comment.dto.CommentResponse;
 import com.portal.universe.blogservice.comment.dto.CommentUpdateRequest;
 import com.portal.universe.blogservice.comment.service.CommentService;
-import com.portal.universe.commonlibrary.security.config.GatewayUserWebConfig;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
+import com.portal.universe.commonlibrary.security.config.AuthUserWebConfig;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,8 +17,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -33,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CommentController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GatewayUserWebConfig.class)
+@Import(AuthUserWebConfig.class)
 @DisplayName("CommentController 테스트")
 class CommentControllerTest {
 
@@ -46,16 +44,12 @@ class CommentControllerTest {
     @MockitoBean
     private CommentService commentService;
 
-    private GatewayUser gatewayUser;
+    private AuthUser authUser;
     private CommentResponse commentResponse;
 
     @BeforeEach
     void setUp() {
-        gatewayUser = new GatewayUser("user-1", "User Name", "UserNick");
-
-        SecurityContextHolder.getContext().setAuthentication(
-            new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
+        authUser = new AuthUser("user-1", "User Name", "UserNick");
 
         commentResponse = new CommentResponse(
             "comment-1",
@@ -73,7 +67,6 @@ class CommentControllerTest {
 
     @AfterEach
     void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -92,7 +85,7 @@ class CommentControllerTest {
         mockMvc.perform(post("/comments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .requestAttr("gatewayUser", gatewayUser))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("comment-1"))
@@ -115,7 +108,7 @@ class CommentControllerTest {
         mockMvc.perform(post("/comments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .requestAttr("gatewayUser", gatewayUser))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isBadRequest());
     }
 
@@ -133,7 +126,7 @@ class CommentControllerTest {
         mockMvc.perform(post("/comments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .requestAttr("gatewayUser", gatewayUser))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isBadRequest());
     }
 
@@ -148,7 +141,8 @@ class CommentControllerTest {
         // when & then
         mockMvc.perform(put("/comments/comment-1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("comment-1"));
@@ -160,7 +154,8 @@ class CommentControllerTest {
     @DisplayName("DELETE /comments/{commentId} - should_deleteComment")
     void should_deleteComment() throws Exception {
         // when & then
-        mockMvc.perform(delete("/comments/comment-1"))
+        mockMvc.perform(delete("/comments/comment-1")
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data").doesNotExist());

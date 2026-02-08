@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.blogservice.post.dto.PostSummaryResponse;
 import com.portal.universe.blogservice.series.dto.*;
 import com.portal.universe.blogservice.series.service.SeriesService;
-import com.portal.universe.commonlibrary.security.config.GatewayUserWebConfig;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
+import com.portal.universe.commonlibrary.security.config.AuthUserWebConfig;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,8 +16,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -33,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(SeriesController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GatewayUserWebConfig.class)
+@Import(AuthUserWebConfig.class)
 @DisplayName("SeriesController 테스트")
 class SeriesControllerTest {
 
@@ -46,17 +44,13 @@ class SeriesControllerTest {
     @MockitoBean
     private SeriesService seriesService;
 
-    private GatewayUser gatewayUser;
+    private AuthUser authUser;
     private SeriesResponse seriesResponse;
     private PostSummaryResponse postSummaryResponse;
 
     @BeforeEach
     void setUp() {
-        gatewayUser = new GatewayUser("user-1", "User Name", "UserNick");
-
-        SecurityContextHolder.getContext().setAuthentication(
-            new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
+        authUser = new AuthUser("user-1", "User Name", "UserNick");
 
         seriesResponse = new SeriesResponse(
             "series-1",
@@ -91,7 +85,6 @@ class SeriesControllerTest {
 
     @AfterEach
     void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -110,7 +103,7 @@ class SeriesControllerTest {
         mockMvc.perform(post("/series")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .requestAttr("gatewayUser", gatewayUser))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("series-1"))
@@ -133,7 +126,7 @@ class SeriesControllerTest {
         mockMvc.perform(post("/series")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .requestAttr("gatewayUser", gatewayUser))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isBadRequest());
     }
 
@@ -152,7 +145,8 @@ class SeriesControllerTest {
         // when & then
         mockMvc.perform(put("/series/series-1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("series-1"));
@@ -164,7 +158,8 @@ class SeriesControllerTest {
     @DisplayName("DELETE /series/{seriesId} - should_deleteSeries")
     void should_deleteSeries() throws Exception {
         // when & then
-        mockMvc.perform(delete("/series/series-1"))
+        mockMvc.perform(delete("/series/series-1")
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data").doesNotExist());
@@ -238,7 +233,8 @@ class SeriesControllerTest {
         given(seriesService.addPostToSeries("series-1", "post-1", "user-1")).willReturn(seriesResponse);
 
         // when & then
-        mockMvc.perform(post("/series/series-1/posts/post-1"))
+        mockMvc.perform(post("/series/series-1/posts/post-1")
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("series-1"));
@@ -253,7 +249,8 @@ class SeriesControllerTest {
         given(seriesService.removePostFromSeries("series-1", "post-1", "user-1")).willReturn(seriesResponse);
 
         // when & then
-        mockMvc.perform(delete("/series/series-1/posts/post-1"))
+        mockMvc.perform(delete("/series/series-1/posts/post-1")
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("series-1"));
@@ -272,7 +269,8 @@ class SeriesControllerTest {
         // when & then
         mockMvc.perform(put("/series/series-1/posts/order")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                .requestAttr("authUser", authUser))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.id").value("series-1"));

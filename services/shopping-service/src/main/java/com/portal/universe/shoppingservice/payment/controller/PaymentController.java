@@ -4,10 +4,11 @@ import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.shoppingservice.payment.dto.PaymentResponse;
 import com.portal.universe.shoppingservice.payment.dto.ProcessPaymentRequest;
 import com.portal.universe.shoppingservice.payment.service.PaymentService;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -31,8 +32,8 @@ public class PaymentController {
     @PostMapping
     public ApiResponse<PaymentResponse> processPayment(
             @Valid @RequestBody ProcessPaymentRequest request,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(paymentService.processPayment(userId, request));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(paymentService.processPayment(user.uuid(), request));
     }
 
     /**
@@ -45,8 +46,8 @@ public class PaymentController {
     @GetMapping("/{paymentNumber}")
     public ApiResponse<PaymentResponse> getPayment(
             @PathVariable String paymentNumber,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(paymentService.getPayment(userId, paymentNumber));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(paymentService.getPayment(user.uuid(), paymentNumber));
     }
 
     /**
@@ -59,8 +60,8 @@ public class PaymentController {
     @PostMapping("/{paymentNumber}/cancel")
     public ApiResponse<PaymentResponse> cancelPayment(
             @PathVariable String paymentNumber,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(paymentService.cancelPayment(userId, paymentNumber));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(paymentService.cancelPayment(user.uuid(), paymentNumber));
     }
 
     /**
@@ -73,8 +74,8 @@ public class PaymentController {
     @PostMapping("/{paymentNumber}/refund")
     public ApiResponse<PaymentResponse> refundPayment(
             @PathVariable String paymentNumber,
-            @AuthenticationPrincipal String adminId) {
-        log.info("Payment refund requested: paymentNumber={}, adminId={}", paymentNumber, adminId);
+            @CurrentUser AuthUser user) {
+        log.info("Payment refund requested: paymentNumber={}, adminId={}", paymentNumber, user.uuid());
         return ApiResponse.success(paymentService.refundPayment(paymentNumber));
     }
 }

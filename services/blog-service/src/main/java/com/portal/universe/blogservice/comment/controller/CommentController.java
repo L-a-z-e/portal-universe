@@ -3,13 +3,12 @@ package com.portal.universe.blogservice.comment.controller;
 import com.portal.universe.blogservice.comment.dto.*;
 import com.portal.universe.blogservice.comment.service.CommentService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.commonlibrary.security.context.CurrentUser;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -27,7 +26,7 @@ public class CommentController {
     @PostMapping
     public ApiResponse<CommentResponse> createComment(
             @Valid @RequestBody CommentCreateRequest request,
-            @CurrentUser GatewayUser user
+            @CurrentUser AuthUser user
     ) {
         CommentResponse response = commentService.createComment(request, user.uuid(), user.nickname());
         return ApiResponse.success(response);
@@ -38,9 +37,9 @@ public class CommentController {
     public ApiResponse<CommentResponse> updateComment(
             @Parameter(description = "댓글 ID") @PathVariable String commentId,
             @Valid @RequestBody CommentUpdateRequest request,
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
-        CommentResponse response = commentService.updateComment(commentId, request, authorId);
+        CommentResponse response = commentService.updateComment(commentId, request, user.uuid());
         return ApiResponse.success(response);
     }
 
@@ -48,9 +47,9 @@ public class CommentController {
     @DeleteMapping("/{commentId}")
     public ApiResponse<Void> deleteComment(
             @Parameter(description = "댓글 ID") @PathVariable String commentId,
-            @AuthenticationPrincipal String authorId
+            @CurrentUser AuthUser user
     ) {
-        commentService.deleteComment(commentId, authorId);
+        commentService.deleteComment(commentId, user.uuid());
         return ApiResponse.success(null);
     }
 

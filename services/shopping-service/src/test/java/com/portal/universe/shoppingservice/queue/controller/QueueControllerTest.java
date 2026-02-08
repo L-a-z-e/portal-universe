@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.queue.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.queue.domain.QueueStatus;
 import com.portal.universe.shoppingservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingservice.queue.service.QueueService;
@@ -9,8 +10,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,17 +34,7 @@ class QueueControllerTest {
     @MockitoBean
     private QueueService queueService;
 
-    @BeforeEach
-    void setUp() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
 
     @Test
     @DisplayName("should_enterQueue_when_called")
@@ -55,7 +44,7 @@ class QueueControllerTest {
         when(queueService.enterQueue("TIMEDEAL", 1L, "user-1")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(post("/queue/TIMEDEAL/1/enter"))
+        mockMvc.perform(post("/queue/TIMEDEAL/1/enter").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.entryToken").value("token-abc"))
@@ -71,7 +60,7 @@ class QueueControllerTest {
         when(queueService.getQueueStatus("TIMEDEAL", 1L, "user-1")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(get("/queue/TIMEDEAL/1/status"))
+        mockMvc.perform(get("/queue/TIMEDEAL/1/status").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.position").value(3));
@@ -85,7 +74,7 @@ class QueueControllerTest {
         when(queueService.getQueueStatusByToken("token-abc")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(get("/queue/token/token-abc"))
+        mockMvc.perform(get("/queue/token/token-abc").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.status").value("ENTERED"));
@@ -98,7 +87,7 @@ class QueueControllerTest {
         doNothing().when(queueService).leaveQueue("TIMEDEAL", 1L, "user-1");
 
         // when/then
-        mockMvc.perform(delete("/queue/TIMEDEAL/1/leave"))
+        mockMvc.perform(delete("/queue/TIMEDEAL/1/leave").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
         verify(queueService).leaveQueue("TIMEDEAL", 1L, "user-1");
@@ -111,7 +100,7 @@ class QueueControllerTest {
         doNothing().when(queueService).leaveQueueByToken("token-abc");
 
         // when/then
-        mockMvc.perform(delete("/queue/token/token-abc"))
+        mockMvc.perform(delete("/queue/token/token-abc").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
         verify(queueService).leaveQueueByToken("token-abc");
@@ -125,7 +114,7 @@ class QueueControllerTest {
         when(queueService.enterQueue("COUPON", 2L, "user-1")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(post("/queue/COUPON/2/enter"))
+        mockMvc.perform(post("/queue/COUPON/2/enter").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.position").value(100))

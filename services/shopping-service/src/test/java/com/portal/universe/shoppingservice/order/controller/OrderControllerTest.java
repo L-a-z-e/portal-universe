@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.order.domain.OrderStatus;
 import com.portal.universe.shoppingservice.order.dto.*;
 import com.portal.universe.shoppingservice.order.service.OrderService;
@@ -13,8 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,17 +42,7 @@ class OrderControllerTest {
     @MockitoBean
     private OrderService orderService;
 
-    @BeforeEach
-    void setUp() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
 
     private OrderResponse createOrderResponse() {
         return new OrderResponse(1L, "ORD-001", "user-1", OrderStatus.PENDING,
@@ -74,6 +63,7 @@ class OrderControllerTest {
 
         // when/then
         mockMvc.perform(post("/orders")
+                        .requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -90,7 +80,8 @@ class OrderControllerTest {
         when(orderService.getUserOrders(eq("user-1"), any())).thenReturn(page);
 
         // when/then
-        mockMvc.perform(get("/orders"))
+        mockMvc.perform(get("/orders")
+                        .requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content[0].orderNumber").value("ORD-001"));
@@ -104,7 +95,8 @@ class OrderControllerTest {
         when(orderService.getOrder("user-1", "ORD-001")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(get("/orders/ORD-001"))
+        mockMvc.perform(get("/orders/ORD-001")
+                        .requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.orderNumber").value("ORD-001"));
@@ -121,6 +113,7 @@ class OrderControllerTest {
 
         // when/then
         mockMvc.perform(post("/orders/ORD-001/cancel")
+                        .requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -132,6 +125,7 @@ class OrderControllerTest {
     void should_returnBadRequest_when_cancelWithEmptyReason() throws Exception {
         // when/then
         mockMvc.perform(post("/orders/ORD-001/cancel")
+                        .requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"reason\": \"\"}"))
                 .andExpect(status().isBadRequest());
@@ -142,6 +136,7 @@ class OrderControllerTest {
     void should_returnBadRequest_when_createOrderWithInvalidAddress() throws Exception {
         // when/then
         mockMvc.perform(post("/orders")
+                        .requestAttr("authUser", authUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"shippingAddress\": null}"))
                 .andExpect(status().isBadRequest());

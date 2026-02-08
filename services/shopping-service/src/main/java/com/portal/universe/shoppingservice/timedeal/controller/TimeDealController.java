@@ -5,9 +5,10 @@ import com.portal.universe.shoppingservice.timedeal.dto.TimeDealPurchaseRequest;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealPurchaseResponse;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealResponse;
 import com.portal.universe.shoppingservice.timedeal.service.TimeDealService;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,15 +45,15 @@ public class TimeDealController {
     @PostMapping("/purchase")
     public ApiResponse<TimeDealPurchaseResponse> purchaseTimeDeal(
             @Valid @RequestBody TimeDealPurchaseRequest request,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(timeDealService.purchaseTimeDeal(userId, request));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(timeDealService.purchaseTimeDeal(user.uuid(), request));
     }
 
     /**
      * 내 타임딜 구매 내역을 조회합니다.
      */
     @GetMapping("/my/purchases")
-    public ApiResponse<List<TimeDealPurchaseResponse>> getMyPurchases(@AuthenticationPrincipal String userId) {
-        return ApiResponse.success(timeDealService.getUserPurchases(userId));
+    public ApiResponse<List<TimeDealPurchaseResponse>> getMyPurchases(@CurrentUser AuthUser user) {
+        return ApiResponse.success(timeDealService.getUserPurchases(user.uuid()));
     }
 }

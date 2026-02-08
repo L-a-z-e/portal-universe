@@ -11,7 +11,7 @@ import java.util.List;
  * {@link CurrentUserArgumentResolver}를 Spring MVC에 등록하는 auto-configuration.
  */
 @Configuration
-public class GatewayUserWebConfig implements WebMvcConfigurer {
+public class AuthUserWebConfig implements WebMvcConfigurer {
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {

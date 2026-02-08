@@ -3,9 +3,10 @@ package com.portal.universe.shoppingservice.cart.controller;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.shoppingservice.cart.dto.*;
 import com.portal.universe.shoppingservice.cart.service.CartService;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -25,8 +26,8 @@ public class CartController {
      * @return 장바구니 정보
      */
     @GetMapping
-    public ApiResponse<CartResponse> getCart(@AuthenticationPrincipal String userId) {
-        return ApiResponse.success(cartService.getCart(userId));
+    public ApiResponse<CartResponse> getCart(@CurrentUser AuthUser user) {
+        return ApiResponse.success(cartService.getCart(user.uuid()));
     }
 
     /**
@@ -39,8 +40,8 @@ public class CartController {
     @PostMapping("/items")
     public ApiResponse<CartResponse> addItem(
             @Valid @RequestBody AddCartItemRequest request,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(cartService.addItem(userId, request));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(cartService.addItem(user.uuid(), request));
     }
 
     /**
@@ -55,8 +56,8 @@ public class CartController {
     public ApiResponse<CartResponse> updateItemQuantity(
             @PathVariable Long itemId,
             @Valid @RequestBody UpdateCartItemRequest request,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(cartService.updateItemQuantity(userId, itemId, request));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(cartService.updateItemQuantity(user.uuid(), itemId, request));
     }
 
     /**
@@ -69,8 +70,8 @@ public class CartController {
     @DeleteMapping("/items/{itemId}")
     public ApiResponse<CartResponse> removeItem(
             @PathVariable Long itemId,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(cartService.removeItem(userId, itemId));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(cartService.removeItem(user.uuid(), itemId));
     }
 
     /**
@@ -80,8 +81,8 @@ public class CartController {
      * @return 빈 장바구니 정보
      */
     @DeleteMapping
-    public ApiResponse<CartResponse> clearCart(@AuthenticationPrincipal String userId) {
-        return ApiResponse.success(cartService.clearCart(userId));
+    public ApiResponse<CartResponse> clearCart(@CurrentUser AuthUser user) {
+        return ApiResponse.success(cartService.clearCart(user.uuid()));
     }
 
     /**
@@ -92,7 +93,7 @@ public class CartController {
      * @return 체크아웃된 장바구니 정보
      */
     @PostMapping("/checkout")
-    public ApiResponse<CartResponse> checkout(@AuthenticationPrincipal String userId) {
-        return ApiResponse.success(cartService.checkout(userId));
+    public ApiResponse<CartResponse> checkout(@CurrentUser AuthUser user) {
+        return ApiResponse.success(cartService.checkout(user.uuid()));
     }
 }

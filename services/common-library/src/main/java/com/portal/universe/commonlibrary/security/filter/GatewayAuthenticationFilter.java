@@ -1,7 +1,7 @@
 package com.portal.universe.commonlibrary.security.filter;
 
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.commonlibrary.security.context.CurrentUserArgumentResolver;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -68,9 +68,9 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
             String decodedNickname = decodeHeader(nickname);
             String decodedUsername = decodeHeader(username);
 
-            // GatewayUser를 request attribute로 저장 (@CurrentUser resolver에서 사용)
-            GatewayUser gatewayUser = new GatewayUser(userId, decodedUsername, decodedNickname);
-            request.setAttribute(CurrentUserArgumentResolver.GATEWAY_USER_ATTRIBUTE, gatewayUser);
+            // AuthUser를 request attribute로 저장 (@CurrentUser resolver에서 사용)
+            AuthUser authUser = new AuthUser(userId, decodedUsername, decodedNickname);
+            request.setAttribute(CurrentUserArgumentResolver.AUTH_USER_ATTRIBUTE, authUser);
 
             // 하위 호환: 기존 attribute도 유지
             if (StringUtils.hasText(nickname)) {

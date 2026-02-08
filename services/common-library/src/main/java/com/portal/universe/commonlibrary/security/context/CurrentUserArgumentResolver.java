@@ -9,19 +9,19 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
  * {@link CurrentUser} 어노테이션이 붙은 파라미터에
- * request attribute에서 {@link GatewayUser}를 꺼내 주입하는 resolver.
+ * request attribute에서 {@link AuthUser}를 꺼내 주입하는 resolver.
  *
  * {@link com.portal.universe.commonlibrary.security.filter.GatewayAuthenticationFilter}에서
- * request attribute "gatewayUser"에 미리 저장합니다.
+ * request attribute "authUser"에 미리 저장합니다.
  */
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
 
-    public static final String GATEWAY_USER_ATTRIBUTE = "gatewayUser";
+    public static final String AUTH_USER_ATTRIBUTE = "authUser";
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(CurrentUser.class)
-                && GatewayUser.class.isAssignableFrom(parameter.getParameterType());
+                && AuthUser.class.isAssignableFrom(parameter.getParameterType());
     }
 
     @Override
@@ -31,6 +31,6 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory
     ) {
-        return webRequest.getAttribute(GATEWAY_USER_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
+        return webRequest.getAttribute(AUTH_USER_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
     }
 }

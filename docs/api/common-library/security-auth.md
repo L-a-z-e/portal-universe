@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-08
 author: Laze
 tags: [api, common-library, security, jwt, gateway, authentication]
 related:
@@ -28,11 +28,11 @@ related:
   - [ReactiveJwtAuthenticationConverterAdapter](#reactivejwtauthenticationconverteradapter)
 - [Gateway 인증](#gateway-인증)
   - [GatewayAuthenticationFilter](#gatewayauthenticationfilter)
-  - [GatewayUserWebConfig](#gatewayuserwebconfig)
+  - [AuthUserWebConfig](#authuserwebconfig)
 - [사용자 컨텍스트](#사용자-컨텍스트)
   - [@CurrentUser](#currentuser)
   - [CurrentUserArgumentResolver](#currentuserargumentresolver)
-  - [GatewayUser](#gatewayuser)
+  - [AuthUser](#authuser)
   - [SecurityUtils](#securityutils)
   - [MembershipContext](#membershipcontext)
 - [인증 상수](#인증-상수)
@@ -177,12 +177,12 @@ sequenceDiagram
 
     GW->>F: X-User-Id, X-User-Roles, ...
     F->>F: 1. URL 디코딩 (Nickname, Name)
-    F->>RA: 2. GatewayUser → "gatewayUser" attribute
+    F->>RA: 2. AuthUser → "authUser" attribute
     F->>RA: 3. memberships → "userMemberships" attribute
     F->>F: 4. roles 파싱 → List<SimpleGrantedAuthority>
     F->>SC: 5. UsernamePasswordAuthenticationToken 설정
     F->>C: filterChain.doFilter()
-    C->>C: @CurrentUser GatewayUser 사용
+    C->>C: @CurrentUser AuthUser 사용
 ```
 
 #### 설정 방법
@@ -202,15 +202,15 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
 ---
 
-### GatewayUserWebConfig
+### AuthUserWebConfig
 
 `CurrentUserArgumentResolver`를 Spring MVC에 자동 등록하는 configuration입니다.
 
-**위치:** `com.portal.universe.commonlibrary.security.config.GatewayUserWebConfig`
+**위치:** `com.portal.universe.commonlibrary.security.config.AuthUserWebConfig`
 
 ```java
 @Configuration
-public class GatewayUserWebConfig implements WebMvcConfigurer {
+public class AuthUserWebConfig implements WebMvcConfigurer {
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(new CurrentUserArgumentResolver());
@@ -226,7 +226,7 @@ public class GatewayUserWebConfig implements WebMvcConfigurer {
 
 ### @CurrentUser
 
-Controller 메서드 파라미터에 선언하면 `GatewayUser`를 자동 주입합니다.
+Controller 메서드 파라미터에 선언하면 `AuthUser`를 자동 주입합니다.
 
 **위치:** `com.portal.universe.commonlibrary.security.context.CurrentUser`
 
@@ -240,7 +240,7 @@ public @interface CurrentUser {}
 
 ```java
 @GetMapping("/me")
-public ResponseEntity<ApiResponse<UserResponse>> me(@CurrentUser GatewayUser user) {
+public ResponseEntity<ApiResponse<UserResponse>> me(@CurrentUser AuthUser user) {
     return ResponseEntity.ok(ApiResponse.success(
         new UserResponse(user.uuid(), user.name(), user.nickname())
     ));
@@ -248,7 +248,7 @@ public ResponseEntity<ApiResponse<UserResponse>> me(@CurrentUser GatewayUser use
 
 @PostMapping("/orders")
 public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
-        @CurrentUser GatewayUser user,
+        @CurrentUser AuthUser user,
         @Valid @RequestBody OrderRequest request) {
     OrderResponse order = orderService.create(user.uuid(), request);
     return ResponseEntity.status(HttpStatus.CREATED)
@@ -256,13 +256,13 @@ public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
 }
 ```
 
-> `GatewayAuthenticationFilter`가 request attribute `"gatewayUser"`에 사용자 정보를 저장하고, `CurrentUserArgumentResolver`가 이를 꺼내 주입합니다.
+> `GatewayAuthenticationFilter`가 request attribute `"authUser"`에 사용자 정보를 저장하고, `CurrentUserArgumentResolver`가 이를 꺼내 주입합니다.
 
 ---
 
 ### CurrentUserArgumentResolver
 
-`@CurrentUser` 어노테이션이 붙은 파라미터에 `GatewayUser`를 주입하는 resolver입니다.
+`@CurrentUser` 어노테이션이 붙은 파라미터에 `AuthUser`를 주입하는 resolver입니다.
 
 **위치:** `com.portal.universe.commonlibrary.security.context.CurrentUserArgumentResolver`
 
@@ -270,22 +270,22 @@ public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
 
 | 상수 | 값 | 설명 |
 |------|---|------|
-| `GATEWAY_USER_ATTRIBUTE` | `"gatewayUser"` | Request attribute 키 |
+| `AUTH_USER_ATTRIBUTE` | `"authUser"` | Request attribute 키 |
 
 #### 지원 조건
 
-`@CurrentUser` 어노테이션이 있고, 파라미터 타입이 `GatewayUser`인 경우에만 동작합니다.
+`@CurrentUser` 어노테이션이 있고, 파라미터 타입이 `AuthUser`인 경우에만 동작합니다.
 
 ---
 
-### GatewayUser
+### AuthUser
 
 API Gateway에서 전달한 사용자 정보를 담는 record입니다.
 
-**위치:** `com.portal.universe.commonlibrary.security.context.GatewayUser`
+**위치:** `com.portal.universe.commonlibrary.security.context.AuthUser`
 
 ```java
-public record GatewayUser(
+public record AuthUser(
     String uuid,      // 사용자 UUID (X-User-Id)
     String name,       // 사용자명 (X-User-Name, URL 디코딩 완료)
     String nickname    // 닉네임 (X-User-Nickname, URL 디코딩 완료)
@@ -412,7 +412,7 @@ public static boolean hasTierOrAbove(
 @GetMapping("/premium-content")
 public ResponseEntity<ApiResponse<Content>> getPremiumContent(
         HttpServletRequest request,
-        @CurrentUser GatewayUser user) {
+        @CurrentUser AuthUser user) {
 
     if (!MembershipContext.hasTierOrAbove(request, "shopping", "PREMIUM")) {
         throw new CustomBusinessException(CommonErrorCode.FORBIDDEN);
@@ -490,6 +490,6 @@ public ResponseEntity<ApiResponse<Content>> getPremiumContent(
 
 ---
 
-**최종 수정:** 2026-02-06
+**최종 수정:** 2026-02-08
 **API 버전:** v1
 **문서 버전:** 1.0

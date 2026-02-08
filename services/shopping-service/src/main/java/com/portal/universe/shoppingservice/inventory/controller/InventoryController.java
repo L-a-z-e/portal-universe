@@ -7,13 +7,13 @@ import com.portal.universe.shoppingservice.inventory.dto.InventoryResponse;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryUpdateRequest;
 import com.portal.universe.shoppingservice.inventory.dto.StockMovementResponse;
 import com.portal.universe.shoppingservice.inventory.service.InventoryService;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,8 +62,8 @@ public class InventoryController {
     public ApiResponse<InventoryResponse> initializeInventory(
             @PathVariable Long productId,
             @Valid @RequestBody InventoryUpdateRequest request,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(inventoryService.initializeInventory(productId, request.quantity(), userId));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(inventoryService.initializeInventory(productId, request.quantity(), user.uuid()));
     }
 
     /**
@@ -78,8 +78,8 @@ public class InventoryController {
     public ApiResponse<InventoryResponse> addStock(
             @PathVariable Long productId,
             @Valid @RequestBody InventoryUpdateRequest request,
-            @AuthenticationPrincipal String userId) {
-        return ApiResponse.success(inventoryService.addStock(productId, request.quantity(), request.reason(), userId));
+            @CurrentUser AuthUser user) {
+        return ApiResponse.success(inventoryService.addStock(productId, request.quantity(), request.reason(), user.uuid()));
     }
 
     /**

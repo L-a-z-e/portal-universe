@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.coupon.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.coupon.domain.CouponStatus;
 import com.portal.universe.shoppingservice.coupon.domain.DiscountType;
 import com.portal.universe.shoppingservice.coupon.domain.UserCouponStatus;
@@ -12,8 +13,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,17 +39,7 @@ class CouponControllerTest {
     @MockitoBean
     private CouponService couponService;
 
-    @BeforeEach
-    void setUp() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", null, List.of())
-        );
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
 
     private CouponResponse createCouponResponse() {
         return CouponResponse.builder()
@@ -95,7 +84,7 @@ class CouponControllerTest {
         when(couponService.getAvailableCoupons()).thenReturn(List.of(createCouponResponse()));
 
         // when/then
-        mockMvc.perform(get("/coupons"))
+        mockMvc.perform(get("/coupons").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].code").value("WELCOME10"));
@@ -108,7 +97,7 @@ class CouponControllerTest {
         when(couponService.getCoupon(1L)).thenReturn(createCouponResponse());
 
         // when/then
-        mockMvc.perform(get("/coupons/1"))
+        mockMvc.perform(get("/coupons/1").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1));
@@ -121,7 +110,7 @@ class CouponControllerTest {
         when(couponService.issueCoupon(1L, "user-1")).thenReturn(createUserCouponResponse());
 
         // when/then
-        mockMvc.perform(post("/coupons/1/issue"))
+        mockMvc.perform(post("/coupons/1/issue").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.couponCode").value("WELCOME10"));
@@ -134,7 +123,7 @@ class CouponControllerTest {
         when(couponService.getUserCoupons("user-1")).thenReturn(List.of(createUserCouponResponse()));
 
         // when/then
-        mockMvc.perform(get("/coupons/my"))
+        mockMvc.perform(get("/coupons/my").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isArray());
@@ -147,7 +136,7 @@ class CouponControllerTest {
         when(couponService.getAvailableUserCoupons("user-1")).thenReturn(List.of(createUserCouponResponse()));
 
         // when/then
-        mockMvc.perform(get("/coupons/my/available"))
+        mockMvc.perform(get("/coupons/my/available").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isArray());
@@ -160,7 +149,7 @@ class CouponControllerTest {
         when(couponService.getAvailableCoupons()).thenReturn(List.of());
 
         // when/then
-        mockMvc.perform(get("/coupons"))
+        mockMvc.perform(get("/coupons").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isArray())

@@ -2,7 +2,7 @@ package com.portal.universe.shoppingservice.search.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.commonlibrary.security.context.CurrentUser;
-import com.portal.universe.commonlibrary.security.context.GatewayUser;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchResult;
 import com.portal.universe.shoppingservice.search.dto.SearchResponse;
@@ -61,7 +61,7 @@ public class SearchController {
 
     @GetMapping("/recent")
     public ResponseEntity<ApiResponse<List<String>>> getRecentKeywords(
-            @CurrentUser GatewayUser user,
+            @CurrentUser AuthUser user,
             @RequestParam(required = false, defaultValue = "10") int size) {
         if (user == null) {
             return ResponseEntity.ok(ApiResponse.success(List.of()));
@@ -72,7 +72,7 @@ public class SearchController {
 
     @PostMapping("/recent")
     public ResponseEntity<ApiResponse<Void>> addRecentKeyword(
-            @CurrentUser GatewayUser user,
+            @CurrentUser AuthUser user,
             @RequestParam String keyword) {
         if (user == null) {
             return ResponseEntity.badRequest().body(ApiResponse.success(null));
@@ -83,7 +83,7 @@ public class SearchController {
 
     @DeleteMapping("/recent/{keyword}")
     public ResponseEntity<ApiResponse<Void>> deleteRecentKeyword(
-            @CurrentUser GatewayUser user,
+            @CurrentUser AuthUser user,
             @PathVariable String keyword) {
         if (user == null) {
             return ResponseEntity.badRequest().body(ApiResponse.success(null));
@@ -94,7 +94,7 @@ public class SearchController {
 
     @DeleteMapping("/recent")
     public ResponseEntity<ApiResponse<Void>> clearRecentKeywords(
-            @CurrentUser GatewayUser user) {
+            @CurrentUser AuthUser user) {
         if (user == null) {
             return ResponseEntity.badRequest().body(ApiResponse.success(null));
         }
