@@ -51,7 +51,7 @@ related:
 ### Request
 
 ```http
-GET /api/shopping/search/products?keyword=Spring Boot&minPrice=10000&maxPrice=50000&sort=relevance&page=0&size=20
+GET /api/shopping/search/products?keyword=Spring Boot&minPrice=10000&maxPrice=50000&sort=relevance&page=1&size=20
 ```
 
 ### Query Parameters
@@ -62,7 +62,7 @@ GET /api/shopping/search/products?keyword=Spring Boot&minPrice=10000&maxPrice=50
 | `minPrice` | double | ❌ | 최소 가격 | - |
 | `maxPrice` | double | ❌ | 최대 가격 | - |
 | `sort` | string | ❌ | 정렬 기준 (아래 표 참조) | relevance |
-| `page` | integer | ❌ | 페이지 번호 (0부터) | 0 |
+| `page` | integer | ❌ | 페이지 번호 (1부터) | 1 |
 | `size` | integer | ❌ | 페이지 크기 | 20 |
 
 ### 정렬 옵션
@@ -370,4 +370,15 @@ Authorization: Bearer {token}
 
 ---
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-02-08 | 페이지네이션 기본값 수정: page 0 → 1 (ADR-031 정합) |
+| 2026-02-06 | 최초 작성 |
+
+---
+
+**최종 업데이트**: 2026-02-08
