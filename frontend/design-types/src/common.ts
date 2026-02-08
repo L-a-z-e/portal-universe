@@ -10,10 +10,10 @@ export type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type ExtendedSize = Size | '2xl';
 
 // Button/Card variants
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger' | 'error';
 
 // Badge variants
-export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'outline';
+export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'outline' | 'brand' | 'error' | 'neutral';
 
 // Status variants for alerts, toasts
 export type StatusVariant = 'info' | 'success' | 'warning' | 'error';

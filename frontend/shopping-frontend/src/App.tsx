@@ -20,8 +20,6 @@ interface AppProps {
   initialPath?: string
   /** 라우트 변경 콜백 (Parent에게 알림) */
   onNavigate?: (path: string) => void
-  /** 기타 Props */
-  [key: string]: any
 }
 
 /**

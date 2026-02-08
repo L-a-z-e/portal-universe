@@ -16,6 +16,9 @@ const variantClasses: Record<NonNullable<BadgeProps['variant']>, string> = {
   danger: 'bg-status-errorBg text-status-error',
   info: 'bg-status-infoBg text-status-info',
   outline: 'bg-transparent text-text-body border border-border-default',
+  brand: 'bg-brand-primary/10 text-brand-primary',
+  error: 'bg-status-errorBg text-status-error',
+  neutral: 'bg-bg-muted text-text-body border border-border-default',
 };
 
 const sizeClasses: Record<NonNullable<BadgeProps['size']>, string> = {

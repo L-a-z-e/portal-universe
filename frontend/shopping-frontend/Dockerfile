@@ -24,11 +24,15 @@ COPY design-system-react/ ./design-system-react/
 COPY react-bridge/package.json ./react-bridge/
 COPY react-bridge/ ./react-bridge/
 
-# 6. shopping-frontend 복사
+# 6. react-bootstrap 복사
+COPY react-bootstrap/package.json ./react-bootstrap/
+COPY react-bootstrap/ ./react-bootstrap/
+
+# 7. shopping-frontend 복사
 COPY shopping-frontend/package.json ./shopping-frontend/
 COPY shopping-frontend/ ./shopping-frontend/
 
-# 6. 의존성 설치
+# 8. 의존성 설치
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 # 7. design-tokens 빌드
@@ -43,7 +47,15 @@ RUN npm run build
 WORKDIR /workspace/design-system-react
 RUN npm run build
 
-# 10. shopping-frontend 빌드
+# 10. react-bridge 빌드
+WORKDIR /workspace/react-bridge
+RUN npm run build
+
+# 11. react-bootstrap 빌드
+WORKDIR /workspace/react-bootstrap
+RUN npm run build
+
+# 12. shopping-frontend 빌드
 ARG BUILD_MODE=docker
 WORKDIR /workspace/shopping-frontend
 RUN npm run build:${BUILD_MODE}

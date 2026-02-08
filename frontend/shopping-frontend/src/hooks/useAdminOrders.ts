@@ -14,7 +14,7 @@ interface UseAdminOrdersOptions {
 }
 
 export function useAdminOrders(options: UseAdminOrdersOptions = {}) {
-  const { page = 0, size = 20, status, keyword } = options
+  const { page = 1, size = 20, status, keyword } = options
   const [data, setData] = useState<PageResponse<Order> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
