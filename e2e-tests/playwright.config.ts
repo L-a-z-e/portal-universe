@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const isDocker = process.env.TEST_ENV === 'docker'
+const allBrowsers = process.env.ALL_BROWSERS === 'true'
 
 export default defineConfig({
   testDir: './tests',
@@ -16,6 +17,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { outputFolder: './playwright-report' }],
+    ['json', { outputFile: './test-results/results.json' }],
   ],
 
   /* 전역 설정 */
@@ -63,18 +65,21 @@ export default defineConfig({
       testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
       dependencies: ['setup'],
     },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-      testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
-      dependencies: ['setup'],
-    },
-    {
-      name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
-      testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
-      dependencies: ['setup'],
-    },
+    // webkit, mobile-chrome: ALL_BROWSERS=true 일 때만 포함
+    ...(allBrowsers ? [
+      {
+        name: 'webkit' as const,
+        use: { ...devices['Desktop Safari'] },
+        testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
+        dependencies: ['setup'],
+      },
+      {
+        name: 'mobile-chrome' as const,
+        use: { ...devices['Pixel 5'] },
+        testIgnore: [/\.setup\.ts/, /tests\/admin\//, /tests\/admin-frontend\//],
+        dependencies: ['setup'],
+      },
+    ] : []),
     // Admin tests (tests/admin/ directory)
     {
       name: 'admin-chromium',
