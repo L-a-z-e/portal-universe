@@ -6,6 +6,9 @@ server:
   forward-headers-strategy: framework
 
 app:
+  cors:
+    allowed-origins:
+      - https://portal-universe:30000
   frontend:
     base-url: https://portal-shell:30000
     host: portal-universe:30000

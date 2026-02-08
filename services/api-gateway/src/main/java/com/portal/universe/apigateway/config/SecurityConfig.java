@@ -21,9 +21,6 @@ import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * API Gateway의 보안 관련 설정을 담당하는 클래스입니다.
  * Spring Security의 WebFlux 지원을 활성화하고, CORS, 경로별 접근 제어 등을 설정합니다.
@@ -40,6 +37,7 @@ public class SecurityConfig {
 
     private final JwtProperties jwtProperties;
     private final PublicPathProperties publicPathProperties;
+    private final CorsProperties corsProperties;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final TokenBlacklistChecker tokenBlacklistChecker;
@@ -80,20 +78,11 @@ public class SecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE + 1)
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:30000",
-                "https://localhost:30000",
-                "http://localhost:30004",
-                "http://localhost:8080",
-                "https://portal-universe:30000"
-                ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of(
-                "Authorization", "Content-Type", "Accept", "Origin",
-                "X-Requested-With", "Cache-Control"
-        ));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // Preflight 요청 결과를 3600초(1시간) 동안 캐시
+        configuration.setAllowedOrigins(corsProperties.getAllowedOrigins());
+        configuration.setAllowedMethods(corsProperties.getAllowedMethods());
+        configuration.setAllowedHeaders(corsProperties.getAllowedHeaders());
+        configuration.setAllowCredentials(corsProperties.isAllowCredentials());
+        configuration.setMaxAge(corsProperties.getMaxAge());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
