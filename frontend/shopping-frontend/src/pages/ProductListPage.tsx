@@ -41,9 +41,9 @@ const ProductListPage: React.FC = () => {
         response = await productApi.getProducts(currentPage, 12, category || undefined)
       }
 
-      const productsData = response.data.items
+      const productsData = response.data?.items ?? []
       setProducts(productsData)
-      setTotalPages(response.data.totalPages)
+      setTotalPages(response.data?.totalPages ?? 0)
 
       // Fetch inventories for all products
       if (productsData.length > 0) {

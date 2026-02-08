@@ -13,7 +13,7 @@ interface UseAdminStockMovementsOptions {
 }
 
 export function useAdminStockMovements(options: UseAdminStockMovementsOptions) {
-  const { productId, page = 0, size = 20 } = options
+  const { productId, page = 1, size = 20 } = options
   const [data, setData] = useState<PageResponse<StockMovement> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)

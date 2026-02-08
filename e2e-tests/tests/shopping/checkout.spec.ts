@@ -23,8 +23,9 @@ test.describe('Checkout Flow', () => {
 
     if (isInStock) {
       await addToCartButton.click()
-      // Wait for toast - may say "Added to cart" or "Cart updated" etc.
-      await page.waitForTimeout(2000)
+      // Wait for toast notification instead of fixed timeout
+      await page.locator('[class*="toast"], [role="alert"], [class*="notification"]').first()
+        .waitFor({ timeout: 5000 }).catch(() => {})
 
       // Navigate to checkout with full auth/MF handling
       await gotoShoppingPage(page, '/shopping/checkout', 'h2:has-text("Shipping Address"), text="Cart not found"')
@@ -238,8 +239,10 @@ test.describe('Checkout Flow', () => {
         // Pay
         await page.locator('button:has-text("Pay")').click()
 
-        // Wait for processing
-        await page.waitForTimeout(5000)
+        // Wait for response from orders API instead of fixed timeout
+        await page.waitForResponse(resp =>
+          resp.url().includes('/orders') && resp.status() !== 0
+        , { timeout: 15000 }).catch(() => {})
 
         // Check for error message or success (Mock PG may succeed or fail)
         const errorMessage = page.locator('.bg-status-error-bg, [class*="error"]')
@@ -261,8 +264,12 @@ test.describe('Checkout Flow', () => {
     // Try to access checkout directly without items in cart
     await gotoShoppingPage(page, '/shopping/checkout')
 
-    // Wait for either redirect, cart content, or checkout page with error
-    await page.waitForTimeout(3000)
+    // Wait for redirect or content to appear instead of fixed timeout
+    await Promise.race([
+      page.waitForURL(/\/cart/, { timeout: 5000 }),
+      page.locator('text="Your cart is empty", text="Shopping Cart", text="Cart not found"').first().waitFor({ timeout: 5000 }),
+      page.locator('h2:has-text("Shipping Address")').waitFor({ timeout: 5000 }),
+    ]).catch(() => {})
 
     const currentUrl = page.url()
     const isOnCart = currentUrl.includes('/cart')

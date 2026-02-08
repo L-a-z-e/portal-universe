@@ -7,6 +7,7 @@ export interface ButtonComponentProps
   extends ButtonProps,
     Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   children?: ReactNode;
+  asChild?: boolean;
 }
 
 // Linear-inspired button styles - Dark mode first design
@@ -58,6 +59,15 @@ const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
 
   // Danger: Destructive action - consistent across modes
   danger: [
+    'bg-[#E03131] text-white',
+    'hover:bg-[#C92A2A]',
+    'active:bg-[#A51D1D] active:scale-[0.98]',
+    'border border-transparent',
+    'shadow-sm'
+  ].join(' '),
+
+  // Error: Alias for danger
+  error: [
     'bg-[#E03131] text-white',
     'hover:bg-[#C92A2A]',
     'active:bg-[#A51D1D] active:scale-[0.98]',

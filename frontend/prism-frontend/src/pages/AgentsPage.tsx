@@ -284,7 +284,7 @@ function AgentsPage() {
                       if (value === '__custom__') {
                         setUseCustomModel(true);
                         setFormData({ ...formData, model: '' });
-                      } else {
+                      } else if (typeof value === 'string') {
                         setFormData({ ...formData, model: value });
                       }
                     }}

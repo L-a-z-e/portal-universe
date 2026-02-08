@@ -51,7 +51,7 @@ export interface ButtonProps {
 }
 
 export interface InputProps {
-  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url';
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date' | 'time' | 'datetime-local' | 'search';
   value?: string | number;
   placeholder?: string;
   disabled?: boolean;

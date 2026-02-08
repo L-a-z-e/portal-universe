@@ -217,6 +217,40 @@ Standalone 실행 시 별도 로그인 플로우는 미구현. portal-shell embe
 
 ---
 
+## Docker / 배포
+
+### Multi-stage Dockerfile
+
+blog-frontend와 동일한 패턴의 2단계 빌드를 사용합니다.
+
+| Stage | Base Image | 역할 |
+|-------|-----------|------|
+| Build | `node:22-alpine` | design-tokens → design-types → design-system-vue → admin-frontend 순차 빌드 |
+| Runtime | `nginxinc/nginx-unprivileged:stable-alpine` | 정적 파일 서빙 (비특권 nginx) |
+
+### 환경별 설정
+
+| 환경 | 빌드 명령 | 설정 파일 | 접속 URL |
+|------|----------|----------|----------|
+| Local (dev) | `npm run dev:admin` | - | `http://localhost:30004` |
+| Docker | `docker compose build admin-frontend` | `.env.docker` | `http://localhost:30004` |
+| Kubernetes | `npm run build:k8s` | `.env.k8s` | Ingress 경유 |
+
+### 포트 매핑
+
+- 컨테이너 내부: `8080` (nginx-unprivileged 기본)
+- 호스트 바인딩: `30004:8080`
+
+### Module Federation Proxy
+
+portal-shell의 nginx가 `/remotes/admin/` 경로를 admin-frontend 컨테이너로 프록시합니다.
+
+```
+Client → portal-shell:8443 → /remotes/admin/* → admin-frontend:8080
+```
+
+---
+
 ## 변경 이력
 
 | 날짜 | 변경 내용 | 작성자 |
@@ -227,3 +261,4 @@ Standalone 실행 시 별도 로그인 플로우는 미구현. portal-shell embe
 | 2026-02-07 | UsersPage 검색/목록/상세 기능 추가, SearchBar/Select/Avatar 컴포넌트 통합 | Laze |
 | 2026-02-07 | RolesPage CRUD 기능 추가 (역할 생성/수정/활성화, 권한 관리), Input/Select/SearchBar 컴포넌트 통합 | Laze |
 | 2026-02-07 | MembershipsPage 전면 재작성: design-system 컴포넌트 통합, 사용자 검색, 그룹별 멤버십 카드, 티어 변경 | Laze |
+| 2026-02-08 | Docker 지원 추가 (Dockerfile, nginx.conf, docker-compose 등록, portal-shell proxy 설정) | Laze |

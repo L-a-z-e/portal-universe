@@ -6,7 +6,7 @@
 import { getApiClient } from './client'
 import type {
   ApiResponse,
-  PagedResponse,
+  PageResponse,
   Product,
   ProductCreateRequest,
   ProductUpdateRequest,
@@ -41,7 +41,7 @@ export const productApi = {
   /**
    * 상품 목록 조회
    */
-  getProducts: async (page = 0, size = 12, category?: string) => {
+  getProducts: async (page = 1, size = 12, category?: string) => {
     const params = new URLSearchParams({
       page: String(page),
       size: String(size)
@@ -49,7 +49,7 @@ export const productApi = {
     if (category) {
       params.append('category', category)
     }
-    const response = await getApiClient().get<ApiResponse<PagedResponse<Product>>>(
+    const response = await getApiClient().get<ApiResponse<PageResponse<Product>>>(
       `${API_PREFIX}/products?${params}`
     )
     return response.data
@@ -68,13 +68,13 @@ export const productApi = {
   /**
    * 상품 검색
    */
-  searchProducts: async (keyword: string, page = 0, size = 12) => {
+  searchProducts: async (keyword: string, page = 1, size = 12) => {
     const params = new URLSearchParams({
       keyword,
       page: String(page),
       size: String(size)
     })
-    const response = await getApiClient().get<ApiResponse<PagedResponse<Product>>>(
+    const response = await getApiClient().get<ApiResponse<PageResponse<Product>>>(
       `${API_PREFIX}/search/products?${params}`
     )
     return response.data
@@ -238,12 +238,12 @@ export const orderApi = {
   /**
    * 주문 목록 조회
    */
-  getOrders: async (page = 0, size = 10) => {
+  getOrders: async (page = 1, size = 10) => {
     const params = new URLSearchParams({
       page: String(page),
       size: String(size)
     })
-    const response = await getApiClient().get<ApiResponse<PagedResponse<Order>>>(
+    const response = await getApiClient().get<ApiResponse<PageResponse<Order>>>(
       `${API_PREFIX}/orders?${params}`
     )
     return response.data
@@ -364,12 +364,12 @@ export const stockMovementApi = {
   /**
    * 재고 이동 이력 조회
    */
-  getMovements: async (productId: number, page = 0, size = 20) => {
+  getMovements: async (productId: number, page = 1, size = 20) => {
     const params = new URLSearchParams({
       page: String(page),
       size: String(size)
     })
-    const response = await getApiClient().get<ApiResponse<PagedResponse<StockMovement>>>(
+    const response = await getApiClient().get<ApiResponse<PageResponse<StockMovement>>>(
       `${API_PREFIX}/inventory/${productId}/movements?${params}`
     )
     return response.data
@@ -401,7 +401,7 @@ export const adminProductApi = {
       }
     })
 
-    const response = await getApiClient().get<ApiResponse<PagedResponse<Product>>>(
+    const response = await getApiClient().get<ApiResponse<PageResponse<Product>>>(
       `${API_PREFIX}/products?${searchParams}`
     )
     return response.data
@@ -562,12 +562,12 @@ export const adminCouponApi = {
   /**
    * 쿠폰 목록 조회 (Admin)
    */
-  getCoupons: async (page = 0, size = 10) => {
+  getCoupons: async (page = 1, size = 10) => {
     const params = new URLSearchParams({
       page: String(page),
       size: String(size)
     })
-    const response = await getApiClient().get<ApiResponse<PagedResponse<Coupon>>>(
+    const response = await getApiClient().get<ApiResponse<PageResponse<Coupon>>>(
       `${API_PREFIX}/admin/coupons?${params}`
     )
     return response.data
@@ -613,12 +613,12 @@ export const adminTimeDealApi = {
   /**
    * 타임딜 목록 조회 (Admin)
    */
-  getTimeDeals: async (page = 0, size = 10) => {
+  getTimeDeals: async (page = 1, size = 10) => {
     const params = new URLSearchParams({
       page: String(page),
       size: String(size)
     })
-    const response = await getApiClient().get<ApiResponse<PagedResponse<TimeDeal>>>(
+    const response = await getApiClient().get<ApiResponse<PageResponse<TimeDeal>>>(
       `${API_PREFIX}/admin/time-deals?${params}`
     )
     return response.data
@@ -842,7 +842,7 @@ export const adminOrderApi = {
         searchParams.append(key, String(value))
       }
     })
-    const response = await getApiClient().get<ApiResponse<PagedResponse<Order>>>(
+    const response = await getApiClient().get<ApiResponse<PageResponse<Order>>>(
       `${API_PREFIX}/admin/orders?${searchParams}`
     )
     return response.data

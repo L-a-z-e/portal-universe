@@ -139,10 +139,10 @@ const openPostsModal = async (series: SeriesListResponse) => {
   try {
     const [postsData, myPostsData] = await Promise.all([
       getSeriesPosts(series.id),
-      getMyPosts('PUBLISHED', 0, 100)
+      getMyPosts('PUBLISHED', 1, 100)
     ])
     seriesPosts.value = postsData
-    myPosts.value = myPostsData.content
+    myPosts.value = myPostsData.items
   } catch (error) {
     console.error('Failed to load posts:', error)
   } finally {

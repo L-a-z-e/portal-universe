@@ -55,6 +55,11 @@ services:
       - MYSQL_ROOT_HOST=%
     networks:
       - portal-universe-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongodb:
     image: mongo:8.0
@@ -502,6 +507,30 @@ services:
         max-file: "3"
     ports:
       - "30003:8080"
+    depends_on:
+      portal-shell:
+        condition: service_started
+    networks:
+      - portal-universe-net
+
+  admin-frontend:
+    build:
+      context: ./frontend
+      dockerfile: admin-frontend/Dockerfile
+      args:
+        BUILD_MODE: docker
+    container_name: admin-frontend
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "30004:8080"
     depends_on:
       portal-shell:
         condition: service_started

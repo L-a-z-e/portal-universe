@@ -158,7 +158,7 @@ export function AdminCouponFormPage() {
               required
               value={formData.discountType}
               options={discountTypeOptions}
-              onChange={(value: string) => handleChange('discountType', value as DiscountType)}
+              onChange={(value: string | number | null) => handleChange('discountType', value as DiscountType)}
             />
 
             <Input

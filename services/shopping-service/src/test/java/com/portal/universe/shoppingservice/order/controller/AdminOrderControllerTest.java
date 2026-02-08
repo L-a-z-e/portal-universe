@@ -74,7 +74,7 @@ class AdminOrderControllerTest {
         mockMvc.perform(get("/admin/orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.content[0].orderNumber").value("ORD-001"));
+                .andExpect(jsonPath("$.data.items[0].orderNumber").value("ORD-001"));
     }
 
     @Test

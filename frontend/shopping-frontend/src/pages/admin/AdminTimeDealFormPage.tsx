@@ -53,9 +53,9 @@ export function AdminTimeDealFormPage() {
     const loadProducts = async () => {
       try {
         setIsLoadingProducts(true)
-        const response = await adminProductApi.getProducts({ page: 0, size: 100 })
+        const response = await adminProductApi.getProducts({ page: 1, size: 100 })
         if (response.success) {
-          setProducts(response.data.content)
+          setProducts(response.data?.items ?? [])
         }
       } catch (err) {
         console.error('Failed to load products:', err)
@@ -214,7 +214,7 @@ export function AdminTimeDealFormPage() {
               required
               value={formData.productId}
               options={productOptions}
-              onChange={(value: string) => handleProductChange(Number(value))}
+              onChange={(value: string | number | null) => handleProductChange(Number(value))}
               error={!!errors.productId}
               errorMessage={errors.productId}
             />

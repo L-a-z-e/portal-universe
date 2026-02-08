@@ -17,7 +17,7 @@ const posts = ref<PostSummaryResponse[]>([]);
 const loading = ref(false);
 const error = ref('');
 const currentFilter = ref<FilterStatus>('ALL');
-const currentPage = ref(0);
+const currentPage = ref(1);
 const totalPages = ref(0);
 const hasMore = ref(false);
 
@@ -31,7 +31,7 @@ const filteredPosts = computed(() => {
 });
 
 // 게시글 조회
-const fetchPosts = async (page: number = 0) => {
+const fetchPosts = async (page: number = 1) => {
   loading.value = true;
   error.value = '';
 
@@ -39,15 +39,15 @@ const fetchPosts = async (page: number = 0) => {
     const statusParam = currentFilter.value === 'ALL' ? undefined : currentFilter.value;
     const response = await getMyPosts(statusParam, page, 20);
 
-    if (page === 0) {
-      posts.value = response.content;
+    if (page === 1) {
+      posts.value = response.items;
     } else {
-      posts.value = [...posts.value, ...response.content];
+      posts.value = [...posts.value, ...response.items];
     }
 
-    currentPage.value = response.number;
+    currentPage.value = response.page;
     totalPages.value = response.totalPages;
-    hasMore.value = !response.last;
+    hasMore.value = response.page < response.totalPages;
   } catch (err: unknown) {
     const { message } = handleError(err, '게시글을 불러오는데 실패했습니다.');
     error.value = message;
@@ -66,8 +66,8 @@ const filterTabs: TabItem[] = [
 // 필터 변경
 const handleFilterChange = (filter: string | number) => {
   currentFilter.value = filter as FilterStatus;
-  currentPage.value = 0;
-  fetchPosts(0);
+  currentPage.value = 1;
+  fetchPosts(1);
 };
 
 // 더 보기
@@ -99,7 +99,7 @@ const handleStatusChange = async (postId: string, newStatus: PostStatus) => {
   try {
     await changePostStatus(postId, { status: newStatus });
     // 게시글 목록 새로고침
-    fetchPosts(0);
+    fetchPosts(1);
   } catch (err: unknown) {
     handleError(err, '상태 변경에 실패했습니다.');
   }

@@ -4,8 +4,8 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 
 ## 목록
 
-| ID | 제목 | 상태 | 날짜 |
-|----|------|------|------|
+| ID | 제목 | 상태 | 날짜         |
+|----|------|------|------------|
 | ADR-001 | [Admin 컴포넌트 구조](./ADR-001-admin-component-structure.md) | Accepted | 2026-01-17 |
 | ADR-002 | [Admin API 엔드포인트 설계](./ADR-002-api-endpoint-design.md) | Accepted | 2026-01-17 |
 | ADR-003 | [Admin 권한 검증 전략](./ADR-003-authorization-strategy.md) | Accepted | 2026-01-17 |
@@ -20,7 +20,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-012 | [Shopping Frontend-Backend Gap Analysis](./ADR-012-shopping-frontend-backend-gap-analysis.md) | Accepted | 2026-01-28 |
 | ADR-013 | [서비스 상태 모니터링 전략](./ADR-013-service-status-monitoring.md) | Accepted | 2026-01-21 |
 | ADR-014 | [마이프로필 단계별 구현 전략](./ADR-014-my-profile-phased-approach.md) | Accepted | 2026-01-21 |
-| ADR-015 | [Role Hierarchy 구현 방안](./ADR-015-role-hierarchy-implementation.md) | Proposed | - |
+| ADR-015 | [Role Hierarchy 구현 방안](./ADR-015-role-hierarchy-implementation.md) | Proposed | 2026-01-31 |
 | ADR-016 | [Shopping Saga Pattern과 분산 트랜잭션](./ADR-016-shopping-feature-implementation.md) | Accepted | 2026-02-01 |
 | ADR-017 | [Prism AI Agent 칸반 시스템](./ADR-017-prism-basic-implementation.md) | Accepted | 2026-02-01 |
 | ADR-018 | [Design System Single Source of Truth](./ADR-018-design-system-architecture.md) | Accepted | 2026-02-01 |
@@ -29,7 +29,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-021 | [역할+서비스 복합 멤버십 재구조화](./ADR-021-role-based-membership-restructure.md) | Accepted | 2026-02-07 |
 | ADR-022 | [auth-service 도메인 경계 재정의](./ADR-022-auth-service-domain-boundary.md) | Accepted/Proposed | 2026-02-07 |
 | ADR-023 | [API Response Wrapper 표준화](./ADR-023-api-response-wrapper-standardization.md) | Deprecated | 2026-02-07 |
-| ADR-024 | [Controller 인증 파라미터 표준화](./ADR-024-controller-auth-parameter-standardization.md) | Proposed | 2026-02-07 |
+| ADR-024 | [Controller 인증 파라미터 표준화](./ADR-024-controller-auth-parameter-standardization.md) | Accepted | 2026-02-07 |
 | ADR-025 | [Shopping Service 분산 데이터 정합성 전략](./ADR-025-distributed-data-consistency.md) | Proposed | 2026-02-07 |
 | ADR-026 | [Saga 보상 액션 실패 처리 정책](./ADR-026-saga-compensation-failure-policy.md) | Proposed | 2026-02-07 |
 | ADR-027 | [장바구니 재고 예약 정책](./ADR-027-cart-stock-reservation-policy.md) | Proposed | 2026-02-07 |

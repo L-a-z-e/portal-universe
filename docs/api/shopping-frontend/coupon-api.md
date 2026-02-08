@@ -131,10 +131,10 @@ getAvailableUserCoupons(): Promise<ApiResponse<UserCoupon[]>>
 ### 쿠폰 목록 조회 (Admin)
 
 ```typescript
-getCoupons(page = 0, size = 10): Promise<ApiResponse<PagedResponse<Coupon>>>
+getCoupons(page = 1, size = 10): Promise<ApiResponse<PagedResponse<Coupon>>>
 ```
 
-**Endpoint**: `GET /api/v1/shopping/admin/coupons?page=0&size=10`
+**Endpoint**: `GET /api/v1/shopping/admin/coupons?page=1&size=10`
 
 ---
 
@@ -309,4 +309,15 @@ export interface UserCoupon {
 
 ---
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-02-08 | 페이지네이션 기본값 수정: page 0 → 1 (ADR-031 정합) |
+| 2026-02-06 | 최초 작성 |
+
+---
+
+**최종 업데이트**: 2026-02-08

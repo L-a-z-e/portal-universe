@@ -27,8 +27,8 @@ const OrderListPage: React.FC = () => {
 
     try {
       const response = await orderApi.getOrders(currentPage, 10)
-      setOrders(response.data.items)
-      setTotalPages(response.data.totalPages)
+      setOrders(response.data?.items ?? [])
+      setTotalPages(response.data?.totalPages ?? 0)
     } catch (err: any) {
       setError(err.response?.data?.error?.message || err.message || 'Failed to fetch orders')
     } finally {

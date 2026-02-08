@@ -110,9 +110,9 @@ class SellerAdminControllerTest {
             mockMvc.perform(get(BASE_URL + "/applications/pending"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isArray())
-                    .andExpect(jsonPath("$.data.content.length()").value(2))
-                    .andExpect(jsonPath("$.data.content[0].status").value("PENDING"))
+                    .andExpect(jsonPath("$.data.items").isArray())
+                    .andExpect(jsonPath("$.data.items.length()").value(2))
+                    .andExpect(jsonPath("$.data.items[0].status").value("PENDING"))
                     .andExpect(jsonPath("$.data.totalElements").value(2));
         }
 
@@ -129,7 +129,7 @@ class SellerAdminControllerTest {
             mockMvc.perform(get(BASE_URL + "/applications/pending"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content").isEmpty())
+                    .andExpect(jsonPath("$.data.items").isEmpty())
                     .andExpect(jsonPath("$.data.totalElements").value(0));
         }
     }
@@ -156,7 +156,7 @@ class SellerAdminControllerTest {
             mockMvc.perform(get(BASE_URL + "/applications"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content.length()").value(3))
+                    .andExpect(jsonPath("$.data.items.length()").value(3))
                     .andExpect(jsonPath("$.data.totalElements").value(3));
         }
 
@@ -178,7 +178,7 @@ class SellerAdminControllerTest {
                             .param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data.content.length()").value(1))
+                    .andExpect(jsonPath("$.data.items.length()").value(1))
                     .andExpect(jsonPath("$.data.totalElements").value(11));
         }
     }

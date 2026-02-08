@@ -15,7 +15,7 @@ interface UseAdminCouponsOptions {
  * 쿠폰 목록 조회 (Admin)
  */
 export function useAdminCoupons(options: UseAdminCouponsOptions = {}) {
-  const { page = 0, size = 10 } = options
+  const { page = 1, size = 10 } = options
   const [data, setData] = useState<PageResponse<Coupon> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)

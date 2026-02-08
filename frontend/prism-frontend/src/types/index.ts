@@ -14,7 +14,7 @@ export type ProviderType = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE' | 'OLLAMA' | 'LOCAL
 export interface CreateProviderRequest {
   name: string;
   type: ProviderType;
-  apiKey: string;
+  apiKey?: string;
   baseUrl?: string;
 }
 

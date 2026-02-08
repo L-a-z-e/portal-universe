@@ -87,7 +87,7 @@ class AdminCouponControllerTest {
         mockMvc.perform(get("/admin/coupons"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.content[0].code").value("WELCOME10"));
+                .andExpect(jsonPath("$.data.items[0].code").value("WELCOME10"));
     }
 
     @Test

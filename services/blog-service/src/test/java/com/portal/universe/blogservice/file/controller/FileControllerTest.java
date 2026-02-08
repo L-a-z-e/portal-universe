@@ -53,10 +53,11 @@ class FileControllerTest {
         mockMvc.perform(multipart("/file/upload")
                 .file(mockFile))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.url").value(fileUrl))
-            .andExpect(jsonPath("$.filename").value("test.jpg"))
-            .andExpect(jsonPath("$.size").value(1024))
-            .andExpect(jsonPath("$.contentType").value("image/jpeg"));
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.url").value(fileUrl))
+            .andExpect(jsonPath("$.data.filename").value("test.jpg"))
+            .andExpect(jsonPath("$.data.size").value(1024))
+            .andExpect(jsonPath("$.data.contentType").value("image/jpeg"));
 
         verify(fileService).uploadFile(any());
     }
@@ -96,7 +97,8 @@ class FileControllerTest {
         mockMvc.perform(delete("/file/delete")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
 
         verify(fileService).deleteFile("https://s3.amazonaws.com/bucket/test.jpg");
     }

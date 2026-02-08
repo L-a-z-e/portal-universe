@@ -13,13 +13,8 @@ import { test, expect } from '../helpers/test-fixtures'
 import { gotoShoppingPage } from '../helpers/auth'
 
 test.describe('Time Deal', () => {
-  test.beforeEach(async ({ page }) => {
-    // Navigate to shopping section
-    await gotoShoppingPage(page, '/shopping', 'h1:has-text("Products")')
-  })
-
   test('should display time deal list page', async ({ page }) => {
-    // Navigate to time deals page
+    // Navigate directly to time deals page (no unnecessary /shopping detour)
     await gotoShoppingPage(page, '/shopping/time-deals', 'h1:has-text("타임딜")')
 
     // Page title should be visible (Korean UI)
@@ -56,24 +51,23 @@ test.describe('Time Deal', () => {
     if (hasActive && hasScheduled) {
       // Click scheduled tab
       await scheduledSection.click()
-      await page.waitForTimeout(500)
+      // Wait for tab content to update via selector instead of fixed timeout
+      await page.locator('[class*="card"], [class*="grid"], text="현재 진행 중인 타임딜이 없습니다"').first()
+        .waitFor({ timeout: 5000 }).catch(() => {})
 
       // Scheduled deals or empty state should be shown
       const scheduledDeals = page.locator('[class*="card"], [class*="grid"]')
       const noScheduled = page.locator('text="현재 진행 중인 타임딜이 없습니다"')
 
       const hasScheduledContent = await scheduledDeals.isVisible()
-      const isEmpty = await noScheduled.isVisible()
+      const isEmptyScheduled = await noScheduled.isVisible()
 
-      expect(hasScheduledContent || isEmpty).toBeTruthy()
+      expect(hasScheduledContent || isEmptyScheduled).toBeTruthy()
     }
   })
 
   test('should navigate to time deal detail page', async ({ page }) => {
-    await page.goto('/shopping/time-deals')
-
-    // Wait for loading
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/time-deals', 'h1:has-text("타임딜")')
 
     // Find first deal link
     const dealLink = page.locator('a[href*="/shopping/time-deals/"]').first()
@@ -95,7 +89,7 @@ test.describe('Time Deal', () => {
 
   test('should display countdown timer on detail', async ({ page }) => {
     // Navigate directly to a time deal (assuming deal ID 1 exists)
-    await page.goto('/shopping/time-deals/1')
+    await gotoShoppingPage(page, '/shopping/time-deals/1')
 
     // Wait for loading
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
@@ -123,7 +117,7 @@ test.describe('Time Deal', () => {
   })
 
   test('should display stock percentage bar', async ({ page }) => {
-    await page.goto('/shopping/time-deals/1')
+    await gotoShoppingPage(page, '/shopping/time-deals/1')
 
     // Wait for loading
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
@@ -153,7 +147,7 @@ test.describe('Time Deal', () => {
   })
 
   test('should purchase time deal successfully', async ({ page }) => {
-    await page.goto('/shopping/time-deals/1')
+    await gotoShoppingPage(page, '/shopping/time-deals/1')
 
     // Wait for loading
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
@@ -176,8 +170,11 @@ test.describe('Time Deal', () => {
         if (isEnabled) {
           await purchaseButton.click()
 
-          // Wait for navigation or modal
-          await page.waitForTimeout(1000)
+          // Wait for navigation or modal via URL/selector instead of fixed timeout
+          await Promise.race([
+            page.waitForURL(/\/checkout/, { timeout: 5000 }),
+            page.locator('text="Confirm Purchase"').waitFor({ timeout: 5000 }),
+          ]).catch(() => {})
 
           // Should navigate to checkout or show purchase confirmation
           const checkoutPage = page.locator('h1:has-text("Checkout")')
@@ -197,7 +194,7 @@ test.describe('Time Deal', () => {
 
   test('should display purchase history', async ({ page }) => {
     // Navigate to my time deals or order history
-    await page.goto('/shopping/orders')
+    await gotoShoppingPage(page, '/shopping/orders')
 
     // Wait for loading
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
@@ -216,10 +213,7 @@ test.describe('Time Deal', () => {
   })
 
   test('should show deal status badge', async ({ page }) => {
-    await page.goto('/shopping/time-deals')
-
-    // Wait for loading
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/time-deals', 'h1:has-text("타임딜")')
 
     // Look for status badges on deals
     const statusBadges = page.locator('text=/Active|Scheduled|Ended|Live/')
@@ -236,10 +230,7 @@ test.describe('Time Deal', () => {
   })
 
   test('should display discount percentage', async ({ page }) => {
-    await page.goto('/shopping/time-deals')
-
-    // Wait for loading
-    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+    await gotoShoppingPage(page, '/shopping/time-deals', 'h1:has-text("타임딜")')
 
     // Discount badge should be visible on deals
     const discountBadge = page.locator('text=/\\d+% OFF|Save \\d+%/')
@@ -259,7 +250,7 @@ test.describe('Time Deal', () => {
 
   test('should handle expired deal gracefully', async ({ page }) => {
     // Try to access an old deal (high ID number)
-    await page.goto('/shopping/time-deals/9999')
+    await gotoShoppingPage(page, '/shopping/time-deals/9999')
 
     // Wait for loading
     await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})

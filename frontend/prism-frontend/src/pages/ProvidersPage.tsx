@@ -41,7 +41,7 @@ function ProvidersPage() {
     e.preventDefault();
     // API Key는 OLLAMA/LOCAL이 아닌 경우에만 필수
     if (!formData.name.trim()) return;
-    if (requiresApiKey(formData.type) && !formData.apiKey.trim()) return;
+    if (requiresApiKey(formData.type) && !formData.apiKey?.trim()) return;
 
     setSubmitting(true);
     try {

@@ -146,10 +146,10 @@ getMyPurchases(): Promise<ApiResponse<TimeDealPurchase[]>>
 ### 타임딜 목록 조회 (Admin)
 
 ```typescript
-getTimeDeals(page = 0, size = 10): Promise<ApiResponse<PagedResponse<TimeDeal>>>
+getTimeDeals(page = 1, size = 10): Promise<ApiResponse<PagedResponse<TimeDeal>>>
 ```
 
-**Endpoint**: `GET /api/v1/shopping/admin/time-deals?page=0&size=10`
+**Endpoint**: `GET /api/v1/shopping/admin/time-deals?page=1&size=10`
 
 ---
 
@@ -329,4 +329,15 @@ export interface TimeDeal {
 
 ---
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|----------|
+| 2026-02-08 | 페이지네이션 기본값 수정: page 0 → 1 (ADR-031 정합) |
+| 2026-02-06 | 최초 작성 |
+
+---
+
+**최종 업데이트**: 2026-02-08

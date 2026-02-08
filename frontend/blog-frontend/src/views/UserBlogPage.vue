@@ -22,7 +22,7 @@ const posts = ref<PostSummaryResponse[]>([]);
 const loading = ref(false);
 const postsLoading = ref(false);
 const error = ref('');
-const currentPage = ref(0);
+const currentPage = ref(1);
 const totalPages = ref(0);
 const hasMore = ref(false);
 
@@ -34,7 +34,7 @@ const fetchUserProfile = async () => {
   try {
     user.value = await getPublicProfile(props.username);
     // 프로필 조회 성공 후 게시글 조회
-    fetchUserPosts(0);
+    fetchUserPosts(1);
   } catch (err: any) {
     if (err.response?.status === 404) {
       error.value = '사용자를 찾을 수 없습니다.';
@@ -47,7 +47,7 @@ const fetchUserProfile = async () => {
 };
 
 // 사용자 게시글 조회
-const fetchUserPosts = async (page: number = 0) => {
+const fetchUserPosts = async (page: number = 1) => {
   if (!user.value) return;
 
   postsLoading.value = true;
@@ -55,15 +55,15 @@ const fetchUserPosts = async (page: number = 0) => {
   try {
     const response = await getPostsByAuthor(String(user.value.id), page, 12);
 
-    if (page === 0) {
-      posts.value = response.content;
+    if (page === 1) {
+      posts.value = response.items;
     } else {
-      posts.value = [...posts.value, ...response.content];
+      posts.value = [...posts.value, ...response.items];
     }
 
-    currentPage.value = response.number;
+    currentPage.value = response.page;
     totalPages.value = response.totalPages;
-    hasMore.value = !response.last;
+    hasMore.value = response.page < response.totalPages;
   } catch (err: any) {
     console.error('Failed to fetch user posts:', err);
   } finally {
