@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -29,6 +30,13 @@ class Settings(BaseSettings):
     # CORS (Gateway 경유 시 false, 독립 실행 시 true)
     cors_enabled: bool = True
     cors_origins: list[str] = ["http://localhost:30000"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: object) -> list[str]:
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",")]
+        return v  # type: ignore[return-value]
 
     # Documents
     documents_dir: str = "./documents"
