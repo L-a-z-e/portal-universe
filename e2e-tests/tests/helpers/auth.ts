@@ -25,8 +25,8 @@ async function ensureAuthenticated(page: Page): Promise<void> {
   const isLoggedIn = await page.locator('button:has-text("Logout")').isVisible().catch(() => false)
   if (isLoggedIn) return
 
-  // Wait a moment for any modal to appear/settle
-  await page.waitForTimeout(1000)
+  // Wait for DOM to settle instead of fixed timeout
+  await page.waitForLoadState('domcontentloaded')
 
   // Try to find login form elements directly (they will be visible if modal is open)
   const emailInput = page.locator('input[placeholder="your@email.com"], input[type="email"]').first()
@@ -65,14 +65,14 @@ async function ensureAuthenticated(page: Page): Promise<void> {
       await loginButton.click({ force: true, timeout: 5000 })
     } catch {
       // If click failed due to interception, modal might already be open
-      // Wait and retry authentication
-      await page.waitForTimeout(500)
+      // Wait for modal to appear via selector instead of fixed timeout
+      await page.locator('input[type="email"], input[type="password"]').first().waitFor({ timeout: 3000 }).catch(() => {})
       await ensureAuthenticated(page)
       return
     }
 
-    // Wait for modal to appear
-    await page.waitForTimeout(1000)
+    // Wait for modal to appear via selector instead of fixed timeout
+    await page.locator('input[type="email"], input[type="password"]').first().waitFor({ timeout: 3000 }).catch(() => {})
 
     // Fill and submit login form
     if (await emailInput.isVisible().catch(() => false)) {
@@ -102,21 +102,23 @@ export async function gotoServicePage(page: Page, urlPath: string, contentSelect
   await page.goto(urlPath)
 
   // Wait for auth state to resolve
-  await waitForAuthReady(page)
+  const alreadyAuthed = await waitForAuthReady(page)
 
   // If not authenticated, try to login
-  await ensureAuthenticated(page)
+  if (!alreadyAuthed) {
+    await ensureAuthenticated(page)
+  }
 
-  // Wait for page to stabilize after auth change (network idle = no pending requests)
-  await page.waitForLoadState('networkidle').catch(() => {})
+  // Wait for DOM to be ready (networkidle is unreliable in MF environments)
+  await page.waitForLoadState('domcontentloaded')
 
   // Wait for Module Federation content
   if (contentSelector) {
-    await page.locator(contentSelector).first().waitFor({ timeout: 25000 }).catch(() => {})
+    await page.locator(contentSelector).first().waitFor({ timeout: 15000 }).catch(() => {})
   }
 
   // Wait for spinners to finish
-  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {})
+  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 5000 }).catch(() => {})
 }
 
 // Backward-compatible aliases
