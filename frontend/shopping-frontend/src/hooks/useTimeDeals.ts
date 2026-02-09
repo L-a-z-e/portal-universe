@@ -3,7 +3,7 @@
  * 타임딜 관련 React Hooks
  */
 import { useState, useEffect, useCallback } from 'react'
-import { timeDealApi } from '@/api/endpoints'
+import { timeDealApi } from '@/api'
 import type { TimeDeal, TimeDealPurchase } from '@/types'
 
 /**

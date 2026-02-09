@@ -3,7 +3,7 @@
  * 관리자 대기열 관리 관련 React Hooks
  */
 import { useState, useCallback } from 'react'
-import { adminQueueApi } from '@/api/endpoints'
+import { adminQueueApi } from '@/api'
 import type { QueueActivateRequest } from '@/types'
 
 export function useActivateQueue() {

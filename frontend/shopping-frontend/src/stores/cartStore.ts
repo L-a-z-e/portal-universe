@@ -6,7 +6,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { AxiosError } from 'axios'
-import { cartApi } from '@/api/endpoints'
+import { cartApi } from '@/api'
 import type { Cart, CartItem, AddCartItemRequest } from '@/types'
 
 interface CartState {

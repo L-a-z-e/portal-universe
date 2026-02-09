@@ -4,7 +4,7 @@
  */
 import React from 'react'
 import { Modal, Button } from '@portal/design-system-react'
-import type { ConfirmModalProps } from '@/types/admin'
+import type { ConfirmModalProps } from '@/types'
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen,

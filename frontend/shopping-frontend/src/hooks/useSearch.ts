@@ -3,7 +3,7 @@
  * 검색 자동완성, 인기 검색어, 최근 검색어 관련 hooks
  */
 import { useState, useEffect, useCallback } from 'react'
-import { searchApi } from '@/api/endpoints'
+import { searchApi } from '@/api'
 
 /**
  * 검색 자동완성 (debounced)

@@ -3,7 +3,7 @@
  * 관리자 배송 관리 관련 React Hooks
  */
 import { useState, useEffect, useCallback } from 'react'
-import { deliveryApi } from '@/api/endpoints'
+import { deliveryApi } from '@/api'
 import type { Delivery, UpdateDeliveryStatusRequest } from '@/types'
 
 export function useDeliveryByOrder(orderNumber: string | null) {

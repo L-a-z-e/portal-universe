@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCartStore } from '@/stores/cartStore'
-import CartItemComponent from '@/components/CartItem'
+import CartItemComponent from '@/components/cart/CartItem'
 import { Button, Spinner, Alert } from '@portal/design-system-react'
 
 const CartPage: React.FC = () => {

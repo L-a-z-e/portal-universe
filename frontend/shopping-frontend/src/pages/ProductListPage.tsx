@@ -5,9 +5,9 @@
  */
 import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { productApi, inventoryApi, searchApi } from '@/api/endpoints'
+import { productApi, inventoryApi, searchApi } from '@/api'
 import type { Product, Inventory } from '@/types'
-import ProductCard from '@/components/ProductCard'
+import ProductCard from '@/components/product/ProductCard'
 import SearchAutocomplete from '@/components/search/SearchAutocomplete'
 import PopularKeywords from '@/components/search/PopularKeywords'
 import RecentKeywords from '@/components/search/RecentKeywords'

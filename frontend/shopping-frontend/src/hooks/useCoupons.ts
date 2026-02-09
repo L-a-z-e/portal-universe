@@ -3,7 +3,7 @@
  * 쿠폰 관련 React Hooks
  */
 import { useState, useEffect, useCallback } from 'react'
-import { couponApi } from '@/api/endpoints'
+import { couponApi } from '@/api'
 import type { Coupon, UserCoupon } from '@/types'
 export type { UserCoupon }
 

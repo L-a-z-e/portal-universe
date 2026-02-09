@@ -3,7 +3,7 @@
  * 관리자 주문 관리 관련 React Hooks
  */
 import { useState, useEffect, useCallback } from 'react'
-import { adminOrderApi } from '@/api/endpoints'
+import { adminOrderApi } from '@/api'
 import type { Order, PageResponse } from '@/types'
 
 interface UseAdminOrdersOptions {

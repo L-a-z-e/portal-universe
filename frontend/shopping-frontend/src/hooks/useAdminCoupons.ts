@@ -3,7 +3,7 @@
  * 관리자 쿠폰 관련 React Hooks
  */
 import { useState, useEffect, useCallback } from 'react'
-import { adminCouponApi } from '@/api/endpoints'
+import { adminCouponApi } from '@/api'
 import type { Coupon, CouponCreateRequest, PageResponse } from '@/types'
 
 interface UseAdminCouponsOptions {

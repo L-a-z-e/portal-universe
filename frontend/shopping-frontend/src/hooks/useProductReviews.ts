@@ -3,7 +3,7 @@
  * Blog 서비스 연동 상품 리뷰 조회
  */
 import { useState, useEffect, useCallback } from 'react'
-import { productReviewApi } from '@/api/endpoints'
+import { productReviewApi } from '@/api'
 import type { ProductWithReviews } from '@/types'
 
 export function useProductReviews(productId: number | null) {

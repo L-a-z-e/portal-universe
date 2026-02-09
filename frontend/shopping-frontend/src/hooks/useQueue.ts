@@ -3,7 +3,7 @@
  * 대기열 관련 React Hooks
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { queueApi } from '@/api/endpoints'
+import { queueApi } from '@/api'
 import type { QueueStatusResponse, QueueStatus } from '@/types'
 
 interface UseQueueOptions {

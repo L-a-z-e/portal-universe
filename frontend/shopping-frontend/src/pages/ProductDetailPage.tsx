@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { productApi, inventoryApi } from '@/api/endpoints'
+import { productApi, inventoryApi } from '@/api'
 import { useCartStore } from '@/stores/cartStore'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
 import type { Product, Inventory } from '@/types'

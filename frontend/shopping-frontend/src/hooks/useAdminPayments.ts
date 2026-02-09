@@ -3,7 +3,7 @@
  * 관리자 결제/환불 관련 React Hooks
  */
 import { useState, useCallback } from 'react'
-import { adminPaymentApi } from '@/api/endpoints'
+import { adminPaymentApi } from '@/api'
 
 export function useRefundPayment() {
   const [isLoading, setIsLoading] = useState(false)
