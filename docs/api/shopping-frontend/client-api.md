@@ -39,13 +39,38 @@ shopping-frontend는 API Gateway를 통해 shopping-service와 통신합니다. 
 src/
 ├── api/
 │   ├── client.ts          # API 클라이언트 설정
-│   └── endpoints.ts       # 엔드포인트 함수 정의
+│   ├── index.ts           # barrel re-export
+│   ├── product.ts         # productApi + adminProductApi + productReviewApi
+│   ├── inventory.ts       # inventoryApi + stockMovementApi + inventoryStreamApi
+│   ├── cart.ts            # cartApi
+│   ├── order.ts           # orderApi + adminOrderApi
+│   ├── payment.ts         # paymentApi + adminPaymentApi
+│   ├── delivery.ts        # deliveryApi
+│   ├── coupon.ts          # couponApi + adminCouponApi
+│   ├── timedeal.ts        # timeDealApi + adminTimeDealApi
+│   ├── queue.ts           # queueApi + adminQueueApi
+│   └── search.ts          # searchApi
+├── dto/                   # 도메인별 DTO (Domain-Driven)
+│   ├── common.ts          # Address, AddressRequest
+│   ├── product.ts         # Product + admin 타입
+│   ├── inventory.ts       # Inventory, StockMovement
+│   ├── cart.ts            # Cart, CartItem
+│   ├── order.ts           # Order, OrderItem + status labels
+│   ├── payment.ts         # Payment + status/method labels
+│   ├── delivery.ts        # Delivery + status labels
+│   ├── coupon.ts          # Coupon, UserCoupon + labels
+│   ├── timedeal.ts        # TimeDeal + labels
+│   ├── queue.ts           # QueueStatus + labels
+│   ├── search.ts          # SearchSuggestion
+│   └── review.ts          # BlogReview, ProductWithReviews
 ├── hooks/                 # Custom React Hooks (API 호출)
 ├── stores/
 │   └── cartStore.ts       # Zustand Store (장바구니)
 └── types/
-    ├── index.ts           # 메인 타입 정의
-    └── admin.ts           # 관리자 타입
+    ├── index.ts           # barrel re-export (dto/* + ui + common)
+    ├── common.ts          # @portal/design-types re-export
+    ├── ui.ts              # UI 공통 타입 (ToastMessage, ModalState 등)
+    └── portal-modules.d.ts # MF 타입 선언
 ```
 
 ---
@@ -121,7 +146,7 @@ localClient.interceptors.response.use(
 ### 엔드포인트 정의 패턴
 
 ```typescript
-// src/api/endpoints.ts
+// src/api/product.ts
 import { getApiClient } from './client'
 import type { ApiResponse, PagedResponse, Product } from '@/types'
 
@@ -178,7 +203,7 @@ shopping-frontend는 **useState + useEffect** 패턴을 사용합니다 (React Q
 ```typescript
 // src/hooks/useProducts.ts
 import { useState, useEffect, useCallback } from 'react'
-import { productApi } from '@/api/endpoints'
+import { productApi } from '@/api'
 import type { Product, PagedResponse } from '@/types'
 
 export function useProducts(filters: { page: number; size: number; category?: string }) {
@@ -246,7 +271,7 @@ export function useCreateProduct() {
 // src/stores/cartStore.ts
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { cartApi } from '@/api/endpoints'
+import { cartApi } from '@/api'
 import type { Cart } from '@/types'
 
 interface CartState {
@@ -509,4 +534,4 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-09

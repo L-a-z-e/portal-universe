@@ -1,42 +1,9 @@
 /**
- * Admin 전용 타입 정의
- * 관리자 기능에 필요한 타입들
+ * UI State & Component Types
+ * admin.ts 대체 - UI 공통 타입
  */
 
-import type { Product, PageResponse } from './index'
-
-// Re-export PageResponse for convenience
-export type { PageResponse }
-
-// ============================================
-// Product Admin Types
-// ============================================
-
-export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'
-
-export interface AdminProduct extends Product {
-  stock: number
-  status?: ProductStatus
-}
-
-export interface ProductFilters {
-  page: number
-  size: number
-  keyword?: string
-  category?: string
-  status?: ProductStatus
-  sortBy?: 'name' | 'price' | 'createdAt'
-  sortOrder?: 'asc' | 'desc'
-}
-
-export interface ProductFormData {
-  name: string
-  description: string
-  price: number
-  stock: number
-  imageUrl?: string
-  category?: string
-}
+import type { ProductFormData } from '@/dto/product'
 
 // ============================================
 // UI State Types

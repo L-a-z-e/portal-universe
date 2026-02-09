@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCreateTimeDeal } from '@/hooks/useAdminTimeDeals'
-import { adminProductApi } from '@/api/endpoints'
+import { adminProductApi } from '@/api'
 import type { Product } from '@/types'
 import { Button, Card, Input, Select, Spinner, useApiError, useToast } from '@portal/design-system-react'
 import type { SelectOption } from '@portal/design-types'

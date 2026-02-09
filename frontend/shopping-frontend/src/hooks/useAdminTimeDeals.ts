@@ -3,7 +3,7 @@
  * 관리자 타임딜 관련 React Hooks
  */
 import { useState, useEffect, useCallback } from 'react'
-import { adminTimeDealApi } from '@/api/endpoints'
+import { adminTimeDealApi } from '@/api'
 import type { TimeDeal, TimeDealCreateRequest, PageResponse } from '@/types'
 
 interface UseAdminTimeDealsOptions {

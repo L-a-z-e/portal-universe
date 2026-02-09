@@ -3,7 +3,7 @@
  * EventSource 기반 SSE 연결로 실시간 재고 업데이트 수신
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { inventoryStreamApi } from '@/api/endpoints'
+import { inventoryStreamApi } from '@/api'
 import type { InventoryUpdate } from '@/types'
 
 interface UseInventoryStreamOptions {

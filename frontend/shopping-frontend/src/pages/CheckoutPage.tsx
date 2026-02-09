@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCartStore } from '@/stores/cartStore'
-import { cartApi, orderApi, paymentApi } from '@/api/endpoints'
+import { cartApi, orderApi, paymentApi } from '@/api'
 import type { AddressRequest, PaymentMethod, Order, UserCoupon } from '@/types'
 import { PAYMENT_METHOD_LABELS } from '@/types'
 import { CouponSelector } from '@/components/coupon/CouponSelector'

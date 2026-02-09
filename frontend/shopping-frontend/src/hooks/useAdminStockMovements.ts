@@ -3,7 +3,7 @@
  * 관리자 재고 이동 이력 조회
  */
 import { useState, useEffect, useCallback } from 'react'
-import { stockMovementApi } from '@/api/endpoints'
+import { stockMovementApi } from '@/api'
 import type { StockMovement, PageResponse } from '@/types'
 
 interface UseAdminStockMovementsOptions {

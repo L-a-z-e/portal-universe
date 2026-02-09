@@ -6,7 +6,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdminProducts, useDeleteProduct } from '@/hooks/useAdminProducts'
 import { Button, Pagination, Modal } from '@portal/design-system-react'
-import type { ProductFilters } from '@/types/admin'
+import type { ProductFilters } from '@/types'
 import type { Product } from '@/types'
 
 export const AdminProductListPage: React.FC = () => {

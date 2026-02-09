@@ -19,9 +19,11 @@ related: [api-shopping-client]
 
 ## 개요
 
-타입 정의 파일 위치:
-- `src/types/index.ts` - 메인 타입 정의
-- `src/types/admin.ts` - 관리자 전용 타입
+타입 정의 파일 구조 (DDD 기반):
+- `src/dto/*.ts` - 도메인별 DTO (product, cart, order, payment 등 12개)
+- `src/types/index.ts` - barrel re-export (dto/* + ui + common)
+- `src/types/common.ts` - `@portal/design-types` re-export
+- `src/types/ui.ts` - UI 공통 타입 (ToastMessage, ModalState, TableColumn 등)
 
 ---
 
@@ -821,13 +823,10 @@ import type {
   TimeDeal,
   ApiResponse,
   PagedResponse
-} from '@/types'
-
-import type {
   ProductFilters,
   ProductFormData,
   AdminProduct
-} from '@/types/admin'
+} from '@/types'
 ```
 
 ### 타입 활용
@@ -864,4 +863,4 @@ const createProduct = async (data: ProductCreateRequest): Promise<Product> => {
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-09

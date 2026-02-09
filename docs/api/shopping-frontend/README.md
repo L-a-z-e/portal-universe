@@ -55,7 +55,7 @@ export const getApiClient = () => {
 ### 2. API 호출 예시
 
 ```typescript
-import { productApi } from '@/api/endpoints'
+import { productApi } from '@/api'
 
 const response = await productApi.getProducts(0, 20, 'books')
 const products = response.data.content
@@ -137,9 +137,18 @@ const { cart, addItem, removeItem } = useCartStore()
 
 ```
 src/
-├── api/
+├── api/                   # 도메인별 API 모듈 (DDD)
 │   ├── client.ts          # API 클라이언트 설정
-│   └── endpoints.ts       # 엔드포인트 함수 정의
+│   ├── index.ts           # barrel re-export
+│   ├── product.ts         # productApi + adminProductApi + productReviewApi
+│   ├── cart.ts            # cartApi
+│   ├── order.ts           # orderApi + adminOrderApi
+│   └── ...                # (10개 도메인 모듈)
+├── dto/                   # 도메인별 DTO (12개)
+│   ├── common.ts          # Address
+│   ├── product.ts         # Product + admin 타입
+│   ├── cart.ts            # Cart, CartItem
+│   └── ...                # (12개 도메인 DTO)
 ├── hooks/                 # Custom React Hooks
 │   ├── useAdminProducts.ts
 │   ├── useCoupons.ts
@@ -150,8 +159,9 @@ src/
 ├── stores/
 │   └── cartStore.ts       # Zustand Store (장바구니)
 └── types/
-    ├── index.ts           # 메인 타입 정의
-    └── admin.ts           # 관리자 타입
+    ├── index.ts           # barrel re-export (dto/* + ui + common)
+    ├── common.ts          # @portal/design-types re-export
+    └── ui.ts              # UI 공통 타입
 ```
 
 ---
@@ -229,4 +239,4 @@ interface ApiErrorResponse {
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-09

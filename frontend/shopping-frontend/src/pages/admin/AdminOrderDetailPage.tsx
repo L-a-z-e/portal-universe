@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAdminOrder, useUpdateOrderStatus } from '@/hooks/useAdminOrders'
 import { useRefundPayment } from '@/hooks/useAdminPayments'
-import { paymentApi, deliveryApi } from '@/api/endpoints'
+import { paymentApi, deliveryApi } from '@/api'
 import {
   ORDER_STATUS_LABELS,
   PAYMENT_STATUS_LABELS,

@@ -3,8 +3,8 @@
  * 상품 관리를 위한 커스텀 훅
  */
 import { useState, useEffect, useCallback } from 'react'
-import { adminProductApi } from '@/api/endpoints'
-import type { ProductFilters, ProductFormData, PageResponse } from '@/types/admin'
+import { adminProductApi } from '@/api'
+import type { ProductFilters, ProductFormData, PageResponse } from '@/types'
 import type { Product } from '@/types'
 
 /**

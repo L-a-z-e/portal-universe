@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { orderApi, deliveryApi } from '@/api/endpoints'
+import { orderApi, deliveryApi } from '@/api'
 import type { Order, Delivery, OrderStatus, DeliveryStatus } from '@/types'
 import { ORDER_STATUS_LABELS, DELIVERY_STATUS_LABELS } from '@/types'
 import { Button, Spinner, Alert, Badge, useApiError } from '@portal/design-system-react'

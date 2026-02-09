@@ -781,9 +781,32 @@ shopping-frontend/
 │   │   └── index.tsx                    # React Router 설정 (24 routes)
 │   ├── stores/
 │   │   └── cartStore.ts                 # 장바구니 (Zustand + devtools)
-│   ├── api/
+│   ├── api/                             # 도메인별 API 모듈 (DDD)
 │   │   ├── client.ts                    # API Client (portal/api → fallback)
-│   │   └── endpoints.ts                 # 17개 API 모듈
+│   │   ├── index.ts                     # barrel re-export
+│   │   ├── product.ts                   # productApi + adminProductApi + productReviewApi
+│   │   ├── inventory.ts                 # inventoryApi + stockMovementApi + inventoryStreamApi
+│   │   ├── cart.ts                      # cartApi
+│   │   ├── order.ts                     # orderApi + adminOrderApi
+│   │   ├── payment.ts                   # paymentApi + adminPaymentApi
+│   │   ├── delivery.ts                  # deliveryApi
+│   │   ├── coupon.ts                    # couponApi + adminCouponApi
+│   │   ├── timedeal.ts                  # timeDealApi + adminTimeDealApi
+│   │   ├── queue.ts                     # queueApi + adminQueueApi
+│   │   └── search.ts                    # searchApi
+│   ├── dto/                             # 도메인별 DTO (DDD)
+│   │   ├── common.ts                    # Address, AddressRequest
+│   │   ├── product.ts                   # Product + admin 타입
+│   │   ├── inventory.ts                 # Inventory, StockMovement
+│   │   ├── cart.ts                      # Cart, CartItem
+│   │   ├── order.ts                     # Order + status labels
+│   │   ├── payment.ts                   # Payment + labels
+│   │   ├── delivery.ts                  # Delivery + labels
+│   │   ├── coupon.ts                    # Coupon + labels
+│   │   ├── timedeal.ts                  # TimeDeal + labels
+│   │   ├── queue.ts                     # QueueStatus + labels
+│   │   ├── search.ts                    # SearchSuggestion
+│   │   └── review.ts                    # BlogReview, ProductWithReviews
 │   ├── hooks/                           # Custom Hooks (14개)
 │   │   ├── useAdminProducts.ts
 │   │   ├── useAdminCoupons.ts
@@ -828,12 +851,15 @@ shopping-frontend/
 │   │   │   └── AdminQueuePage.tsx
 │   │   └── error/
 │   │       └── ForbiddenPage.tsx
-│   ├── components/                      # 재사용 컴포넌트 (15개)
-│   │   ├── ErrorBoundary.tsx
-│   │   ├── ProductCard.tsx
-│   │   ├── CartItem.tsx
+│   ├── components/                      # 재사용 컴포넌트 (도메인별 정리)
+│   │   ├── product/
+│   │   │   ├── ProductCard.tsx
+│   │   │   └── ProductReviews.tsx
+│   │   ├── cart/
+│   │   │   └── CartItem.tsx
 │   │   ├── common/
-│   │   │   └── ConfirmModal.tsx
+│   │   │   ├── ConfirmModal.tsx
+│   │   │   └── ErrorBoundary.tsx
 │   │   ├── coupon/
 │   │   │   ├── CouponCard.tsx
 │   │   │   └── CouponSelector.tsx
@@ -844,8 +870,6 @@ shopping-frontend/
 │   │   │   ├── SearchAutocomplete.tsx
 │   │   │   ├── PopularKeywords.tsx
 │   │   │   └── RecentKeywords.tsx
-│   │   ├── product/
-│   │   │   └── ProductReviews.tsx
 │   │   ├── queue/
 │   │   │   └── QueueStatus.tsx          # 대기열 상태 표시
 │   │   ├── guards/
@@ -853,8 +877,9 @@ shopping-frontend/
 │   │   └── layout/
 │   │       └── AdminLayout.tsx          # 관리자 레이아웃
 │   ├── types/
-│   │   ├── index.ts                     # 공통 타입
-│   │   ├── admin.ts                     # 관리자 타입
+│   │   ├── index.ts                     # barrel re-export (dto/* + ui + common)
+│   │   ├── common.ts                    # @portal/design-types re-export
+│   │   ├── ui.ts                        # UI 공통 타입 (ToastMessage, ModalState 등)
 │   │   └── portal-modules.d.ts          # MF 타입 선언
 │   └── styles/
 │       └── index.css                    # TailwindCSS + data-service 스타일
@@ -1094,6 +1119,7 @@ test('should add product to cart', async ({ page }) => {
 
 | 날짜 | 버전 | 변경 내용 |
 |------|------|----------|
+| 2026-02-09 | 2.1 | DDD 구조 리팩토링 반영 (api/ 도메인 분리, dto/ 추가, components 정리) |
 | 2026-02-06 | 2.0 | @portal/react-bootstrap 적용, API Client 구조 변경, SSE/대기열 추가 |
 | 2026-01-30 | 1.1 | RBAC 가드 추가, Admin 페이지 확장 |
 | 2026-01-18 | 1.0 | 초기 문서 작성 |
@@ -1101,4 +1127,4 @@ test('should add product to cart', async ({ page }) => {
 ---
 
 **작성자**: Laze
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-09

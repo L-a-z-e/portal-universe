@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { ShoppingRouter } from '@/router'
 import { usePortalTheme } from '@portal/react-bridge'
 import { ToastContainer, useToast } from '@portal/design-system-react'
-import ErrorBoundary from '@/components/ErrorBoundary'
+import ErrorBoundary from '@/components/common/ErrorBoundary'
 import './styles/index.css'
 
 /**
