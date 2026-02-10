@@ -99,18 +99,15 @@ ProducerFactory Java Bean을 제거하지 않고, ADR에서 표준 설정값을 
 
 나머지 15개 topic은 이미 패턴을 준수한다.
 
-**마이그레이션 절차** (무중단):
+**마이그레이션 절차**:
+
+현재 로컬 개발 환경이며 기존 `user-signup` topic에 미소비 메시지나 보존해야 할 데이터가 없으므로, Producer와 Consumer를 동시에 `auth.user.signed-up`으로 변경하는 직접 전환으로 충분하다.
 
 ```
-Phase 1: Consumer 이중 구독
-  notification-service가 "user-signup"과 "auth.user.signed-up" 모두 구독
-
-Phase 2: Producer 전환
-  auth-service가 "auth.user.signed-up"으로 발행 대상 변경
-
-Phase 3: Old topic 제거
-  "user-signup" 구독 제거 + topic 삭제
+Producer(auth-service) + Consumer(notification-service) + Topics 상수를 한 커밋에서 일괄 변경
 ```
+
+> **참고**: 운영 환경에서 미소비 메시지가 존재하는 경우, Consumer 이중 구독 → Producer 전환 → Old topic 제거의 3-phase 무중단 마이그레이션이 필요하다.
 
 ### D5: Consumer 최소 기준 명문화
 
@@ -197,7 +194,7 @@ notification-service의 현재 설정을 기준으로 Consumer 표준을 정의�
 
 **단점 및 완화**:
 - NestJS(prism-service)는 Java Topics 상수를 참조할 수 없어 하드코딩 유지 → (완화: `PrismTopics.java`를 문서적 SSOT로 삼고, prism-service 코드에 참조 주석 명시. CI에서 문자열 비교 lint 추가 가능)
-- `user-signup` → `auth.user.signed-up` 마이그레이션 중 이중 구독 기간 발생 → (완화: 3-phase 무중단 마이그레이션으로 서비스 중단 없이 전환)
+- `user-signup` → `auth.user.signed-up` topic 이름 변경 필요 → (현재 로컬 환경에 미소비 메시지 없으므로 직접 전환으로 충분. 운영 환경 적용 시 3-phase 무중단 마이그레이션 고려)
 - ADR 기준선은 강제력이 없어 drift 재발 가능 → (완화: PR 리뷰 시 체크리스트에 Kafka 설정 표준 항목 추가)
 
 ## Implementation
