@@ -1,7 +1,7 @@
 package com.portal.universe.shoppingservice.event;
 
 import com.portal.universe.event.shopping.*;
-import com.portal.universe.shoppingservice.common.config.KafkaConfig;
+import com.portal.universe.event.shopping.ShoppingTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -24,63 +24,63 @@ public class ShoppingEventPublisher {
      * 주문 생성 이벤트를 발행합니다.
      */
     public void publishOrderCreated(OrderCreatedEvent event) {
-        publishEvent(KafkaConfig.TOPIC_ORDER_CREATED, event.orderNumber(), event);
+        publishEvent(ShoppingTopics.ORDER_CREATED, event.orderNumber(), event);
     }
 
     /**
      * 주문 확정 이벤트를 발행합니다.
      */
     public void publishOrderConfirmed(OrderConfirmedEvent event) {
-        publishEvent(KafkaConfig.TOPIC_ORDER_CONFIRMED, event.orderNumber(), event);
+        publishEvent(ShoppingTopics.ORDER_CONFIRMED, event.orderNumber(), event);
     }
 
     /**
      * 주문 취소 이벤트를 발행합니다.
      */
     public void publishOrderCancelled(OrderCancelledEvent event) {
-        publishEvent(KafkaConfig.TOPIC_ORDER_CANCELLED, event.orderNumber(), event);
+        publishEvent(ShoppingTopics.ORDER_CANCELLED, event.orderNumber(), event);
     }
 
     /**
      * 결제 완료 이벤트를 발행합니다.
      */
     public void publishPaymentCompleted(PaymentCompletedEvent event) {
-        publishEvent(KafkaConfig.TOPIC_PAYMENT_COMPLETED, event.paymentNumber(), event);
+        publishEvent(ShoppingTopics.PAYMENT_COMPLETED, event.paymentNumber(), event);
     }
 
     /**
      * 결제 실패 이벤트를 발행합니다.
      */
     public void publishPaymentFailed(PaymentFailedEvent event) {
-        publishEvent(KafkaConfig.TOPIC_PAYMENT_FAILED, event.paymentNumber(), event);
+        publishEvent(ShoppingTopics.PAYMENT_FAILED, event.paymentNumber(), event);
     }
 
     /**
      * 재고 예약 이벤트를 발행합니다.
      */
     public void publishInventoryReserved(InventoryReservedEvent event) {
-        publishEvent(KafkaConfig.TOPIC_INVENTORY_RESERVED, event.orderNumber(), event);
+        publishEvent(ShoppingTopics.INVENTORY_RESERVED, event.orderNumber(), event);
     }
 
     /**
      * 배송 발송 이벤트를 발행합니다.
      */
     public void publishDeliveryShipped(DeliveryShippedEvent event) {
-        publishEvent(KafkaConfig.TOPIC_DELIVERY_SHIPPED, event.trackingNumber(), event);
+        publishEvent(ShoppingTopics.DELIVERY_SHIPPED, event.trackingNumber(), event);
     }
 
     /**
      * 쿠폰 발급 이벤트를 발행합니다.
      */
     public void publishCouponIssued(CouponIssuedEvent event) {
-        publishEvent(KafkaConfig.TOPIC_COUPON_ISSUED, event.couponCode(), event);
+        publishEvent(ShoppingTopics.COUPON_ISSUED, event.couponCode(), event);
     }
 
     /**
      * 타임딜 시작 이벤트를 발행합니다.
      */
     public void publishTimeDealStarted(TimeDealStartedEvent event) {
-        publishEvent(KafkaConfig.TOPIC_TIMEDEAL_STARTED, String.valueOf(event.timeDealId()), event);
+        publishEvent(ShoppingTopics.TIMEDEAL_STARTED, String.valueOf(event.timeDealId()), event);
     }
 
     /**
