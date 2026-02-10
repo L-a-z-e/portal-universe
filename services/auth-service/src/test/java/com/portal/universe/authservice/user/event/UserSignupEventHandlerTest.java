@@ -1,5 +1,6 @@
 package com.portal.universe.authservice.user.event;
 
+import com.portal.universe.event.auth.AuthTopics;
 import com.portal.universe.event.auth.UserSignedUpEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,7 +39,7 @@ class UserSignupEventHandlerTest {
             userSignupEventHandler.handleUserSignup(event);
 
             // then
-            verify(kafkaTemplate).send("user-signup", event);
+            verify(kafkaTemplate).send(AuthTopics.USER_SIGNED_UP, event);
         }
 
         @Test
@@ -53,7 +54,7 @@ class UserSignupEventHandlerTest {
             userSignupEventHandler.handleUserSignup(event);
 
             // then
-            verify(kafkaTemplate).send("user-signup", event);
+            verify(kafkaTemplate).send(AuthTopics.USER_SIGNED_UP, event);
         }
     }
 }

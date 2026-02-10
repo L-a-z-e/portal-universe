@@ -1,7 +1,7 @@
 package com.portal.universe.shoppingservice.event;
 
 import com.portal.universe.event.shopping.*;
-import com.portal.universe.shoppingservice.common.config.KafkaConfig;
+import com.portal.universe.event.shopping.ShoppingTopics;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), eventCaptor.capture());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_ORDER_CREATED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.ORDER_CREATED);
             assertThat(keyCaptor.getValue()).isEqualTo("ORD-001");
             assertThat(eventCaptor.getValue()).isInstanceOf(OrderCreatedEvent.class);
         }
@@ -90,7 +90,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_ORDER_CONFIRMED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.ORDER_CONFIRMED);
             assertThat(keyCaptor.getValue()).isEqualTo("ORD-001");
         }
     }
@@ -116,7 +116,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_ORDER_CANCELLED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.ORDER_CANCELLED);
             assertThat(keyCaptor.getValue()).isEqualTo("ORD-001");
         }
     }
@@ -143,7 +143,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_PAYMENT_COMPLETED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.PAYMENT_COMPLETED);
             assertThat(keyCaptor.getValue()).isEqualTo("PAY-001");
         }
     }
@@ -170,7 +170,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_PAYMENT_FAILED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.PAYMENT_FAILED);
             assertThat(keyCaptor.getValue()).isEqualTo("PAY-001");
         }
     }
@@ -196,7 +196,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_INVENTORY_RESERVED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.INVENTORY_RESERVED);
             assertThat(keyCaptor.getValue()).isEqualTo("ORD-001");
         }
     }
@@ -223,7 +223,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_DELIVERY_SHIPPED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.DELIVERY_SHIPPED);
             assertThat(keyCaptor.getValue()).isEqualTo("TRK-ABC123");
         }
     }
@@ -250,7 +250,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_COUPON_ISSUED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.COUPON_ISSUED);
             assertThat(keyCaptor.getValue()).isEqualTo("SAVE10");
         }
     }
@@ -276,7 +276,7 @@ class ShoppingEventPublisherTest {
             ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
 
-            assertThat(topicCaptor.getValue()).isEqualTo(KafkaConfig.TOPIC_TIMEDEAL_STARTED);
+            assertThat(topicCaptor.getValue()).isEqualTo(ShoppingTopics.TIMEDEAL_STARTED);
             assertThat(keyCaptor.getValue()).isEqualTo("1");
         }
     }
