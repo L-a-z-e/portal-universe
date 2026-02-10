@@ -1,6 +1,6 @@
 # ADR-032: Kafka Configuration Standardization
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-02-10
 **Author**: Laze
 **Supersedes**: -
@@ -255,3 +255,4 @@ notification-service의 현재 설정을 기준으로 Consumer 표준을 정의�
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-10 | 초안 작성 | Laze |
+| 2026-02-10 | Status → Accepted, D1~D4 구현 완료 | Laze |
