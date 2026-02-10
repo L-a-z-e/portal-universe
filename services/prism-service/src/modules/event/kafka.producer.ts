@@ -62,6 +62,7 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // Topic names must stay in sync with PrismTopics.java (prism-events module)
   async sendTaskCompleted(event: TaskEvent): Promise<void> {
     await this.send('prism.task.completed', event);
   }
