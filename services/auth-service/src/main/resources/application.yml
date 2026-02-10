@@ -46,14 +46,6 @@ spring:
   # OAuth2 Client 설정은 각 프로필별로 정의
   # local 프로필에서 필요시 활성화
 
-  # Kafka Producer 공통 설정
-  kafka:
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      retries: 3
-
 # JWT 설정 (다중 키 지원 - Key Rotation)
 jwt:
   # 현재 토큰 서명에 사용할 키 ID

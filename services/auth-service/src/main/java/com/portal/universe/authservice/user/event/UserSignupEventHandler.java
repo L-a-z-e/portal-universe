@@ -1,5 +1,6 @@
 package com.portal.universe.authservice.user.event;
 
+import com.portal.universe.event.auth.AuthTopics;
 import com.portal.universe.event.auth.UserSignedUpEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,6 @@ public class UserSignupEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserSignup(UserSignedUpEvent event) {
         log.info("Publishing user signup event: userId={}, email={}", event.userId(), event.email());
-        kafkaTemplate.send("user-signup", event);
+        kafkaTemplate.send(AuthTopics.USER_SIGNED_UP, event);
     }
 }

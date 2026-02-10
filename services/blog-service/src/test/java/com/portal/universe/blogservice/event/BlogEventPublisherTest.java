@@ -1,5 +1,6 @@
 package com.portal.universe.blogservice.event;
 
+import com.portal.universe.event.blog.BlogTopics;
 import com.portal.universe.event.blog.CommentCreatedEvent;
 import com.portal.universe.event.blog.CommentRepliedEvent;
 import com.portal.universe.event.blog.PostLikedEvent;
@@ -66,7 +67,7 @@ class BlogEventPublisherTest {
 
             // then
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), eventCaptor.capture());
-            assertThat(topicCaptor.getValue()).isEqualTo("blog.post.liked");
+            assertThat(topicCaptor.getValue()).isEqualTo(BlogTopics.POST_LIKED);
             assertThat(keyCaptor.getValue()).isEqualTo("post-1");
             assertThat(eventCaptor.getValue()).isEqualTo(event);
         }
@@ -106,7 +107,7 @@ class BlogEventPublisherTest {
 
             // then
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), eventCaptor.capture());
-            assertThat(topicCaptor.getValue()).isEqualTo("blog.post.commented");
+            assertThat(topicCaptor.getValue()).isEqualTo(BlogTopics.POST_COMMENTED);
             assertThat(keyCaptor.getValue()).isEqualTo("post-1");
             assertThat(eventCaptor.getValue()).isEqualTo(event);
         }
@@ -146,7 +147,7 @@ class BlogEventPublisherTest {
 
             // then
             verify(kafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), eventCaptor.capture());
-            assertThat(topicCaptor.getValue()).isEqualTo("blog.comment.replied");
+            assertThat(topicCaptor.getValue()).isEqualTo(BlogTopics.COMMENT_REPLIED);
             assertThat(keyCaptor.getValue()).isEqualTo("post-1");
             assertThat(eventCaptor.getValue()).isEqualTo(event);
         }

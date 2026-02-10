@@ -16,7 +16,7 @@ Portal Universe의 이벤트 기반 아키텍처는 Apache Kafka를 통해 4개 
 
 ```mermaid
 graph LR
-    A[auth-service<br/>Java/Spring] -->|user-signup| K[Kafka<br/>KRaft Mode]
+    A[auth-service<br/>Java/Spring] -->|auth.user.signed-up| K[Kafka<br/>KRaft Mode]
     S[shopping-service<br/>Java/Spring] -->|shopping.*| K
     B[blog-service<br/>Java/Spring] -->|blog.*| K
     P[prism-service<br/>NestJS] -->|prism.*| K
@@ -48,11 +48,15 @@ graph LR
 
 ---
 
-## 전체 토픽 매핑 (17개)
+## 전체 토픽 매핑 (16개)
+
+### Topic 명명 규칙
+
+모든 topic은 `{domain}.{entity}.{past-participle}` 패턴을 따른다. Topic 이름의 Single Source of Truth는 각 도메인의 events 모듈에 있는 `*Topics.java` 상수 클래스이다 (ADR-032).
 
 | 토픽 | Publisher | Subscriber | Event Class | 용도 | 상태 |
 |------|-----------|------------|-------------|------|------|
-| `user-signup` | auth-service | notification-service | UserSignedUpEvent | 회원가입 환영 알림 | ✅ Active |
+| `auth.user.signed-up` | auth-service | notification-service | UserSignedUpEvent | 회원가입 환영 알림 | ✅ Active |
 | `shopping.order.created` | shopping-service | notification-service | OrderCreatedEvent | 주문 생성 알림 | ✅ Active |
 | `shopping.order.confirmed` | shopping-service | - | OrderConfirmedEvent | (미사용) | ⚠️ Unused |
 | `shopping.order.cancelled` | shopping-service | notification-service | OrderCancelledEvent | 주문 취소 알림 | ✅ Active |
@@ -72,7 +76,7 @@ graph LR
 **주요 특징**:
 - 현재 notification-service가 **유일한 Consumer**로 설계됨
 - 미사용 토픽 3개는 향후 확장 계획(Saga 패턴, 브로드캐스트 알림 등)을 위해 예약됨
-- 토픽 명명 규칙: `{domain}.{aggregate}.{action}` (예: `shopping.order.created`)
+- 토픽 명명 규칙: `{domain}.{entity}.{past-participle}` (예: `shopping.order.created`) - ADR-032
 
 ---
 
@@ -87,12 +91,12 @@ graph LR
 ```java
 @Component
 @RequiredArgsConstructor
-public class EventPublisher {
+public class UserSignupEventHandler {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleUserSignedUp(UserSignedUpEvent event) {
-        kafkaTemplate.send("user-signup", event.getUserId(), event);
+    public void handleUserSignup(UserSignedUpEvent event) {
+        kafkaTemplate.send(AuthTopics.USER_SIGNED_UP, event);
     }
 }
 ```
@@ -360,6 +364,7 @@ spring:
 - [service-communication.md](./service-communication.md) - 서비스 간 통신 패턴 (동기 vs 비동기)
 - [notification-service 아키텍처](../notification-service/architecture-overview.md)
 - [ADR-001: Kafka 도입 결정](../../adr/ADR-001-kafka-adoption.md) (작성 예정)
+- [ADR-032: Kafka Configuration Standardization](../../adr/ADR-032-kafka-configuration-standardization.md)
 - [Kafka 운영 가이드](../../runbooks/kafka-operations.md) (작성 예정)
 
 ---
@@ -369,6 +374,7 @@ spring:
 | 날짜 | 변경 내용 | 작성자 |
 |------|-----------|--------|
 | 2026-02-06 | 실제 코드 기반 신규 작성 (17개 토픽 분석 완료) | Laze |
+| 2026-02-10 | ADR-032 반영: topic 명명 규칙 통일, user-signup → auth.user.signed-up, Topics SSOT 명시 | Laze |
 
 ---
 

@@ -25,14 +25,6 @@ spring:
         order_inserts: true
         order_updates: true
 
-  # Kafka Producer 공통 설정
-  kafka:
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      retries: 3
-
 # Swagger/OpenAPI 설정
 springdoc:
   api-docs:

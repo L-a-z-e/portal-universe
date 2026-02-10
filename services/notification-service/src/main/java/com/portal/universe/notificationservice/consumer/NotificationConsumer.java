@@ -1,14 +1,17 @@
 package com.portal.universe.notificationservice.consumer;
 
+import com.portal.universe.event.auth.AuthTopics;
 import com.portal.universe.event.auth.UserSignedUpEvent;
+import com.portal.universe.event.blog.BlogTopics;
 import com.portal.universe.event.blog.CommentCreatedEvent;
 import com.portal.universe.event.blog.CommentRepliedEvent;
 import com.portal.universe.event.blog.PostLikedEvent;
 import com.portal.universe.event.blog.UserFollowedEvent;
+import com.portal.universe.event.prism.PrismTopics;
 import com.portal.universe.event.prism.PrismTaskCompletedEvent;
 import com.portal.universe.event.prism.PrismTaskFailedEvent;
 import com.portal.universe.event.shopping.*;
-import com.portal.universe.notificationservice.common.constants.NotificationConstants;
+import com.portal.universe.event.shopping.ShoppingTopics;
 import com.portal.universe.notificationservice.converter.NotificationEventConverter;
 import com.portal.universe.notificationservice.domain.Notification;
 import com.portal.universe.notificationservice.domain.NotificationType;
@@ -30,7 +33,7 @@ public class NotificationConsumer {
     private final NotificationPushService pushService;
     private final NotificationEventConverter converter;
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_USER_SIGNUP,
+    @KafkaListener(topics = AuthTopics.USER_SIGNED_UP,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleUserSignup(UserSignedUpEvent event) {
         log.info("Received user signup event: userId={}", event.userId());
@@ -45,7 +48,7 @@ public class NotificationConsumer {
 
     // ===== Shopping Domain Events =====
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_ORDER_CREATED,
+    @KafkaListener(topics = ShoppingTopics.ORDER_CREATED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleOrderCreated(OrderCreatedEvent event) {
         log.info("Received order created event: orderNumber={}", event.orderNumber());
@@ -58,7 +61,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_ORDER_CANCELLED,
+    @KafkaListener(topics = ShoppingTopics.ORDER_CANCELLED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleOrderCancelled(OrderCancelledEvent event) {
         log.info("Received order cancelled event: orderNumber={}", event.orderNumber());
@@ -71,7 +74,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_PAYMENT_COMPLETED,
+    @KafkaListener(topics = ShoppingTopics.PAYMENT_COMPLETED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handlePaymentCompleted(PaymentCompletedEvent event) {
         log.info("Received payment completed event: paymentNumber={}", event.paymentNumber());
@@ -84,7 +87,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_PAYMENT_FAILED,
+    @KafkaListener(topics = ShoppingTopics.PAYMENT_FAILED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handlePaymentFailed(PaymentFailedEvent event) {
         log.info("Received payment failed event: paymentNumber={}", event.paymentNumber());
@@ -97,7 +100,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_DELIVERY_SHIPPED,
+    @KafkaListener(topics = ShoppingTopics.DELIVERY_SHIPPED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleDeliveryShipped(DeliveryShippedEvent event) {
         log.info("Received delivery shipped event: trackingNumber={}", event.trackingNumber());
@@ -110,7 +113,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_COUPON_ISSUED,
+    @KafkaListener(topics = ShoppingTopics.COUPON_ISSUED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleCouponIssued(CouponIssuedEvent event) {
         log.info("Received coupon issued event: couponCode={}", event.couponCode());
@@ -123,7 +126,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_TIMEDEAL_STARTED,
+    @KafkaListener(topics = ShoppingTopics.TIMEDEAL_STARTED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleTimeDealStarted(TimeDealStartedEvent event) {
         log.info("Received timedeal started event: id={}", event.timeDealId());
@@ -134,7 +137,7 @@ public class NotificationConsumer {
 
     // ===== Blog Domain Events =====
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_BLOG_POST_LIKED,
+    @KafkaListener(topics = BlogTopics.POST_LIKED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handlePostLiked(PostLikedEvent event) {
         log.info("Received post liked event: postId={}, likerId={}", event.postId(), event.likerId());
@@ -147,7 +150,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_BLOG_POST_COMMENTED,
+    @KafkaListener(topics = BlogTopics.POST_COMMENTED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleCommentCreated(CommentCreatedEvent event) {
         log.info("Received comment created event: postId={}, commenterId={}", event.postId(), event.commenterId());
@@ -160,7 +163,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_BLOG_COMMENT_REPLIED,
+    @KafkaListener(topics = BlogTopics.COMMENT_REPLIED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleCommentReplied(CommentRepliedEvent event) {
         log.info("Received comment replied event: postId={}, replierId={}, parentCommentId={}",
@@ -174,7 +177,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_BLOG_USER_FOLLOWED,
+    @KafkaListener(topics = BlogTopics.USER_FOLLOWED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handleUserFollowed(UserFollowedEvent event) {
         log.info("Received user followed event: followeeId={}, followerId={}",
@@ -190,7 +193,7 @@ public class NotificationConsumer {
 
     // ===== Prism Domain Events =====
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_PRISM_TASK_COMPLETED,
+    @KafkaListener(topics = PrismTopics.TASK_COMPLETED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handlePrismTaskCompleted(PrismTaskCompletedEvent event) {
         log.info("Received prism task completed event: taskId={}, userId={}", event.taskId(), event.userId());
@@ -203,7 +206,7 @@ public class NotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = NotificationConstants.TOPIC_PRISM_TASK_FAILED,
+    @KafkaListener(topics = PrismTopics.TASK_FAILED,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void handlePrismTaskFailed(PrismTaskFailedEvent event) {
         log.info("Received prism task failed event: taskId={}, userId={}", event.taskId(), event.userId());
@@ -221,9 +224,6 @@ public class NotificationConsumer {
         createAndPushNotification(CreateNotificationCommand.from(event));
     }
 
-    /**
-     * 알림을 생성하고 실시간 푸시합니다.
-     */
     private void createAndPushNotification(CreateNotificationCommand cmd) {
         Notification notification = notificationService.create(cmd);
         pushService.push(notification);

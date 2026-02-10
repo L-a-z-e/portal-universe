@@ -1,50 +1,46 @@
 package com.portal.universe.notificationservice.common.constants;
 
+import com.portal.universe.event.auth.AuthTopics;
+import com.portal.universe.event.blog.BlogTopics;
+import com.portal.universe.event.prism.PrismTopics;
+import com.portal.universe.event.shopping.ShoppingTopics;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DisplayName("NotificationConstants")
+@DisplayName("NotificationConstants & Domain Topics")
 class NotificationConstantsTest {
 
     @Test
-    @DisplayName("15개 이상의 Kafka topic 상수가 정의되어 있다")
-    void should_haveAtLeast15KafkaTopics() {
-        List<Field> topicFields = Arrays.stream(NotificationConstants.class.getDeclaredFields())
-                .filter(f -> f.getName().startsWith("TOPIC_"))
-                .filter(f -> Modifier.isPublic(f.getModifiers()))
-                .filter(f -> Modifier.isStatic(f.getModifiers()))
-                .filter(f -> Modifier.isFinal(f.getModifiers()))
-                .collect(Collectors.toList());
+    @DisplayName("도메인 Topics 클래스에 올바른 topic 이름이 정의되어 있다")
+    void should_haveDomainTopicsWithCorrectValues() {
+        // Auth
+        assertThat(AuthTopics.USER_SIGNED_UP).isEqualTo("auth.user.signed-up");
 
-        assertThat(topicFields).hasSizeGreaterThanOrEqualTo(15);
+        // Shopping
+        assertThat(ShoppingTopics.ORDER_CREATED).isEqualTo("shopping.order.created");
+        assertThat(ShoppingTopics.ORDER_CONFIRMED).isEqualTo("shopping.order.confirmed");
+        assertThat(ShoppingTopics.ORDER_CANCELLED).isEqualTo("shopping.order.cancelled");
+        assertThat(ShoppingTopics.DELIVERY_SHIPPED).isEqualTo("shopping.delivery.shipped");
+        assertThat(ShoppingTopics.PAYMENT_COMPLETED).isEqualTo("shopping.payment.completed");
+        assertThat(ShoppingTopics.PAYMENT_FAILED).isEqualTo("shopping.payment.failed");
+        assertThat(ShoppingTopics.COUPON_ISSUED).isEqualTo("shopping.coupon.issued");
+        assertThat(ShoppingTopics.TIMEDEAL_STARTED).isEqualTo("shopping.timedeal.started");
+        assertThat(ShoppingTopics.INVENTORY_RESERVED).isEqualTo("shopping.inventory.reserved");
 
-        // 주요 토픽들이 존재하는지 확인
-        assertThat(NotificationConstants.TOPIC_USER_SIGNUP).isEqualTo("user-signup");
-        assertThat(NotificationConstants.TOPIC_ORDER_CREATED).isEqualTo("shopping.order.created");
-        assertThat(NotificationConstants.TOPIC_ORDER_CONFIRMED).isEqualTo("shopping.order.confirmed");
-        assertThat(NotificationConstants.TOPIC_ORDER_CANCELLED).isEqualTo("shopping.order.cancelled");
-        assertThat(NotificationConstants.TOPIC_DELIVERY_SHIPPED).isEqualTo("shopping.delivery.shipped");
-        assertThat(NotificationConstants.TOPIC_PAYMENT_COMPLETED).isEqualTo("shopping.payment.completed");
-        assertThat(NotificationConstants.TOPIC_PAYMENT_FAILED).isEqualTo("shopping.payment.failed");
-        assertThat(NotificationConstants.TOPIC_COUPON_ISSUED).isEqualTo("shopping.coupon.issued");
-        assertThat(NotificationConstants.TOPIC_TIMEDEAL_STARTED).isEqualTo("shopping.timedeal.started");
-        assertThat(NotificationConstants.TOPIC_BLOG_POST_LIKED).isEqualTo("blog.post.liked");
-        assertThat(NotificationConstants.TOPIC_BLOG_POST_COMMENTED).isEqualTo("blog.post.commented");
-        assertThat(NotificationConstants.TOPIC_BLOG_COMMENT_REPLIED).isEqualTo("blog.comment.replied");
-        assertThat(NotificationConstants.TOPIC_BLOG_USER_FOLLOWED).isEqualTo("blog.user.followed");
-        assertThat(NotificationConstants.TOPIC_PRISM_TASK_COMPLETED).isEqualTo("prism.task.completed");
-        assertThat(NotificationConstants.TOPIC_PRISM_TASK_FAILED).isEqualTo("prism.task.failed");
+        // Blog
+        assertThat(BlogTopics.POST_LIKED).isEqualTo("blog.post.liked");
+        assertThat(BlogTopics.POST_COMMENTED).isEqualTo("blog.post.commented");
+        assertThat(BlogTopics.COMMENT_REPLIED).isEqualTo("blog.comment.replied");
+        assertThat(BlogTopics.USER_FOLLOWED).isEqualTo("blog.user.followed");
+
+        // Prism
+        assertThat(PrismTopics.TASK_COMPLETED).isEqualTo("prism.task.completed");
+        assertThat(PrismTopics.TASK_FAILED).isEqualTo("prism.task.failed");
     }
 
     @Test
@@ -66,7 +62,6 @@ class NotificationConstantsTest {
 
         assertThat(Modifier.isPrivate(constructor.getModifiers())).isTrue();
 
-        // 리플렉션으로 강제 호출해도 인스턴스는 생성 가능하지만 설계 의도가 private임을 확인
         constructor.setAccessible(true);
         NotificationConstants instance = constructor.newInstance();
         assertThat(instance).isNotNull();
