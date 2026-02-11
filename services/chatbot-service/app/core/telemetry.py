@@ -9,8 +9,11 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+_tracer_provider: TracerProvider | None = None
+
 
 def setup_telemetry() -> None:
+    global _tracer_provider
     resource = Resource.create({"service.name": "chatbot-service"})
     provider = TracerProvider(resource=resource)
 
@@ -27,3 +30,12 @@ def setup_telemetry() -> None:
         logger.info("Tracing disabled (TRACING_ENABLED=false)")
 
     trace.set_tracer_provider(provider)
+    _tracer_provider = provider
+
+
+def shutdown_telemetry() -> None:
+    global _tracer_provider
+    if _tracer_provider is not None:
+        _tracer_provider.force_flush(timeout_millis=5000)
+        _tracer_provider.shutdown()
+        _tracer_provider = None

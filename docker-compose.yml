@@ -570,6 +570,8 @@ services:
       - DOCUMENTS_DIR=/app/documents
       - SERVICE_PORT=8086
       - LOG_LEVEL=INFO
+      - TRACING_ENABLED=true
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
     volumes:
       - chatbot-data:/app/data
       - chatbot-docs:/app/documents
@@ -746,6 +748,9 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: cadvisor
+    command:
+      - '--store_container_labels=true'
+      - '--whitelisted_container_labels=com.docker.compose.service'
     mem_limit: 256m
     memswap_limit: 256m
     cpus: 0.5

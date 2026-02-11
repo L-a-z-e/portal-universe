@@ -1,3 +1,8 @@
+import { config } from 'dotenv';
+
+// Load env file before any OTel config — mirrors ConfigModule's envFilePath logic
+config({ path: `.env.${process.env.NODE_ENV || 'local'}` });
+
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
@@ -21,9 +26,7 @@ const prometheusExporter = new PrometheusExporter(
   },
 );
 
-const tracingEnabled =
-  process.env.OTEL_TRACES_EXPORTER !== 'none' &&
-  process.env.NODE_ENV !== 'local';
+const tracingEnabled = process.env.OTEL_TRACES_EXPORTER !== 'none';
 
 const spanProcessors = tracingEnabled
   ? [
