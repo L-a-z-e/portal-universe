@@ -55,7 +55,7 @@ public class InventoryController {
      *
      * @param productId 상품 ID
      * @param request 초기 재고 정보
-     * @param userId 사용자 ID
+     * @param user 인증된 사용자 정보
      * @return 생성된 재고 정보
      */
     @PostMapping("/{productId}")
@@ -71,7 +71,7 @@ public class InventoryController {
      *
      * @param productId 상품 ID
      * @param request 추가할 재고 정보
-     * @param userId 사용자 ID
+     * @param user 인증된 사용자 정보
      * @return 업데이트된 재고 정보
      */
     @PutMapping("/{productId}/add")

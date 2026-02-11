@@ -26,7 +26,7 @@ public class PaymentController {
      * 결제를 처리합니다.
      *
      * @param request 결제 요청
-     * @param userId 사용자 ID
+     * @param user 인증된 사용자 정보
      * @return 결제 결과
      */
     @PostMapping
@@ -40,7 +40,7 @@ public class PaymentController {
      * 결제 번호로 결제를 조회합니다.
      *
      * @param paymentNumber 결제 번호
-     * @param userId 사용자 ID
+     * @param user 인증된 사용자 정보
      * @return 결제 정보
      */
     @GetMapping("/{paymentNumber}")
@@ -54,7 +54,7 @@ public class PaymentController {
      * 결제를 취소합니다.
      *
      * @param paymentNumber 결제 번호
-     * @param userId 사용자 ID
+     * @param user 인증된 사용자 정보
      * @return 취소된 결제 정보
      */
     @PostMapping("/{paymentNumber}/cancel")
@@ -68,7 +68,7 @@ public class PaymentController {
      * 결제를 환불합니다 (관리자 전용).
      *
      * @param paymentNumber 결제 번호
-     * @param adminId 관리자 ID
+     * @param user 인증된 관리자 정보
      * @return 환불된 결제 정보
      */
     @PostMapping("/{paymentNumber}/refund")
