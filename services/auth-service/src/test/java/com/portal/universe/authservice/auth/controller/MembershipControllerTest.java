@@ -6,7 +6,6 @@ import com.portal.universe.authservice.auth.dto.membership.ChangeMembershipReque
 import com.portal.universe.authservice.auth.dto.membership.MembershipResponse;
 import com.portal.universe.authservice.auth.dto.membership.MembershipTierResponse;
 import com.portal.universe.authservice.auth.service.MembershipService;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,9 +49,6 @@ class MembershipControllerTest {
 
     @MockitoBean
     MembershipService membershipService;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String USER_UUID = "test-user-uuid";
     private static final String BASE_URL = "/api/v1/memberships";

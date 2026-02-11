@@ -5,7 +5,6 @@ import com.portal.universe.authservice.auth.domain.MembershipStatus;
 import com.portal.universe.authservice.auth.dto.membership.ChangeMembershipRequest;
 import com.portal.universe.authservice.auth.dto.membership.MembershipResponse;
 import com.portal.universe.authservice.auth.service.MembershipService;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,9 +55,6 @@ class MembershipAdminControllerTest {
 
     @MockitoBean
     MembershipService membershipService;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String ADMIN_UUID = "admin-uuid";
     private static final String TARGET_USER_UUID = "target-user-uuid";

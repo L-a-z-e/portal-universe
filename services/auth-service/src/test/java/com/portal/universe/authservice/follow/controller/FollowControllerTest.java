@@ -7,7 +7,6 @@ import com.portal.universe.authservice.follow.dto.FollowStatusResponse;
 import com.portal.universe.authservice.follow.dto.FollowUserResponse;
 import com.portal.universe.authservice.follow.dto.FollowingIdsResponse;
 import com.portal.universe.authservice.follow.service.FollowService;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,9 +42,6 @@ class FollowControllerTest {
 
     @MockitoBean
     FollowService followService;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String USER_UUID = "test-user-uuid";
     private static final String BASE_URL = "/api/v1/users";
