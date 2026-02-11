@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Button } from '@portal/design-system-vue';
+import { Button, useApiError } from '@portal/design-system-vue';
 import { useFollowStore } from '@/stores/followStore';
 
 interface Props {
@@ -21,6 +21,7 @@ const emit = defineEmits<{
 }>();
 
 const followStore = useFollowStore();
+const { getErrorMessage } = useApiError();
 
 // State
 const following = ref(props.initialFollowing);
@@ -47,20 +48,14 @@ async function handleToggle() {
     const response = await followStore.toggleFollow(props.username, props.targetUuid);
     following.value = response.following;
     emit('followChanged', response.following, response.followerCount, response.followingCount);
-  } catch (err: any) {
+  } catch (err) {
     console.error('Failed to toggle follow:', err);
 
     // 롤백
     following.value = previousFollowing;
 
     // 에러 메시지 설정
-    if (err.response?.status === 401) {
-      error.value = '로그인이 필요합니다';
-    } else if (err.response?.status === 400) {
-      error.value = '자기 자신을 팔로우할 수 없습니다';
-    } else {
-      error.value = '처리 중 오류가 발생했습니다';
-    }
+    error.value = getErrorMessage(err, '팔로우 처리에 실패했습니다.');
 
     // 에러 메시지 자동 숨김
     setTimeout(() => {

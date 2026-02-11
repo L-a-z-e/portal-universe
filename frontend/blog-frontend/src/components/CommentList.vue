@@ -17,7 +17,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const { handleError } = useApiError()
+const { handleError, getErrorMessage } = useApiError()
 
 // 상태 관리
 const comments = ref<CommentResponse[]>([])
@@ -69,7 +69,7 @@ async function loadComments() {
     comments.value = await getCommentsByPostId(props.postId)
   } catch (e) {
     console.error('댓글 로드 실패:', e)
-    error.value = '댓글을 불러오지 못했습니다.'
+    error.value = getErrorMessage(e, '댓글을 불러오지 못했습니다.')
   } finally {
     isLoading.value = false
   }
