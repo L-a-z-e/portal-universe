@@ -15,12 +15,20 @@ groups:
           description: "{{ $labels.job }} has been down for more than 1 minute."
           runbook_url: "https://wiki.portal-universe.com/runbooks/service-down"
 
-      # High Error Rate (5xx)
+      # High Error Rate (5xx) - Polyglot: Spring Micrometer + OTel/prometheus_client
       - alert: HighErrorRate
         expr: |
-          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
-          /
-          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          )
+          or
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total[5m])) by (job)
+          )
           > 0.05
         for: 2m
         labels:
@@ -29,12 +37,20 @@ groups:
           summary: "High error rate on {{ $labels.job }}"
           description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}."
 
-      # Critical Error Rate
+      # Critical Error Rate - Polyglot
       - alert: CriticalErrorRate
         expr: |
-          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
-          /
-          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          )
+          or
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total[5m])) by (job)
+          )
           > 0.10
         for: 1m
         labels:
@@ -43,10 +59,16 @@ groups:
           summary: "Critical error rate on {{ $labels.job }}"
           description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}. Immediate action required."
 
-      # High Latency (p95 > 500ms)
+      # High Latency (p95 > 500ms) - Polyglot
       - alert: HighLatency
         expr: |
-          histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          (
+            histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          )
+          or
+          (
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+          )
           > 0.5
         for: 5m
         labels:
@@ -55,10 +77,16 @@ groups:
           summary: "High latency on {{ $labels.job }}"
           description: "p95 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}."
 
-      # Very High Latency (p99 > 1s)
+      # Very High Latency (p99 > 1s) - Polyglot
       - alert: VeryHighLatency
         expr: |
-          histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          (
+            histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          )
+          or
+          (
+            histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+          )
           > 1.0
         for: 3m
         labels:

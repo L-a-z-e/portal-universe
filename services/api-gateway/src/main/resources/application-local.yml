@@ -66,6 +66,12 @@ management:
     metrics:
       export:
         enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
 
 # 공개 경로 설정 (환경별 명시적 관리)
 gateway:

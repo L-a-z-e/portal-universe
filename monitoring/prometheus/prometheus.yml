@@ -92,6 +92,32 @@ scrape_configs:
         replacement: 'platform'
 
   # ========================================
+  # Prism Service (NestJS + OTel)
+  # ========================================
+  - job_name: 'prism-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['prism-service:9464']
+    relabel_configs:
+      - target_label: service
+        replacement: 'prism-service'
+      - target_label: team
+        replacement: 'ai'
+
+  # ========================================
+  # Chatbot Service (Python + prometheus_client)
+  # ========================================
+  - job_name: 'chatbot-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['chatbot-service:8086']
+    relabel_configs:
+      - target_label: service
+        replacement: 'chatbot-service'
+      - target_label: team
+        replacement: 'ai'
+
+  # ========================================
   # cAdvisor (Container Metrics)
   # ========================================
   - job_name: 'cadvisor'
