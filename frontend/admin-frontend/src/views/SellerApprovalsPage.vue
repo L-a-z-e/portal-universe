@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useApiError } from '@portal/design-system-vue';
 import { fetchPendingSellerApplications, reviewSellerApplication } from '@/api/admin';
 import type { SellerApplication, PageResponse } from '@/dto/admin';
+
+const { getErrorMessage, handleError } = useApiError();
 
 const data = ref<PageResponse<SellerApplication> | null>(null);
 const loading = ref(true);
 const reviewing = ref(false);
+const error = ref('');
 
 async function load() {
   loading.value = true;
+  error.value = '';
   try {
     data.value = await fetchPendingSellerApplications();
   } catch (err) {
     console.error('[Admin] Failed to fetch seller applications:', err);
+    error.value = getErrorMessage(err, 'Failed to load seller applications.');
   } finally {
     loading.value = false;
   }
@@ -25,6 +31,8 @@ async function handleReview(id: number, approved: boolean) {
   try {
     await reviewSellerApplication(id, approved, comment || '');
     await load();
+  } catch (err) {
+    handleError(err, 'Failed to process review.');
   } finally {
     reviewing.value = false;
   }
@@ -36,6 +44,10 @@ onMounted(load);
 <template>
   <div>
     <h1 class="text-2xl font-bold text-text-heading mb-6">Seller Approvals</h1>
+    <div v-if="error" class="mb-4 p-3 bg-status-error-bg text-status-error rounded text-sm">
+      {{ error }}
+    </div>
+
     <div class="bg-bg-card rounded-lg shadow overflow-hidden border border-border-default">
       <table class="w-full text-sm">
         <thead class="bg-bg-elevated border-b border-border-default">

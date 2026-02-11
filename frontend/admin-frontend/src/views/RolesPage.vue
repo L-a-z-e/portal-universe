@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Card, Button, Badge, Spinner, Alert, SearchBar, Select, Input } from '@portal/design-system-vue';
+import { Card, Button, Badge, Spinner, Alert, SearchBar, Select, Input, useApiError } from '@portal/design-system-vue';
 import type { SelectOption } from '@portal/design-system-vue';
 import {
   fetchRoles,
@@ -18,6 +18,8 @@ import type {
   PermissionResponse,
   CreateRoleRequest,
 } from '@/dto/admin';
+
+const { getErrorMessage } = useApiError();
 
 // === State ===
 const roles = ref<RoleResponse[]>([]);
@@ -87,7 +89,7 @@ async function loadRoles() {
   try {
     roles.value = await fetchRoles();
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to load roles';
+    error.value = getErrorMessage(e, 'Failed to load roles');
   } finally {
     loading.value = false;
   }
@@ -109,7 +111,7 @@ async function selectRole(roleKey: string) {
   try {
     selectedRole.value = await fetchRoleDetail(roleKey);
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to load role detail';
+    error.value = getErrorMessage(e, 'Failed to load role detail');
   } finally {
     detailLoading.value = false;
   }
@@ -134,7 +136,7 @@ async function saveEdit() {
     await selectRole(selectedRole.value.roleKey);
     await loadRoles();
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to update role';
+    error.value = getErrorMessage(e, 'Failed to update role');
   } finally {
     editSaving.value = false;
   }
@@ -147,7 +149,7 @@ async function handleToggleActive() {
     await selectRole(selectedRole.value.roleKey);
     await loadRoles();
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to toggle role status';
+    error.value = getErrorMessage(e, 'Failed to toggle role status');
   }
 }
 
@@ -183,7 +185,7 @@ async function handleCreate() {
     createMode.value = false;
     await loadRoles();
   } catch (e: unknown) {
-    createError.value = e instanceof Error ? e.message : 'Failed to create role';
+    createError.value = getErrorMessage(e, 'Failed to create role');
   } finally {
     createSaving.value = false;
   }
@@ -197,7 +199,7 @@ async function handleAssignPermission() {
     selectedPermissionKey.value = null;
     await selectRole(selectedRole.value.roleKey);
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to assign permission';
+    error.value = getErrorMessage(e, 'Failed to assign permission');
   } finally {
     permissionAssigning.value = false;
   }
@@ -209,7 +211,7 @@ async function handleRemovePermission(permissionKey: string) {
     await removePermission(selectedRole.value.roleKey, permissionKey);
     await selectRole(selectedRole.value.roleKey);
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to remove permission';
+    error.value = getErrorMessage(e, 'Failed to remove permission');
   }
 }
 

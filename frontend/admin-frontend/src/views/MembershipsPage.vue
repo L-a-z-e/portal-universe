@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Card, Button, Badge, Spinner, Alert, SearchBar, Select } from '@portal/design-system-vue';
+import { Card, Button, Badge, Spinner, Alert, SearchBar, Select, useApiError } from '@portal/design-system-vue';
 import type { SelectOption } from '@portal/design-system-vue';
 import {
   fetchMembershipGroups,
@@ -10,6 +10,8 @@ import {
   searchUsers,
 } from '@/api/admin';
 import type { MembershipTierResponse, MembershipResponse, AdminUserSummary } from '@/dto/admin';
+
+const { getErrorMessage } = useApiError();
 
 // === State ===
 const groups = ref<string[]>([]);
@@ -79,7 +81,7 @@ async function loadGroups() {
       await loadAllTiers(groups.value);
     }
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to load membership groups';
+    error.value = getErrorMessage(e, 'Failed to load membership groups');
   } finally {
     groupsLoading.value = false;
   }
@@ -93,7 +95,7 @@ async function loadAllTiers(groupList: string[]) {
       allGroupTiers.value[g] = results[i]!;
     });
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to load tiers';
+    error.value = getErrorMessage(e, 'Failed to load tiers');
   } finally {
     tiersLoading.value = false;
   }
@@ -117,7 +119,7 @@ async function handleSearch() {
     const page = await searchUsers(q, 1, 10);
     searchResults.value = page.items;
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to search users';
+    error.value = getErrorMessage(e, 'Failed to search users');
   } finally {
     searchLoading.value = false;
   }
@@ -138,7 +140,7 @@ async function loadUserMemberships(userId: string) {
       selectedUser.value = { uuid: userId, email: userId, username: null, nickname: null, profileImageUrl: null, status: 'ACTIVE', createdAt: '', lastLoginAt: null };
     }
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to load user memberships';
+    error.value = getErrorMessage(e, 'Failed to load user memberships');
   } finally {
     membershipsLoading.value = false;
   }
@@ -154,7 +156,7 @@ async function handleChangeTier(group: string, tierKey: string | null) {
     success.value = `Tier changed to ${tierKey} for ${group}`;
     await loadUserMemberships(selectedUser.value.uuid);
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Failed to change membership tier';
+    error.value = getErrorMessage(e, 'Failed to change membership tier');
   } finally {
     changingGroup.value = null;
   }

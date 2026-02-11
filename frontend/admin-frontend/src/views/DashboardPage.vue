@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Card, Button, Badge, Spinner, Alert } from '@portal/design-system-vue';
+import { Card, Button, Badge, Spinner, Alert, useApiError } from '@portal/design-system-vue';
 import { fetchDashboardStats } from '@/api/admin';
 import type { DashboardStats } from '@/dto/admin';
 
 const router = useRouter();
+const { getErrorMessage } = useApiError();
 const stats = ref<DashboardStats | null>(null);
 const loading = ref(true);
-const error = ref(false);
+const error = ref('');
 
 onMounted(async () => {
   try {
     stats.value = await fetchDashboardStats();
   } catch (err) {
     console.error('[Admin] Failed to fetch dashboard stats:', err);
-    error.value = true;
+    error.value = getErrorMessage(err, 'Failed to load dashboard data.');
   } finally {
     loading.value = false;
   }
@@ -60,7 +61,7 @@ const quickLinks = [
     </div>
 
     <!-- Error state -->
-    <Alert v-else-if="error" variant="error" title="Failed to load dashboard data.">
+    <Alert v-else-if="error" variant="error" :title="error">
       <template #action>
         <Button variant="ghost" size="sm" @click="$router.go(0)">Retry</Button>
       </template>

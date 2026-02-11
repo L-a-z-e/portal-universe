@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Card, Button, Badge, Spinner, Alert, SearchBar, Select, Avatar } from '@portal/design-system-vue';
+import { Card, Button, Badge, Spinner, Alert, SearchBar, Select, Avatar, useApiError } from '@portal/design-system-vue';
 import type { SelectOption } from '@portal/design-system-vue';
 import {
   searchUsers,
@@ -18,6 +18,8 @@ import type {
   UserPermissions,
   MembershipResponse,
 } from '@/dto/admin';
+
+const { getErrorMessage, handleError } = useApiError();
 
 // --- Search & List ---
 const query = ref('');
@@ -54,7 +56,7 @@ async function loadUsers(page = 1) {
     totalElements.value = result.totalElements;
     currentPage.value = result.page;
   } catch (err) {
-    listError.value = 'Failed to load users.';
+    listError.value = getErrorMessage(err, 'Failed to load users.');
     console.error('[Admin] User search failed:', err);
   } finally {
     listLoading.value = false;
@@ -87,7 +89,7 @@ async function selectUser(user: AdminUserSummary) {
     userPermissions.value = perms;
     userMemberships.value = memberships;
   } catch (err) {
-    detailError.value = 'Failed to load user details.';
+    detailError.value = getErrorMessage(err, 'Failed to load user details.');
     console.error('[Admin] User detail load failed:', err);
   } finally {
     detailLoading.value = false;
@@ -109,7 +111,7 @@ async function handleAssign() {
     selectedRoleKey.value = null;
     await selectUser(selectedUser.value);
   } catch (err) {
-    console.error('[Admin] Role assign failed:', err);
+    handleError(err, 'Failed to assign role');
   } finally {
     assignLoading.value = false;
   }
@@ -121,7 +123,7 @@ async function handleRevoke(roleKey: string) {
     await revokeRole(selectedUser.value.uuid, roleKey);
     await selectUser(selectedUser.value);
   } catch (err) {
-    console.error('[Admin] Role revoke failed:', err);
+    handleError(err, 'Failed to revoke role');
   }
 }
 
