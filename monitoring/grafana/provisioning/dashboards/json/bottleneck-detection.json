@@ -150,7 +150,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\", uri!~\"/actuator.*\"}[$interval])) by (application) / sum(rate(http_server_requests_seconds_count{uri!~\"/actuator.*\"}[$interval])) by (application)",
+          "expr": "(sum(rate(http_server_requests_seconds_count{status=~\"5..\", uri!~\"/actuator.*\"}[$interval])) by (application) or vector(0)) / sum(rate(http_server_requests_seconds_count{uri!~\"/actuator.*\"}[$interval])) by (application)",
           "legendFormat": "{{application}}",
           "refId": "A"
         }
@@ -187,19 +187,19 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"$service\", uri!~\"/actuator.*\"}[$interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=~\"$service\", uri!~\"/actuator.*\"}[$interval])) by (le))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"$service\", uri!~\"/actuator.*\"}[$interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=~\"$service\", uri!~\"/actuator.*\"}[$interval])) by (le))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"$service\", uri!~\"/actuator.*\"}[$interval])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=~\"$service\", uri!~\"/actuator.*\"}[$interval])) by (le))",
           "legendFormat": "p99",
           "refId": "C"
         }
@@ -244,8 +244,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "rate(container_cpu_usage_seconds_total{name=~\".*-service|api-gateway\"}[$interval])",
-          "legendFormat": "{{name}}",
+          "expr": "process_cpu_usage{application=~\"$service\", application=~\".*-service|api-gateway\"}",
+          "legendFormat": "{{application}}",
           "refId": "A"
         }
       ]
@@ -281,8 +281,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "container_memory_usage_bytes{name=~\".*-service|api-gateway\"} / container_spec_memory_limit_bytes{name=~\".*-service|api-gateway\"}",
-          "legendFormat": "{{name}}",
+          "expr": "jvm_memory_used_bytes{area=\"heap\", application=~\"$service\", application=~\".*-service|api-gateway\"} / jvm_memory_max_bytes{area=\"heap\", application=~\"$service\", application=~\".*-service|api-gateway\"}",
+          "legendFormat": "{{application}}",
           "refId": "A"
         }
       ]
@@ -318,14 +318,14 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "rate(container_network_receive_errors_total{name=~\".*-service|api-gateway\"}[$interval])",
-          "legendFormat": "{{name}} rx errors",
+          "expr": "rate(container_network_receive_errors_total{id=~\"/docker/.*\"}[$interval])",
+          "legendFormat": "{{id}} rx errors",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "rate(container_network_transmit_errors_total{name=~\".*-service|api-gateway\"}[$interval])",
-          "legendFormat": "{{name}} tx errors",
+          "expr": "rate(container_network_transmit_errors_total{id=~\"/docker/.*\"}[$interval])",
+          "legendFormat": "{{id}} tx errors",
           "refId": "B"
         }
       ]
@@ -369,19 +369,19 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "hikaricp_connections_active{application=\"$service\"}",
+          "expr": "hikaricp_connections_active{application=~\"$service\"}",
           "legendFormat": "Active",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "hikaricp_connections_max{application=\"$service\"}",
+          "expr": "hikaricp_connections_max{application=~\"$service\"}",
           "legendFormat": "Max",
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "hikaricp_connections_pending{application=\"$service\"}",
+          "expr": "hikaricp_connections_pending{application=~\"$service\"}",
           "legendFormat": "Pending",
           "refId": "C"
         }
@@ -418,7 +418,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "hikaricp_connections_acquire_seconds_sum{application=\"$service\"} / hikaricp_connections_acquire_seconds_count{application=\"$service\"}",
+          "expr": "hikaricp_connections_acquire_seconds_sum{application=~\"$service\"} / hikaricp_connections_acquire_seconds_count{application=~\"$service\"}",
           "legendFormat": "Avg Acquire Time",
           "refId": "A"
         }
@@ -457,7 +457,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "increase(hikaricp_connections_timeout_total{application=\"$service\"}[5m])",
+          "expr": "increase(hikaricp_connections_timeout_total{application=~\"$service\"}[5m])",
           "legendFormat": "{{application}}",
           "refId": "A"
         }

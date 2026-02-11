@@ -351,7 +351,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"5..\"}[$__rate_interval])) by (application) / sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[$__rate_interval])) by (application) * 100",
+          "expr": "(sum(rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"5..\"}[$__rate_interval])) by (application) or vector(0)) / sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[$__rate_interval])) by (application) * 100",
           "legendFormat": "{{application}}",
           "refId": "A"
         }

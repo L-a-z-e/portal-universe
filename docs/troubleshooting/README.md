@@ -16,6 +16,14 @@ troubleshooting/
 
 ## 문서 목록
 
+### 2026년 2월
+
+| ID | 제목 | 심각도 | 상태 | 영향 서비스 |
+|----|------|--------|------|-------------|
+| [TS-20260211-001](./TS-20260211-001-otel-tracing-init-timing.md) | OTel Tracing 초기화 타이밍 이슈 | 🟡 Medium | 해결됨 | chatbot-service, prism-service |
+| [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md) | Grafana 대시보드 "No data" 패널 다수 발생 | 🟠 High | 해결됨 | 전체 Spring Boot 서비스 |
+| [TS-20260211-001](./TS-20260211-001-zipkin-es8-snappy.md) | Zipkin-ES8 Snappy 압축 호환성 문제 | 🟡 Medium | 해결됨 | Zipkin, Elasticsearch |
+
 ### 2026년 1월
 
 | ID | 제목 | 심각도 | 상태 | 영향 서비스 |
@@ -52,11 +60,14 @@ troubleshooting/
 
 ### 서비스별
 
-- **api-gateway**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
-- **auth-service**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **blog-service**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
-- **notification-service**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **api-gateway**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md), [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **auth-service**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md), [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **blog-service**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md), [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
+- **chatbot-service**: [TS-20260211-001](./TS-20260211-001-otel-tracing-init-timing.md)
+- **notification-service**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md), [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **shopping-service**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md)
 - **portal-shell**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **prism-service**: [TS-20260211-001](./TS-20260211-001-otel-tracing-init-timing.md)
 - **prism-frontend**: [TS-20260130-006](./2026/01/TS-20260130-006-prism-404-api-versioning.md), [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md)
 - **blog-frontend**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **shopping-frontend**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
@@ -65,24 +76,33 @@ troubleshooting/
 
 - **API**: [TS-20260130-006](./2026/01/TS-20260130-006-prism-404-api-versioning.md), [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
 - **API Gateway**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md), [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
-- **Health Check**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
-- **NetworkPolicy**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
-- **WebFlux**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
-- **fabric8**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
-- **RBAC**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
-- **Route Mismatch**: [TS-20260130-006](./2026/01/TS-20260130-006-prism-404-api-versioning.md), [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
-- **Kubernetes**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md), [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **Redis**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **Kind**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **Docker**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **Image Pull**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **OAuth2**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **Spring Security**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
-- **Vite**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
-- **Design System**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **CSS**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **Design System**: [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
+- **Docker**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Elasticsearch**: [TS-20260211-001](./TS-20260211-001-zipkin-es8-snappy.md)
+- **fabric8**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **Health Check**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **Image Pull**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Kind**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Kubernetes**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md), [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
 - **Module Federation**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
+- **NetworkPolicy**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **OAuth2**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Grafana**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md)
+- **Histogram**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md)
+- **Observability**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md), [TS-20260211-001](./TS-20260211-001-otel-tracing-init-timing.md), [TS-20260211-001](./TS-20260211-001-zipkin-es8-snappy.md)
+- **OpenTelemetry**: [TS-20260211-001](./TS-20260211-001-otel-tracing-init-timing.md)
+- **Prometheus**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md)
+- **PromQL**: [TS-20260211-002](./TS-20260211-002-grafana-dashboard-no-data.md)
+- **RBAC**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
 - **React**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260117-001](./2026/01/TS-20260117-001-react-module-federation.md)
 - **React-DOM**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md)
+- **Redis**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Route Mismatch**: [TS-20260130-006](./2026/01/TS-20260130-006-prism-404-api-versioning.md), [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
 - **Shared Dependencies**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md)
+- **Spring Security**: [TS-20260121-003](./2026/01/TS-20260121-003-k8s-deployment-issues.md)
+- **Tracing**: [TS-20260211-001](./TS-20260211-001-otel-tracing-init-timing.md)
+- **Vite**: [TS-20260129-005](./2026/01/TS-20260129-005-react-error-321-module-federation.md), [TS-20260119-002](./2026/01/TS-20260119-002-design-system-import-error.md)
 - **Vue**: [TS-20260128-004](./2026/01/TS-20260128-004-like-api-url-mismatch.md)
+- **WebFlux**: [TS-20260131-007](./2026/01/TS-20260131-007-k8s-service-status-all-down.md)
+- **Zipkin**: [TS-20260211-001](./TS-20260211-001-zipkin-es8-snappy.md)
