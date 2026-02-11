@@ -26,7 +26,7 @@ public class DeliveryController {
      * 운송장 번호로 배송을 조회합니다.
      *
      * @param trackingNumber 운송장 번호
-     * @param userId 사용자 ID
+     * @param user 인증된 사용자 정보
      * @return 배송 정보
      */
     @GetMapping("/{trackingNumber}")
@@ -40,7 +40,7 @@ public class DeliveryController {
      * 주문 번호로 배송을 조회합니다.
      *
      * @param orderNumber 주문 번호
-     * @param userId 사용자 ID
+     * @param user 인증된 사용자 정보
      * @return 배송 정보
      */
     @GetMapping("/order/{orderNumber}")
@@ -55,7 +55,7 @@ public class DeliveryController {
      *
      * @param trackingNumber 운송장 번호
      * @param request 상태 변경 요청
-     * @param adminId 관리자 ID
+     * @param user 인증된 관리자 정보
      * @return 업데이트된 배송 정보
      */
     @PutMapping("/{trackingNumber}/status")
