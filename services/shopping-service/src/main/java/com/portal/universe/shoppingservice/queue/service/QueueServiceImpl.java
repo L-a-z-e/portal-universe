@@ -191,6 +191,12 @@ public class QueueServiceImpl implements QueueService {
 
         int toProcess = Math.min(availableSlots, queue.getEntryBatchSize());
 
+        // 대기열이 비어있으면 popMin 호출 생략 (Redisson 3.27.0 빈 응답 디코딩 버그 우회)
+        Long queueSize = redisTemplate.opsForZSet().zCard(queueKey);
+        if (queueSize == null || queueSize == 0) {
+            return;
+        }
+
         // Redis에서 대기열 상위 N명 가져오기
         Set<ZSetOperations.TypedTuple<String>> topEntries =
             redisTemplate.opsForZSet().popMin(queueKey, toProcess);
