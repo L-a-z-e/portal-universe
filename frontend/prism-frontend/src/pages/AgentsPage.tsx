@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select, Textarea } from '@portal/design-system-react';
+import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-system-react';
 import { useAgentStore } from '@/stores/agentStore';
 import { useProviderStore } from '@/stores/providerStore';
 import { api } from '@/services/api';
@@ -17,6 +17,7 @@ const AGENT_ROLES: { value: AgentRole; label: string }[] = [
 function AgentsPage() {
   const { agents, loading, error, fetchAgents, createAgent, updateAgent, deleteAgent } = useAgentStore();
   const { providers, fetchProviders } = useProviderStore();
+  const { handleError } = useApiError();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
@@ -59,8 +60,8 @@ function AgentsPage() {
           // 모델이 없으면 첫 번째 모델로 설정
           setFormData(prev => ({ ...prev, model: models[0] }));
         }
-      } catch (error) {
-        console.error('Failed to fetch models:', error);
+      } catch (err) {
+        console.error('Failed to fetch models:', err);
         setAvailableModels([]);
       } finally {
         setModelsLoading(false);
@@ -114,8 +115,8 @@ function AgentsPage() {
         await createAgent(formData);
       }
       setIsModalOpen(false);
-    } catch (error) {
-      console.error('Failed to save agent:', error);
+    } catch (err) {
+      handleError(err, 'Failed to save agent');
     } finally {
       setSubmitting(false);
     }

@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Button, Input, Textarea } from '@portal/design-system-react';
+import { Modal, Button, Input, Textarea, useApiError } from '@portal/design-system-react';
 import { useBoardStore } from '@/stores/boardStore';
 import type { CreateBoardRequest } from '@/types';
 
 function BoardListPage() {
   const navigate = useNavigate();
   const { boards, loading, error, fetchBoards, createBoard, deleteBoard } = useBoardStore();
+  const { handleError } = useApiError();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<CreateBoardRequest>({ name: '', description: '' });
@@ -26,8 +27,8 @@ function BoardListPage() {
       setIsModalOpen(false);
       setFormData({ name: '', description: '' });
       navigate(`/boards/${board.id}`);
-    } catch (error) {
-      console.error('Failed to create board:', error);
+    } catch (err) {
+      handleError(err, 'Failed to create board');
     } finally {
       setSubmitting(false);
     }

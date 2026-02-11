@@ -67,7 +67,9 @@ const getLocalClient = (): AxiosInstance => {
 
       const apiError = (error.response?.data as Record<string, unknown>)?.error as Record<string, unknown> | undefined
       if (apiError?.message) {
-        error.message = apiError.message as string
+        error.message = apiError.message as string;
+        (error as any).code = apiError.code;
+        (error as any).errorDetails = apiError;
       }
 
       if (status === 401) {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Button } from '@portal/design-system-vue';
+import { Button, useApiError } from '@portal/design-system-vue';
 import { toggleLike, getLikeStatus } from '@/api/likes';
 
 interface Props {
@@ -16,6 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   likeChanged: [liked: boolean, count: number];
 }>();
+
+const { getErrorMessage } = useApiError();
 
 // State
 const liked = ref(props.initialLiked);
@@ -65,7 +67,7 @@ async function handleToggle() {
     liked.value = response.liked;
     likeCount.value = response.likeCount;
     emit('likeChanged', response.liked, response.likeCount);
-  } catch (err: any) {
+  } catch (err) {
     console.error('Failed to toggle like:', err);
 
     // 롤백
@@ -73,11 +75,7 @@ async function handleToggle() {
     likeCount.value = previousCount;
 
     // 에러 메시지 설정
-    if (err.response?.status === 401) {
-      error.value = '로그인이 필요합니다';
-    } else {
-      error.value = '좋아요 처리 중 오류가 발생했습니다';
-    }
+    error.value = getErrorMessage(err, '좋아요 처리 중 오류가 발생했습니다.');
 
     // 에러 메시지 자동 숨김
     setTimeout(() => {

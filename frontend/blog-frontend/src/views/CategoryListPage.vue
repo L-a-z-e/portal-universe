@@ -3,11 +3,12 @@ import { onMounted, onBeforeUnmount, ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { getCategoryStats, getPostsByCategory, getPublishedPosts } from '../api/posts';
 import type { CategoryStats, PostSummaryResponse, PageResponse } from '@/types';
-import { Card } from '@portal/design-system-vue';
+import { Card, useApiError } from '@portal/design-system-vue';
 import PostCard from '../components/PostCard.vue';
 
 const router = useRouter();
 const route = useRoute();
+const { getErrorMessage } = useApiError();
 
 // 카테고리 관련 상태
 const categories = ref<CategoryStats[]>([]);
@@ -52,7 +53,7 @@ async function loadCategories() {
     categories.value = await getCategoryStats();
   } catch (err) {
     console.error('Failed to fetch category stats:', err);
-    categoriesError.value = '카테고리 목록을 불러올 수 없습니다.';
+    categoriesError.value = getErrorMessage(err, '카테고리 목록을 불러올 수 없습니다.');
   } finally {
     categoriesLoading.value = false;
   }
@@ -92,7 +93,7 @@ async function loadPosts(page: number = 1, append: boolean = false) {
 
   } catch (err) {
     console.error('Failed to fetch posts:', err);
-    error.value = '게시글 목록을 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.';
+    error.value = getErrorMessage(err, '게시글 목록을 불러올 수 없습니다.');
   } finally {
     isLoading.value = false;
     isLoadingMore.value = false;

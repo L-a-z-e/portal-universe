@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useApiError } from '@portal/design-system-react';
 import {
   DndContext,
   DragEndEvent,
@@ -23,6 +24,7 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({ onEditTask, onViewTask, onAddTask }: KanbanBoardProps) {
   const { columns, moveTask, executeTask } = useTaskStore();
+  const { handleError } = useApiError();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
@@ -91,7 +93,7 @@ export function KanbanBoard({ onEditTask, onViewTask, onAddTask }: KanbanBoardPr
       try {
         await executeTask(task.id);
       } catch (error) {
-        console.error('Failed to execute task:', error);
+        handleError(error, 'Failed to execute task');
       }
     },
     [executeTask]

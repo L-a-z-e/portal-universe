@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Card } from '@portal/design-system-vue';
+import { Card, useApiError } from '@portal/design-system-vue';
 import { getPostNavigation } from '@/api/posts';
 import type { PostNavigationResponse } from '@/types';
 import { DEFAULT_THUMBNAILS } from '@/config/assets';
@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const router = useRouter();
+const { getErrorMessage } = useApiError();
 const navigation = ref<PostNavigationResponse | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -27,7 +28,7 @@ async function loadNavigation() {
     navigation.value = await getPostNavigation(props.postId, props.scope);
   } catch (err) {
     console.error('Failed to load navigation:', err);
-    error.value = '네비게이션을 불러올 수 없습니다.';
+    error.value = getErrorMessage(err, '네비게이션을 불러올 수 없습니다.');
   } finally {
     loading.value = false;
   }

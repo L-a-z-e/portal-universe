@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select } from '@portal/design-system-react';
+import { Modal, Button, Input, Select, useApiError } from '@portal/design-system-react';
 import { useProviderStore } from '@/stores/providerStore';
 import type { CreateProviderRequest, ProviderType } from '@/types';
 
@@ -18,6 +18,7 @@ const requiresApiKey = (type: ProviderType): boolean => {
 
 function ProvidersPage() {
   const { providers, loading, error, fetchProviders, createProvider, deleteProvider } = useProviderStore();
+  const { handleError } = useApiError();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -51,8 +52,8 @@ function ProvidersPage() {
         baseUrl: formData.baseUrl || undefined,
       });
       setIsModalOpen(false);
-    } catch (error) {
-      console.error('Failed to create provider:', error);
+    } catch (err) {
+      handleError(err, 'Failed to create provider');
     } finally {
       setSubmitting(false);
     }

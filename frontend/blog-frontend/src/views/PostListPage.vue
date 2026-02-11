@@ -8,6 +8,7 @@ import type { PageResponse } from "@/types";
 import { Button, Card, SearchBar, Tabs, Spinner } from '@portal/design-system-vue';
 import type { TabItem } from '@portal/design-system-vue';
 import PostCard from '../components/PostCard.vue';
+import { useApiError } from '@portal/design-system-vue';
 import { useSearchStore } from '../stores/searchStore';
 import { useFollowStore } from '../stores/followStore';
 
@@ -16,6 +17,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const searchStore = useSearchStore();
 const followStore = useFollowStore();
+const { getErrorMessage } = useApiError();
 
 // 탭 관련 상태
 type TabType = 'feed' | 'trending' | 'recent';
@@ -141,7 +143,7 @@ async function loadPosts(page: number = 1, append: boolean = false) {
 
   } catch (err) {
     console.error('Failed to fetch posts:', err);
-    error.value = '게시글 목록을 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.';
+    error.value = getErrorMessage(err, '게시글 목록을 불러올 수 없습니다.');
   } finally {
     isLoading.value = false;
     isLoadingMore.value = false;

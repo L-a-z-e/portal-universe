@@ -1,9 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { useApiError } from '@portal/design-system-vue';
 import { searchPosts } from '../api/posts';
 import type { PostSummaryResponse, PageResponse } from '@/types';
 
 export const useSearchStore = defineStore('search', () => {
+  const { getErrorMessage } = useApiError();
+
   // 상태 변수
   const keyword = ref('');
   const results = ref<PostSummaryResponse[]>([]);
@@ -34,7 +37,7 @@ export const useSearchStore = defineStore('search', () => {
       totalPages.value = res.totalPages;
       hasMore.value = res.page < res.totalPages;
     } catch (err) {
-      error.value = '검색 결과를 불러올 수 없습니다.';
+      error.value = getErrorMessage(err, '검색 결과를 불러올 수 없습니다.');
       results.value = [];
     } finally {
       isSearching.value = false;
@@ -52,7 +55,7 @@ export const useSearchStore = defineStore('search', () => {
       totalPages.value = res.totalPages;
       hasMore.value = res.page < res.totalPages;
     } catch (err) {
-      error.value = '더 많은 검색 결과를 불러올 수 없습니다.';
+      error.value = getErrorMessage(err, '더 많은 검색 결과를 불러올 수 없습니다.');
     } finally {
       isSearching.value = false;
     }

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { useApiError } from '@portal/design-system-vue';
 import { fetchAuditLogs } from '@/api/admin';
 import type { AuditLog, PageResponse } from '@/dto/admin';
+
+const { getErrorMessage } = useApiError();
 
 const userId = ref('');
 const searchedUserId = ref('');
@@ -9,13 +12,16 @@ const page = ref(1);
 
 const data = ref<PageResponse<AuditLog> | null>(null);
 const loading = ref(true);
+const error = ref('');
 
 async function load() {
   loading.value = true;
+  error.value = '';
   try {
     data.value = await fetchAuditLogs(page.value, 20, searchedUserId.value || undefined);
   } catch (err) {
     console.error('[Admin] Failed to fetch audit logs:', err);
+    error.value = getErrorMessage(err, 'Failed to load audit logs.');
   } finally {
     loading.value = false;
   }
@@ -63,6 +69,10 @@ onMounted(load);
       >
         Clear
       </button>
+    </div>
+
+    <div v-if="error" class="mb-4 p-3 bg-status-error-bg text-status-error rounded text-sm">
+      {{ error }}
     </div>
 
     <div class="bg-bg-card rounded-lg shadow overflow-hidden border border-border-default">
