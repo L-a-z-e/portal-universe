@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Modal, Button, Textarea } from '@portal/design-system-react';
+import { Modal, Button, Textarea, useApiError } from '@portal/design-system-react';
 import { api } from '@/services/api';
 import type { Task, Execution } from '@/types';
 
@@ -27,6 +27,7 @@ export function TaskResultModal({
   onApprove,
   onReject,
 }: TaskResultModalProps) {
+  const { handleError } = useApiError();
   const [context, setContext] = useState<TaskContext | null>(null);
   const [contextLoading, setContextLoading] = useState(false);
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -49,7 +50,7 @@ export function TaskResultModal({
       const data = await api.getTaskContext(task.id);
       setContext(data);
     } catch (error) {
-      console.error('Failed to fetch task context:', error);
+      handleError(error, 'Failed to fetch task context');
     } finally {
       setContextLoading(false);
     }
@@ -63,7 +64,7 @@ export function TaskResultModal({
       await onApprove(task);
       onClose();
     } catch (error) {
-      console.error('Failed to approve task:', error);
+      handleError(error, 'Failed to approve task');
     } finally {
       setActionLoading(false);
     }
@@ -77,7 +78,7 @@ export function TaskResultModal({
       await onReject(task, feedback);
       onClose();
     } catch (error) {
-      console.error('Failed to reject task:', error);
+      handleError(error, 'Failed to reject task');
     } finally {
       setActionLoading(false);
     }

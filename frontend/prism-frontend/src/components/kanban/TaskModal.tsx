@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Input, Select, Textarea } from '@portal/design-system-react';
+import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-system-react';
 import { useAgentStore } from '@/stores/agentStore';
 import { useTaskStore } from '@/stores/taskStore';
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskPriority } from '@/types';
@@ -30,6 +30,7 @@ export function TaskModal({
 }: TaskModalProps) {
   const { agents, fetchAgents } = useAgentStore();
   const { tasks } = useTaskStore();
+  const { handleError } = useApiError();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -82,8 +83,8 @@ export function TaskModal({
       };
       await onSubmit(data);
       onClose();
-    } catch (error) {
-      console.error('Failed to save task:', error);
+    } catch (err) {
+      handleError(err, 'Failed to save task');
     } finally {
       setLoading(false);
     }
@@ -97,8 +98,8 @@ export function TaskModal({
     try {
       await onDelete(task.id);
       onClose();
-    } catch (error) {
-      console.error('Failed to delete task:', error);
+    } catch (err) {
+      handleError(err, 'Failed to delete task');
     } finally {
       setLoading(false);
     }
