@@ -8,6 +8,7 @@
  */
 
 import { parseJwtPayload } from '../utils/jwt';
+import { throwIfNotOk } from './fetchUtils';
 
 // ====================================================================
 // Types
@@ -80,10 +81,7 @@ class AuthenticationService {
         credentials: 'include',
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Login failed: ${response.status}`);
-      }
+      await throwIfNotOk(response, 'Login failed');
 
       const result = await response.json();
 
@@ -145,9 +143,7 @@ class AuthenticationService {
         credentials: 'include',
       });
 
-      if (!response.ok) {
-        throw new Error(`Token refresh failed: ${response.status}`);
-      }
+      await throwIfNotOk(response, 'Token refresh failed');
 
       const result = await response.json();
 

@@ -7,6 +7,7 @@
  */
 
 import { authService } from './authService';
+import { throwIfNotOk } from './fetchUtils';
 
 // ====================================================================
 // Types
@@ -90,10 +91,7 @@ class ProfileServiceClass {
         headers,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to fetch profile: ${response.status}`);
-      }
+      await throwIfNotOk(response, 'Failed to fetch profile');
 
       const result = await response.json();
       const data: ProfileResponse = result.data || result;
@@ -122,10 +120,7 @@ class ProfileServiceClass {
         body: JSON.stringify(request),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to update profile: ${response.status}`);
-      }
+      await throwIfNotOk(response, 'Failed to update profile');
 
       const result = await response.json();
       const data: ProfileResponse = result.data || result;
@@ -154,10 +149,7 @@ class ProfileServiceClass {
         body: JSON.stringify(request),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to change password: ${response.status}`);
-      }
+      await throwIfNotOk(response, 'Failed to change password');
 
       console.log('Password changed successfully');
     } catch (error) {
@@ -182,10 +174,7 @@ class ProfileServiceClass {
         body: JSON.stringify(request),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to delete account: ${response.status}`);
-      }
+      await throwIfNotOk(response, 'Failed to delete account');
 
       // Clear tokens after successful account deletion
       authService.clearTokens();
