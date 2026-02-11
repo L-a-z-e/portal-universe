@@ -1,15 +1,16 @@
+import './instrumentation';
+
 import { NestFactory, Reflector } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { ApiResponseInterceptor } from './common/interceptors/api-response.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
-
-const logger = new Logger('Bootstrap');
+import { winstonLogger } from './config/logger.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { logger: winstonLogger });
 
   // Global prefix
   app.setGlobalPrefix('api/v1');
@@ -43,7 +44,7 @@ async function bootstrap() {
       ],
       credentials: true,
     });
-    logger.log('CORS enabled for standalone mode');
+    winstonLogger.log('CORS enabled for standalone mode');
   }
 
   // Swagger
@@ -58,6 +59,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 8085;
   await app.listen(port);
-  logger.log(`Prism service running on port ${port}`);
+  winstonLogger.log(`Prism service running on port ${port}`);
 }
 void bootstrap();

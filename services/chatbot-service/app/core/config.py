@@ -38,6 +38,10 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in v.split(",")]
         return v  # type: ignore[return-value]
 
+    # Observability (ADR-033)
+    tracing_enabled: bool = False
+    zipkin_endpoint: str = "http://localhost:9411/api/v2/spans"
+
     # Documents
     documents_dir: str = "./documents"
 

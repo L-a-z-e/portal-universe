@@ -36,6 +36,12 @@ dependencies = [
     "sse-starlette>=3.2.0",
     "httpx>=0.28.1",
     "python-jose[cryptography]>=3.5.0",
+    # Observability (ADR-033)
+    "python-json-logger>=4.0.0",
+    "prometheus-client>=0.21.0",
+    "opentelemetry-sdk>=1.30.0",
+    "opentelemetry-instrumentation-fastapi>=0.51b0",
+    "opentelemetry-exporter-zipkin-json>=1.30.0",
 ]
 
 [project.optional-dependencies]

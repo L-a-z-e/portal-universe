@@ -124,6 +124,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
+      - http.compression=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
       - "9200:9200"
@@ -714,7 +715,7 @@ services:
     restart: unless-stopped
 
   zipkin:
-    image: openzipkin/zipkin:3.4.2
+    image: openzipkin/zipkin:3.5.1
     container_name: zipkin
     mem_limit: 512m
     memswap_limit: 512m
