@@ -298,6 +298,7 @@ class QueueServiceImplTest {
             when(redisTemplate.opsForSet()).thenReturn(setOperations);
             when(setOperations.size(anyString())).thenReturn(5L);
             when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
+            when(zSetOperations.zCard(anyString())).thenReturn(1L);
 
             @SuppressWarnings("unchecked")
             ZSetOperations.TypedTuple<String> tuple = mock(ZSetOperations.TypedTuple.class);
