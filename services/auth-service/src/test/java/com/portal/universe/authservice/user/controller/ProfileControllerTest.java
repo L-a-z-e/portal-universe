@@ -11,7 +11,6 @@ import com.portal.universe.authservice.auth.service.RefreshTokenService;
 import com.portal.universe.authservice.auth.service.TokenBlacklistService;
 import com.portal.universe.authservice.auth.service.TokenService;
 import com.portal.universe.authservice.user.service.ProfileService;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -65,9 +64,6 @@ class ProfileControllerTest {
 
     @MockitoBean
     RefreshTokenService refreshTokenService;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String USER_UUID = "test-user-uuid";
     private static final String BASE_URL = "/api/v1/profile";

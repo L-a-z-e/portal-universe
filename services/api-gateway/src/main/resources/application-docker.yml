@@ -85,7 +85,9 @@ gateway:
   public-paths:
     permit-all:
       - "/notification/ws/**"
-      - "/auth-service/**"
+      - "/auth-service/api/v1/auth/**"
+      - "/auth-service/oauth2/**"
+      - "/auth-service/login/oauth2/**"
       - "/api/v1/auth/**"
       - "/api/v1/users/**"
       - "/api/v1/shopping/products"
@@ -110,7 +112,9 @@ gateway:
       - "/api/v1/shopping/search/suggest"
       - "/api/v1/shopping/search/popular"
     skip-jwt-parsing:
-      - "/auth-service/"
+      - "/auth-service/api/v1/auth/"
+      - "/auth-service/oauth2/"
+      - "/auth-service/login/oauth2/"
       - "/api/v1/auth/"
       - "/api/v1/users/"
       - "/api/health/"

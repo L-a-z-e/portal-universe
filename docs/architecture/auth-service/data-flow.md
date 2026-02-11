@@ -27,7 +27,7 @@ Auth Service의 JWT 기반 인증 플로우를 설명합니다. 모든 인증은
 | `RefreshTokenService` | RT Redis 관리, Rotation | Redis |
 | `TokenBlacklistService` | AT 블랙리스트 | Redis |
 | `LoginAttemptServiceImpl` | 로그인 시도 추적/잠금 | Redis |
-| `JwtAuthenticationFilter` | 요청별 JWT 검증 | - |
+| `GatewayAuthenticationFilter` (common-library) | Gateway 헤더 기반 인증 | - |
 
 ### 주요 특징
 
@@ -339,69 +339,46 @@ spring.security.oauth2.client.registration:
 
 환경 변수가 설정되지 않으면 OAuth2 기능이 비활성화됩니다.
 
-## 7. JWT 인증 필터 (JwtAuthenticationFilter)
+## 7. Gateway 인증 필터 (GatewayAuthenticationFilter)
 
-모든 API 요청에서 JWT Access Token을 검증하는 필터입니다.
+API Gateway가 JWT를 검증하고 설정한 `X-User-*` 헤더를 읽어 SecurityContext를 설정하는 필터입니다. `common-library`에서 제공하며, blog-service, shopping-service, drive-service와 동일한 공통 필터입니다.
 
 ```mermaid
 flowchart TD
-    A[요청 수신] --> B{공개 경로?}
-    B -->|Yes| C[필터 건너뜀]
-    B -->|No| D{Authorization 헤더?}
-    D -->|No| E[인증 없이 진행]
-    D -->|Yes| F[Bearer Token 추출]
-    F --> G{블랙리스트 확인}
-    G -->|블랙리스트| H[401 Unauthorized]
-    G -->|정상| I[TokenService.validateAccessToken]
-    I -->|실패| H
-    I -->|성공| J[Claims에서 roles 추출]
-    J --> K[SecurityContext에 Authentication 설정]
-    K --> L[다음 필터 진행]
-    C --> L
-    E --> L
+    A[요청 수신] --> B{X-User-Id 헤더 존재?}
+    B -->|No| C[인증 없이 진행]
+    B -->|Yes| D[X-User-Effective-Roles 파싱]
+    D --> E[UsernamePasswordAuthenticationToken 생성]
+    E --> F[SecurityContext에 Authentication 설정]
+    F --> G[다음 필터 진행]
+    C --> G
 ```
 
-### 공개 경로 설정
+### 처리하는 헤더
 
-`PublicPathProperties`에서 관리하는 공개 경로는 JWT 검증을 거치지 않습니다:
-
-**Prefix 기반**:
-- `/api/auth/**`
-- `/api/v1/auth/**`
-- `/oauth2/**`
-- `/login/oauth2/**`
-- `/actuator/**`
-- `/api/v1/users/signup`
-
-**Exact 매칭**:
-- `/ping`
-- `/login`
-- `/logout`
-
-### 블랙리스트 확인
-
-`TokenBlacklistService.isBlacklisted(accessToken)`는 다음 과정을 거칩니다:
-
-1. Access Token을 SHA-256 해시
-2. Redis에서 `blacklist:{hash}` 키 존재 여부 확인
-3. 존재하면 `true` 반환 (로그아웃된 토큰)
+| 헤더 | 용도 |
+|------|------|
+| `X-User-Id` | 사용자 UUID → principal |
+| `X-User-Effective-Roles` | Role Hierarchy 포함 유효 역할 → authorities |
+| `X-User-Roles` | 원본 역할 (effective 없을 때 fallback) |
+| `X-User-Nickname` | URL 인코딩된 닉네임 |
+| `X-User-Memberships` | 멤버십 JSON |
 
 ### SecurityContext 설정
 
-유효한 토큰인 경우 `UsernamePasswordAuthenticationToken`을 생성하여 `SecurityContextHolder`에 설정합니다:
+유효한 `X-User-Id`가 있으면 `UsernamePasswordAuthenticationToken`을 생성하여 `SecurityContextHolder`에 설정합니다:
 
 ```java
-List<GrantedAuthority> authorities = claims.getRoles().stream()
-    .map(SimpleGrantedAuthority::new)
-    .collect(Collectors.toList());
-
+List<SimpleGrantedAuthority> authorities = parseAuthorities(effectiveRoles);
 Authentication authentication = new UsernamePasswordAuthenticationToken(
     userId, null, authorities
 );
 SecurityContextHolder.getContext().setAuthentication(authentication);
 ```
 
-이후 컨트롤러에서 `@PreAuthorize("hasRole('ROLE_USER')")` 등의 권한 검증이 가능합니다.
+이후 컨트롤러에서 `@AuthenticationPrincipal String userUuid`나 `@PreAuthorize("hasRole('ROLE_USER')")` 등의 권한 검증이 가능합니다.
+
+> **참고**: JWT 검증과 블랙리스트 조회는 API Gateway에서 수행됩니다. auth-service는 Gateway가 설정한 헤더를 신뢰합니다 (ADR-039).
 
 ## 8. JWT 토큰 구조
 
@@ -588,3 +565,11 @@ LocalStorage는 XSS에 취약하지만, Access Token의 짧은 수명(15분)으�
 - [Security Mechanisms](./security-mechanisms.md) - 보안 메커니즘 상세
 - [Auth API](../../api/auth-service/auth-api.md) - REST API 명세
 - [ADR-008: JWT Stateless + Redis](../../adr/ADR-008-jwt-stateless-redis.md) - 아키텍처 결정 배경
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-01-18 | 최초 작성 | Laze |
+| 2026-02-06 | 데이터 플로우 상세화 | Laze |
+| 2026-02-12 | ADR-039 구현: JwtAuthenticationFilter → GatewayAuthenticationFilter 전환 | Laze |

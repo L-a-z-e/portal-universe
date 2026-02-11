@@ -279,20 +279,20 @@ return 0
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant F as JwtAuthenticationFilter
-    participant B as TokenBlacklistService
+    participant G as API Gateway
     participant R as Redis
-    participant S as Service
+    participant A as auth-service
 
-    C->>F: 요청 + Access Token
-    F->>B: isBlacklisted(token)?
-    B->>R: EXISTS token:blacklist:{hash}
-    R-->>B: 0 (존재하지 않음)
-    B-->>F: false
-    F->>F: JWT 검증
-    F->>S: 요청 전달
-    S-->>C: 응답
+    C->>G: 요청 + Access Token
+    G->>G: JWT 서명 검증
+    G->>R: EXISTS token:blacklist:{hash}
+    R-->>G: 0 (존재하지 않음)
+    G->>A: X-User-Id, X-User-Effective-Roles 헤더
+    A->>A: GatewayAuthenticationFilter → SecurityContext 설정
+    A-->>C: 응답
 ```
+
+> **참고**: auth-service는 블랙리스트 **등록(쓰기)** 만 담당하며, 블랙리스트 **조회(읽기)** 는 Gateway에서 수행됩니다 (ADR-039).
 
 ### 4.4 HttpOnly Cookie
 
@@ -719,7 +719,7 @@ Spring Security를 통해 인증/인가를 처리하고 보안 정책을 적용�
 ```mermaid
 flowchart LR
     A[요청] --> B[ForwardedHeaderFilter]
-    B --> C[JwtAuthenticationFilter]
+    B --> C[GatewayAuthenticationFilter]
     C --> D[UsernamePasswordAuthenticationFilter]
     D --> E[FilterSecurityInterceptor]
     E --> F[Controller]
@@ -736,30 +736,25 @@ API Gateway를 통해 들어온 요청의 원본 정보를 보존합니다:
 - `X-Forwarded-Port`: 원본 포트
 - `X-Forwarded-For`: 클라이언트 IP 주소
 
-#### 8.3.2 JwtAuthenticationFilter
+#### 8.3.2 GatewayAuthenticationFilter (common-library)
 
-JWT 토큰을 검증하고 인증 컨텍스트를 설정합니다:
+Gateway가 설정한 `X-User-*` 헤더를 읽어 SecurityContext를 설정합니다. blog-service, shopping-service, drive-service와 동일한 공통 필터입니다.
 
 ```mermaid
 sequenceDiagram
     participant R as Request
-    participant F as JwtAuthenticationFilter
-    participant B as TokenBlacklistService
-    participant J as JwtTokenProvider
+    participant F as GatewayAuthenticationFilter
     participant S as SecurityContext
 
-    R->>F: Authorization: Bearer {token}
-    F->>B: isBlacklisted(token)?
-    B-->>F: false
-    F->>J: validateToken(token)
-    J-->>F: valid
-    F->>J: getAuthentication(token)
-    J-->>F: Authentication (roles, permissions)
-    F->>S: setAuthentication()
+    R->>F: X-User-Id, X-User-Effective-Roles 헤더
+    F->>F: 헤더에서 userId, roles 파싱
+    F->>S: UsernamePasswordAuthenticationToken 설정
     F-->>R: 다음 필터로 진행
 ```
 
 위치: `UsernamePasswordAuthenticationFilter` 앞에 위치
+
+> **참고**: JWT 검증은 API Gateway에서 수행됩니다. auth-service는 Gateway가 설정한 헤더를 신뢰합니다 (ADR-039).
 
 ### 8.4 OAuth2 통합
 
@@ -879,3 +874,11 @@ Auth Service의 보안 메커니즘은 다층 방어(Defense in Depth) 전략을
 6. **인프라**: Spring Security, Redis, JWT
 
 모든 보안 메커니즘은 성능과 사용성을 고려하여 설계되었으며, 필요에 따라 설정을 통해 조정할 수 있습니다.
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-02-06 | 최초 작성 | Laze |
+| 2026-02-07 | 보안 메커니즘 상세화 | Laze |
+| 2026-02-12 | ADR-039 구현: JwtAuthenticationFilter → GatewayAuthenticationFilter 전환 | Laze |

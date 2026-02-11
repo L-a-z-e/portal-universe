@@ -6,7 +6,6 @@ import com.portal.universe.authservice.auth.dto.rbac.RoleResponse;
 import com.portal.universe.authservice.auth.dto.rbac.UserPermissionsResponse;
 import com.portal.universe.authservice.auth.dto.rbac.UserRoleResponse;
 import com.portal.universe.authservice.auth.service.RbacService;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,9 +60,6 @@ class RbacAdminControllerTest {
 
     @MockitoBean
     RbacService rbacService;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String ADMIN_UUID = "admin-uuid";
     private static final String TARGET_USER_UUID = "target-user-uuid";

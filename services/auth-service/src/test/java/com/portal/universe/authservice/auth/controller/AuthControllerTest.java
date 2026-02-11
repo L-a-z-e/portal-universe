@@ -12,7 +12,6 @@ import com.portal.universe.authservice.auth.service.TokenBlacklistService;
 import com.portal.universe.authservice.auth.service.TokenService;
 import com.portal.universe.authservice.common.config.JwtProperties;
 import com.portal.universe.authservice.common.util.RefreshTokenCookieHelper;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import com.portal.universe.authservice.password.config.PasswordPolicyProperties;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.repository.UserRepository;
@@ -80,9 +79,6 @@ class AuthControllerTest {
 
     @MockitoBean
     RefreshTokenCookieHelper cookieHelper;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String LOGIN_URL = "/api/v1/auth/login";
     private static final String REFRESH_URL = "/api/v1/auth/refresh";

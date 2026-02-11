@@ -3,7 +3,6 @@ package com.portal.universe.authservice.auth.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.authservice.auth.dto.rbac.UserPermissionsResponse;
 import com.portal.universe.authservice.auth.service.RbacService;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import org.junit.jupiter.api.AfterEach;
@@ -41,9 +40,6 @@ class PermissionControllerTest {
 
     @MockitoBean
     RbacService rbacService;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String USER_UUID = "test-user-uuid";
     private static final String BASE_URL = "/api/v1/permissions";

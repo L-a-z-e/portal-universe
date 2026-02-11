@@ -6,7 +6,6 @@ import com.portal.universe.authservice.user.dto.UserProfileResponse;
 import com.portal.universe.authservice.user.dto.UsernameSetRequest;
 import com.portal.universe.authservice.user.dto.UserProfileUpdateRequest;
 import com.portal.universe.authservice.user.service.UserService;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,9 +46,6 @@ class UserControllerTest {
 
     @MockitoBean
     UserService userService;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String USER_UUID = "test-user-uuid";
     private static final String BASE_URL = "/api/v1/users";

@@ -53,7 +53,7 @@ graph TD
     Auth[Auth Service]
 
     subgraph Auth Service
-        Security[Security Layer<br/>JwtAuthenticationFilter<br/>SecurityConfig]
+        Security[Security Layer<br/>GatewayAuthenticationFilter (common-library)<br/>SecurityConfig]
         AuthLayer[Auth Layer<br/>AuthController<br/>TokenService<br/>RefreshTokenService<br/>TokenBlacklistService]
         UserLayer[User Layer<br/>UserController<br/>UserService<br/>ProfileService<br/>ProfileController]
         OAuth2Layer[OAuth2 Layer<br/>CustomOAuth2UserService<br/>SuccessHandler]
@@ -415,3 +415,4 @@ Auth Service는 Stateless 아키텍처를 채택하여 수평 확장이 용이�
 |------|--------|----------|
 | 2026-01-18 | Laze | 최초 작성 |
 | 2026-02-06 | Laze | 전체 재작성: 컴포넌트 상세, 에러 코드, 배포 전략 추가 |
+| 2026-02-12 | Laze | ADR-039 구현: JwtAuthenticationFilter → GatewayAuthenticationFilter 전환 | Laze |

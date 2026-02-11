@@ -3,8 +3,7 @@ package com.portal.universe.authservice.common.config;
 import com.portal.universe.authservice.oauth2.CustomOAuth2UserService;
 import com.portal.universe.authservice.oauth2.OAuth2AuthenticationFailureHandler;
 import com.portal.universe.authservice.oauth2.OAuth2AuthenticationSuccessHandler;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
+import com.portal.universe.commonlibrary.security.filter.GatewayAuthenticationFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -37,7 +36,6 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
 
@@ -50,9 +48,6 @@ public class SecurityConfig {
     private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     @Autowired(required = false)
     private ClientRegistrationRepository clientRegistrationRepository;
-
-    // JWT 인증 필터는 필수
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * X-Forwarded-* 헤더를 처리하는 필터를 등록합니다.
@@ -71,7 +66,7 @@ public class SecurityConfig {
 
     /**
      * 애플리케이션의 모든 엔드포인트(API, 웹 페이지 등)에 대한 보안을 설정합니다.
-     * Direct JWT 인증 방식을 사용하며, 세션은 사용하지 않습니다(STATELESS).
+     * Gateway 헤더 기반 인증 방식을 사용하며, 세션은 사용하지 않습니다(STATELESS).
      *
      * @param http HttpSecurity 객체
      * @return SecurityFilterChain 일반용 보안 필터 체인
@@ -128,8 +123,8 @@ public class SecurityConfig {
                 // STATELESS 세션 정책 - 세션을 사용하지 않음
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // JWT 인증 필터 추가 (UsernamePasswordAuthenticationFilter 앞에 위치)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // Gateway 헤더 기반 인증 필터 (common-library, 다른 서비스와 동일 패턴)
+                .addFilterBefore(new GatewayAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 // FormLogin 비활성화 (JWT 기반 인증 사용)
                 .formLogin(AbstractHttpConfigurer::disable)
                 // HttpBasic 비활성화

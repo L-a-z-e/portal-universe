@@ -5,7 +5,6 @@ import com.portal.universe.authservice.auth.domain.SellerApplicationStatus;
 import com.portal.universe.authservice.auth.dto.seller.SellerApplicationResponse;
 import com.portal.universe.authservice.auth.dto.seller.SellerApplicationReviewRequest;
 import com.portal.universe.authservice.auth.service.SellerApplicationService;
-import com.portal.universe.authservice.auth.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,9 +58,6 @@ class SellerAdminControllerTest {
 
     @MockitoBean
     SellerApplicationService sellerApplicationService;
-
-    @MockitoBean
-    JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String ADMIN_UUID = "admin-uuid";
     private static final String BASE_URL = "/api/v1/admin/seller";
