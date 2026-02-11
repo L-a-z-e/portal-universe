@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
   console.log('🔧 [Vite Config] Shopping Remote URL:', env.VITE_SHOPPING_REMOTE_URL);
   console.log('🔧 [Vite Config] Prism Remote URL:', env.VITE_PRISM_REMOTE_URL);
   console.log('🔧 [Vite Config] Admin Remote URL:', env.VITE_ADMIN_REMOTE_URL);
+  console.log('🔧 [Vite Config] Drive Remote URL:', env.VITE_DRIVE_REMOTE_URL);
 
   return {
     plugins: [
@@ -25,6 +26,7 @@ export default defineConfig(({ mode }) => {
           shopping: env.VITE_SHOPPING_REMOTE_URL,
           prism: env.VITE_PRISM_REMOTE_URL,
           admin: env.VITE_ADMIN_REMOTE_URL,
+          drive: env.VITE_DRIVE_REMOTE_URL,
         },
         exposes: {
           './api': './src/api/index.ts',

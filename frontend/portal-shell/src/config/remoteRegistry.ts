@@ -48,6 +48,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       description: 'AI 에이전트 오케스트레이션'
     },
     {
+      name: 'Drive',
+      key: 'drive',
+      url: 'http://localhost:30005/assets/remoteEntry.js',
+      module: 'drive/bootstrap',
+      mountFn: 'mountDriveApp',
+      basePath: '/drive',
+      icon: '💾',
+      description: '파일 관리'
+    },
+    {
       name: 'Admin',
       key: 'admin',
       url: 'http://localhost:30004/assets/remoteEntry.js',
@@ -90,6 +100,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       description: 'AI 에이전트 오케스트레이션'
     },
     {
+      name: 'Drive',
+      key: 'drive',
+      url: import.meta.env.VITE_DRIVE_REMOTE_URL || 'http://localhost:30005/assets/remoteEntry.js',
+      module: 'drive/bootstrap',
+      mountFn: 'mountDriveApp',
+      basePath: '/drive',
+      icon: '💾',
+      description: '파일 관리'
+    },
+    {
       name: 'Admin',
       key: 'admin',
       url: import.meta.env.VITE_ADMIN_REMOTE_URL || 'http://localhost:30004/assets/remoteEntry.js',
@@ -130,6 +150,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       basePath: '/prism',
       icon: '🤖',
       description: 'AI 에이전트 오케스트레이션'
+    },
+    {
+      name: 'Drive',
+      key: 'drive',
+      url: import.meta.env.VITE_DRIVE_REMOTE_URL,
+      module: 'drive/bootstrap',
+      mountFn: 'mountDriveApp',
+      basePath: '/drive',
+      icon: '💾',
+      description: '파일 관리'
     },
     {
       name: 'Admin',
