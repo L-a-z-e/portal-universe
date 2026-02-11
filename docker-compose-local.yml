@@ -27,7 +27,8 @@ services:
       - "5432:5432"
     volumes:
       - postgresql-data:/var/lib/postgresql/data
-      - ./infrastructure/postgresql/init-prism.sql:/docker-entrypoint-initdb.d/init-prism.sql
+      - ./infrastructure/postgresql/init-prism.sql:/docker-entrypoint-initdb.d/01-init-prism.sql
+      - ./infrastructure/postgresql/init-drive.sql:/docker-entrypoint-initdb.d/02-init-drive.sql
     env_file:
       - .env.docker
     networks:

@@ -407,6 +407,32 @@ spring:
                     fallbackUri: forward:/fallback/chatbot
               order: 3
 
+            # ========== Drive Service ==========
+            # Drive Service Actuator - health, info
+            - id: drive-service-actuator-health
+              uri: ${services.drive.url:http://localhost:8087}
+              predicates:
+                - Path=/api/v1/drive/actuator/health,/api/v1/drive/actuator/info
+              filters:
+                - RewritePath=/api/v1/drive/actuator/(?<segment>.*), /actuator/${segment}
+              order: 0
+
+            # Drive Service API
+            - id: drive-service-route
+              uri: ${services.drive.url:http://localhost:8087}
+              predicates:
+                - Path=/api/v1/drive/**
+              filters:
+                - StripPrefix=3
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: driveCircuitBreaker
+                    fallbackUri: forward:/fallback/drive
+
             # ========== Prism Service (AI Orchestration) ==========
             # Prism Service Health/Ready - public
             - id: prism-service-health
@@ -461,6 +487,8 @@ resilience4j:
         base-config: default
       shoppingCircuitBreaker:
         base-config: default
+      driveCircuitBreaker:
+        base-config: default
       prismCircuitBreaker:
         base-config: default
       chatbotCircuitBreaker:
@@ -476,6 +504,8 @@ resilience4j:
       blogCircuitBreaker:
         base-config: default
       shoppingCircuitBreaker:
+        base-config: default
+      driveCircuitBreaker:
         base-config: default
       prismCircuitBreaker:
         base-config: default
@@ -600,6 +630,11 @@ health-check:
       url: ${services.notification.url:http://localhost:8084}
       health-path: /actuator/health
       k8s-deployment-name: notification-service
+    - name: drive-service
+      display-name: Drive Service
+      url: ${services.drive.url:http://localhost:8087}
+      health-path: /actuator/health
+      k8s-deployment-name: drive-service
     - name: prism-service
       display-name: Prism Service
       url: ${services.prism.url:http://localhost:8085}

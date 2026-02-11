@@ -26,6 +26,8 @@ services:
     url: "http://prism-service:8085"
   chatbot:
     url: "http://chatbot-service:8086"
+  drive:
+    url: "http://drive-service:8087"
 
 spring:
   kafka:
