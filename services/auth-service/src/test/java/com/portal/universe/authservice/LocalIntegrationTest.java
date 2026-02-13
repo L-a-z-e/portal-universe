@@ -1,5 +1,7 @@
 package com.portal.universe.authservice;
 
+import java.util.Optional;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -11,6 +13,7 @@ import org.springframework.test.context.support.TestPropertySourceUtils;
 /**
  * 로컬 Docker 환경(MySQL:3307, Redis:6379)을 사용하는 통합 테스트 base 클래스입니다.
  * Testcontainers가 Docker Desktop과 호환되지 않을 때 대안으로 사용합니다.
+ * CI 환경에서는 SPRING_DATASOURCE_* 환경변수가 우선 적용됩니다.
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
@@ -22,6 +25,11 @@ public abstract class LocalIntegrationTest {
     protected KafkaTemplate<String, Object> kafkaTemplate;
 
     public static class DataSourceInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+        private static String env(String key, String defaultValue) {
+            return Optional.ofNullable(System.getenv(key)).orElse(defaultValue);
+        }
+
         @Override
         public void initialize(ConfigurableApplicationContext applicationContext) {
             TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
@@ -30,14 +38,18 @@ public abstract class LocalIntegrationTest {
                     "spring.cloud.config.enabled=false",
                     "spring.cloud.discovery.enabled=false",
 
-                    // 기존 MySQL 사용
-                    "spring.datasource.url=jdbc:mysql://localhost:3307/auth_test_db?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true",
-                    "spring.datasource.username=root",
-                    "spring.datasource.password=root",
+                    // MySQL (CI: env var, 로컬: localhost:3307)
+                    "spring.datasource.url=" + env("SPRING_DATASOURCE_URL",
+                            "jdbc:mysql://localhost:3307/auth_test_db?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"),
+                    "spring.datasource.username=" + env("SPRING_DATASOURCE_USERNAME", "root"),
+                    "spring.datasource.password=" + env("SPRING_DATASOURCE_PASSWORD", "root"),
 
-                    // 기존 Redis 사용
-                    "spring.data.redis.host=localhost",
-                    "spring.data.redis.port=6379",
+                    // Flyway 비활성화 (테스트는 ddl-auto=create-drop 사용)
+                    "spring.flyway.enabled=false",
+
+                    // Redis (CI: env var, 로컬: localhost:6379)
+                    "spring.data.redis.host=" + env("REDIS_HOST", "localhost"),
+                    "spring.data.redis.port=" + env("REDIS_PORT", "6379"),
 
                     // JPA 설정
                     "spring.jpa.hibernate.ddl-auto=create-drop",
