@@ -252,6 +252,7 @@ estimatedWaitSeconds = (position / entryBatchSize) * entryIntervalSeconds
 | S804 | QUEUE_TOKEN_EXPIRED | 토큰 만료 |
 | S805 | QUEUE_NOT_ALLOWED | 입장 불허 |
 | S806 | QUEUE_ENTRY_REQUIRED | 대기열 입장 필요 |
+| S807 | QUEUE_TOKEN_USER_MISMATCH | 토큰 소유자 불일치 |
 
 ---
 

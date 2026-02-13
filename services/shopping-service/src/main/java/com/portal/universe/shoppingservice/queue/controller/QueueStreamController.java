@@ -2,6 +2,8 @@ package com.portal.universe.shoppingservice.queue.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.commonlibrary.response.SseEnvelope;
+import com.portal.universe.commonlibrary.security.context.AuthUser;
+import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import com.portal.universe.shoppingservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingservice.queue.service.QueueService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,8 +44,10 @@ public class QueueStreamController {
     public SseEmitter subscribe(
             @PathVariable String eventType,
             @PathVariable Long eventId,
-            @PathVariable String entryToken
+            @PathVariable String entryToken,
+            @CurrentUser AuthUser user
     ) {
+        queueService.validateTokenOwnership(entryToken, user.uuid());
         SseEmitter emitter = new SseEmitter(300_000L); // 5분 타임아웃
         String emitterKey = entryToken;
 

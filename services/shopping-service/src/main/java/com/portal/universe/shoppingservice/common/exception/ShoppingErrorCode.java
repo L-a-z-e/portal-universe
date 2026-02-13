@@ -137,6 +137,7 @@ public enum ShoppingErrorCode implements ErrorCode {
     QUEUE_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "S804", "Queue token has expired"),
     QUEUE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "S805", "Not allowed to enter yet"),
     QUEUE_ENTRY_REQUIRED(HttpStatus.FORBIDDEN, "S806", "Queue entry is required for this event"),
+    QUEUE_TOKEN_USER_MISMATCH(HttpStatus.FORBIDDEN, "S807", "Queue token does not belong to current user"),
 
     // ========================================
     // Saga/System Errors (S9XX)
