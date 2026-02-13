@@ -29,7 +29,10 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   // Global interceptors
-  app.useGlobalInterceptors(new AuditInterceptor(), new ApiResponseInterceptor());
+  app.useGlobalInterceptors(
+    new AuditInterceptor(),
+    new ApiResponseInterceptor(),
+  );
 
   // Global guards
   const reflector = app.get(Reflector);

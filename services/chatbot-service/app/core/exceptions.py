@@ -42,9 +42,7 @@ class BusinessException(Exception):
         self.status_code = status_code
 
 
-async def business_exception_handler(
-    request: Request, exc: BusinessException
-) -> JSONResponse:
+async def business_exception_handler(request: Request, exc: BusinessException) -> JSONResponse:
     """Handle domain BusinessException → ApiResponse error."""
     logger.warning(
         "BusinessException: code=%s message=%s path=%s",
@@ -52,18 +50,14 @@ async def business_exception_handler(
         exc.message,
         request.url.path,
     )
-    response = ApiResponse.fail(
-        exc.code, exc.message, path=request.url.path
-    )
+    response = ApiResponse.fail(exc.code, exc.message, path=request.url.path)
     return JSONResponse(
         status_code=exc.status_code,
         content=response.model_dump(by_alias=True, exclude_none=True),
     )
 
 
-async def http_exception_handler(
-    request: Request, exc: StarletteHTTPException
-) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     """Handle HTTPException → ApiResponse error with common error codes."""
     code, default_msg = _STATUS_TO_CODE.get(
         exc.status_code, (f"C{exc.status_code:03d}", HTTPStatus(exc.status_code).phrase)
@@ -103,16 +97,10 @@ async def validation_exception_handler(
     )
 
 
-async def unhandled_exception_handler(
-    request: Request, exc: Exception
-) -> JSONResponse:
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions → ApiResponse 500."""
-    logger.exception(
-        "Unhandled exception: path=%s", request.url.path
-    )
-    response = ApiResponse.fail(
-        "C001", "Internal Server Error", path=request.url.path
-    )
+    logger.exception("Unhandled exception: path=%s", request.url.path)
+    response = ApiResponse.fail("C001", "Internal Server Error", path=request.url.path)
     return JSONResponse(
         status_code=500,
         content=response.model_dump(by_alias=True, exclude_none=True),

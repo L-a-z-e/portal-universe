@@ -3,7 +3,10 @@ import { BoardController } from './board.controller';
 import { BoardService } from './board.service';
 import { BoardResponseDto } from './dto/board-response.dto';
 import { TaskStatus } from '../task/task.entity';
-import { PaginationDto, PaginatedResult } from '../../common/dto/pagination.dto';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 describe('BoardController', () => {
   let controller: BoardController;
@@ -69,7 +72,11 @@ describe('BoardController', () => {
 
       const result = await controller.findAll(userId, undefined, pagination);
 
-      expect(boardService.findAll).toHaveBeenCalledWith(userId, false, pagination);
+      expect(boardService.findAll).toHaveBeenCalledWith(
+        userId,
+        false,
+        pagination,
+      );
       expect(result).toBe(expected);
     });
 

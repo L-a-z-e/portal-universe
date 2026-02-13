@@ -13,27 +13,19 @@ class ProviderFactory:
             case "openai":
                 from app.providers.openai_provider import OpenAILLMProvider
 
-                return OpenAILLMProvider(
-                    api_key=settings.ai_api_key, model=settings.ai_model
-                )
+                return OpenAILLMProvider(api_key=settings.ai_api_key, model=settings.ai_model)
             case "anthropic":
                 from app.providers.anthropic_provider import AnthropicLLMProvider
 
-                return AnthropicLLMProvider(
-                    api_key=settings.ai_api_key, model=settings.ai_model
-                )
+                return AnthropicLLMProvider(api_key=settings.ai_api_key, model=settings.ai_model)
             case "google":
                 from app.providers.google_provider import GoogleLLMProvider
 
-                return GoogleLLMProvider(
-                    api_key=settings.ai_api_key, model=settings.ai_model
-                )
+                return GoogleLLMProvider(api_key=settings.ai_api_key, model=settings.ai_model)
             case "ollama":
                 from app.providers.ollama_provider import OllamaLLMProvider
 
-                return OllamaLLMProvider(
-                    base_url=settings.ollama_base_url, model=settings.ai_model
-                )
+                return OllamaLLMProvider(base_url=settings.ollama_base_url, model=settings.ai_model)
             case _:
                 raise ValueError(f"Unknown AI provider: {provider}")
 
@@ -46,9 +38,7 @@ class ProviderFactory:
             case "openai":
                 from app.providers.openai_provider import OpenAIEmbeddingProvider
 
-                return OpenAIEmbeddingProvider(
-                    api_key=api_key, model=settings.embedding_model
-                )
+                return OpenAIEmbeddingProvider(api_key=api_key, model=settings.embedding_model)
             case "sentence-transformers":
                 from app.providers.local_provider import LocalEmbeddingProvider
 

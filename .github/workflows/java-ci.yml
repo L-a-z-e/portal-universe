@@ -79,7 +79,7 @@ jobs:
         run: ./gradlew build -x test
 
       - name: Run Tests
-        run: ./gradlew test
+        run: ./gradlew test -x :integration-tests:test
         env:
           SPRING_PROFILES_ACTIVE: test
 

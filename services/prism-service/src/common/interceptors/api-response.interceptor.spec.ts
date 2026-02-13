@@ -9,7 +9,9 @@ describe('ApiResponseInterceptor', () => {
     return {
       switchToHttp: jest.fn().mockReturnValue({
         getResponse: jest.fn().mockReturnValue({
-          getHeader: jest.fn().mockReturnValue(contentType || 'application/json'),
+          getHeader: jest
+            .fn()
+            .mockReturnValue(contentType || 'application/json'),
         }),
       }),
     } as unknown as ExecutionContext;

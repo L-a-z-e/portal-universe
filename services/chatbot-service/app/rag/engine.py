@@ -7,7 +7,6 @@ from langchain_community.document_loaders import (
     TextLoader,
     UnstructuredMarkdownLoader,
 )
-from langchain_core.documents import Document
 
 from app.core.config import settings
 from app.providers.base import EmbeddingProvider, LLMProvider

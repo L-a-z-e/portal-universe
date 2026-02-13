@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import chat, documents, health
-from app.core.config import settings
 from app.core.audit import AuditMiddleware
+from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
 from app.core.metrics import metrics_endpoint, metrics_middleware
@@ -44,7 +44,7 @@ app = FastAPI(
 register_exception_handlers(app)
 
 # OpenTelemetry auto-instrumentation for FastAPI
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor  # noqa: E402
 
 FastAPIInstrumentor.instrument_app(app)
 

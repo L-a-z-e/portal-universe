@@ -44,9 +44,7 @@ class TestRAGEngineInitialize:
         mock_vs = MagicMock()
 
         with (
-            patch(
-                "app.rag.engine.create_llm_provider", return_value=mock_llm
-            ) as mock_create_llm,
+            patch("app.rag.engine.create_llm_provider", return_value=mock_llm) as mock_create_llm,
             patch("app.rag.engine.create_embedding_provider", return_value=mock_embedding),
             patch("app.rag.engine.VectorStoreManager", return_value=mock_vs),
         ):
@@ -122,9 +120,7 @@ class TestRAGEngineLoadAndIndex:
 
         mock_loader_cls = MagicMock()
         mock_loader_instance = mock_loader_cls.return_value
-        mock_loader_instance.load.return_value = [
-            Document(page_content="# Hello", metadata={})
-        ]
+        mock_loader_instance.load.return_value = [Document(page_content="# Hello", metadata={})]
 
         mock_splitter = MagicMock()
         mock_splitter.split_documents.return_value = [
@@ -153,9 +149,7 @@ class TestRAGEngineLoadAndIndex:
         ]
 
         mock_splitter = MagicMock()
-        mock_splitter.split_documents.return_value = [
-            Document(page_content="chunk1", metadata={})
-        ]
+        mock_splitter.split_documents.return_value = [Document(page_content="chunk1", metadata={})]
 
         with (
             patch.dict(engine_module.LOADER_MAP, {".txt": mock_loader_cls}),
@@ -172,9 +166,7 @@ class TestRAGEngineLoadAndIndex:
 
         mock_loader_cls = MagicMock()
         mock_loader_instance = mock_loader_cls.return_value
-        mock_loader_instance.load.return_value = [
-            Document(page_content="pdf content", metadata={})
-        ]
+        mock_loader_instance.load.return_value = [Document(page_content="pdf content", metadata={})]
 
         mock_splitter = MagicMock()
         mock_splitter.split_documents.return_value = [

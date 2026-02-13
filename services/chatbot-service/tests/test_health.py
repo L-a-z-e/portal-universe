@@ -1,7 +1,6 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
-
 
 # ============================================================
 # 기존 테스트 (1개)

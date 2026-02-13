@@ -37,7 +37,7 @@ async def upload_document(
     if len(content) > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File too large. Max: {MAX_FILE_SIZE // (1024*1024)}MB",
+            detail=f"File too large. Max: {MAX_FILE_SIZE // (1024 * 1024)}MB",
         )
 
     # 파일 저장 (path traversal 방지)
@@ -123,7 +123,12 @@ async def delete_document(
     # 파일 삭제
     target_file.unlink()
 
-    logger.info("Document deleted: user=%s, document_id=%s, file=%s", user_id, document_id, filename)
+    logger.info(
+        "Document deleted: user=%s, document_id=%s, file=%s",
+        user_id,
+        document_id,
+        filename,
+    )
     return ApiResponse.ok({"deleted": document_id, "filename": filename})
 
 
