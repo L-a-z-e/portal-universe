@@ -37,7 +37,7 @@ feign:
 spring:
   data:
     mongodb:
-      uri: mongodb://laze:${MONGO_PASSWORD:password}@mongodb:27017/blog_db?authSource=admin
+      uri: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/blog_db?authSource=admin&ssl=true
 
   kafka:
     bootstrap-servers: kafka:29092
@@ -97,8 +97,8 @@ logging:
 
 aws:
   s3:
-    access-key: test
-    secret-key: test
-    bucket-name: blog-bucket
-    region: ap-northeast-2
-    endpoint: http://localstack:4566
+    access-key: ${AWS_S3_ACCESS_KEY}
+    secret-key: ${AWS_S3_SECRET_KEY}
+    bucket-name: ${AWS_S3_BUCKET_NAME:blog-bucket}
+    region: ${AWS_S3_REGION:ap-northeast-2}
+    endpoint: ${AWS_S3_ENDPOINT:http://localstack:4566}

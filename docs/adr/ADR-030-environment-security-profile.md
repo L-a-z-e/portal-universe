@@ -1,6 +1,6 @@
 # ADR-030: Shopping Service 환경별 보안 프로파일 정책
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-02-07
 **Author**: Laze
 
@@ -56,47 +56,69 @@ Shopping Service의 환경별 설정 파일에서 보안 관련 이슈가 발견
 
 ## Implementation
 
-### 1. application-kubernetes.yml 수정
+전 서비스에 환경별 3단계 보안 프로파일을 적용 완료.
+
+### 적용 대상 서비스 (6개)
+
+| 서비스 | DB | k8s 변경 | docker 변경 |
+|--------|-----|---------|------------|
+| auth-service | MySQL | SSL=true, 기본값 제거 | 기본값 제거 |
+| shopping-service | MySQL | SSL=true, 기본값 제거 | 기본값 제거 |
+| notification-service | MySQL | (datasource 미정의) | 기본값 제거 |
+| blog-service | MongoDB | ssl=true, 기본값 제거 | 기본값 제거 |
+| drive-service | PostgreSQL | sslmode=require, 기본값 제거 | 기본값 제거 |
+| api-gateway | MySQL | (이미 env var 사용) | (이미 env var 사용) |
+
+### DB별 SSL 설정 패턴
+
+**MySQL (auth, shopping, notification)**
 ```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://mysql-db:3306/shopping_db?useSSL=true&requireSSL=true&allowPublicKeyRetrieval=false
-    username: ${DB_USERNAME}       # 기본값 제거
-    password: ${DB_PASSWORD}       # 기본값 제거
+# kubernetes: SSL 강제
+url: jdbc:mysql://...?useSSL=true&requireSSL=true&allowPublicKeyRetrieval=false
+username: ${DB_USER}
+password: ${DB_PASSWORD}
+
+# docker: SSL 없음, 기본값 제거
+url: jdbc:mysql://...?useSSL=false&allowPublicKeyRetrieval=true
+username: ${DB_USER}
+password: ${DB_PASSWORD}
 ```
 
-### 2. application-docker.yml 수정
+**PostgreSQL (drive)**
 ```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://mysql-db:3306/shopping_db?useSSL=false&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME}       # 기본값 제거
-    password: ${DB_PASSWORD}       # 기본값 제거
+# kubernetes: sslmode=require
+url: jdbc:postgresql://postgresql:5432/drive?sslmode=require
+username: ${DB_USER}
+password: ${DB_PASSWORD}
+
+# docker: sslmode 없음, 기본값 제거
+url: jdbc:postgresql://postgresql:5432/drive
+username: ${DB_USER}
+password: ${DB_PASSWORD}
 ```
 
-### 3. application-local.yml (변경 없음)
-- 기존 `useSSL=false`, `allowPublicKeyRetrieval=true`, 기본값 `password` 유지
+**MongoDB (blog)**
+```yaml
+# kubernetes: ssl=true
+uri: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/blog_db?authSource=admin&ssl=true
+
+# docker: ssl 없음
+uri: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/blog_db?authSource=admin
+```
+
+### local 환경 (변경 없음)
+- 기존 `useSSL=false`, `allowPublicKeyRetrieval=true`, 기본값 유지
 - 로컬 개발 편의 우선
 
-### 4. Kubernetes Secret
+### docker-compose.yml 환경변수 추가
+기본값 제거에 따라 `docker-compose.yml`에 명시적 환경변수 설정:
 ```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: shopping-db-credentials
-type: Opaque
-data:
-  DB_USERNAME: <base64>
-  DB_PASSWORD: <base64>
+environment:
+  DB_USER: laze
+  DB_PASSWORD: password       # docker-compose에서 관리
+  MONGO_USER: laze            # blog-service
+  MONGO_PASSWORD: password    # blog-service
 ```
-
-### 적용 범위
-- 이 정책은 Shopping Service뿐 아니라 **모든 Spring Boot 서비스에 일괄 적용**합니다.
-- 서비스별 `application-kubernetes.yml`을 동일 패턴으로 수정
-
-### 코드 참조
-- `application-local.yml:24` (useSSL=false, allowPublicKeyRetrieval=true)
-- `application-kubernetes.yml:20` (useSSL=false, allowPublicKeyRetrieval=true)
 
 ## References
 
@@ -112,3 +134,4 @@ data:
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-07 | 초안 작성 | Laze |
+| 2026-02-13 | 전 서비스 구현 완료, Proposed → Accepted | Laze |
