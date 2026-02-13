@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portal-universe/contracts/api-response.schema.json",
+  "title": "ApiResponse",
+  "description": "All REST API responses MUST be wrapped in this envelope. Java: ApiResponse<T>, NestJS: ApiResponse<T>, Python: ApiResponse[T]",
+  "type": "object",
+  "required": ["success"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "true for successful responses, false for error responses"
+    },
+    "data": {
+      "description": "Response payload. Present when success=true, absent/null when success=false"
+    },
+    "error": {
+      "$ref": "error-response.schema.json",
+      "description": "Error details. Present when success=false, absent when success=true"
+    }
+  },
+  "if": { "properties": { "success": { "const": true } } },
+  "then": {
+    "required": ["success", "data"],
+    "properties": {
+      "error": false
+    }
+  },
+  "else": {
+    "required": ["success", "error"],
+    "properties": {
+      "data": { "const": null }
+    }
+  },
+  "examples": [
+    {
+      "success": true,
+      "data": { "id": 1, "name": "Product A" }
+    },
+    {
+      "success": false,
+      "error": {
+        "code": "C002",
+        "message": "Invalid Input Value",
+        "timestamp": "2026-02-13T10:30:00Z",
+        "path": "/api/v1/products",
+        "details": [
+          { "field": "price", "message": "must be greater than 0", "rejectedValue": -100 }
+        ]
+      }
+    }
+  ]
+}

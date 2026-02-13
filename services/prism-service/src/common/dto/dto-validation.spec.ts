@@ -41,7 +41,9 @@ describe('ApiResponse', () => {
     const response = ApiResponse.error('P001', 'Not found');
     expect(response.success).toBe(false);
     expect(response.data).toBeNull();
-    expect(response.error).toEqual({ code: 'P001', message: 'Not found' });
+    expect(response.error?.code).toBe('P001');
+    expect(response.error?.message).toBe('Not found');
+    expect(response.error?.timestamp).toBeDefined();
   });
 
   it('should handle null data in success', () => {

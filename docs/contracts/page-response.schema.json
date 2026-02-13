@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portal-universe/contracts/page-response.schema.json",
+  "title": "PageResponse",
+  "description": "Pagination wrapper used inside ApiResponse.data for list endpoints. Java: PageResponse<T>. All implementations MUST use 1-based page numbering.",
+  "type": "object",
+  "required": ["items", "page", "size", "totalElements", "totalPages"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "Array of items for the current page"
+    },
+    "page": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Current page number (1-based). Java converts Spring Data 0-based to 1-based."
+    },
+    "size": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of items per page (requested page size)"
+    },
+    "totalElements": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of items across all pages"
+    },
+    "totalPages": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of pages"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "items": [
+        { "id": 1, "name": "Product A" },
+        { "id": 2, "name": "Product B" }
+      ],
+      "page": 1,
+      "size": 20,
+      "totalElements": 45,
+      "totalPages": 3
+    }
+  ]
+}

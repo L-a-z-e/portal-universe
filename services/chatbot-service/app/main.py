@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import chat, documents, health
 from app.core.config import settings
+from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
 from app.core.metrics import metrics_endpoint, metrics_middleware
 from app.core.telemetry import setup_telemetry, shutdown_telemetry
@@ -37,6 +38,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# Global exception handlers (before OTel instrumentation to capture all errors)
+register_exception_handlers(app)
 
 # OpenTelemetry auto-instrumentation for FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
