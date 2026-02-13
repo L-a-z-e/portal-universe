@@ -1,56 +1,120 @@
 groups:
   # ========================================
-  # Request Rate Recording Rules
+  # Request Rate Recording Rules (Polyglot)
   # ========================================
+  # Metric name mapping:
+  #   Java (Micrometer): http_server_requests_seconds_count
+  #   NestJS (OTel):     http_server_duration_milliseconds_count
+  #   Python:            http_requests_total
   - name: request-rate-rules
     interval: 15s
     rules:
-      # Total request rate by service
+      # Total request rate by service (all stacks)
       - record: job:http_requests:rate5m
-        expr: sum(rate(http_server_requests_seconds_count[5m])) by (job)
+        expr: |
+          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          or
+          sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+          or
+          sum(rate(http_requests_total[5m])) by (job)
 
-      # Error rate by service
+      # Error rate by service (all stacks)
       - record: job:http_errors:rate5m
-        expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+          or
+          sum(rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[5m])) by (job)
+          or
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
 
       # Error ratio by service (for dashboards)
       - record: job:http_error_ratio:rate5m
         expr: |
-          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
-          /
-          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          )
+          or
+          (
+            sum(rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+          )
+          or
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total[5m])) by (job)
+          )
 
-      # Request rate by endpoint
+      # Request rate by endpoint (Java + Python)
       - record: job_uri:http_requests:rate5m
-        expr: sum(rate(http_server_requests_seconds_count[5m])) by (job, uri)
+        expr: |
+          sum(rate(http_server_requests_seconds_count[5m])) by (job, uri)
+          or
+          sum(rate(http_requests_total[5m])) by (job, uri)
 
   # ========================================
-  # Latency Recording Rules
+  # Latency Recording Rules (Polyglot)
   # ========================================
+  # Java: http_server_requests_seconds_bucket (seconds)
+  # NestJS: http_server_duration_milliseconds_bucket (milliseconds)
+  # Python: http_request_duration_seconds_bucket (seconds)
   - name: latency-rules
     interval: 15s
     rules:
       # P50 latency by service
       - record: job:http_latency_p50:rate5m
-        expr: histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+        expr: |
+          histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          or
+          histogram_quantile(0.50, sum(rate(http_server_duration_milliseconds_bucket[5m])) by (le, job)) / 1000
+          or
+          histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
 
       # P95 latency by service
       - record: job:http_latency_p95:rate5m
-        expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          or
+          histogram_quantile(0.95, sum(rate(http_server_duration_milliseconds_bucket[5m])) by (le, job)) / 1000
+          or
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
 
       # P99 latency by service
       - record: job:http_latency_p99:rate5m
-        expr: histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+          or
+          histogram_quantile(0.99, sum(rate(http_server_duration_milliseconds_bucket[5m])) by (le, job)) / 1000
+          or
+          histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
 
       # Average latency by service
       - record: job:http_latency_avg:rate5m
         expr: |
-          sum(rate(http_server_requests_seconds_sum[5m])) by (job)
-          /
-          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          (
+            sum(rate(http_server_requests_seconds_sum[5m])) by (job)
+            /
+            sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          )
+          or
+          (
+            sum(rate(http_server_duration_milliseconds_sum[5m])) by (job)
+            /
+            sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+            / 1000
+          )
+          or
+          (
+            sum(rate(http_request_duration_seconds_sum[5m])) by (job)
+            /
+            sum(rate(http_request_duration_seconds_count[5m])) by (job)
+          )
 
   # ========================================
-  # JVM Recording Rules
+  # JVM Recording Rules (Java only)
   # ========================================
   - name: jvm-rules
     interval: 30s
@@ -75,7 +139,7 @@ groups:
         expr: sum(rate(jvm_gc_pause_seconds_sum[5m])) by (job)
 
   # ========================================
-  # Database Connection Pool Rules
+  # Database Connection Pool Rules (Java only)
   # ========================================
   - name: database-rules
     interval: 30s
@@ -92,7 +156,7 @@ groups:
         expr: hikaricp_connections_pending
 
   # ========================================
-  # Service Availability (SLI)
+  # Service Availability (SLI) - Polyglot
   # ========================================
   - name: sli-rules
     interval: 1m
@@ -100,15 +164,47 @@ groups:
       # Availability (non-5xx responses / total responses)
       - record: job:availability:rate5m
         expr: |
-          1 - (
-            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
-            /
-            sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          (
+            1 - (
+              sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+              /
+              sum(rate(http_server_requests_seconds_count[5m])) by (job)
+            )
+          )
+          or
+          (
+            1 - (
+              sum(rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[5m])) by (job)
+              /
+              sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+            )
+          )
+          or
+          (
+            1 - (
+              sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+              /
+              sum(rate(http_requests_total[5m])) by (job)
+            )
           )
 
       # Latency SLI (% of requests under 200ms)
       - record: job:latency_sli:rate5m
         expr: |
-          sum(rate(http_server_requests_seconds_bucket{le="0.2"}[5m])) by (job)
-          /
-          sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          (
+            sum(rate(http_server_requests_seconds_bucket{le="0.2"}[5m])) by (job)
+            /
+            sum(rate(http_server_requests_seconds_count[5m])) by (job)
+          )
+          or
+          (
+            sum(rate(http_server_duration_milliseconds_bucket{le="200"}[5m])) by (job)
+            /
+            sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+          )
+          or
+          (
+            sum(rate(http_request_duration_seconds_bucket{le="0.2"}[5m])) by (job)
+            /
+            sum(rate(http_request_duration_seconds_count[5m])) by (job)
+          )
