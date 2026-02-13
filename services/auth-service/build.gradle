@@ -74,8 +74,8 @@ dependencies {
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-actuator' // Health Check, Metrics
     implementation 'io.micrometer:micrometer-registry-prometheus' // Prometheus-compatible metrics
-    implementation 'io.micrometer:micrometer-tracing-bridge-brave' // Distributed Tracing (Brave)
-    implementation 'io.zipkin.reporter2:zipkin-reporter-brave' // Tracing data reporter for Zipkin
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel' // Distributed Tracing (OpenTelemetry)
+    implementation 'io.opentelemetry:opentelemetry-exporter-zipkin' // Tracing data reporter for Zipkin
 
     // =======================================
     // Development Tools

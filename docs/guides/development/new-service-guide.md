@@ -4,12 +4,13 @@ title: 신규 마이크로서비스 추가 가이드
 type: guide
 status: current
 created: 2026-02-11
-updated: 2026-02-11
+updated: 2026-02-13
 author: Laze
-tags: [guide, microservice, backend, frontend, setup]
+tags: [guide, microservice, backend, frontend, setup, opentelemetry]
 related:
   - guide-module-federation
   - arch-system-overview
+  - adr-033-polyglot-observability-strategy
 ---
 
 # 신규 마이크로서비스 추가 가이드
@@ -108,11 +109,11 @@ dependencies {
     // Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
-    // Observability (Monitoring & Tracing)
+    // Observability (Monitoring & Tracing) - OpenTelemetry (ADR-033)
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
-    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
 
     // Development Tools
     compileOnly 'org.projectlombok:lombok'
@@ -926,9 +927,11 @@ ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
 
 **핵심**:
 - `LogstashEncoder`로 JSON 구조화 로그
-- traceId/spanId MDC 자동 포함 (Zipkin 연동)
+- traceId/spanId MDC 자동 포함 (OpenTelemetry → Zipkin 연동, ADR-033)
 - Local: TEXT(콘솔) + JSON(파일)
 - Docker/K8s: JSON(콘솔) + JSON(파일)
+
+**Observability 통합**: OpenTelemetry SDK가 자동으로 traceId/spanId를 MDC에 주입하므로, 별도 설정 없이 로그-트레이스 연동이 가능합니다.
 
 ---
 
@@ -1718,3 +1721,4 @@ test('drive homepage', async ({ page }) => {
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-11 | 최초 작성 (drive-service/drive-frontend 기반) | Laze |
+| 2026-02-13 | Observability 의존성 변경 (Brave → OpenTelemetry, ADR-033) | Laze |
