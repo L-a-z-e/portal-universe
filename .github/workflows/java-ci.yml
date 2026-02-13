@@ -1,0 +1,102 @@
+name: Java Backend CI
+
+on:
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'services/common-library/**'
+  #     - 'services/api-gateway/**'
+  #     - 'services/auth-service/**'
+  #     - 'services/blog-service/**'
+  #     - 'services/shopping-service/**'
+  #     - 'services/notification-service/**'
+  #     - 'services/drive-service/**'
+  #     - 'services/*-events/**'
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'services/common-library/**'
+  #     - 'services/api-gateway/**'
+  #     - 'services/auth-service/**'
+  #     - 'services/blog-service/**'
+  #     - 'services/shopping-service/**'
+  #     - 'services/notification-service/**'
+  #     - 'services/drive-service/**'
+  #     - 'services/*-events/**'
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+
+concurrency:
+  group: java-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Build
+        run: ./gradlew build -x test
+
+      - name: Run Tests
+        run: ./gradlew test
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Generate Coverage Report
+        run: ./gradlew jacocoTestReport
+        continue-on-error: true
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
+          flags: java-backend
+          fail_ci_if_error: false
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: java-test-results
+          path: '**/build/test-results/test/*.xml'

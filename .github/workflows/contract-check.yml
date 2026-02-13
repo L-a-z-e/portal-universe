@@ -1,0 +1,37 @@
+name: Event Contract Check
+
+on:
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'services/event-contracts/**'
+  #     - 'services/prism-events/**'
+  #     - 'services/prism-service/src/modules/event/**'
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'services/event-contracts/**'
+  #     - 'services/prism-events/**'
+  #     - 'services/prism-service/src/modules/event/**'
+  workflow_dispatch:
+
+concurrency:
+  group: contract-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Event Contracts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate contracts
+        run: node scripts/validate-event-contracts.js
