@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prism.task.failed",
+  "title": "PrismTaskFailedEvent",
+  "description": "Prism AI task failed event. Published by prism-service, consumed by notification-service.",
+  "type": "object",
+  "required": ["taskId", "boardId", "userId", "title", "status", "errorMessage", "timestamp"],
+  "additionalProperties": false,
+  "properties": {
+    "taskId": {
+      "type": "integer",
+      "description": "Task identifier"
+    },
+    "boardId": {
+      "type": "integer",
+      "description": "Board identifier the task belongs to"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User who initiated the task"
+    },
+    "title": {
+      "type": "string",
+      "description": "Task title"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED", "FAILED"],
+      "description": "Task status after failure"
+    },
+    "agentName": {
+      "type": ["string", "null"],
+      "description": "AI agent name that attempted the task"
+    },
+    "executionId": {
+      "type": ["integer", "null"],
+      "description": "Execution record identifier"
+    },
+    "errorMessage": {
+      "type": "string",
+      "description": "Error description for the failure"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp in ISO 8601 format"
+    }
+  }
+}
