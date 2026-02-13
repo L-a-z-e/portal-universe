@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProviderType } from '../provider.entity';
+import { NoXss } from '../../../common/validators/no-xss.validator';
 
 export class CreateProviderDto {
   @ApiProperty({ enum: ProviderType, example: ProviderType.OPENAI })
@@ -20,6 +21,7 @@ export class CreateProviderDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
+  @NoXss()
   name: string;
 
   @ApiPropertyOptional({ example: 'sk-xxxxxxxxxxxxxxxx' })

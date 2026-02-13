@@ -3,14 +3,15 @@ id: api-chatbot
 title: Chatbot REST API
 type: api
 status: current
-version: v1
+version: v1.1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-13
 author: Laze
-tags: [api, chatbot-service, rag, ai, streaming]
+tags: [api, chatbot-service, rag, ai, streaming, security, validation]
 related:
   - chatbot-service-architecture
   - chatbot-service-schema
+  - ADR-029-cross-cutting-security-layer
 ---
 
 # Chatbot REST API
@@ -128,10 +129,29 @@ X-User-Id: user-123
 
 ### Request Body
 
-| 필드 | 타입 | 필수 | 설명 |
-|------|------|------|------|
-| `message` | string | ✅ | 사용자 질문 |
-| `conversation_id` | string | - | 대화 ID (없으면 서버에서 UUID 생성) |
+| 필드 | 타입 | 필수 | Validation | 설명 |
+|------|------|------|-----------|------|
+| `message` | string | ✅ | XSS 패턴 검증, 1-10000자 | 사용자 질문 |
+| `conversation_id` | string | - | - | 대화 ID (없으면 서버에서 UUID 생성) |
+
+### Validation 규칙
+
+**message 필드**:
+- **길이**: 1-10000자
+- **XSS 방어**: `<script>`, `onclick=`, `javascript:`, `<iframe>` 패턴 차단
+- **검증 실패 시**: 422 Unprocessable Entity
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["body", "message"],
+      "msg": "Message contains XSS pattern",
+      "type": "value_error"
+    }
+  ]
+}
+```
 
 ### Response (200 OK)
 
@@ -756,6 +776,11 @@ async function uploadDocument(userId: string, file: File) {
 - SSE 스트리밍 이벤트 형식 문서화
 - RAG 질의 및 문서 인덱싱 워크플로우 다이어그램
 
+### v1.1.0 (2026-02-13)
+- message 필드 XSS 검증 규칙 추가 (Pydantic field_validator)
+- 문서 삭제 Path Traversal 방어 명시
+- Validation 에러 응답 형식 추가
+
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-13

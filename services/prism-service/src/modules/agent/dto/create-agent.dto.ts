@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AgentRole } from '../agent.entity';
+import { NoXss } from '../../../common/validators/no-xss.validator';
 
 export class CreateAgentDto {
   @ApiProperty({ example: 1 })
@@ -23,6 +24,7 @@ export class CreateAgentDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
+  @NoXss()
   name: string;
 
   @ApiProperty({ enum: AgentRole, example: AgentRole.PM })
@@ -34,6 +36,7 @@ export class CreateAgentDto {
   })
   @IsOptional()
   @IsString()
+  @NoXss()
   description?: string;
 
   @ApiProperty({
@@ -42,6 +45,7 @@ export class CreateAgentDto {
   })
   @IsString()
   @IsNotEmpty()
+  @NoXss()
   systemPrompt: string;
 
   @ApiProperty({ example: 'gpt-4o' })

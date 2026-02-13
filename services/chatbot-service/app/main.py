@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import chat, documents, health
 from app.core.config import settings
+from app.core.audit import AuditMiddleware
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
 from app.core.metrics import metrics_endpoint, metrics_middleware
@@ -46,6 +47,9 @@ register_exception_handlers(app)
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 FastAPIInstrumentor.instrument_app(app)
+
+# Audit middleware (log state-changing requests)
+app.add_middleware(AuditMiddleware)
 
 # Metrics middleware (before CORS to capture all requests)
 app.middleware("http")(metrics_middleware)
