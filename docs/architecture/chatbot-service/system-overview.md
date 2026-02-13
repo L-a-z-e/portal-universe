@@ -113,14 +113,16 @@ graph TB
 
 ```
 app/
-├── main.py                 # FastAPI 앱 진입점, 라우터 등록, Lifespan Hook
+├── main.py                 # FastAPI 앱 진입점, 라우터 등록, Lifespan Hook, AuditMiddleware
 ├── api/routes/
 │   ├── chat.py             # Chat + Conversation 엔드포인트 (5개)
-│   ├── documents.py        # Document 엔드포인트 (4개)
+│   ├── documents.py        # Document 엔드포인트 (4개, Path Traversal 방어)
 │   └── health.py           # Health Check (1개)
 ├── core/
 │   ├── config.py           # Pydantic Settings (환경변수 바인딩)
 │   ├── security.py         # Gateway 위임 인증 (X-User-Id, X-User-Roles)
+│   ├── validators.py       # XSS 검증 (check_no_xss)
+│   ├── audit.py            # Audit Middleware (POST/PUT/PATCH/DELETE 로깅)
 │   └── logging_config.py   # 구조화 로깅
 ├── rag/
 │   ├── engine.py           # RAG 파이프라인 오케스트레이션
@@ -135,7 +137,7 @@ app/
 │   ├── ollama_provider.py  # Ollama (로컬)
 │   └── local_provider.py   # SentenceTransformers (로컬 임베딩)
 ├── schemas/
-│   ├── chat.py             # ChatRequest, ChatResponse, SourceInfo
+│   ├── chat.py             # ChatRequest (XSS validation), ChatResponse, SourceInfo
 │   ├── common.py           # ApiResponse (Java 서비스 호환)
 │   └── document.py         # DocumentInfo, DocumentList
 └── services/
@@ -256,6 +258,98 @@ app/
 - JWT 직접 검증 없음 (Gateway가 대행)
 - `X-User-Roles`가 없으면 일반 인증만 확인 (하위 호환)
 - `admin` 또는 `role_admin` 역할 허용
+
+### 7. Input Validation (XSS 방어)
+
+**경로**: `app/core/validators.py`
+
+**역할**: 사용자 입력에서 XSS(Cross-Site Scripting) 공격 패턴을 감지합니다.
+
+**주요 함수**:
+- `check_no_xss(value: str) -> str`: XSS 패턴 검증 + 길이 제한 (1-10000)
+
+**검증 패턴**:
+
+| 패턴 | 설명 |
+|------|------|
+| `<script[^>]*>.*?</script>` | Script 태그 |
+| `on\w+\s*=` | Event 핸들러 (`onclick`, `onerror` 등) |
+| `javascript:` | JavaScript 프로토콜 |
+| `<iframe[^>]*>` | Iframe 태그 |
+
+**적용 위치**:
+- `ChatRequest.message`: Pydantic `field_validator`로 자동 검증
+- 검증 실패 시 422 Unprocessable Entity 반환
+
+**사용 예시**:
+```python
+from app.core.validators import check_no_xss
+from pydantic import BaseModel, field_validator
+
+class ChatRequest(BaseModel):
+    message: str
+
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, v: str) -> str:
+        return check_no_xss(v)
+```
+
+### 8. Path Traversal 방어
+
+**경로**: `app/api/routes/documents.py`
+
+**역할**: 문서 삭제 시 디렉토리 탈출 공격을 방지합니다.
+
+**검증 로직**:
+```python
+file_path = Path(config.documents_dir) / document_id
+resolved_path = file_path.resolve()
+
+if not resolved_path.is_relative_to(Path(config.documents_dir).resolve()):
+    raise HTTPException(status_code=400, detail="Invalid document path")
+```
+
+**방어 원리**:
+- `Path.resolve()`: 심볼릭 링크, `..` 경로 해석
+- `is_relative_to()`: 허용된 디렉토리 내부인지 확인
+- `../../etc/passwd` 같은 공격 차단
+
+### 9. Audit Middleware
+
+**경로**: `app/core/audit.py`
+
+**역할**: 데이터 변경 요청(POST/PUT/PATCH/DELETE)을 로깅합니다.
+
+**주요 기능**:
+- 요청 정보 로깅: HTTP Method, URL Path, User ID (X-User-Id 헤더)
+- 응답 정보 로깅: Status Code, Duration (ms)
+- 성공/실패 모두 기록
+
+**로그 형식**:
+```python
+{
+    "timestamp": "2026-02-13T10:00:00.000Z",
+    "user_id": "user-123",
+    "method": "POST",
+    "path": "/api/v1/chat/message",
+    "status_code": 200,
+    "duration_ms": 1234
+}
+```
+
+**등록 위치**: `main.py`
+```python
+from app.core.audit import AuditMiddleware
+
+app.add_middleware(AuditMiddleware)
+```
+
+**대상 메서드**:
+- POST: 생성
+- PUT/PATCH: 수정
+- DELETE: 삭제
+- GET은 제외 (조회는 로깅하지 않음)
 
 ---
 
@@ -406,3 +500,4 @@ JWT 검증은 API Gateway가 담당하고, chatbot-service는 Gateway가 전달�
 | 날짜 | 버전 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
 | 2026-02-06 | 1.0 | 코드베이스 기반 초기 문서 작성 | Laze |
+| 2026-02-13 | 1.1 | XSS 검증, Path Traversal 방어, Audit Middleware 추가 | Laze |

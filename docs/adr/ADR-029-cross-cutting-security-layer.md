@@ -1,6 +1,6 @@
 # ADR-029: Shopping Service Cross-cutting 보안 처리 계층 설계
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-02-07
 **Author**: Laze
 
@@ -68,8 +68,24 @@ Shopping Service 코드 리뷰에서 세 가지 cross-cutting 보안 이슈가 �
 - Shopping Service: Resilience4j `@RateLimiter` → 결제(`POST /payments`), 대기열 등록(`POST /queue/*/enter`)에 적용
 - 설정값: 결제 5req/min/user, 대기열 등록 10req/min/user
 
+### 4. Polyglot Input Validation (XSS 방어 확장)
+- **NestJS (Prism)**: `@NoXss()` custom validator decorator + `@NoSqlInjection()` decorator
+  - `common/validators/no-xss.validator.ts`, `no-sql-injection.validator.ts`
+  - 8개 DTO의 사용자 입력 string 필드에 적용
+- **Python (Chatbot)**: `check_no_xss()` Pydantic field validator
+  - `app/core/validators.py` — 동일한 XSS 패턴 세트
+  - `ChatRequest.message`에 적용 + 길이 제한 (1-10000)
+- **Path Traversal 방지**: `documents.py`에서 `Path.resolve().is_relative_to()` 검증 추가
+
+### 5. Polyglot Audit Logging
+- **NestJS (Prism)**: `AuditInterceptor` — POST/PUT/PATCH/DELETE 요청에 userId, method, path, duration, status 로깅
+- **Python (Chatbot)**: `AuditMiddleware` — 동일 패턴의 ASGI 미들웨어
+
 ### 코드 참조
 - `SecurityConfig.java` (전체)
+- `prism-service/src/common/validators/` (XSS/SQLi validators)
+- `prism-service/src/common/interceptors/audit.interceptor.ts`
+- `chatbot-service/app/core/validators.py`, `app/core/audit.py`
 
 ## References
 
@@ -84,3 +100,4 @@ Shopping Service 코드 리뷰에서 세 가지 cross-cutting 보안 이슈가 �
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-07 | 초안 작성 | Laze |
+| 2026-02-13 | Accepted: Polyglot XSS validation, audit logging, path traversal 방어 추가 | Laze |

@@ -40,10 +40,15 @@ async def upload_document(
             detail=f"File too large. Max: {MAX_FILE_SIZE // (1024*1024)}MB",
         )
 
-    # 파일 저장
-    doc_dir = Path(settings.documents_dir)
+    # 파일 저장 (path traversal 방지)
+    doc_dir = Path(settings.documents_dir).resolve()
     doc_dir.mkdir(parents=True, exist_ok=True)
-    file_path = doc_dir / file.filename
+    file_path = (doc_dir / Path(file.filename).name).resolve()
+    if not file_path.is_relative_to(doc_dir):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid filename",
+        )
     file_path.write_bytes(content)
 
     # 인덱싱
@@ -90,12 +95,12 @@ async def delete_document(
 ):
     """문서 삭제 및 벡터 제거."""
     # document_id로 파일 찾기 (메타데이터 또는 파일명 매핑)
-    doc_dir = Path(settings.documents_dir)
+    doc_dir = Path(settings.documents_dir).resolve()
     target_file: Path | None = None
 
     # document_id가 파일명인 경우도 지원 (하위 호환)
-    candidate = doc_dir / document_id
-    if candidate.exists():
+    candidate = (doc_dir / document_id).resolve()
+    if candidate.is_relative_to(doc_dir) and candidate.exists():
         target_file = candidate
     else:
         # documents 디렉토리에서 파일 탐색

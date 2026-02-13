@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { AgentRole } from '../agent.entity';
+import { NoXss } from '../../../common/validators/no-xss.validator';
 
 export class UpdateAgentDto {
   @ApiPropertyOptional({ example: 1 })
@@ -23,6 +24,7 @@ export class UpdateAgentDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
+  @NoXss()
   name?: string;
 
   @ApiPropertyOptional({ enum: AgentRole })
@@ -33,11 +35,13 @@ export class UpdateAgentDto {
   @ApiPropertyOptional({ example: 'Updated description' })
   @IsOptional()
   @IsString()
+  @NoXss()
   description?: string;
 
   @ApiPropertyOptional({ example: 'Updated system prompt' })
   @IsOptional()
   @IsString()
+  @NoXss()
   systemPrompt?: string;
 
   @ApiPropertyOptional({ example: 'gpt-4-turbo' })

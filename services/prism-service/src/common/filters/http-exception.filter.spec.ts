@@ -43,7 +43,11 @@ describe('GlobalExceptionFilter', () => {
       expect.objectContaining({
         success: false,
         data: null,
-        error: { code: 'P001', message: 'Task not found' },
+        error: expect.objectContaining({
+          code: 'P001',
+          message: 'Task not found',
+          path: '/api/v1/test',
+        }),
       }),
     );
   });
@@ -93,7 +97,7 @@ describe('GlobalExceptionFilter', () => {
       expect.objectContaining({
         success: false,
         error: expect.objectContaining({
-          code: 'P999',
+          code: 'C001',
           message: 'Something went wrong',
         }),
       }),
@@ -108,8 +112,8 @@ describe('GlobalExceptionFilter', () => {
       expect.objectContaining({
         success: false,
         error: expect.objectContaining({
-          code: 'P999',
-          message: 'Internal server error',
+          code: 'C001',
+          message: 'Internal Server Error',
         }),
       }),
     );
