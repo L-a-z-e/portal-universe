@@ -31,7 +31,8 @@ tags: [onboarding, guide, getting-started]
 
 | 순서 | 문서 | 핵심 내용 |
 |------|------|----------|
-| 4 | [`/docs/adr/README.md`](../../adr/README.md) | 14개 아키텍처 결정 기록 (훑어보기) |
+| 3 | [`/docs/architecture/system/polyglot-overview.md`](../../architecture/system/polyglot-overview.md) | Polyglot 전체 조감도 (기술 스택, cross-cutting 매트릭스) |
+| 4 | [`/docs/adr/README.md`](../../adr/README.md) | 40개 아키텍처 결정 기록 (훑어보기) |
 | 6 | [`/docs/old-docs/diagrams/`](../../old-docs/diagrams/) | 시스템 전체 구조, 서비스 간 통신 다이어그램 |
 
 ### Step 3. 환경 구성 & 실행
@@ -147,6 +148,9 @@ tags: [onboarding, guide, getting-started]
 ---
 
 ## D: 신규 백엔드 서비스 추가
+
+> **먼저 읽기**: [Polyglot 신규 서비스 체크리스트](new-service-checklist.md) - 스택 무관 전체 체크리스트
+> **Java 상세**: [new-service-guide.md](new-service-guide.md) - Java/Spring 구현 상세
 
 ### Step 1. 설계
 
