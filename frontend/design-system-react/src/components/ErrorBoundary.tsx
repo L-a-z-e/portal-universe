@@ -1,8 +1,13 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
+import { createLogger } from '@portal/design-types';
+import type { ErrorReporter } from '@portal/design-types';
 
-interface Props {
+export interface ErrorBoundaryProps {
   children: ReactNode;
+  moduleName?: string;
+  reporter?: ErrorReporter;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
   fallback?: ReactNode;
 }
 
@@ -11,10 +16,16 @@ interface State {
   error: Error | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
+  private logger;
+
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
+    this.logger = createLogger({
+      moduleName: props.moduleName ?? 'App',
+      reporter: props.reporter,
+    });
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -22,7 +33,8 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[Shopping] Uncaught error:', error, errorInfo);
+    this.logger.error(error, { componentStack: errorInfo.componentStack ?? undefined });
+    this.props.onError?.(error, errorInfo);
   }
 
   render() {
@@ -53,5 +65,3 @@ class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-export default ErrorBoundary;

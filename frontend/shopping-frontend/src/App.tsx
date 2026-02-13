@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react'
 import { ShoppingRouter } from '@/router'
 import { usePortalTheme } from '@portal/react-bridge'
-import { ToastContainer, useToast } from '@portal/design-system-react'
-import ErrorBoundary from '@/components/common/ErrorBoundary'
+import { ToastContainer, useToast, ErrorBoundary } from '@portal/design-system-react'
 import './styles/index.css'
 
 /**
@@ -126,7 +125,7 @@ function App({
   // ============================================
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary moduleName="Shopping">
     <div className="min-h-screen bg-bg-page">
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
       {/* Header (Standalone 모드에서만 표시) */}

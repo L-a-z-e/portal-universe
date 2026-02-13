@@ -4,6 +4,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import { createStandaloneAdminRouter } from './router';
 import { createPinia } from 'pinia';
+import { setupErrorHandler } from '@portal/design-system-vue';
 
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 
@@ -25,6 +26,7 @@ if (isEmbedded) {
     const pinia = createPinia();
     const router = createStandaloneAdminRouter();
 
+    setupErrorHandler(app, { moduleName: 'Admin' });
     app.use(pinia);
     app.use(router);
     app.mount(appElement);

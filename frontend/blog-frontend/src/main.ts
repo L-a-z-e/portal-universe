@@ -3,9 +3,9 @@
 import './style.css';
 import { createApp } from 'vue';
 import App from './App.vue';
-// import { mountBlogApp } from './bootstrap';
 import { createStandaloneBlogRouter } from './router';
 import {createPinia} from "pinia";
+import { setupErrorHandler } from '@portal/design-system-vue';
 
 /**
  * 앱 모드 감지
@@ -45,6 +45,7 @@ if (isEmbedded) {
     const pinia = createPinia();
     const router = createStandaloneBlogRouter();
 
+    setupErrorHandler(app, { moduleName: 'Blog' });
     app.use(pinia);
     app.use(router);
     app.mount(appElement);
