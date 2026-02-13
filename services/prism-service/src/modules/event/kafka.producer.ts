@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, Producer, ProducerRecord } from 'kafkajs';
+import { PrismTopics } from './prism-topics';
 
 export interface TaskEvent {
   taskId: number;
@@ -16,6 +17,10 @@ export interface TaskEvent {
   agentName?: string;
   executionId?: number;
   timestamp: string;
+}
+
+export interface TaskFailedEvent extends TaskEvent {
+  errorMessage: string;
 }
 
 @Injectable()
@@ -62,15 +67,12 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // Topic names must stay in sync with PrismTopics.java (prism-events module)
   async sendTaskCompleted(event: TaskEvent): Promise<void> {
-    await this.send('prism.task.completed', event);
+    await this.send(PrismTopics.TASK_COMPLETED, event);
   }
 
-  async sendTaskFailed(
-    event: TaskEvent & { errorMessage: string },
-  ): Promise<void> {
-    await this.send('prism.task.failed', event);
+  async sendTaskFailed(event: TaskFailedEvent): Promise<void> {
+    await this.send(PrismTopics.TASK_FAILED, event);
   }
 
   private async send(topic: string, message: object): Promise<void> {
