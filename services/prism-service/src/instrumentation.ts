@@ -19,12 +19,11 @@ const resource = new Resource({
   [ATTR_SERVICE_VERSION]: '0.0.1',
 });
 
-const prometheusExporter = new PrometheusExporter(
-  { port: 9464 },
-  () => {
-    console.log('OTel Prometheus metrics available at http://localhost:9464/metrics');
-  },
-);
+const prometheusExporter = new PrometheusExporter({ port: 9464 }, () => {
+  console.log(
+    'OTel Prometheus metrics available at http://localhost:9464/metrics',
+  );
+});
 
 const tracingEnabled = process.env.OTEL_TRACES_EXPORTER !== 'none';
 

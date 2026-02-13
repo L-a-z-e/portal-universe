@@ -17,7 +17,7 @@ class TestVectorStoreManagerInit:
 
         with patch("app.rag.vectorstore.settings") as mock_settings:
             mock_settings.chroma_persist_dir = "/tmp/chroma"
-            manager = VectorStoreManager(mock_embeddings)
+            VectorStoreManager(mock_embeddings)
 
         mock_chroma_cls.assert_called_once_with(
             collection_name=COLLECTION_NAME,
@@ -63,9 +63,7 @@ class TestVectorStoreManagerOperations:
         """검색 시 기본 settings 값(top_k, score_threshold)이 사용된다."""
         manager = self._make_manager()
         doc = Document(page_content="result", metadata={})
-        manager._store.similarity_search_with_relevance_scores.return_value = [
-            (doc, 0.9)
-        ]
+        manager._store.similarity_search_with_relevance_scores.return_value = [(doc, 0.9)]
 
         with patch("app.rag.vectorstore.settings") as mock_settings:
             mock_settings.rag_top_k = 5
@@ -82,15 +80,11 @@ class TestVectorStoreManagerOperations:
         """커스텀 k, score_threshold 파라미터가 전달된다."""
         manager = self._make_manager()
         doc = Document(page_content="result", metadata={})
-        manager._store.similarity_search_with_relevance_scores.return_value = [
-            (doc, 0.85)
-        ]
+        manager._store.similarity_search_with_relevance_scores.return_value = [(doc, 0.85)]
 
         results = manager.search("query", k=3, score_threshold=0.8)
 
-        manager._store.similarity_search_with_relevance_scores.assert_called_once_with(
-            "query", k=3
-        )
+        manager._store.similarity_search_with_relevance_scores.assert_called_once_with("query", k=3)
         assert len(results) == 1
 
     def test_search_filters_below_threshold(self):

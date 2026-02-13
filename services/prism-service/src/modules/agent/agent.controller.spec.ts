@@ -3,7 +3,10 @@ import { AgentController } from './agent.controller';
 import { AgentService } from './agent.service';
 import { AgentResponseDto } from './dto/agent-response.dto';
 import { AgentRole } from './agent.entity';
-import { PaginationDto, PaginatedResult } from '../../common/dto/pagination.dto';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 describe('AgentController', () => {
   let controller: AgentController;
@@ -56,7 +59,10 @@ describe('AgentController', () => {
         systemPrompt: 'You are a backend developer',
         model: 'gpt-4o',
       };
-      const expected = makeAgentResponse({ name: 'New Agent', role: AgentRole.BACKEND });
+      const expected = makeAgentResponse({
+        name: 'New Agent',
+        role: AgentRole.BACKEND,
+      });
       agentService.create.mockResolvedValue(expected);
 
       const result = await controller.create(userId, dto);
@@ -100,7 +106,10 @@ describe('AgentController', () => {
   describe('update', () => {
     it('should call service.update with correct params', async () => {
       const dto = { name: 'Updated Agent', temperature: 0.9 };
-      const expected = makeAgentResponse({ name: 'Updated Agent', temperature: 0.9 });
+      const expected = makeAgentResponse({
+        name: 'Updated Agent',
+        temperature: 0.9,
+      });
       agentService.update.mockResolvedValue(expected);
 
       const result = await controller.update(userId, 1, dto);

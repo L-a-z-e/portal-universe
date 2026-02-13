@@ -1,5 +1,5 @@
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -110,13 +110,15 @@ async def test_save_message_new_conversation(service, mock_redis):
 @pytest.mark.asyncio
 async def test_save_message_existing_conversation(service, mock_redis):
     """기존 대화에 메시지 추가 시 message_count 증가."""
-    existing_conv = json.dumps({
-        "conversation_id": "conv1",
-        "title": "기존 대화",
-        "message_count": 3,
-        "created_at": "2026-01-01T00:00:00+00:00",
-        "updated_at": "2026-01-01T00:00:00+00:00",
-    })
+    existing_conv = json.dumps(
+        {
+            "conversation_id": "conv1",
+            "title": "기존 대화",
+            "message_count": 3,
+            "created_at": "2026-01-01T00:00:00+00:00",
+            "updated_at": "2026-01-01T00:00:00+00:00",
+        }
+    )
     mock_redis.hget = AsyncMock(return_value=existing_conv)
     mock_redis.rpush = AsyncMock()
     mock_redis.hset = AsyncMock()
@@ -188,9 +190,7 @@ async def test_save_message_with_sources(service, mock_redis):
 
     from app.schemas.chat import SourceInfo
 
-    sources = [
-        SourceInfo(document="doc.md", chunk="some text", relevance_score=0.95)
-    ]
+    sources = [SourceInfo(document="doc.md", chunk="some text", relevance_score=0.95)]
 
     await service.save_message(
         user_id="user1",
@@ -266,16 +266,20 @@ async def test_save_message_json_serialization(service, mock_redis):
 @pytest.mark.asyncio
 async def test_list_conversations_sorted(service, mock_redis):
     """대화 목록이 updated_at 기준 내림차순 정렬."""
-    conv1 = json.dumps({
-        "conversation_id": "c1",
-        "title": "Old",
-        "updated_at": "2026-01-01T00:00:00",
-    })
-    conv2 = json.dumps({
-        "conversation_id": "c2",
-        "title": "New",
-        "updated_at": "2026-02-01T00:00:00",
-    })
+    conv1 = json.dumps(
+        {
+            "conversation_id": "c1",
+            "title": "Old",
+            "updated_at": "2026-01-01T00:00:00",
+        }
+    )
+    conv2 = json.dumps(
+        {
+            "conversation_id": "c2",
+            "title": "New",
+            "updated_at": "2026-02-01T00:00:00",
+        }
+    )
     mock_redis.hgetall = AsyncMock(return_value={"c1": conv1, "c2": conv2})
 
     result = await service.list_conversations("user1")

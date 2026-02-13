@@ -9,7 +9,11 @@ describe('AIProviderFactory', () => {
   const baseUrl = 'https://custom.api.com';
 
   it('should create OpenAIProvider for OPENAI type', () => {
-    const provider = AIProviderFactory.create(ProviderType.OPENAI, apiKey, baseUrl);
+    const provider = AIProviderFactory.create(
+      ProviderType.OPENAI,
+      apiKey,
+      baseUrl,
+    );
     expect(provider).toBeInstanceOf(OpenAIProvider);
   });
 
@@ -32,17 +36,29 @@ describe('AIProviderFactory', () => {
   });
 
   it('should create OllamaProvider for OLLAMA type', () => {
-    const provider = AIProviderFactory.create(ProviderType.OLLAMA, apiKey, baseUrl);
+    const provider = AIProviderFactory.create(
+      ProviderType.OLLAMA,
+      apiKey,
+      baseUrl,
+    );
     expect(provider).toBeInstanceOf(OllamaProvider);
   });
 
   it('should create OllamaProvider for LOCAL type', () => {
-    const provider = AIProviderFactory.create(ProviderType.LOCAL, apiKey, baseUrl);
+    const provider = AIProviderFactory.create(
+      ProviderType.LOCAL,
+      apiKey,
+      baseUrl,
+    );
     expect(provider).toBeInstanceOf(OllamaProvider);
   });
 
   it('should create provider without baseUrl (null)', () => {
-    const provider = AIProviderFactory.create(ProviderType.OPENAI, apiKey, null);
+    const provider = AIProviderFactory.create(
+      ProviderType.OPENAI,
+      apiKey,
+      null,
+    );
     expect(provider).toBeInstanceOf(OpenAIProvider);
   });
 

@@ -1,7 +1,4 @@
-import {
-  BusinessException,
-  PrismErrorCode,
-} from './business.exception';
+import { BusinessException, PrismErrorCode } from './business.exception';
 import { HttpStatus } from '@nestjs/common';
 
 describe('BusinessException', () => {
@@ -38,14 +35,18 @@ describe('BusinessException', () => {
     });
 
     it('should set correct status for each error code', () => {
+      expect(new BusinessException(PrismErrorCode.NOT_FOUND).getStatus()).toBe(
+        HttpStatus.NOT_FOUND,
+      );
       expect(
-        new BusinessException(PrismErrorCode.NOT_FOUND).getStatus(),
-      ).toBe(HttpStatus.NOT_FOUND);
-      expect(
-        new BusinessException(PrismErrorCode.INVALID_STATE_TRANSITION).getStatus(),
+        new BusinessException(
+          PrismErrorCode.INVALID_STATE_TRANSITION,
+        ).getStatus(),
       ).toBe(HttpStatus.BAD_REQUEST);
       expect(
-        new BusinessException(PrismErrorCode.PROVIDER_CONNECTION_FAILED).getStatus(),
+        new BusinessException(
+          PrismErrorCode.PROVIDER_CONNECTION_FAILED,
+        ).getStatus(),
       ).toBe(HttpStatus.SERVICE_UNAVAILABLE);
       expect(
         new BusinessException(PrismErrorCode.DUPLICATE_RESOURCE).getStatus(),

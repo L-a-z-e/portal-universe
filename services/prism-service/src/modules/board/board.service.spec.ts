@@ -137,10 +137,7 @@ describe('BoardService', () => {
     });
 
     it('should return paginated boards', async () => {
-      mockQueryBuilder.getManyAndCount.mockResolvedValue([
-        [makeBoard()],
-        25,
-      ]);
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([[makeBoard()], 25]);
 
       const pagination = new PaginationDto();
       pagination.page = 2;

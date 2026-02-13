@@ -41,9 +41,7 @@ describe('ExecutionController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ExecutionController],
-      providers: [
-        { provide: ExecutionService, useValue: executionService },
-      ],
+      providers: [{ provide: ExecutionService, useValue: executionService }],
     }).compile();
 
     controller = module.get<ExecutionController>(ExecutionController);
@@ -88,7 +86,10 @@ describe('ExecutionController', () => {
     it('should pass userId from decorator to findByTask', async () => {
       executionService.findByTask.mockResolvedValue([]);
       await controller.findByTask('other-user', 42);
-      expect(executionService.findByTask).toHaveBeenCalledWith('other-user', 42);
+      expect(executionService.findByTask).toHaveBeenCalledWith(
+        'other-user',
+        42,
+      );
     });
 
     it('should pass userId from decorator to findOne', async () => {

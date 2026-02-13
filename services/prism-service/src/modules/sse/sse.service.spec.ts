@@ -1,5 +1,5 @@
-import { SseService, SseEvent } from './sse.service';
-import { firstValueFrom, take, toArray, lastValueFrom } from 'rxjs';
+import { SseService } from './sse.service';
+import { firstValueFrom, take } from 'rxjs';
 
 describe('SseService', () => {
   let service: SseService;
@@ -39,9 +39,7 @@ describe('SseService', () => {
   it('should filter events by boardId', async () => {
     const observable = service.subscribe('user-1', 1);
 
-    const resultPromise = firstValueFrom(
-      observable.pipe(take(1)),
-    );
+    const resultPromise = firstValueFrom(observable.pipe(take(1)));
 
     // Emit for different board first (should be filtered)
     service.emit({
@@ -69,9 +67,7 @@ describe('SseService', () => {
   it('should filter events by userId', async () => {
     const observable = service.subscribe('user-1', 1);
 
-    const resultPromise = firstValueFrom(
-      observable.pipe(take(1)),
-    );
+    const resultPromise = firstValueFrom(observable.pipe(take(1)));
 
     // Emit for different user (should be filtered)
     service.emit({

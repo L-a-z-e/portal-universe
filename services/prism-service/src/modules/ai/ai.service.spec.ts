@@ -92,9 +92,9 @@ describe('AIService', () => {
       apiKey: 'sk-test',
     });
 
-    await expect(
-      service.generate('user-1', 1, sampleRequest),
-    ).rejects.toThrow(BusinessException);
+    await expect(service.generate('user-1', 1, sampleRequest)).rejects.toThrow(
+      BusinessException,
+    );
   });
 
   it('should delegate testConnection to the LLM provider', async () => {
@@ -142,7 +142,9 @@ describe('AIService', () => {
     });
 
     // Override the mocked AnthropicProvider's generate to throw
-    const { AnthropicProvider } = jest.requireMock('./providers/anthropic.provider');
+    const { AnthropicProvider } = jest.requireMock(
+      './providers/anthropic.provider',
+    );
     AnthropicProvider.mockImplementationOnce(() => ({
       generate: jest.fn().mockRejectedValue(new Error('Rate limit exceeded')),
       testConnection: jest.fn(),
@@ -152,8 +154,8 @@ describe('AIService', () => {
     // Re-create service to pick up the override
     service = new AIService(providerService as unknown as ProviderService);
 
-    await expect(
-      service.generate('user-1', 1, sampleRequest),
-    ).rejects.toThrow(BusinessException);
+    await expect(service.generate('user-1', 1, sampleRequest)).rejects.toThrow(
+      BusinessException,
+    );
   });
 });

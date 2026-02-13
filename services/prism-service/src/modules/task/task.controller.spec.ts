@@ -137,7 +137,10 @@ describe('TaskController', () => {
   describe('update', () => {
     it('should call taskService.update', async () => {
       const dto = { title: 'Updated', priority: TaskPriority.HIGH };
-      const expected = makeTaskResponse({ title: 'Updated', priority: TaskPriority.HIGH });
+      const expected = makeTaskResponse({
+        title: 'Updated',
+        priority: TaskPriority.HIGH,
+      });
       taskService.update.mockResolvedValue(expected);
 
       const result = await controller.update(userId, 1, dto);

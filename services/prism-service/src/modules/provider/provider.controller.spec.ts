@@ -1,9 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProviderController } from './provider.controller';
 import { ProviderService } from './provider.service';
-import { ProviderResponseDto, VerifyProviderResponseDto } from './dto/provider-response.dto';
+import {
+  ProviderResponseDto,
+  VerifyProviderResponseDto,
+} from './dto/provider-response.dto';
 import { ProviderType } from './provider.entity';
-import { PaginationDto, PaginatedResult } from '../../common/dto/pagination.dto';
+import {
+  PaginationDto,
+  PaginatedResult,
+} from '../../common/dto/pagination.dto';
 
 describe('ProviderController', () => {
   let controller: ProviderController;
@@ -41,9 +47,7 @@ describe('ProviderController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProviderController],
-      providers: [
-        { provide: ProviderService, useValue: providerService },
-      ],
+      providers: [{ provide: ProviderService, useValue: providerService }],
     }).compile();
 
     controller = module.get<ProviderController>(ProviderController);
@@ -164,7 +168,10 @@ describe('ProviderController', () => {
     it('should delegate findOne to service with userId and id', async () => {
       providerService.findOne.mockResolvedValue(makeProviderResponse());
       await controller.findOne('different-user', 42);
-      expect(providerService.findOne).toHaveBeenCalledWith('different-user', 42);
+      expect(providerService.findOne).toHaveBeenCalledWith(
+        'different-user',
+        42,
+      );
     });
 
     it('should delegate remove to service with userId and id', async () => {

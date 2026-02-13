@@ -5,7 +5,6 @@ import pytest
 
 from app.schemas.chat import SourceInfo
 
-
 # ============================================================
 # 기존 테스트 (8개)
 # ============================================================
@@ -24,9 +23,7 @@ async def test_chat_message_requires_auth(client):
 @pytest.mark.asyncio
 async def test_chat_message_with_auth(client):
     """인증된 사용자가 chat message 호출 시 정상 응답."""
-    mock_sources = [
-        SourceInfo(document="test.md", chunk="test content", relevance_score=0.95)
-    ]
+    mock_sources = [SourceInfo(document="test.md", chunk="test content", relevance_score=0.95)]
 
     with (
         patch("app.api.routes.chat.rag_engine") as mock_engine,
@@ -127,6 +124,7 @@ async def test_stream_endpoint_exists(client):
         patch("app.api.routes.chat.rag_engine") as mock_engine,
         patch("app.api.routes.chat.conversation_service") as mock_conv,
     ):
+
         async def mock_stream(question):
             yield {"type": "token", "content": "Test"}
             yield {"type": "sources", "sources": []}
@@ -155,9 +153,7 @@ async def test_chat_message_creates_conversation_id(client):
     """conversation_id 없이 전송 시 UUID 형식의 conversation_id가 생성."""
     import uuid
 
-    mock_sources = [
-        SourceInfo(document="doc.md", chunk="text", relevance_score=0.9)
-    ]
+    mock_sources = [SourceInfo(document="doc.md", chunk="text", relevance_score=0.9)]
 
     with (
         patch("app.api.routes.chat.rag_engine") as mock_engine,
@@ -206,9 +202,7 @@ async def test_chat_message_uses_existing_conversation_id(client):
 @pytest.mark.asyncio
 async def test_chat_message_saves_user_and_assistant(client):
     """chat message 호출 시 user + assistant 두 번 save_message 호출."""
-    mock_sources = [
-        SourceInfo(document="doc.md", chunk="text", relevance_score=0.9)
-    ]
+    mock_sources = [SourceInfo(document="doc.md", chunk="text", relevance_score=0.9)]
 
     with (
         patch("app.api.routes.chat.rag_engine") as mock_engine,
@@ -273,10 +267,14 @@ async def test_stream_event_order(client):
         patch("app.api.routes.chat.rag_engine") as mock_engine,
         patch("app.api.routes.chat.conversation_service") as mock_conv,
     ):
+
         async def mock_stream(question):
             yield {"type": "token", "content": "Hello"}
             yield {"type": "token", "content": " World"}
-            yield {"type": "sources", "sources": [{"document": "d.md", "chunk": "c", "relevance_score": 0.9}]}
+            yield {
+                "type": "sources",
+                "sources": [{"document": "d.md", "chunk": "c", "relevance_score": 0.9}],
+            }
             yield {"type": "done"}
 
         mock_engine.query_stream = mock_stream
@@ -296,7 +294,7 @@ async def test_stream_event_order(client):
         for line in body.strip().split("\n"):
             line = line.strip()
             if line.startswith("data:"):
-                event_data = json.loads(line[len("data:"):].strip())
+                event_data = json.loads(line[len("data:") :].strip())
                 events.append(event_data["type"])
 
         assert "token" in events
@@ -313,6 +311,7 @@ async def test_stream_collects_full_answer(client):
         patch("app.api.routes.chat.rag_engine") as mock_engine,
         patch("app.api.routes.chat.conversation_service") as mock_conv,
     ):
+
         async def mock_stream(question):
             yield {"type": "token", "content": "Hello"}
             yield {"type": "token", "content": " World"}

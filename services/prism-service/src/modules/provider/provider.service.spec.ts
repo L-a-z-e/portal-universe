@@ -73,7 +73,9 @@ describe('ProviderService', () => {
 
       const result = await service.create(userId, dto);
 
-      expect(encryptionUtil.encrypt).toHaveBeenCalledWith('sk-test-api-key-12345');
+      expect(encryptionUtil.encrypt).toHaveBeenCalledWith(
+        'sk-test-api-key-12345',
+      );
       expect(providerRepo.save).toHaveBeenCalled();
       expect(result.name).toBe('My OpenAI');
       expect(result.apiKeyMasked).toBe('sk-...2345');
@@ -106,10 +108,7 @@ describe('ProviderService', () => {
     });
 
     it('should calculate totalPages correctly', async () => {
-      providerRepo.findAndCount.mockResolvedValue([
-        [makeProvider()],
-        25,
-      ]);
+      providerRepo.findAndCount.mockResolvedValue([[makeProvider()], 25]);
 
       const pagination = new PaginationDto();
       pagination.page = 1;
@@ -212,9 +211,7 @@ describe('ProviderService', () => {
       providerRepo.findOne.mockResolvedValue(provider);
 
       const mockLlmProvider = {
-        listModels: jest
-          .fn()
-          .mockResolvedValue(['gpt-4', 'gpt-3.5-turbo']),
+        listModels: jest.fn().mockResolvedValue(['gpt-4', 'gpt-3.5-turbo']),
       };
       jest
         .spyOn(AIProviderFactory, 'create')
