@@ -4,7 +4,6 @@ import pytest
 
 from app.providers.factory import ProviderFactory, create_embedding_provider, create_llm_provider
 
-
 # ============================================================
 # 기존 테스트 (12개): Factory 생성 테스트
 # ============================================================
@@ -156,9 +155,7 @@ async def test_create_sentence_transformers_embedding():
     """sentence-transformers embedding provider 생성 확인."""
     with (
         patch("app.providers.factory.settings") as mock_settings,
-        patch(
-            "app.providers.local_provider.HuggingFaceEmbeddings"
-        ) as mock_hf,
+        patch("app.providers.local_provider.HuggingFaceEmbeddings") as mock_hf,
     ):
         mock_settings.embedding_provider = "sentence-transformers"
         mock_settings.embedding_api_key = ""
@@ -507,9 +504,7 @@ async def test_embedding_provider_embed_batch():
     """EmbeddingProvider.embed_batch()가 aembed_documents를 호출."""
     with patch("app.providers.openai_provider.OpenAIEmbeddings") as MockEmbed:
         mock_embeddings = MagicMock()
-        mock_embeddings.aembed_documents = AsyncMock(
-            return_value=[[0.1, 0.2], [0.3, 0.4]]
-        )
+        mock_embeddings.aembed_documents = AsyncMock(return_value=[[0.1, 0.2], [0.3, 0.4]])
         MockEmbed.return_value = mock_embeddings
 
         from app.providers.openai_provider import OpenAIEmbeddingProvider

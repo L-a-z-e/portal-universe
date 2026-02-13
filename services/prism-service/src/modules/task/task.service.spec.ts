@@ -7,7 +7,6 @@ import { Agent, AgentRole } from '../agent/agent.entity';
 import { Execution, ExecutionStatus } from '../execution/execution.entity';
 import { SseService } from '../sse/sse.service';
 import { BusinessException } from '../../common/filters/business.exception';
-import { TaskStateMachine } from './task-state-machine';
 
 describe('TaskService', () => {
   let service: TaskService;
@@ -337,9 +336,7 @@ describe('TaskService', () => {
       const task = makeTask({ status: TaskStatus.TODO, agentId: 1 });
       mockTaskQueryBuilder.getOne
         .mockResolvedValueOnce(task)
-        .mockResolvedValueOnce(
-          makeTask({ status: TaskStatus.IN_PROGRESS }),
-        );
+        .mockResolvedValueOnce(makeTask({ status: TaskStatus.IN_PROGRESS }));
 
       const result = await service.execute(userId, 1);
 
@@ -381,9 +378,7 @@ describe('TaskService', () => {
       mockTaskQueryBuilder.getOne
         .mockResolvedValueOnce(task) // reject -> findByIdAndUser
         .mockResolvedValueOnce(task) // performAction -> findByIdAndUser
-        .mockResolvedValueOnce(
-          makeTask({ status: TaskStatus.IN_PROGRESS }),
-        ); // findOne for result
+        .mockResolvedValueOnce(makeTask({ status: TaskStatus.IN_PROGRESS })); // findOne for result
 
       const result = await service.reject(userId, 1, 'Needs improvement');
 

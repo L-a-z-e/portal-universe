@@ -32,9 +32,7 @@ describe('EncryptionUtil', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'test';
       const configService = {
-        get: jest
-          .fn()
-          .mockReturnValue('default-32-byte-encryption-key!!'),
+        get: jest.fn().mockReturnValue('default-32-byte-encryption-key!!'),
       } as unknown as ConfigService;
       // Should not throw, just warn
       expect(() => new EncryptionUtil(configService)).not.toThrow();
@@ -45,9 +43,7 @@ describe('EncryptionUtil', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
       const configService = {
-        get: jest
-          .fn()
-          .mockReturnValue('default-32-byte-encryption-key!!'),
+        get: jest.fn().mockReturnValue('default-32-byte-encryption-key!!'),
       } as unknown as ConfigService;
       expect(() => new EncryptionUtil(configService)).toThrow(
         'Default encryption key is not allowed in production',

@@ -63,7 +63,11 @@ export class ExecutionService {
       agentId: agent.id,
       executionNumber: executionCount + 1,
       status: ExecutionStatus.PENDING,
-      inputPrompt: this.buildPrompt(task.title, task.description, referencedResults),
+      inputPrompt: this.buildPrompt(
+        task.title,
+        task.description,
+        referencedResults,
+      ),
     });
 
     const saved = await this.executionRepository.save(execution);

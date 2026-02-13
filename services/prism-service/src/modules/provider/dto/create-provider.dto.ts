@@ -27,8 +27,9 @@ export class CreateProviderDto {
   @ApiPropertyOptional({ example: 'sk-xxxxxxxxxxxxxxxx' })
   @IsString()
   @IsOptional()
-  @ValidateIf((o: CreateProviderDto) =>
-    ![ProviderType.OLLAMA, ProviderType.LOCAL].includes(o.providerType),
+  @ValidateIf(
+    (o: CreateProviderDto) =>
+      ![ProviderType.OLLAMA, ProviderType.LOCAL].includes(o.providerType),
   )
   @IsNotEmpty()
   apiKey?: string;

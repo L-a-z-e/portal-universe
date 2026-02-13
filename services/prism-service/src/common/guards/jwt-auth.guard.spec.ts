@@ -6,7 +6,9 @@ describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
   let reflector: jest.Mocked<Reflector>;
 
-  function createMockContext(headers: Record<string, string | undefined> = {}): {
+  function createMockContext(
+    headers: Record<string, string | undefined> = {},
+  ): {
     context: ExecutionContext;
     request: Partial<RequestWithUser>;
   } {

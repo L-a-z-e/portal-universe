@@ -17,10 +17,7 @@ describe('KafkaProducer', () => {
     };
 
     // Mock the Kafka class on the module level
-    jest.spyOn(
-      require('kafkajs'),
-      'Kafka',
-    ).mockImplementation(() => ({
+    jest.spyOn(require('kafkajs'), 'Kafka').mockImplementation(() => ({
       producer: jest.fn().mockReturnValue(mockProducerInstance),
     }));
 
