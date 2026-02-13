@@ -91,8 +91,8 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
     },
 
-    esbuild: {
-      drop: mode === 'production' ? ['console', 'debugger'] : [],
-    },
+    esbuild: mode === 'production' ? {
+      pure: ['console.log', 'console.debug', 'console.group', 'console.groupEnd'],
+    } : undefined,
   }
 })

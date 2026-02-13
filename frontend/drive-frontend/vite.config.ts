@@ -41,6 +41,9 @@ export default defineConfig(({ mode }) => {
     build: {
       minify: false,
       target: 'esnext',
-    }
+    },
+    esbuild: mode === 'production' ? {
+      pure: ['console.log', 'console.debug', 'console.group', 'console.groupEnd'],
+    } : undefined,
   }
 });
