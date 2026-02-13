@@ -70,6 +70,7 @@ public abstract class IntegrationTest {
                     "spring.datasource.url=" + mySQLContainer.getJdbcUrl(),
                     "spring.datasource.username=" + mySQLContainer.getUsername(),
                     "spring.datasource.password=" + mySQLContainer.getPassword(),
+                    "spring.flyway.enabled=false",
 
                     // --- Testcontainers를 사용한 동적 Redis 설정 ---
                     "spring.data.redis.host=" + redisContainer.getHost(),
