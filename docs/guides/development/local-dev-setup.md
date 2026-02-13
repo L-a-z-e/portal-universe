@@ -24,7 +24,9 @@ Portal Universe 프로젝트를 로컬 환경에서 실행하기 위한 전체 �
 ### 필수 도구
 - [ ] Java 17 (JDK)
 - [ ] Node.js 20+
-- [ ] Python 3.11+ (chatbot-service 실행 시에만 필요)
+- [ ] Python 3.11+ + uv (chatbot-service 실행 시에만 필요)
+  - pyenv로 Python 3.11 설치 권장 (`.python-version` 파일 기반 자동 전환)
+  - uv 설치: `brew install uv`
 - [ ] Docker & Docker Compose
 
 ### 필수 지식
@@ -117,13 +119,23 @@ curl http://localhost:8085/health
 ```
 
 #### Python 서비스 (chatbot-service)
+
+**의존성 설치** (최초 1회 또는 pyproject.toml 변경 시):
 ```bash
 cd services/chatbot-service
+uv sync --all-extras
+```
+
+**실행**:
+```bash
 uvicorn app.main:app --reload --port 8086
 ```
 
 - `.env` 파일 설정 필요 (`.env.example` 참조하여 AI provider 설정).
+- `.python-version` 파일로 pyenv 사용 시 Python 3.11 자동 활성화.
 - `--reload` 옵션으로 코드 변경 시 자동 재시작됩니다.
+- **IDE**: IntelliJ/PyCharm에서 `.venv/bin/python`을 인터프리터로 지정하면 `uvicorn` 직접 실행 가능.
+- **CLI (venv 미활성화 시)**: `uv run uvicorn app.main:app --reload --port 8086`
 
 **확인**:
 ```bash
