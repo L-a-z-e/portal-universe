@@ -23,8 +23,9 @@ related:
 |------|------|
 | 패키지 | `@portal/design-system-vue` |
 | 컴포넌트 | 26개 |
-| Composable | 3개 (useTheme, useToast, useApiError) |
-| 소비자 앱 | portal-shell (:30000), blog-frontend (:30001) |
+| Composable | 4개 (useTheme, useToast, useApiError, useLogger) |
+| 유틸리티 | `setupErrorHandler` (전역 에러 핸들러) |
+| 소비자 앱 | portal-shell (:30000), blog-frontend (:30001), drive-frontend (:30005), admin-frontend (:30004) |
 | 빌드 | Vite library mode + vue-tsc |
 | Storybook | port 6006 |
 
@@ -112,13 +113,32 @@ graph TB
 | Avatar | 사용자 아바타 |
 | ToastContainer | 토스트 컨테이너 (위치 관리) |
 
-### Composable (3개)
+### Composable (4개)
 
 | Composable | 설명 |
 |-----------|------|
 | `useTheme` | 서비스 테마 + Dark/Light 모드 관리 ([상세](./theming.md)) |
 | `useToast` | 토스트 알림 표시/제거 |
 | `useApiError` | API 에러 응답을 사용자 친화적 메시지로 변환 |
+| `useLogger` | 구조화된 Logger 인스턴스 제공 (framework-agnostic createLogger 래핑) |
+
+### setupErrorHandler 유틸리티
+
+위치: `src/composables/setupErrorHandler.ts`
+
+Vue 3 앱의 전역 에러 핸들러를 설정한다. `app.config.errorHandler`에 등록되어 컴포넌트/라우터/Vuex 에러를 캐치한다.
+
+**사용 예시**:
+```typescript
+// main.ts
+import { setupErrorHandler } from '@portal/design-system-vue'
+
+const app = createApp(App)
+setupErrorHandler(app)
+app.mount('#app')
+```
+
+내부적으로 `useLogger()`를 사용하여 캐치된 에러를 로깅한다.
 
 ### 서비스 테마 CSS
 
@@ -221,4 +241,12 @@ export default defineConfig({
 - [Component Matrix](./component-matrix.md) - Vue/React 비교
 - [Theming](./theming.md) - 테마 시스템
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-01-18 | 초안 작성 | Laze |
+| 2026-02-06 | 업데이트 | Laze |
+| 2026-02-14 | setupErrorHandler 유틸리티, useLogger composable 추가 (ADR-040) | Laze |

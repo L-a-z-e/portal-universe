@@ -22,8 +22,8 @@ related:
 | 항목 | 내용 |
 |------|------|
 | 패키지 | `@portal/design-system-react` |
-| 컴포넌트 | 30개 (공유 25 + React-only 5) |
-| Hook | 3개 (useTheme, useToast, useApiError) |
+| 컴포넌트 | 30개 (공유 25 + React-only 5) + ErrorBoundary |
+| Hook | 4개 (useTheme, useToast, useApiError, useLogger) |
 | 소비자 앱 | shopping-frontend (:30002), prism-frontend (:30003) |
 | 빌드 | Vite library mode |
 | 테스팅 | Vitest + @testing-library/react |
@@ -106,13 +106,36 @@ graph TB
 
 React-only 컴포넌트는 Shopping/Prism 서비스에서 필요하지만 Blog/Portal(Vue)에서는 아직 필요하지 않아 Vue 라이브러리에 미구현.
 
-### Hook (3개)
+### Hook (4개)
 
 | Hook | 설명 |
 |------|------|
 | `useTheme` | 서비스 테마 + Dark/Light 모드 관리 ([상세](./theming.md)) |
 | `useToast` | ToastContext 기반 알림 표시/제거 |
 | `useApiError` | API 에러 응답을 사용자 친화적 메시지로 변환 |
+| `useLogger` | 구조화된 Logger 인스턴스 제공 (framework-agnostic createLogger 래핑) |
+
+### ErrorBoundary 컴포넌트
+
+위치: `src/components/ErrorBoundary/ErrorBoundary.tsx`
+
+React Error Boundary로 컴포넌트 트리의 에러를 캐치하고 fallback UI를 표시한다.
+
+**Props**:
+- `fallback?: ReactNode` - 에러 발생 시 표시할 대체 UI
+- `onError?: (error: Error, errorInfo: ErrorInfo) => void` - 에러 발생 시 콜백
+
+**사용 예시**:
+```tsx
+// main.tsx
+import { ErrorBoundary } from '@portal/design-system-react'
+
+<ErrorBoundary fallback={<div>Something went wrong</div>}>
+  <App />
+</ErrorBoundary>
+```
+
+내부적으로 `useLogger()`를 사용하여 캐치된 에러를 로깅한다.
 
 ### cn() 유틸리티
 
@@ -309,4 +332,12 @@ dist/
 - [Component Matrix](./component-matrix.md) - Vue/React 비교
 - [Theming](./theming.md) - 테마 시스템
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-01-19 | 초안 작성 | Laze |
+| 2026-02-06 | 업데이트 | Laze |
+| 2026-02-14 | ErrorBoundary 컴포넌트, useLogger hook 추가 (ADR-040) | Laze |
