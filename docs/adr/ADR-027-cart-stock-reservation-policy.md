@@ -1,6 +1,6 @@
 # ADR-027: Shopping Service 장바구니 재고 예약 정책
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-02-07
 **Author**: Laze
 

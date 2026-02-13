@@ -1,6 +1,6 @@
 # ADR-010: Security Enhancement Architecture
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-01-23
 
 ## Context

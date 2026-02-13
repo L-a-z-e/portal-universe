@@ -1,6 +1,6 @@
 # ADR-035: Polyglot 서비스 인증 표준화
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-02-11
 **Author**: Laze
 **Supersedes**: -

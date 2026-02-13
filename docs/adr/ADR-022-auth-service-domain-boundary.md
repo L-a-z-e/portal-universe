@@ -1,6 +1,6 @@
 # ADR-022: auth-service 도메인 경계 재정의
 
-**Status**: Accepted (Decision 1), Proposed (Decision 2)
+**Status**: Deprecated
 **Date**: 2026-02-07
 
 ## Context
