@@ -54,7 +54,7 @@ public final class ShoppingTopics {
 | blog-events | `BlogTopics` | 4 |
 | prism-events | `PrismTopics` | 2 |
 
-**NestJS(prism-service) 제약**: prism-service는 Java 모듈을 참조할 수 없으므로 topic 이름을 TypeScript에서 하드코딩 유지한다. `PrismTopics.java`가 문서적 SSOT 역할을 하며, prism-service 코드에 해당 상수를 참조하라는 주석을 명시한다.
+**NestJS(prism-service) 제약 해소**: prism-service에 `prism-topics.ts` 상수 파일을 도입하여 하드코딩을 제거했다. `services/event-contracts/schemas/`의 JSON Schema가 SSOT이며, `scripts/validate-event-contracts.js`가 Java/TypeScript 양측의 topic 상수와 이벤트 필드 일치를 CI에서 검증한다. (ADR-038 참조)
 
 ### D2: Java Bean 유지 + 표준 설정값 명시
 
@@ -256,3 +256,4 @@ notification-service의 현재 설정을 기준으로 Consumer 표준을 정의�
 |------|----------|--------|
 | 2026-02-10 | 초안 작성 | Laze |
 | 2026-02-10 | Status → Accepted, D1~D4 구현 완료 | Laze |
+| 2026-02-13 | NestJS topic 상수화 완료 (prism-topics.ts), ADR-038 연동 반영 | Laze |

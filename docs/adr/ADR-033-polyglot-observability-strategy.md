@@ -13,7 +13,7 @@ Portal Universe는 Java/Spring, NestJS, Python FastAPI로 구성된 polyglot 마
 
 **각 언어 네이티브 관찰성 도구를 채택하되, 공통 포맷 표준(JSON 로그, Prometheus 메트릭, Zipkin 추적)으로 백엔드를 통일한다.**
 
-- **Java 서비스**: 현행 유지 (Micrometer + Brave + Logback JSON)
+- **Java 서비스**: Micrometer + OTel Bridge + Logback JSON (Brave에서 OTel로 전환)
 - **NestJS(prism-service)**: OTel SDK 통합(메트릭+추적) + `winston`(JSON 로그)
   - `@opentelemetry/sdk-node` + `@opentelemetry/auto-instrumentations-node`
   - `@opentelemetry/exporter-prometheus` (메트릭 → Prometheus, 포트 9464)
@@ -186,7 +186,19 @@ dependencies = [
 
 ### 3. Java 서비스 (변경 사항)
 
-현행 Micrometer+Brave 유지. Local profile에 Zipkin tracing 설정 추가:
+Micrometer Tracing Bridge를 Brave에서 OTel로 전환. Spring Boot의 Micrometer 추상화 덕분에 코드 변경 없이 의존성만 교체:
+
+```groovy
+// Before (Brave)
+implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+
+// After (OTel) - 전체 서비스 통일
+implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+```
+
+application.yml Zipkin 설정은 동일하게 유지:
 ```yaml
 management:
   tracing:
@@ -245,3 +257,4 @@ scrape_configs:
 |------|----------|--------|
 | 2026-02-11 | 초안 작성 | Laze |
 | 2026-02-11 | Accepted: NestJS → OTel SDK 통합, Python 버전 최신화, 환경별 설정/Alert 호환성 섹션 추가 | Laze |
+| 2026-02-13 | Java Brave→OTel 전환, Recording rules polyglot 확장, Grafana polyglot dashboard 추가 | Laze |

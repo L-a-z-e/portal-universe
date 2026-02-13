@@ -1,7 +1,7 @@
 # ADR-038: Polyglot 이벤트 계약(Event Contract) 관리 전략
 
-**Status**: Proposed
-**Date**: 2026-02-11
+**Status**: Accepted
+**Date**: 2026-02-13
 **Author**: Laze
 **Supersedes**: -
 
@@ -45,25 +45,28 @@ JSON Schema를 Single Source of Truth로 삼아 CI에서 Java 클래스 및 Type
 
 ## Implementation
 
-### Phase 1: Prism 이벤트 파일럿
+### Phase 1: Prism 이벤트 파일럿 (구현 완료)
 
-**JSON Schema 파일 위치**: `services/event-contracts/schemas/`
+**구현된 파일**:
 
-- `services/event-contracts/schemas/prism-task-completed.schema.json` (신규)
-- `services/event-contracts/schemas/prism-task-failed.schema.json` (신규)
-- `services/event-contracts/validate.ts` (CI 검증 스크립트, 신규)
-- `.github/workflows/event-contract-check.yml` (GitHub Actions 워크플로우, 신규)
+| 파일 | 역할 |
+|------|------|
+| `services/event-contracts/schemas/prism.task.completed.schema.json` | TaskCompleted 이벤트 JSON Schema |
+| `services/event-contracts/schemas/prism.task.failed.schema.json` | TaskFailed 이벤트 JSON Schema |
+| `services/prism-service/src/modules/event/prism-topics.ts` | NestJS Topic 상수 (Java PrismTopics.java 대응) |
+| `scripts/validate-event-contracts.js` | CI 검증 스크립트 (Java/TS ↔ Schema 일치성) |
 
 **검증 대상**:
 - `services/prism-events/src/main/java/com/portal/universe/event/prism/PrismTaskCompletedEvent.java`
 - `services/prism-events/src/main/java/com/portal/universe/event/prism/PrismTaskFailedEvent.java`
-- `services/prism-service/src/modules/event/kafka.producer.ts` (`TaskEvent` 인터페이스)
+- `services/prism-service/src/modules/event/kafka.producer.ts` (`TaskEvent`, `TaskFailedEvent` 인터페이스)
 
-**CI 검증 방식**:
-1. TypeScript 타입에서 JSON Schema 생성 (`typescript-json-schema` 또는 `ts-json-schema-generator`)
-2. 생성된 스키마와 `event-contracts/schemas/` 파일 비교
-3. Java 이벤트 클래스는 JSON 직렬화 후 스키마 검증 (`ajv`)
-4. 불일치 시 PR 차단
+**CI 검증 방식** (외부 의존성 없이 순수 Node.js):
+1. Java record 필드명을 정규식으로 파싱
+2. TypeScript interface 필드명을 정규식으로 파싱 (상속 포함)
+3. JSON Schema의 `properties` 키와 양측 필드 비교
+4. Topic 상수 일치성 검증 (PrismTopics.java ↔ prism-topics.ts)
+5. 불일치 시 exit code 1 → PR 차단
 
 ### Phase 2: 확장 (파일럿 성공 후)
 
@@ -84,3 +87,4 @@ JSON Schema를 Single Source of Truth로 삼아 CI에서 Java 클래스 및 Type
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-11 | 초안 작성 | Laze |
+| 2026-02-13 | Phase 1 구현 완료, Status: Proposed → Accepted | Laze |

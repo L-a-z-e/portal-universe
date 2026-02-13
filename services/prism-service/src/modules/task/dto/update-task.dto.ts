@@ -10,17 +10,20 @@ import {
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskPriority } from '../task.entity';
+import { NoXss } from '../../../common/validators/no-xss.validator';
 
 export class UpdateTaskDto {
   @ApiPropertyOptional({ example: 'Updated task title' })
   @IsOptional()
   @IsString()
   @MaxLength(200)
+  @NoXss()
   title?: string;
 
   @ApiPropertyOptional({ example: 'Updated description' })
   @IsOptional()
   @IsString()
+  @NoXss()
   description?: string;
 
   @ApiPropertyOptional({ enum: TaskPriority })

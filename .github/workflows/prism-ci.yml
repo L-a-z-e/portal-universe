@@ -1,0 +1,94 @@
+name: Prism Service CI
+
+on:
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'services/prism-service/**'
+  #     - 'services/prism-events/**'
+  #     - 'services/event-contracts/**'
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'services/prism-service/**'
+  #     - 'services/prism-events/**'
+  #     - 'services/event-contracts/**'
+  workflow_dispatch:
+
+concurrency:
+  group: prism-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: prism_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: services/prism-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: services/prism-service
+
+      - name: Lint
+        run: npm run lint
+        working-directory: services/prism-service
+
+      - name: Unit Tests
+        run: npm run test -- --no-coverage
+        working-directory: services/prism-service
+        env:
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_NAME: prism_test
+          DATABASE_USERNAME: test
+          DATABASE_PASSWORD: test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          NODE_ENV: test
+
+      - name: Build
+        run: npm run build
+        working-directory: services/prism-service
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prism-test-results
+          path: services/prism-service/test-results/
+          if-no-files-found: ignore

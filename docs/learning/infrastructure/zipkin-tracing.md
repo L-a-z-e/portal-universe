@@ -190,25 +190,27 @@ zipkin:
 
 ## 4. Spring Boot Tracing 설정
 
-### Spring Boot 3.x (Micrometer Tracing)
+### Spring Boot 3.x (Micrometer Tracing + OpenTelemetry)
 
-Spring Boot 3.x부터는 Spring Cloud Sleuth 대신 **Micrometer Tracing**을 사용합니다.
+Spring Boot 3.x부터는 Spring Cloud Sleuth 대신 **Micrometer Tracing**을 사용하며, Portal Universe는 **OpenTelemetry** 기반으로 표준화되었습니다 (ADR-033).
 
 #### 의존성 추가
 
 ```kotlin
 // build.gradle.kts
 dependencies {
-    // Micrometer Tracing
-    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    // Micrometer Tracing with OpenTelemetry
+    implementation("io.micrometer:micrometer-tracing-bridge-otel")
 
-    // Zipkin Reporter
-    implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+    // Zipkin Exporter for OpenTelemetry
+    implementation("io.opentelemetry:opentelemetry-exporter-zipkin")
 
     // Spring Boot Actuator
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 }
 ```
+
+**마이그레이션 노트**: 기존 Brave 기반 의존성(`micrometer-tracing-bridge-brave`, `zipkin-reporter-brave`)은 OpenTelemetry로 대체되었습니다.
 
 #### application.yml 설정
 
@@ -387,33 +389,31 @@ Kafka 메시지에도 Trace Context를 전파할 수 있습니다.
 
 ```kotlin
 dependencies {
-    implementation("io.micrometer:micrometer-tracing-bridge-brave")
-    implementation("io.zipkin.brave:brave-instrumentation-kafka-clients")
+    implementation("io.micrometer:micrometer-tracing-bridge-otel")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-kafka-clients-2.6")
 }
 ```
 
-### Kafka Producer 설정
+### Kafka Producer 설정 (OpenTelemetry)
 
 ```java
 @Configuration
 public class KafkaProducerConfig {
 
     @Bean
-    public ProducerFactory<String, String> producerFactory(Tracing tracing) {
+    public ProducerFactory<String, String> producerFactory() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
+        configs.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG,
+            "io.opentelemetry.instrumentation.kafkaclients.TracingProducerInterceptor");
         // ...
 
-        DefaultKafkaProducerFactory<String, String> factory =
-            new DefaultKafkaProducerFactory<>(configs);
-
-        // Tracing 데코레이터 추가
-        factory.addPostProcessor(new TracingProducerPostProcessor<>(tracing));
-
-        return factory;
+        return new DefaultKafkaProducerFactory<>(configs);
     }
 }
 ```
+
+**참고**: OpenTelemetry Kafka instrumentation은 `TracingProducerInterceptor`를 통해 자동으로 Trace Context를 전파합니다.
 
 ---
 
@@ -554,3 +554,13 @@ public Sampler customSampler() {
 - [Prometheus & Grafana](./prometheus-grafana.md) - 메트릭 모니터링
 - [Loki Logging](./loki-logging.md) - 로그 수집
 - [Portal Universe Infra Guide](./portal-universe-infra-guide.md) - 전체 인프라 가이드
+- [ADR-033: Polyglot Observability Strategy](../../adr/ADR-033-polyglot-observability-strategy.md)
+
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-01-XX | 최초 작성 (Brave 기반) | Laze |
+| 2026-02-13 | Brave → OpenTelemetry 마이그레이션, Kafka tracing 업데이트 (ADR-033) | Laze |

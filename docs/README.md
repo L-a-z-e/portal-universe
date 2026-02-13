@@ -2,7 +2,7 @@
 
 > MSA + MFA Polyglot Project 중앙 문서 저장소
 
-**마지막 업데이트**: 2026-02-06 (로컬 개발 환경 구성 가이드 추가)
+**마지막 업데이트**: 2026-02-13 (Prism/Chatbot 보안 아키텍처 추가)
 
 ---
 
@@ -33,7 +33,8 @@ docs/
 | **Blog** (8082) | [architecture/blog-service/](architecture/blog-service/) | [api/blog-service/](api/blog-service/) |
 | **Notification** (8084) | [architecture/notification-service/](architecture/notification-service/) | [api/notification-service/](api/notification-service/) |
 | **API Gateway** (8080) | [architecture/api-gateway/](architecture/api-gateway/) | [api/api-gateway/](api/api-gateway/) |
-| **Chatbot** (8086) | [architecture/chatbot-service/](architecture/chatbot-service/) | - |
+| **Chatbot** (8086) | [architecture/chatbot-service/](architecture/chatbot-service/) | [api/chatbot-service/](api/chatbot-service/) |
+| **Prism** (8085) | [architecture/prism-service/](architecture/prism-service/) | - |
 
 ### 프론트엔드
 | 프로젝트 | 아키텍처 | API |

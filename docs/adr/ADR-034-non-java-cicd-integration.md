@@ -1,7 +1,7 @@
 # ADR-034: 비Java 서비스 CI/CD 파이프라인 통합
 
-**Status**: Proposed
-**Date**: 2026-02-11
+**Status**: Accepted
+**Date**: 2026-02-13
 **Author**: Laze
 **Supersedes**: -
 
@@ -239,3 +239,4 @@ PR 생성 후 다음을 확인:
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-11 | 초안 작성 | Laze |
+| 2026-02-13 | 구현 완료: prism-ci.yml, chatbot-ci.yml, contract-check.yml 생성, docker.yml 확장. Status → Accepted | Laze |

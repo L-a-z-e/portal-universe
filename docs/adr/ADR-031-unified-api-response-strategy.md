@@ -88,6 +88,7 @@ Portal Universe는 Java/Spring, NestJS, Python(FastAPI) 세 가지 백엔드 스
 
 - [ADR-023: API Response Wrapper 표준화](./ADR-023-api-response-wrapper-standardization.md) (Deprecated → 본 ADR로 통합)
 - [ADR-024: Auth Parameter Standardization](./ADR-024-auth-parameter-standardization.md)
+- [JSON Schema Contracts](../contracts/) — 언어 독립 계약 정의
 - Spring `Page<T>` → `PageResponse<T>` 변환: `PageResponse.from(page)`
 
 ---
@@ -97,3 +98,4 @@ Portal Universe는 Java/Spring, NestJS, Python(FastAPI) 세 가지 백엔드 스
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-08 | 초안 작성 및 구현 완료 | Laze |
+| 2026-02-13 | JSON Schema 계약 정의, NestJS/Python ErrorResponse 확장 (timestamp, path, details) | Laze |

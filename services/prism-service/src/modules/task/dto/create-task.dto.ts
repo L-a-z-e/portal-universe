@@ -11,12 +11,14 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskPriority } from '../task.entity';
+import { NoXss } from '../../../common/validators/no-xss.validator';
 
 export class CreateTaskDto {
   @ApiProperty({ example: 'Implement user authentication' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
+  @NoXss()
   title: string;
 
   @ApiPropertyOptional({
@@ -24,6 +26,7 @@ export class CreateTaskDto {
   })
   @IsOptional()
   @IsString()
+  @NoXss()
   description?: string;
 
   @ApiPropertyOptional({ enum: TaskPriority, default: TaskPriority.MEDIUM })

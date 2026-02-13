@@ -1,6 +1,6 @@
 # ADR-028: Shopping Service SSE 실시간 엔드포인트 인증 방식
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-02-07
 **Author**: Laze
 
@@ -12,12 +12,18 @@
 
 1. **entryToken 소유권 미검증**: 인증된 사용자 A가 사용자 B의 entryToken으로 대기열 상태를 구독할 수 있습니다. entryToken은 UUID이므로 추측이 어렵지만, 로그 노출이나 URL 공유로 유출될 수 있습니다.
 2. **SSE 연결 인증 갱신 불가**: SSE는 long-lived connection이므로 JWT 만료 후에도 연결이 유지됩니다. 5분 타임아웃 내에서 인증이 무효화되어도 스트림이 계속됩니다.
+3. **동일 취약점의 QueueController 확산**: `QueueController`의 `GET /queue/token/{entryToken}`(상태 조회)과 `DELETE /queue/token/{entryToken}`(대기열 이탈) 역시 entryToken만으로 접근 가능하여, 타인의 대기열 상태를 조회하거나 강제 이탈시킬 수 있습니다.
 
 ## Decision
 
-**entryToken + userId 소유권 검증을 SSE 구독 시점에 추가합니다.**
+**entryToken + userId 소유권 검증을 token 기반 엔드포인트 3개에 추가합니다.**
 
-SSE 엔드포인트에서 Gateway가 전달한 `X-User-Id` 헤더와 entryToken의 소유자(DB 조회)를 비교하여 불일치 시 403을 반환합니다. JWT 만료에 대해서는 SSE의 5분 타임아웃으로 수용합니다.
+대상 엔드포인트:
+- `GET /queue/{eventType}/{eventId}/subscribe/{entryToken}` (SSE 구독)
+- `GET /queue/token/{entryToken}` (토큰 기반 상태 조회)
+- `DELETE /queue/token/{entryToken}` (토큰 기반 대기열 이탈)
+
+각 엔드포인트에서 `@CurrentUser AuthUser`로 현재 사용자를 주입받고, `QueueService.validateTokenOwnership(entryToken, userId)`를 호출하여 소유권을 검증합니다. 불일치 시 403(QUEUE_TOKEN_USER_MISMATCH)을 반환합니다.
 
 ## Alternatives
 
@@ -54,19 +60,43 @@ public SseEmitter subscribe(
         @PathVariable String eventType,
         @PathVariable Long eventId,
         @PathVariable String entryToken,
-        @RequestHeader("X-User-Id") String userId  // 추가
+        @CurrentUser AuthUser user  // 추가
 ) {
-    // 소유권 검증
-    queueService.validateTokenOwnership(entryToken, userId);
+    queueService.validateTokenOwnership(entryToken, user.uuid());
+    // ... 기존 로직
+}
+```
+
+### QueueController 수정
+```java
+@GetMapping("/token/{entryToken}")
+public ResponseEntity<ApiResponse<QueueStatusResponse>> getQueueStatusByToken(
+        @PathVariable String entryToken,
+        @CurrentUser AuthUser user  // 추가
+) {
+    queueService.validateTokenOwnership(entryToken, user.uuid());
+    // ... 기존 로직
+}
+
+@DeleteMapping("/token/{entryToken}")
+public ResponseEntity<ApiResponse<Void>> leaveQueueByToken(
+        @PathVariable String entryToken,
+        @CurrentUser AuthUser user  // 추가
+) {
+    queueService.validateTokenOwnership(entryToken, user.uuid());
     // ... 기존 로직
 }
 ```
 
 ### QueueService 수정
 - `validateTokenOwnership(entryToken, userId)`: `queueEntryRepository.findByEntryToken(entryToken)`으로 조회 후 `entry.getUserId().equals(userId)` 검증
+- 에러 코드: `ShoppingErrorCode.QUEUE_TOKEN_USER_MISMATCH` (S807, 403 Forbidden)
 
 ### 코드 참조
-- `QueueStreamController.java:39-89` (현재 SSE 구독)
+- `QueueStreamController.java:42-48` (SSE 구독 + 소유권 검증)
+- `QueueController.java:50-60` (토큰 상태 조회 + 소유권 검증)
+- `QueueController.java:70-80` (토큰 대기열 이탈 + 소유권 검증)
+- `QueueServiceImpl.java:257-264` (소유권 검증 구현)
 - `SecurityConfig.java:110` (`/queue/**` 보안 규칙)
 
 ## References
@@ -81,3 +111,4 @@ public SseEmitter subscribe(
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-07 | 초안 작성 | Laze |
+| 2026-02-13 | 구현 완료: SSE + QueueController token 엔드포인트 3개로 범위 확장, @CurrentUser 기반 소유권 검증, Status → Accepted | Laze |

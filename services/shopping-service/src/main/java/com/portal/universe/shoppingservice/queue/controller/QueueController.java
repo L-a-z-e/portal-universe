@@ -50,8 +50,10 @@ public class QueueController {
     @GetMapping("/token/{entryToken}")
     @Operation(summary = "토큰으로 대기열 상태 조회", description = "토큰으로 대기 상태를 조회합니다")
     public ResponseEntity<ApiResponse<QueueStatusResponse>> getQueueStatusByToken(
-            @PathVariable String entryToken
+            @PathVariable String entryToken,
+            @CurrentUser AuthUser user
     ) {
+        queueService.validateTokenOwnership(entryToken, user.uuid());
         QueueStatusResponse response = queueService.getQueueStatusByToken(entryToken);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -70,8 +72,10 @@ public class QueueController {
     @DeleteMapping("/token/{entryToken}")
     @Operation(summary = "토큰으로 대기열 이탈", description = "토큰으로 대기열에서 나갑니다")
     public ResponseEntity<ApiResponse<Void>> leaveQueueByToken(
-            @PathVariable String entryToken
+            @PathVariable String entryToken,
+            @CurrentUser AuthUser user
     ) {
+        queueService.validateTokenOwnership(entryToken, user.uuid());
         queueService.leaveQueueByToken(entryToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }

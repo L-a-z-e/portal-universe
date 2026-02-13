@@ -255,6 +255,16 @@ public class QueueServiceImpl implements QueueService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public void validateTokenOwnership(String entryToken, String userId) {
+        QueueEntry entry = queueEntryRepository.findByEntryToken(entryToken)
+            .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.QUEUE_ENTRY_NOT_FOUND));
+        if (!entry.getUserId().equals(userId)) {
+            throw new CustomBusinessException(ShoppingErrorCode.QUEUE_TOKEN_USER_MISMATCH);
+        }
+    }
+
+    @Override
     @Transactional
     public void deactivateQueue(String eventType, Long eventId) {
         WaitingQueue queue = waitingQueueRepository.findByEventTypeAndEventId(eventType, eventId)

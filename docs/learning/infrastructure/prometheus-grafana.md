@@ -2,6 +2,8 @@
 
 메트릭 수집과 시각화를 위한 Prometheus와 Grafana를 학습합니다.
 
+**Portal Universe 표준**: Polyglot 서비스 통합 모니터링 (ADR-033)
+
 ---
 
 ## 1. 개요
@@ -146,6 +148,17 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['notification-service:8084']
+
+  # Polyglot Services (ADR-033)
+  - job_name: 'prism-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['prism-service:9464']
+
+  - job_name: 'chatbot-service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['chatbot-service:8086']
 ```
 
 ### Kubernetes Service Discovery
@@ -499,6 +512,32 @@ receivers:
 }
 ```
 
+### Portal Universe 커스텀 대시보드
+
+#### Polyglot Overview Dashboard
+
+**위치**: `monitoring/grafana/provisioning/dashboards/json/polyglot-overview.json`
+
+**목적**: Java/Spring, NestJS, Python 등 다양한 스택을 통합 모니터링 (ADR-033)
+
+**주요 패널**:
+
+| 패널 | 설명 | PromQL 예시 |
+|------|------|-------------|
+| Service Status | UP/DOWN 상태 | `up{job=~".*-service"}` |
+| Request Rate | 전체 스택 통합 요청 속도 | `sum by (job) (job:http_requests:rate5m)` |
+| Error Rate | 5xx 에러율 | `sum by (job) (job:http_errors:rate5m)` |
+| P95 Latency | 95th percentile 응답 시간 | `job:http_latency_p95:rate5m` |
+| Availability SLI | 가용성 지표 (99.9% 목표) | `job:availability:rate5m` |
+| Stack Info | 언어/프레임워크 정보 | Custom label `stack_type` |
+
+**Recording Rules**: `monitoring/prometheus/rules/recording.yml`에서 스택별 메트릭을 통합
+
+**특징**:
+- NestJS 메트릭 자동 변환 (ms → s)
+- Polyglot OR 절로 Java/NestJS/Python 메트릭 통합
+- 스택 무관 통일된 대시보드
+
 ### 공개 대시보드 활용
 
 | 대시보드 ID | 이름 | 용도 |
@@ -542,3 +581,13 @@ receivers:
 - [Zipkin Tracing](./zipkin-tracing.md) - 분산 추적
 - [Docker Compose](./docker-compose.md) - 멀티 컨테이너 구성
 - [Portal Universe Infra Guide](./portal-universe-infra-guide.md) - 전체 인프라 가이드
+- [ADR-033: Polyglot Observability Strategy](../../adr/ADR-033-polyglot-observability-strategy.md)
+
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-01-XX | 최초 작성 | Laze |
+| 2026-02-13 | Polyglot Overview Dashboard 추가, NestJS/Python 메트릭 통합 (ADR-033) | Laze |

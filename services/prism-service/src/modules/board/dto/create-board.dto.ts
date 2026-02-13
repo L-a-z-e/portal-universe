@@ -1,11 +1,13 @@
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { NoXss } from '../../../common/validators/no-xss.validator';
 
 export class CreateBoardDto {
   @ApiProperty({ example: 'Project Alpha' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
+  @NoXss()
   name: string;
 
   @ApiPropertyOptional({
@@ -13,5 +15,6 @@ export class CreateBoardDto {
   })
   @IsOptional()
   @IsString()
+  @NoXss()
   description?: string;
 }
