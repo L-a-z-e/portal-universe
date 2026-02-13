@@ -1,0 +1,71 @@
+name: Chatbot Service CI
+
+on:
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'services/chatbot-service/**'
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'services/chatbot-service/**'
+  workflow_dispatch:
+
+concurrency:
+  group: chatbot-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: services/chatbot-service/pyproject.toml
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+        working-directory: services/chatbot-service
+
+      - name: Lint (ruff)
+        run: ruff check .
+        working-directory: services/chatbot-service
+
+      - name: Format Check (ruff)
+        run: ruff format --check .
+        working-directory: services/chatbot-service
+
+      - name: Unit Tests
+        run: pytest --tb=short -q
+        working-directory: services/chatbot-service
+        env:
+          REDIS_URL: redis://localhost:6379/1
+          AI_PROVIDER: mock
+          CHATBOT_ENCRYPTION_KEY: test-key-for-ci-only-32bytes!!
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chatbot-test-results
+          path: services/chatbot-service/test-results/
+          if-no-files-found: ignore

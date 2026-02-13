@@ -39,11 +39,11 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-031 | [Unified API Response Strategy](./ADR-031-unified-api-response-strategy.md)                   | Accepted   | 2026-02-08 |
 | ADR-032 | [Kafka Configuration Standardization](./ADR-032-kafka-configuration-standardization.md)       | Accepted   | 2026-02-10 |
 | ADR-033 | [Polyglot 서비스 관찰성 통일 전략](./ADR-033-polyglot-observability-strategy.md)                   | Accepted   | 2026-02-11 |
-| ADR-034 | [비Java 서비스 CI/CD 파이프라인 통합](./ADR-034-non-java-cicd-integration.md)                 | Proposed   | 2026-02-11 |
+| ADR-034 | [비Java 서비스 CI/CD 파이프라인 통합](./ADR-034-non-java-cicd-integration.md)                 | Accepted   | 2026-02-13 |
 | ADR-035 | [Polyglot 서비스 인증 표준화](./ADR-035-polyglot-authentication-standardization.md)             | Accepted   | 2026-02-11 |
 | ADR-036 | [Prism 서비스 DB 마이그레이션 전략](./ADR-036-prism-db-migration-strategy.md)                      | Proposed   | 2026-02-11 |
 | ADR-037 | [NestJS(Prism) 서비스 장기 스택 전략](./ADR-037-nestjs-prism-long-term-strategy.md)              | Proposed   | 2026-02-11 |
-| ADR-038 | [Polyglot 이벤트 계약 관리 전략](./ADR-038-polyglot-event-contract-management.md)                 | Proposed   | 2026-02-11 |
+| ADR-038 | [Polyglot 이벤트 계약 관리 전략](./ADR-038-polyglot-event-contract-management.md)                 | Accepted   | 2026-02-13 |
 | ADR-039 | [JWT 이중 검증 전략](./ADR-039-jwt-dual-validation-strategy.md)                                 | Accepted   | 2026-02-11 |
 
 
