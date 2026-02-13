@@ -216,7 +216,9 @@ docker compose up -d
 
 - **Java 17** (SDKMAN recommended: `sdk install java 17-tem`)
 - **Node.js 20+** (for frontend workspace and prism-service)
-- **Python 3.11+** (for chatbot-service)
+- **Python 3.11+** + **uv** (for chatbot-service)
+  - Python: pyenv recommended (`.python-version` auto-switches to 3.11)
+  - uv: `brew install uv`
 - **Docker & Docker Compose** (for infrastructure)
 
 ### 1. Start Infrastructure
@@ -255,8 +257,12 @@ npm run start:dev    # Watch mode, auto-loads .env.local
 
 ```bash
 cd services/chatbot-service
-uvicorn app.main:app --reload --port 8086
+uv sync --all-extras                       # Install dependencies (first time or after pyproject.toml changes)
+uvicorn app.main:app --reload --port 8086  # Run (with venv activated or from IDE)
 ```
+
+> **IDE**: Set `.venv/bin/python` as the Python interpreter in IntelliJ/PyCharm, then run `uvicorn` directly.
+> **CLI without venv activation**: Use `uv run uvicorn app.main:app --reload --port 8086`.
 
 #### Environment Variables
 
