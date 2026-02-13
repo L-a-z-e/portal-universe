@@ -39,10 +39,10 @@ related:
 |--------|----------|------|------|
 | POST | `/{eventType}/{eventId}/enter` | 대기열 진입 | ✅ |
 | GET | `/{eventType}/{eventId}/status` | 대기열 상태 조회 | ✅ |
-| GET | `/token/{entryToken}` | 토큰으로 상태 조회 | ❌ |
-| GET | `/{eventType}/{eventId}/subscribe/{entryToken}` | 실시간 구독 (SSE) | ❌ |
+| GET | `/token/{entryToken}` | 토큰으로 상태 조회 | ✅ |
+| GET | `/{eventType}/{eventId}/subscribe/{entryToken}` | 실시간 구독 (SSE) | ✅ |
 | DELETE | `/{eventType}/{eventId}/leave` | 대기열 이탈 | ✅ |
-| DELETE | `/token/{entryToken}` | 토큰으로 이탈 | ❌ |
+| DELETE | `/token/{entryToken}` | 토큰으로 이탈 | ✅ |
 
 ---
 
@@ -167,12 +167,14 @@ X-User-Id: {userId}
 
 ## 🔹 토큰으로 상태 조회
 
-Entry Token을 사용하여 대기 상태를 조회합니다. (인증 불필요)
+Entry Token을 사용하여 대기 상태를 조회합니다. 토큰 소유자 본인만 조회 가능합니다.
 
 ### Request
 
 ```http
 GET /api/shopping/queue/token/{entryToken}
+Authorization: Bearer {accessToken}
+X-User-Id: {userId}
 ```
 
 ### Path Parameters
@@ -180,6 +182,8 @@ GET /api/shopping/queue/token/{entryToken}
 | 파라미터 | 타입 | 필수 | 설명 |
 |----------|------|------|------|
 | `entryToken` | string | ✅ | 대기열 엔트리 토큰 (UUID) |
+
+> **인증 필수**: Gateway가 JWT에서 추출한 `X-User-Id`와 entryToken 소유자를 비교하여 불일치 시 403을 반환합니다.
 
 ### Response (200 OK)
 
@@ -200,14 +204,18 @@ GET /api/shopping/queue/token/{entryToken}
 
 ## 🔹 실시간 구독 (SSE)
 
-Server-Sent Events를 통해 대기열 상태를 실시간으로 수신합니다.
+Server-Sent Events를 통해 대기열 상태를 실시간으로 수신합니다. 토큰 소유자 본인만 구독 가능합니다.
 
 ### Request
 
 ```http
 GET /api/shopping/queue/{eventType}/{eventId}/subscribe/{entryToken}
 Accept: text/event-stream
+Authorization: Bearer {accessToken}
+X-User-Id: {userId}
 ```
+
+> **인증 필수**: Gateway가 JWT에서 추출한 `X-User-Id`와 entryToken 소유자를 비교하여 불일치 시 403을 반환합니다.
 
 ### Path Parameters
 
@@ -306,13 +314,17 @@ X-User-Id: {userId}
 
 ## 🔹 토큰으로 이탈
 
-Entry Token을 사용하여 대기열에서 나갑니다. (인증 불필요)
+Entry Token을 사용하여 대기열에서 나갑니다. 토큰 소유자 본인만 이탈 가능합니다.
 
 ### Request
 
 ```http
 DELETE /api/shopping/queue/token/{entryToken}
+Authorization: Bearer {accessToken}
+X-User-Id: {userId}
 ```
+
+> **인증 필수**: Gateway가 JWT에서 추출한 `X-User-Id`와 entryToken 소유자를 비교하여 불일치 시 403을 반환합니다.
 
 ### Path Parameters
 
@@ -385,6 +397,7 @@ stateDiagram-v2
 | `S010` | 404 | 대기열 엔트리를 찾을 수 없습니다 |
 | `S011` | 409 | 이미 대기열에 진입했습니다 |
 | `S012` | 400 | 잘못된 대기열 상태입니다 |
+| `S807` | 403 | 대기열 토큰 소유자가 아닙니다 (다른 사용자의 토큰) |
 | `C001` | 401 | 인증 필요 (X-User-Id 헤더 누락) |
 
 ---

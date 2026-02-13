@@ -52,4 +52,9 @@ public interface QueueService {
      * 대기열 비활성화 (Admin)
      */
     void deactivateQueue(String eventType, Long eventId);
+
+    /**
+     * entryToken 소유권 검증
+     */
+    void validateTokenOwnership(String entryToken, String userId);
 }
