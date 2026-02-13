@@ -45,6 +45,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-037 | [NestJS(Prism) 서비스 장기 스택 전략](./ADR-037-nestjs-prism-long-term-strategy.md)              | Proposed   | 2026-02-11 |
 | ADR-038 | [Polyglot 이벤트 계약 관리 전략](./ADR-038-polyglot-event-contract-management.md)                 | Accepted   | 2026-02-13 |
 | ADR-039 | [JWT 이중 검증 전략](./ADR-039-jwt-dual-validation-strategy.md)                                 | Accepted   | 2026-02-11 |
+| ADR-040 | [Frontend Error Handling Standardization](./ADR-040-frontend-error-handling-standardization.md) | Accepted   | 2026-02-14 |
 
 
 ## 상태 정의

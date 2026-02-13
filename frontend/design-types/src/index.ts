@@ -12,6 +12,9 @@ export * from './api';
 // Component props
 export * from './components';
 
+// Logger
+export * from './logger';
+
 // Theme types
 export type ServiceType = 'portal' | 'blog' | 'shopping';
 export type ThemeMode = 'light' | 'dark' | 'system';

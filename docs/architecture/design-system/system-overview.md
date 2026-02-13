@@ -90,12 +90,14 @@ graph TB
 - `ServiceType`, `ThemeMode`, `ThemeConfig` 정의
 - 공통 variant/size 타입 (ButtonVariant, BadgeVariant, Size 등)
 - 30+ 컴포넌트 Props 인터페이스 (ButtonProps, InputProps 등)
+- 구조화된 로깅 유틸리티 (`createLogger`)
 
 **구성 파일**:
 - `index.ts` - 재수출 + 테마 타입
 - `common.ts` - 공통 variant/size 열거형
 - `components.ts` - 컴포넌트별 Props 인터페이스
 - `api.ts` - API 응답/요청 타입
+- `logger.ts` - Logger 팩토리 함수, LogLevel, ErrorReporter 인터페이스
 
 ### 3. @portal/design-system-vue
 
@@ -103,10 +105,11 @@ Vue 3 전용 컴포넌트 라이브러리. `<script setup>` + Composition API �
 
 **역할**:
 - 26개 Vue 컴포넌트 (Form 8, Feedback 7, Layout 5, Navigation 3, Display 2, Utility 1)
-- 3개 composable (useTheme, useToast, useApiError)
+- 4개 composable (useTheme, useToast, useApiError, useLogger)
+- 전역 에러 핸들러 유틸리티 (`setupErrorHandler`)
 - 서비스별 테마 CSS (blog.css, shopping.css, prism.css)
 
-**소비자**: portal-shell (:30000), blog-frontend (:30001)
+**소비자**: portal-shell (:30000), blog-frontend (:30001), drive-frontend (:30005), admin-frontend (:30004)
 
 ### 4. @portal/design-system-react
 
@@ -114,7 +117,8 @@ React 18 전용 컴포넌트 라이브러리. Hooks + forwardRef 패턴을 사�
 
 **역할**:
 - 30개 React 컴포넌트 (Vue 25개 공유 + React-only 5개)
-- 3개 hook (useTheme, useToast, useApiError)
+- `ErrorBoundary` 컴포넌트 (React Error Boundary + fallback UI)
+- 4개 hook (useTheme, useToast, useApiError, useLogger)
 - `cn()` 유틸리티 (clsx + tailwind-merge)
 
 **소비자**: shopping-frontend (:30002), prism-frontend (:30003)
@@ -221,4 +225,11 @@ portal-shell (Host)
 - [React Components](./react-components.md) - React 컴포넌트 상세
 - [Component Matrix](./component-matrix.md) - 크로스 프레임워크 비교
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-02-06 | 초안 작성 | Laze |
+| 2026-02-14 | 에러 핸들링/로깅 유틸리티 추가 (ADR-040) | Laze |
