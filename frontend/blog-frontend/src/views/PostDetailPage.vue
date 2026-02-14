@@ -21,12 +21,9 @@ import RelatedPosts from "@/components/RelatedPosts.vue";
 import PostNavigation from "@/components/PostNavigation.vue";
 import CommentList from "@/components/CommentList.vue";
 import { useThemeDetection } from "@/composables/useThemeDetection";
-import { useAuthStore } from "portal/stores";
-
 const route = useRoute();
 const router = useRouter();
 const { handleError } = useApiError();
-const authStore = useAuthStore();
 const post = ref<PostResponse | null>(null);
 
 const isLoading = ref(true);
@@ -46,9 +43,17 @@ const isDeleting = ref(false);
 // 좋아요 사용자 모달
 const showLikersModal = ref(false);
 
-// authStore에서 현재 사용자 UUID 추출
+// window.__PORTAL_ACCESS_TOKEN__에서 현재 사용자 UUID 추출
+// blog-frontend는 별도 pinia 인스턴스를 사용하므로 portal-shell의 authStore 상태를 직접 접근할 수 없음
 function getCurrentUserUuid(): string | null {
-  return authStore.user.value?.profile?.sub ?? null;
+  try {
+    const token = (window as any).__PORTAL_ACCESS_TOKEN__;
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // 본인 게시글 여부
