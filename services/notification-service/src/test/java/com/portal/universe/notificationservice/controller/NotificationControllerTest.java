@@ -41,7 +41,7 @@ class NotificationControllerTest {
 
     private NotificationResponse sampleResponse;
     private static final String TEST_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
-    private static final AuthUser AUTH_USER = new AuthUser(TEST_USER_ID, "Test User", "tester");
+    private static final AuthUser AUTH_USER = new AuthUser(TEST_USER_ID, "Test User", "tester", null);
 
     @BeforeEach
     void setUp() {
@@ -304,7 +304,7 @@ class NotificationControllerTest {
         void should_passIdAndUserId_when_markAsRead() {
             // given
             Long notificationId = 99L;
-            AuthUser differentUser = new AuthUser("different-user", "Diff", "diff");
+            AuthUser differentUser = new AuthUser("different-user", "Diff", "diff", null);
 
             NotificationResponse response = NotificationResponse.builder()
                     .id(notificationId)

@@ -43,7 +43,7 @@ class InventoryControllerTest {
     @MockitoBean
     private InventoryService inventoryService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
 
     private InventoryResponse createInventoryResponse(Long productId) {
         return new InventoryResponse(1L, productId, 100, 10, 110,

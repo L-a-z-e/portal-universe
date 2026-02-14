@@ -42,7 +42,7 @@ class OrderControllerTest {
     @MockitoBean
     private OrderService orderService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
 
     private OrderResponse createOrderResponse() {
         return new OrderResponse(1L, "ORD-001", "user-1", OrderStatus.PENDING,

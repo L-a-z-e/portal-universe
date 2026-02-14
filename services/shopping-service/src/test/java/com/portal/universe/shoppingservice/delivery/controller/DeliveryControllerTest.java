@@ -39,7 +39,7 @@ class DeliveryControllerTest {
     @MockitoBean
     private DeliveryService deliveryService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
 
     private DeliveryResponse createDeliveryResponse() {
         return new DeliveryResponse(1L, "TRK-001", "ORD-001",

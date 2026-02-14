@@ -41,7 +41,7 @@ class CartControllerTest {
     @MockitoBean
     private CartService cartService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
 
     private CartResponse createCartResponse() {
         return new CartResponse(1L, "user-1", CartStatus.ACTIVE, List.of(), 0, 0,
