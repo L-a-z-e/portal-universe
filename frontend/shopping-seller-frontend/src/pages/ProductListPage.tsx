@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sellerProductApi } from '@/api'
 import { Button } from '@portal/design-system-react'
-import type { Product, PaginatedResponse } from '@/types'
+import type { Product } from '@/types'
 
 export const ProductListPage: React.FC = () => {
   const navigate = useNavigate()
-  const [products, setProducts] = useState<PaginatedResponse<Product> | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [page, setPage] = useState(1)
 
@@ -15,9 +15,12 @@ export const ProductListPage: React.FC = () => {
       setIsLoading(true)
       try {
         const response = await sellerProductApi.getProducts({ page, size: 10 })
-        setProducts(response.data || null)
+        const apiData = response.data?.data
+        const items = apiData?.content ?? apiData?.items ?? (Array.isArray(apiData) ? apiData : [])
+        setProducts(items)
       } catch (err) {
         console.error('Failed to load products:', err)
+        setProducts([])
       } finally {
         setIsLoading(false)
       }
@@ -49,7 +52,7 @@ export const ProductListPage: React.FC = () => {
           <div className="p-12 text-center">
             <p className="text-text-meta">Loading...</p>
           </div>
-        ) : products?.items.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-lg text-text-heading mb-2">No products found</p>
             <Button variant="primary" onClick={() => navigate('/products/new')}>
@@ -68,7 +71,7 @@ export const ProductListPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border-default">
-              {products?.items.map((product) => (
+              {products.map((product) => (
                 <tr
                   key={product.id}
                   className="hover:bg-bg-hover transition-colors cursor-pointer"

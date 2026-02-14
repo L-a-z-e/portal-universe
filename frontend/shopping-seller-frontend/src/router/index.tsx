@@ -95,17 +95,6 @@ const routes = [
     element: <Layout />,
     children: [
       {
-        index: true,
-        element: (
-          <SellerWrapper>
-            <Suspense fallback={<PageLoader />}>
-              <SellerLayout />
-            </Suspense>
-          </SellerWrapper>
-        ),
-        children: undefined as any,
-      },
-      {
         path: '/',
         element: (
           <SellerWrapper>

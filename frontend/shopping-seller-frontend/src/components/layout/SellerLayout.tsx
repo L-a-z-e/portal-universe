@@ -105,10 +105,45 @@ export const SellerLayout: React.FC = () => {
   const location = useLocation()
   const { user, logout } = usePortalAuth()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true
 
   const handleLogout = () => {
     logout()
     window.location.href = '/'
+  }
+
+  if (isEmbedded) {
+    return (
+      <div className="bg-bg-page">
+        <nav className="flex flex-wrap gap-2 px-4 py-3 mb-4 bg-bg-card border-b border-border-default">
+          {navItems.map((item) => {
+            const isActive = item.path === '/'
+              ? location.pathname === '/' || location.pathname === ''
+              : location.pathname.startsWith(item.path)
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`
+                  flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm
+                  transition-colors
+                  ${isActive
+                    ? 'bg-brand-primary/10 text-brand-primary font-medium'
+                    : 'text-text-body hover:bg-bg-hover'
+                  }
+                `}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
+        <div className="px-4 pb-4">
+          <Outlet />
+        </div>
+      </div>
+    )
   }
 
   return (
