@@ -47,6 +47,7 @@ export const sellerDeliveryApi = {
 // Coupon API (판매자 쿠폰 관리)
 export const sellerCouponApi = {
   getCoupons: (params?: any) => getClient().get('/api/v1/seller/coupons', { params }),
+  getCoupon: (id: number) => getClient().get(`/api/v1/seller/coupons/${id}`),
   createCoupon: (data: any) => getClient().post('/api/v1/seller/coupons', data),
   deleteCoupon: (id: number) => getClient().delete(`/api/v1/seller/coupons/${id}`),
 }
@@ -54,16 +55,24 @@ export const sellerCouponApi = {
 // TimeDeal API (판매자 타임딜 관리)
 export const sellerTimeDealApi = {
   getTimeDeals: (params?: any) => getClient().get('/api/v1/seller/time-deals', { params }),
+  getTimeDeal: (id: number) => getClient().get(`/api/v1/seller/time-deals/${id}`),
   createTimeDeal: (data: any) => getClient().post('/api/v1/seller/time-deals', data),
   deleteTimeDeal: (id: number) => getClient().delete(`/api/v1/seller/time-deals/${id}`),
 }
 
 // Queue API
 export const sellerQueueApi = {
-  activateQueue: (eventType: string, eventId: string) =>
-    getClient().post(`/api/v1/seller/queue/${eventType}/${eventId}/activate`),
+  activateQueue: (eventType: string, eventId: string, data: any) =>
+    getClient().post(`/api/v1/seller/queue/${eventType}/${eventId}/activate`, data),
   deactivateQueue: (eventType: string, eventId: string) =>
     getClient().post(`/api/v1/seller/queue/${eventType}/${eventId}/deactivate`),
+  getQueueStatus: (eventType: string, eventId: string) =>
+    getClient().get(`/api/v1/seller/queue/${eventType}/${eventId}/status`),
+}
+
+// Dashboard API
+export const dashboardApi = {
+  getStats: () => getClient().get('/api/v1/seller/dashboard/stats'),
 }
 
 // Settlement API

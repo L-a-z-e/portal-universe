@@ -6,14 +6,23 @@ export const OrderListPage: React.FC = () => {
   const navigate = useNavigate()
   const [orders, setOrders] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await sellerOrderApi.getOrders({ page: 1, size: 20 })
-        setOrders(res.data?.items || [])
-      } catch (err) {
-        console.error(err)
+        const res = await sellerOrderApi.getOrders({ page: 0, size: 20 })
+        const apiData = res.data?.data
+        const items = apiData?.content ?? apiData?.items ?? (Array.isArray(apiData) ? apiData : [])
+        setOrders(items)
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status === 404 || status === 502 || status === 503) {
+          setError('Order data is not available yet. Cross-service integration with shopping-service is required.')
+        } else {
+          console.error(err)
+          setError('Failed to load orders.')
+        }
       } finally {
         setIsLoading(false)
       }
@@ -24,16 +33,23 @@ export const OrderListPage: React.FC = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold text-text-heading mb-6">Orders</h1>
+
+      {error && (
+        <div className="mb-4 p-4 bg-status-warning-bg border border-status-warning rounded-lg">
+          <p className="text-sm text-status-warning">{error}</p>
+        </div>
+      )}
+
       <div className="bg-bg-card border border-border-default rounded-lg overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center">
             <p className="text-text-meta">Loading...</p>
           </div>
-        ) : orders.length === 0 ? (
+        ) : orders.length === 0 && !error ? (
           <div className="p-12 text-center">
             <p className="text-text-meta">No orders found</p>
           </div>
-        ) : (
+        ) : orders.length > 0 ? (
           <table className="w-full">
             <thead className="bg-bg-subtle border-b border-border-default">
               <tr>
@@ -60,7 +76,7 @@ export const OrderListPage: React.FC = () => {
               ))}
             </tbody>
           </table>
-        )}
+        ) : null}
       </div>
     </div>
   )
