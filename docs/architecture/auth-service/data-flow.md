@@ -456,7 +456,7 @@ Auth Service에서 발행하는 Kafka 이벤트 목록입니다.
 
 | 토픽 | 이벤트 | 발행 시점 | 소비자 |
 |------|--------|----------|--------|
-| `user-signup` | `UserSignedUpEvent` | 회원가입 트랜잭션 커밋 후 | notification-service |
+| `auth.user.signed-up` | `UserSignedUpEvent` | 회원가입 트랜잭션 커밋 후 | notification-service |
 
 ### UserSignedUpEvent
 
@@ -464,8 +464,7 @@ Auth Service에서 발행하는 Kafka 이벤트 목록입니다.
 {
   "userId": "user-uuid-1234",
   "email": "user@example.com",
-  "nickname": "닉네임",
-  "timestamp": "2026-02-06T12:00:00Z"
+  "name": "실명"
 }
 ```
 
