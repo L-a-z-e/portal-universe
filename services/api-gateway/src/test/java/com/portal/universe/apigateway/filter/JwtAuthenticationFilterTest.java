@@ -5,6 +5,7 @@ import com.portal.universe.apigateway.config.PublicPathProperties;
 import com.portal.universe.apigateway.service.RoleHierarchyResolver;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import com.portal.universe.apigateway.util.JwtTestHelper;
+import com.portal.universe.apigateway.exception.GatewayErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -338,7 +339,7 @@ class JwtAuthenticationFilterTest {
     class InvalidToken {
 
         @Test
-        @DisplayName("만료된 토큰은 401과 GW-A006 코드를 반환한다")
+        @DisplayName("만료된 토큰은 401과 GW-A004 코드를 반환한다")
         void should_return401_when_tokenExpired() {
             String token = JwtTestHelper.createExpiredToken(SECRET_KEY, "user1");
             var request = MockServerHttpRequest.get("/api/test")
@@ -352,12 +353,12 @@ class JwtAuthenticationFilterTest {
 
             assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
             String body = exchange.getResponse().getBodyAsString().block();
-            assertThat(body).contains("GW-A006");
+            assertThat(body).contains(GatewayErrorCode.TOKEN_EXPIRED.getCode());
             verify(chain, never()).filter(any());
         }
 
         @Test
-        @DisplayName("잘못된 서명의 토큰은 401과 GW-A007 코드를 반환한다")
+        @DisplayName("잘못된 서명의 토큰은 401과 GW-A005 코드를 반환한다")
         void should_return401_when_invalidSignature() {
             String wrongKey = "wrong-secret-key-that-is-at-least-256-bits-long-for-hmac-sha-testing";
             String token = JwtTestHelper.createValidToken(wrongKey, "user1", List.of("ROLE_USER"));
@@ -372,7 +373,7 @@ class JwtAuthenticationFilterTest {
 
             assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
             String body = exchange.getResponse().getBodyAsString().block();
-            assertThat(body).contains("GW-A007");
+            assertThat(body).contains(GatewayErrorCode.INVALID_TOKEN.getCode());
         }
 
         @Test
@@ -396,7 +397,7 @@ class JwtAuthenticationFilterTest {
     class Blacklist {
 
         @Test
-        @DisplayName("블랙리스트 토큰은 401과 GW-A005 코드를 반환한다")
+        @DisplayName("블랙리스트 토큰은 401과 GW-A003 코드를 반환한다")
         void should_return401_when_tokenBlacklisted() {
             String token = JwtTestHelper.createValidToken(SECRET_KEY, "user1", List.of("ROLE_USER"));
             var request = MockServerHttpRequest.get("/api/test")
@@ -411,7 +412,7 @@ class JwtAuthenticationFilterTest {
 
             assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
             String body = exchange.getResponse().getBodyAsString().block();
-            assertThat(body).contains("GW-A005");
+            assertThat(body).contains(GatewayErrorCode.TOKEN_REVOKED.getCode());
             verify(chain, never()).filter(any());
         }
     }
@@ -480,8 +481,8 @@ class JwtAuthenticationFilterTest {
         }
 
         @Test
-        @DisplayName("만료된 키로 서명된 토큰은 IllegalArgumentException을 발생시킨다")
-        void should_throwException_when_keyExpired() {
+        @DisplayName("만료된 키로 서명된 토큰은 401과 GW-A005 코드를 반환한다")
+        void should_return401_when_keyExpired() {
             var expiredConfig = new JwtProperties.KeyConfig();
             expiredConfig.setSecretKey(SECRET_KEY);
             expiredConfig.setActivatedAt(LocalDateTime.now().minusDays(30));
@@ -498,25 +499,31 @@ class JwtAuthenticationFilterTest {
                     .build();
             var exchange = MockServerWebExchange.from(request);
 
-            org.assertj.core.api.Assertions.assertThatThrownBy(
-                    () -> testFilter.filter(exchange, chain)
-            ).isInstanceOf(IllegalArgumentException.class)
-             .hasMessageContaining("expired");
+            StepVerifier.create(testFilter.filter(exchange, chain))
+                    .expectComplete()
+                    .verify();
+
+            assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            String body = exchange.getResponse().getBodyAsString().block();
+            assertThat(body).contains(GatewayErrorCode.INVALID_TOKEN.getCode());
         }
 
         @Test
-        @DisplayName("존재하지 않는 키 ID의 토큰은 IllegalArgumentException을 발생시킨다")
-        void should_throwException_when_keyNotFound() {
+        @DisplayName("존재하지 않는 키 ID의 토큰은 401과 GW-A005 코드를 반환한다")
+        void should_return401_when_keyNotFound() {
             String token = JwtTestHelper.createTokenWithKid(SECRET_KEY, "unknown-key", "user1", List.of("ROLE_USER"));
             var request = MockServerHttpRequest.get("/api/test")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                     .build();
             var exchange = MockServerWebExchange.from(request);
 
-            org.assertj.core.api.Assertions.assertThatThrownBy(
-                    () -> filter.filter(exchange, chain)
-            ).isInstanceOf(IllegalArgumentException.class)
-             .hasMessageContaining("not found");
+            StepVerifier.create(filter.filter(exchange, chain))
+                    .expectComplete()
+                    .verify();
+
+            assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            String body = exchange.getResponse().getBodyAsString().block();
+            assertThat(body).contains(GatewayErrorCode.INVALID_TOKEN.getCode());
         }
     }
 
