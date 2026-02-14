@@ -33,6 +33,10 @@ services:
     url: "http://chatbot-service:8086"
   drive:
     url: "http://drive-service:8087"
+  shopping-seller:
+    url: "http://shopping-seller-service:8088"
+  shopping-settlement:
+    url: "http://shopping-settlement-service:8089"
 
 spring:
   kafka:

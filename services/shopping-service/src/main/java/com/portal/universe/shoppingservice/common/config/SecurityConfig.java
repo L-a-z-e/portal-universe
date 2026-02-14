@@ -67,40 +67,34 @@ public class SecurityConfig {
     }
 
     /**
-     * 쇼핑 서비스의 API 엔드포인트에 대한 보안 필터 체인을 설정합니다.
+     * 쇼핑 서비스(Buyer)의 API 엔드포인트에 대한 보안 필터 체인을 설정합니다.
      *
      * ### 권한 부여 전략
-     * - **공개 (Permit All)**: `GET` 요청 (상품, 카테고리 조회).
-     * - **인증된 사용자 (USER, ADMIN)**: 장바구니, 주문, 결제 관련 기능.
-     * - **관리자 전용 (ADMIN)**: 상품, 재고, 배송 상태 관리 기능.
+     * - **공개 (Permit All)**: `GET` 요청 (상품, 카테고리, 검색 조회).
+     * - **인증된 사용자 (USER)**: 장바구니, 주문, 결제 관련 기능.
+     *
+     * 관리자/판매자 기능은 shopping-seller-service로 분리됨.
      */
     @Bean
     @Order(2)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // ========================================
                         // [공개] 누구나 접근 가능
-                        // Gateway StripPrefix=2 적용 후 경로 (/api/shopping 제거됨)
-                        // ========================================
-                        // Actuator 엔드포인트 (EndpointRequest와 별개로 경로 기반 허용)
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/search/**").permitAll()
 
-                        // ========================================
-                        // [인증된 사용자] USER 또는 ADMIN 역할 필요
-                        // 주의: 구체적 경로를 와일드카드보다 먼저 선언
-                        // ========================================
+                        // [인증된 사용자] USER 역할 필요
 
-                        // 쿠폰 - 인증 필요 (my, issue는 와일드카드 매칭 전에 선언)
+                        // 쿠폰 - 인증 필요
                         .requestMatchers(HttpMethod.GET, "/coupons/my", "/coupons/my/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/coupons/*/issue").hasAnyRole("USER", "ADMIN")
                         // 쿠폰 - 공개 조회
                         .requestMatchers(HttpMethod.GET, "/coupons", "/coupons/*").permitAll()
 
-                        // 타임딜 - 인증 필요 (my, purchase는 와일드카드 매칭 전에 선언)
+                        // 타임딜 - 인증 필요
                         .requestMatchers(HttpMethod.GET, "/time-deals/my/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/time-deals/purchase").hasAnyRole("USER", "ADMIN")
                         // 타임딜 - 공개 조회
@@ -125,47 +119,15 @@ public class SecurityConfig {
                         // 배송 조회
                         .requestMatchers(HttpMethod.GET, "/deliveries/**").hasAnyRole("USER", "ADMIN")
 
-                        // 재고 조회 (상품 목록/상세에서 비인증 사용자도 확인 필요)
+                        // 재고 조회 (읽기 전용)
                         .requestMatchers(HttpMethod.POST, "/inventory/batch").permitAll()
                         .requestMatchers(HttpMethod.GET, "/inventory/stream").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/inventory/*/movements").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/inventory/*").permitAll()
-
-                        // ========================================
-                        // [관리자] SHOPPING_ADMIN / SUPER_ADMIN 역할 필요
-                        // ========================================
-                        // Admin 전용 경로
-                        .requestMatchers("/admin/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-
-                        // 상품 관리 (Seller도 가능)
-                        .requestMatchers(HttpMethod.POST, "/products")
-                            .hasAnyAuthority("ROLE_SHOPPING_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/products/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/products/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-
-                        // 재고 관리
-                        .requestMatchers(HttpMethod.POST, "/inventory/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/inventory/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-
-                        // 배송 상태 관리
-                        .requestMatchers(HttpMethod.PUT, "/deliveries/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-
-                        // 결제 환불 (관리자)
-                        .requestMatchers(HttpMethod.POST, "/payments/*/refund")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
                         // 그 외 모든 요청은 인증만 되면 허용
                         .anyRequest().authenticated()
                 )
-                // Gateway에서 전달한 헤더로 인증 정보 설정
                 .addFilterBefore(new GatewayAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                // Stateless REST API
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable);
 

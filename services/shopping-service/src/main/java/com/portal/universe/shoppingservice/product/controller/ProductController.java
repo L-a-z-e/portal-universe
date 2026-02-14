@@ -2,26 +2,19 @@ package com.portal.universe.shoppingservice.product.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.commonlibrary.response.PageResponse;
-import com.portal.universe.shoppingservice.product.dto.ProductCreateRequest;
 import com.portal.universe.shoppingservice.product.dto.ProductResponse;
-import com.portal.universe.shoppingservice.product.dto.ProductUpdateRequest;
 import com.portal.universe.shoppingservice.product.dto.ProductWithReviewsResponse;
 import com.portal.universe.shoppingservice.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 상품(Product) 관련 CRUD API를 제공하는 컨트롤러입니다.
+ * 상품(Product) 조회 API를 제공하는 컨트롤러입니다. (Buyer 전용)
  *
- * 권한 정책:
- * - 조회(GET): 공개 또는 인증된 사용자 (USER, ADMIN)
- * - 생성/수정/삭제: ADMIN 전용
- *
- * 주의: Admin 전용 API는 AdminProductController에서 처리합니다.
+ * 상품 CRUD(생성/수정/삭제)는 shopping-seller-service로 이전되었습니다.
+ * 이 컨트롤러는 읽기 전용 조회 API만 제공합니다.
  */
 @RestController
 @RequestMapping("/products")
@@ -45,20 +38,6 @@ public class ProductController {
     }
 
     /**
-     * 새로운 상품을 등록합니다. (ADMIN 전용)
-     *
-     * @deprecated Admin 전용 API는 AdminProductController를 사용하세요.
-     * @param request 생성할 상품의 정보를 담은 DTO
-     * @return 생성된 상품 정보를 담은 ApiResponse
-     */
-    @Deprecated
-    @PostMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_SHOPPING_SELLER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ApiResponse<ProductResponse> createProduct(@RequestBody ProductCreateRequest request) {
-        return ApiResponse.success(productService.createProduct(request));
-    }
-
-    /**
      * 특정 ID를 가진 상품을 조회합니다. (공개)
      * @param productId 조회할 상품의 ID
      * @return 조회된 상품 정보를 담은 ApiResponse
@@ -66,36 +45,6 @@ public class ProductController {
     @GetMapping("/{productId}")
     public ApiResponse<ProductResponse> getProductById(@PathVariable Long productId) {
         return ApiResponse.success(productService.getProductById(productId));
-    }
-
-    /**
-     * 특정 상품 정보를 수정합니다. (ADMIN 전용)
-     *
-     * @deprecated Admin 전용 API는 AdminProductController를 사용하세요.
-     * @param productId 수정할 상품의 ID
-     * @param request 수정할 상품의 정보를 담은 DTO
-     * @return 수정된 상품 정보를 담은 ApiResponse
-     */
-    @Deprecated
-    @PutMapping("/{productId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_SHOPPING_SELLER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ApiResponse<ProductResponse> updateProduct(@PathVariable Long productId, @RequestBody ProductUpdateRequest request) {
-        return ApiResponse.success(productService.updateProduct(productId, request));
-    }
-
-    /**
-     * 특정 상품을 삭제합니다. (ADMIN 전용)
-     *
-     * @deprecated Admin 전용 API는 AdminProductController를 사용하세요.
-     * @param productId 삭제할 상품의 ID
-     * @return 성공 응답을 담은 ApiResponse
-     */
-    @Deprecated
-    @DeleteMapping("/{productId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_SHOPPING_SELLER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN')")
-    public ApiResponse<Void> deleteProduct(@PathVariable Long productId) {
-        productService.deleteProduct(productId);
-        return ApiResponse.success(null);
     }
 
     /**

@@ -90,6 +90,21 @@ const baseNavItems = [
   },
 ];
 
+const sellerNavItem = {
+  name: 'Seller',
+  path: '/seller',
+  icon: '🏪',
+  children: [
+    { name: 'Dashboard', path: '/seller' },
+    { name: 'Products', path: '/seller/products' },
+    { name: 'Coupons', path: '/seller/coupons' },
+    { name: 'Time Deals', path: '/seller/time-deals' },
+    { name: 'Orders', path: '/seller/orders' },
+    { name: 'Stock', path: '/seller/stock-movements' },
+    { name: 'Queue', path: '/seller/queue' },
+  ],
+};
+
 const adminNavItem = {
   name: 'Admin',
   path: '/admin',
@@ -104,6 +119,9 @@ const adminNavItem = {
 
 const navItems = computed(() => {
   const items = [...baseNavItems];
+  if (authStore.isSeller) {
+    items.push(sellerNavItem);
+  }
   if (authStore.isAdmin) {
     items.push(adminNavItem);
   }
