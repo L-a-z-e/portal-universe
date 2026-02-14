@@ -34,7 +34,7 @@ class QueueControllerTest {
     @MockitoBean
     private QueueService queueService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
 
     @Test
     @DisplayName("should_enterQueue_when_called")

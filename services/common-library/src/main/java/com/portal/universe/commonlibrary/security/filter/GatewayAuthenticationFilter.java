@@ -1,5 +1,6 @@
 package com.portal.universe.commonlibrary.security.filter;
 
+import com.portal.universe.commonlibrary.security.constants.AuthConstants;
 import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.commonlibrary.security.context.CurrentUserArgumentResolver;
 import jakarta.servlet.FilterChain;
@@ -32,16 +33,10 @@ import java.util.stream.Collectors;
  * - X-User-Nickname: URL 인코딩된 닉네임
  *
  * SecurityContext에는 X-User-Effective-Roles를 우선 사용합니다.
+ * AuthUser가 Gateway 헤더의 단일 진실 소스입니다.
  */
 @Slf4j
 public class GatewayAuthenticationFilter extends OncePerRequestFilter {
-
-    public static final String USER_ID_HEADER = "X-User-Id";
-    public static final String USER_ROLES_HEADER = "X-User-Roles";
-    public static final String USER_EFFECTIVE_ROLES_HEADER = "X-User-Effective-Roles";
-    public static final String USER_MEMBERSHIPS_HEADER = "X-User-Memberships";
-    public static final String USER_NICKNAME_HEADER = "X-User-Nickname";
-    public static final String USER_NAME_HEADER = "X-User-Name";
 
     @Override
     protected void doFilterInternal(
@@ -50,12 +45,12 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String userId = request.getHeader(USER_ID_HEADER);
-        String effectiveRoles = request.getHeader(USER_EFFECTIVE_ROLES_HEADER);
-        String roles = request.getHeader(USER_ROLES_HEADER);
-        String memberships = request.getHeader(USER_MEMBERSHIPS_HEADER);
-        String nickname = request.getHeader(USER_NICKNAME_HEADER);
-        String username = request.getHeader(USER_NAME_HEADER);
+        String userId = request.getHeader(AuthConstants.Headers.USER_ID);
+        String effectiveRoles = request.getHeader(AuthConstants.Headers.USER_EFFECTIVE_ROLES);
+        String roles = request.getHeader(AuthConstants.Headers.USER_ROLES);
+        String memberships = request.getHeader(AuthConstants.Headers.USER_MEMBERSHIPS);
+        String nickname = request.getHeader(AuthConstants.Headers.USER_NICKNAME);
+        String username = request.getHeader(AuthConstants.Headers.USER_NAME);
 
         if (StringUtils.hasText(userId)) {
             // X-User-Effective-Roles 우선, 없으면 X-User-Roles fallback
@@ -69,18 +64,8 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
             String decodedUsername = decodeHeader(username);
 
             // AuthUser를 request attribute로 저장 (@CurrentUser resolver에서 사용)
-            AuthUser authUser = new AuthUser(userId, decodedUsername, decodedNickname);
+            AuthUser authUser = new AuthUser(userId, decodedUsername, decodedNickname, memberships);
             request.setAttribute(CurrentUserArgumentResolver.AUTH_USER_ATTRIBUTE, authUser);
-
-            // 하위 호환: 기존 attribute도 유지
-            if (StringUtils.hasText(nickname)) {
-                request.setAttribute("userNickname", nickname);
-            }
-
-            // memberships JSON을 request attribute로 저장 (하위 서비스에서 활용)
-            if (StringUtils.hasText(memberships)) {
-                request.setAttribute("userMemberships", memberships);
-            }
 
             // 쉼표 구분된 roles를 복수 Authority로 변환 (effective roles 사용)
             List<SimpleGrantedAuthority> authorities = parseAuthorities(rolesForAuth);

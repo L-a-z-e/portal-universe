@@ -7,7 +7,7 @@ export const CouponListPage: React.FC = () => {
   const navigate = useNavigate()
   const [coupons, setCoupons] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [page, setPage] = useState(0)
+  const [page, _setPage] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
