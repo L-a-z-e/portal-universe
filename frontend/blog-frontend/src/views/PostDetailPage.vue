@@ -21,6 +21,7 @@ import RelatedPosts from "@/components/RelatedPosts.vue";
 import PostNavigation from "@/components/PostNavigation.vue";
 import CommentList from "@/components/CommentList.vue";
 import { useThemeDetection } from "@/composables/useThemeDetection";
+import { usePortalAuth } from "@/composables/usePortalAuth";
 const route = useRoute();
 const router = useRouter();
 const { handleError } = useApiError();
@@ -43,25 +44,13 @@ const isDeleting = ref(false);
 // 좋아요 사용자 모달
 const showLikersModal = ref(false);
 
-// window.__PORTAL_ACCESS_TOKEN__에서 현재 사용자 UUID 추출
-// blog-frontend는 별도 pinia 인스턴스를 사용하므로 portal-shell의 authStore 상태를 직접 접근할 수 없음
-function getCurrentUserUuid(): string | null {
-  try {
-    const token = (window as any).__PORTAL_ACCESS_TOKEN__;
-    if (!token) return null;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub ?? null;
-  } catch {
-    return null;
-  }
-}
+const { userUuid } = usePortalAuth();
 
 // 본인 게시글 여부
 const isAuthor = computed(() => {
   if (!post.value) return false;
-  const currentUuid = getCurrentUserUuid();
-  if (!currentUuid) return false;
-  return post.value.authorId === currentUuid;
+  if (!userUuid.value) return false;
+  return post.value.authorId === userUuid.value;
 });
 
 const viewerElement = ref<HTMLDivElement | null>(null);
@@ -378,7 +367,7 @@ function handleLikeChanged(liked: boolean, count: number) {
       />
 
       <!-- 댓글 영역 -->
-      <CommentList :post-id="post.id" :current-user-id="getCurrentUserUuid() ?? undefined" />
+      <CommentList :post-id="post.id" :current-user-id="userUuid ?? undefined" />
 
       <!-- 삭제 확인 모달 -->
       <Modal

@@ -6,6 +6,7 @@ import type { Router } from 'vue-router';
 import { createBlogRouter, logRouterInfo } from "./router";
 import {createPinia} from "pinia";
 import {useFollowStore} from "./stores/followStore";
+import { disposePortalAuth } from './composables/usePortalAuth';
 
 /**
  * Mount 옵션
@@ -160,7 +161,8 @@ export function mountBlogApp(
     unmount: () => {
       console.group('🔄 [Blog] Unmounting app');
 
-      // 0. 이벤트 리스너 정리
+      // 0. Portal auth 구독 해제 + 이벤트 리스너 정리
+      disposePortalAuth();
       window.removeEventListener('portal:auth-changed', authChangedHandler);
 
       // 1. Vue App Unmount
