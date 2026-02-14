@@ -13,6 +13,7 @@ import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.blogservice.series.domain.Series;
 import com.portal.universe.blogservice.series.dto.SeriesNavigationResponse;
 import com.portal.universe.blogservice.series.repository.SeriesRepository;
+import com.portal.universe.blogservice.tag.service.TagService;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final SeriesRepository seriesRepository;
     private final MongoTemplate mongoTemplate;
+    private final TagService tagService;
 
     // ===== 기존 메서드 구현 (하위 호환성) =====
 
@@ -74,6 +76,13 @@ public class PostServiceImpl implements PostService {
 
         Post savedPost = postRepository.save(post);
         log.info("Post created successfully with id: {}", savedPost.getId());
+
+        // Tag postCount 동기화: 태그 자동 생성 + postCount 증가
+        if (request.tags() != null && !request.tags().isEmpty()) {
+            List<String> tagNames = new ArrayList<>(request.tags());
+            tagNames.forEach(tagService::getOrCreateTag);
+            tagService.incrementTagPostCounts(tagNames);
+        }
 
         return convertToPostResponse(savedPost);
     }
@@ -108,6 +117,10 @@ public class PostServiceImpl implements PostService {
             throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
         }
 
+        // Tag diff 계산 (update 전에 기존 태그 보존)
+        Set<String> oldTags = post.getTags() != null ? new HashSet<>(post.getTags()) : new HashSet<>();
+        Set<String> newTags = request.tags() != null ? new HashSet<>(request.tags()) : new HashSet<>();
+
         // 도메인 메서드로 수정
         post.update(
                 request.title(),
@@ -122,6 +135,21 @@ public class PostServiceImpl implements PostService {
 
         Post updatedPost = postRepository.save(post);
         log.info("Post updated successfully: {}", postId);
+
+        // Tag postCount 동기화: added → increment, removed → decrement
+        Set<String> addedTags = new HashSet<>(newTags);
+        addedTags.removeAll(oldTags);
+        Set<String> removedTags = new HashSet<>(oldTags);
+        removedTags.removeAll(newTags);
+
+        if (!addedTags.isEmpty()) {
+            List<String> addedList = new ArrayList<>(addedTags);
+            addedList.forEach(tagService::getOrCreateTag);
+            tagService.incrementTagPostCounts(addedList);
+        }
+        if (!removedTags.isEmpty()) {
+            tagService.decrementTagPostCounts(new ArrayList<>(removedTags));
+        }
 
         return convertToPostResponse(updatedPost);
     }
@@ -138,6 +166,11 @@ public class PostServiceImpl implements PostService {
         if (!post.getAuthorId().equals(userId)
                 && !SecurityUtils.isServiceAdmin("BLOG")) {
             throw new CustomBusinessException(BlogErrorCode.POST_DELETE_FORBIDDEN);
+        }
+
+        // Tag postCount 동기화: 삭제 전 태그 감소
+        if (post.getTags() != null && !post.getTags().isEmpty()) {
+            tagService.decrementTagPostCounts(new ArrayList<>(post.getTags()));
         }
 
         postRepository.delete(post);
