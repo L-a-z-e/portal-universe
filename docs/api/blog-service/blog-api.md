@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-08
+updated: 2026-02-15
 author: Laze
 tags: [api, blog, mongodb, post, comment, series, tag, file, like]
 related:
@@ -198,7 +198,7 @@ Authorization: Bearer {token}
 | `title` | string | ✅ | 게시물 제목 | 최대 200자 |
 | `content` | string | ✅ | 게시물 본문 (Markdown) | - |
 | `summary` | string | ❌ | 게시물 요약 | 최대 500자 |
-| `tags` | string[] | ❌ | 태그 목록 (중복 제거) | Set |
+| `tags` | string[] | ❌ | 태그 목록 (중복 제거) | Set, 최대 20개 |
 | `category` | string | ❌ | 카테고리 | - |
 | `metaDescription` | string | ❌ | SEO 메타 설명 | 최대 160자 |
 | `thumbnailUrl` | string | ❌ | 썸네일 이미지 URL | - |
@@ -391,7 +391,7 @@ Authorization: Bearer {token}
 | `title` | string | ✅ | 게시물 제목 | 최대 200자 |
 | `content` | string | ✅ | 게시물 본문 | - |
 | `summary` | string | ❌ | 게시물 요약 | 최대 500자 |
-| `tags` | string[] | ❌ | 태그 목록 (중복 제거) | Set |
+| `tags` | string[] | ❌ | 태그 목록 (중복 제거) | Set, 최대 20개 |
 | `category` | string | ❌ | 카테고리 | - |
 | `metaDescription` | string | ❌ | SEO 메타 설명 | 최대 160자 |
 | `thumbnailUrl` | string | ❌ | 썸네일 이미지 URL | - |
@@ -989,11 +989,11 @@ Authorization: Bearer {token}
 
 #### Request Body (`CommentCreateRequest`)
 
-| 필드 | 타입 | 필수 | 설명 |
-|------|------|------|------|
-| `postId` | string | ✅ | 게시물 ID |
-| `parentCommentId` | string | ❌ | 부모 댓글 ID (대댓글인 경우) |
-| `content` | string | ✅ | 댓글 내용 |
+| 필드 | 타입 | 필수 | 설명 | 제약조건 |
+|------|------|------|------|----------|
+| `postId` | string | ✅ | 게시물 ID | - |
+| `parentCommentId` | string | ❌ | 부모 댓글 ID (대댓글인 경우) | - |
+| `content` | string | ✅ | 댓글 내용 | 최대 2000자 |
 
 #### Response (200 OK) - `CommentResponse`
 
@@ -1075,9 +1075,9 @@ Authorization: Bearer {token}
 
 #### Request Body (`CommentUpdateRequest`)
 
-| 필드 | 타입 | 필수 | 설명 |
-|------|------|------|------|
-| `content` | string | ✅ | 수정할 댓글 내용 |
+| 필드 | 타입 | 필수 | 설명 | 제약조건 |
+|------|------|------|------|----------|
+| `content` | string | ✅ | 수정할 댓글 내용 | 최대 2000자 |
 
 #### Response (200 OK) - `CommentResponse`
 
@@ -1569,7 +1569,7 @@ Authorization: Bearer {admin-token}
 | `B031` | 403 | `COMMENT_UPDATE_FORBIDDEN` | 댓글 수정 권한 없음 |
 | `B032` | 403 | `COMMENT_DELETE_FORBIDDEN` | 댓글 삭제 권한 없음 |
 
-#### Series Errors (B040-B045)
+#### Series Errors (B040-B046)
 
 | Code | HTTP Status | Enum | 설명 |
 |------|-------------|------|------|
@@ -1579,6 +1579,7 @@ Authorization: Bearer {admin-token}
 | `B043` | 403 | `SERIES_ADD_POST_FORBIDDEN` | 시리즈 포스트 추가 권한 없음 |
 | `B044` | 403 | `SERIES_REMOVE_POST_FORBIDDEN` | 시리즈 포스트 제거 권한 없음 |
 | `B045` | 403 | `SERIES_REORDER_FORBIDDEN` | 시리즈 순서 변경 권한 없음 |
+| `B046` | 409 | `SERIES_CONCURRENT_MODIFICATION` | 시리즈 동시 수정 충돌 (재시도 필요) |
 
 #### Tag Errors (B050-B051)
 
