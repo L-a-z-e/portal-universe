@@ -24,7 +24,7 @@ public class Seller {
     private Long id;
 
     @Column(name = "user_id", nullable = false, unique = true)
-    private Long userId;
+    private String userId;
 
     @Column(name = "business_name", nullable = false, length = 100)
     private String businessName;
@@ -63,7 +63,7 @@ public class Seller {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Seller(Long userId, String businessName, String businessNumber,
+    public Seller(String userId, String businessName, String businessNumber,
                   String representativeName, String phone, String email,
                   String bankName, String bankAccount, BigDecimal commissionRate) {
         this.userId = userId;

@@ -82,7 +82,7 @@ const Layout: React.FC = () => (
 const SellerWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Suspense fallback={<PageLoader />}>
     <RequireAuth>
-      <RequireRole roles={['ROLE_SELLER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN']}>
+      <RequireRole roles={['ROLE_SHOPPING_SELLER', 'ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN']}>
         {children}
       </RequireRole>
     </RequireAuth>

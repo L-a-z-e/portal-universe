@@ -16,7 +16,7 @@ public record SellerRegisterRequest(
         @Size(max = 50) String bankName,
         @Size(max = 30) String bankAccount
 ) {
-    public Seller toEntity(Long userId) {
+    public Seller toEntity(String userId) {
         return Seller.builder()
                 .userId(userId)
                 .businessName(businessName)

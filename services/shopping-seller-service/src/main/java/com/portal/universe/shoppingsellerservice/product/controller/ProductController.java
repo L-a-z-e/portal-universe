@@ -58,6 +58,6 @@ public class ProductController {
     }
 
     private Long getSellerIdFromUser(String userId) {
-        return sellerService.getMyInfo(Long.parseLong(userId)).id();
+        return sellerService.getMyInfo(userId).id();
     }
 }

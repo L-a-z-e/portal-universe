@@ -20,7 +20,7 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     @Transactional
-    public SellerResponse register(Long userId, SellerRegisterRequest request) {
+    public SellerResponse register(String userId, SellerRegisterRequest request) {
         if (sellerRepository.existsByUserId(userId)) {
             throw new CustomBusinessException(SellerErrorCode.SELLER_ALREADY_EXISTS);
         }
@@ -29,7 +29,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public SellerResponse getMyInfo(Long userId) {
+    public SellerResponse getMyInfo(String userId) {
         Seller seller = sellerRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomBusinessException(SellerErrorCode.SELLER_NOT_FOUND));
         return SellerResponse.from(seller);
@@ -37,7 +37,7 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     @Transactional
-    public SellerResponse update(Long userId, SellerUpdateRequest request) {
+    public SellerResponse update(String userId, SellerUpdateRequest request) {
         Seller seller = sellerRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomBusinessException(SellerErrorCode.SELLER_NOT_FOUND));
         seller.update(request.businessName(), request.phone(), request.email(),

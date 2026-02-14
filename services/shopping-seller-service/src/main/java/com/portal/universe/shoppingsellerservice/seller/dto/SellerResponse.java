@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public record SellerResponse(
         Long id,
-        Long userId,
+        String userId,
         String businessName,
         String businessNumber,
         String representativeName,

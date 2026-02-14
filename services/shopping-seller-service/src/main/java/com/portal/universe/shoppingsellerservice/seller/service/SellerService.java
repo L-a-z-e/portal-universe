@@ -5,7 +5,7 @@ import com.portal.universe.shoppingsellerservice.seller.dto.SellerResponse;
 import com.portal.universe.shoppingsellerservice.seller.dto.SellerUpdateRequest;
 
 public interface SellerService {
-    SellerResponse register(Long userId, SellerRegisterRequest request);
-    SellerResponse getMyInfo(Long userId);
-    SellerResponse update(Long userId, SellerUpdateRequest request);
+    SellerResponse register(String userId, SellerRegisterRequest request);
+    SellerResponse getMyInfo(String userId);
+    SellerResponse update(String userId, SellerUpdateRequest request);
 }
