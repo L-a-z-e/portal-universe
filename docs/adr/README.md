@@ -47,6 +47,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-039 | [JWT 이중 검증 전략](./ADR-039-jwt-dual-validation-strategy.md)                                 | Accepted   | 2026-02-11 |
 | ADR-040 | [Frontend Error Handling Standardization](./ADR-040-frontend-error-handling-standardization.md) | Accepted   | 2026-02-14 |
 | ADR-041 | [Shopping Service 분해 및 멀티셀러 마켓플레이스 전환](./ADR-041-shopping-service-decomposition.md) | Accepted   | 2026-02-14 |
+| ADR-042 | [Module Federation Remote에서의 인증 상태 공유](./ADR-042-mf-remote-auth-state-sharing.md) | Accepted   | 2026-02-15 |
 
 
 ## 상태 정의
