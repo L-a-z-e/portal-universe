@@ -2,6 +2,7 @@ package com.portal.universe.blogservice.series.domain;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -76,6 +77,12 @@ public class Series {
      * 수정일시
      */
     private LocalDateTime updatedAt;
+
+    /**
+     * 낙관적 잠금 버전 (동시 수정 방지)
+     */
+    @Version
+    private Long version;
 
     // ========== 비즈니스 메서드 ==========
 
