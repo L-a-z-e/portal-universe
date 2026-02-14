@@ -20,8 +20,7 @@ public record UserSignupRequest(
         @Size(min = 2, max = 30, message = "닉네임은 2자 이상 30자 이하여야 합니다")
         String nickname,
 
-        @NotBlank(message = "실명은 필수입니다")
-        @Size(min = 2, max = 50, message = "실명은 2자 이상 50자 이하여야 합니다")
+        @Size(max = 50, message = "실명은 50자 이하여야 합니다")
         String realName,
 
         boolean marketingAgree
