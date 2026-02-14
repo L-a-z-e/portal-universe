@@ -1,25 +1,20 @@
 package com.portal.universe.shoppingservice.inventory.controller;
 
 import com.portal.universe.commonlibrary.response.ApiResponse;
-import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryBatchRequest;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryResponse;
-import com.portal.universe.shoppingservice.inventory.dto.InventoryUpdateRequest;
-import com.portal.universe.shoppingservice.inventory.dto.StockMovementResponse;
 import com.portal.universe.shoppingservice.inventory.service.InventoryService;
-import com.portal.universe.commonlibrary.security.context.AuthUser;
-import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
- * 재고 관리 API를 제공하는 컨트롤러입니다.
+ * 재고 조회 API를 제공하는 컨트롤러입니다. (Buyer 전용, 읽기 전용)
+ *
+ * 재고 관리(초기화/추가/예약/차감/해제)는 shopping-seller-service로 이전되었습니다.
+ * 이 컨트롤러는 구매자가 상품 재고 현황을 확인하기 위한 조회 API만 제공합니다.
  */
 @RestController
 @RequestMapping("/inventory")
@@ -48,51 +43,5 @@ public class InventoryController {
     @GetMapping("/{productId}")
     public ApiResponse<InventoryResponse> getInventory(@PathVariable Long productId) {
         return ApiResponse.success(inventoryService.getInventory(productId));
-    }
-
-    /**
-     * 상품의 재고를 초기화합니다. (관리자 전용)
-     *
-     * @param productId 상품 ID
-     * @param request 초기 재고 정보
-     * @param user 인증된 사용자 정보
-     * @return 생성된 재고 정보
-     */
-    @PostMapping("/{productId}")
-    public ApiResponse<InventoryResponse> initializeInventory(
-            @PathVariable Long productId,
-            @Valid @RequestBody InventoryUpdateRequest request,
-            @CurrentUser AuthUser user) {
-        return ApiResponse.success(inventoryService.initializeInventory(productId, request.quantity(), user.uuid()));
-    }
-
-    /**
-     * 상품의 재고를 추가합니다 (입고). (관리자 전용)
-     *
-     * @param productId 상품 ID
-     * @param request 추가할 재고 정보
-     * @param user 인증된 사용자 정보
-     * @return 업데이트된 재고 정보
-     */
-    @PutMapping("/{productId}/add")
-    public ApiResponse<InventoryResponse> addStock(
-            @PathVariable Long productId,
-            @Valid @RequestBody InventoryUpdateRequest request,
-            @CurrentUser AuthUser user) {
-        return ApiResponse.success(inventoryService.addStock(productId, request.quantity(), request.reason(), user.uuid()));
-    }
-
-    /**
-     * 상품의 재고 이동 이력을 조회합니다. (관리자 전용)
-     *
-     * @param productId 상품 ID
-     * @param pageable 페이징 정보
-     * @return 이동 이력 목록
-     */
-    @GetMapping("/{productId}/movements")
-    public ApiResponse<PageResponse<StockMovementResponse>> getStockMovements(
-            @PathVariable Long productId,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ApiResponse.success(PageResponse.from(inventoryService.getStockMovements(productId, pageable)));
     }
 }

@@ -17,6 +17,7 @@ public record PostUpdateRequest(
         @Size(max = 500, message = "요약은 500자를 초과할 수 없습니다")
         String summary,
 
+        @Size(max = 20, message = "태그는 20개를 초과할 수 없습니다")
         Set<String> tags,
 
         String category,

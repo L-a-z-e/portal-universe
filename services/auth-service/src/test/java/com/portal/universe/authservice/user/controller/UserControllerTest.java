@@ -3,6 +3,7 @@ package com.portal.universe.authservice.user.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.authservice.user.dto.PasswordChangeRequest;
 import com.portal.universe.authservice.user.dto.UserProfileResponse;
+import com.portal.universe.authservice.user.dto.UserSignupRequest;
 import com.portal.universe.authservice.user.dto.UsernameSetRequest;
 import com.portal.universe.authservice.user.dto.UserProfileUpdateRequest;
 import com.portal.universe.authservice.user.service.UserService;
@@ -78,7 +79,7 @@ class UserControllerTest {
         @DisplayName("should_returnSuccess_when_validSignupRequest")
         void should_returnSuccess_when_validSignupRequest() throws Exception {
             // given
-            var request = new UserController.UserSignupRequest(
+            var request = new UserSignupRequest(
                     "new@test.com", "Password1!", "NewUser", "Real Name", false
             );
             when(userService.registerUser(any())).thenReturn(1L);

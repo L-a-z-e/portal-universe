@@ -14,6 +14,9 @@ export * from './hooks';
 
 // Export utilities
 export { cn } from './utils/cn';
+export { useLogger } from './utils/useLogger';
+export { ErrorBoundary } from './components/ErrorBoundary';
+export type { ErrorBoundaryProps } from './components/ErrorBoundary';
 
 // Re-export types from @portal/design-types
 export type {
@@ -88,6 +91,11 @@ export type {
   TableColumn,
   TooltipProps,
   PopoverProps,
+  // Logger types
+  LogLevel,
+  ErrorReporter,
+  LoggerOptions,
+  Logger,
   // Theme types
   ServiceType,
   ThemeMode,

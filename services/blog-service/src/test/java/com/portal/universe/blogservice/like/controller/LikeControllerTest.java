@@ -47,7 +47,7 @@ class LikeControllerTest {
 
     @BeforeEach
     void setUp() {
-        authUser = new AuthUser("user-1", "User Name", "UserNick");
+        authUser = new AuthUser("user-1", "User Name", "UserNick", null);
     }
 
     @AfterEach

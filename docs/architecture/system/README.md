@@ -16,6 +16,7 @@
 
 | 문서 | 설명 |
 |------|------|
+| [Polyglot Overview](polyglot-overview.md) | Polyglot 전체 조감도 (기술 스택, cross-cutting concern 매트릭스) |
 | [Identity Model](identity-model.md) | 사용자 식별 체계 (Internal/External ID, Identity-Profile 분리) |
 | [Security Architecture](security-architecture.md) | 시스템 보안 아키텍처 (JWT, RBAC, Gateway, OAuth2) |
 | [Common Library](common-library.md) | 공유 라이브러리 (Response, Exception, Security, Audit) |

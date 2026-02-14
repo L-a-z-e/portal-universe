@@ -1,9 +1,9 @@
 package com.portal.universe.authservice.user.controller;
 
 import com.portal.universe.authservice.user.dto.PasswordChangeRequest;
-import com.portal.universe.authservice.user.dto.SignupCommand;
 import com.portal.universe.authservice.user.dto.UserProfileResponse;
 import com.portal.universe.authservice.user.dto.UserProfileUpdateRequest;
+import com.portal.universe.authservice.user.dto.UserSignupRequest;
 import com.portal.universe.authservice.user.dto.UsernameCheckResponse;
 import com.portal.universe.authservice.user.dto.UsernameSetRequest;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
@@ -26,26 +26,9 @@ public class UserController {
 
     private final UserService userService;
 
-    public record UserSignupRequest(
-            String email,
-            String password,
-            String nickname,
-            String realName,
-            boolean marketingAgree
-    ) {}
-
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<String>> signup(@RequestBody UserSignupRequest request) {
-        SignupCommand command = new SignupCommand(
-                request.email(),
-                request.password(),
-                request.nickname(),
-                request.realName(),
-                request.marketingAgree()
-        );
-
-        userService.registerUser(command);
-
+    public ResponseEntity<ApiResponse<String>> signup(@Valid @RequestBody UserSignupRequest request) {
+        userService.registerUser(request.toCommand());
         return ResponseEntity.ok(ApiResponse.success("User registered successfully"));
     }
 

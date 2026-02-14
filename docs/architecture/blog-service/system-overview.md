@@ -4,7 +4,7 @@ title: Blog Service System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-15
 author: Laze
 tags: [architecture, blog-service, system-design, mongodb, kafka, microservices]
 related:
@@ -313,6 +313,14 @@ public class Tag {
 }
 ```
 
+#### Tag postCount 동기화 전략
+
+Tag.postCount는 Post lifecycle에서 PostServiceImpl이 TagService를 호출하여 동기화합니다:
+
+- **Post 생성**: 태그 자동 생성(`getOrCreateTag`) + bulk `$inc` postCount 증가
+- **Post 수정**: 태그 diff 계산 (added → increment, removed → decrement)
+- **Post 삭제**: 기존 태그 bulk `$inc` postCount 감소
+
 ### Series (시리즈)
 
 ```java
@@ -328,8 +336,14 @@ public class Series {
     private List<String> postIds;            // 게시물 ID 목록 (인덱스 = 순서)
     private LocalDateTime createdAt;         // 생성일
     private LocalDateTime updatedAt;         // 수정일
+    @Version
+    private Long version;                    // 낙관적 잠금 버전
 }
 ```
+
+#### Series 낙관적 잠금 전략
+
+Series는 MongoDB `@Version` 어노테이션으로 낙관적 잠금을 적용합니다. 동시 수정이 감지되면 `OptimisticLockingFailureException`이 발생하고, SeriesService에서 `SERIES_CONCURRENT_MODIFICATION` (B046, 409 Conflict) 에러로 변환합니다. 클라이언트는 재시도로 처리합니다.
 
 ---
 
@@ -512,6 +526,7 @@ public class S3Config {
 | B043 | 403 | Series add post forbidden | 시리즈 포스트 추가 권한 없음 |
 | B044 | 403 | Series remove post forbidden | 시리즈 포스트 제거 권한 없음 |
 | B045 | 403 | Series reorder forbidden | 시리즈 순서 변경 권한 없음 |
+| B046 | 409 | Series concurrent modification | 시리즈 동시 수정 충돌 (재시도 필요) |
 | B050 | 404 | Tag not found | 태그를 찾을 수 없음 |
 | B051 | 409 | Tag already exists | 태그 중복 |
 | B060 | 500 | File upload failed | 파일 업로드 실패 |

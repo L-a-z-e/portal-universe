@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
   console.log('🔧 [Vite Config] Prism Remote URL:', env.VITE_PRISM_REMOTE_URL);
   console.log('🔧 [Vite Config] Admin Remote URL:', env.VITE_ADMIN_REMOTE_URL);
   console.log('🔧 [Vite Config] Drive Remote URL:', env.VITE_DRIVE_REMOTE_URL);
+  console.log('🔧 [Vite Config] Seller Remote URL:', env.VITE_SELLER_REMOTE_URL);
 
   return {
     plugins: [
@@ -27,6 +28,7 @@ export default defineConfig(({ mode }) => {
           prism: env.VITE_PRISM_REMOTE_URL,
           admin: env.VITE_ADMIN_REMOTE_URL,
           drive: env.VITE_DRIVE_REMOTE_URL,
+          seller: env.VITE_SELLER_REMOTE_URL,
         },
         exposes: {
           './api': './src/api/index.ts',
@@ -71,6 +73,9 @@ export default defineConfig(({ mode }) => {
     build: {
       minify: false,
       target: 'esnext',
-    }
+    },
+    esbuild: mode === 'production' ? {
+      pure: ['console.log', 'console.debug', 'console.group', 'console.groupEnd'],
+    } : undefined,
   }
 })

@@ -21,6 +21,7 @@ tags: [development, guide, index]
 |------|------|------|
 | [로컬 개발 환경 구성](./local-dev-setup.md) | Zero to Running 전체 환경 구성 | 신규 개발자 |
 | [온보딩 패스](./onboarding-path.md) | 단계별 학습 경로 | 신규 개발자 |
+| [Polyglot 신규 서비스 체크리스트](./new-service-checklist.md) | 스택 무관 cross-cutting 체크리스트 | 신규 서비스 추가 시 |
 
 ---
 

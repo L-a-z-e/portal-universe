@@ -3,7 +3,8 @@ package com.portal.universe.shoppingservice.order.saga;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.delivery.service.DeliveryService;
-import com.portal.universe.shoppingservice.inventory.service.InventoryService;
+import com.portal.universe.shoppingservice.feign.SellerInventoryClient;
+import com.portal.universe.shoppingservice.feign.dto.StockReserveRequest;
 import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderItem;
 import com.portal.universe.shoppingservice.order.repository.OrderRepository;
@@ -37,7 +38,7 @@ public class OrderSagaOrchestrator {
 
     private final SagaStateRepository sagaStateRepository;
     private final OrderRepository orderRepository;
-    private final InventoryService inventoryService;
+    private final SellerInventoryClient sellerInventoryClient;
     private final DeliveryService deliveryService;
 
     private static final int MAX_COMPENSATION_ATTEMPTS = 3;
@@ -183,10 +184,10 @@ public class OrderSagaOrchestrator {
     }
 
     /**
-     * Step 1: 재고 예약 실행
+     * Step 1: 재고 예약 실행 (Feign -> seller-service)
      */
     private void executeReserveInventory(Order order, SagaState sagaState) {
-        log.debug("Saga {} - Executing step: RESERVE_INVENTORY", sagaState.getSagaId());
+        log.debug("Saga {} - Executing step: RESERVE_INVENTORY via Feign", sagaState.getSagaId());
 
         Map<Long, Integer> quantities = order.getItems().stream()
                 .collect(Collectors.toMap(
@@ -195,19 +196,14 @@ public class OrderSagaOrchestrator {
                         Integer::sum
                 ));
 
-        inventoryService.reserveStockBatch(
-                quantities,
-                "ORDER",
-                order.getOrderNumber(),
-                order.getUserId()
-        );
+        sellerInventoryClient.reserveStock(new StockReserveRequest(order.getOrderNumber(), quantities));
     }
 
     /**
-     * Step 3: 재고 차감 실행
+     * Step 3: 재고 차감 실행 (Feign -> seller-service)
      */
     private void executeDeductInventory(Order order, SagaState sagaState) {
-        log.debug("Saga {} - Executing step: DEDUCT_INVENTORY", sagaState.getSagaId());
+        log.debug("Saga {} - Executing step: DEDUCT_INVENTORY via Feign", sagaState.getSagaId());
 
         Map<Long, Integer> quantities = order.getItems().stream()
                 .collect(Collectors.toMap(
@@ -216,12 +212,7 @@ public class OrderSagaOrchestrator {
                         Integer::sum
                 ));
 
-        inventoryService.deductStockBatch(
-                quantities,
-                "ORDER",
-                order.getOrderNumber(),
-                order.getUserId()
-        );
+        sellerInventoryClient.deductStock(new StockReserveRequest(order.getOrderNumber(), quantities));
     }
 
     /**
@@ -233,10 +224,10 @@ public class OrderSagaOrchestrator {
     }
 
     /**
-     * Step 1 보상: 재고 예약 해제
+     * Step 1 보상: 재고 예약 해제 (Feign -> seller-service)
      */
     private void compensateReserveInventory(Order order, SagaState sagaState) {
-        log.debug("Saga {} - Compensating step: RESERVE_INVENTORY", sagaState.getSagaId());
+        log.debug("Saga {} - Compensating step: RESERVE_INVENTORY via Feign", sagaState.getSagaId());
 
         Map<Long, Integer> quantities = order.getItems().stream()
                 .collect(Collectors.toMap(
@@ -245,11 +236,6 @@ public class OrderSagaOrchestrator {
                         Integer::sum
                 ));
 
-        inventoryService.releaseStockBatch(
-                quantities,
-                "ORDER_CANCEL",
-                order.getOrderNumber(),
-                "SYSTEM"
-        );
+        sellerInventoryClient.releaseStock(new StockReserveRequest(order.getOrderNumber(), quantities));
     }
 }

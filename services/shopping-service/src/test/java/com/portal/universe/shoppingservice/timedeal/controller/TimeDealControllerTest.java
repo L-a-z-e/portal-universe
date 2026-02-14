@@ -41,7 +41,7 @@ class TimeDealControllerTest {
     @MockitoBean
     private TimeDealService timeDealService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
 
     private TimeDealResponse createTimeDealResponse() {
         return TimeDealResponse.builder()

@@ -2,7 +2,6 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
-import { authService } from '../services/authService';
 import { Button } from '@portal/design-system-vue';
 import { NotificationBell } from './notification';
 
@@ -30,14 +29,7 @@ const handleLogin = () => {
 };
 
 const handleLogout = async () => {
-  try {
-    await authService.logout();
-    const authStore = useAuthStore();
-    authStore.setAuthenticated(false);
-    authStore.setUser(null);
-  } catch (error) {
-    console.error('Logout failed:', error);
-  }
+  await authStore.logout();
 };
 
 const route = useRoute();
@@ -90,6 +82,21 @@ const baseNavItems = [
   },
 ];
 
+const sellerNavItem = {
+  name: 'Seller',
+  path: '/seller',
+  icon: '🏪',
+  children: [
+    { name: 'Dashboard', path: '/seller' },
+    { name: 'Products', path: '/seller/products' },
+    { name: 'Coupons', path: '/seller/coupons' },
+    { name: 'Time Deals', path: '/seller/time-deals' },
+    { name: 'Orders', path: '/seller/orders' },
+    { name: 'Stock', path: '/seller/stock-movements' },
+    { name: 'Queue', path: '/seller/queue' },
+  ],
+};
+
 const adminNavItem = {
   name: 'Admin',
   path: '/admin',
@@ -104,6 +111,9 @@ const adminNavItem = {
 
 const navItems = computed(() => {
   const items = [...baseNavItems];
+  if (authStore.isSeller) {
+    items.push(sellerNavItem);
+  }
   if (authStore.isAdmin) {
     items.push(adminNavItem);
   }

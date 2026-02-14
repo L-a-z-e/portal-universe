@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-08
+updated: 2026-02-15
 author: Laze
 tags: [api, common-library, security, jwt, gateway, authentication]
 related:
@@ -175,15 +175,16 @@ sequenceDiagram
     participant RA as Request Attributes
     participant C as Controller
 
-    GW->>F: X-User-Id, X-User-Roles, ...
+    GW->>F: X-User-Id, X-User-Roles, X-User-Memberships, ...
     F->>F: 1. URL 디코딩 (Nickname, Name)
-    F->>RA: 2. AuthUser → "authUser" attribute
-    F->>RA: 3. memberships → "userMemberships" attribute
-    F->>F: 4. roles 파싱 → List<SimpleGrantedAuthority>
-    F->>SC: 5. UsernamePasswordAuthenticationToken 설정
+    F->>RA: 2. AuthUser(uuid, name, nickname, memberships) → "authUser" attribute
+    F->>F: 3. roles 파싱 → List<SimpleGrantedAuthority>
+    F->>SC: 4. UsernamePasswordAuthenticationToken 설정
     F->>C: filterChain.doFilter()
     C->>C: @CurrentUser AuthUser 사용
 ```
+
+> AuthUser가 유일한 request attribute입니다. memberships를 포함한 모든 Gateway 헤더 정보가 AuthUser에 통합되어 있습니다.
 
 #### 설정 방법
 
@@ -286,9 +287,10 @@ API Gateway에서 전달한 사용자 정보를 담는 record입니다.
 
 ```java
 public record AuthUser(
-    String uuid,      // 사용자 UUID (X-User-Id)
-    String name,       // 사용자명 (X-User-Name, URL 디코딩 완료)
-    String nickname    // 닉네임 (X-User-Nickname, URL 디코딩 완료)
+    String uuid,         // 사용자 UUID (X-User-Id)
+    String name,         // 사용자명 (X-User-Name, URL 디코딩 완료)
+    String nickname,     // 닉네임 (X-User-Nickname, URL 디코딩 완료)
+    String memberships   // 멤버십 enriched JSON (X-User-Memberships, nullable)
 ) {}
 ```
 
@@ -299,6 +301,9 @@ public record AuthUser(
 | `uuid` | String | X-User-Id | 사용자 UUID |
 | `name` | String | X-User-Name | 사용자명 (URL 디코딩 완료) |
 | `nickname` | String | X-User-Nickname | 닉네임 (URL 디코딩 완료) |
+| `memberships` | String | X-User-Memberships | 멤버십 enriched JSON (nullable) |
+
+> AuthUser는 Gateway 헤더의 **단일 진실 소스(Single Source of Truth)**입니다. 별도 `request.setAttribute()`를 통한 사용자 정보 전달은 금지됩니다.
 
 ---
 
@@ -362,48 +367,54 @@ if (SecurityUtils.isServiceAdmin("SHOPPING")) {
 
 ### MembershipContext
 
-Gateway에서 전달된 멤버십 정보를 하위 서비스에서 쉽게 사용하기 위한 유틸리티입니다.
+AuthUser에 포함된 멤버십 정보를 하위 서비스에서 쉽게 사용하기 위한 유틸리티입니다.
 
 **위치:** `com.portal.universe.commonlibrary.security.context.MembershipContext`
 
-#### 티어 순서
+#### 멤버십 JSON 형식
 
-| 티어 | 레벨 |
-|------|------|
-| FREE | 0 |
-| BASIC | 1 |
-| PREMIUM | 2 |
-| VIP | 3 |
+```json
+{"user:blog": {"tier": "PRO", "order": 2}, "seller:shopping": {"tier": "GOLD", "order": 3}}
+```
 
 #### 메서드
 
-##### getMemberships(HttpServletRequest request)
+##### getMemberships(AuthUser user)
 
 전체 멤버십 맵을 추출합니다.
 
 ```java
-public static Map<String, String> getMemberships(HttpServletRequest request)
+public static Map<String, Map<String, Object>> getMemberships(AuthUser user)
 ```
 
-**반환:** 서비스명 → 티어키 맵 (예: `{"shopping": "PREMIUM", "blog": "FREE"}`)
+**반환:** membershipGroup → {tier, order} 맵
 
-##### getTier(HttpServletRequest request, String serviceName)
+##### getTier(AuthUser user, String membershipGroup)
 
-특정 서비스의 멤버십 티어를 조회합니다.
+특정 멤버십 그룹의 티어를 조회합니다.
 
 ```java
-public static String getTier(HttpServletRequest request, String serviceName)
+public static String getTier(AuthUser user, String membershipGroup)
 ```
 
-**반환:** 티어 키 (예: `"PREMIUM"`), 없으면 `"FREE"`
+**반환:** 티어 키 (예: `"PRO"`), 없으면 `null`
 
-##### hasTierOrAbove(HttpServletRequest request, String serviceName, String requiredTier)
+##### getTierOrder(AuthUser user, String membershipGroup)
 
-특정 서비스에서 지정 티어 이상인지 확인합니다.
+특정 멤버십 그룹의 sort_order를 조회합니다.
 
 ```java
-public static boolean hasTierOrAbove(
-    HttpServletRequest request, String serviceName, String requiredTier)
+public static int getTierOrder(AuthUser user, String membershipGroup)
+```
+
+**반환:** sort_order 값, 없으면 `-1`
+
+##### hasTierOrAbove(AuthUser user, String membershipGroup, int requiredOrder)
+
+특정 멤버십 그룹에서 지정 순서 이상인지 확인합니다.
+
+```java
+public static boolean hasTierOrAbove(AuthUser user, String membershipGroup, int requiredOrder)
 ```
 
 **사용 예시:**
@@ -411,10 +422,9 @@ public static boolean hasTierOrAbove(
 ```java
 @GetMapping("/premium-content")
 public ResponseEntity<ApiResponse<Content>> getPremiumContent(
-        HttpServletRequest request,
         @CurrentUser AuthUser user) {
 
-    if (!MembershipContext.hasTierOrAbove(request, "shopping", "PREMIUM")) {
+    if (!MembershipContext.hasTierOrAbove(user, "user:blog", 2)) {
         throw new CustomBusinessException(CommonErrorCode.FORBIDDEN);
     }
 
@@ -490,6 +500,6 @@ public ResponseEntity<ApiResponse<Content>> getPremiumContent(
 
 ---
 
-**최종 수정:** 2026-02-08
+**최종 수정:** 2026-02-15
 **API 버전:** v1
 **문서 버전:** 1.0

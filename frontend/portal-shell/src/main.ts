@@ -1,6 +1,6 @@
 // portal-shell/src/main.ts
 
-import { type ComponentPublicInstance, createApp } from 'vue'
+import { createApp } from 'vue'
 import { createPinia } from 'pinia';
 import './style.css'
 import router from './router'
@@ -8,30 +8,12 @@ import { useAuthStore } from './store/auth';
 import '@portal/design-system-vue/style.css';
 import './style.css';
 import AppVue from './App.vue';
+import { setupErrorHandler } from '@portal/design-system-vue';
 
 const app = createApp(AppVue);
 const pinia = createPinia();
 
-// ✅ Global error handler (protect portal-shell)
-app.config.errorHandler = (
-  err: unknown,
-  instance: ComponentPublicInstance | null,
-  info: string
-) => {
-  console.error('❌ Global error caught:', err);
-  console.error('   Error info:', info);
-
-  if (instance) {
-    console.error('   Component:', instance.$options.name);
-    console.error('   Props:', instance.$props);
-  }
-};
-
-// ✅ Promise rejection handler
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('❌ Unhandled promise rejection:', event.reason);
-  event.preventDefault();
-});
+setupErrorHandler(app, { moduleName: 'Portal' });
 
 app.use(pinia);
 

@@ -30,7 +30,7 @@ class CustomAuthenticationEntryPointTest {
     }
 
     @Test
-    @DisplayName("A001 에러 코드가 포함된 JSON body를 반환한다")
+    @DisplayName("GW-A001 에러 코드가 포함된 JSON body를 반환한다")
     void should_returnJsonBody_when_authFailed() {
         var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/protected"));
         var ex = new BadCredentialsException("Bad credentials");
@@ -40,7 +40,7 @@ class CustomAuthenticationEntryPointTest {
                 .verify();
 
         String body = exchange.getResponse().getBodyAsString().block();
-        assertThat(body).contains("\"code\":\"A001\"");
+        assertThat(body).contains("\"code\":\"GW-A001\"");
         assertThat(body).contains("\"success\":false");
     }
 

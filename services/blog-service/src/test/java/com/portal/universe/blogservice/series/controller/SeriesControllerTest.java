@@ -50,7 +50,7 @@ class SeriesControllerTest {
 
     @BeforeEach
     void setUp() {
-        authUser = new AuthUser("user-1", "User Name", "UserNick");
+        authUser = new AuthUser("user-1", "User Name", "UserNick", null);
 
         seriesResponse = new SeriesResponse(
             "series-1",

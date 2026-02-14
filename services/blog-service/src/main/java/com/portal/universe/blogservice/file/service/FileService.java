@@ -161,6 +161,7 @@ public class FileService {
     private String extractKeyFromUrl(String url) {
         String[] parts = url.split(bucketName + "/");
         if (parts.length < 2) {
+            log.warn("Failed to extract key from URL: {}, bucket: {}", url, bucketName);
             throw new CustomBusinessException(BlogErrorCode.INVALID_FILE_URL);
         }
         return parts[1];

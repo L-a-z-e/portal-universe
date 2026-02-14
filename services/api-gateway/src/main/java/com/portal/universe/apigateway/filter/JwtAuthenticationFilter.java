@@ -2,13 +2,14 @@ package com.portal.universe.apigateway.filter;
 
 import com.portal.universe.apigateway.config.JwtProperties;
 import com.portal.universe.apigateway.config.PublicPathProperties;
+import com.portal.universe.apigateway.exception.GatewayErrorCode;
+import com.portal.universe.apigateway.exception.GatewayErrorResponse;
 import com.portal.universe.apigateway.service.RoleHierarchyResolver;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -62,17 +63,17 @@ public class JwtAuthenticationFilter implements WebFilter {
      */
     private SecretKey getSigningKeyById(String keyId) {
         if (keyId == null || keyId.isBlank()) {
-            throw new IllegalArgumentException("Key ID cannot be null or empty");
+            throw new JwtException("Key ID cannot be null or empty");
         }
 
         JwtProperties.KeyConfig keyConfig = jwtProperties.getKeys().get(keyId);
         if (keyConfig == null) {
-            throw new IllegalArgumentException("JWT key not found for ID: " + keyId);
+            throw new JwtException("JWT key not found for ID: " + keyId);
         }
 
         if (keyConfig.isExpired()) {
             log.warn("JWT key is expired: {}", keyId);
-            throw new IllegalArgumentException("JWT key is expired: " + keyId);
+            throw new JwtException("JWT key is expired: " + keyId);
         }
 
         return getSigningKey(keyConfig.getSecretKey());
@@ -142,10 +143,10 @@ public class JwtAuthenticationFilter implements WebFilter {
             claims = validateToken(token);
         } catch (ExpiredJwtException e) {
             log.warn("JWT token expired: {}", e.getMessage());
-            return handleUnauthorized(sanitizedExchange, "Token expired");
+            return GatewayErrorResponse.write(sanitizedExchange, GatewayErrorCode.TOKEN_EXPIRED);
         } catch (JwtException e) {
             log.warn("Invalid JWT token: {}", e.getMessage());
-            return handleUnauthorized(sanitizedExchange, "Invalid token");
+            return GatewayErrorResponse.write(sanitizedExchange, GatewayErrorCode.INVALID_TOKEN);
         }
 
         // 블랙리스트 체크 (reactive) → Role Hierarchy resolve → 인증 정보 설정
@@ -153,7 +154,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                 .flatMap(blacklisted -> {
                     if (Boolean.TRUE.equals(blacklisted)) {
                         log.warn("JWT token is blacklisted");
-                        return handleUnauthorized(sanitizedExchange, "Token revoked");
+                        return GatewayErrorResponse.write(sanitizedExchange, GatewayErrorCode.TOKEN_REVOKED);
                     }
 
                     String userId = claims.getSubject();
@@ -250,26 +251,5 @@ public class JwtAuthenticationFilter implements WebFilter {
             }
         }
         return false;
-    }
-
-    private Mono<Void> handleUnauthorized(ServerWebExchange exchange, String message) {
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        exchange.getResponse().getHeaders().add(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
-        exchange.getResponse().getHeaders().add("X-Auth-Error", message);
-
-        String errorCode = switch (message) {
-            case "Token expired" -> "GW-A006";
-            case "Invalid token" -> "GW-A007";
-            case "Token revoked" -> "GW-A005";
-            default -> "GW-A005";
-        };
-
-        String body = "{\"success\":false,\"data\":null,\"error\":{\"code\":\"" + errorCode
-                + "\",\"message\":\"" + message + "\"}}";
-
-        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-        org.springframework.core.io.buffer.DataBuffer buffer =
-                exchange.getResponse().bufferFactory().wrap(bytes);
-        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 }

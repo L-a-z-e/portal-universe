@@ -47,31 +47,38 @@ declare module 'portal/api' {
  * portal/stores 모듈 - Store 관련 exports
  */
 declare module 'portal/stores' {
-  import type { ComputedRef, Ref } from 'vue';
+  import type { Ref } from 'vue';
 
-  // Auth Store
-  export const useAuthStore: () => {
-    isAuthenticated: ComputedRef<boolean>;
-    user: ComputedRef<{
-      profile?: {
-        sub?: string;
-        email?: string;
-        name?: string;
-        nickname?: string;
-        picture?: string;
-      };
-      authority?: {
-        roles?: string[];
-        memberships?: Record<string, string>;
-      };
-    } | null>;
-    displayName: ComputedRef<string>;
-    isAdmin: ComputedRef<boolean>;
-    isSeller: ComputedRef<boolean>;
+  // Auth Adapter State
+  export interface AuthState {
+    isAuthenticated: boolean;
+    displayName: string;
+    isAdmin: boolean;
+    isSeller: boolean;
+    roles: string[];
+    memberships: Record<string, string>;
+    user: {
+      uuid?: string;
+      email?: string;
+      username?: string;
+      name?: string;
+      nickname?: string;
+      picture?: string;
+    } | null;
+  }
+
+  export type UnsubscribeFn = () => void;
+
+  // Auth Adapter (Framework-Agnostic)
+  export const authAdapter: {
+    getState: () => AuthState;
+    subscribe: (callback: (state: AuthState) => void) => UnsubscribeFn;
     hasRole: (role: string) => boolean;
     hasAnyRole: (roles: string[]) => boolean;
     isServiceAdmin: (service: string) => boolean;
-    getMembershipTier: (service: string) => string;
+    logout: () => void;
+    getAccessToken: () => string | null;
+    requestLogin: (path?: string) => void;
   };
 
   // Theme Store

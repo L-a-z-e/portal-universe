@@ -34,7 +34,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-026 | [Saga 보상 액션 실패 처리 정책](./ADR-026-saga-compensation-failure-policy.md)                          | Proposed   | 2026-02-07 |
 | ADR-027 | [장바구니 재고 예약 정책](./ADR-027-cart-stock-reservation-policy.md)                                   | Accepted   | 2026-02-07 |
 | ADR-028 | [SSE 실시간 엔드포인트 인증 방식](./ADR-028-sse-endpoint-authentication.md)                               | Accepted   | 2026-02-07 |
-| ADR-029 | [Cross-cutting 보안 처리 계층 설계](./ADR-029-cross-cutting-security-layer.md)                        | Proposed   | 2026-02-07 |
+| ADR-029 | [Cross-cutting 보안 처리 계층 설계](./ADR-029-cross-cutting-security-layer.md)                        | Accepted   | 2026-02-07 |
 | ADR-030 | [환경별 보안 프로파일 정책](./ADR-030-environment-security-profile.md)                                   | Accepted   | 2026-02-07 |
 | ADR-031 | [Unified API Response Strategy](./ADR-031-unified-api-response-strategy.md)                   | Accepted   | 2026-02-08 |
 | ADR-032 | [Kafka Configuration Standardization](./ADR-032-kafka-configuration-standardization.md)       | Accepted   | 2026-02-10 |
@@ -45,6 +45,9 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-037 | [NestJS(Prism) 서비스 장기 스택 전략](./ADR-037-nestjs-prism-long-term-strategy.md)              | Proposed   | 2026-02-11 |
 | ADR-038 | [Polyglot 이벤트 계약 관리 전략](./ADR-038-polyglot-event-contract-management.md)                 | Accepted   | 2026-02-13 |
 | ADR-039 | [JWT 이중 검증 전략](./ADR-039-jwt-dual-validation-strategy.md)                                 | Accepted   | 2026-02-11 |
+| ADR-040 | [Frontend Error Handling Standardization](./ADR-040-frontend-error-handling-standardization.md) | Accepted   | 2026-02-14 |
+| ADR-041 | [Shopping Service 분해 및 멀티셀러 마켓플레이스 전환](./ADR-041-shopping-service-decomposition.md) | Accepted   | 2026-02-14 |
+| ADR-042 | [Module Federation Remote에서의 인증 상태 공유](./ADR-042-mf-remote-auth-state-sharing.md) | Accepted   | 2026-02-15 |
 
 
 ## 상태 정의

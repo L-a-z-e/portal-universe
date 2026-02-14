@@ -40,7 +40,7 @@ class PaymentControllerTest {
     @MockitoBean
     private PaymentService paymentService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
 
     @BeforeEach
     void setUp() {

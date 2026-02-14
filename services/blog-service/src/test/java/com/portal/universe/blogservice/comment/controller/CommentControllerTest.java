@@ -49,7 +49,7 @@ class CommentControllerTest {
 
     @BeforeEach
     void setUp() {
-        authUser = new AuthUser("user-1", "User Name", "UserNick");
+        authUser = new AuthUser("user-1", "User Name", "UserNick", null);
 
         commentResponse = new CommentResponse(
             "comment-1",

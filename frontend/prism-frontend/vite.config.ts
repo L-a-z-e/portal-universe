@@ -85,5 +85,8 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       outDir: 'dist',
     },
+    esbuild: mode === 'production' ? {
+      pure: ['console.log', 'console.debug', 'console.group', 'console.groupEnd'],
+    } : undefined,
   }
 })

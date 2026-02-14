@@ -15,7 +15,8 @@
     "shopping-frontend",
     "prism-frontend",
     "drive-frontend",
-    "admin-frontend"
+    "admin-frontend",
+    "shopping-seller-frontend"
   ],
   "scripts": {
     "===== 개발 서버 =====": "",
@@ -46,8 +47,8 @@
     "build:prism": "npm run build -w prism-frontend",
     "build:drive": "npm run build -w drive-frontend",
     "build:admin": "npm run build -w admin-frontend",
-    "build:apps": "npm run build:shell && npm run build:blog && npm run build:shopping && npm run build:prism && npm run build:drive",
-    "build:apps:dev": "npm run build:dev -w portal-shell && npm run build:dev -w blog-frontend && npm run build:dev -w shopping-frontend && npm run build:dev -w prism-frontend && npm run build:dev -w drive-frontend",
+    "build:apps": "npm run build:shell && npm run build:blog && npm run build:shopping && npm run build:prism && npm run build:drive && npm run build:seller",
+    "build:apps:dev": "npm run build:dev -w portal-shell && npm run build:dev -w blog-frontend && npm run build:dev -w shopping-frontend && npm run build:dev -w prism-frontend && npm run build:dev -w drive-frontend && npm run build:dev -w shopping-seller-frontend",
     "===== 환경별 앱 빌드 =====": "",
     "build:blog:dev": "npm run build:dev -w blog-frontend",
     "build:blog:docker": "npm run build:docker -w blog-frontend",
@@ -61,6 +62,11 @@
     "build:drive:dev": "npm run build:dev -w drive-frontend",
     "build:drive:docker": "npm run build:docker -w drive-frontend",
     "build:drive:k8s": "npm run build:k8s -w drive-frontend",
+    "build:seller": "npm run build -w shopping-seller-frontend",
+    "build:seller:dev": "npm run build:dev -w shopping-seller-frontend",
+    "build:seller:docker": "npm run build:docker -w shopping-seller-frontend",
+    "build:seller:k8s": "npm run build:k8s -w shopping-seller-frontend",
+    "dev:seller": "npm run dev -w shopping-seller-frontend",
     "===== 전체 빌드 =====": "",
     "build": "npm run build:design && npm run build:libs && npm run build:apps",
     "build:all:dev": "npm run build:design && npm run build:libs && npm run build:apps:dev",

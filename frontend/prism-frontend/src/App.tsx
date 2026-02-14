@@ -7,8 +7,7 @@
 import { useEffect } from 'react';
 import { PrismRouter } from '@/router';
 import { usePortalTheme } from '@portal/react-bridge';
-import { ToastContainer, useToast } from '@portal/design-system-react';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ToastContainer, useToast, ErrorBoundary } from '@portal/design-system-react';
 
 /**
  * App Props 인터페이스
@@ -119,7 +118,7 @@ function App({
   // ============================================
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary moduleName="Prism">
     <div className="min-h-screen bg-bg-page">
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
       {/* Header (Standalone 모드에서만 표시) */}

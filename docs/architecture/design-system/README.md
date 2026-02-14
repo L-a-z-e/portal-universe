@@ -47,9 +47,10 @@ Component Layer (Application)  Tailwind preset 클래스: bg-brand-primary, text
 
 ### 듀얼 프레임워크
 
-- **Vue 3**: 26개 컴포넌트 + 3개 composable
-- **React 18**: 30개 컴포넌트 + 3개 hook
+- **Vue 3**: 26개 컴포넌트 + 4개 composable + 에러 핸들러
+- **React 18**: 30개 컴포넌트 + ErrorBoundary + 4개 hook
 - **공유 타입**: `@portal/design-types`에서 단일 소스
+- **공유 로거**: Framework-agnostic `createLogger` (design-types)
 
 ## 패키지 관계
 
@@ -113,18 +114,19 @@ frontend/
 │       ├── index.ts             # ServiceType, ThemeMode 등
 │       ├── common.ts            # 공통 variant/size 타입
 │       ├── components.ts        # 컴포넌트 Props 인터페이스
-│       └── api.ts               # API 타입
+│       ├── api.ts               # API 타입
+│       └── logger.ts            # 구조화된 로거 (createLogger)
 │
 ├── design-system-vue/           # @portal/design-system-vue
 │   └── src/
 │       ├── components/          # 26개 Vue 컴포넌트
-│       ├── composables/         # useTheme, useToast, useApiError
+│       ├── composables/         # useTheme, useToast, useApiError, useLogger, setupErrorHandler
 │       └── styles/themes/       # blog.css, shopping.css, prism.css
 │
 └── design-system-react/         # @portal/design-system-react
     └── src/
-        ├── components/          # 30개 React 컴포넌트
-        ├── hooks/               # useTheme, useToast, useApiError
+        ├── components/          # 30개 React 컴포넌트 + ErrorBoundary
+        ├── hooks/               # useTheme, useToast, useApiError, useLogger
         └── utils/cn.ts          # clsx + tailwind-merge
 ```
 
@@ -132,4 +134,12 @@ frontend/
 
 - [Architecture Template](../../templates/architecture-template.md) - 아키텍처 문서 작성 템플릿
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-01-18 | 초안 작성 | Laze |
+| 2026-02-06 | 업데이트 | Laze |
+| 2026-02-14 | 에러 핸들링/로깅 유틸리티 추가 (ADR-040) | Laze |

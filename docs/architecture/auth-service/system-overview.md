@@ -81,9 +81,9 @@ graph TD
 
 ## 컴포넌트 상세
 
-### Controller (10개)
+### Controller (11개)
 
-Auth Service는 인증, 사용자 관리, RBAC, 멤버십, 셀러 관리를 위한 10개의 Controller를 제공합니다.
+Auth Service는 인증, 사용자 관리, RBAC, 멤버십, 셀러 관리를 위한 11개의 Controller를 제공합니다.
 
 | Controller | Base Path | 역할 |
 |------------|-----------|------|
@@ -97,6 +97,7 @@ Auth Service는 인증, 사용자 관리, RBAC, 멤버십, 셀러 관리를 위�
 | MembershipAdminController | /api/v1/admin/memberships | [SUPER_ADMIN] 멤버십 관리 |
 | SellerController | /api/v1/seller | 셀러 신청/조회 |
 | SellerAdminController | /api/v1/admin/seller | [SHOPPING_ADMIN, SUPER_ADMIN] 셀러 심사 |
+| RoleHierarchyController | /api/v1/internal/role-hierarchy | [Internal] Gateway Role Hierarchy 조회 |
 
 ### Service (13개+)
 

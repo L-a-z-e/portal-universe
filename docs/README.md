@@ -49,6 +49,8 @@ docs/
 | 문서 | 설명 |
 |------|------|
 | [시스템 아키텍처](architecture/system/) | 전체 시스템 구조 인덱스 |
+| [Polyglot Overview](architecture/system/polyglot-overview.md) | Polyglot 전체 조감도 (기술 스택, cross-cutting 매트릭스) |
+| [API Contracts](contracts/) | 서비스 간 공유 계약 (JSON Schema, 헤더, 에러 코드) |
 | [Identity Model](architecture/system/identity-model.md) | 사용자 식별 체계 아키텍처 |
 | [Security Architecture](architecture/system/security-architecture.md) | 시스템 보안 아키텍처 |
 | [Common Library](architecture/system/common-library.md) | 공유 라이브러리 아키텍처 |

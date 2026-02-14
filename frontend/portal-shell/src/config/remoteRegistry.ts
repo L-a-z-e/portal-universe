@@ -67,6 +67,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       icon: '⚙️',
       description: '관리 대시보드'
     },
+    {
+      name: 'Seller',
+      key: 'seller',
+      url: 'http://localhost:30006/assets/remoteEntry.js',
+      module: 'seller/bootstrap',
+      mountFn: 'mountSellerApp',
+      basePath: '/seller',
+      icon: '🏪',
+      description: '쇼핑몰 판매자 관리'
+    },
   ],
   docker: [
     {
@@ -119,6 +129,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       icon: '⚙️',
       description: '관리 대시보드'
     },
+    {
+      name: 'Seller',
+      key: 'seller',
+      url: import.meta.env.VITE_SELLER_REMOTE_URL || 'http://localhost:30006/assets/remoteEntry.js',
+      module: 'seller/bootstrap',
+      mountFn: 'mountSellerApp',
+      basePath: '/seller',
+      icon: '🏪',
+      description: '쇼핑몰 판매자 관리'
+    },
   ],
   k8s: [
     {
@@ -170,6 +190,16 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       basePath: '/admin',
       icon: '⚙️',
       description: '관리 대시보드'
+    },
+    {
+      name: 'Seller',
+      key: 'seller',
+      url: import.meta.env.VITE_SELLER_REMOTE_URL,
+      module: 'seller/bootstrap',
+      mountFn: 'mountSellerApp',
+      basePath: '/seller',
+      icon: '🏪',
+      description: '쇼핑몰 판매자 관리'
     },
   ]
 };

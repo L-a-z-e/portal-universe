@@ -3,6 +3,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import { createStandaloneDriveRouter } from './router';
 import { createPinia } from "pinia";
+import { setupErrorHandler } from '@portal/design-system-vue';
 
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
@@ -27,6 +28,7 @@ if (isEmbedded) {
     const pinia = createPinia();
     const router = createStandaloneDriveRouter();
 
+    setupErrorHandler(app, { moduleName: 'Drive' });
     app.use(pinia);
     app.use(router);
     app.mount(appElement);

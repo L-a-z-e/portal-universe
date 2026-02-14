@@ -1,23 +1,19 @@
 package com.portal.universe.apigateway.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portal.universe.apigateway.exception.GatewayErrorCode;
+import com.portal.universe.apigateway.exception.GatewayErrorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -72,32 +68,19 @@ public class RateLimitHeaderFilter implements GlobalFilter, Ordered {
         ServerHttpResponse response = exchange.getResponse();
         HttpHeaders headers = response.getHeaders();
 
-        // Retry-After 헤더 추가 (60초 후 재시도)
         String replenishRate = headers.getFirst("X-RateLimit-Replenish-Rate");
         int retryAfterSeconds = calculateRetryAfter(replenishRate);
         response.getHeaders().add("Retry-After", String.valueOf(retryAfterSeconds));
 
-        // ApiResponse 형식의 에러 응답 생성
-        Map<String, Object> errorResponse = createErrorResponse(retryAfterSeconds);
+        String customMessage = String.format("요청 한도를 초과했습니다. %d초 후에 다시 시도해주세요.", retryAfterSeconds);
 
-        try {
-            byte[] bytes = objectMapper.writeValueAsBytes(errorResponse);
-            DataBuffer buffer = response.bufferFactory().wrap(bytes);
+        log.warn("Rate limit exceeded for request: {} {} | Retry after {} seconds",
+            exchange.getRequest().getMethod(),
+            exchange.getRequest().getPath(),
+            retryAfterSeconds
+        );
 
-            response.setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-
-            log.warn("Rate limit exceeded for request: {} {} | Retry after {} seconds",
-                exchange.getRequest().getMethod(),
-                exchange.getRequest().getPath(),
-                retryAfterSeconds
-            );
-
-            return response.writeWith(Mono.just(buffer));
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize rate limit error response", e);
-            return Mono.empty();
-        }
+        return GatewayErrorResponse.write(exchange, GatewayErrorCode.TOO_MANY_REQUESTS, customMessage);
     }
 
     /**
@@ -123,21 +106,9 @@ public class RateLimitHeaderFilter implements GlobalFilter, Ordered {
     /**
      * ApiResponse 형식의 에러 응답 생성
      */
-    private Map<String, Object> createErrorResponse(int retryAfterSeconds) {
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("success", false);
-        response.put("data", null);
-
-        Map<String, Object> error = new LinkedHashMap<>();
-        error.put("code", "TOO_MANY_REQUESTS");
-        error.put("message", String.format(
-            "요청 한도를 초과했습니다. %d초 후에 다시 시도해주세요.",
-            retryAfterSeconds
-        ));
-
-        response.put("error", error);
-
-        return response;
+    Map<String, Object> createErrorResponse(int retryAfterSeconds) {
+        String customMessage = String.format("요청 한도를 초과했습니다. %d초 후에 다시 시도해주세요.", retryAfterSeconds);
+        return GatewayErrorResponse.toMap(GatewayErrorCode.TOO_MANY_REQUESTS.getCode(), customMessage);
     }
 
     @Override

@@ -2,7 +2,7 @@ export const ROLES = {
   SUPER_ADMIN: 'ROLE_SUPER_ADMIN',
   ADMIN: 'ROLE_ADMIN',
   USER: 'ROLE_USER',
-  SELLER: 'ROLE_SELLER',
+  SELLER: 'ROLE_SHOPPING_SELLER',
 } as const;
 
 export const ROLE_PREFIX = 'ROLE_';

@@ -5,6 +5,8 @@ import App from './App.vue';
 import type { Router } from 'vue-router';
 import { createBlogRouter, logRouterInfo } from "./router";
 import {createPinia} from "pinia";
+import {useFollowStore} from "./stores/followStore";
+import { disposePortalAuth } from './composables/usePortalAuth';
 
 /**
  * Mount 옵션
@@ -100,6 +102,16 @@ export function mountBlogApp(
   // DOM에 마운트
   app.mount(el);
   console.log('✅ [Blog] App mounted successfully');
+
+  // ✅ 로그아웃 시 followStore 초기화
+  const authChangedHandler = () => {
+    try {
+      const followStore = useFollowStore();
+      followStore.reset();
+    } catch { /* pinia not ready */ }
+  };
+  window.addEventListener('portal:auth-changed', authChangedHandler);
+
   console.groupEnd();
 
   // ✅ 앱 인스턴스 반환
@@ -148,6 +160,10 @@ export function mountBlogApp(
      */
     unmount: () => {
       console.group('🔄 [Blog] Unmounting app');
+
+      // 0. Portal auth 구독 해제 + 이벤트 리스너 정리
+      disposePortalAuth();
+      window.removeEventListener('portal:auth-changed', authChangedHandler);
 
       // 1. Vue App Unmount
       try {

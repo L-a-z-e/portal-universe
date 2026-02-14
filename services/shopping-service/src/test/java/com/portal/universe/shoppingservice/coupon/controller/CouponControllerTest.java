@@ -39,7 +39,7 @@ class CouponControllerTest {
     @MockitoBean
     private CouponService couponService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester");
+    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
 
     private CouponResponse createCouponResponse() {
         return CouponResponse.builder()

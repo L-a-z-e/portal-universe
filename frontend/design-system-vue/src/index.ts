@@ -18,6 +18,9 @@ export { useToast } from './composables/useToast';
 export type { UseToast } from './composables/useToast';
 export { useApiError } from './composables/useApiError';
 export type { UseApiError, ApiErrorInfo } from './composables/useApiError';
+export { useLogger } from './composables/useLogger';
+export { setupErrorHandler } from './composables/useErrorHandler';
+export type { ErrorHandlerOptions } from './composables/useErrorHandler';
 
 // Export types
 export type { ServiceType, ThemeMode, ThemeConfig } from './types/theme';

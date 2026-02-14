@@ -83,7 +83,7 @@ X-User-Name: laze
 | X-User-Id | GatewayAuthenticationFilter | JwtAuthGuard | get_current_user_id() |
 | X-User-Effective-Roles | GatewayAuthenticationFilter (우선) | JwtAuthGuard (우선) | require_admin() (우선) |
 | X-User-Roles | GatewayAuthenticationFilter (fallback) | JwtAuthGuard (fallback) | require_admin() (fallback) |
-| X-User-Memberships | MembershipContext | JwtAuthGuard (JSON parse) | **미구현** |
+| X-User-Memberships | AuthUser.memberships() + MembershipContext | JwtAuthGuard (JSON parse) | **미구현** |
 | X-User-Nickname | AuthUser.nickname | 미사용 | 미사용 |
 | X-User-Name | AuthUser.name | 미사용 | 미사용 |
 
@@ -97,3 +97,4 @@ X-User-Name: laze
 | 날짜 | 변경 내용 |
 |------|----------|
 | 2026-02-13 | 최초 작성 - Gateway 헤더 계약 문서화 |
+| 2026-02-15 | AuthUser를 단일 진실 소스로 통합, X-User-Memberships Java 구현 현황 업데이트 |

@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "dev": "npx tsc --watch",
-    "build": "npx tsc && npx tsc -p tsconfig.cjs.json",
+    "build": "npx tsc -p tsconfig.cjs.json && npx tsc",
     "type-check": "npx tsc --noEmit",
     "clean": "rm -rf dist"
   },

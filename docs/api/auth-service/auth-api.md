@@ -261,7 +261,9 @@ Cookie: portal_refresh_token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 ```json
 {
   "success": true,
-  "data": "Logged out successfully",
+  "data": {
+    "message": "로그아웃 성공"
+  },
   "error": null,
   "timestamp": "2026-02-06T10:30:00Z"
 }
@@ -495,7 +497,19 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "data": "Profile updated successfully",
+  "data": {
+    "id": 1,
+    "uuid": "user-uuid-1234",
+    "email": "user@example.com",
+    "nickname": "UpdatedNick",
+    "username": "johndoe",
+    "bio": "Updated bio",
+    "profileImageUrl": "https://example.com/new.jpg",
+    "website": "https://example.com",
+    "followerCount": 10,
+    "followingCount": 5,
+    "createdAt": "2026-01-15T09:00:00Z"
+  },
   "error": null,
   "timestamp": "2026-02-06T10:30:00Z"
 }
@@ -530,7 +544,19 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "data": "Username set successfully",
+  "data": {
+    "id": 1,
+    "uuid": "user-uuid-1234",
+    "email": "user@example.com",
+    "nickname": "TestNick",
+    "username": "johndoe",
+    "bio": "Hello",
+    "profileImageUrl": "https://example.com/pic.jpg",
+    "website": "https://example.com",
+    "followerCount": 10,
+    "followingCount": 5,
+    "createdAt": "2026-01-15T09:00:00Z"
+  },
   "error": null,
   "timestamp": "2026-02-06T10:30:00Z"
 }
@@ -794,7 +820,9 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "data": "Password changed successfully",
+  "data": {
+    "message": "비밀번호가 변경되었습니다"
+  },
   "error": null,
   "timestamp": "2026-02-06T10:30:00Z"
 }
@@ -833,7 +861,9 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "data": "Account deleted successfully",
+  "data": {
+    "message": "회원 탈퇴가 완료되었습니다"
+  },
   "error": null,
   "timestamp": "2026-02-06T10:30:00Z"
 }
@@ -2258,11 +2288,22 @@ Content-Type: application/json
 
 **Request Body**: `ChangeMembershipRequest`와 동일
 
-**Response (200 OK)**
+**Response (200 OK)** (`MembershipResponse`)
 ```json
 {
   "success": true,
-  "data": "User membership updated successfully",
+  "data": {
+    "id": 1,
+    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "membershipGroup": "user:blog",
+    "tierKey": "PRO",
+    "tierDisplayName": "프로",
+    "status": "ACTIVE",
+    "autoRenew": true,
+    "startedAt": "2026-02-01T00:00:00",
+    "expiresAt": "2027-02-01T00:00:00",
+    "createdAt": "2026-02-01T00:00:00"
+  },
   "error": null,
   "timestamp": "2026-02-06T10:30:00Z"
 }
