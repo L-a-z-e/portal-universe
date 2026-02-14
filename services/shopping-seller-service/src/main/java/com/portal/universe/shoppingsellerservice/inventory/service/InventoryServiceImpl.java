@@ -7,7 +7,10 @@ import com.portal.universe.shoppingsellerservice.inventory.domain.MovementType;
 import com.portal.universe.shoppingsellerservice.inventory.domain.StockMovement;
 import com.portal.universe.shoppingsellerservice.inventory.dto.InventoryResponse;
 import com.portal.universe.shoppingsellerservice.inventory.dto.StockAddRequest;
+import com.portal.universe.shoppingsellerservice.inventory.dto.StockMovementResponse;
 import com.portal.universe.shoppingsellerservice.inventory.dto.StockReserveRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.portal.universe.shoppingsellerservice.inventory.repository.InventoryRepository;
 import com.portal.universe.shoppingsellerservice.inventory.repository.StockMovementRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,12 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory = inventoryRepository.findByProductId(productId)
                 .orElseThrow(() -> new CustomBusinessException(SellerErrorCode.INVENTORY_NOT_FOUND));
         return InventoryResponse.from(inventory);
+    }
+
+    @Override
+    public Page<StockMovementResponse> getMovements(Long productId, Pageable pageable) {
+        return stockMovementRepository.findByProductIdOrderByCreatedAtDesc(productId, pageable)
+                .map(StockMovementResponse::from);
     }
 
     @Override

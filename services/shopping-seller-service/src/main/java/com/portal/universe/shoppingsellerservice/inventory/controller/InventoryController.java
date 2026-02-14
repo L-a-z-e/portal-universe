@@ -3,9 +3,12 @@ package com.portal.universe.shoppingsellerservice.inventory.controller;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.shoppingsellerservice.inventory.dto.InventoryResponse;
 import com.portal.universe.shoppingsellerservice.inventory.dto.StockAddRequest;
+import com.portal.universe.shoppingsellerservice.inventory.dto.StockMovementResponse;
 import com.portal.universe.shoppingsellerservice.inventory.service.InventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +30,13 @@ public class InventoryController {
             @Valid @RequestBody StockAddRequest request,
             @AuthenticationPrincipal String userId) {
         return ApiResponse.success(inventoryService.addStock(productId, request, userId));
+    }
+
+    @GetMapping("/{productId}/movements")
+    public ApiResponse<Page<StockMovementResponse>> getMovements(
+            @PathVariable Long productId,
+            Pageable pageable) {
+        return ApiResponse.success(inventoryService.getMovements(productId, pageable));
     }
 
     @PostMapping("/{productId}")

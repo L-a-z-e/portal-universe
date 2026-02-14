@@ -116,6 +116,7 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 |--------|-----------|------|------|
 | GET | `/inventory/{productId}` | 재고 조회 | SELLER |
 | PUT | `/inventory/{productId}/add` | 재고 추가 | SELLER |
+| GET | `/inventory/{productId}/movements` | 재고 이동 이력 | SELLER |
 | POST | `/inventory/{productId}` | 재고 초기화 | SELLER |
 
 **Request DTO**:
@@ -124,11 +125,80 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 
 **Response DTO**:
 - `InventoryResponse`: id, productId, availableQuantity, reservedQuantity, totalQuantity, version, createdAt, updatedAt
+- `StockMovementResponse`: id, productId, movementType, quantity, previousAvailable, afterAvailable, previousReserved, afterReserved, referenceType, referenceId, reason, performedBy, createdAt
+
+**Pagination**: `Pageable` 지원 (movements 엔드포인트)
 
 **재고 타입**:
 - `availableQuantity`: 가용 재고 (판매 가능)
 - `reservedQuantity`: 예약 재고 (주문 진행 중)
 - `totalQuantity`: 총 재고 (available + reserved)
+
+#### 4. CouponController (`/coupons`)
+
+| 메서드 | 엔드포인트 | 설명 | 권한 |
+|--------|-----------|------|------|
+| GET | `/coupons` | 쿠폰 목록 (본인) | SELLER |
+| GET | `/coupons/{couponId}` | 쿠폰 상세 | SELLER |
+| POST | `/coupons` | 쿠폰 생성 | SELLER |
+| DELETE | `/coupons/{couponId}` | 쿠폰 비활성화 | SELLER |
+
+**Pagination**: `Pageable` 지원
+
+**Request DTO**:
+- `CouponCreateRequest`: code, name, description, discountType, discountValue, minimumOrderAmount, maximumDiscountAmount, totalQuantity, startsAt, expiresAt
+
+**Response DTO**:
+- `CouponResponse`: id, sellerId, code, name, description, discountType, discountValue, minimumOrderAmount, maximumDiscountAmount, totalQuantity, issuedQuantity, status, startsAt, expiresAt, createdAt, updatedAt
+
+**쿠폰 상태**: ACTIVE, INACTIVE, EXHAUSTED, EXPIRED
+**할인 타입**: FIXED (정액), PERCENTAGE (정률)
+**비즈니스 규칙**: code 중복 불가, DELETE는 soft delete (status=INACTIVE), 본인 쿠폰만 관리 가능
+
+#### 5. TimeDealController (`/time-deals`)
+
+| 메서드 | 엔드포인트 | 설명 | 권한 |
+|--------|-----------|------|------|
+| GET | `/time-deals` | 타임딜 목록 (본인) | SELLER |
+| GET | `/time-deals/{timeDealId}` | 타임딜 상세 | SELLER |
+| POST | `/time-deals` | 타임딜 생성 | SELLER |
+| DELETE | `/time-deals/{timeDealId}` | 타임딜 취소 | SELLER |
+
+**Pagination**: `Pageable` 지원
+
+**Request DTO**:
+- `TimeDealCreateRequest`: name, description, startsAt, endsAt, products[{productId, dealPrice, dealQuantity, maxPerUser}]
+
+**Response DTO**:
+- `TimeDealResponse`: id, sellerId, name, description, status, startsAt, endsAt, products[{id, productId, dealPrice, dealQuantity, soldQuantity, maxPerUser}], createdAt, updatedAt
+
+**타임딜 상태**: SCHEDULED, ACTIVE, ENDED, CANCELLED
+**비즈니스 규칙**: startsAt < endsAt, 상품은 본인 소유여야 함, 취소는 SCHEDULED/ACTIVE 상태에서만 가능
+
+#### 6. QueueController (`/queue`)
+
+| 메서드 | 엔드포인트 | 설명 | 권한 |
+|--------|-----------|------|------|
+| POST | `/queue/{eventType}/{eventId}/activate` | 대기열 활성화 | SELLER |
+| POST | `/queue/{eventType}/{eventId}/deactivate` | 대기열 비활성화 | SELLER |
+| GET | `/queue/{eventType}/{eventId}/status` | 대기열 상태 | SELLER |
+
+**Request DTO**:
+- `QueueActivateRequest`: maxCapacity, entryBatchSize, entryIntervalSeconds
+
+**Response DTO**:
+- `QueueStatusResponse`: queueId, eventType, eventId, isActive, waitingCount, enteredCount, maxCapacity, entryBatchSize, entryIntervalSeconds
+
+**비즈니스 규칙**: 이미 활성화된 대기열은 재활성화 불가, 비활성 상태에서만 비활성화 가능
+
+#### 7. DashboardController (`/dashboard`)
+
+| 메서드 | 엔드포인트 | 설명 | 권한 |
+|--------|-----------|------|------|
+| GET | `/dashboard/stats` | 대시보드 통계 | SELLER |
+
+**Response DTO**:
+- `DashboardStatsResponse`: productCount, couponCount, activeCouponCount, timeDealCount, activeTimeDealCount
 
 ---
 
@@ -197,13 +267,18 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 | SL305 | COUPON_ALREADY_ISSUED | 409 |
 | SL306 | COUPON_NOT_STARTED | 400 |
 | SL307 | COUPON_INACTIVE | 400 |
+| SL308 | COUPON_NOT_OWNED | 403 |
 | **SL4XX** | **TimeDeal** | |
 | SL401 | TIMEDEAL_NOT_FOUND | 404 |
 | SL402 | TIMEDEAL_NOT_ACTIVE | 400 |
 | SL403 | TIMEDEAL_INVALID_PERIOD | 400 |
 | SL404 | TIMEDEAL_PRODUCT_NOT_FOUND | 404 |
+| SL405 | TIMEDEAL_NOT_OWNED | 403 |
+| SL406 | TIMEDEAL_CANNOT_CANCEL | 400 |
 | **SL5XX** | **Queue** | |
 | SL501 | QUEUE_NOT_FOUND | 404 |
+| SL502 | QUEUE_ALREADY_ACTIVE | 409 |
+| SL503 | QUEUE_NOT_ACTIVE | 400 |
 
 **접두사**: `SL` (Shopping seLler)
 

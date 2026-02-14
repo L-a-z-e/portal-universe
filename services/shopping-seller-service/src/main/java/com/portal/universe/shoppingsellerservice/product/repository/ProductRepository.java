@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findBySellerId(Long sellerId, Pageable pageable);
     Page<Product> findBySellerIdAndCategory(Long sellerId, String category, Pageable pageable);
+    long countBySellerId(Long sellerId);
 }

@@ -36,15 +36,20 @@ public enum SellerErrorCode implements ErrorCode {
     COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "SL305", "Coupon already issued to this user"),
     COUPON_NOT_STARTED(HttpStatus.BAD_REQUEST, "SL306", "Coupon issuance has not started yet"),
     COUPON_INACTIVE(HttpStatus.BAD_REQUEST, "SL307", "Coupon is not active"),
+    COUPON_NOT_OWNED(HttpStatus.FORBIDDEN, "SL308", "Coupon does not belong to this seller"),
 
     // TimeDeal Errors (SL4XX)
     TIMEDEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "SL401", "Time deal not found"),
     TIMEDEAL_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "SL402", "Time deal is not active"),
     TIMEDEAL_INVALID_PERIOD(HttpStatus.BAD_REQUEST, "SL403", "Invalid time deal period"),
     TIMEDEAL_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "SL404", "Time deal product not found"),
+    TIMEDEAL_NOT_OWNED(HttpStatus.FORBIDDEN, "SL405", "Time deal does not belong to this seller"),
+    TIMEDEAL_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "SL406", "Time deal can only be cancelled when scheduled or active"),
 
     // Queue Errors (SL5XX)
-    QUEUE_NOT_FOUND(HttpStatus.NOT_FOUND, "SL501", "Waiting queue not found");
+    QUEUE_NOT_FOUND(HttpStatus.NOT_FOUND, "SL501", "Waiting queue not found"),
+    QUEUE_ALREADY_ACTIVE(HttpStatus.CONFLICT, "SL502", "Queue is already active"),
+    QUEUE_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "SL503", "Queue is not active");
 
     private final HttpStatus status;
     private final String code;

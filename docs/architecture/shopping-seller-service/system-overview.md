@@ -17,7 +17,7 @@ related:
 
 ## 개요
 
-Shopping Seller Service는 판매자 및 상품 관리를 담당하는 마이크로서비스입니다. Shopping Service 분해 프로젝트의 일환으로 Seller, Product, Inventory 도메인을 분리하여 판매자 중심 기능을 제공합니다.
+Shopping Seller Service는 판매자, 상품, 마케팅 도구 관리를 담당하는 마이크로서비스입니다. Shopping Service 분해 프로젝트의 일환으로 Seller, Product, Inventory, Coupon, TimeDeal, Queue 6개 도메인을 포함하여 판매자 중심 기능을 제공합니다.
 
 **분리 배경**: 기존 Shopping Service는 10개 도메인을 포함하여 단일 서비스 복잡도가 높았습니다. Seller 도메인을 분리하여 판매자 기능의 독립적 확장과 관리를 가능하게 합니다.
 
@@ -25,7 +25,7 @@ Shopping Seller Service는 판매자 및 상품 관리를 담당하는 마이크
 
 ## 핵심 특징
 
-- **3개 도메인**: Seller (판매자), Product (상품), Inventory (재고)
+- **6개 도메인**: Seller (판매자), Product (상품), Inventory (재고), Coupon (쿠폰), TimeDeal (타임딜), Queue (대기열)
 - **Internal API**: shopping-service Saga 패턴을 위한 재고 예약/차감/해제 API 제공
 - **Redis 동시성 제어**: Coupon/TimeDeal Lua Script, Redisson 분산 락
 - **Kafka 이벤트**: 배송 발송, 주문 생성 이벤트 구독하여 재고 업데이트
@@ -50,6 +50,10 @@ graph TB
             C1[SellerController]
             C2[ProductController]
             C3[InventoryController]
+            C4[CouponController]
+            C5[TimeDealController]
+            C6[QueueController]
+            C7[DashboardController]
         end
 
         subgraph "Internal API"
@@ -61,6 +65,9 @@ graph TB
             S1[SellerService]
             S2[ProductService]
             S3[InventoryService]
+            S4[CouponService]
+            S5[TimeDealService]
+            S6[QueueService]
         end
 
         subgraph "Event Listeners"
@@ -72,6 +79,9 @@ graph TB
             D2[(Product)]
             D3[(Inventory)]
             D4[(StockMovement)]
+            D5[(Coupon)]
+            D6[(TimeDeal)]
+            D7[(WaitingQueue)]
         end
     end
 
@@ -84,12 +94,16 @@ graph TB
         RD[(Redis)]
     end
 
-    A --> C1 & C2 & C3
+    A --> C1 & C2 & C3 & C4 & C5 & C6 & C7
     SS --> IC1 & IC2
 
     C1 --> S1
     C2 --> S2
     C3 --> S3
+    C4 --> S4
+    C5 --> S5
+    C6 --> S6
+    C7 --> S2 & S4 & S5
     IC1 --> S2
     IC2 --> S3
 
@@ -100,8 +114,11 @@ graph TB
     S2 --> D2
     S3 --> D3
     S3 --> D4
+    S4 --> D5
+    S5 --> D6
+    S6 --> D7
 
-    D1 & D2 & D3 & D4 --> DB
+    D1 & D2 & D3 & D4 & D5 & D6 & D7 --> DB
     S3 --> RD
 ```
 
@@ -188,8 +205,57 @@ sequenceDiagram
 
 **StockMovement 이력**:
 - 모든 재고 변동은 `stock_movements` 테이블에 이력 저장
-- movementType: PURCHASE, SALE, RESERVATION, RELEASE, ADJUSTMENT
+- movementType: ADD, RESERVE, DEDUCT, RELEASE, ADJUST, RETURN
 - referenceType/referenceId로 주문 추적 가능
+
+### 4. Coupon (쿠폰)
+
+| 항목 | 내용 |
+|------|------|
+| **역할** | 판매자 쿠폰 생성 및 관리 |
+| **엔티티** | `Coupon` |
+| **주요 필드** | id, sellerId, code (UK), name, discountType, discountValue, minimumOrderAmount, maximumDiscountAmount, totalQuantity, issuedQuantity, status, startsAt, expiresAt |
+| **상태** | ACTIVE, INACTIVE, EXHAUSTED, EXPIRED |
+| **할인 유형** | FIXED (정액), PERCENTAGE (정률) |
+| **API** | GET/POST/DELETE `/coupons` |
+| **에러코드** | SL3XX (SL301~SL308) |
+
+**비즈니스 규칙**:
+- 쿠폰 코드는 서비스 전체에서 유일해야 함
+- DELETE 시 물리 삭제가 아닌 status=INACTIVE (soft delete)
+- 본인 쿠폰만 조회/관리 가능 (sellerId 검증)
+
+### 5. TimeDeal (타임딜)
+
+| 항목 | 내용 |
+|------|------|
+| **역할** | 시간 한정 할인 이벤트 관리 |
+| **엔티티** | `TimeDeal`, `TimeDealProduct` |
+| **주요 필드** | TimeDeal: id, sellerId, name, status, startsAt, endsAt / TimeDealProduct: productId, dealPrice, dealQuantity, soldQuantity, maxPerUser |
+| **상태** | SCHEDULED, ACTIVE, ENDED, CANCELLED |
+| **API** | GET/POST/DELETE `/time-deals` |
+| **에러코드** | SL4XX (SL401~SL406) |
+
+**비즈니스 규칙**:
+- startsAt < endsAt 검증
+- 포함 상품은 본인 소유여야 함 (sellerId 매칭)
+- 취소는 SCHEDULED 또는 ACTIVE 상태에서만 가능
+- 상품별 dealQuantity, maxPerUser 제한
+
+### 6. Queue (대기열)
+
+| 항목 | 내용 |
+|------|------|
+| **역할** | 이벤트성 판매를 위한 대기열 관리 |
+| **엔티티** | `WaitingQueue`, `QueueEntry` |
+| **주요 필드** | WaitingQueue: eventType, eventId, maxCapacity, entryBatchSize, entryIntervalSeconds, isActive / QueueEntry: userId, entryToken, status |
+| **Entry 상태** | WAITING, ENTERED, EXPIRED, LEFT |
+| **API** | POST `/queue/{eventType}/{eventId}/activate\|deactivate`, GET `status` |
+| **에러코드** | SL5XX (SL501~SL503) |
+
+**비즈니스 규칙**:
+- 이미 활성화된 대기열은 재활성화 불가
+- eventType + eventId 조합으로 대기열 조회
 
 ---
 
@@ -420,6 +486,9 @@ erDiagram
 | SL0XX | Seller | SL001 SELLER_NOT_FOUND |
 | SL1XX | Product | SL101 PRODUCT_NOT_FOUND |
 | SL2XX | Inventory | SL202 INSUFFICIENT_STOCK |
+| SL3XX | Coupon | SL301 COUPON_NOT_FOUND |
+| SL4XX | TimeDeal | SL401 TIMEDEAL_NOT_FOUND |
+| SL5XX | Queue | SL501 QUEUE_NOT_FOUND |
 
 **접두사**: `SL` (Shopping Seller)
 
