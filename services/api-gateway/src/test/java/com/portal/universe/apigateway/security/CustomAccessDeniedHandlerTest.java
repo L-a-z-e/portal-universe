@@ -30,7 +30,7 @@ class CustomAccessDeniedHandlerTest {
     }
 
     @Test
-    @DisplayName("A002 에러 코드가 포함된 JSON body를 반환한다")
+    @DisplayName("GW-A002 에러 코드가 포함된 JSON body를 반환한다")
     void should_returnJsonBody_when_accessDenied() {
         var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/admin"));
         var denied = new AccessDeniedException("Access denied");
@@ -40,7 +40,7 @@ class CustomAccessDeniedHandlerTest {
                 .verify();
 
         String body = exchange.getResponse().getBodyAsString().block();
-        assertThat(body).contains("\"code\":\"A002\"");
+        assertThat(body).contains("\"code\":\"GW-A002\"");
         assertThat(body).contains("\"success\":false");
     }
 

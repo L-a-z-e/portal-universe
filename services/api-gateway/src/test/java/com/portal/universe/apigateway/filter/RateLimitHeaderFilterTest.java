@@ -109,7 +109,7 @@ class RateLimitHeaderFilterTest {
         assertThat(result.get("success")).isEqualTo(false);
         assertThat(result.get("data")).isNull();
         var error = (java.util.Map<String, Object>) result.get("error");
-        assertThat(error.get("code")).isEqualTo("TOO_MANY_REQUESTS");
+        assertThat(error.get("code")).isEqualTo("GW-R001");
         assertThat((String) error.get("message")).contains("60");
     }
 }
