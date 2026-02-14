@@ -243,22 +243,6 @@ spring:
                     fallbackUri: forward:/fallback/auth
               order: 9
 
-            # Seller Self-Service API - 인증 필요
-            - id: auth-service-seller
-              uri: ${services.auth.url}
-              predicates:
-                - Path=/api/v1/seller/**
-              filters:
-                - name: RequestRateLimiter
-                  args:
-                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
-                    key-resolver: "#{@userKeyResolver}"
-                - name: CircuitBreaker
-                  args:
-                    name: authCircuitBreaker
-                    fallbackUri: forward:/fallback/auth
-              order: 10
-
             # Permission Resolution API - 인증 필요
             - id: auth-service-permissions
               uri: ${services.auth.url}
@@ -326,6 +310,38 @@ spring:
                   args:
                     name: shoppingCircuitBreaker
                     fallbackUri: forward:/fallback/shopping
+
+            # ========== Shopping Seller Service ==========
+            - id: shopping-seller-service-route
+              uri: ${services.shopping-seller.url:http://localhost:8088}
+              predicates:
+                - Path=/api/v1/seller/**
+              filters:
+                - StripPrefix=3
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: shoppingSellerCircuitBreaker
+                    fallbackUri: forward:/fallback/shopping-seller
+
+            # ========== Shopping Settlement Service ==========
+            - id: shopping-settlement-service-route
+              uri: ${services.shopping-settlement.url:http://localhost:8089}
+              predicates:
+                - Path=/api/v1/settlement/**
+              filters:
+                - StripPrefix=3
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: shoppingSettlementCircuitBreaker
+                    fallbackUri: forward:/fallback/shopping-settlement
 
             # ========== Notification Service ==========
             # WebSocket route for real-time notifications
@@ -487,6 +503,10 @@ resilience4j:
         base-config: default
       shoppingCircuitBreaker:
         base-config: default
+      shoppingSellerCircuitBreaker:
+        base-config: default
+      shoppingSettlementCircuitBreaker:
+        base-config: default
       driveCircuitBreaker:
         base-config: default
       prismCircuitBreaker:
@@ -504,6 +524,10 @@ resilience4j:
       blogCircuitBreaker:
         base-config: default
       shoppingCircuitBreaker:
+        base-config: default
+      shoppingSellerCircuitBreaker:
+        base-config: default
+      shoppingSettlementCircuitBreaker:
         base-config: default
       driveCircuitBreaker:
         base-config: default
@@ -629,6 +653,16 @@ health-check:
       url: ${services.shopping.url:http://localhost:8083}
       health-path: /actuator/health
       k8s-deployment-name: shopping-service
+    - name: shopping-seller-service
+      display-name: Shopping Seller Service
+      url: ${services.shopping-seller.url:http://localhost:8088}
+      health-path: /actuator/health
+      k8s-deployment-name: shopping-seller-service
+    - name: shopping-settlement-service
+      display-name: Shopping Settlement Service
+      url: ${services.shopping-settlement.url:http://localhost:8089}
+      health-path: /actuator/health
+      k8s-deployment-name: shopping-settlement-service
     - name: notification-service
       display-name: Notification Service
       url: ${services.notification.url:http://localhost:8084}

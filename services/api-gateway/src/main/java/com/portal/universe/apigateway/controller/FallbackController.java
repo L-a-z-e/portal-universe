@@ -40,6 +40,16 @@ public class FallbackController {
         return Mono.just(buildFallbackResponse("GW004", "알림 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."));
     }
 
+    @RequestMapping(value = "/fallback/shopping-seller", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Map<String, Object>>> shoppingSellerServiceFallback() {
+        return Mono.just(buildFallbackResponse("GW005", "판매자 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."));
+    }
+
+    @RequestMapping(value = "/fallback/shopping-settlement", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Map<String, Object>>> shoppingSettlementServiceFallback() {
+        return Mono.just(buildFallbackResponse("GW006", "정산 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."));
+    }
+
     private ResponseEntity<Map<String, Object>> buildFallbackResponse(String code, String message) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
                 "success", false,
