@@ -20,19 +20,26 @@ related:
 
 ## 개요
 
-Shopping Service는 전자상거래 기능을 제공하는 마이크로서비스입니다. 10개 도메인(Product, Cart, Order, Payment, Delivery, Inventory, Coupon, TimeDeal, Queue, Search)을 포함하며, Saga 패턴 분산 트랜잭션, Redis Lua Script 기반 동시성 제어, Elasticsearch 검색, SSE 실시간 대기열을 구현합니다.
+**Shopping Service는 2026-02-14 서비스 분해를 거쳐 Buyer(구매자) 전용 서비스로 재구조화되었습니다.**
+
+Shopping Service는 장바구니, 주문, 결제, 배송 조회, 쿠폰/타임딜 사용자 기능, 대기열, 검색 등 구매자 쇼핑 경험을 제공하는 마이크로서비스입니다. Product와 Inventory 도메인은 직접 관리하지 않고 `shopping-seller-service`의 Feign Client를 통해 읽기 전용으로 조회합니다. Saga 패턴 분산 트랜잭션, Redis Lua Script 기반 동시성 제어, Elasticsearch 검색, SSE 실시간 대기열을 구현합니다.
+
+**분해된 서비스**:
+- **shopping-seller-service** (:8088): Product, Inventory, Coupon, TimeDeal, Queue 관리 (Seller/Admin)
+- **shopping-settlement-service** (:8089): 정산 배치 (Settlement, Seed Data)
 
 ---
 
 ## 핵심 특징
 
-- **10개 도메인**: 상품, 장바구니, 주문, 결제, 배송, 재고, 쿠폰, 타임딜, 대기열, 검색
-- **Saga 패턴**: 5단계 Forward/Compensation 분산 트랜잭션 관리
+- **6개 도메인 (직접 관리)**: Cart, Order, Payment, Delivery, UserCoupon (사용), Search
+- **2개 도메인 (Feign 프록시)**: Product (읽기 전용), Inventory (읽기 전용)
+- **Saga 패턴**: 5단계 Forward/Compensation 분산 트랜잭션 관리 (Feign 기반 Orchestrator)
 - **Redis Lua Script**: 쿠폰 선착순 발급, 타임딜 구매의 원자적 처리
-- **Redisson 분산 락**: AOP 기반 `@DistributedLock` (스케줄러, 재고 등)
 - **Elasticsearch**: Full-text 검색, 자동완성, 인기/최근 검색어
-- **SSE 대기열**: Redis Sorted Set + SSE 실시간 스트리밍
+- **SSE 대기열**: Redis Sorted Set + SSE 실시간 스트리밍 (사용자 기능만)
 - **Kafka 이벤트 기반**: 9개 topic을 통한 비동기 서비스 간 통신
+- **Feign Client**: shopping-seller-service 연동 (상품 조회, 재고 예약/차감/해제)
 
 ---
 
@@ -44,42 +51,43 @@ graph TB
         A[API Gateway]
         K[Kafka Broker]
         ES[(Elasticsearch)]
+        SELLER[shopping-seller-service<br/>:8088]
     end
 
     subgraph "Shopping Service"
         direction TB
 
         subgraph "Controllers"
-            C1[ProductController]
             C2[CartController]
             C3[OrderController]
             C4[PaymentController]
             C5[DeliveryController]
-            C6[InventoryController]
-            C7[CouponController]
-            C8[TimeDealController]
-            C9[QueueController]
+            C7[CouponController<br/>사용자 기능만]
+            C8[TimeDealController<br/>사용자 기능만]
+            C9[QueueController<br/>사용자 기능만]
             C10[SearchController]
             C11[QueueStreamController<br/>SSE]
         end
 
         subgraph "Services"
-            S1[ProductService]
             S2[CartService]
             S3[OrderService]
             S4[PaymentService]
             S5[DeliveryService]
-            S6[InventoryService]
-            S7[CouponService]
-            S8[TimeDealService]
-            S9[QueueService]
+            S7[CouponService<br/>발급/조회만]
+            S8[TimeDealService<br/>조회/구매만]
+            S9[QueueService<br/>진입/조회만]
             S10[ProductSearchService]
             S11[SuggestService]
         end
 
+        subgraph "Feign Clients"
+            FC1[SellerProductClient]
+            FC2[SellerInventoryClient]
+        end
+
         subgraph "Orchestration"
-            SAGA[OrderSagaOrchestrator]
-            SCHED[TimeDealScheduler]
+            SAGA[OrderSagaOrchestrator<br/>Feign 기반]
         end
 
         subgraph "Redis Integration"
@@ -89,17 +97,15 @@ graph TB
         end
 
         subgraph "Domains"
-            D1[(Product)]
             D2[(Cart/CartItem)]
             D3[(Order/OrderItem)]
             D4[(Payment)]
             D5[(Delivery/DeliveryHistory)]
-            D6[(Inventory/StockMovement)]
             D7[(SagaState)]
-            D8[(Coupon/UserCoupon)]
-            D9[(TimeDeal/TimeDealProduct<br/>TimeDealPurchase)]
-            D10[(WaitingQueue/QueueEntry)]
-            D11[(ProductDocument)]
+            D8[(UserCoupon<br/>사용 이력만)]
+            D9[(TimeDealPurchase<br/>구매 이력만)]
+            D10[(QueueEntry<br/>사용자 엔트리만)]
+            D11[(ProductDocument<br/>Elasticsearch)]
         end
     end
 
@@ -108,10 +114,13 @@ graph TB
         RD[(Redis)]
     end
 
-    A --> C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8 & C9 & C10 & C11
+    A --> C2 & C3 & C4 & C5 & C7 & C8 & C9 & C10 & C11
 
     S3 --> SAGA
-    SCHED --> S8
+    SAGA --> FC2
+    S2 & S3 --> FC1
+
+    FC1 & FC2 --> SELLER
 
     S7 --> R1
     S8 --> R2
@@ -120,7 +129,7 @@ graph TB
     S10 --> ES
     S11 --> ES
 
-    D1 & D2 & D3 & D4 & D5 & D6 & D7 & D8 & D9 & D10 --> DB
+    D2 & D3 & D4 & D5 & D7 & D8 & D9 & D10 --> DB
     R1 & R2 & R3 --> RD
     D11 --> ES
 ```
@@ -129,14 +138,14 @@ graph TB
 
 ## 도메인 구조
 
-### 1. Product (상품)
+### 1. Product (상품) - Feign 프록시
 
 | 항목 | 내용 |
 |------|------|
-| **역할** | 상품 정보 관리 (CRUD) |
-| **엔티티** | `Product` |
-| **주요 필드** | id, name, description, price (DECIMAL), stock |
-| **API** | GET/POST/PUT/DELETE `/api/v1/shopping/products` |
+| **역할** | 상품 정보 읽기 전용 조회 (shopping-seller-service에서 관리) |
+| **엔티티** | 없음 (DTO만 사용) |
+| **Feign Client** | `SellerProductClient.getProduct(Long id)` |
+| **API** | GET `/api/v1/shopping/products` (읽기 전용) |
 | **에러코드** | S0XX (S001~S010) |
 
 ### 2. Cart (장바구니)
@@ -196,60 +205,59 @@ CANCELLED   REFUNDED
 | **API** | GET/PUT `/api/v1/shopping/deliveries` |
 | **에러코드** | S5XX (S501~S507) |
 
-### 6. Inventory (재고)
+### 6. Inventory (재고) - Feign 프록시
 
 | 항목 | 내용 |
 |------|------|
-| **역할** | 재고 관리 및 동시성 제어 |
-| **엔티티** | `Inventory`, `StockMovement` |
-| **재고 유형** | availableQuantity (가용), reservedQuantity (예약), totalQuantity (전체) |
-| **동시성 제어** | Pessimistic Write Lock + Redisson 분산 락 |
-| **API** | GET/POST/PUT `/api/v1/shopping/inventory` |
+| **역할** | 재고 조회 및 Saga에서 예약/차감/해제 (shopping-seller-service에서 관리) |
+| **엔티티** | 없음 (DTO만 사용) |
+| **Feign Client** | `SellerInventoryClient.reserve/deduct/release()` |
+| **API** | GET `/api/v1/shopping/inventory` (읽기 전용) |
 | **에러코드** | S4XX (S401~S408) |
 
-**재고 이동 타입**:
+**재고 연동 (Feign)**:
 
-| 타입 | 설명 | 재고 변동 |
-|------|------|----------|
-| PURCHASE | 입고 | available +, total + |
-| SALE | 판매 | available - |
-| RESERVATION | 주문 예약 | available -> reserved |
-| RELEASE | 예약 해제 | reserved -> available |
-| ADJUSTMENT | 수동 조정 | 직접 설정 |
+| Saga 단계 | Feign 호출 | 설명 |
+|-----------|-----------|------|
+| 재고 예약 | `reserve(productId, quantity)` | available -> reserved |
+| 재고 차감 | `deduct(productId, quantity)` | reserved -> 0 (판매 완료) |
+| 재고 해제 (보상) | `release(productId, quantity)` | reserved -> available |
 
-### 7. Coupon (쿠폰) - [상세 문서](./coupon-system.md)
+### 7. Coupon (쿠폰) - 사용자 기능만 - [상세 문서](./coupon-system.md)
 
 | 항목 | 내용 |
 |------|------|
-| **역할** | 선착순 쿠폰 발급 및 관리 |
-| **엔티티** | `Coupon`, `UserCoupon` |
+| **역할** | 선착순 쿠폰 발급 및 사용자 쿠폰 조회 (Coupon 정의는 seller-service에서 관리) |
+| **엔티티** | `UserCoupon` (사용 이력만) |
 | **동시성 제어** | Redis Lua Script (`coupon_issue.lua`) |
-| **할인 유형** | FIXED (정액), PERCENTAGE (정률) |
-| **API** | GET/POST `/api/v1/shopping/coupons` |
+| **API** | GET/POST `/api/v1/shopping/coupons` (발급/조회만) |
 | **에러코드** | S6XX (S601~S611) |
 
-### 8. TimeDeal (타임딜) - [상세 문서](./timedeal-system.md)
+**Admin 기능 이전**: Coupon 생성/수정/비활성화는 `shopping-seller-service`로 이전
+
+### 8. TimeDeal (타임딜) - 사용자 기능만 - [상세 문서](./timedeal-system.md)
 
 | 항목 | 내용 |
 |------|------|
-| **역할** | 시간 한정 할인 상품 판매 |
-| **엔티티** | `TimeDeal`, `TimeDealProduct`, `TimeDealPurchase` |
-| **상태** | SCHEDULED -> ACTIVE -> ENDED |
+| **역할** | 타임딜 조회 및 구매 (TimeDeal 정의는 seller-service에서 관리) |
+| **엔티티** | `TimeDealPurchase` (구매 이력만) |
 | **동시성 제어** | Redis Lua Script (`timedeal_purchase.lua`) |
-| **스케줄러** | 1분 간격, 분산 락 적용 |
-| **API** | GET/POST `/api/v1/shopping/time-deals` |
+| **API** | GET/POST `/api/v1/shopping/time-deals` (조회/구매만) |
 | **에러코드** | S7XX (S701~S708) |
 
-### 9. Queue (대기열) - [상세 문서](./queue-system.md)
+**Admin 기능 이전**: TimeDeal 생성/취소, Scheduler는 `shopping-seller-service`로 이전
+
+### 9. Queue (대기열) - 사용자 기능만 - [상세 문서](./queue-system.md)
 
 | 항목 | 내용 |
 |------|------|
-| **역할** | 이벤트 대기열 관리 및 실시간 상태 알림 |
-| **엔티티** | `WaitingQueue`, `QueueEntry` |
+| **역할** | 대기열 진입 및 상태 조회 (WaitingQueue 정의는 seller-service에서 관리) |
+| **엔티티** | `QueueEntry` (사용자 엔트리만) |
 | **기술** | Redis Sorted Set (ZADD/ZRANK/ZPOPMIN) + SSE |
-| **이벤트 유형** | TIMEDEAL, FLASH_SALE 등 |
-| **API** | POST/GET `/api/v1/shopping/queue`, SSE `/subscribe` |
+| **API** | POST/GET `/api/v1/shopping/queue` (진입/조회만), SSE `/subscribe` |
 | **에러코드** | S8XX (S801~S806) |
+
+**Admin 기능 이전**: Queue 활성화/비활성화, 수동 처리는 `shopping-seller-service`로 이전
 
 ### 10. Search (검색) - [상세 문서](./search-system.md)
 
@@ -574,6 +582,12 @@ erDiagram
 |------------|------|--------|------|
 | auth-service | 사용자 정보 조회 | `GET /api/v1/auth/users/{userId}` | 구현됨 |
 | blog-service | 상품 리뷰 조회 | `GET /api/blog/reviews?productId={id}` | 구현됨 |
+| **shopping-seller-service** | **상품 조회** | `GET /api/v1/seller/internal/products/{id}` | **2026-02-14 추가** |
+| **shopping-seller-service** | **재고 예약** | `POST /api/v1/seller/internal/inventory/reserve` | **2026-02-14 추가** |
+| **shopping-seller-service** | **재고 차감** | `POST /api/v1/seller/internal/inventory/deduct` | **2026-02-14 추가** |
+| **shopping-seller-service** | **재고 해제** | `POST /api/v1/seller/internal/inventory/release` | **2026-02-14 추가** |
+
+**Circuit Breaker**: Resilience4j 적용, fallback: 에러 응답
 
 ---
 
@@ -699,21 +713,34 @@ erDiagram
 
 ### Architecture
 - [Data Flow](./data-flow.md) - 전체 데이터 흐름
-- [Saga Pattern](./saga-pattern.md) - 5단계 분산 트랜잭션
+- [Saga Pattern](./saga-pattern.md) - 5단계 분산 트랜잭션 (Feign 기반)
 - [Coupon System](./coupon-system.md) - Redis Lua 선착순 발급
-- [TimeDeal System](./timedeal-system.md) - Scheduler 라이프사이클
+- [TimeDeal System](./timedeal-system.md) - 사용자 구매 기능
 - [Queue System](./queue-system.md) - Redis Sorted Set + SSE
 - [Search System](./search-system.md) - Elasticsearch 검색
 
 ### API
-- [Product API](../../api/shopping-service/api-product.md)
-- [Order API](../../api/shopping-service/api-order.md)
-- [Payment API](../../api/shopping-service/api-payment.md)
-- [Inventory API](../../api/shopping-service/api-inventory.md)
+- [Shopping Service API](../../api/shopping-service/README.md) - Buyer API
+- [Shopping Seller Service API](../../api/shopping-seller-service/README.md) - Seller/Admin API
+- [Shopping Settlement Service](../../api/shopping-settlement-service/README.md) - 정산 배치
 
 ### Database
-- [Shopping Service ERD](../database/shopping-service-erd.md)
+- [Shopping Service Schema](../database/shopping-service-schema.md) - shopping_db (Buyer 전용)
+- [Shopping Seller Service Schema](../database/shopping-seller-service-schema.md) - shopping_seller_db
+- [Shopping Settlement Service Schema](../database/shopping-settlement-service-schema.md) - shopping_settlement_db
+
+### ADR
+- [ADR-041: Shopping Service Decomposition](../../adr/ADR-041-shopping-service-decomposition.md)
 
 ---
 
-**최종 업데이트**: 2026-02-06
+## 변경 이력
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-02-14 | 서비스 분해: Buyer 전용으로 전환, Product/Inventory Feign 프록시, Admin 기능 제거 | Laze |
+| 2026-02-06 | 초기 문서 작성 | Laze |
+
+---
+
+**최종 업데이트**: 2026-02-14

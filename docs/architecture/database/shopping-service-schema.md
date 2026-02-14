@@ -1,25 +1,60 @@
 # Shopping Service Database Schema
 
-**Database**: MySQL 8.0 + Elasticsearch + Redis
-**Entity Count**: 19 (18 JPA + 1 Elasticsearch Document)
-**Last Updated**: 2026-02-06
+**Database**: MySQL 8.0 (shopping_db) + Elasticsearch + Redis
+**Entity Count**: 11 (10 JPA + 1 Elasticsearch Document)
+**Last Updated**: 2026-02-14
+
+> **서비스 분해 (2026-02-14)**: Product, Inventory, StockMovement, Seller는 `shopping_seller_db`로 이전되었습니다.
+> Coupon, TimeDeal, WaitingQueue도 `shopping_seller_db`로 이전되었으며, 이 서비스에는 UserCoupon, TimeDealPurchase, QueueEntry만 유지됩니다.
 
 ## ERD
 
+> **Note**: Product, Inventory, Coupon, TimeDeal, WaitingQueue는 `shopping_seller_db`에 있습니다. (점선으로 표시)
+
 ```mermaid
 erDiagram
-    Product {
+    %% shopping_seller_db (참조만)
+    Product["Product<br/>(seller_db)"] {
         Long id PK
+        Long sellerId FK
         String name
-        String description
         BigDecimal price
-        Integer stock
-        String imageUrl
-        String category
-        LocalDateTime createdAt
-        LocalDateTime updatedAt
     }
 
+    Inventory["Inventory<br/>(seller_db)"] {
+        Long id PK
+        Long productId FK
+        Integer availableQuantity
+        Integer reservedQuantity
+    }
+
+    Coupon["Coupon<br/>(seller_db)"] {
+        Long id PK
+        String code UK
+        String name
+        BigDecimal discountValue
+    }
+
+    TimeDeal["TimeDeal<br/>(seller_db)"] {
+        Long id PK
+        String name
+        TimeDealStatus status
+    }
+
+    TimeDealProduct["TimeDealProduct<br/>(seller_db)"] {
+        Long id PK
+        Long timeDealId FK
+        Long productId FK
+        BigDecimal dealPrice
+    }
+
+    WaitingQueue["WaitingQueue<br/>(seller_db)"] {
+        Long id PK
+        String eventType
+        Long eventId
+    }
+
+    %% shopping_db (현재 서비스)
     Cart {
         Long id PK
         String userId FK
@@ -105,52 +140,6 @@ erDiagram
         LocalDateTime createdAt
     }
 
-    Inventory {
-        Long id PK
-        Long productId FK "UK"
-        Integer availableQuantity
-        Integer reservedQuantity
-        Integer totalQuantity
-        Long version
-        LocalDateTime createdAt
-        LocalDateTime updatedAt
-    }
-
-    StockMovement {
-        Long id PK
-        Long inventoryId FK
-        Long productId FK
-        MovementType movementType
-        Integer quantity
-        Integer previousAvailable
-        Integer afterAvailable
-        Integer previousReserved
-        Integer afterReserved
-        String referenceType
-        String referenceId
-        String reason
-        String performedBy
-        LocalDateTime createdAt
-    }
-
-    Coupon {
-        Long id PK
-        String code UK
-        String name
-        String description
-        DiscountType discountType
-        BigDecimal discountValue
-        BigDecimal minimumOrderAmount
-        BigDecimal maximumDiscountAmount
-        Integer totalQuantity
-        Integer issuedQuantity
-        CouponStatus status
-        LocalDateTime startsAt
-        LocalDateTime expiresAt
-        LocalDateTime createdAt
-        LocalDateTime updatedAt
-    }
-
     UserCoupon {
         Long id PK
         String userId
@@ -162,27 +151,6 @@ erDiagram
         LocalDateTime expiresAt
     }
 
-    TimeDeal {
-        Long id PK
-        String name
-        String description
-        TimeDealStatus status
-        LocalDateTime startsAt
-        LocalDateTime endsAt
-        LocalDateTime createdAt
-        LocalDateTime updatedAt
-    }
-
-    TimeDealProduct {
-        Long id PK
-        Long timeDealId FK
-        Long productId FK
-        BigDecimal dealPrice
-        Integer dealQuantity
-        Integer soldQuantity
-        Integer maxPerUser
-    }
-
     TimeDealPurchase {
         Long id PK
         String userId
@@ -191,19 +159,6 @@ erDiagram
         BigDecimal purchasePrice
         Long orderId
         LocalDateTime purchasedAt
-    }
-
-    WaitingQueue {
-        Long id PK
-        String eventType
-        Long eventId
-        Integer maxCapacity
-        Integer entryBatchSize
-        Integer entryIntervalSeconds
-        Boolean isActive
-        LocalDateTime createdAt
-        LocalDateTime activatedAt
-        LocalDateTime deactivatedAt
     }
 
     QueueEntry {
@@ -232,28 +187,21 @@ erDiagram
         LocalDateTime completedAt
     }
 
+    %% shopping_db 내부 관계
     Cart ||--o{ CartItem : contains
-    CartItem }o--|| Product : references
-
     Order ||--o{ OrderItem : contains
-    OrderItem }o--|| Product : references
     Order ||--o| Payment : has
     Order ||--o| Delivery : has
     Order ||--o| SagaState : tracks
-
     Delivery ||--o{ DeliveryHistory : has
 
-    Product ||--o| Inventory : has
-    Inventory ||--o{ StockMovement : tracks
-
-    Coupon ||--o{ UserCoupon : issued-to
+    %% shopping_db -> shopping_seller_db 참조 (ID만)
+    CartItem }o..|| Product : "references (ID)"
+    OrderItem }o..|| Product : "references (ID)"
+    UserCoupon }o..|| Coupon : "references (ID)"
     UserCoupon }o--|| Order : used-in
-
-    TimeDeal ||--o{ TimeDealProduct : contains
-    TimeDealProduct }o--|| Product : references
-    TimeDealProduct ||--o{ TimeDealPurchase : purchased
-
-    WaitingQueue ||--o{ QueueEntry : manages
+    TimeDealPurchase }o..|| TimeDealProduct : "references (ID)"
+    QueueEntry }o..|| WaitingQueue : "references (ID)"
 ```
 
 ### Elasticsearch Document
@@ -264,68 +212,70 @@ erDiagram
 
 > ProductDocument는 JPA 엔티티가 아닌 Elasticsearch 문서입니다. Product 엔티티에서 변환하여 색인합니다.
 
-## Entities
+## Entities (shopping_db)
 
-| Entity | 설명 | 주요 필드 |
-|--------|------|----------|
-| Product | 상품 정보 | id, name, price, stock, category |
-| Cart | 장바구니 | id, userId, status |
-| CartItem | 장바구니 항목 | id, cartId, productId, quantity, price |
-| Order | 주문 | id, orderNumber, userId, status, totalAmount, finalAmount |
-| OrderItem | 주문 항목 | id, orderId, productId, quantity, subtotal |
-| Payment | 결제 | id, paymentNumber, orderId, amount, status, paymentMethod |
-| Delivery | 배송 | id, trackingNumber, orderId, status, carrier |
-| DeliveryHistory | 배송 이력 | id, deliveryId, status, location |
-| Inventory | 재고 | id, productId, availableQuantity, reservedQuantity |
-| StockMovement | 재고 이동 이력 | id, inventoryId, movementType, quantity |
-| Coupon | 쿠폰 | id, code, discountType, discountValue, totalQuantity |
-| UserCoupon | 사용자 발급 쿠폰 | id, userId, couponId, status, usedOrderId |
-| TimeDeal | 타임딜 이벤트 | id, name, status, startsAt, endsAt |
-| TimeDealProduct | 타임딜 상품 | id, timeDealId, productId, dealPrice, dealQuantity, soldQuantity, maxPerUser |
-| TimeDealPurchase | 타임딜 구매 기록 | id, userId, timeDealProductId, quantity, purchasePrice |
-| WaitingQueue | 대기열 설정 | id, eventType, eventId, maxCapacity, entryBatchSize, isActive |
-| QueueEntry | 대기열 엔트리 | id, queueId, userId, entryToken, status |
-| SagaState | Saga 오케스트레이션 상태 | id, sagaId, orderId, currentStep, status |
+| Entity | 설명 | 주요 필드 | 위치 |
+|--------|------|----------|------|
+| Cart | 장바구니 | id, userId, status | shopping_db |
+| CartItem | 장바구니 항목 | id, cartId, productId (참조만), quantity, price | shopping_db |
+| Order | 주문 | id, orderNumber, userId, status, totalAmount, finalAmount | shopping_db |
+| OrderItem | 주문 항목 | id, orderId, productId (참조만), quantity, subtotal | shopping_db |
+| Payment | 결제 | id, paymentNumber, orderId, amount, status, paymentMethod | shopping_db |
+| Delivery | 배송 | id, trackingNumber, orderId, status, carrier | shopping_db |
+| DeliveryHistory | 배송 이력 | id, deliveryId, status, location | shopping_db |
+| UserCoupon | 사용자 발급 쿠폰 | id, userId, couponId (참조만), status, usedOrderId | shopping_db |
+| TimeDealPurchase | 타임딜 구매 기록 | id, userId, timeDealProductId (참조만), quantity, purchasePrice | shopping_db |
+| QueueEntry | 대기열 엔트리 | id, queueId (참조만), userId, entryToken, status | shopping_db |
+| SagaState | Saga 오케스트레이션 상태 | id, sagaId, orderId, currentStep, status | shopping_db |
+
+## Entities (shopping_seller_db, 참조만)
+
+| Entity | 설명 | 이전일 | 위치 |
+|--------|------|--------|------|
+| Product | 상품 정보 | 2026-02-14 | shopping_seller_db |
+| Inventory | 재고 | 2026-02-14 | shopping_seller_db |
+| StockMovement | 재고 이동 이력 | 2026-02-14 | shopping_seller_db |
+| Coupon | 쿠폰 | 2026-02-14 | shopping_seller_db |
+| TimeDeal | 타임딜 이벤트 | 2026-02-14 | shopping_seller_db |
+| TimeDealProduct | 타임딜 상품 | 2026-02-14 | shopping_seller_db |
+| WaitingQueue | 대기열 설정 | 2026-02-14 | shopping_seller_db |
+| Seller | 판매자 | 2026-02-14 (신규) | shopping_seller_db |
 
 ## Relationships
 
-### 주문 및 결제 플로우
+### shopping_db 내부 관계
+
+#### 주문 및 결제 플로우
 - Cart 1:N CartItem: 장바구니는 여러 항목을 포함
 - Order 1:N OrderItem: 주문은 여러 상품 항목을 포함
 - Order 1:1 Payment: 주문당 하나의 결제
 - Order 1:1 Delivery: 주문당 하나의 배송
 - Order 1:1 SagaState: 주문당 하나의 Saga 실행 상태 추적
 
-### 상품 및 재고
-- Product 1:1 Inventory: 상품당 하나의 재고 관리
-- Inventory 1:N StockMovement: 재고 변경 이력 추적 (Audit Trail)
-- CartItem N:1 Product: 장바구니 항목은 상품 참조 (스냅샷 포함)
-- OrderItem N:1 Product: 주문 항목은 상품 참조 (스냅샷)
-
-### 쿠폰
-- Coupon 1:N UserCoupon: 쿠폰은 여러 사용자에게 발급
+#### 쿠폰
 - UserCoupon N:1 Order: 사용자 쿠폰은 주문에서 사용 (선택적)
 
-### 배송
+#### 배송
 - Delivery 1:N DeliveryHistory: 배송 상태 변경 이력 추적
 
-### 타임딜
-- TimeDeal 1:N TimeDealProduct: 타임딜 이벤트는 여러 상품을 포함
-- TimeDealProduct N:1 Product: 타임딜 상품은 실제 상품 참조
-- TimeDealProduct 1:N TimeDealPurchase: 타임딜 상품별 구매 기록
+### shopping_db -> shopping_seller_db 참조 (ID만)
 
-### 대기열
-- WaitingQueue 1:N QueueEntry: 대기열 설정별 사용자 엔트리 관리
-- WaitingQueue: eventType/eventId로 타임딜 등 이벤트와 논리적 연결
+- **CartItem.productId** → Product.id (seller_db): 상품 참조 (스냅샷 포함)
+- **OrderItem.productId** → Product.id (seller_db): 주문 항목 상품 참조
+- **UserCoupon.couponId** → Coupon.id (seller_db): 쿠폰 정의 참조
+- **TimeDealPurchase.timeDealProductId** → TimeDealProduct.id (seller_db): 타임딜 상품 참조
+- **QueueEntry.queueId** → WaitingQueue.id (seller_db): 대기열 설정 참조
+
+> **FK 제거**: 서비스 분해 후 DB 간 FK는 제거되었으며, ID 참조만 유지합니다. 데이터 조회는 Feign Client 또는 Kafka 이벤트를 통해 수행합니다.
 
 ## 주요 특징
 
-### 1. 재고 관리
-- **Optimistic Lock** (`@Version`): 동시성 제어 (Inventory 엔티티의 `version` 필드)
-- **Available/Reserved/Total**: 3단계 재고 상태 관리
-- **StockMovement**: 모든 재고 변경 감사 추적
+### 1. 재고 관리 (Feign Client)
+- **shopping-seller-service 위임**: Inventory는 seller-service에서 관리
+- **Saga에서 Feign 호출**: reserve/deduct/release API 호출
+- **Circuit Breaker**: Resilience4j 적용, fallback: 에러 응답
 
-### 2. Saga Pattern
+### 2. Saga Pattern (Feign 기반)
 - **SagaState**: 분산 트랜잭션 오케스트레이션
 - 재고 예약 → 결제 → 재고 차감 → 배송 생성 단계별 추적
 - 보상 트랜잭션 지원 (롤백)
@@ -365,10 +315,17 @@ erDiagram
 
 ### 주문 취소
 - **취소 가능 상태**: PENDING, CONFIRMED
-- 재고 예약 해제 (Inventory.release)
+- 재고 예약 해제 (Feign: SellerInventoryClient.release)
 - 결제 취소 처리
 
 ### 쿠폰 사용
 - 최소 주문 금액 검증
 - 할인 금액 계산 (고정/퍼센트)
 - 최대 할인 금액 제한
+
+## 변경 이력
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-02-14 | 서비스 분해: Product, Inventory, Coupon, TimeDeal, WaitingQueue를 shopping_seller_db로 이전 | Laze |
+| 2026-02-06 | 초기 문서 작성 | Laze |
