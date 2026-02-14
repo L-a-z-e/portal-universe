@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Spinner, Alert } from '@portal/design-system-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
@@ -105,11 +105,9 @@ watch(() => props.username, () => {
   fetchUserProfile();
 });
 
-// Cleanup
-onMounted(() => {
-  return () => {
-    window.removeEventListener('scroll', handleScroll);
-  };
+// Cleanup: scroll listener 제거
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll);
 });
 </script>
 
