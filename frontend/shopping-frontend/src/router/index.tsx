@@ -37,24 +37,8 @@ const TimeDealPurchasesPage = lazy(() => import('@/pages/timedeal/TimeDealPurcha
 // Queue pages
 const QueueWaitingPage = lazy(() => import('@/pages/queue/QueueWaitingPage'))
 
-// Admin pages
-const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
-const AdminProductListPage = lazy(() => import('@/pages/admin/AdminProductListPage'))
-const AdminProductFormPage = lazy(() => import('@/pages/admin/AdminProductFormPage'))
-const AdminCouponListPage = lazy(() => import('@/pages/admin/AdminCouponListPage'))
-const AdminCouponFormPage = lazy(() => import('@/pages/admin/AdminCouponFormPage'))
-const AdminTimeDealListPage = lazy(() => import('@/pages/admin/AdminTimeDealListPage'))
-const AdminTimeDealFormPage = lazy(() => import('@/pages/admin/AdminTimeDealFormPage'))
-const AdminOrderListPage = lazy(() => import('@/pages/admin/AdminOrderListPage'))
-const AdminOrderDetailPage = lazy(() => import('@/pages/admin/AdminOrderDetailPage'))
-const AdminDeliveryPage = lazy(() => import('@/pages/admin/AdminDeliveryPage'))
-const AdminStockMovementPage = lazy(() => import('@/pages/admin/AdminStockMovementPage'))
-const AdminQueuePage = lazy(() => import('@/pages/admin/AdminQueuePage'))
-const ForbiddenPage = lazy(() => import('@/pages/error/ForbiddenPage'))
-
 // Guards
 import { RequireAuth } from '@portal/react-bridge'
-const RequireRole = lazy(() => import('@/components/guards/RequireRole'))
 
 // Loading fallback component
 const PageLoader: React.FC = () => (
@@ -122,17 +106,6 @@ const Layout: React.FC = () => (
       <Outlet />
     </Suspense>
   </>
-)
-
-// Admin Wrapper - RBAC 기반 Guards (SHOPPING_ADMIN 또는 SUPER_ADMIN 필요)
-const AdminWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Suspense fallback={<PageLoader />}>
-    <RequireAuth>
-      <RequireRole roles={['ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN']}>
-        {children}
-      </RequireRole>
-    </RequireAuth>
-  </Suspense>
 )
 
 // Route definitions - element에 JSX 사용
@@ -236,123 +209,6 @@ const routes = [
             <QueueWaitingPage />
           </Suspense>
         )
-      },
-      {
-        path: '403',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <ForbiddenPage />
-          </Suspense>
-        )
-      },
-      {
-        // Admin routes
-        path: 'admin',
-        element: (
-          <AdminWrapper>
-            <Suspense fallback={<PageLoader />}>
-              <AdminLayout />
-            </Suspense>
-          </AdminWrapper>
-        ),
-        children: [
-          {
-            path: 'products',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminProductListPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'products/new',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminProductFormPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'products/:id',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminProductFormPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'coupons',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminCouponListPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'coupons/new',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminCouponFormPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'time-deals',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminTimeDealListPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'time-deals/new',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminTimeDealFormPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'orders',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminOrderListPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'orders/:orderNumber',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminOrderDetailPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'deliveries',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminDeliveryPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'stock-movements',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminStockMovementPage />
-              </Suspense>
-            )
-          },
-          {
-            path: 'queue',
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <AdminQueuePage />
-              </Suspense>
-            )
-          }
-        ]
       },
       {
         // Fallback for unknown routes

@@ -11,7 +11,9 @@
 | API Gateway | [api-gateway/](./api-gateway/) | 라우팅, 필터 체인, Rate Limiting | 1 |
 | Auth Service | [auth-service/](./auth-service/) | OAuth2/JWT 인증, 회원가입 | 1 |
 | Blog Service | [blog-service/](./blog-service/) | 게시물, 댓글, 시리즈, 태그, 좋아요 | 1 |
-| Shopping Service | [shopping-service/](./shopping-service/) | 상품, 주문, 결제, 배송, 쿠폰, 타임딜, 대기열 | 10 |
+| Shopping Service | [shopping-service/](./shopping-service/) | 장바구니, 주문, 결제, 배송 (Buyer) | 10 |
+| Shopping Seller Service | [shopping-seller-service/](./shopping-seller-service/) | 판매자, 상품, 재고, 쿠폰, 타임딜, 대기열 (Seller) | 1 |
+| Shopping Settlement Service | [shopping-settlement-service/](./shopping-settlement-service/) | 정산 배치, 정산 확정/지급 (Settlement) | 1 |
 | Notification Service | [notification-service/](./notification-service/) | 알림 CRUD, WebSocket, Kafka Events, Redis Pub/Sub | 2 |
 | Chatbot Service | [chatbot-service/](./chatbot-service/) | RAG 기반 AI 채팅, 문서 관리, SSE 스트리밍 | 1 |
 
@@ -43,6 +45,8 @@
 | Auth | A | A001 ~ A099 |
 | Blog | B | B001 ~ B099 |
 | Shopping | S | S001 ~ S099 |
+| Shopping Seller | SL | SL001 ~ SL599 |
+| Shopping Settlement | ST | ST001 ~ ST099 |
 | Notification | N | N001 ~ N099 |
 | Chatbot | CB | CB001 ~ CB099 |
 
@@ -55,4 +59,4 @@
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-14

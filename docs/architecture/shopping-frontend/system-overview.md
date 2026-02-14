@@ -16,19 +16,19 @@ related:
 
 ## 📋 개요
 
-Shopping Frontend는 Portal Universe의 이커머스 마이크로 프론트엔드입니다. React 18 기반으로 구축되었으며, Module Federation을 통해 Portal Shell(Vue 3 Host)에 동적으로 통합됩니다.
+Shopping Frontend는 Portal Universe의 **Buyer(구매자) 전용** 이커머스 마이크로 프론트엔드입니다. React 18 기반으로 구축되었으며, Module Federation을 통해 Portal Shell(Vue 3 Host)에 동적으로 통합됩니다.
+
+> **서비스 분해 (2026-02-14)**: 관리자/판매자 기능은 `shopping-seller-frontend` (:30006)으로 분리되었습니다.
 
 ### 핵심 역할
 
-- **상품 관리**: 조회, 검색, 상세 정보
+- **상품 조회**: 검색, 상세 정보
 - **장바구니**: 실시간 장바구니 관리
 - **주문/결제**: 체크아웃, 주문 내역, 결제 처리
 - **쿠폰 시스템**: 쿠폰 발급, 조회, 사용
-- **타임딜**: 한정 수량 특가 상품 판매
+- **타임딜**: 한정 수량 특가 상품 구매
 - **대기열(Queue)**: 트래픽 폭주 시 대기열 관리
 - **배송 추적**: 실시간 배송 상태 조회
-- **재고 모니터링**: SSE 기반 실시간 재고 스트림
-- **관리자 대시보드**: RBAC 기반 상품/주문/쿠폰/타임딜/배송/재고/대기열 관리
 
 ---
 
@@ -40,8 +40,7 @@ Shopping Frontend는 Portal Universe의 이커머스 마이크로 프론트엔�
 - **Zustand 상태 관리**: cartStore + Portal Bridge hooks (auth, theme)
 - **@portal/react-bootstrap**: createAppBootstrap으로 부트스트랩 간소화 (287줄 → 25줄, 91% 감소)
 - **@portal/react-bridge**: api-registry가 `portal/api` → local fallback 처리
-- **React Router v7**: Code Splitting으로 23개 페이지 Lazy Loading
-- **RBAC 가드**: RequireAuth + RequireRole로 Admin 페이지 보호
+- **React Router v7**: Code Splitting으로 12개 페이지 Lazy Loading
 - **SSE 스트리밍**: 대기열 구독, 재고 실시간 업데이트
 - **테마 동기화**: `data-service="shopping"` + `data-theme="dark"` CSS 격리
 - **타입 안정성**: TypeScript 5.9 + Zod 스키마 검증
@@ -83,32 +82,18 @@ graph TB
             QW[QueueWaitingPage]
         end
 
-        subgraph Admin Pages
-            AL[AdminLayout]
-            APL[AdminProductListPage]
-            APF[AdminProductFormPage]
-            ACL[AdminCouponListPage]
-            ACF[AdminCouponFormPage]
-            ATL[AdminTimeDealListPage]
-            ATF[AdminTimeDealFormPage]
-            AOL[AdminOrderListPage]
-            AOD[AdminOrderDetailPage]
-            ADP[AdminDeliveryPage]
-            ASM[AdminStockMovementPage]
-            AQP[AdminQueuePage]
-        end
     end
 
     subgraph Backend
         GW[API Gateway :8080]
         SS[Shopping Service :8083]
+        SSS[Shopping Seller Service :8088]
     end
 
     PS -->|Module Federation| BS
     BS -->|createAppBootstrap| APP
     APP --> RT
     RT --> Public Pages
-    RT --> Admin Pages
 
     TS -.->|usePortalTheme| PBH
     AS -.->|usePortalAuth| PBH
@@ -220,7 +205,7 @@ interface ShoppingAppInstance {
 
 ## 🧭 라우팅 구조
 
-### Public Routes (13개)
+### Routes (12개)
 
 | 경로 | 페이지 | 설명 |
 |------|--------|------|
@@ -238,22 +223,7 @@ interface ShoppingAppInstance {
 | `/queue/:eventType/:eventId` | QueueWaitingPage | 대기열 (SSE) |
 | `/403` | ForbiddenPage | 접근 거부 |
 
-### Admin Routes (11개, RequireAuth + RequireRole)
-
-| 경로 | 페이지 | 설명 |
-|------|--------|------|
-| `/admin/products` | AdminProductListPage | 상품 관리 |
-| `/admin/products/new` | AdminProductFormPage | 상품 등록 |
-| `/admin/products/:id` | AdminProductFormPage | 상품 수정 |
-| `/admin/coupons` | AdminCouponListPage | 쿠폰 관리 |
-| `/admin/coupons/new` | AdminCouponFormPage | 쿠폰 등록 |
-| `/admin/time-deals` | AdminTimeDealListPage | 타임딜 관리 |
-| `/admin/time-deals/new` | AdminTimeDealFormPage | 타임딜 등록 |
-| `/admin/orders` | AdminOrderListPage | 주문 관리 |
-| `/admin/orders/:orderNumber` | AdminOrderDetailPage | 주문 상세 |
-| `/admin/deliveries` | AdminDeliveryPage | 배송 관리 |
-| `/admin/stock-movements` | AdminStockMovementPage | 재고 이동 |
-| `/admin/queue` | AdminQueuePage | 대기열 관리 |
+> **Note**: 관리자/판매자 라우트(Admin Routes)는 `shopping-seller-frontend` (:30006)으로 분리되었습니다.
 
 ### 라우터 모드
 
@@ -314,24 +284,18 @@ const { theme, isDark, toggleTheme } = usePortalTheme();
 - `@portal/react-bridge` hooks가 Portal Shell의 Pinia store와 직접 동기화
 - Standalone 모드: local fallback (window 전역변수 또는 adapter)
 
-### 3. Custom Hooks (14개)
+### 3. Custom Hooks (6개)
 
 | Hook | 용도 |
 |------|------|
-| `useAdminProducts` | 관리자 상품 관리 |
-| `useAdminCoupons` | 관리자 쿠폰 관리 |
-| `useAdminTimeDeals` | 관리자 타임딜 관리 |
-| `useAdminDelivery` | 관리자 배송 관리 |
-| `useAdminOrders` | 관리자 주문 관리 |
-| `useAdminPayments` | 관리자 결제 관리 |
-| `useAdminQueue` | 관리자 대기열 관리 |
-| `useAdminStockMovements` | 관리자 재고 이동 |
 | `useProductReviews` | 상품 리뷰 조회 |
 | `useSearch` | 상품 검색 (자동완성, 인기 키워드) |
 | `useTimeDeals` | 타임딜 조회 |
 | `useCoupons` | 쿠폰 조회 |
 | `useInventoryStream` | SSE 재고 스트림 |
 | `useQueue` | SSE 대기열 구독 |
+
+> **Note**: Admin hooks (`useAdminProducts`, `useAdminOrders` 등 8개)는 `shopping-seller-frontend`로 이전되었습니다.
 
 ---
 
@@ -399,33 +363,9 @@ import { RequireAuth } from '@portal/react-bridge';
 - 미인증 사용자: `/403` 리다이렉트 또는 Portal Shell 로그인 페이지
 - `usePortalAuth()`로 인증 상태 확인
 
-### 2. 역할 가드 (RequireRole)
+### 2. JWT 토큰 관리
 
-```tsx
-import { RequireRole } from './components/guards/RequireRole';
-
-<RequireAuth>
-  <RequireRole roles={['ROLE_SHOPPING_ADMIN', 'ROLE_SUPER_ADMIN']}>
-    <AdminLayout />
-  </RequireRole>
-</RequireAuth>
-```
-
-**역할 계층 구조**:
-```
-ROLE_SUPER_ADMIN (전체 관리자)
-  └─ ROLE_SHOPPING_ADMIN (쇼핑 관리자)
-       ├─ ROLE_BLOG_ADMIN (블로그 관리자)
-       ├─ ROLE_SELLER (판매자)
-       └─ ROLE_USER (일반 사용자)
-```
-
-**normalizeRole()**:
-- `SHOPPING_ADMIN` → `ROLE_SHOPPING_ADMIN`
-- `admin` → `ROLE_ADMIN`
-- prefix 정규화 처리
-
-### 3. JWT 토큰 관리
+> **Note**: RBAC 가드(RequireRole)는 `shopping-seller-frontend`로 이전되었습니다. Buyer 앱은 인증만 필요합니다.
 
 | 모드 | 토큰 소스 |
 |------|----------|
@@ -741,30 +681,6 @@ sequenceDiagram
     SS-->>TDA: TimeDealPurchase
     TDA-->>QW: 구매 완료
     QW->>User: navigate('/time-deals/purchases')
-```
-
-### 4. 관리자 재고 모니터링 (SSE)
-
-```mermaid
-sequenceDiagram
-    participant Admin
-    participant ASM as AdminStockMovementPage
-    participant ISH as useInventoryStream (SSE)
-    participant SS as Shopping Service
-
-    Admin->>ASM: 재고 이동 페이지 접근
-    ASM->>ISH: EventSource 연결
-    ISH->>SS: GET /api/v1/shopping/inventory/stream (SSE)
-
-    loop 실시간 재고 변경
-        SS-->>ISH: StockMovement (SSE)
-        ISH-->>ASM: movements[] 업데이트
-        ASM-->>Admin: 테이블 실시간 갱신
-    end
-
-    Note over Admin,ASM: 언마운트 시
-    ASM->>ISH: cleanup()
-    ISH->>SS: EventSource.close()
 ```
 
 ---
@@ -1110,8 +1026,9 @@ test('should add product to cart', async ({ page }) => {
 - [Data Flow](./data-flow.md) - 상세 데이터 흐름 및 시퀀스 다이어그램
 - [Module Federation](./module-federation.md) - Module Federation 상세 설정
 - [Shopping API 명세](../../api/shopping-service/) - Backend API 문서
+- [Shopping Seller Frontend](../shopping-seller-frontend/system-overview.md) - 판매자 전용 프론트엔드
 - [Portal Shell 아키텍처](../portal-shell/system-overview.md) - Host 아키텍처
-- [리팩토링 로드맵](./../../../.claude/plans/enumerated-purring-volcano.md) - 12주 리팩토링 계획
+- [ADR-041: Shopping Service 분해](../../adr/ADR-041-shopping-service-decomposition.md)
 
 ---
 
@@ -1119,6 +1036,7 @@ test('should add product to cart', async ({ page }) => {
 
 | 날짜 | 버전 | 변경 내용 |
 |------|------|----------|
+| 2026-02-14 | 3.0 | 서비스 분해: Admin 페이지/hooks를 shopping-seller-frontend로 분리, Buyer 전용으로 전환 |
 | 2026-02-09 | 2.1 | DDD 구조 리팩토링 반영 (api/ 도메인 분리, dto/ 추가, components 정리) |
 | 2026-02-06 | 2.0 | @portal/react-bootstrap 적용, API Client 구조 변경, SSE/대기열 추가 |
 | 2026-01-30 | 1.1 | RBAC 가드 추가, Admin 페이지 확장 |
@@ -1127,4 +1045,4 @@ test('should add product to cart', async ({ page }) => {
 ---
 
 **작성자**: Laze
-**최종 업데이트**: 2026-02-09
+**최종 업데이트**: 2026-02-14
