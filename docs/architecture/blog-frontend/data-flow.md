@@ -4,7 +4,7 @@ title: Blog Frontend Data Flow
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-15
 author: Laze
 tags: [architecture, data-flow, api, pinia, axios, cross-service]
 related:
@@ -32,7 +32,7 @@ graph TB
     subgraph "Portal Shell"
         PS[Portal Shell App]
         AC[apiClient<br/>axios instance]
-        AS[authStore<br/>Pinia Store]
+        AS[authAdapter<br/>Store Adapter]
     end
 
     subgraph "Blog Frontend"
@@ -75,7 +75,7 @@ graph TB
     PS -->|expose| AC
     PS -->|expose| AS
     AC -->|import| API_POSTS & API_COMMENTS & API_LIKES & API_SERIES & API_TAGS & API_FILES & API_FOLLOW & API_USERS
-    AS -->|import| BC_POST
+    AS -->|usePortalAuth composable| BC_POST & BC_SOCIAL & BC_UTIL
 
     BC_POST -->|call| API_POSTS & API_COMMENTS & API_LIKES & API_SERIES
     BC_SOCIAL -->|call| API_USERS & API_FOLLOW & API_POSTS
@@ -401,6 +401,8 @@ sequenceDiagram
 sequenceDiagram
     participant PS as Portal Shell
     participant BS as Blog Frontend<br/>bootstrap.ts
+    participant UPA as usePortalAuth<br/>composable
+    participant AA as authAdapter
     participant AC as apiClient
     participant API as API Functions
     participant GW as API Gateway
@@ -410,6 +412,9 @@ sequenceDiagram
     PS->>BS: mountBlogApp(el, options)
     BS->>BS: import { apiClient } from 'portal/api'
     Note over BS: Module Federation을 통해<br/>Portal의 apiClient 참조
+    BS->>UPA: import { authAdapter } from 'portal/stores'
+    UPA->>AA: subscribe(callback)<br/>인증 상태 변경 감지
+    Note over UPA: authAdapter.getState()를<br/>Vue reactive ref로 감싸기
 
     BS->>API: API 함수에서 apiClient 사용
     API->>AC: apiClient.get/post/put/delete
@@ -422,6 +427,9 @@ sequenceDiagram
     else JWT 만료/무효
         GW-->>AC: 401 Unauthorized
         AC->>PS: interceptor가 토큰 갱신 또는 로그인 리다이렉트
+        PS->>AA: authAdapter.setState()<br/>인증 상태 업데이트
+        AA->>UPA: callback 호출
+        UPA->>UPA: Vue ref 업데이트
     end
 ```
 
@@ -704,4 +712,4 @@ PostDetailPage에서 관련 데이터(댓글, 좋아요, 시리즈, 네비게이
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-15

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useAuthStore } from "portal/stores";
 import { onMounted, onBeforeUnmount, ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { getPublishedPosts, getTrendingPosts, getFeed } from "../api/posts";
@@ -11,10 +10,11 @@ import PostCard from '../components/PostCard.vue';
 import { useApiError } from '@portal/design-system-vue';
 import { useSearchStore } from '../stores/searchStore';
 import { useFollowStore } from '../stores/followStore';
+import { usePortalAuth } from '@/composables/usePortalAuth';
 
 const router = useRouter();
 const route = useRoute();
-const authStore = useAuthStore();
+const { isAuthenticated } = usePortalAuth();
 const searchStore = useSearchStore();
 const followStore = useFollowStore();
 const { getErrorMessage } = useApiError();
@@ -29,7 +29,7 @@ const currentPeriod = ref<PeriodType>('week');
 // Tab items for DS Tabs component
 const tabItems = computed<TabItem[]>(() => {
   const items: TabItem[] = [];
-  if (authStore.isAuthenticated) {
+  if (isAuthenticated.value) {
     items.push({ label: '📬 피드', value: 'feed' });
   }
   items.push(
@@ -240,7 +240,7 @@ function initializeFromQuery() {
 
   if (tab === 'feed' || tab === 'trending' || tab === 'recent') {
     // 피드 탭은 로그인한 사용자만 접근 가능
-    if (tab === 'feed' && !authStore.isAuthenticated) {
+    if (tab === 'feed' && !isAuthenticated.value) {
       currentTab.value = 'trending';
     } else {
       currentTab.value = tab as TabType;
@@ -309,7 +309,7 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <Button
-            v-if="authStore.isAuthenticated"
+            v-if="isAuthenticated"
             variant="primary"
             size="md"
             @click="router.push('/write')"
@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
           <template v-else>첫 게시글을 작성해보세요!</template>
         </p>
         <Button
-            v-if="!isSearchMode && authStore.isAuthenticated && currentTab !== 'feed'"
+            v-if="!isSearchMode && isAuthenticated && currentTab !== 'feed'"
             variant="primary"
             @click="router.push('/write')"
         >

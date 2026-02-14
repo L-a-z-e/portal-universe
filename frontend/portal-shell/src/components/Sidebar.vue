@@ -2,7 +2,6 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
-import { authService } from '../services/authService';
 import { Button } from '@portal/design-system-vue';
 import { NotificationBell } from './notification';
 
@@ -30,14 +29,7 @@ const handleLogin = () => {
 };
 
 const handleLogout = async () => {
-  try {
-    await authService.logout();
-    const authStore = useAuthStore();
-    authStore.setAuthenticated(false);
-    authStore.setUser(null);
-  } catch (error) {
-    console.error('Logout failed:', error);
-  }
+  await authStore.logout();
 };
 
 const route = useRoute();

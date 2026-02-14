@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useAuthStore } from 'portal/stores'
+import { ref, onMounted } from 'vue'
 import { Card, Spinner, Button } from '@portal/design-system-vue'
 import { getBlogStats, getCategoryStats, getPopularTags, getAuthorStats } from '@/api/posts'
 import type { BlogStats, CategoryStats, TagStatsResponse, AuthorStats } from '@/types'
+import { usePortalAuth } from '@/composables/usePortalAuth'
 
 // Composables
-const authStore = useAuthStore()
+const { isAuthenticated, userUuid } = usePortalAuth()
 
 // State
 const loading = ref(false)
@@ -15,9 +15,6 @@ const blogStats = ref<BlogStats | null>(null)
 const categoryStats = ref<CategoryStats[]>([])
 const popularTags = ref<TagStatsResponse[]>([])
 const authorStats = ref<AuthorStats | null>(null)
-
-// Computed
-const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 // Methods
 const fetchBlogStats = async () => {
@@ -46,10 +43,10 @@ const fetchPopularTags = async () => {
 }
 
 const fetchAuthorStats = async () => {
-  if (!isAuthenticated.value || !authStore.user.value?.profile?.sub) return
+  if (!isAuthenticated.value || !userUuid.value) return
 
   try {
-    authorStats.value = await getAuthorStats(authStore.user.value.profile.sub)
+    authorStats.value = await getAuthorStats(userUuid.value)
   } catch (e) {
     console.error('Failed to fetch author stats:', e)
   }

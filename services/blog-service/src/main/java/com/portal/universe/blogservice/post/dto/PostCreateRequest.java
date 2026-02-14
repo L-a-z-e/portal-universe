@@ -19,6 +19,7 @@ public record PostCreateRequest(
         String summary,
 
         // PRD Phase 1: 콘텐츠 분류
+        @Size(max = 20, message = "태그는 20개를 초과할 수 없습니다")
         Set<String> tags,
 
         String category,

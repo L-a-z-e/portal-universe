@@ -11,6 +11,8 @@ import com.portal.universe.blogservice.series.repository.SeriesRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.commonlibrary.security.context.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 /**
  * 시리즈 비즈니스 로직 서비스
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -62,7 +65,12 @@ public class SeriesService {
         }
 
         series.update(request.name(), request.description(), request.thumbnailUrl());
-        seriesRepository.save(series);
+        try {
+            seriesRepository.save(series);
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("Series concurrent modification detected: {}", seriesId);
+            throw new CustomBusinessException(BlogErrorCode.SERIES_CONCURRENT_MODIFICATION);
+        }
         return toResponse(series);
     }
 
@@ -115,7 +123,12 @@ public class SeriesService {
         }
 
         series.addPost(postId);
-        seriesRepository.save(series);
+        try {
+            seriesRepository.save(series);
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("Series concurrent modification detected: {}", seriesId);
+            throw new CustomBusinessException(BlogErrorCode.SERIES_CONCURRENT_MODIFICATION);
+        }
         return toResponse(series);
     }
 
@@ -132,7 +145,12 @@ public class SeriesService {
         }
 
         series.removePost(postId);
-        seriesRepository.save(series);
+        try {
+            seriesRepository.save(series);
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("Series concurrent modification detected: {}", seriesId);
+            throw new CustomBusinessException(BlogErrorCode.SERIES_CONCURRENT_MODIFICATION);
+        }
         return toResponse(series);
     }
 
@@ -149,7 +167,12 @@ public class SeriesService {
         }
 
         series.reorderPosts(request.postIds());
-        seriesRepository.save(series);
+        try {
+            seriesRepository.save(series);
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("Series concurrent modification detected: {}", seriesId);
+            throw new CustomBusinessException(BlogErrorCode.SERIES_CONCURRENT_MODIFICATION);
+        }
         return toResponse(series);
     }
 

@@ -4,7 +4,7 @@ title: Blog Frontend System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-15
 author: Laze
 tags: [architecture, vue3, micro-frontend, module-federation, dual-mode]
 related:
@@ -88,14 +88,14 @@ graph TB
             API_AUTH[auth-service APIs<br/>follow, users]
         end
 
-        subgraph "Composables (2)"
-            COMP[useRelativeTime<br/>useThemeDetection]
+        subgraph "Composables (3)"
+            COMP[usePortalAuth<br/>useRelativeTime<br/>useThemeDetection]
         end
     end
 
     subgraph "Portal Shell"
         PS_API[apiClient via portal/api]
-        PS_AUTH[authStore via portal/stores]
+        PS_AUTH[authAdapter via portal/stores]
     end
 
     subgraph "Backend"
@@ -121,7 +121,7 @@ graph TB
     C_POST & C_COMMENT & C_SOCIAL & C_USER --> COMP
 
     API_BLOG & API_AUTH -.->|import| PS_API
-    V_POST -.->|import| PS_AUTH
+    V_POST & V_SOCIAL & V_UTIL -.->|usePortalAuth| PS_AUTH
 
     API_BLOG --> GW --> BS --> DB & S3
     API_AUTH --> GW --> AS --> RDB
@@ -177,7 +177,7 @@ graph TB
 
 `meta.requiresAuth: true`인 라우트에 대해 인증을 검사합니다.
 
-- **Embedded 모드**: `portal/stores`의 `authStore.isAuthenticated` 확인
+- **Embedded 모드**: `getPortalAuthState()` (usePortalAuth composable)로 authAdapter 기반 인증 상태 확인
 - **Standalone 모드**: `window.__PORTAL_ACCESS_TOKEN__` 존재 여부 확인
 - **미인증 시**: `window.__PORTAL_SHOW_LOGIN__()` 호출하여 Portal Shell에 로그인 모달 요청
 
@@ -275,10 +275,13 @@ graph TB
 
 ---
 
-## Composables (2)
+## Composables (3)
 
 | Composable | 역할 | 사용처 |
 |------------|------|--------|
+| **usePortalAuth** | Portal Shell authAdapter를 Vue reactive ref로 감싸는 composable. `isAuthenticated`, `userUuid`, `displayName`, `roles`, `hasRole()`, `logout()`, `requestLogin()` 제공 | PostDetailPage, PostListPage, StatsPage |
+| **getPortalAuthState()** | 컴포넌트 밖(router guard)에서 동기적으로 auth 상태 조회 | router/index.ts (Auth Guard) |
+| **disposePortalAuth()** | MF app unmount 시 authAdapter 구독 해제 | bootstrap.ts |
 | **useRelativeTime** | 상대 시간 계산 (`방금 전`, `N분 전`, `N일 전`) | PostCard, CommentItem |
 | **useThemeDetection** | `data-theme` 속성 변경 감지하여 다크모드 상태 관리 (MutationObserver) | App.vue, PostDetailPage |
 
@@ -417,7 +420,8 @@ blog-frontend/
 │   │   ├── searchStore.ts         # 검색 상태 관리
 │   │   └── followStore.ts         # 팔로우 상태 + 캐시
 │   │
-│   ├── composables/               # Vue Composables (2)
+│   ├── composables/               # Vue Composables (3)
+│   │   ├── usePortalAuth.ts       # Portal Shell 인증 상태 (authAdapter wrapper)
 │   │   ├── useRelativeTime.ts     # 상대 시간 계산
 │   │   └── useThemeDetection.ts   # 다크모드 감지
 │   │
@@ -509,10 +513,10 @@ blog-frontend/
 ### Auth Guard 동작
 
 ```typescript
-// Embedded: Portal Shell의 authStore 사용
-const { useAuthStore } = await import('portal/stores');
-const authStore = useAuthStore();
-if (authStore.isAuthenticated.value) return true;
+// Embedded: authAdapter 기반 composable 사용
+import { getPortalAuthState } from '@/composables/usePortalAuth';
+const authState = getPortalAuthState();
+if (authState.isAuthenticated) return true;
 
 // Standalone: 글로벌 토큰 확인
 if (window.__PORTAL_ACCESS_TOKEN__) return true;
@@ -607,4 +611,4 @@ npm run build:k8s      # Kubernetes 환경
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-15

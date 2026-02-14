@@ -99,6 +99,11 @@ public enum BlogErrorCode implements ErrorCode {
      */
     SERIES_REORDER_FORBIDDEN(HttpStatus.FORBIDDEN, "B045", "You are not allowed to reorder posts in this series"),
 
+    /**
+     * 시리즈가 다른 요청에 의해 동시에 수정된 경우 발생합니다.
+     */
+    SERIES_CONCURRENT_MODIFICATION(HttpStatus.CONFLICT, "B046", "Series was modified by another request. Please retry."),
+
     // ========================================
     // Tag Errors (B050 ~ B059)
     // ========================================

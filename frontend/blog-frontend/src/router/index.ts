@@ -15,24 +15,23 @@ import CategoryListPage from '../views/CategoryListPage.vue';
 import AdvancedSearchPage from '../views/AdvancedSearchPage.vue';
 import StatsPage from '../views/StatsPage.vue';
 
+import { getPortalAuthState } from '@/composables/usePortalAuth';
+
 /**
  * Navigation guard: requiresAuth 체크
- * Embedded 모드에서는 Portal Shell의 authStore를 사용하고,
+ * Embedded 모드에서는 usePortalAuth(authAdapter 기반)를 사용하고,
  * Standalone 모드에서는 window.__PORTAL_ACCESS_TOKEN__ 존재 여부로 판단
  */
 function addAuthGuard(router: Router): void {
-  router.beforeEach(async (to, _from) => {
+  router.beforeEach((to, _from) => {
     if (!to.meta.requiresAuth) return true;
 
-    // Embedded 모드: Portal Shell의 store 사용
-    try {
-      const { useAuthStore } = await import('portal/stores');
-      const authStore = useAuthStore();
-      if (authStore.isAuthenticated.value) return true;
-    } catch {
-      // Standalone 모드: 글로벌 토큰으로 확인
-      if ((window as any).__PORTAL_ACCESS_TOKEN__) return true;
-    }
+    // authAdapter 기반 인증 확인 (Embedded + Standalone 공통)
+    const authState = getPortalAuthState();
+    if (authState.isAuthenticated) return true;
+
+    // Standalone fallback: 글로벌 토큰으로 확인
+    if ((window as any).__PORTAL_ACCESS_TOKEN__) return true;
 
     // 미인증 → Portal Shell에 로그인 모달 요청
     console.log(`[Blog Router Guard] Auth required for ${to.path}`);
