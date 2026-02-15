@@ -10,7 +10,7 @@ import PostCard from '../components/PostCard.vue';
 import { useApiError } from '@portal/design-system-vue';
 import { useSearchStore } from '../stores/searchStore';
 import { useFollowStore } from '../stores/followStore';
-import { usePortalAuth } from '@/composables/usePortalAuth';
+import { usePortalAuth } from '@portal/vue-bridge';
 
 const router = useRouter();
 const route = useRoute();

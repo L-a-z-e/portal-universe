@@ -2,10 +2,10 @@
 import { computed, watch, onMounted, onActivated } from 'vue';
 import { useRoute } from 'vue-router';
 import { Button, ToastContainer } from '@portal/design-system-vue';
+import { usePortalTheme, isEmbedded as checkEmbedded } from '@portal/vue-bridge';
 
 const route = useRoute();
-const isEmbedded = computed(() => window.__POWERED_BY_PORTAL_SHELL__ === true);
-
+const isEmbedded = computed(() => checkEmbedded());
 
 /**
  * data-theme 속성 동기화
@@ -18,6 +18,11 @@ function updateDataTheme() {
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
 }
 
+function applyDarkClass(isDark: boolean) {
+  document.documentElement.classList.toggle('dark', isDark);
+  updateDataTheme();
+}
+
 onMounted(() => {
   // Step 1: data-service="blog" 속성 설정 (CSS 선택자 활성화)
   document.documentElement.setAttribute('data-service', 'blog');
@@ -26,29 +31,15 @@ onMounted(() => {
   updateDataTheme();
 
   if (isEmbedded.value) {
-    // Embedded 모드: Portal Shell의 themeStore 연동
-    import('portal/stores').then(({ useThemeStore }) => {
-      const store = useThemeStore();
+    // Embedded 모드: Portal Shell의 themeAdapter 연동 (via vue-bridge)
+    const { isDark } = usePortalTheme();
 
-      // Step 3: 초기 다크모드 적용
-      if (store.isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      updateDataTheme();
+    // Step 3: 초기 다크모드 적용
+    applyDarkClass(isDark.value);
 
-      // Step 4: 다크모드 변경 감지 및 동기화
-      watch(() => store.isDark, (newVal) => {
-        if (newVal) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-        updateDataTheme();
-      });
-    }).catch(() => {
-      // Portal Shell themeStore 로드 실패 시 무시
+    // Step 4: 다크모드 변경 감지 및 동기화
+    watch(isDark, (newVal) => {
+      applyDarkClass(newVal);
     });
   } else {
     // Standalone 모드: MutationObserver로 dark 클래스 감지

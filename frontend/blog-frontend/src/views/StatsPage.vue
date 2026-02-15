@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { Card, Spinner, Button } from '@portal/design-system-vue'
 import { getBlogStats, getCategoryStats, getPopularTags, getAuthorStats } from '@/api/posts'
 import type { BlogStats, CategoryStats, TagStatsResponse, AuthorStats } from '@/types'
-import { usePortalAuth } from '@/composables/usePortalAuth'
+import { usePortalAuth } from '@portal/vue-bridge'
 
 // Composables
 const { isAuthenticated, userUuid } = usePortalAuth()

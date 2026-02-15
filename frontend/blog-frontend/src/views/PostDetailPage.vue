@@ -21,7 +21,7 @@ import RelatedPosts from "@/components/RelatedPosts.vue";
 import PostNavigation from "@/components/PostNavigation.vue";
 import CommentList from "@/components/CommentList.vue";
 import { useThemeDetection } from "@/composables/useThemeDetection";
-import { usePortalAuth } from "@/composables/usePortalAuth";
+import { usePortalAuth } from '@portal/vue-bridge';
 const route = useRoute();
 const router = useRouter();
 const { handleError } = useApiError();
