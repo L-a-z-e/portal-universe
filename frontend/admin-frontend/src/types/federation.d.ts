@@ -47,42 +47,47 @@ declare module 'portal/api' {
  * portal/stores 모듈 - Store 관련 exports
  */
 declare module 'portal/stores' {
-  import type { ComputedRef, Ref } from 'vue';
+  // Auth Adapter State
+  export interface AuthState {
+    isAuthenticated: boolean;
+    displayName: string;
+    isAdmin: boolean;
+    isSeller: boolean;
+    roles: string[];
+    memberships: Record<string, string>;
+    user: {
+      uuid?: string;
+      email?: string;
+      username?: string;
+      name?: string;
+      nickname?: string;
+      picture?: string;
+    } | null;
+  }
 
-  // Auth Store
-  export const useAuthStore: () => {
-    isAuthenticated: ComputedRef<boolean>;
-    user: ComputedRef<{
-      profile?: {
-        sub?: string;
-        email?: string;
-        name?: string;
-        nickname?: string;
-        picture?: string;
-      };
-      authority?: {
-        roles?: string[];
-        memberships?: Record<string, string>;
-      };
-    } | null>;
-    displayName: ComputedRef<string>;
-    isAdmin: ComputedRef<boolean>;
-    isSeller: ComputedRef<boolean>;
+  export type UnsubscribeFn = () => void;
+
+  // Auth Adapter (Framework-Agnostic)
+  export const authAdapter: {
+    getState: () => AuthState;
+    subscribe: (callback: (state: AuthState) => void) => UnsubscribeFn;
     hasRole: (role: string) => boolean;
     hasAnyRole: (roles: string[]) => boolean;
     isServiceAdmin: (service: string) => boolean;
-    getMembershipTier: (service: string) => string;
+    logout: () => void;
+    getAccessToken: () => string | null;
+    requestLogin: (path?: string) => void;
   };
 
-  // Theme Store
-  export type ThemeMode = 'dark' | 'light' | 'system';
+  // Theme Adapter (Framework-Agnostic)
+  export interface ThemeState {
+    isDark: boolean;
+  }
 
-  export const useThemeStore: () => {
-    isDark: Ref<boolean>;
-    mode: Ref<ThemeMode>;
+  export const themeAdapter: {
+    getState: () => ThemeState;
+    subscribe: (callback: (state: ThemeState) => void) => UnsubscribeFn;
     toggle: () => void;
-    setMode: (mode: ThemeMode) => void;
-    applyTheme: () => void;
     initialize: () => void;
   };
 }

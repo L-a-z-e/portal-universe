@@ -20,6 +20,7 @@
   "dependencies": {
     "@portal/design-system-vue": "*",
     "@portal/design-tokens": "*",
+    "@portal/vue-bridge": "*",
     "@toast-ui/editor": "^3.2.2",
     "@toast-ui/editor-plugin-code-syntax-highlight": "^3.1.0",
     "axios": "^1.12.2",

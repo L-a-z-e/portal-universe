@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, onActivated } from 'vue';
 import { useRoute } from 'vue-router';
+import { usePortalTheme, isEmbedded as checkEmbedded } from '@portal/vue-bridge';
 
 const route = useRoute();
-const isEmbedded = computed(() => window.__POWERED_BY_PORTAL_SHELL__ === true);
+const isEmbedded = computed(() => checkEmbedded());
 
 function updateDataTheme() {
   const isDark = document.documentElement.classList.contains('dark');
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+}
+
+function applyDarkClass(isDark: boolean) {
+  document.documentElement.classList.toggle('dark', isDark);
+  updateDataTheme();
 }
 
 onMounted(() => {
@@ -15,26 +21,13 @@ onMounted(() => {
   updateDataTheme();
 
   if (isEmbedded.value) {
-    import('portal/stores').then(({ useThemeStore }) => {
-      const store = useThemeStore();
+    // Embedded 모드: Portal Shell의 themeAdapter 연동 (via vue-bridge)
+    const { isDark } = usePortalTheme();
 
-      if (store.isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      updateDataTheme();
+    applyDarkClass(isDark.value);
 
-      watch(() => store.isDark, (newVal) => {
-        if (newVal) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-        updateDataTheme();
-      });
-    }).catch(() => {
-      // Portal Shell themeStore load failed - ignore
+    watch(isDark, (newVal) => {
+      applyDarkClass(newVal);
     });
   } else {
     const observer = new MutationObserver((mutations) => {

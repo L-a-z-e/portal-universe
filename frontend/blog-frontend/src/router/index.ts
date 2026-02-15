@@ -15,7 +15,7 @@ import CategoryListPage from '../views/CategoryListPage.vue';
 import AdvancedSearchPage from '../views/AdvancedSearchPage.vue';
 import StatsPage from '../views/StatsPage.vue';
 
-import { getPortalAuthState } from '@/composables/usePortalAuth';
+import { getPortalAuthState } from '@portal/vue-bridge';
 
 /**
  * Navigation guard: requiresAuth 체크

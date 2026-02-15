@@ -4,7 +4,7 @@ title: Blog Frontend Module Federation 설정
 type: architecture
 status: current
 created: 2026-01-23
-updated: 2026-02-06
+updated: 2026-02-15
 author: Laze
 tags: [blog-frontend, module-federation, vue, architecture]
 ---
@@ -85,23 +85,26 @@ dist/
 | 라이브러리 | 이유 | 영향 |
 |----------|------|------|
 | **vue** | 상태 공유, 컴포넌트 호환성 | Portal Shell과 동일 버전 사용 |
-| **pinia** | 상태 관리 공유 (authStore) | 같은 인스턴스 사용 가능 |
+| **pinia** | 상태 관리 공유 (via vue-bridge) | 같은 인스턴스 사용 가능 |
 | **axios** | API 클라이언트 공유 | 인터셉터, 기본 설정 공유 |
 
 ### 공유 라이브러리 사용 예
 
 ```typescript
-// 1. Portal Shell의 authStore 접근
-import { useAuthStore } from 'portal/stores';
-const authStore = useAuthStore();
+// 1. @portal/vue-bridge로 인증 상태 접근 (authAdapter 기반)
+import { usePortalAuth, getPortalAuthState } from '@portal/vue-bridge'
+const { isAuthenticated, displayName, logout } = usePortalAuth()
 
-// 2. Portal Shell의 apiClient 접근
+// 2. @portal/vue-bridge로 테마 상태 접근 (themeAdapter 기반)
+import { usePortalTheme } from '@portal/vue-bridge'
+const { isDark, toggle } = usePortalTheme()
+
+// 3. Portal Shell의 apiClient 접근
 import { apiClient } from 'portal/api';
 const { data } = await apiClient.get('/api/v1/blog/posts');
 
-// 3. 공유 라이브러리 직접 사용
+// 4. 공유 라이브러리 직접 사용
 import { ref, computed } from 'vue';
-import { defineStore } from 'pinia';
 ```
 
 ## 내보낸 모듈
@@ -203,9 +206,9 @@ blogApp.onParentNavigate(path);  // Blog 내부 라우터 업데이트
 
 #### 상태 공유
 ```typescript
-// authStore (공유)
-const authStore = useAuthStore();
-console.log(authStore.isAuthenticated);
+// @portal/vue-bridge로 인증 상태 접근
+import { usePortalAuth } from '@portal/vue-bridge'
+const { isAuthenticated } = usePortalAuth()
 
 // apiClient (공유)
 const response = await apiClient.get('/api/v1/blog/posts');
@@ -226,16 +229,14 @@ const blogApp = mountBlogApp(container, {
 
 #### 상태 변경 감지
 ```typescript
-// authStore는 공유되므로 변경이 자동 동기화됨
-const authStore = useAuthStore();
-watch(
-  () => authStore.isAuthenticated,
-  (newVal) => {
-    if (!newVal) {
-      // 로그아웃되었을 때 처리
-    }
+// vue-bridge의 usePortalAuth는 reactive computed ref 기반 — 자동 동기화
+import { usePortalAuth } from '@portal/vue-bridge'
+const { isAuthenticated } = usePortalAuth()
+watch(isAuthenticated, (newVal) => {
+  if (!newVal) {
+    // 로그아웃되었을 때 처리
   }
-);
+})
 ```
 
 ## CSS 격리 및 관리
@@ -478,4 +479,4 @@ const remoteURL = 'http://localhost:30001/remoteEntry.js?v=' + Date.now();
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-15

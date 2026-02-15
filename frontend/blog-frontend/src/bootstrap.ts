@@ -6,7 +6,7 @@ import type { Router } from 'vue-router';
 import { createBlogRouter, logRouterInfo } from "./router";
 import {createPinia} from "pinia";
 import {useFollowStore} from "./stores/followStore";
-import { disposePortalAuth } from './composables/usePortalAuth';
+import { disposePortalAuth } from '@portal/vue-bridge';
 
 /**
  * Mount 옵션
