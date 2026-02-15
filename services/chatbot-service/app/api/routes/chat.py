@@ -10,6 +10,7 @@ from app.core.security import get_current_user_id
 from app.rag.engine import rag_engine
 from app.schemas.chat import ChatRequest, ChatResponse, SourceInfo
 from app.schemas.common import ApiResponse
+from app.schemas.enums import MessageRole
 from app.services.conversation_service import conversation_service
 
 logger = logging.getLogger(__name__)
@@ -40,14 +41,14 @@ async def send_message(
         user_id=user_id,
         conversation_id=conversation_id,
         message_id=message_id,
-        role="user",
+        role=MessageRole.USER,
         content=request.message,
     )
     await conversation_service.save_message(
         user_id=user_id,
         conversation_id=conversation_id,
         message_id=str(uuid.uuid4()),
-        role="assistant",
+        role=MessageRole.ASSISTANT,
         content=answer,
         sources=sources,
     )
@@ -81,7 +82,7 @@ async def stream_message(
         user_id=user_id,
         conversation_id=conversation_id,
         message_id=message_id,
-        role="user",
+        role=MessageRole.USER,
         content=request.message,
     )
 
@@ -119,7 +120,7 @@ async def stream_message(
                     user_id=user_id,
                     conversation_id=conversation_id,
                     message_id=str(uuid.uuid4()),
-                    role="assistant",
+                    role=MessageRole.ASSISTANT,
                     content=answer_text,
                     sources=source_infos,
                 )

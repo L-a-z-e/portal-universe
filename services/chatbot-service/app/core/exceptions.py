@@ -13,6 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.core.error_codes import ChatbotErrorCode
 from app.schemas.common import ApiResponse, FieldError
 
 logger = logging.getLogger(__name__)
@@ -31,15 +32,50 @@ class BusinessException(Exception):
     """Domain-specific exception with error code.
 
     Usage:
+        # ErrorCode enum 사용 (권장)
+        raise BusinessException(ChatbotErrorCode.ENGINE_NOT_INITIALIZED)
+        raise BusinessException(ChatbotErrorCode.INVALID_FILENAME, "Custom message")
+
+        # Static factory 사용
+        raise BusinessException.not_found("Document not found")
+        raise BusinessException.auth_required()
+
+        # 레거시 방식 (하위 호환)
         raise BusinessException("CH01", "RAG Engine Error", status_code=500)
-        raise BusinessException("CH02", "Invalid Document", status_code=400)
     """
 
-    def __init__(self, code: str, message: str, *, status_code: int = 400) -> None:
-        super().__init__(message)
-        self.code = code
-        self.message = message
-        self.status_code = status_code
+    def __init__(
+        self,
+        error_code: ChatbotErrorCode | str,
+        message: str | None = None,
+        *,
+        status_code: int | None = None,
+    ) -> None:
+        if isinstance(error_code, ChatbotErrorCode):
+            self.code = error_code.code
+            self.message = message or error_code.default_message
+            self.status_code = status_code or error_code.status_code
+        else:
+            # 레거시 호환: 직접 code string 전달
+            self.code = error_code
+            self.message = message or "Business error"
+            self.status_code = status_code or 400
+        super().__init__(self.message)
+
+    @staticmethod
+    def not_found(message: str | None = None) -> "BusinessException":
+        """문서/리소스를 찾을 수 없는 경우."""
+        return BusinessException(ChatbotErrorCode.DOCUMENT_NOT_FOUND, message)
+
+    @staticmethod
+    def auth_required(message: str | None = None) -> "BusinessException":
+        """인증이 필요한 경우."""
+        return BusinessException(ChatbotErrorCode.AUTHENTICATION_REQUIRED, message)
+
+    @staticmethod
+    def admin_required(message: str | None = None) -> "BusinessException":
+        """관리자 권한이 필요한 경우."""
+        return BusinessException(ChatbotErrorCode.ADMIN_REQUIRED, message)
 
 
 async def business_exception_handler(request: Request, exc: BusinessException) -> JSONResponse:

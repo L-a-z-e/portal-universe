@@ -253,7 +253,7 @@ async def test_openai_provider_stream():
 @pytest.mark.asyncio
 async def test_openai_provider_system_prompt():
     """SYSTEM_PROMPT가 비어있지 않은 문자열인지 확인."""
-    from app.providers.openai_provider import SYSTEM_PROMPT
+    from app.providers.base import SYSTEM_PROMPT
 
     assert isinstance(SYSTEM_PROMPT, str)
     assert len(SYSTEM_PROMPT) > 0

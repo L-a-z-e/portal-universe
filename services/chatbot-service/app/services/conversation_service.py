@@ -6,6 +6,7 @@ import redis.asyncio as redis
 
 from app.core.config import settings
 from app.schemas.chat import SourceInfo
+from app.schemas.enums import MessageRole
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class ConversationService:
         user_id: str,
         conversation_id: str,
         message_id: str,
-        role: str,
+        role: MessageRole,
         content: str,
         sources: list[SourceInfo] | None = None,
     ) -> None:
@@ -56,7 +57,7 @@ class ConversationService:
             conv["message_count"] = conv.get("message_count", 0) + 1
             conv["updated_at"] = now
         else:
-            title = content[:50] if role == "user" else "New conversation"
+            title = content[:50] if role == MessageRole.USER else "New conversation"
             conv = {
                 "conversation_id": conversation_id,
                 "title": title,

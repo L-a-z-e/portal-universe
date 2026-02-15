@@ -1,4 +1,8 @@
-from fastapi import Header, HTTPException, status
+from fastapi import Header
+
+from app.core.constants import ADMIN_ROLES
+from app.core.error_codes import ChatbotErrorCode
+from app.core.exceptions import BusinessException
 
 
 def get_current_user_id(
@@ -10,10 +14,7 @@ def get_current_user_id(
     API Gateway가 JWT 검증을 담당하므로 chatbot-service는 헤더만 신뢰.
     """
     if not x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-        )
+        raise BusinessException.auth_required()
     return x_user_id
 
 
@@ -27,17 +28,10 @@ def require_admin(
     X-User-Effective-Roles를 우선 확인하고, 없으면 X-User-Roles로 fallback.
     """
     if not x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-        )
+        raise BusinessException.auth_required()
     roles_header = x_user_effective_roles or x_user_roles
     if roles_header:
         roles = [r.strip() for r in roles_header.split(",")]
-        admin_roles = {"ROLE_SUPER_ADMIN", "ROLE_BLOG_ADMIN", "ROLE_SHOPPING_ADMIN"}
-        if not any(role in admin_roles for role in roles):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Admin access required",
-            )
+        if not any(role in ADMIN_ROLES for role in roles):
+            raise BusinessException.admin_required()
     return x_user_id

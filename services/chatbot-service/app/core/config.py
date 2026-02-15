@@ -44,12 +44,18 @@ class Settings(BaseSettings):
 
     # Documents
     documents_dir: str = "./documents"
+    allowed_file_extensions: set[str] = {".md", ".txt", ".pdf"}
+    max_file_size_bytes: int = 10 * 1024 * 1024  # 10MB
 
     # RAG
     rag_chunk_size: int = 1000
     rag_chunk_overlap: int = 200
     rag_top_k: int = 5
     rag_score_threshold: float = 0.7
+    source_chunk_preview_length: int = 200
+
+    # Vector Store
+    vector_collection_name: str = "chatbot_documents"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
