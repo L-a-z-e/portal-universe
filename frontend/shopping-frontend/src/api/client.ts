@@ -46,10 +46,6 @@ const getLocalClient = (): AxiosInstance => {
         token = getAdapter('auth').getAccessToken?.()
       }
 
-      if (!token) {
-        token = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__
-      }
-
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`
       }
@@ -74,7 +70,9 @@ const getLocalClient = (): AxiosInstance => {
 
       if (status === 401) {
         console.warn('[Shopping API] Unauthorized - token may be expired')
-        window.__PORTAL_ON_AUTH_ERROR__?.()
+        if (isBridgeReady()) {
+          getAdapter('auth').logout()
+        }
       }
 
       return Promise.reject(error)
