@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 export enum PrismErrorCode {
+  // P001-P099: Domain business errors
   NOT_FOUND = 'P001',
   INVALID_STATE_TRANSITION = 'P002',
   AGENT_NOT_ASSIGNED = 'P003',
@@ -10,6 +11,12 @@ export enum PrismErrorCode {
   DUPLICATE_RESOURCE = 'P007',
   ENCRYPTION_FAILED = 'P008',
   RATE_LIMIT_EXCEEDED = 'P009',
+
+  // P900-P999: Common/infrastructure errors
+  INTERNAL_ERROR = 'P900',
+  VALIDATION_ERROR = 'P901',
+  UNAUTHORIZED = 'P902',
+  FORBIDDEN = 'P903',
 }
 
 const ERROR_MESSAGES: Record<PrismErrorCode, string> = {
@@ -22,6 +29,10 @@ const ERROR_MESSAGES: Record<PrismErrorCode, string> = {
   [PrismErrorCode.DUPLICATE_RESOURCE]: 'Duplicate resource',
   [PrismErrorCode.ENCRYPTION_FAILED]: 'Encryption/decryption failed',
   [PrismErrorCode.RATE_LIMIT_EXCEEDED]: 'Rate limit exceeded',
+  [PrismErrorCode.INTERNAL_ERROR]: 'Internal server error',
+  [PrismErrorCode.VALIDATION_ERROR]: 'Invalid input value',
+  [PrismErrorCode.UNAUTHORIZED]: 'Unauthorized',
+  [PrismErrorCode.FORBIDDEN]: 'Forbidden',
 };
 
 const ERROR_STATUS: Record<PrismErrorCode, HttpStatus> = {
@@ -34,6 +45,10 @@ const ERROR_STATUS: Record<PrismErrorCode, HttpStatus> = {
   [PrismErrorCode.DUPLICATE_RESOURCE]: HttpStatus.CONFLICT,
   [PrismErrorCode.ENCRYPTION_FAILED]: HttpStatus.INTERNAL_SERVER_ERROR,
   [PrismErrorCode.RATE_LIMIT_EXCEEDED]: HttpStatus.TOO_MANY_REQUESTS,
+  [PrismErrorCode.INTERNAL_ERROR]: HttpStatus.INTERNAL_SERVER_ERROR,
+  [PrismErrorCode.VALIDATION_ERROR]: HttpStatus.BAD_REQUEST,
+  [PrismErrorCode.UNAUTHORIZED]: HttpStatus.UNAUTHORIZED,
+  [PrismErrorCode.FORBIDDEN]: HttpStatus.FORBIDDEN,
 };
 
 export class BusinessException extends HttpException {

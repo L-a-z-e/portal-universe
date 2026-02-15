@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Subject, Observable, filter, map, finalize } from 'rxjs';
+import { TaskResponseDto } from '../task/dto/task-response.dto';
 
 export interface SseEvent {
   type:
@@ -81,7 +82,7 @@ export class SseService {
   emitTaskCreated(
     userId: string,
     boardId: number,
-    task: Record<string, unknown>,
+    task: TaskResponseDto,
   ): void {
     this.emit({
       type: 'task.created',
@@ -95,7 +96,7 @@ export class SseService {
   emitTaskUpdated(
     userId: string,
     boardId: number,
-    task: Record<string, unknown>,
+    task: TaskResponseDto,
   ): void {
     this.emit({
       type: 'task.updated',

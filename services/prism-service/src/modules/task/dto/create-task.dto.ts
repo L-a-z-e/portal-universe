@@ -19,7 +19,7 @@ export class CreateTaskDto {
   @IsNotEmpty()
   @MaxLength(200)
   @NoXss()
-  title: string;
+  title!: string;
 
   @ApiPropertyOptional({
     example: 'Add JWT-based authentication with refresh token support',

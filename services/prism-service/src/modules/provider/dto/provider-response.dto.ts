@@ -3,34 +3,34 @@ import { AIProvider, ProviderType } from '../provider.entity';
 
 export class ProviderResponseDto {
   @ApiProperty({ example: 1 })
-  id: number;
+  id!: number;
 
   @ApiProperty({ example: 1 })
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ enum: ProviderType, example: ProviderType.OPENAI })
-  providerType: ProviderType;
+  providerType!: ProviderType;
 
   @ApiProperty({ example: 'My OpenAI Account' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: 'sk-...xxxx', description: 'Masked API key' })
-  apiKeyMasked: string;
+  apiKeyMasked!: string;
 
   @ApiPropertyOptional({ example: 'https://api.openai.com/v1' })
-  baseUrl: string | null;
+  baseUrl!: string | null;
 
   @ApiProperty({ example: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiPropertyOptional({ example: ['gpt-4', 'gpt-3.5-turbo'] })
-  models: string[] | null;
+  models!: string[] | null;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   static from(entity: AIProvider, maskedKey: string): ProviderResponseDto {
     const dto = new ProviderResponseDto();
@@ -50,7 +50,7 @@ export class ProviderResponseDto {
 
 export class VerifyProviderResponseDto {
   @ApiProperty({ example: true })
-  success: boolean;
+  success!: boolean;
 
   @ApiPropertyOptional({ example: 'Connection successful' })
   message?: string;

@@ -20,59 +20,59 @@ export enum ExecutionStatus {
 @Entity('executions')
 export class Execution {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'task_id', type: 'int' })
-  taskId: number;
+  taskId!: number;
 
   @ManyToOne(() => Task, (task) => task.executions)
   @JoinColumn({ name: 'task_id' })
-  task: Task;
+  task!: Task;
 
   @Column({ name: 'agent_id', type: 'int' })
-  agentId: number;
+  agentId!: number;
 
   @ManyToOne(() => Agent, (agent) => agent.executions)
   @JoinColumn({ name: 'agent_id' })
-  agent: Agent;
+  agent!: Agent;
 
   @Column({ name: 'execution_number', type: 'int' })
-  executionNumber: number;
+  executionNumber!: number;
 
   @Column({
     type: 'enum',
     enum: ExecutionStatus,
     default: ExecutionStatus.PENDING,
   })
-  status: ExecutionStatus;
+  status!: ExecutionStatus;
 
   @Column({ name: 'input_prompt', type: 'text' })
-  inputPrompt: string;
+  inputPrompt!: string;
 
   @Column({ name: 'output_result', type: 'text', nullable: true })
-  outputResult: string | null;
+  outputResult!: string | null;
 
   @Column({ name: 'user_feedback', type: 'text', nullable: true })
-  userFeedback: string | null;
+  userFeedback!: string | null;
 
   @Column({ name: 'input_tokens', type: 'int', nullable: true })
-  inputTokens: number | null;
+  inputTokens!: number | null;
 
   @Column({ name: 'output_tokens', type: 'int', nullable: true })
-  outputTokens: number | null;
+  outputTokens!: number | null;
 
   @Column({ name: 'duration_ms', type: 'int', nullable: true })
-  durationMs: number | null;
+  durationMs!: number | null;
 
   @Column({ name: 'error_message', type: 'text', nullable: true })
-  errorMessage: string | null;
+  errorMessage!: string | null;
 
   @Column({ name: 'started_at', type: 'timestamp', nullable: true })
-  startedAt: Date | null;
+  startedAt!: Date | null;
 
   @Column({ name: 'completed_at', type: 'timestamp', nullable: true })
-  completedAt: Date | null;
+  completedAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 }

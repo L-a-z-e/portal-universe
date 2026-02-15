@@ -75,11 +75,7 @@ export class TaskService {
     const result = await this.findOne(userId, saved.id);
 
     // Emit SSE event
-    this.sseService.emitTaskCreated(
-      userId,
-      boardId,
-      result as unknown as Record<string, unknown>,
-    );
+    this.sseService.emitTaskCreated(userId, boardId, result);
 
     return result;
   }
@@ -145,11 +141,7 @@ export class TaskService {
     const result = await this.findOne(userId, id);
 
     // Emit SSE event
-    this.sseService.emitTaskUpdated(
-      userId,
-      task.boardId,
-      result as unknown as Record<string, unknown>,
-    );
+    this.sseService.emitTaskUpdated(userId, task.boardId, result);
 
     return result;
   }

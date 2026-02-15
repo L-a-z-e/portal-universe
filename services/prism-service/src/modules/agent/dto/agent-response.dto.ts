@@ -4,54 +4,54 @@ import { ProviderType } from '../../provider/provider.entity';
 
 export class AgentProviderDto {
   @ApiProperty({ example: 1 })
-  id: number;
+  id!: number;
 
   @ApiProperty({ example: 'My OpenAI Account' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ enum: ProviderType })
-  providerType: ProviderType;
+  providerType!: ProviderType;
 }
 
 export class AgentResponseDto {
   @ApiProperty({ example: 1 })
-  id: number;
+  id!: number;
 
   @ApiProperty({ example: 1 })
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ example: 1 })
-  providerId: number;
+  providerId!: number;
 
   @ApiPropertyOptional({ type: AgentProviderDto })
   provider?: AgentProviderDto;
 
   @ApiProperty({ example: 'PM Agent' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ enum: AgentRole, example: AgentRole.PM })
-  role: AgentRole;
+  role!: AgentRole;
 
   @ApiPropertyOptional({ example: 'Project management agent' })
-  description: string | null;
+  description!: string | null;
 
   @ApiProperty({ example: 'You are a professional project manager...' })
-  systemPrompt: string;
+  systemPrompt!: string;
 
   @ApiProperty({ example: 'gpt-4o' })
-  model: string;
+  model!: string;
 
   @ApiProperty({ example: 0.7 })
-  temperature: number;
+  temperature!: number;
 
   @ApiProperty({ example: 4096 })
-  maxTokens: number;
+  maxTokens!: number;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   static from(entity: Agent): AgentResponseDto {
     const dto = new AgentResponseDto();

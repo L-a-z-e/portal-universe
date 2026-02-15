@@ -9,6 +9,7 @@ import { BusinessException } from '../../common/filters/business.exception';
 import {
   PaginationDto,
   PaginatedResult,
+  toPaginatedResult,
 } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -59,14 +60,7 @@ export class BoardService {
 
     const [boards, total] = await queryBuilder.getManyAndCount();
     const items = boards.map((b) => BoardResponseDto.from(b, true));
-    const size = pagination?.size ?? 20;
-    return {
-      items,
-      page: pagination?.page ?? 1,
-      size,
-      totalElements: total,
-      totalPages: Math.ceil(total / size),
-    };
+    return toPaginatedResult(items, total, pagination);
   }
 
   async findOne(userId: string, id: number): Promise<BoardResponseDto> {

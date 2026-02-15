@@ -34,3 +34,18 @@ export interface PaginatedResult<T> {
   totalElements: number;
   totalPages: number;
 }
+
+export function toPaginatedResult<T>(
+  items: T[],
+  total: number,
+  pagination?: PaginationDto,
+): PaginatedResult<T> {
+  const size = pagination?.size ?? 20;
+  return {
+    items,
+    page: pagination?.page ?? 1,
+    size,
+    totalElements: total,
+    totalPages: Math.ceil(total / size),
+  };
+}

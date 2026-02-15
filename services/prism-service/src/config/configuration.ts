@@ -16,4 +16,12 @@ export default () => ({
     brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
     clientId: 'prism-service',
   },
+  cors: {
+    enabled: process.env.ENABLE_CORS === 'true',
+    origins: process.env.CORS_ORIGINS?.split(',') || [
+      'http://localhost:30000',
+      'http://localhost:30003',
+    ],
+    credentials: true,
+  },
 });

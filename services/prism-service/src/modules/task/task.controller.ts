@@ -23,6 +23,7 @@ import { TaskService } from './task.service';
 import { ExecutionService } from '../execution/execution.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto, ChangePositionDto } from './dto/update-task.dto';
+import { RejectTaskDto } from './dto/reject-task.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
 import { TaskContextResponseDto } from './dto/task-context.dto';
 import { ExecutionResponseDto } from '../execution/dto/execution-response.dto';
@@ -152,9 +153,9 @@ export class TaskController {
   async reject(
     @CurrentUserId() userId: string,
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { feedback?: string },
+    @Body() dto: RejectTaskDto,
   ): Promise<TaskResponseDto> {
-    return this.taskService.reject(userId, id, body.feedback);
+    return this.taskService.reject(userId, id, dto.feedback);
   }
 
   @Post('tasks/:id/cancel')

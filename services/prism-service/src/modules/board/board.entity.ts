@@ -13,26 +13,26 @@ import { Task } from '../task/task.entity';
 @Index(['userId', 'id'])
 export class Board {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'user_id', type: 'varchar', length: 36 })
-  userId: string;
+  userId!: string;
 
   @Column({ length: 100 })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'is_archived', default: false })
-  isArchived: boolean;
+  isArchived!: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Task, (task) => task.board)
-  tasks: Task[];
+  tasks!: Task[];
 }

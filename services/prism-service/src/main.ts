@@ -2,6 +2,7 @@ import './instrumentation';
 
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
@@ -40,13 +41,14 @@ async function bootstrap() {
 
   // CORS - API Gateway 통해 접근 시 비활성화 (Gateway가 CORS 처리)
   // Standalone 모드에서만 활성화: ENABLE_CORS=true
-  if (process.env.ENABLE_CORS === 'true') {
+  const configService = app.get(ConfigService);
+  const corsEnabled = configService.get<boolean>('cors.enabled');
+  if (corsEnabled) {
+    const origins = configService.get<string[]>('cors.origins');
+    const credentials = configService.get<boolean>('cors.credentials');
     app.enableCors({
-      origin: process.env.CORS_ORIGINS?.split(',') || [
-        'http://localhost:30000',
-        'http://localhost:30003',
-      ],
-      credentials: true,
+      origin: origins,
+      credentials,
     });
     winstonLogger.log('CORS enabled for standalone mode');
   }

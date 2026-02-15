@@ -15,6 +15,7 @@ import { AIProviderFactory } from '../ai/ai-provider.factory';
 import {
   PaginationDto,
   PaginatedResult,
+  toPaginatedResult,
 } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -61,14 +62,7 @@ export class ProviderService {
       take: pagination?.take ?? 20,
     });
     const items = providers.map((p) => this.toResponseDto(p));
-    const size = pagination?.size ?? 20;
-    return {
-      items,
-      page: pagination?.page ?? 1,
-      size,
-      totalElements: total,
-      totalPages: Math.ceil(total / size),
-    };
+    return toPaginatedResult(items, total, pagination);
   }
 
   async findOne(userId: string, id: number): Promise<ProviderResponseDto> {

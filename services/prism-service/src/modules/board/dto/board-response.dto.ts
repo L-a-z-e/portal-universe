@@ -4,38 +4,38 @@ import { TaskStatus } from '../../task/task.entity';
 
 export class TaskSummaryDto {
   @ApiProperty({ example: 5 })
-  total: number;
+  total!: number;
 
   @ApiProperty({
     example: { TODO: 2, IN_PROGRESS: 1, IN_REVIEW: 1, DONE: 1, CANCELLED: 0 },
   })
-  byStatus: Record<TaskStatus, number>;
+  byStatus!: Record<TaskStatus, number>;
 }
 
 export class BoardResponseDto {
   @ApiProperty({ example: 1 })
-  id: number;
+  id!: number;
 
   @ApiProperty({ example: 1 })
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ example: 'Project Alpha' })
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ example: 'Main project board' })
-  description: string | null;
+  description!: string | null;
 
   @ApiProperty({ example: false })
-  isArchived: boolean;
+  isArchived!: boolean;
 
   @ApiPropertyOptional({ type: TaskSummaryDto })
   taskSummary?: TaskSummaryDto;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   static from(entity: Board, includeSummary = false): BoardResponseDto {
     const dto = new BoardResponseDto();
