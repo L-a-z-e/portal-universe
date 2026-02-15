@@ -15,6 +15,7 @@
   "dependencies": {
     "@portal/design-system-vue": "*",
     "@portal/design-tokens": "*",
+    "@portal/vue-bridge": "*",
     "axios": "^1.12.2",
     "concurrently": "^9.2.1",
     "pinia": "^3.0.3",

@@ -1,18 +1,18 @@
 import { createMemoryHistory, createRouter, createWebHistory, type Router, type RouteRecordRaw } from "vue-router";
+import { getPortalAuthState } from '@portal/vue-bridge';
 
 import DrivePage from '../views/DrivePage.vue';
 
 function addAuthGuard(router: Router): void {
-  router.beforeEach(async (to, _from) => {
+  router.beforeEach((to, _from) => {
     if (!to.meta.requiresAuth) return true;
 
-    try {
-      const { useAuthStore } = await import('portal/stores');
-      const authStore = useAuthStore();
-      if (authStore.isAuthenticated.value) return true;
-    } catch {
-      if ((window as any).__PORTAL_ACCESS_TOKEN__) return true;
-    }
+    // authAdapter 기반 인증 확인 (Embedded + Standalone 공통)
+    const authState = getPortalAuthState();
+    if (authState.isAuthenticated) return true;
+
+    // Standalone fallback: 글로벌 토큰으로 확인
+    if ((window as any).__PORTAL_ACCESS_TOKEN__) return true;
 
     console.log(`[Drive Router Guard] Auth required for ${to.path}`);
     if (typeof (window as any).__PORTAL_SHOW_LOGIN__ === 'function') {
