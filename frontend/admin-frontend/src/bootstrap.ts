@@ -5,6 +5,7 @@ import App from './App.vue';
 import type { Router } from 'vue-router';
 import { createAdminRouter } from './router';
 import { createPinia } from 'pinia';
+import { disposePortalAuth } from '@portal/vue-bridge';
 
 export type MountOptions = {
   initialPath?: string;
@@ -76,6 +77,10 @@ export function mountAdminApp(
 
     unmount: () => {
       console.group('[Admin] Unmounting app');
+
+      // Portal auth 구독 해제
+      disposePortalAuth();
+
       try {
         app.unmount();
       } catch (err) {

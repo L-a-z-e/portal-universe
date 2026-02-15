@@ -1,5 +1,6 @@
 // admin-frontend/src/router/index.ts
 import { createMemoryHistory, createRouter, createWebHistory, type Router, type RouteRecordRaw } from 'vue-router';
+import { getPortalAuthState } from '@portal/vue-bridge';
 
 import AdminLayout from '../layouts/AdminLayout.vue';
 import DashboardPage from '../views/DashboardPage.vue';
@@ -10,18 +11,14 @@ import SellerApprovalsPage from '../views/SellerApprovalsPage.vue';
 import AuditLogPage from '../views/AuditLogPage.vue';
 
 function addAuthGuard(router: Router): void {
-  router.beforeEach(async (to) => {
+  router.beforeEach((to) => {
     if (!to.meta.requiresAuth) return true;
 
-    try {
-      const { useAuthStore } = await import('portal/stores');
-      const authStore = useAuthStore();
-      if (authStore.isAuthenticated.value) return true;
-    } catch {
-      // portal/stores not available (standalone mode)
-    }
+    // authAdapter 기반 인증 확인 (Embedded + Standalone 공통)
+    const authState = getPortalAuthState();
+    if (authState.isAuthenticated) return true;
 
-    // Fallback: check window token (set by portal-shell in embedded mode)
+    // Standalone fallback: 글로벌 토큰으로 확인
     if ((window as any).__PORTAL_ACCESS_TOKEN__) return true;
 
     console.log(`[Admin Router Guard] Auth required for ${to.path}`);
