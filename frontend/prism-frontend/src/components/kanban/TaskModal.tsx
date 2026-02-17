@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-react';
+import { Modal, Button, Input, Select, Textarea, Checkbox, useApiError } from '@portal/design-react';
 import { useAgentStore } from '@/stores/agentStore';
 import { useTaskStore } from '@/stores/taskStore';
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskPriority } from '@/types';
@@ -149,12 +149,11 @@ export function TaskModal({
           />
 
           <div className="w-full">
-            <label className="block text-sm font-medium text-text-body mb-1">Due Date</label>
-            <input
+            <Input
+              label="Due Date"
               type="date"
               value={formData.dueDate}
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-              className="w-full px-3 py-2 border border-border-default rounded-lg text-text-heading bg-bg-input focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             />
           </div>
         </div>
@@ -178,12 +177,13 @@ export function TaskModal({
             {tasks
               .filter((t) => t.id !== task?.id && t.status === 'DONE')
               .map((t) => (
-                <label
+                <div
                   key={t.id}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-bg-hover cursor-pointer border-b border-border-default last:border-b-0"
+                  className="px-3 py-2 hover:bg-bg-hover border-b border-border-default last:border-b-0"
                 >
-                  <input
-                    type="checkbox"
+                  <Checkbox
+                    size="sm"
+                    label={t.title}
                     checked={formData.referencedTaskIds.includes(t.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -198,10 +198,8 @@ export function TaskModal({
                         });
                       }
                     }}
-                    className="rounded border-border-default text-brand-primary focus:ring-brand-primary"
                   />
-                  <span className="text-sm text-text-body">{t.title}</span>
-                </label>
+                </div>
               ))}
             {tasks.filter((t) => t.id !== task?.id && t.status === 'DONE').length === 0 && (
               <p className="px-3 py-4 text-sm text-text-meta text-center">

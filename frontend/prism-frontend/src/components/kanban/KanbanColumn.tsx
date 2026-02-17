@@ -3,6 +3,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { Button } from '@portal/design-react';
 import { TaskCard } from './TaskCard';
 import type { KanbanColumn as KanbanColumnType, Task } from '@/types';
 
@@ -72,12 +73,14 @@ export function KanbanColumn({
         </SortableContext>
 
         {column.id === 'TODO' && (
-          <button
+          <Button
+            variant="ghost"
+            fullWidth
             onClick={onAddTask}
-            className="w-full mt-2 p-2 text-sm text-text-meta border-2 border-dashed border-border-default rounded-lg hover:border-brand-primary hover:text-brand-primary transition-colors"
+            className="mt-2 text-sm text-text-meta border-2 border-dashed border-border-default rounded-lg hover:border-brand-primary hover:text-brand-primary"
           >
             + Add Task
-          </button>
+          </Button>
         )}
       </div>
     </div>

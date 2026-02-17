@@ -98,9 +98,11 @@ function BoardListPage() {
                 <h3 className="font-semibold text-text-heading group-hover:text-brand-primary">
                   {board.name}
                 </h3>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={(e) => handleDeleteBoard(board.id, e)}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-text-meta hover:text-status-error rounded transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-1 text-text-meta hover:text-status-error"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -110,7 +112,7 @@ function BoardListPage() {
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
               {board.description && (
                 <p className="mt-2 text-sm text-text-body line-clamp-2">{board.description}</p>
