@@ -1,5 +1,6 @@
 /* ============================================
    Admin Service Theme Component Styles
+   Monochrome Chic Design System
    ============================================
    NOTE: Color definitions are now auto-generated
    by build-tokens.js from themes/admin.json
@@ -7,19 +8,19 @@
 
 /* Admin-specific components */
 [data-service="admin"] {
-    /* Data table */
+    /* ── Data Table ── */
     .admin-table {
         @apply w-full border-collapse;
     }
 
     .admin-table th {
-        @apply bg-bg-muted text-text-heading font-semibold text-left;
-        @apply px-4 py-3 text-sm;
+        @apply bg-bg-elevated text-text-meta font-medium text-left;
+        @apply px-4 py-3 text-xs uppercase tracking-wider;
         @apply border-b border-border-default;
     }
 
     .admin-table td {
-        @apply px-4 py-3 text-sm;
+        @apply px-4 py-3 text-sm text-text-body;
         @apply border-b border-border-muted;
     }
 
@@ -27,32 +28,175 @@
         @apply bg-bg-hover;
     }
 
-    /* Stats card */
-    .stat-card {
-        @apply bg-bg-card border border-border-default rounded-lg p-4;
+    .admin-table tr.selected td {
+        @apply bg-brand-primary/5;
     }
 
-    .stat-value {
+    /* Expandable row */
+    .admin-table-expandable {
+        @apply bg-bg-elevated/50;
+    }
+
+    .admin-table-expandable td {
+        @apply px-6 py-4 border-b border-border-default;
+    }
+
+    /* ── Stat Card (KPI) ── */
+    .stat-card {
+        @apply bg-bg-card border border-border-default rounded-lg p-5;
+        @apply transition-shadow duration-normal;
+    }
+
+    .stat-card:hover {
+        @apply shadow-md;
+    }
+
+    .stat-card .stat-icon {
+        @apply w-10 h-10 rounded-lg flex items-center justify-center mb-3;
+        @apply bg-bg-elevated text-brand-primary;
+    }
+
+    .stat-card .stat-value {
         @apply text-2xl font-bold text-text-heading;
     }
 
-    .stat-label {
-        @apply text-sm text-text-meta mt-1;
+    .stat-card .stat-label {
+        @apply text-xs text-text-meta mt-1 uppercase tracking-wide;
     }
 
-    /* Navigation sidebar */
+    .stat-card .stat-trend {
+        @apply text-xs font-medium mt-2 flex items-center gap-1;
+    }
+
+    .stat-card .stat-trend--up {
+        @apply text-status-success;
+    }
+
+    .stat-card .stat-trend--down {
+        @apply text-status-error;
+    }
+
+    .stat-card--warning {
+        @apply border-r-4 border-r-status-warning;
+    }
+
+    /* ── Timeline ── */
+    .admin-timeline {
+        @apply relative pl-6;
+    }
+
+    .admin-timeline::before {
+        content: '';
+        @apply absolute left-[9px] top-2 bottom-2 w-px bg-border-default;
+    }
+
+    .admin-timeline-item {
+        @apply relative pb-6 last:pb-0;
+    }
+
+    .admin-timeline-item::before {
+        content: '';
+        @apply absolute left-[-15px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-brand-primary bg-bg-card;
+    }
+
+    .admin-timeline-item .timeline-time {
+        @apply text-xs text-text-meta mb-1;
+    }
+
+    .admin-timeline-item .timeline-content {
+        @apply text-sm text-text-body;
+    }
+
+    .admin-timeline-item .timeline-actor {
+        @apply font-medium text-text-heading;
+    }
+
+    /* ── Navigation (dark sidebar) ── */
     .admin-nav-item {
         @apply flex items-center gap-3 px-3 py-2 rounded-md;
-        @apply text-text-body text-sm;
-        @apply transition-colors;
+        @apply text-sidebar-text text-sm;
+        @apply transition-colors duration-fast;
     }
 
     .admin-nav-item:hover {
-        @apply bg-bg-hover text-text-heading;
+        @apply bg-sidebar-bgActive text-sidebar-textActive;
     }
 
     .admin-nav-item.active {
-        @apply bg-bg-muted text-text-heading;
-        color: var(--semantic-brand-primary);
+        @apply bg-sidebar-bgActive text-sidebar-textActive;
+        border-left: 2px solid var(--semantic-sidebar-accent);
+    }
+
+    .admin-nav-item .nav-icon {
+        @apply text-lg opacity-60;
+    }
+
+    .admin-nav-item.active .nav-icon {
+        @apply opacity-100;
+    }
+
+    /* ── Filter Bar ── */
+    .admin-filter-bar {
+        @apply flex items-center gap-3 p-3 bg-bg-card border border-border-default rounded-lg mb-4;
+    }
+
+    .admin-filter-bar input,
+    .admin-filter-bar select {
+        @apply bg-bg-elevated border border-border-default rounded px-3 py-2 text-sm text-text-body;
+        @apply focus:outline-none focus:border-border-focus;
+    }
+
+    .admin-filter-bar input::placeholder {
+        @apply text-text-muted;
+    }
+
+    /* ── Event Badge ── */
+    .event-badge {
+        @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+    }
+
+    .event-badge--assigned {
+        @apply bg-blue-50 text-blue-700;
+        background-color: #eef4f8;
+        color: #4a7c9b;
+    }
+
+    .event-badge--revoked {
+        background-color: #fdf8ee;
+        color: #b5882c;
+    }
+
+    .event-badge--created {
+        background-color: #eef5f0;
+        color: #4a7c59;
+    }
+
+    .event-badge--failed {
+        background-color: #faf0ef;
+        color: #a3453a;
+    }
+
+    .event-badge--config {
+        background-color: #eef4f8;
+        color: #4a7c9b;
+    }
+
+    .event-badge--default {
+        @apply bg-bg-elevated text-text-meta;
+    }
+
+    /* ── Progress Bar ── */
+    .admin-progress {
+        @apply w-full h-2 bg-bg-muted rounded-full overflow-hidden;
+    }
+
+    .admin-progress-bar {
+        @apply h-full rounded-full transition-all duration-slow;
+        background-color: var(--semantic-brand-primary);
+    }
+
+    /* ── Section Divider ── */
+    .admin-section-label {
+        @apply text-[10px] uppercase tracking-[0.15em] text-sidebar-text/60 px-3 pt-5 pb-2 font-medium;
     }
 }

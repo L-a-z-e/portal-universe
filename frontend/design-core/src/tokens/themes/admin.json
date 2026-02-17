@@ -1,41 +1,41 @@
 {
-  "$description": "Admin service theme - Indigo branding (same as portal) with unified dark mode",
+  "$description": "Admin service theme - Monochrome Chic premium palette with dark sidebar",
   "color": {
     "brand": {
       "primary": {
-        "$value": "{color.indigo.400}",
-        "$description": "Admin brand primary - Indigo accent (same as portal)",
+        "$value": "{color.monochromeChic.500}",
+        "$description": "Admin brand primary - Monochrome Chic accent",
         "$type": "color"
       },
       "primaryHover": {
-        "$value": "{color.indigo.500}",
+        "$value": "{color.monochromeChic.600}",
         "$description": "Admin brand primary hover",
         "$type": "color"
       },
       "secondary": {
-        "$value": "{color.indigo.300}",
+        "$value": "{color.monochromeChic.400}",
         "$description": "Admin brand secondary",
         "$type": "color"
       }
     },
     "text": {
       "heading": {
-        "$value": "{color.gray.900}",
+        "$value": "{color.monochromeChic.900}",
         "$description": "Admin light mode heading text",
         "$type": "color"
       },
       "body": {
-        "$value": "{color.gray.900}",
+        "$value": "{color.monochromeChic.700}",
         "$description": "Admin light mode body text",
         "$type": "color"
       },
       "meta": {
-        "$value": "{color.gray.600}",
+        "$value": "{color.monochromeChic.600}",
         "$description": "Admin light mode meta text",
         "$type": "color"
       },
       "muted": {
-        "$value": "{color.gray.500}",
+        "$value": "{color.monochromeChic.400}",
         "$description": "Admin light mode muted text",
         "$type": "color"
       },
@@ -45,88 +45,94 @@
         "$type": "color"
       },
       "link": {
-        "$value": "{color.indigo.500}",
+        "$value": "{color.monochromeChic.500}",
         "$description": "Admin light mode link text",
         "$type": "color"
       },
       "linkHover": {
-        "$value": "{color.indigo.600}",
+        "$value": "{color.monochromeChic.600}",
         "$description": "Admin light mode link hover text",
         "$type": "color"
       }
     },
     "bg": {
       "page": {
-        "$value": "{color.neutral.white}",
+        "$value": "{color.monochromeChic.50}",
         "$description": "Admin light mode page background",
         "$type": "color"
       },
       "card": {
-        "$value": "{color.neutral.white}",
+        "$value": "#ffffff",
         "$description": "Admin light mode card background",
         "$type": "color"
       },
       "elevated": {
-        "$value": "{color.neutral.white}",
+        "$value": "#fafaf8",
         "$description": "Admin light mode elevated background",
         "$type": "color"
       },
       "muted": {
-        "$value": "{color.gray.50}",
-        "$description": "Admin light mode muted background - neutral",
+        "$value": "{color.monochromeChic.200}",
+        "$description": "Admin light mode muted background",
         "$type": "color"
       },
       "hover": {
-        "$value": "{color.gray.100}",
+        "$value": "{color.monochromeChic.100}",
         "$description": "Admin light mode hover background",
         "$type": "color"
       },
       "sidebar": {
-        "$value": "#f8f8fa",
-        "$description": "Admin light mode sidebar background",
+        "$value": "{color.monochromeChic.900}",
+        "$description": "Admin light mode sidebar background - dark",
         "$type": "color"
       }
     },
     "border": {
       "default": {
-        "$value": "{color.gray.200}",
+        "$value": "{color.monochromeChic.200}",
         "$description": "Admin light mode default border",
         "$type": "color"
       },
       "hover": {
-        "$value": "{color.gray.300}",
+        "$value": "{color.monochromeChic.300}",
         "$description": "Admin light mode hover border",
         "$type": "color"
       },
       "focus": {
-        "$value": "{color.indigo.400}",
+        "$value": "{color.monochromeChic.500}",
         "$description": "Admin light mode focus border - accent",
         "$type": "color"
       },
       "muted": {
-        "$value": "{color.gray.100}",
+        "$value": "{color.monochromeChic.100}",
         "$description": "Admin light mode muted border",
         "$type": "color"
       }
     },
     "status": {
-      "success": { "$value": "{color.green.600}", "$type": "color" },
-      "successBg": { "$value": "{color.green.50}", "$type": "color" },
-      "error": { "$value": "{color.red.600}", "$type": "color" },
-      "errorBg": { "$value": "{color.red.50}", "$type": "color" },
-      "warning": { "$value": "{color.yellow.600}", "$type": "color" },
-      "warningBg": { "$value": "{color.yellow.50}", "$type": "color" },
-      "info": { "$value": "{color.blue.600}", "$type": "color" },
-      "infoBg": { "$value": "{color.blue.50}", "$type": "color" }
+      "success": { "$value": "#4a7c59", "$type": "color" },
+      "successBg": { "$value": "#eef5f0", "$type": "color" },
+      "error": { "$value": "#a3453a", "$type": "color" },
+      "errorBg": { "$value": "#faf0ef", "$type": "color" },
+      "warning": { "$value": "#b5882c", "$type": "color" },
+      "warningBg": { "$value": "#fdf8ee", "$type": "color" },
+      "info": { "$value": "#4a7c9b", "$type": "color" },
+      "infoBg": { "$value": "#eef4f8", "$type": "color" }
+    },
+    "sidebar": {
+      "text": { "$value": "#a09a9e", "$type": "color" },
+      "textActive": { "$value": "#ffffff", "$type": "color" },
+      "bgActive": { "$value": "rgba(255,255,255,0.08)", "$type": "color" },
+      "accent": { "$value": "#8a7b8d", "$type": "color" }
     }
   },
   "darkMode": {
-    "$description": "Admin dark mode - Unified Linear-style dark theme with Indigo accent",
+    "$description": "Admin dark mode - Linear-style dark theme with Monochrome Chic accent",
     "color": {
       "brand": {
-        "primary": { "$value": "{color.indigo.400}", "$type": "color" },
-        "primaryHover": { "$value": "{color.indigo.300}", "$type": "color" },
-        "secondary": { "$value": "{color.indigo.200}", "$type": "color" }
+        "primary": { "$value": "{color.monochromeChic.400}", "$type": "color" },
+        "primaryHover": { "$value": "{color.monochromeChic.300}", "$type": "color" },
+        "secondary": { "$value": "{color.monochromeChic.200}", "$type": "color" }
       },
       "text": {
         "heading": { "$value": "#ffffff", "$type": "color" },
@@ -134,8 +140,8 @@
         "meta": { "$value": "#6b6b6b", "$type": "color" },
         "muted": { "$value": "#6b6b6b", "$type": "color" },
         "inverse": { "$value": "#08090a", "$type": "color" },
-        "link": { "$value": "{color.indigo.400}", "$type": "color" },
-        "linkHover": { "$value": "{color.indigo.300}", "$type": "color" }
+        "link": { "$value": "{color.monochromeChic.400}", "$type": "color" },
+        "linkHover": { "$value": "{color.monochromeChic.300}", "$type": "color" }
       },
       "bg": {
         "page": { "$value": "#08090a", "$type": "color" },
@@ -148,7 +154,7 @@
       "border": {
         "default": { "$value": "#2a2a2a", "$type": "color" },
         "hover": { "$value": "{color.linear.600}", "$type": "color" },
-        "focus": { "$value": "{color.indigo.400}", "$type": "color" },
+        "focus": { "$value": "{color.monochromeChic.400}", "$type": "color" },
         "muted": { "$value": "{color.linear.800}", "$type": "color" }
       },
       "status": {
@@ -160,6 +166,12 @@
         "warningBg": { "$value": "#4a3c0f", "$type": "color" },
         "info": { "$value": "{color.blue.500}", "$type": "color" },
         "infoBg": { "$value": "#1a3a52", "$type": "color" }
+      },
+      "sidebar": {
+        "text": { "$value": "#6b6b6b", "$type": "color" },
+        "textActive": { "$value": "#ffffff", "$type": "color" },
+        "bgActive": { "$value": "rgba(255,255,255,0.06)", "$type": "color" },
+        "accent": { "$value": "{color.monochromeChic.400}", "$type": "color" }
       }
     }
   }
