@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sellerOrderApi } from '@/api'
+import { Table } from '@portal/design-react'
+import type { TableColumn } from '@portal/design-core'
 
 export const OrderListPage: React.FC = () => {
   const navigate = useNavigate()
@@ -30,6 +32,29 @@ export const OrderListPage: React.FC = () => {
     load()
   }, [])
 
+  const columns: TableColumn<any>[] = [
+    {
+      key: 'orderNumber',
+      label: 'Order Number',
+      render: (value: unknown) => (
+        <span className="font-mono text-brand-primary">{value as string}</span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+    },
+    {
+      key: 'finalAmount',
+      label: 'Amount',
+      align: 'right',
+      render: (_value: unknown, row: unknown) => {
+        const order = row as any
+        return (order.finalAmount?.toLocaleString() || order.totalAmount?.toLocaleString()) ?? '-'
+      },
+    },
+  ]
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-text-heading mb-6">Orders</h1>
@@ -41,42 +66,13 @@ export const OrderListPage: React.FC = () => {
       )}
 
       <div className="bg-bg-card border border-border-default rounded-lg overflow-hidden">
-        {isLoading ? (
-          <div className="p-12 text-center">
-            <p className="text-text-meta">Loading...</p>
-          </div>
-        ) : orders.length === 0 && !error ? (
-          <div className="p-12 text-center">
-            <p className="text-text-meta">No orders found</p>
-          </div>
-        ) : orders.length > 0 ? (
-          <table className="w-full">
-            <thead className="bg-bg-subtle border-b border-border-default">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Order Number</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Status</th>
-                <th className="px-6 py-4 text-right text-xs font-medium text-text-meta">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-default">
-              {orders.map((order: any) => (
-                <tr
-                  key={order.id}
-                  onClick={() => navigate(`/orders/${order.orderNumber}`)}
-                  className="hover:bg-bg-hover transition-colors cursor-pointer"
-                >
-                  <td className="px-6 py-4 text-sm font-mono text-brand-primary">
-                    {order.orderNumber}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-body">{order.status}</td>
-                  <td className="px-6 py-4 text-sm text-text-body text-right">
-                    {order.finalAmount?.toLocaleString() || order.totalAmount?.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : null}
+        <Table
+          columns={columns}
+          data={orders}
+          loading={isLoading}
+          emptyText="No orders found"
+          onRowClick={(row: any) => navigate(`/orders/${row.orderNumber}`)}
+        />
       </div>
     </div>
   )
