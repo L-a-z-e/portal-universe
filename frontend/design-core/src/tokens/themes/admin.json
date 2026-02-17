@@ -1,5 +1,5 @@
 {
-  "$description": "Admin service theme - Monochrome Chic premium palette with dark sidebar",
+  "$description": "Admin service theme - Monochrome Chic premium palette",
   "color": {
     "brand": {
       "primary": {
@@ -82,8 +82,8 @@
         "$type": "color"
       },
       "sidebar": {
-        "$value": "{color.monochromeChic.900}",
-        "$description": "Admin light mode sidebar background - dark",
+        "$value": "#f8f8fa",
+        "$description": "Admin light mode sidebar background - same as other services",
         "$type": "color"
       }
     },
@@ -118,12 +118,6 @@
       "warningBg": { "$value": "#fdf8ee", "$type": "color" },
       "info": { "$value": "#4a7c9b", "$type": "color" },
       "infoBg": { "$value": "#eef4f8", "$type": "color" }
-    },
-    "sidebar": {
-      "text": { "$value": "#a09a9e", "$type": "color" },
-      "textActive": { "$value": "#ffffff", "$type": "color" },
-      "bgActive": { "$value": "rgba(255,255,255,0.08)", "$type": "color" },
-      "accent": { "$value": "#8a7b8d", "$type": "color" }
     }
   },
   "darkMode": {
@@ -166,12 +160,6 @@
         "warningBg": { "$value": "#4a3c0f", "$type": "color" },
         "info": { "$value": "{color.blue.500}", "$type": "color" },
         "infoBg": { "$value": "#1a3a52", "$type": "color" }
-      },
-      "sidebar": {
-        "text": { "$value": "#6b6b6b", "$type": "color" },
-        "textActive": { "$value": "#ffffff", "$type": "color" },
-        "bgActive": { "$value": "rgba(255,255,255,0.06)", "$type": "color" },
-        "accent": { "$value": "{color.monochromeChic.400}", "$type": "color" }
       }
     }
   }

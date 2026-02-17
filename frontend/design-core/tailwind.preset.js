@@ -52,10 +52,6 @@ export default {
                 },
                 'sidebar': {
                     'DEFAULT': 'var(--semantic-bg-sidebar)',
-                    'text': 'var(--semantic-sidebar-text)',
-                    'textActive': 'var(--semantic-sidebar-textActive)',
-                    'bgActive': 'var(--semantic-sidebar-bgActive)',
-                    'accent': 'var(--semantic-sidebar-accent)',
                 },
                 'border': {
                     'default': 'var(--semantic-border-default)',

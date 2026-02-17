@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Badge, Spinner, Alert, Select, Avatar, useApiError } from '@portal/design-vue';
+import { Badge, Spinner, Alert, Select, Avatar, Tag, Button, Tooltip, useApiError, useToast } from '@portal/design-vue';
 import type { SelectOption } from '@portal/design-vue';
 import {
   searchUsers,
@@ -8,8 +8,12 @@ import {
   fetchUserRoles,
   fetchUserPermissions,
   fetchUserMemberships,
+  fetchAuditLogs,
   assignRole,
   revokeRole,
+  fetchMembershipGroups,
+  fetchMembershipTiers,
+  changeUserMembership,
 } from '@/api/admin';
 import type {
   AdminUserSummary,
@@ -17,9 +21,12 @@ import type {
   UserRole,
   UserPermissions,
   MembershipResponse,
+  MembershipTierResponse,
+  AuditLog,
 } from '@/dto/admin';
 
 const { getErrorMessage, handleError } = useApiError();
+const { addToast } = useToast();
 
 // --- Search & List ---
 const query = ref('');
@@ -42,9 +49,17 @@ const userMemberships = ref<MembershipResponse[]>([]);
 const detailLoading = ref(false);
 const detailError = ref('');
 
+// --- Audit logs ---
+const userAuditLogs = ref<AuditLog[]>([]);
+
 // --- Role assignment ---
 const selectedRoleKey = ref<string | number | null>(null);
 const assignLoading = ref(false);
+
+// --- Membership tiers (for tier change) ---
+const membershipGroups = ref<string[]>([]);
+const allGroupTiers = ref<Record<string, MembershipTierResponse[]>>({});
+const changingMembershipGroup = ref<string | null>(null);
 
 async function loadUsers(page = 1) {
   listLoading.value = true;
@@ -80,14 +95,16 @@ async function selectUser(user: AdminUserSummary) {
   detailError.value = '';
   selectedRoleKey.value = null;
   try {
-    const [roles, perms, memberships] = await Promise.all([
+    const [roles, perms, memberships, audit] = await Promise.all([
       fetchUserRoles(user.uuid),
       fetchUserPermissions(user.uuid),
       fetchUserMemberships(user.uuid),
+      fetchAuditLogs(1, 5, user.uuid),
     ]);
     userRoles.value = roles;
     userPermissions.value = perms;
     userMemberships.value = memberships;
+    userAuditLogs.value = audit.items;
   } catch (err) {
     detailError.value = getErrorMessage(err, 'Failed to load user details.');
     console.error('[Admin] User detail load failed:', err);
@@ -168,8 +185,80 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
+async function copyUuid() {
+  if (!selectedUser.value) return;
+  try {
+    await navigator.clipboard.writeText(selectedUser.value.uuid);
+    addToast({ variant: 'success', message: 'UUID copied to clipboard' });
+  } catch {
+    const el = document.createElement('textarea');
+    el.value = selectedUser.value.uuid;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    addToast({ variant: 'success', message: 'UUID copied to clipboard' });
+  }
+}
+
+function membershipForGroup(group: string): MembershipResponse | undefined {
+  return userMemberships.value.find((m) => m.membershipGroup === group);
+}
+
+function tierOptionsForGroup(group: string, currentTierKey: string): SelectOption[] {
+  const tiers = allGroupTiers.value[group] ?? [];
+  return tiers
+    .filter((t) => t.tierKey !== currentTierKey)
+    .map((t) => ({ value: t.tierKey, label: `${t.displayName} (${t.tierKey})` }));
+}
+
+async function handleChangeMembership(group: string, tierKey: string | null) {
+  if (!selectedUser.value || !tierKey) return;
+  changingMembershipGroup.value = group;
+  try {
+    await changeUserMembership(selectedUser.value.uuid, group, String(tierKey));
+    addToast({ variant: 'success', message: `Tier changed to ${tierKey} for ${group}` });
+    userMemberships.value = await fetchUserMemberships(selectedUser.value.uuid);
+  } catch (err) {
+    handleError(err, 'Failed to change membership tier');
+  } finally {
+    changingMembershipGroup.value = null;
+  }
+}
+
+async function loadAllMembershipTiers() {
+  try {
+    const groups = await fetchMembershipGroups();
+    membershipGroups.value = groups;
+    const results = await Promise.all(groups.map((g) => fetchMembershipTiers(g)));
+    groups.forEach((g, i) => {
+      allGroupTiers.value[g] = results[i]!;
+    });
+  } catch {
+    // graceful degradation - tier change won't be available
+  }
+}
+
+function formatEventType(type: string): string {
+  return type.replace(/_/g, ' ');
+}
+
+function eventBadgeClass(type: string): string {
+  const lower = type.toLowerCase();
+  if (lower.includes('assign')) return 'event-badge--assigned';
+  if (lower.includes('revoke') || lower.includes('remove')) return 'event-badge--revoked';
+  if (lower.includes('create') || lower.includes('register')) return 'event-badge--created';
+  if (lower.includes('fail') || lower.includes('error')) return 'event-badge--failed';
+  if (lower.includes('config') || lower.includes('update')) return 'event-badge--config';
+  return 'event-badge--default';
+}
+
 onMounted(async () => {
-  await Promise.all([loadUsers(1), fetchRoles().then((r) => (allRoles.value = r))]);
+  await Promise.all([
+    loadUsers(1),
+    fetchRoles().then((r) => (allRoles.value = r)),
+    loadAllMembershipTiers(),
+  ]);
 });
 </script>
 
@@ -292,22 +381,44 @@ onMounted(async () => {
           <div class="bg-bg-card border border-border-default rounded-lg">
             <!-- Profile Header -->
             <div class="p-5 border-b border-border-default">
-              <div class="flex items-center gap-4">
+              <div class="flex items-start gap-4">
                 <Avatar
                   :src="selectedUser.profileImageUrl ?? undefined"
                   :name="selectedUser.nickname ?? selectedUser.email"
                   size="lg"
                 />
-                <div class="flex-1">
-                  <div class="text-lg font-semibold text-text-heading">
-                    {{ selectedUser.nickname ?? selectedUser.email }}
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between">
+                    <div class="text-lg font-semibold text-text-heading">
+                      {{ selectedUser.nickname ?? selectedUser.email }}
+                    </div>
+                    <div class="flex gap-1">
+                      <Tooltip content="Edit User">
+                        <Button variant="ghost" size="xs">
+                          <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
+                        </Button>
+                      </Tooltip>
+                      <Tooltip content="Delete User">
+                        <Button variant="ghost" size="xs" class="!text-text-muted hover:!text-status-error hover:!bg-status-error/10">
+                          <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+                        </Button>
+                      </Tooltip>
+                    </div>
                   </div>
                   <div class="text-sm text-text-meta">{{ selectedUser.email }}</div>
-                  <div class="flex items-center gap-2 mt-1.5">
+                  <div class="flex items-center gap-3 mt-2">
                     <Badge :variant="statusVariant(selectedUser.status)" size="sm">
                       {{ selectedUser.status }}
                     </Badge>
-                    <span class="text-xs text-text-muted font-mono">{{ selectedUser.uuid.slice(0, 8) }}...</span>
+                    <Tooltip content="Click to copy full UUID">
+                      <button
+                        class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-bg-elevated border border-border-default rounded text-xs font-mono text-text-muted hover:text-text-body transition-colors"
+                        @click="copyUuid"
+                      >
+                        <span class="truncate max-w-[180px]">{{ selectedUser.uuid }}</span>
+                        <span class="material-symbols-outlined shrink-0" style="font-size: 14px;">content_copy</span>
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
               </div>
@@ -327,20 +438,16 @@ onMounted(async () => {
                   Assigned Roles
                 </h3>
                 <div class="flex flex-wrap gap-2 mb-3">
-                  <span
+                  <Tag
                     v-for="role in userRoles"
                     :key="role.id"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-primary/10 text-brand-primary rounded text-xs font-medium"
+                    variant="solid"
+                    size="md"
+                    removable
+                    @remove="handleRevoke(role.roleKey)"
                   >
                     {{ role.displayName }}
-                    <button
-                      @click="handleRevoke(role.roleKey)"
-                      class="ml-0.5 hover:text-status-error transition-colors"
-                      title="Revoke"
-                    >
-                      &times;
-                    </button>
-                  </span>
+                  </Tag>
                   <span v-if="userRoles.length === 0" class="text-text-meta text-sm">No roles assigned</span>
                 </div>
                 <div class="flex items-end gap-2">
@@ -353,13 +460,15 @@ onMounted(async () => {
                     size="sm"
                     class="flex-1"
                   />
-                  <button
+                  <Button
+                    variant="primary"
+                    size="sm"
                     :disabled="!selectedRoleKey || assignLoading"
+                    :loading="assignLoading"
                     @click="handleAssign"
-                    class="px-3 py-2 bg-brand-primary text-white rounded text-xs font-medium hover:bg-brand-primaryHover disabled:opacity-40 transition-colors"
                   >
                     Assign
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -385,31 +494,73 @@ onMounted(async () => {
               </div>
 
               <!-- Context Memberships -->
-              <div class="p-5">
+              <div class="p-5 border-b border-border-default">
                 <h3 class="text-sm font-semibold text-text-heading mb-3 flex items-center gap-2">
                   <span class="material-symbols-outlined" style="font-size: 16px;">card_membership</span>
                   Memberships
                 </h3>
                 <div class="grid grid-cols-1 gap-2">
                   <div
-                    v-for="m in userMemberships"
-                    :key="m.id"
+                    v-for="group in membershipGroups"
+                    :key="group"
                     class="flex items-center justify-between p-3 bg-bg-elevated rounded-lg"
                   >
                     <div>
-                      <div class="text-sm font-medium text-text-heading">{{ m.membershipGroup }}</div>
-                      <div class="text-xs text-text-meta">{{ m.tierDisplayName }} ({{ m.tierKey }})</div>
+                      <div class="text-sm font-medium text-text-heading">{{ group }}</div>
+                      <div v-if="membershipForGroup(group)" class="flex items-center gap-2 mt-1">
+                        <Badge variant="info" size="sm">
+                          {{ membershipForGroup(group)!.tierDisplayName }}
+                        </Badge>
+                        <Badge
+                          :variant="membershipForGroup(group)!.status === 'ACTIVE' ? 'success' : membershipForGroup(group)!.status === 'CANCELLED' ? 'danger' : 'warning'"
+                          size="sm"
+                        >
+                          {{ membershipForGroup(group)!.status }}
+                        </Badge>
+                      </div>
+                      <div v-else class="text-xs text-text-meta mt-1">No membership</div>
                     </div>
-                    <Badge
-                      :variant="m.status === 'ACTIVE' ? 'success' : m.status === 'CANCELLED' ? 'danger' : 'warning'"
-                      size="sm"
-                    >
-                      {{ m.status }}
-                    </Badge>
+                    <div class="flex items-center gap-2 min-w-[180px]">
+                      <Select
+                        :options="tierOptionsForGroup(group, membershipForGroup(group)?.tierKey ?? '')"
+                        placeholder="Change tier..."
+                        size="sm"
+                        clearable
+                        class="flex-1"
+                        @update:model-value="(val: string | number) => handleChangeMembership(group, String(val))"
+                      />
+                      <Spinner v-if="changingMembershipGroup === group" size="sm" />
+                    </div>
                   </div>
-                  <p v-if="userMemberships.length === 0" class="text-text-meta text-sm">
-                    No memberships
+                  <p v-if="membershipGroups.length === 0" class="text-text-meta text-sm">
+                    No membership groups
                   </p>
+                </div>
+              </div>
+
+              <!-- Recent Activity -->
+              <div class="p-5">
+                <h3 class="text-sm font-semibold text-text-heading mb-3 flex items-center gap-2">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">history</span>
+                  Recent Activity
+                </h3>
+                <div v-if="userAuditLogs.length === 0" class="text-sm text-text-meta text-center py-4">
+                  No recent activity
+                </div>
+                <div v-else class="admin-timeline">
+                  <div
+                    v-for="log in userAuditLogs"
+                    :key="log.id"
+                    class="admin-timeline-item"
+                  >
+                    <div class="timeline-time">{{ log.createdAt ? timeAgo(log.createdAt) : '-' }}</div>
+                    <div class="timeline-content">
+                      <span :class="['event-badge', eventBadgeClass(log.eventType)]">
+                        {{ formatEventType(log.eventType) }}
+                      </span>
+                      <span class="ml-2">{{ log.details }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Spinner, Alert, Button, useApiError } from '@portal/design-vue';
+import { Spinner, Alert, Button, Card, Badge, Progress, useApiError } from '@portal/design-vue';
 import { fetchDashboardStats } from '@/api/admin';
 import type { DashboardStats } from '@/dto/admin';
 
@@ -60,8 +60,8 @@ function rolePercentage(userCount: number, total: number): number {
 </script>
 
 <template>
-  <div>
-    <h1 class="text-2xl font-bold text-text-heading mb-6">Dashboard</h1>
+  <div class="flex flex-col h-[calc(100vh-11rem)] overflow-hidden">
+    <h1 class="text-xl font-bold text-text-heading mb-4 shrink-0">Dashboard</h1>
 
     <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-12">
@@ -78,8 +78,7 @@ function rolePercentage(userCount: number, total: number): number {
     <!-- Dashboard content -->
     <template v-else-if="stats">
       <!-- KPI Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <!-- Total Users -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 shrink-0">
         <div class="stat-card">
           <div class="stat-icon">
             <span class="material-symbols-outlined" style="font-size: 22px;">group</span>
@@ -91,8 +90,6 @@ function rolePercentage(userCount: number, total: number): number {
             Active system
           </div>
         </div>
-
-        <!-- Active Roles -->
         <div class="stat-card">
           <div class="stat-icon">
             <span class="material-symbols-outlined" style="font-size: 22px;">shield</span>
@@ -103,8 +100,6 @@ function rolePercentage(userCount: number, total: number): number {
             <span class="text-text-meta">{{ stats.roles.total }} roles defined</span>
           </div>
         </div>
-
-        <!-- Memberships -->
         <div class="stat-card">
           <div class="stat-icon">
             <span class="material-symbols-outlined" style="font-size: 22px;">card_membership</span>
@@ -115,8 +110,6 @@ function rolePercentage(userCount: number, total: number): number {
             <span class="text-text-meta">{{ stats.memberships.groups.length }} groups</span>
           </div>
         </div>
-
-        <!-- Pending Approvals -->
         <div class="stat-card" :class="{ 'stat-card--warning': stats.sellers.pending > 0 }">
           <div class="stat-icon">
             <span class="material-symbols-outlined" style="font-size: 22px;">approval</span>
@@ -126,116 +119,114 @@ function rolePercentage(userCount: number, total: number): number {
             {{ stats.sellers.pending }}
           </div>
           <div v-if="stats.sellers.pending > 0" class="stat-trend">
-            <button
-              class="text-xs text-brand-primary hover:underline"
-              @click="router.push({ name: 'SellerApprovals' })"
-            >
+            <Button variant="ghost" size="xs" @click="router.push({ name: 'SellerApprovals' })">
               Review now
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Recent Activity (Timeline) -->
-        <div class="lg:col-span-2 bg-bg-card border border-border-default rounded-lg p-5">
-          <div class="flex items-center justify-between mb-5">
-            <h2 class="text-base font-semibold text-text-heading">Recent Activity</h2>
-            <button
-              class="text-xs text-brand-primary hover:underline"
-              @click="router.push({ name: 'AuditLog' })"
-            >
+      <!-- Middle: Recent Activity (left) + Role Distribution (right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 flex-1 min-h-0 max-h-[45vh] overflow-hidden">
+        <!-- Recent Activity -->
+        <Card variant="elevated" padding="none" class="flex flex-col overflow-hidden min-h-0">
+          <div class="flex items-center justify-between px-5 py-3 shrink-0 border-b border-border-muted">
+            <h2 class="text-sm font-semibold text-text-heading">Recent Activity</h2>
+            <Button variant="ghost" size="xs" @click="router.push({ name: 'AuditLog' })">
               View all
-            </button>
+            </Button>
           </div>
-
-          <div v-if="stats.recentActivity.length === 0" class="text-sm text-text-meta text-center py-8">
-            No recent activity
-          </div>
-
-          <div v-else class="admin-timeline">
-            <div
-              v-for="(activity, idx) in stats.recentActivity.slice(0, 8)"
-              :key="idx"
-              class="admin-timeline-item"
-            >
-              <div class="timeline-time">{{ activity.createdAt ? timeAgo(activity.createdAt) : '-' }}</div>
-              <div class="timeline-content">
-                <span :class="['event-badge', eventBadgeClass(activity.eventType)]">
-                  {{ formatEventType(activity.eventType) }}
-                </span>
-                <span class="ml-2">{{ activity.details }}</span>
+          <div class="flex-1 overflow-y-auto px-5 py-4">
+            <div v-if="stats.recentActivity.length === 0" class="text-sm text-text-meta text-center py-8">
+              No recent activity
+            </div>
+            <div v-else class="admin-timeline">
+              <div
+                v-for="(activity, idx) in stats.recentActivity.slice(0, 8)"
+                :key="idx"
+                class="admin-timeline-item"
+              >
+                <div class="timeline-time">{{ activity.createdAt ? timeAgo(activity.createdAt) : '-' }}</div>
+                <div class="timeline-content">
+                  <span :class="['event-badge', eventBadgeClass(activity.eventType)]">
+                    {{ formatEventType(activity.eventType) }}
+                  </span>
+                  <span class="ml-2">{{ activity.details }}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         <!-- Role Distribution -->
-        <div class="bg-bg-card border border-border-default rounded-lg p-5">
-          <h2 class="text-base font-semibold text-text-heading mb-5">Role Distribution</h2>
-          <div class="space-y-4">
-            <div
-              v-for="role in stats.roles.assignments"
-              :key="role.roleKey"
-            >
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-sm text-text-body">{{ role.displayName }}</span>
-                <span class="text-xs text-text-meta font-medium">
-                  {{ rolePercentage(role.userCount, totalRoleAssignments(stats)) }}%
-                </span>
-              </div>
-              <div class="admin-progress">
-                <div
-                  class="admin-progress-bar"
-                  :style="{ width: rolePercentage(role.userCount, totalRoleAssignments(stats)) + '%' }"
-                ></div>
+        <Card variant="elevated" padding="none" class="flex flex-col overflow-hidden min-h-0">
+          <div class="px-5 py-3 shrink-0 border-b border-border-muted">
+            <h2 class="text-sm font-semibold text-text-heading">Role Distribution</h2>
+          </div>
+          <div class="flex-1 overflow-y-auto px-5 py-4">
+            <div class="space-y-3">
+              <div
+                v-for="role in stats.roles.assignments"
+                :key="role.roleKey"
+              >
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm text-text-body">{{ role.displayName }}</span>
+                  <span class="text-xs text-text-meta font-medium">
+                    {{ rolePercentage(role.userCount, totalRoleAssignments(stats)) }}%
+                  </span>
+                </div>
+                <Progress
+                  :value="Math.max(rolePercentage(role.userCount, totalRoleAssignments(stats)), 1)"
+                  :max="100"
+                  size="sm"
+                />
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
-      <!-- Membership Groups Table -->
-      <div class="bg-bg-card border border-border-default rounded-lg overflow-hidden">
-        <div class="px-5 py-4 border-b border-border-default">
-          <h2 class="text-base font-semibold text-text-heading">Membership Groups</h2>
+      <!-- Bottom: Membership Groups -->
+      <Card variant="elevated" padding="none" class="flex flex-col overflow-hidden shrink-0 max-h-[280px]">
+        <div class="px-5 py-3 border-b border-border-muted shrink-0 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-text-heading">Membership Groups</h2>
+          <span class="text-xs text-text-meta">{{ stats.memberships.groups.length }} groups</span>
         </div>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Group</th>
-              <th>Active Members</th>
-              <th>Tiers</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="group in stats.memberships.groups" :key="group.group">
-              <td class="font-medium">{{ group.group }}</td>
-              <td>{{ group.activeCount }}</td>
-              <td>
-                <div class="flex flex-wrap gap-1">
-                  <span
-                    v-for="tier in group.tiers"
-                    :key="tier.tierKey"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 bg-bg-elevated rounded text-xs text-text-body"
-                  >
-                    {{ tier.displayName }}
-                    <span class="text-text-meta">({{ tier.count }})</span>
-                  </span>
-                  <span v-if="group.tiers.length === 0" class="text-text-meta text-xs">-</span>
-                </div>
-              </td>
-              <td>
-                <span class="inline-flex items-center gap-1.5 text-xs">
-                  <span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
-                  Active
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <div class="flex-1 overflow-y-auto">
+          <table class="admin-table">
+            <thead class="sticky top-0 z-10">
+              <tr>
+                <th>Group</th>
+                <th>Active Members</th>
+                <th>Tiers</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="group in stats.memberships.groups" :key="group.group">
+                <td class="font-medium">{{ group.group }}</td>
+                <td>{{ group.activeCount }}</td>
+                <td>
+                  <div class="flex flex-wrap gap-1">
+                    <Badge
+                      v-for="tier in group.tiers"
+                      :key="tier.tierKey"
+                      variant="neutral"
+                      size="sm"
+                    >
+                      {{ tier.displayName }} ({{ tier.count }})
+                    </Badge>
+                    <span v-if="group.tiers.length === 0" class="text-text-meta text-xs">-</span>
+                  </div>
+                </td>
+                <td>
+                  <Badge variant="success" size="sm">Active</Badge>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </template>
   </div>
 </template>

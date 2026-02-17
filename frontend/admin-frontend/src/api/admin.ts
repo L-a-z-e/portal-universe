@@ -12,6 +12,7 @@ import type {
   UserPermissions,
   MembershipTierResponse,
   MembershipResponse,
+  UpdateMembershipTierRequest,
   SellerApplication,
   AuditLog,
   DashboardStats,
@@ -118,6 +119,16 @@ export async function fetchUserMemberships(userId: string): Promise<MembershipRe
 
 export async function changeUserMembership(userId: string, membershipGroup: string, tierKey: string): Promise<void> {
   await apiClient.put(`${ADMIN_MEMBERSHIP_BASE}/users/${userId}`, { membershipGroup, tierKey });
+}
+
+export async function updateMembershipTier(
+  tierId: number,
+  data: UpdateMembershipTierRequest,
+): Promise<MembershipTierResponse> {
+  const res = await apiClient.put<ApiResponse<MembershipTierResponse>>(
+    `${ADMIN_MEMBERSHIP_BASE}/tiers/${tierId}`, data,
+  );
+  return res.data.data;
 }
 
 // === Seller ===

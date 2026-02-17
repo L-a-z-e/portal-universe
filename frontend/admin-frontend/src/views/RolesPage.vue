@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Badge, Spinner, Alert, Select, Input, useApiError } from '@portal/design-vue';
+import { Badge, Spinner, Alert, Select, Input, Button, Card, Tag, Tooltip, useApiError } from '@portal/design-vue';
 import type { SelectOption } from '@portal/design-vue';
 import {
   fetchRoles,
@@ -226,13 +226,10 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-text-heading">Roles</h1>
-      <button
-        @click="enterCreateMode"
-        class="flex items-center gap-1.5 px-3 py-2 bg-brand-primary text-white rounded-lg text-sm font-medium hover:bg-brand-primaryHover transition-colors"
-      >
+      <Button variant="primary" size="sm" @click="enterCreateMode">
         <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
         Create Role
-      </button>
+      </Button>
     </div>
 
     <!-- Error -->
@@ -259,7 +256,7 @@ onMounted(() => {
           />
         </div>
 
-        <div class="bg-bg-card border border-border-default rounded-lg overflow-hidden">
+        <Card variant="elevated" padding="none" class="overflow-hidden">
           <div class="max-h-[calc(100vh-280px)] overflow-y-auto">
             <div v-if="filteredRoles.length === 0" class="px-4 py-8 text-center text-text-meta text-sm">
               No roles found
@@ -288,13 +285,13 @@ onMounted(() => {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       <!-- Right Panel -->
       <div class="flex-1 min-w-0">
         <!-- Create Mode -->
-        <div v-if="createMode" class="bg-bg-card border border-border-default rounded-lg p-5">
+        <Card v-if="createMode" variant="elevated" padding="lg">
           <h2 class="text-base font-semibold text-text-heading mb-4">Create New Role</h2>
 
           <Alert v-if="createError" variant="error" dismissible class="mb-4" @dismiss="createError = ''">
@@ -317,25 +314,18 @@ onMounted(() => {
           </div>
 
           <div class="flex gap-2">
-            <button
-              :disabled="createSaving"
-              @click="handleCreate"
-              class="px-4 py-2 bg-brand-primary text-white rounded text-sm font-medium hover:bg-brand-primaryHover disabled:opacity-40 transition-colors"
-            >
-              {{ createSaving ? 'Creating...' : 'Create' }}
-            </button>
-            <button
-              @click="createMode = false"
-              class="px-4 py-2 text-text-body text-sm hover:bg-bg-hover rounded transition-colors"
-            >
+            <Button variant="primary" size="sm" :loading="createSaving" @click="handleCreate">
+              Create
+            </Button>
+            <Button variant="ghost" size="sm" @click="createMode = false">
               Cancel
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
 
         <!-- Role Detail -->
         <template v-else-if="selectedRole || detailLoading">
-          <div class="bg-bg-card border border-border-default rounded-lg">
+          <Card variant="elevated" padding="none">
             <div v-if="detailLoading" class="flex justify-center py-12">
               <Spinner size="md" />
             </div>
@@ -364,63 +354,55 @@ onMounted(() => {
                   <Input v-model="editDisplayName" label="Display Name" required />
                   <Input v-model="editDescription" label="Description" />
                   <div class="flex gap-2">
-                    <button
-                      :disabled="editSaving"
-                      @click="saveEdit"
-                      class="px-3 py-1.5 bg-brand-primary text-white rounded text-xs font-medium hover:bg-brand-primaryHover disabled:opacity-40"
-                    >
-                      Save
-                    </button>
-                    <button @click="editMode = false" class="px-3 py-1.5 text-text-body text-xs hover:bg-bg-hover rounded">
+                    <Button variant="primary" size="sm" :loading="editSaving" @click="saveEdit">
+                      <span class="material-symbols-outlined" style="font-size: 16px;">save</span>
+                      Save Changes
+                    </Button>
+                    <Button variant="ghost" size="sm" @click="editMode = false">
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
                 <!-- Actions -->
                 <div v-else class="flex gap-2 mt-3">
-                  <button
-                    @click="enterEditMode"
-                    class="px-3 py-1.5 border border-border-default rounded text-xs text-text-body hover:bg-bg-hover transition-colors"
-                  >
-                    Edit
-                  </button>
-                  <button
+                  <Tooltip content="Edit role details">
+                    <Button variant="outline" size="sm" @click="enterEditMode">
+                      <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                      Edit
+                    </Button>
+                  </Tooltip>
+                  <Button
                     v-if="!selectedRole.system"
+                    :variant="selectedRole.active ? 'danger' : 'secondary'"
+                    size="sm"
                     @click="handleToggleActive"
-                    :class="[
-                      'px-3 py-1.5 rounded text-xs font-medium transition-colors',
-                      selectedRole.active
-                        ? 'bg-status-error/10 text-status-error hover:bg-status-error/20'
-                        : 'bg-status-success/10 text-status-success hover:bg-status-success/20'
-                    ]"
                   >
+                    <span class="material-symbols-outlined" style="font-size: 16px;">
+                      {{ selectedRole.active ? 'block' : 'check_circle' }}
+                    </span>
                     {{ selectedRole.active ? 'Deactivate' : 'Activate' }}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               <!-- Own Permissions -->
               <div class="p-5 border-b border-border-default">
                 <h3 class="text-sm font-semibold text-text-heading mb-3">Own Permissions</h3>
-                <div class="space-y-1.5 mb-3">
-                  <div
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <Tag
                     v-for="perm in selectedRole.permissions"
                     :key="perm.id"
-                    class="flex items-center justify-between py-1.5 px-3 bg-bg-elevated rounded"
+                    variant="default"
+                    size="md"
+                    removable
+                    @remove="handleRemovePermission(perm.permissionKey)"
                   >
-                    <div>
-                      <span class="font-mono text-xs text-text-body">{{ perm.permissionKey }}</span>
-                      <span v-if="perm.description" class="text-xs text-text-meta ml-2">{{ perm.description }}</span>
-                    </div>
-                    <button
-                      @click="handleRemovePermission(perm.permissionKey)"
-                      class="text-text-muted hover:text-status-error transition-colors"
-                      title="Remove"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
-                    </button>
-                  </div>
+                    <Tooltip v-if="perm.description" :content="perm.description">
+                      <span class="font-mono">{{ perm.permissionKey }}</span>
+                    </Tooltip>
+                    <span v-else class="font-mono">{{ perm.permissionKey }}</span>
+                  </Tag>
                   <p v-if="selectedRole.permissions.length === 0" class="text-sm text-text-meta">
                     No permissions assigned
                   </p>
@@ -436,13 +418,15 @@ onMounted(() => {
                     size="sm"
                     class="flex-1"
                   />
-                  <button
-                    :disabled="!selectedPermissionKey || permissionAssigning"
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    :disabled="!selectedPermissionKey"
+                    :loading="permissionAssigning"
                     @click="handleAssignPermission"
-                    class="px-3 py-2 bg-brand-primary text-white rounded text-xs font-medium hover:bg-brand-primaryHover disabled:opacity-40 transition-colors"
                   >
                     Add
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -463,7 +447,7 @@ onMounted(() => {
                 </dl>
               </div>
             </template>
-          </div>
+          </Card>
         </template>
 
         <!-- Empty State -->

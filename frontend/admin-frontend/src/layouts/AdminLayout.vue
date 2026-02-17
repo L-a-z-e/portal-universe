@@ -18,7 +18,7 @@ const mainNavItems = [
 ];
 
 const systemNavItems = [
-  { to: '/audit-log', label: 'Audit Log', icon: 'history' },
+  { to: '/audit-log', label: 'Audit Logs', icon: 'history_edu' },
 ];
 
 const isActive = (path: string, exact = false) => {
@@ -50,11 +50,11 @@ function handleSignOut() {
     <!-- Admin Sidebar (only in standalone mode) -->
     <aside
       v-if="!isEmbedded"
-      class="w-60 bg-sidebar flex flex-col shrink-0 fixed inset-y-0 left-0 z-30"
+      class="w-60 bg-bg-sidebar border-r border-border-default flex flex-col shrink-0 fixed inset-y-0 left-0 z-30"
     >
       <!-- Logo -->
       <div class="px-5 py-5">
-        <span class="text-sidebar-textActive text-sm font-bold tracking-wide uppercase">Portal Admin</span>
+        <span class="text-text-heading text-sm font-bold tracking-wide uppercase">Portal Admin</span>
       </div>
 
       <!-- Main Nav -->
@@ -90,18 +90,18 @@ function handleSignOut() {
       </nav>
 
       <!-- User Profile -->
-      <div class="px-4 py-4 border-t border-white/10">
+      <div class="px-4 py-4 border-t border-border-default">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-sidebar-bgActive flex items-center justify-center">
-            <span class="material-symbols-outlined text-sidebar-text" style="font-size: 18px;">person</span>
+          <div class="w-8 h-8 rounded-full bg-bg-elevated flex items-center justify-center">
+            <span class="material-symbols-outlined text-text-meta" style="font-size: 18px;">person</span>
           </div>
           <div class="flex-1 min-w-0">
-            <div class="text-sm text-sidebar-textActive truncate">{{ userName }}</div>
+            <div class="text-sm text-text-heading truncate">{{ userName }}</div>
           </div>
         </div>
         <button
           @click="handleSignOut"
-          class="mt-3 w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-sidebar-text hover:text-sidebar-textActive hover:bg-sidebar-bgActive transition-colors"
+          class="mt-3 w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-text-meta hover:text-text-heading hover:bg-bg-hover transition-colors"
         >
           <span class="material-symbols-outlined" style="font-size: 16px;">logout</span>
           Sign Out

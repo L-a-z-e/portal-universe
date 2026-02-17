@@ -78,6 +78,13 @@ export interface MembershipTierResponse {
   sortOrder: number;
 }
 
+export interface UpdateMembershipTierRequest {
+  displayName: string;
+  priceMonthly: number | null;
+  priceYearly: number | null;
+  sortOrder: number;
+}
+
 export interface MembershipResponse {
   id: number;
   userId: string;

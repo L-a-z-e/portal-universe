@@ -29,12 +29,12 @@
     }
 
     .admin-table tr.selected td {
-        @apply bg-brand-primary/5;
+        background-color: color-mix(in srgb, var(--semantic-brand-primary) 5%, transparent);
     }
 
     /* Expandable row */
     .admin-table-expandable {
-        @apply bg-bg-elevated/50;
+        background-color: color-mix(in srgb, var(--semantic-bg-elevated) 50%, transparent);
     }
 
     .admin-table-expandable td {
@@ -111,20 +111,21 @@
         @apply font-medium text-text-heading;
     }
 
-    /* ── Navigation (dark sidebar) ── */
+    /* ── Navigation (standalone sidebar) ── */
     .admin-nav-item {
         @apply flex items-center gap-3 px-3 py-2 rounded-md;
-        @apply text-sidebar-text text-sm;
+        @apply text-text-meta text-sm;
         @apply transition-colors duration-fast;
     }
 
     .admin-nav-item:hover {
-        @apply bg-sidebar-bgActive text-sidebar-textActive;
+        @apply bg-bg-hover text-text-heading;
     }
 
     .admin-nav-item.active {
-        @apply bg-sidebar-bgActive text-sidebar-textActive;
-        border-left: 2px solid var(--semantic-sidebar-accent);
+        @apply text-brand-primary;
+        background-color: color-mix(in srgb, var(--semantic-brand-primary) 10%, transparent);
+        border-left: 2px solid var(--semantic-brand-primary);
     }
 
     .admin-nav-item .nav-icon {
@@ -152,37 +153,43 @@
 
     /* ── Event Badge ── */
     .event-badge {
-        @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+        @apply inline-flex items-center px-2 py-0.5 rounded font-mono font-bold tracking-wide;
+        font-size: 0.6875rem; /* 11px */
     }
 
     .event-badge--assigned {
-        @apply bg-blue-50 text-blue-700;
         background-color: #eef4f8;
         color: #4a7c9b;
+        border: 1px solid rgba(74, 124, 155, 0.2);
     }
 
     .event-badge--revoked {
         background-color: #fdf8ee;
         color: #b5882c;
+        border: 1px solid rgba(181, 136, 44, 0.2);
     }
 
     .event-badge--created {
         background-color: #eef5f0;
         color: #4a7c59;
+        border: 1px solid rgba(74, 124, 89, 0.2);
     }
 
     .event-badge--failed {
         background-color: #faf0ef;
         color: #a3453a;
+        border: 1px solid rgba(163, 69, 58, 0.2);
     }
 
     .event-badge--config {
         background-color: #eef4f8;
         color: #4a7c9b;
+        border: 1px solid rgba(74, 124, 155, 0.2);
     }
 
     .event-badge--default {
         @apply bg-bg-elevated text-text-meta;
+        border: 1px solid var(--semantic-border-default);
     }
 
     /* ── Progress Bar ── */
@@ -197,6 +204,7 @@
 
     /* ── Section Divider ── */
     .admin-section-label {
-        @apply text-[10px] uppercase tracking-[0.15em] text-sidebar-text/60 px-3 pt-5 pb-2 font-medium;
+        @apply text-[10px] uppercase tracking-[0.15em] px-3 pt-5 pb-2 font-medium;
+        color: color-mix(in srgb, var(--semantic-text-muted) 60%, transparent);
     }
 }

@@ -95,6 +95,8 @@ const adminNavItem = {
     { name: 'Users', path: '/admin/users' },
     { name: 'Roles', path: '/admin/roles' },
     { name: 'Memberships', path: '/admin/memberships' },
+    { name: 'Approvals', path: '/admin/seller-approvals' },
+    { name: 'Audit Logs', path: '/admin/audit-log' },
   ],
 };
 
