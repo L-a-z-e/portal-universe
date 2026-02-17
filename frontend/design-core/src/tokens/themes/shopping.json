@@ -1,20 +1,32 @@
 {
-  "$description": "Shopping service theme - Warm Orange branding (Shopify style) with unified dark mode",
+  "$description": "Shopping service theme - Tropical Sunrise palette (#ff9f1c, #ffbf69, #ffffff, #cbf3f0, #2ec4b6)",
   "color": {
     "brand": {
       "primary": {
-        "$value": "{color.orange.500}",
-        "$description": "Shopping brand primary - Orange accent",
+        "$value": "#ff9f1c",
+        "$description": "Shopping brand primary - Tropical Gold",
         "$type": "color"
       },
       "primaryHover": {
-        "$value": "{color.orange.600}",
-        "$description": "Shopping brand primary hover",
+        "$value": "#e88e17",
+        "$description": "Shopping brand primary hover - Gold darken",
         "$type": "color"
       },
       "secondary": {
-        "$value": "{color.orange.400}",
-        "$description": "Shopping brand secondary",
+        "$value": "#ffbf69",
+        "$description": "Shopping brand secondary - Tangerine",
+        "$type": "color"
+      }
+    },
+    "accent": {
+      "seafoam": {
+        "$value": "#cbf3f0",
+        "$description": "Shopping accent seafoam - highlight, info assist",
+        "$type": "color"
+      },
+      "teal": {
+        "$value": "#2ec4b6",
+        "$description": "Shopping accent teal - secondary CTA, success alternative",
         "$type": "color"
       }
     },
@@ -99,8 +111,8 @@
         "$type": "color"
       },
       "focus": {
-        "$value": "{color.orange.500}",
-        "$description": "Shopping light mode focus border - accent",
+        "$value": "#ff9f1c",
+        "$description": "Shopping light mode focus border - Tropical Gold accent",
         "$type": "color"
       },
       "muted": {
@@ -153,22 +165,34 @@
     }
   },
   "darkMode": {
-    "$description": "Shopping dark mode - Unified Linear-style dark theme with Indigo accent",
+    "$description": "Shopping dark mode - Tropical Sunrise warm accent on dark background",
     "color": {
       "brand": {
         "primary": {
-          "$value": "{color.indigo.400}",
-          "$description": "Shopping dark mode brand primary - Unified Indigo accent",
+          "$value": "#ff9f1c",
+          "$description": "Shopping dark mode brand primary - Tropical Gold warm accent",
           "$type": "color"
         },
         "primaryHover": {
-          "$value": "{color.indigo.300}",
-          "$description": "Shopping dark mode brand primary hover",
+          "$value": "#ffbf69",
+          "$description": "Shopping dark mode brand primary hover - Tangerine",
           "$type": "color"
         },
         "secondary": {
-          "$value": "{color.indigo.200}",
-          "$description": "Shopping dark mode brand secondary",
+          "$value": "#ffbf69",
+          "$description": "Shopping dark mode brand secondary - Tangerine",
+          "$type": "color"
+        }
+      },
+      "accent": {
+        "seafoam": {
+          "$value": "#2ec4b6",
+          "$description": "Shopping dark mode accent seafoam",
+          "$type": "color"
+        },
+        "teal": {
+          "$value": "#cbf3f0",
+          "$description": "Shopping dark mode accent teal",
           "$type": "color"
         }
       },
@@ -199,13 +223,13 @@
           "$type": "color"
         },
         "link": {
-          "$value": "{color.indigo.400}",
-          "$description": "Shopping dark mode link text - Indigo accent",
+          "$value": "#ff9f1c",
+          "$description": "Shopping dark mode link text - Tropical Gold",
           "$type": "color"
         },
         "linkHover": {
-          "$value": "{color.indigo.300}",
-          "$description": "Shopping dark mode link hover text",
+          "$value": "#ffbf69",
+          "$description": "Shopping dark mode link hover text - Tangerine",
           "$type": "color"
         }
       },
@@ -253,8 +277,8 @@
           "$type": "color"
         },
         "focus": {
-          "$value": "{color.indigo.400}",
-          "$description": "Shopping dark mode focus border - Indigo accent",
+          "$value": "#ff9f1c",
+          "$description": "Shopping dark mode focus border - Tropical Gold",
           "$type": "color"
         },
         "muted": {
