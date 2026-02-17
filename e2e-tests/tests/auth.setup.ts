@@ -46,33 +46,26 @@ setup('authenticate', async ({ page }) => {
   // Wait for auth check to complete
   await page.waitForTimeout(2000)
 
-  // Check if already logged in
-  const isLoggedIn = await page.locator('button:has-text("Logout")').isVisible()
-    .catch(() => false)
+  // Check if already logged in (Login button absent = authenticated)
+  const loginButton = page.locator('button:has-text("Login")')
+  const isLoggedIn = !(await loginButton.isVisible({ timeout: 3000 }).catch(() => false))
 
   if (!isLoggedIn) {
-    // Click on Login button in sidebar
-    const loginButton = page.locator('button:has-text("Login")')
+    await loginButton.click()
 
-    if (await loginButton.isVisible()) {
-      await loginButton.click()
+    // Wait for login modal to appear
+    await expect(page.getByRole('heading', { name: '로그인', exact: true })).toBeVisible({ timeout: 5000 })
 
-      // Wait for login modal to appear
-      await expect(page.locator('h3:has-text("로그인")')).toBeVisible({ timeout: 5000 })
+    // Fill in the login form in the modal
+    await page.locator('input[placeholder="your@email.com"]').first().fill(defaultTestUser.email)
+    await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill(defaultTestUser.password)
 
-      // Fill in the login form in the modal
-      await page.locator('input[placeholder="your@email.com"]').first().fill(defaultTestUser.email)
-      await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill(defaultTestUser.password)
+    // Click login submit button in modal (exact match to avoid OAuth buttons)
+    await page.getByRole('button', { name: '로그인', exact: true }).click()
 
-      // Click login submit button in modal (exact match to avoid OAuth buttons)
-      await page.getByRole('button', { name: '로그인', exact: true }).click()
-
-      // Wait for login to complete
-      await page.waitForTimeout(3000)
-
-      // Verify login was successful
-      await expect(page.locator('button:has-text("Logout")')).toBeVisible({ timeout: 10000 })
-    }
+    // Wait for login to complete — Login button should disappear
+    await page.waitForTimeout(3000)
+    await expect(page.locator('button:has-text("Login")')).toBeHidden({ timeout: 10000 })
   }
 
   // Try window global first, then use captured token

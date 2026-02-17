@@ -124,8 +124,10 @@ test.describe('Admin Role Management', () => {
       return
     }
 
-    // Get the current selected role key from detail header
-    const currentRoleKey = await page.locator('.font-mono.text-xs.text-text-meta').first().textContent()
+    // Get the current selected role name from detail panel h2 heading
+    // (Using h2 instead of .font-mono to avoid matching role list items)
+    const detailHeading = page.locator('h2.text-lg.font-semibold')
+    const currentRoleName = await detailHeading.textContent()
 
     // Click a different node in the DAG
     const nodes = svg.locator('g.cursor-pointer')
@@ -135,19 +137,22 @@ test.describe('Admin Role Management', () => {
       return
     }
 
+    // Get current role key from the detail panel paragraph (p tag, not div in the list)
+    const currentRoleKey = await page.locator('p.font-mono.text-xs').first().textContent()
+
     // Find a node that is not the currently selected one
     for (let i = 0; i < nodeCount; i++) {
       const nodeText = await nodes.nth(i).locator('text').textContent()
-      if (nodeText && nodeText !== currentRoleKey?.trim()) {
+      if (nodeText && nodeText !== currentRoleKey?.trim() && !nodeText.endsWith('...')) {
         await nodes.nth(i).click()
         await page.waitForTimeout(2000)
-        // Detail panel should now show a different role
-        const newRoleKey = await page.locator('.font-mono.text-xs.text-text-meta').first().textContent()
-        expect(newRoleKey?.trim()).not.toBe(currentRoleKey?.trim())
+        // Detail panel heading should now show a different role
+        const newRoleName = await detailHeading.textContent()
+        expect(newRoleName?.trim()).not.toBe(currentRoleName?.trim())
         return
       }
     }
-    // Only one unique node — can't test navigation
+    // Only one unique non-truncated node — can't test navigation
     test.skip()
   })
 })

@@ -1,16 +1,20 @@
 import { Page } from '@playwright/test'
 import { defaultTestUser } from '../../fixtures/auth'
 
+const LOGIN_BUTTON = 'button:has-text("Login")'
+
 /**
  * Wait for the Portal Shell auth state to be resolved.
+ * Returns true if authenticated (Login button absent).
  */
 export async function waitForAuthReady(page: Page, timeout = 10000): Promise<boolean> {
   try {
-    await Promise.race([
-      page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout }),
-      page.locator('button:has-text("Login")').waitFor({ state: 'visible', timeout }),
-    ])
-    return await page.locator('button:has-text("Logout")').isVisible()
+    // Wait for Login button to either appear (not authenticated) or confirm absence (authenticated)
+    const loginBtn = page.locator(LOGIN_BUTTON)
+    // Give the page time to render auth state
+    await page.waitForTimeout(2000)
+    const loginVisible = await loginBtn.isVisible({ timeout }).catch(() => false)
+    return !loginVisible
   } catch {
     return false
   }
@@ -21,9 +25,9 @@ export async function waitForAuthReady(page: Page, timeout = 10000): Promise<boo
  * This handles the case where refresh token rotation invalidated the stored token.
  */
 async function ensureAuthenticated(page: Page): Promise<void> {
-  // Check if already logged in
-  const isLoggedIn = await page.locator('button:has-text("Logout")').isVisible().catch(() => false)
-  if (isLoggedIn) return
+  // Check if already logged in (Login button not visible = authenticated)
+  const loginBtnVisible = await page.locator(LOGIN_BUTTON).isVisible().catch(() => false)
+  if (!loginBtnVisible) return
 
   // Wait for DOM to settle instead of fixed timeout
   await page.waitForLoadState('domcontentloaded')
@@ -47,31 +51,29 @@ async function ensureAuthenticated(page: Page): Promise<void> {
 
     if (await loginBtn.isVisible().catch(() => false)) {
       await loginBtn.click()
-      // Wait for login to complete
-      await page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
+      // Wait for Login button to disappear (auth complete)
+      await page.locator(LOGIN_BUTTON).waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
     }
     return
   }
 
   // Check again if logged in (might have auto-logged in during wait)
-  const nowLoggedIn = await page.locator('button:has-text("Logout")').isVisible().catch(() => false)
-  if (nowLoggedIn) return
+  const stillNeedsLogin = await page.locator(LOGIN_BUTTON).isVisible().catch(() => false)
+  if (!stillNeedsLogin) return
 
-  // No modal visible - try clicking Login button in sidebar
-  // Use force:true to click even if intercepted, which will trigger modal
-  const loginButton = page.locator('button:has-text("Login")')
+  // No modal visible - try clicking Login button to trigger modal
+  const loginButton = page.locator(LOGIN_BUTTON)
   if (await loginButton.isVisible().catch(() => false)) {
     try {
       await loginButton.click({ force: true, timeout: 5000 })
     } catch {
       // If click failed due to interception, modal might already be open
-      // Wait for modal to appear via selector instead of fixed timeout
       await page.locator('input[type="email"], input[type="password"]').first().waitFor({ timeout: 3000 }).catch(() => {})
       await ensureAuthenticated(page)
       return
     }
 
-    // Wait for modal to appear via selector instead of fixed timeout
+    // Wait for modal to appear via selector
     await page.locator('input[type="email"], input[type="password"]').first().waitFor({ timeout: 3000 }).catch(() => {})
 
     // Fill and submit login form
@@ -83,7 +85,7 @@ async function ensureAuthenticated(page: Page): Promise<void> {
     }
     if (await loginBtn.isVisible().catch(() => false)) {
       await loginBtn.click()
-      await page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
+      await page.locator(LOGIN_BUTTON).waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
     }
   }
 }

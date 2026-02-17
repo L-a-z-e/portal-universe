@@ -81,7 +81,7 @@ export async function setupAdminRouteInterception(page: Page): Promise<void> {
  */
 export async function handleLoginModalIfVisible(page: Page): Promise<void> {
   try {
-    const modal = page.locator('h3:has-text("로그인")')
+    const modal = page.getByRole('heading', { name: '로그인', exact: true })
     if (await modal.isVisible({ timeout: 2000 })) {
       await page.locator('input[placeholder="your@email.com"]').first().fill(adminTestUser.email)
       await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill(adminTestUser.password)
@@ -103,12 +103,12 @@ export async function navigateToAdminPage(page: Page, adminPath: string): Promis
   await page.goto(adminPath)
   await page.waitForLoadState('domcontentloaded')
 
-  // Portal Shell auth 완료 대기 (Logout 버튼 = 인증 완료)
+  // Portal Shell auth 완료 대기 (Login 버튼 사라짐 = 인증 완료)
   try {
-    await page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout: 15000 })
+    await page.locator('button:has-text("Login")').waitFor({ state: 'hidden', timeout: 15000 })
   } catch {
     await handleLoginModalIfVisible(page)
-    await page.locator('button:has-text("Logout")').waitFor({ state: 'visible', timeout: 10000 }).catch(() => {})
+    await page.locator('button:has-text("Login")').waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {})
   }
 
   // 로딩 스피너 대기
