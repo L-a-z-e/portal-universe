@@ -111,6 +111,90 @@ function handleStartClick() {
       </div>
     </section>
 
+    <!-- Browser Mockup Section -->
+    <section class="relative z-10 -mt-8 pb-20 md:pb-32">
+      <div class="max-w-7xl mx-auto px-6 perspective-container">
+        <div class="tilt-card relative rounded-2xl overflow-hidden border border-border-default bg-[#0e0f11] shadow-2xl mx-auto max-w-[1300px]">
+          <!-- Title bar -->
+          <div class="h-10 bg-[#1a1b1e] border-b border-[rgba(255,255,255,0.06)] flex items-center px-6 gap-2">
+            <div class="flex gap-2">
+              <div class="w-3 h-3 rounded-full bg-[#f87171]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#fbbf24]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#4ade80]"></div>
+            </div>
+            <div class="flex-1 text-center text-xs text-text-muted font-mono">portal-universe.app</div>
+          </div>
+          <!-- Content -->
+          <div class="bg-[#08090a] p-8 min-h-[500px] md:min-h-[700px] relative overflow-hidden">
+            <div class="flex h-full gap-8">
+              <!-- Sidebar mock -->
+              <div class="w-20 flex-shrink-0 border-r border-[rgba(255,255,255,0.04)] flex-col items-center py-6 gap-6 hidden md:flex">
+                <div class="w-10 h-10 rounded-lg bg-brand-primary/20 flex items-center justify-center">
+                  <MaterialIcon name="grid_view" :size="20" class="text-brand-primary" />
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-white/5"></div>
+                <div class="w-8 h-8 rounded-lg bg-white/5"></div>
+                <div class="w-8 h-8 rounded-lg bg-white/5"></div>
+                <div class="mt-auto w-8 h-8 rounded-full bg-gradient-to-tr from-gray-700 to-gray-600"></div>
+              </div>
+              <!-- Main content mock -->
+              <div class="flex-1 flex flex-col h-full">
+                <!-- Top bar mock -->
+                <div class="flex justify-between items-center mb-8 pr-0 md:pr-8 pt-2">
+                  <div class="h-10 w-48 md:w-64 bg-white/5 rounded-lg"></div>
+                  <div class="flex gap-3">
+                    <div class="h-10 w-10 bg-white/5 rounded-lg"></div>
+                    <div class="h-10 w-24 md:w-32 bg-brand-primary rounded-lg shadow-lg shadow-brand-primary/20"></div>
+                  </div>
+                </div>
+                <!-- Stats cards mock -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 pr-0 md:pr-8">
+                  <div class="h-32 bg-[#0f1011] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 flex flex-col justify-between">
+                    <div class="h-8 w-8 rounded bg-teal-500/10"></div>
+                    <div class="h-2 w-1/2 bg-white/10 rounded"></div>
+                  </div>
+                  <div class="h-32 bg-[#0f1011] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 flex flex-col justify-between">
+                    <div class="h-8 w-8 rounded bg-orange-500/10"></div>
+                    <div class="h-2 w-1/2 bg-white/10 rounded"></div>
+                  </div>
+                  <div class="h-32 bg-[#0f1011] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 flex flex-col justify-between">
+                    <div class="h-8 w-8 rounded bg-indigo-500/10"></div>
+                    <div class="h-2 w-1/2 bg-white/10 rounded"></div>
+                  </div>
+                  <div class="h-32 bg-[#0f1011] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 flex flex-col justify-between">
+                    <div class="h-8 w-8 rounded bg-sky-500/10"></div>
+                    <div class="h-2 w-1/2 bg-white/10 rounded"></div>
+                  </div>
+                </div>
+                <!-- Main panels mock -->
+                <div class="flex flex-col md:flex-row gap-6 md:gap-8 h-full min-h-[200px] md:min-h-[300px] pr-0 md:pr-8 pb-8">
+                  <div class="flex-1 bg-[#0f1011] border border-[rgba(255,255,255,0.06)] rounded-xl p-6 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-brand-primary/5 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="h-4 w-1/3 bg-white/10 rounded mb-4"></div>
+                    <div class="space-y-3">
+                      <div class="h-12 w-full bg-white/5 rounded border border-white/5"></div>
+                      <div class="h-12 w-full bg-white/5 rounded border border-white/5"></div>
+                      <div class="h-12 w-full bg-white/5 rounded border border-white/5"></div>
+                    </div>
+                  </div>
+                  <div class="w-full md:w-1/3 bg-[#0f1011] border border-[rgba(255,255,255,0.06)] rounded-xl p-6">
+                    <div class="h-4 w-1/2 bg-white/10 rounded mb-6"></div>
+                    <div class="flex justify-center py-8">
+                      <div class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-brand-primary/20 border-t-brand-primary animate-spin"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Bottom fade -->
+            <div class="absolute inset-0 bg-gradient-to-t from-[#08090a] to-transparent opacity-60 pointer-events-none"></div>
+          </div>
+        </div>
+        <!-- Glow under card -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-32 w-4/5 h-32 bg-brand-primary blur-[120px] opacity-25 -z-10"></div>
+      </div>
+    </section>
+
     <!-- Services Section -->
     <section class="py-32 border-t border-border-default bg-bg-card/30">
       <div class="max-w-7xl mx-auto px-6">
@@ -208,6 +292,22 @@ function handleStartClick() {
 .hover-glow-orange:hover::before { background: #f97316; box-shadow: 0 1px 15px rgba(249, 115, 22, 0.5); }
 .hover-glow-indigo:hover::before { background: #6366f1; box-shadow: 0 1px 15px rgba(99, 102, 241, 0.5); }
 .hover-glow-sky:hover::before { background: #0ea5e9; box-shadow: 0 1px 15px rgba(14, 165, 233, 0.5); }
+
+/* Perspective browser mockup */
+.perspective-container {
+  perspective: 2000px;
+}
+
+.tilt-card {
+  transform: rotateX(20deg) scale(0.95);
+  transform-style: preserve-3d;
+  box-shadow: 0 50px 100px -20px rgba(157, 78, 221, 0.25);
+  transition: transform 0.5s ease;
+}
+
+.tilt-card:hover {
+  transform: rotateX(10deg) scale(0.98) translateY(-10px);
+}
 
 /* Light mode adjustments */
 :global(html.light) .service-card {
