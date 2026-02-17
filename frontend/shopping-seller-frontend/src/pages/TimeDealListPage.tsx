@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sellerTimeDealApi } from '@/api'
-import { Button } from '@portal/design-system-react'
+import { Button, Table } from '@portal/design-react'
+import type { TableColumn } from '@portal/design-core'
 
 export const TimeDealListPage: React.FC = () => {
   const navigate = useNavigate()
@@ -38,6 +39,65 @@ export const TimeDealListPage: React.FC = () => {
     }
   }
 
+  const columns: TableColumn<any>[] = [
+    {
+      key: 'name',
+      label: 'Name',
+      render: (value: unknown) => (
+        <span className="font-medium">{value as string}</span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (value: unknown) => {
+        const status = value as string
+        return (
+          <span className={`px-2 py-1 rounded text-xs font-medium ${
+            status === 'ACTIVE' ? 'bg-status-success-bg text-status-success'
+              : status === 'SCHEDULED' ? 'bg-status-warning-bg text-status-warning'
+              : 'bg-bg-subtle text-text-meta'
+          }`}>
+            {status}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'startsAt',
+      label: 'Start',
+      render: (value: unknown) => (value as string)?.substring(0, 16) ?? '-',
+    },
+    {
+      key: 'endsAt',
+      label: 'End',
+      render: (value: unknown) => (value as string)?.substring(0, 16) ?? '-',
+    },
+    {
+      key: 'products',
+      label: 'Products',
+      render: (value: unknown) => String((value as any[])?.length ?? 0),
+    },
+    {
+      key: 'id',
+      label: 'Actions',
+      align: 'right',
+      render: (_value: unknown, row: unknown) => {
+        const d = row as any
+        return (d.status === 'SCHEDULED' || d.status === 'ACTIVE') ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCancel(d.id)}
+            className="text-status-error hover:bg-status-error-bg"
+          >
+            Cancel
+          </Button>
+        ) : null
+      },
+    },
+  ]
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -48,11 +108,7 @@ export const TimeDealListPage: React.FC = () => {
       </div>
 
       <div className="bg-bg-card border border-border-default rounded-lg overflow-hidden shadow-sm">
-        {isLoading ? (
-          <div className="p-12 text-center">
-            <p className="text-text-meta">Loading...</p>
-          </div>
-        ) : deals.length === 0 ? (
+        {!isLoading && deals.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-lg text-text-heading mb-2">No time deals found</p>
             <Button variant="primary" onClick={() => navigate('/time-deals/new')}>
@@ -60,47 +116,12 @@ export const TimeDealListPage: React.FC = () => {
             </Button>
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-bg-subtle border-b border-border-default">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Name</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Start</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">End</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Products</th>
-                <th className="px-6 py-4 text-right text-xs font-medium text-text-meta uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-default">
-              {deals.map((d: any) => (
-                <tr key={d.id} className="hover:bg-bg-hover transition-colors">
-                  <td className="px-6 py-4 text-sm text-text-body font-medium">{d.name}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      d.status === 'ACTIVE' ? 'bg-status-success-bg text-status-success'
-                        : d.status === 'SCHEDULED' ? 'bg-status-warning-bg text-status-warning'
-                        : 'bg-bg-subtle text-text-meta'
-                    }`}>
-                      {d.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-body">{d.startsAt?.substring(0, 16)}</td>
-                  <td className="px-6 py-4 text-sm text-text-body">{d.endsAt?.substring(0, 16)}</td>
-                  <td className="px-6 py-4 text-sm text-text-body">{d.products?.length ?? 0}</td>
-                  <td className="px-6 py-4 text-right">
-                    {(d.status === 'SCHEDULED' || d.status === 'ACTIVE') && (
-                      <button
-                        onClick={() => handleCancel(d.id)}
-                        className="p-2 text-status-error hover:bg-status-error-bg rounded transition-colors text-sm"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            columns={columns}
+            data={deals}
+            loading={isLoading}
+            emptyText="No time deals found"
+          />
         )}
       </div>
     </div>

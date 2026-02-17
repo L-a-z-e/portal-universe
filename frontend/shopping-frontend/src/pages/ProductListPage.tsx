@@ -1,26 +1,18 @@
-/**
- * Product List Page
- *
- * 상품 목록 조회 및 검색 페이지
- */
-import React, { useState, useEffect, useCallback } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { productApi, inventoryApi, searchApi } from '@/api'
 import type { Product, Inventory } from '@/types'
 import ProductCard from '@/components/product/ProductCard'
+import FilterChips from '@/components/product/FilterChips'
 import SearchAutocomplete from '@/components/search/SearchAutocomplete'
-import PopularKeywords from '@/components/search/PopularKeywords'
-import RecentKeywords from '@/components/search/RecentKeywords'
-import { Button, Spinner, Alert } from '@portal/design-system-react'
+import { Button, Spinner, Alert, Pagination } from '@portal/design-react'
 
 const ProductListPage: React.FC = () => {
-  // URL query params
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = parseInt(searchParams.get('page') || '1')
   const searchKeyword = searchParams.get('keyword') || ''
   const category = searchParams.get('category') || ''
 
-  // State
   const [products, setProducts] = useState<Product[]>([])
   const [inventories, setInventories] = useState<Map<number, Inventory>>(new Map())
   const [totalPages, setTotalPages] = useState(0)
@@ -28,7 +20,6 @@ const ProductListPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState(searchKeyword)
 
-  // Fetch products
   const fetchProducts = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -45,7 +36,6 @@ const ProductListPage: React.FC = () => {
       setProducts(productsData)
       setTotalPages(response.data?.totalPages ?? 0)
 
-      // Fetch inventories for all products
       if (productsData.length > 0) {
         const productIds = productsData.map((p: Product) => p.id)
         try {
@@ -55,8 +45,8 @@ const ProductListPage: React.FC = () => {
             invMap.set(inv.productId, inv)
           })
           setInventories(invMap)
-        } catch (invError) {
-          console.warn('Failed to fetch inventories:', invError)
+        } catch {
+          // inventory API 실패 시 무시
         }
       }
     } catch (err: any) {
@@ -70,17 +60,16 @@ const ProductListPage: React.FC = () => {
     fetchProducts()
   }, [fetchProducts])
 
-  // Handle search
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    executeSearch(searchInput)
-  }
+  const categories = useMemo(() => {
+    const cats = new Set<string>()
+    products.forEach(p => { if (p.category) cats.add(p.category) })
+    return Array.from(cats).sort()
+  }, [products])
 
-  const executeSearch = (keyword: string) => {
+  const handleSearch = (keyword: string) => {
     const params = new URLSearchParams()
     if (keyword) {
       params.set('keyword', keyword)
-      // Record recent keyword
       searchApi.addRecentKeyword(keyword).catch(() => {})
     }
     params.set('page', '1')
@@ -88,61 +77,62 @@ const ProductListPage: React.FC = () => {
     setSearchInput(keyword)
   }
 
-  // Handle page change
+  const handleCategoryChange = (cat: string) => {
+    const params = new URLSearchParams(searchParams)
+    if (cat) {
+      params.set('category', cat)
+    } else {
+      params.delete('category')
+    }
+    params.set('page', '1')
+    setSearchParams(params)
+  }
+
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams)
     params.set('page', String(page))
     setSearchParams(params)
   }
 
-  // Clear search
   const clearSearch = () => {
     setSearchInput('')
     setSearchParams({})
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-text-heading">
-          Products
-        </h1>
+    <div className="space-y-8">
+      {/* Hero Header */}
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold text-text-heading">Store</h1>
+        <p className="text-text-meta">
+          {searchKeyword
+            ? `"${searchKeyword}" 검색 결과`
+            : '다양한 상품을 만나보세요'}
+        </p>
+      </div>
 
-        {/* Search */}
-        <div className="flex items-center gap-2">
+      {/* Filter + Search Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <FilterChips
+          categories={categories}
+          active={category}
+          onChange={handleCategoryChange}
+        />
+
+        <div className="flex items-center gap-2 flex-shrink-0">
           <SearchAutocomplete
             value={searchInput}
             onChange={setSearchInput}
-            onSearch={executeSearch}
+            onSearch={handleSearch}
             placeholder="Search products..."
           />
           {searchKeyword && (
-            <Button
-              type="button"
-              onClick={clearSearch}
-              variant="secondary"
-            >
+            <Button type="button" onClick={clearSearch} variant="secondary" size="sm">
               Clear
             </Button>
           )}
         </div>
       </div>
-
-      {/* Popular & Recent Keywords */}
-      {!searchKeyword && (
-        <div className="space-y-4">
-          <PopularKeywords onSelect={executeSearch} />
-          <RecentKeywords onSelect={executeSearch} />
-        </div>
-      )}
-
-      {/* Search result info */}
-      {searchKeyword && (
-        <Alert variant="info">
-          Search results for "{searchKeyword}"
-        </Alert>
-      )}
 
       {/* Loading */}
       {loading && (
@@ -158,9 +148,7 @@ const ProductListPage: React.FC = () => {
       {error && !loading && (
         <Alert variant="error" className="text-center">
           <p className="mb-4">{error}</p>
-          <Button onClick={fetchProducts} variant="primary">
-            Retry
-          </Button>
+          <Button onClick={fetchProducts} variant="primary">Retry</Button>
         </Alert>
       )}
 
@@ -168,22 +156,19 @@ const ProductListPage: React.FC = () => {
       {!loading && !error && (
         <>
           {products.length === 0 ? (
-            <div className="bg-bg-card border border-border-default rounded-lg p-12 text-center">
+            <div className="bg-bg-card border border-dashed border-border-default rounded-2xl p-12 text-center">
               <p className="text-text-meta text-lg mb-2">No products found</p>
               {searchKeyword && (
                 <p className="text-text-meta text-sm">
                   Try different keywords or{' '}
-                  <button
-                    onClick={clearSearch}
-                    className="text-brand-primary hover:underline"
-                  >
+                  <Button variant="ghost" size="sm" onClick={clearSearch} className="text-brand-primary hover:underline p-0 h-auto inline">
                     clear the search
-                  </button>
+                  </Button>
                 </p>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -196,49 +181,12 @@ const ProductListPage: React.FC = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <Button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                variant="secondary"
-              >
-                Previous
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let page: number
-                  if (totalPages <= 5) {
-                    page = i + 1
-                  } else if (currentPage < 4) {
-                    page = i + 1
-                  } else if (currentPage > totalPages - 3) {
-                    page = totalPages - 4 + i
-                  } else {
-                    page = currentPage - 2 + i
-                  }
-
-                  return (
-                    <Button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      variant={page === currentPage ? 'primary' : 'secondary'}
-                      size="sm"
-                      className="w-10 h-10"
-                    >
-                      {page}
-                    </Button>
-                  )
-                })}
-              </div>
-
-              <Button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-                variant="secondary"
-              >
-                Next
-              </Button>
+            <div className="flex justify-center pt-4">
+              <Pagination
+                page={currentPage}
+                totalPages={totalPages}
+                onChange={handlePageChange}
+              />
             </div>
           )}
         </>

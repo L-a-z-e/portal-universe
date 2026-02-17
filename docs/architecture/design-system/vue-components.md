@@ -4,24 +4,25 @@ title: Vue 컴포넌트 라이브러리
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-17
 author: Laze
 tags: [design-system, vue3, components, composables]
 related:
   - arch-design-system-overview
   - arch-react-components
   - arch-component-matrix
+  - adr-043-design-system-package-consolidation
 ---
 
 # Vue 컴포넌트 라이브러리
 
 ## 개요
 
-`@portal/design-system-vue`는 Vue 3 Composition API 기반 컴포넌트 라이브러리이다. 26개 컴포넌트와 3개 composable을 제공하며, `@portal/design-tokens`의 CSS 변수와 `@portal/design-types`의 타입 시스템을 기반으로 한다.
+`@portal/design-vue`는 Vue 3 Composition API 기반 컴포넌트 라이브러리이다. 26개 컴포넌트와 4개 composable을 제공하며, `@portal/design-core`의 CSS 변수, 타입, variant를 기반으로 한다.
 
 | 항목 | 내용 |
 |------|------|
-| 패키지 | `@portal/design-system-vue` |
+| 패키지 | `@portal/design-vue` |
 | 컴포넌트 | 26개 |
 | Composable | 4개 (useTheme, useToast, useApiError, useLogger) |
 | 유틸리티 | `setupErrorHandler` (전역 에러 핸들러) |
@@ -34,26 +35,28 @@ related:
 ```mermaid
 graph TB
     subgraph "Dependencies"
-        DT["@portal/design-tokens<br/>CSS 변수 + Tailwind preset"]
-        DY["@portal/design-types<br/>Props 타입"]
+        DC["@portal/design-core<br/>CSS 변수 + 타입 + variant + Tailwind preset"]
     end
 
-    subgraph "@portal/design-system-vue"
+    subgraph "@portal/design-vue"
         COMP["components/ (26개)<br/>Alert, Button, Card..."]
-        CMPB["composables/ (3개)<br/>useTheme, useToast, useApiError"]
-        STYLE["styles/themes/<br/>blog.css, shopping.css, prism.css"]
+        CMPB["composables/ (4개)<br/>useTheme, useToast, useApiError, useLogger"]
+        STYLE["styles/<br/>index.css (design-core import)"]
     end
 
     subgraph "Consumers"
         SHELL["portal-shell :30000"]
         BLOG["blog-frontend :30001"]
+        ADMIN["admin-frontend :30004"]
+        DRIVE["drive-frontend :30005"]
     end
 
-    DT --> COMP
-    DT --> STYLE
-    DY --> COMP
+    DC --> COMP
+    DC --> STYLE
     COMP --> SHELL
     COMP --> BLOG
+    COMP --> ADMIN
+    COMP --> DRIVE
     CMPB --> SHELL
     CMPB --> BLOG
 ```
@@ -124,14 +127,14 @@ graph TB
 
 ### setupErrorHandler 유틸리티
 
-위치: `src/composables/setupErrorHandler.ts`
+위치: `src/composables/useErrorHandler.ts`
 
-Vue 3 앱의 전역 에러 핸들러를 설정한다. `app.config.errorHandler`에 등록되어 컴포넌트/라우터/Vuex 에러를 캐치한다.
+Vue 3 앱의 전역 에러 핸들러를 설정한다. `app.config.errorHandler`에 등록되어 컴포넌트/라우터 에러를 캐치한다.
 
 **사용 예시**:
 ```typescript
 // main.ts
-import { setupErrorHandler } from '@portal/design-system-vue'
+import { setupErrorHandler } from '@portal/design-vue'
 
 const app = createApp(App)
 setupErrorHandler(app)
@@ -142,7 +145,9 @@ app.mount('#app')
 
 ### 서비스 테마 CSS
 
-위치: `src/styles/themes/`
+서비스별 테마 CSS는 `@portal/design-core`로 이동되었다.
+
+위치: `design-core/src/styles/themes/`
 
 | 파일 | 서비스 | 내용 |
 |------|--------|------|
@@ -154,11 +159,11 @@ app.mount('#app')
 
 ### 컴포넌트 패턴
 
-모든 컴포넌트는 `<script setup lang="ts">` + `@portal/design-types` Props 패턴을 따른다.
+모든 컴포넌트는 `<script setup lang="ts">` + `@portal/design-core` Props 패턴을 따른다.
 
 ```vue
 <script setup lang="ts">
-import type { ButtonProps } from '@portal/design-types'
+import type { ButtonProps } from '@portal/design-core'
 
 interface Props extends ButtonProps {
   // Vue 전용 확장 props (필요 시)
@@ -205,15 +210,14 @@ const emit = defineEmits<{
 - **`<script setup>`**: 모든 컴포넌트에서 Composition API + `<script setup>` 사용. 보일러플레이트 최소화.
 - **defineModel / v-model**: 폼 컴포넌트에서 `defineModel()` 또는 `modelValue` + `emit('update:modelValue')` 패턴 사용.
 - **Scoped Styles 최소화**: Tailwind 유틸리티 클래스 우선 사용. 복잡한 커스텀 스타일만 `<style scoped>`로 처리.
-- **@portal/design-types 의존**: 컴포넌트 Props를 직접 정의하지 않고, 공유 타입에서 import하여 React와 일관성 유지.
+- **@portal/design-core 의존**: 컴포넌트 Props와 variant를 직접 정의하지 않고, design-core에서 import하여 React와 일관성 유지.
 
 ### 외부 의존성
 
 | 패키지 | 버전 | 용도 |
 |--------|------|------|
 | `vue` | ^3.5.21 | 컴포넌트 프레임워크 |
-| `@portal/design-tokens` | workspace | 토큰 + Tailwind preset |
-| `@portal/design-types` | workspace | Props 타입 |
+| `@portal/design-core` | workspace | 토큰 + 타입 + variant + Tailwind preset |
 | `@fontsource-variable/inter` | ^5.1.1 | Inter 폰트 |
 
 ### 빌드 설정
@@ -228,7 +232,7 @@ export default defineConfig({
       formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      external: ['vue', '@portal/design-tokens', '@portal/design-types'],
+      external: ['vue', '@portal/design-core'],
     },
   },
 })
@@ -250,3 +254,4 @@ export default defineConfig({
 | 2026-01-18 | 초안 작성 | Laze |
 | 2026-02-06 | 업데이트 | Laze |
 | 2026-02-14 | setupErrorHandler 유틸리티, useLogger composable 추가 (ADR-040) | Laze |
+| 2026-02-17 | 4→3 패키지 통합 반영: design-system-vue → design-vue (ADR-043) | Laze |

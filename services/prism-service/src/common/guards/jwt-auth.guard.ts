@@ -59,7 +59,7 @@ export class JwtAuthGuard implements CanActivate {
 
     // Request에 user 정보 추가
     (request as RequestWithUser).user = {
-      id: typeof userId === 'string' ? userId : userId[0],
+      id: typeof userId === 'string' ? userId : (userId[0] ?? ''),
       roles,
       memberships,
     };

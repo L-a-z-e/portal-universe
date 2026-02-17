@@ -3,14 +3,14 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import { useDashboard } from '../composables/useDashboard'
-import { Button, Badge } from '@portal/design-system-vue'
+import { Badge, Button } from '@portal/design-vue'
 import { getRemoteConfigs } from '../config/remoteRegistry'
 import { formatRelativeTime } from '../utils/dateUtils'
+import MaterialIcon from '../components/MaterialIcon.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Dashboard composable - 실제 데이터 사용
 const {
   stats,
   activities,
@@ -25,27 +25,59 @@ const services = computed(() => {
   return configs.map(config => ({
     id: config.key,
     name: config.name,
-    icon: config.icon || '📦',
+    icon: config.icon || 'package_2',
     description: config.description || '',
     path: config.basePath,
-    isActive: true
   }))
 })
 
-// Quick actions for the dashboard
+// Quick actions (2x2 grid)
 const quickActions = [
-  { id: 'new-post', label: '새 글 작성', icon: '✏️', path: '/blog/write', shortcut: 'N' },
-  { id: 'browse-products', label: '상품 둘러보기', icon: '🛍️', path: '/shopping', shortcut: 'S' },
-  { id: 'my-orders', label: '주문 내역', icon: '📦', path: '/shopping/orders', shortcut: 'O' },
+  { id: 'new-post', label: '새 글 작성', icon: 'edit_note', path: '/blog/write', color: 'text-teal-400' },
+  { id: 'browse-products', label: '상품 둘러보기', icon: 'storefront', path: '/shopping', color: 'text-orange-400' },
+  { id: 'my-orders', label: '주문 내역', icon: 'package_2', path: '/shopping/orders', color: 'text-blue-400' },
+  { id: 'ai-agent', label: 'AI 에이전트', icon: 'smart_toy', path: '/prism', color: 'text-violet-400' },
 ]
 
-// Current time greeting
+// Activity dot colors by type
+const activityDotColor: Record<string, string> = {
+  POST_CREATED: 'bg-teal-400',
+  COMMENT_CREATED: 'bg-blue-400',
+  POST_LIKED: 'bg-red-400',
+  ORDER_CREATED: 'bg-orange-400',
+  ORDER_COMPLETED: 'bg-green-400',
+  PAYMENT_COMPLETED: 'bg-violet-400',
+}
+
+// Stat icon accent colors
+const statColors = ['text-teal-400', 'text-orange-400', 'text-red-400', 'text-violet-400']
+
+// Greeting
 const greeting = computed(() => {
   const hour = new Date().getHours()
-  if (hour < 12) return '좋은 아침이에요'
-  if (hour < 18) return '좋은 오후에요'
-  return '좋은 저녁이에요'
+  if (hour < 12) return 'Good morning'
+  if (hour < 18) return 'Good afternoon'
+  return 'Good evening'
 })
+
+// Service gradient colors
+const serviceGradients: Record<string, string> = {
+  blog: 'from-teal-500/20 to-teal-600/5',
+  shopping: 'from-orange-500/20 to-orange-600/5',
+  prism: 'from-violet-500/20 to-violet-600/5',
+  drive: 'from-cyan-500/20 to-cyan-600/5',
+  admin: 'from-red-500/20 to-red-600/5',
+  seller: 'from-orange-400/20 to-orange-500/5',
+}
+
+const serviceAccents: Record<string, string> = {
+  blog: 'bg-teal-500',
+  shopping: 'bg-orange-500',
+  prism: 'bg-violet-500',
+  drive: 'bg-cyan-500',
+  admin: 'bg-red-500',
+  seller: 'bg-orange-400',
+}
 
 function navigateTo(path: string) {
   router.push(path)
@@ -54,182 +86,205 @@ function navigateTo(path: string) {
 
 <template>
   <div class="bg-bg-page text-text-body">
-    <!-- Dashboard Header -->
-    <header class="border-b border-border-default bg-bg-card/50 backdrop-blur-sm">
-      <div class="max-w-7xl mx-auto px-4 py-4 sm:py-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-text-meta text-sm">{{ greeting }},</p>
-            <h1 class="text-2xl font-bold text-text-heading leading-tight">
-              {{ authStore.displayName }}
-            </h1>
-          </div>
-          <div class="flex items-center gap-3">
-            <Button variant="secondary" size="sm" @click="navigateTo('/blog/write')">
-              <span class="mr-2">✏️</span>
-              새 글 작성
-            </Button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <main class="max-w-7xl mx-auto px-6 py-8">
+      <!-- Welcome Section -->
+      <section class="mb-8">
+        <h1 class="text-2xl font-bold text-text-heading">
+          {{ greeting }}, {{ authStore.displayName }}
+        </h1>
+        <p class="text-text-meta mt-1">Here's what's happening today</p>
+      </section>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-      <!-- Stats Overview -->
-      <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <!-- Stats Cards (4 columns) -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div
-          v-for="stat in stats"
+          v-for="(stat, idx) in stats"
           :key="stat.label"
-          class="bg-bg-card border border-border-default rounded-xl p-5 hover:border-brand-primary/30 transition-colors"
+          class="rounded-xl p-5 bg-[rgba(20,21,22,0.7)] backdrop-blur-[10px] border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.2)] light:bg-white/80 light:border-gray-200/50 light:shadow-sm transition-all"
         >
-          <!-- 로딩 상태 -->
+          <!-- Loading -->
           <template v-if="stat.loading">
             <div class="animate-pulse">
-              <div class="flex items-center justify-between mb-2">
-                <div class="h-8 w-8 bg-bg-elevated rounded"></div>
-                <div class="h-5 w-10 bg-bg-elevated rounded"></div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="h-8 w-8 bg-bg-elevated rounded-lg"></div>
+                <div class="h-4 w-10 bg-bg-elevated rounded"></div>
               </div>
-              <div class="h-8 w-16 bg-bg-elevated rounded mb-1"></div>
+              <div class="h-7 w-16 bg-bg-elevated rounded mb-1"></div>
               <div class="h-4 w-20 bg-bg-elevated rounded"></div>
             </div>
           </template>
 
-          <!-- 에러 상태 -->
+          <!-- Error -->
           <template v-else-if="stat.error">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-2xl">{{ stat.icon }}</span>
-              <Badge variant="danger" size="sm">에러</Badge>
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-10 h-10 rounded-lg bg-bg-elevated flex items-center justify-center">
+                <MaterialIcon :name="stat.icon" :size="22" class="text-text-muted" />
+              </div>
+              <Badge variant="danger" size="sm">Error</Badge>
             </div>
             <p class="text-2xl font-bold text-text-meta">--</p>
-            <p class="text-sm text-text-meta">{{ stat.label }}</p>
+            <p class="text-sm text-text-meta mt-1">{{ stat.label }}</p>
           </template>
 
-          <!-- 정상 상태 -->
+          <!-- Normal -->
           <template v-else>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-2xl">{{ stat.icon }}</span>
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-10 h-10 rounded-lg bg-bg-elevated flex items-center justify-center">
+                <MaterialIcon :name="stat.icon" :size="22" :class="statColors[idx]" />
+              </div>
               <Badge v-if="stat.change" variant="success" size="sm">
                 {{ stat.change }}
               </Badge>
             </div>
-            <p class="text-2xl font-bold text-text-heading">{{ stat.value }}</p>
-            <p class="text-sm text-text-meta">{{ stat.label }}</p>
+            <p class="text-2xl font-bold text-text-heading">{{ stat.value?.toLocaleString() }}</p>
+            <p class="text-sm text-text-meta mt-1">{{ stat.label }}</p>
           </template>
         </div>
       </section>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Quick Actions -->
-        <section class="lg:col-span-1">
-          <div class="bg-bg-card border border-border-default rounded-xl p-5">
-            <h2 class="text-lg font-semibold text-text-heading mb-4 flex items-center gap-2">
-              <span>⚡</span>
-              빠른 작업
-            </h2>
-            <div class="space-y-2">
-              <Button
-                v-for="action in quickActions"
-                :key="action.id"
-                variant="ghost"
-                @click="navigateTo(action.path)"
-                class="w-full flex items-center justify-between p-3"
-              >
-                <span class="flex items-center gap-3">
-                  <span class="text-xl">{{ action.icon }}</span>
-                  <span>{{ action.label }}</span>
-                </span>
-                <kbd class="hidden sm:inline-block px-2 py-1 text-xs bg-bg-card border border-border-default rounded text-text-meta">
-                  {{ action.shortcut }}
-                </kbd>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Recent Activity -->
+      <!-- Main Grid: Activity (2/3) + Quick Actions (1/3) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Activity Timeline (2/3) -->
         <section class="lg:col-span-2">
           <div class="bg-bg-card border border-border-default rounded-xl p-5">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-5">
               <h2 class="text-lg font-semibold text-text-heading flex items-center gap-2">
-                <span>📊</span>
-                최근 활동
+                <MaterialIcon name="timeline" :size="20" class="text-brand-primary" />
+                Activity
               </h2>
-              <Button variant="ghost" size="sm" @click="fetchAll">새로고침</Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                @click="fetchAll"
+              >
+                <MaterialIcon name="refresh" :size="16" />
+                Refresh
+              </Button>
             </div>
 
-            <!-- 로딩 상태 -->
-            <div v-if="loading.activities" class="space-y-3">
-              <div v-for="i in 3" :key="i" class="animate-pulse flex items-center gap-4 p-3">
-                <div class="w-10 h-10 bg-bg-elevated rounded-full"></div>
+            <!-- Loading -->
+            <div v-if="loading.activities" class="space-y-4">
+              <div v-for="i in 3" :key="i" class="animate-pulse flex gap-4">
+                <div class="w-3 h-3 bg-bg-elevated rounded-full mt-1.5 shrink-0"></div>
                 <div class="flex-1">
                   <div class="h-4 w-3/4 bg-bg-elevated rounded mb-2"></div>
                   <div class="h-3 w-1/2 bg-bg-elevated rounded"></div>
                 </div>
-                <div class="h-3 w-12 bg-bg-elevated rounded"></div>
               </div>
             </div>
 
-            <!-- 에러 상태 -->
+            <!-- Error -->
             <div v-else-if="errors.activities" class="text-center py-8 text-text-meta">
-              <p>활동을 불러올 수 없습니다</p>
-              <Button variant="ghost" size="sm" class="mt-2" @click="fetchAll">
-                다시 시도
+              <MaterialIcon name="error_outline" :size="32" class="mb-2" />
+              <p>Failed to load activities</p>
+              <Button variant="ghost" size="sm" @click="fetchAll" class="mt-2">
+                Try again
               </Button>
             </div>
 
-            <!-- 빈 상태 -->
+            <!-- Empty -->
             <div v-else-if="activities.length === 0" class="text-center py-8 text-text-meta">
-              <p>아직 활동이 없습니다</p>
-              <p class="text-sm mt-1">글을 작성하거나 상품을 주문해보세요!</p>
+              <MaterialIcon name="inbox" :size="32" class="mb-2" />
+              <p>No recent activity</p>
+              <p class="text-sm mt-1">Start by writing a post or browsing products</p>
             </div>
 
-            <!-- 정상 상태 -->
-            <div v-else class="space-y-3">
-              <div
-                v-for="activity in activities"
-                :key="activity.id"
-                class="flex items-center gap-4 p-3 rounded-lg hover:bg-bg-elevated transition-colors cursor-pointer"
-                @click="activity.link && navigateTo(activity.link)"
-              >
-                <div class="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center text-lg">
-                  {{ activity.icon }}
+            <!-- Timeline -->
+            <div v-else class="relative">
+              <!-- Timeline line -->
+              <div class="absolute left-[5px] top-2 bottom-2 w-px bg-border-default"></div>
+
+              <div class="space-y-4">
+                <div
+                  v-for="activity in activities"
+                  :key="activity.id"
+                  class="flex gap-4 relative cursor-pointer group"
+                  @click="activity.link && navigateTo(activity.link)"
+                >
+                  <!-- Dot -->
+                  <div
+                    :class="[
+                      'w-[11px] h-[11px] rounded-full mt-1.5 shrink-0 ring-2 ring-bg-card z-10',
+                      activityDotColor[activity.type] || 'bg-brand-primary'
+                    ]"
+                  ></div>
+
+                  <!-- Content -->
+                  <div class="flex-1 min-w-0 pb-1">
+                    <p class="text-text-heading font-medium truncate group-hover:text-brand-primary transition-colors">
+                      {{ activity.title }}
+                    </p>
+                    <p class="text-sm text-text-meta">{{ activity.description }}</p>
+                    <span class="text-xs text-text-muted mt-0.5 inline-block">
+                      {{ formatRelativeTime(activity.timestamp) }}
+                    </span>
+                  </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-text-heading font-medium truncate">
-                    {{ activity.title }}
-                  </p>
-                  <p class="text-sm text-text-meta">{{ activity.description }}</p>
-                </div>
-                <span class="text-xs text-text-meta whitespace-nowrap">
-                  {{ formatRelativeTime(activity.timestamp) }}
-                </span>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Actions (1/3, 2x2 grid) -->
+        <section class="lg:col-span-1">
+          <div class="bg-bg-card border border-border-default rounded-xl p-5">
+            <h2 class="text-lg font-semibold text-text-heading mb-4 flex items-center gap-2">
+              <MaterialIcon name="bolt" :size="20" class="text-brand-primary" />
+              Quick Actions
+            </h2>
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                v-for="action in quickActions"
+                :key="action.id"
+                @click="navigateTo(action.path)"
+                class="flex flex-col items-center gap-2 p-4 rounded-xl bg-bg-elevated hover:bg-bg-hover border border-transparent hover:border-border-hover transition-all cursor-pointer"
+              >
+                <div class="w-10 h-10 rounded-full bg-bg-muted flex items-center justify-center">
+                  <MaterialIcon :name="action.icon" :size="20" :class="action.color" />
+                </div>
+                <span class="text-xs font-medium text-text-body text-center leading-tight">{{ action.label }}</span>
+              </button>
             </div>
           </div>
         </section>
       </div>
 
-      <!-- Services Grid -->
-      <section class="mt-8">
+      <!-- Services Grid (4 columns) -->
+      <section>
         <h2 class="text-lg font-semibold text-text-heading mb-4 flex items-center gap-2">
-          <span>🚀</span>
-          서비스
+          <MaterialIcon name="apps" :size="20" class="text-brand-primary" />
+          Services
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div
             v-for="service in services"
             :key="service.id"
             @click="navigateTo(service.path)"
-            class="group relative overflow-hidden rounded-xl p-6 bg-bg-card border border-border-default hover:border-brand-primary/50 transition-all cursor-pointer"
+            class="group relative overflow-hidden rounded-xl bg-bg-card border border-border-default hover:border-brand-primary/30 hover:-translate-y-1 transition-all duration-200 cursor-pointer"
           >
-            <div class="relative z-10">
-              <div class="text-4xl mb-4">{{ service.icon }}</div>
-              <h3 class="text-lg font-semibold text-text-heading mb-1">{{ service.name }}</h3>
+            <!-- Gradient banner -->
+            <div
+              :class="[
+                'h-1',
+                serviceAccents[service.id] || 'bg-brand-primary'
+              ]"
+            ></div>
+
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br"
+                  :class="serviceGradients[service.id] || 'from-brand-primary/20 to-brand-primary/5'"
+                >
+                  <MaterialIcon :name="service.icon" :size="22" class="text-text-heading" />
+                </div>
+                <h3 class="text-base font-semibold text-text-heading">{{ service.name }}</h3>
+              </div>
               <p class="text-text-meta text-sm">{{ service.description }}</p>
             </div>
-            <div class="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+            <!-- Hover arrow -->
             <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              <span class="text-brand-primary">→</span>
+              <MaterialIcon name="arrow_forward" :size="18" class="text-brand-primary" />
             </div>
           </div>
         </div>
@@ -238,9 +293,10 @@ function navigateTo(path: string) {
       <!-- Keyboard Shortcut Hint -->
       <div class="mt-8 text-center">
         <p class="text-sm text-text-meta">
-          <kbd class="px-2 py-1 bg-bg-card border border-border-default rounded text-xs mr-1">⌘</kbd>
-          <kbd class="px-2 py-1 bg-bg-card border border-border-default rounded text-xs mr-2">K</kbd>
-          를 눌러 빠른 검색을 사용하세요
+          Press
+          <kbd class="px-2 py-1 bg-bg-card border border-border-default rounded text-xs mx-0.5">&#8984;</kbd>
+          <kbd class="px-2 py-1 bg-bg-card border border-border-default rounded text-xs mx-0.5">K</kbd>
+          for quick search
         </p>
       </div>
     </main>

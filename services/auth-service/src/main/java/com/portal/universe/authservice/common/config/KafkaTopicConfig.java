@@ -16,4 +16,12 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic roleAssignedTopic() {
+        return TopicBuilder.name(AuthTopics.ROLE_ASSIGNED)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
 }

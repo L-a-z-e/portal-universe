@@ -3,7 +3,7 @@
  * 체크아웃 시 쿠폰 선택 UI
  */
 import { useState } from 'react'
-import { Spinner } from '@portal/design-system-react'
+import { Spinner, Button } from '@portal/design-react'
 import { useAvailableUserCoupons, calculateDiscountFromUserCoupon, canApplyUserCoupon } from '@/hooks/useCoupons'
 import type { UserCoupon } from '@/types'
 
@@ -44,12 +44,14 @@ export function CouponSelector({
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-medium text-text-heading">쿠폰 할인</h3>
         {!selectedCoupon && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setIsOpen(!isOpen)}
-            className="text-sm text-brand-primary hover:text-brand-primaryHover font-medium"
+            className="text-brand-primary hover:text-brand-primaryHover font-medium p-0 h-auto"
           >
             {isOpen ? '닫기' : '쿠폰 선택'}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -67,12 +69,14 @@ export function CouponSelector({
                   : `${selectedCoupon.discountValue}% 할인`}
               </p>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleRemoveCoupon}
-              className="text-brand-primary hover:text-brand-primaryHover text-sm"
+              className="text-brand-primary hover:text-brand-primaryHover p-0 h-auto"
             >
               취소
-            </button>
+            </Button>
           </div>
           <div className="mt-2 pt-2 border-t border-border-default">
             <span className="text-sm font-semibold text-brand-primary">

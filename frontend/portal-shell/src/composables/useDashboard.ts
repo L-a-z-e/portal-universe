@@ -46,21 +46,28 @@ export function useDashboard() {
     {
       label: '작성한 글',
       value: blogStats.value?.totalPosts ?? 0,
-      icon: '📄',
+      icon: 'edit_note',
       loading: loading.value.blogStats,
       error: errors.value.blogStats
     },
     {
       label: '주문 건수',
       value: orderStats.value?.totalOrders ?? 0,
-      icon: '📦',
+      icon: 'local_shipping',
       loading: loading.value.orderStats,
       error: errors.value.orderStats
     },
     {
       label: '받은 좋아요',
       value: blogStats.value?.totalLikes ?? 0,
-      icon: '❤️',
+      icon: 'favorite',
+      loading: loading.value.blogStats,
+      error: errors.value.blogStats
+    },
+    {
+      label: '총 조회수',
+      value: blogStats.value?.totalViews ?? 0,
+      icon: 'visibility',
       loading: loading.value.blogStats,
       error: errors.value.blogStats
     }

@@ -3,19 +3,19 @@ import { ExecutionResponseDto } from '../../execution/dto/execution-response.dto
 
 export class ReferencedTaskDto {
   @ApiProperty({ example: 1 })
-  taskId: number;
+  taskId!: number;
 
   @ApiProperty({ example: 'Research AI trends' })
-  taskTitle: string;
+  taskTitle!: string;
 
   @ApiPropertyOptional({ type: ExecutionResponseDto })
-  lastExecution: ExecutionResponseDto | null;
+  lastExecution!: ExecutionResponseDto | null;
 }
 
 export class TaskContextResponseDto {
   @ApiProperty({ type: [ExecutionResponseDto] })
-  previousExecutions: ExecutionResponseDto[];
+  previousExecutions!: ExecutionResponseDto[];
 
   @ApiProperty({ type: [ReferencedTaskDto] })
-  referencedTasks: ReferencedTaskDto[];
+  referencedTasks!: ReferencedTaskDto[];
 }

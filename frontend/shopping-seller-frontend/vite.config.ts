@@ -30,8 +30,8 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@portal/design-system-react/style.css': resolve(__dirname, '../design-system-react/src/styles/index.css'),
-        '@portal/design-system-react': resolve(__dirname, '../design-system-react/src/index.ts'),
+        '@portal/design-react/style.css': resolve(__dirname, '../design-react/src/styles/index.css'),
+        '@portal/design-react': resolve(__dirname, '../design-react/src/index.ts'),
         '@': path.resolve(__dirname, './src'),
         '@components': path.resolve(__dirname, './src/components'),
         '@pages': path.resolve(__dirname, './src/pages'),

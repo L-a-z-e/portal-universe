@@ -5,7 +5,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdminProducts, useDeleteProduct } from '@/hooks/useAdminProducts'
-import { Button, Pagination, Modal } from '@portal/design-system-react'
+import { Button, Pagination, Modal, Table } from '@portal/design-react'
+import type { TableColumn } from '@portal/design-core'
 import type { ProductFilters } from '@/types'
 import type { Product } from '@/types'
 
@@ -73,90 +74,65 @@ export const AdminProductListPage: React.FC = () => {
 
       {/* Table */}
       <div className="bg-bg-card border border-border-default rounded-lg overflow-hidden shadow-sm">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
-              <p className="text-text-meta">Loading products...</p>
-            </div>
-          </div>
-        ) : data?.data.items.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="text-lg text-text-heading mb-2">No products found</p>
-            <p className="text-sm text-text-meta mb-6">Get started by creating a new product.</p>
-            <Button variant="primary" onClick={() => navigate('/admin/products/new')}>
-              Create Product
-            </Button>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-bg-subtle border-b border-border-default">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-text-meta uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-default">
-                  {data?.data.items.map((product) => (
-                    <tr
-                      key={product.id}
-                      className="hover:bg-bg-hover transition-colors cursor-pointer"
-                      onClick={() => navigate(`/admin/products/${product.id}`)}
-                    >
-                      <td className="px-6 py-4 text-sm text-text-body">{product.id}</td>
-                      <td className="px-6 py-4 text-sm text-text-body font-medium">{product.name}</td>
-                      <td className="px-6 py-4 text-sm text-text-body">
-                        ${product.price.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-meta">{product.category || '-'}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              navigate(`/admin/products/${product.id}`)
-                            }}
-                            className="p-2 text-brand-primary hover:bg-brand-primary/10 rounded transition-colors"
-                            title="Edit"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setDeleteTarget(product)
-                            }}
-                            className="p-2 text-status-error hover:bg-status-error-bg rounded transition-colors"
-                            title="Delete"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <>
+            <Table<Product>
+              columns={[
+                { key: 'id', label: 'ID' },
+                { key: 'name', label: 'Name' },
+                {
+                  key: 'price',
+                  label: 'Price',
+                  render: (_, row) => `$${row.price.toLocaleString()}`,
+                },
+                {
+                  key: 'category',
+                  label: 'Category',
+                  render: (_, row) => row.category || '-',
+                },
+                {
+                  key: 'id' as keyof Product,
+                  label: 'Actions',
+                  align: 'right',
+                  render: (_, row) => (
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation()
+                          navigate(`/admin/products/${row.id}`)
+                        }}
+                        className="p-2 text-brand-primary hover:bg-brand-primary/10"
+                        title="Edit"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation()
+                          setDeleteTarget(row)
+                        }}
+                        className="p-2 text-status-error hover:bg-status-error-bg"
+                        title="Delete"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </Button>
+                    </div>
+                  ),
+                } as TableColumn<Product>,
+              ]}
+              data={data?.data.items ?? []}
+              loading={isLoading}
+              hoverable
+              onRowClick={(row) => navigate(`/admin/products/${row.id}`)}
+              emptyText="No products found"
+            />
 
             {/* Pagination */}
             {data?.data.totalPages && data.data.totalPages > 1 && (
@@ -166,8 +142,7 @@ export const AdminProductListPage: React.FC = () => {
                 onChange={(p: number) => handlePageChange(p)}
               />
             )}
-          </>
-        )}
+        </>
       </div>
 
       {/* Delete Confirmation Modal */}

@@ -82,12 +82,6 @@ class ApiService {
         if (isBridgeReady()) {
           token = getAdapter('auth').getAccessToken?.();
         }
-        if (!token) {
-          token = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__;
-        }
-        if (!token) {
-          token = localStorage.getItem('access_token');
-        }
 
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -104,8 +98,8 @@ class ApiService {
 
         if (status === 401) {
           console.warn('[Prism API] Unauthorized - token may be expired');
-          if (window.__PORTAL_ON_AUTH_ERROR__) {
-            window.__PORTAL_ON_AUTH_ERROR__();
+          if (isBridgeReady()) {
+            getAdapter('auth').logout();
           }
         }
 

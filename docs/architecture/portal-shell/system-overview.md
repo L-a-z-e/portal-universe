@@ -4,7 +4,7 @@ title: Portal Shell System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-18
 author: Laze
 tags: [architecture, portal-shell, vue3, module-federation, host-application]
 related:
@@ -107,7 +107,7 @@ graph TB
 | **MF 플러그인** | @originjs/vite-plugin-federation |
 | **HTTP** | Axios (apiClient), Fetch (authService, useChat SSE) |
 | **실시간** | @stomp/stompjs + sockjs-client (알림), SSE (챗봇) |
-| **디자인** | @portal/design-system-vue, TailwindCSS |
+| **디자인** | @portal/design-vue, @portal/design-core, TailwindCSS |
 
 ### 2. Remote Modules
 
@@ -204,6 +204,7 @@ src/
 │   └── types.ts              # API 에러 타입
 ├── components/               # 공통 컴포넌트
 │   ├── RemoteWrapper.vue     # Remote 모듈 래퍼 (CSS 관리, keep-alive)
+│   ├── TopBar.vue            # 상단 바 (breadcrumb, 검색, 알림, 사용자 메뉴)
 │   ├── LoginModal.vue        # 로그인 모달
 │   ├── Sidebar.vue           # 사이드바 네비게이션
 │   ├── QuickActions.vue      # Cmd+K 명령 팔레트

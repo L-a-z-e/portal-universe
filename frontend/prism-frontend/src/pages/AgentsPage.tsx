@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-system-react';
+import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-react';
 import { useAgentStore } from '@/stores/agentStore';
 import { useProviderStore } from '@/stores/providerStore';
 import { api } from '@/services/api';
@@ -183,22 +183,26 @@ function AgentsPage() {
                   <p className="text-sm text-text-meta mt-1">{agent.providerName} / {agent.model}</p>
                 </div>
                 <div className="flex gap-1">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleOpenModal(agent)}
-                    className="p-2 text-text-muted hover:text-brand-primary rounded-lg hover:bg-bg-hover"
+                    className="p-2 text-text-muted hover:text-brand-primary"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDelete(agent.id)}
-                    className="p-2 text-text-muted hover:text-status-error rounded-lg hover:bg-bg-hover"
+                    className="p-2 text-text-muted hover:text-status-error"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                  </button>
+                  </Button>
                 </div>
               </div>
               {agent.description && (
@@ -263,18 +267,20 @@ function AgentsPage() {
                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
                     placeholder="e.g., llama3.2:latest"
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="xs"
                     onClick={() => {
                       setUseCustomModel(false);
                       if (availableModels.length > 0) {
                         setFormData(prev => ({ ...prev, model: availableModels[0] }));
                       }
                     }}
-                    className="mt-1 text-xs text-brand-primary hover:underline"
+                    className="mt-1 text-xs text-brand-primary hover:underline px-0"
                   >
                     ← Select from list
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
@@ -300,13 +306,15 @@ function AgentsPage() {
                     <p className="mt-1 text-xs text-text-meta">Select a provider first</p>
                   )}
                   {formData.providerId && !modelsLoading && availableModels.length === 0 && (
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="xs"
                       onClick={() => setUseCustomModel(true)}
-                      className="mt-1 text-xs text-brand-primary hover:underline"
+                      className="mt-1 text-xs text-brand-primary hover:underline px-0"
                     >
                       Enter custom model name →
-                    </button>
+                    </Button>
                   )}
                 </>
               )}

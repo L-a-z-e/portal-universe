@@ -1,0 +1,310 @@
+{
+  "$description": "Blog service theme - Serene Nature Tones (sage green) with unified dark mode",
+  "color": {
+    "brand": {
+      "primary": {
+        "$value": "{color.sage.400}",
+        "$description": "Blog brand primary - Sage green",
+        "$type": "color"
+      },
+      "primaryHover": {
+        "$value": "{color.sage.500}",
+        "$description": "Blog brand primary hover",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "{color.sage.300}",
+        "$description": "Blog brand secondary",
+        "$type": "color"
+      }
+    },
+    "text": {
+      "heading": {
+        "$value": "{color.gray.900}",
+        "$description": "Blog light mode heading text",
+        "$type": "color"
+      },
+      "body": {
+        "$value": "{color.gray.900}",
+        "$description": "Blog light mode body text - optimized for reading",
+        "$type": "color"
+      },
+      "meta": {
+        "$value": "{color.gray.600}",
+        "$description": "Blog light mode meta text",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.gray.500}",
+        "$description": "Blog light mode muted text",
+        "$type": "color"
+      },
+      "inverse": {
+        "$value": "{color.neutral.white}",
+        "$description": "Blog light mode inverse text",
+        "$type": "color"
+      },
+      "link": {
+        "$value": "{color.sage.600}",
+        "$description": "Blog light mode link text - Sage accent",
+        "$type": "color"
+      },
+      "linkHover": {
+        "$value": "{color.sage.700}",
+        "$description": "Blog light mode link hover text",
+        "$type": "color"
+      }
+    },
+    "bg": {
+      "page": {
+        "$value": "{color.gray.50}",
+        "$description": "Blog light mode page background",
+        "$type": "color"
+      },
+      "card": {
+        "$value": "{color.neutral.white}",
+        "$description": "Blog light mode card background",
+        "$type": "color"
+      },
+      "elevated": {
+        "$value": "{color.neutral.white}",
+        "$description": "Blog light mode elevated background",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.sage.50}",
+        "$description": "Blog light mode muted background - Sage tint",
+        "$type": "color"
+      },
+      "hover": {
+        "$value": "{color.sage.100}",
+        "$description": "Blog light mode hover background",
+        "$type": "color"
+      },
+      "sidebar": {
+        "$value": "#f8f8fa",
+        "$description": "Blog light mode sidebar background",
+        "$type": "color"
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{color.gray.200}",
+        "$description": "Blog light mode default border",
+        "$type": "color"
+      },
+      "hover": {
+        "$value": "{color.gray.300}",
+        "$description": "Blog light mode hover border",
+        "$type": "color"
+      },
+      "focus": {
+        "$value": "{color.sage.400}",
+        "$description": "Blog light mode focus border - Sage",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.gray.100}",
+        "$description": "Blog light mode muted border",
+        "$type": "color"
+      }
+    },
+    "status": {
+      "success": {
+        "$value": "{color.green.600}",
+        "$description": "Blog success status - green",
+        "$type": "color"
+      },
+      "successBg": {
+        "$value": "{color.green.50}",
+        "$description": "Blog success background",
+        "$type": "color"
+      },
+      "error": {
+        "$value": "{color.red.600}",
+        "$description": "Blog error status",
+        "$type": "color"
+      },
+      "errorBg": {
+        "$value": "{color.red.50}",
+        "$description": "Blog error background",
+        "$type": "color"
+      },
+      "warning": {
+        "$value": "{color.yellow.600}",
+        "$description": "Blog warning status",
+        "$type": "color"
+      },
+      "warningBg": {
+        "$value": "{color.yellow.50}",
+        "$description": "Blog warning background",
+        "$type": "color"
+      },
+      "info": {
+        "$value": "{color.blue.600}",
+        "$description": "Blog info status",
+        "$type": "color"
+      },
+      "infoBg": {
+        "$value": "{color.blue.50}",
+        "$description": "Blog info background",
+        "$type": "color"
+      }
+    }
+  },
+  "darkMode": {
+    "$description": "Blog dark mode - Unified Linear-style dark theme with Sage accent",
+    "color": {
+      "brand": {
+        "primary": {
+          "$value": "{color.sage.300}",
+          "$description": "Blog dark mode brand primary - Sage accent",
+          "$type": "color"
+        },
+        "primaryHover": {
+          "$value": "{color.sage.200}",
+          "$description": "Blog dark mode brand primary hover",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "{color.sage.100}",
+          "$description": "Blog dark mode brand secondary",
+          "$type": "color"
+        }
+      },
+      "text": {
+        "heading": {
+          "$value": "#ffffff",
+          "$description": "Blog dark mode heading text - Pure white",
+          "$type": "color"
+        },
+        "body": {
+          "$value": "#b4b4b4",
+          "$description": "Blog dark mode body text - Unified gray",
+          "$type": "color"
+        },
+        "meta": {
+          "$value": "#6b6b6b",
+          "$description": "Blog dark mode meta text",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "#6b6b6b",
+          "$description": "Blog dark mode muted text",
+          "$type": "color"
+        },
+        "inverse": {
+          "$value": "#08090a",
+          "$description": "Blog dark mode inverse text",
+          "$type": "color"
+        },
+        "link": {
+          "$value": "{color.sage.300}",
+          "$description": "Blog dark mode link text - Sage accent",
+          "$type": "color"
+        },
+        "linkHover": {
+          "$value": "{color.sage.200}",
+          "$description": "Blog dark mode link hover text",
+          "$type": "color"
+        }
+      },
+      "bg": {
+        "page": {
+          "$value": "#08090a",
+          "$description": "Blog dark mode page background - Unified near black",
+          "$type": "color"
+        },
+        "card": {
+          "$value": "#0f1011",
+          "$description": "Blog dark mode card background - Unified dark gray",
+          "$type": "color"
+        },
+        "elevated": {
+          "$value": "#18191b",
+          "$description": "Blog dark mode elevated background - Unified",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "{color.linear.900}",
+          "$description": "Blog dark mode muted background",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{color.linear.700}",
+          "$description": "Blog dark mode hover background",
+          "$type": "color"
+        },
+        "sidebar": {
+          "$value": "#0e0f11",
+          "$description": "Blog dark mode sidebar background",
+          "$type": "color"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#2a2a2a",
+          "$description": "Blog dark mode default border - Unified",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{color.linear.600}",
+          "$description": "Blog dark mode hover border",
+          "$type": "color"
+        },
+        "focus": {
+          "$value": "{color.sage.300}",
+          "$description": "Blog dark mode focus border - Sage accent",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "{color.linear.800}",
+          "$description": "Blog dark mode muted border",
+          "$type": "color"
+        }
+      },
+      "status": {
+        "success": {
+          "$value": "{color.green.500}",
+          "$description": "Blog dark mode success status",
+          "$type": "color"
+        },
+        "successBg": {
+          "$value": "#0a4034",
+          "$description": "Blog dark mode success background",
+          "$type": "color"
+        },
+        "error": {
+          "$value": "{color.red.500}",
+          "$description": "Blog dark mode error status",
+          "$type": "color"
+        },
+        "errorBg": {
+          "$value": "#4a1c1c",
+          "$description": "Blog dark mode error background",
+          "$type": "color"
+        },
+        "warning": {
+          "$value": "{color.yellow.500}",
+          "$description": "Blog dark mode warning status",
+          "$type": "color"
+        },
+        "warningBg": {
+          "$value": "#4a3c0f",
+          "$description": "Blog dark mode warning background",
+          "$type": "color"
+        },
+        "info": {
+          "$value": "{color.blue.500}",
+          "$description": "Blog dark mode info status",
+          "$type": "color"
+        },
+        "infoBg": {
+          "$value": "#1a3a52",
+          "$description": "Blog dark mode info background",
+          "$type": "color"
+        }
+      }
+    }
+  }
+}

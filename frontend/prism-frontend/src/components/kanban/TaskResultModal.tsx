@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Modal, Button, Textarea, useApiError } from '@portal/design-system-react';
+import { Modal, Button, Textarea, useApiError } from '@portal/design-react';
 import { api } from '@/services/api';
 import type { Task, Execution } from '@/types';
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sellerCouponApi } from '@/api'
-import { Button } from '@portal/design-system-react'
+import { Button, Table } from '@portal/design-react'
+import type { TableColumn } from '@portal/design-core'
 
 export const CouponListPage: React.FC = () => {
   const navigate = useNavigate()
@@ -38,6 +39,71 @@ export const CouponListPage: React.FC = () => {
     }
   }
 
+  const columns: TableColumn<any>[] = [
+    {
+      key: 'code',
+      label: 'Code',
+      render: (value: unknown) => (
+        <span className="font-mono text-brand-primary">{value as string}</span>
+      ),
+    },
+    {
+      key: 'name',
+      label: 'Name',
+      render: (value: unknown) => (
+        <span className="font-medium">{value as string}</span>
+      ),
+    },
+    {
+      key: 'discountValue',
+      label: 'Discount',
+      render: (_value: unknown, row: unknown) => {
+        const c = row as any
+        return c.discountType === 'PERCENTAGE' ? `${c.discountValue}%` : `$${c.discountValue}`
+      },
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (value: unknown) => {
+        const status = value as string
+        return (
+          <span className={`px-2 py-1 rounded text-xs font-medium ${
+            status === 'ACTIVE' ? 'bg-status-success-bg text-status-success' : 'bg-bg-subtle text-text-meta'
+          }`}>
+            {status}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'issuedQuantity',
+      label: 'Qty',
+      render: (_value: unknown, row: unknown) => {
+        const c = row as any
+        return `${c.issuedQuantity}/${c.totalQuantity}`
+      },
+    },
+    {
+      key: 'id',
+      label: 'Actions',
+      align: 'right',
+      render: (_value: unknown, row: unknown) => {
+        const c = row as any
+        return c.status === 'ACTIVE' ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDeactivate(c.id)}
+            className="text-status-error hover:bg-status-error-bg"
+          >
+            Deactivate
+          </Button>
+        ) : null
+      },
+    },
+  ]
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -48,11 +114,7 @@ export const CouponListPage: React.FC = () => {
       </div>
 
       <div className="bg-bg-card border border-border-default rounded-lg overflow-hidden shadow-sm">
-        {isLoading ? (
-          <div className="p-12 text-center">
-            <p className="text-text-meta">Loading...</p>
-          </div>
-        ) : coupons.length === 0 ? (
+        {!isLoading && coupons.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-lg text-text-heading mb-2">No coupons found</p>
             <Button variant="primary" onClick={() => navigate('/coupons/new')}>
@@ -60,47 +122,12 @@ export const CouponListPage: React.FC = () => {
             </Button>
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-bg-subtle border-b border-border-default">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Code</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Name</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Discount</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-text-meta uppercase">Qty</th>
-                <th className="px-6 py-4 text-right text-xs font-medium text-text-meta uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-default">
-              {coupons.map((c: any) => (
-                <tr key={c.id} className="hover:bg-bg-hover transition-colors">
-                  <td className="px-6 py-4 text-sm font-mono text-brand-primary">{c.code}</td>
-                  <td className="px-6 py-4 text-sm text-text-body font-medium">{c.name}</td>
-                  <td className="px-6 py-4 text-sm text-text-body">
-                    {c.discountType === 'PERCENTAGE' ? `${c.discountValue}%` : `$${c.discountValue}`}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      c.status === 'ACTIVE' ? 'bg-status-success-bg text-status-success' : 'bg-bg-subtle text-text-meta'
-                    }`}>
-                      {c.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-text-body">{c.issuedQuantity}/{c.totalQuantity}</td>
-                  <td className="px-6 py-4 text-right">
-                    {c.status === 'ACTIVE' && (
-                      <button
-                        onClick={() => handleDeactivate(c.id)}
-                        className="p-2 text-status-error hover:bg-status-error-bg rounded transition-colors text-sm"
-                      >
-                        Deactivate
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            columns={columns}
+            data={coupons}
+            loading={isLoading}
+            emptyText="No coupons found"
+          />
         )}
       </div>
     </div>

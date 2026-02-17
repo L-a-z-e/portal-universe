@@ -1,7 +1,7 @@
 // blog-frontend/src/api/posts.ts
 
 import apiClient from './index';
-import type { PageResponse } from '@portal/design-types';
+import type { PageResponse } from '@portal/design-core';
 import type {
   ApiResponse,
   PostResponse,
@@ -254,6 +254,23 @@ export async function getPopularTags(limit: number = 10): Promise<TagStatsRespon
 export async function getAuthorStats(authorId: string): Promise<AuthorStats> {
   const response = await apiClient.get<ApiResponse<AuthorStats>>(
     `${BASE_PATH}/stats/author/${authorId}`
+  );
+  return response.data.data;
+}
+
+/** 작성자별 카테고리 통계 */
+export async function getAuthorCategoryStats(authorId: string): Promise<CategoryStats[]> {
+  const response = await apiClient.get<ApiResponse<CategoryStats[]>>(
+    `${BASE_PATH}/stats/author/${authorId}/categories`
+  );
+  return response.data.data;
+}
+
+/** 작성자별 인기 태그 */
+export async function getAuthorTagStats(authorId: string, limit: number = 20): Promise<TagStatsResponse[]> {
+  const response = await apiClient.get<ApiResponse<TagStatsResponse[]>>(
+    `${BASE_PATH}/stats/author/${authorId}/tags`,
+    { params: { limit } }
   );
   return response.data.data;
 }

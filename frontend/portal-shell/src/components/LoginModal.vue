@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Modal, Input, Button, Alert } from '@portal/design-system-vue';
+import { Modal, Input, Button, Alert } from '@portal/design-vue';
 import { useAuthStore } from '../store/auth';
 import { socialLogin } from '../services/authService';
 

@@ -108,6 +108,16 @@ public interface PostService {
     AuthorStats getAuthorStats(String authorId);
 
     /**
+     * 작성자별 카테고리 통계
+     */
+    List<CategoryStats> getAuthorCategoryStats(String authorId);
+
+    /**
+     * 작성자별 인기 태그
+     */
+    List<com.portal.universe.blogservice.tag.dto.TagStatsResponse> getAuthorPopularTags(String authorId, int limit);
+
+    /**
      * 전체 블로그 통계
      */
     BlogStats getBlogStats();

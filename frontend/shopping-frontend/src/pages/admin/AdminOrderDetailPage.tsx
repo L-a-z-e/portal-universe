@@ -14,7 +14,7 @@ import {
   PAYMENT_METHOD_LABELS
 } from '@/types'
 import type { OrderStatus, Payment, Delivery } from '@/types'
-import { Button, Spinner, Alert } from '@portal/design-system-react'
+import { Button, Spinner, Alert } from '@portal/design-react'
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   PENDING: ['CONFIRMED', 'CANCELLED'],
@@ -122,14 +122,16 @@ const AdminOrderDetailPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => navigate('/admin/orders')}
-            className="p-2 text-text-meta hover:text-text-body transition-colors"
+            className="p-2 text-text-meta hover:text-text-body"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-          </button>
+          </Button>
           <div>
             <h1 className="text-2xl font-bold text-text-heading">Order {order.orderNumber}</h1>
             <p className="text-sm text-text-meta">User: {order.userId} | Created: {formatDateTime(order.createdAt)}</p>

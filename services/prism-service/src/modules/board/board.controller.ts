@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   ParseIntPipe,
-  ParseBoolPipe,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -17,17 +16,14 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { BoardResponseDto } from './dto/board-response.dto';
+import { BoardListQueryDto } from './dto/board-list-query.dto';
 import { CurrentUserId } from '../../common/decorators/current-user.decorator';
-import {
-  PaginationDto,
-  PaginatedResult,
-} from '../../common/dto/pagination.dto';
+import { PaginatedResult } from '../../common/dto/pagination.dto';
 
 @ApiTags('Boards')
 @ApiBearerAuth()
@@ -47,19 +43,12 @@ export class BoardController {
 
   @Get()
   @ApiOperation({ summary: 'List all boards for the current user' })
-  @ApiQuery({ name: 'includeArchived', required: false, type: Boolean })
   @ApiResponse({ status: 200, type: [BoardResponseDto] })
   async findAll(
     @CurrentUserId() userId: string,
-    @Query('includeArchived', new ParseBoolPipe({ optional: true }))
-    includeArchived?: boolean,
-    @Query() pagination?: PaginationDto,
+    @Query() query: BoardListQueryDto,
   ): Promise<PaginatedResult<BoardResponseDto>> {
-    return this.boardService.findAll(
-      userId,
-      includeArchived ?? false,
-      pagination,
-    );
+    return this.boardService.findAll(userId, query.includeArchived, query);
   }
 
   @Get(':id')

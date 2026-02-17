@@ -4,7 +4,7 @@
  */
 import { useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { Spinner, Button } from '@portal/design-system-react'
+import { Spinner, Button } from '@portal/design-react'
 import { useQueue } from '@/hooks/useQueue'
 import { QueueStatus } from '@/components/queue/QueueStatus'
 import { QUEUE_STATUS_LABELS } from '@/types'

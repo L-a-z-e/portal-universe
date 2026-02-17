@@ -5,7 +5,9 @@
 import React, { useState } from 'react'
 import { useAdminStockMovements } from '@/hooks/useAdminStockMovements'
 import type { MovementType } from '@/types'
-import { Button, Spinner, Input } from '@portal/design-system-react'
+import type { StockMovement } from '@/dto/inventory'
+import { Button, Spinner, Input, Table } from '@portal/design-react'
+import type { TableColumn } from '@portal/design-core'
 
 const MOVEMENT_TYPE_LABELS: Record<MovementType, string> = {
   INITIAL: 'Initial Stock',
@@ -89,62 +91,63 @@ const AdminStockMovementPage: React.FC = () => {
       {!isLoading && !error && data && (
         <>
           <div className="bg-bg-card border border-border-default rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-bg-subtle border-b border-border-default">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Type</th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-text-meta">Qty</th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-text-meta">Available</th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-text-meta">Reserved</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Reference</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Reason</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-default">
-                {data.items.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-text-meta">
-                      No stock movements found
-                    </td>
-                  </tr>
-                ) : (
-                  data.items.map((movement) => (
-                    <tr key={movement.id} className="hover:bg-bg-hover transition-colors">
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getMovementColor(movement.movementType)}`}>
-                          {MOVEMENT_TYPE_LABELS[movement.movementType]}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-right font-mono">
-                        <span className={movement.quantity > 0 ? 'text-status-success' : 'text-status-error'}>
-                          {movement.quantity > 0 ? '+' : ''}{movement.quantity}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-right text-text-body">
-                        {movement.previousAvailable} → {movement.afterAvailable}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-right text-text-body">
-                        {movement.previousReserved} → {movement.afterReserved}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-meta">
-                        {movement.referenceType && (
-                          <span className="font-mono text-xs">
-                            {movement.referenceType}:{movement.referenceId}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-meta max-w-[200px] truncate">
-                        {movement.reason ?? '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-meta whitespace-nowrap">
-                        {new Date(movement.createdAt).toLocaleString('ko-KR')}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <Table<StockMovement>
+              columns={[
+                {
+                  key: 'movementType',
+                  label: 'Type',
+                  render: (_, row) => (
+                    <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getMovementColor(row.movementType)}`}>
+                      {MOVEMENT_TYPE_LABELS[row.movementType]}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'quantity',
+                  label: 'Qty',
+                  align: 'right',
+                  render: (_, row) => (
+                    <span className={`font-mono ${row.quantity > 0 ? 'text-status-success' : 'text-status-error'}`}>
+                      {row.quantity > 0 ? '+' : ''}{row.quantity}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'previousAvailable',
+                  label: 'Available',
+                  align: 'right',
+                  render: (_, row) => `${row.previousAvailable} → ${row.afterAvailable}`,
+                } as TableColumn<StockMovement>,
+                {
+                  key: 'previousReserved',
+                  label: 'Reserved',
+                  align: 'right',
+                  render: (_, row) => `${row.previousReserved} → ${row.afterReserved}`,
+                } as TableColumn<StockMovement>,
+                {
+                  key: 'referenceType',
+                  label: 'Reference',
+                  render: (_, row) => row.referenceType ? (
+                    <span className="font-mono text-xs">{row.referenceType}:{row.referenceId}</span>
+                  ) : null,
+                } as TableColumn<StockMovement>,
+                {
+                  key: 'reason',
+                  label: 'Reason',
+                  render: (_, row) => <span className="max-w-[200px] truncate block">{row.reason ?? '-'}</span>,
+                } as TableColumn<StockMovement>,
+                {
+                  key: 'createdAt',
+                  label: 'Date',
+                  render: (_, row) => (
+                    <span className="whitespace-nowrap">{new Date(row.createdAt).toLocaleString('ko-KR')}</span>
+                  ),
+                },
+              ]}
+              data={data.items}
+              hoverable
+              emptyText="No stock movements found"
+            />
           </div>
 
           {/* Pagination */}

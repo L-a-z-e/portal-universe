@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Card, Button, Badge, Spinner, Alert, useApiError } from '@portal/design-system-vue';
+import { Spinner, Alert, Button, Card, Badge, Progress, useApiError } from '@portal/design-vue';
 import { fetchDashboardStats } from '@/api/admin';
 import type { DashboardStats } from '@/dto/admin';
 
@@ -37,30 +37,38 @@ function formatEventType(type: string): string {
   return type.replace(/_/g, ' ');
 }
 
-function truncateId(id: string | null): string {
-  if (!id) return '-';
-  return id.length > 8 ? id.slice(0, 8) + '...' : id;
+function eventBadgeClass(type: string): string {
+  const lower = type.toLowerCase();
+  if (lower.includes('assign')) return 'event-badge--assigned';
+  if (lower.includes('revoke') || lower.includes('remove')) return 'event-badge--revoked';
+  if (lower.includes('create') || lower.includes('register')) return 'event-badge--created';
+  if (lower.includes('fail') || lower.includes('error')) return 'event-badge--failed';
+  if (lower.includes('config') || lower.includes('update')) return 'event-badge--config';
+  return 'event-badge--default';
 }
 
-const quickLinks = [
-  { label: 'Users', route: 'Users' },
-  { label: 'Roles', route: 'Roles' },
-  { label: 'Memberships', route: 'Memberships' },
-  { label: 'Seller Approvals', route: 'SellerApprovals' },
-  { label: 'Audit Log', route: 'AuditLog' },
-];
+const totalRoleAssignments = (s: DashboardStats) =>
+  s.roles.assignments.reduce((sum, r) => sum + r.userCount, 0);
+
+const totalActiveMemberships = (s: DashboardStats) =>
+  s.memberships.groups.reduce((sum, g) => sum + g.activeCount, 0);
+
+function rolePercentage(userCount: number, total: number): number {
+  if (total === 0) return 0;
+  return Math.round((userCount / total) * 100);
+}
 </script>
 
 <template>
-  <div>
-    <h1 class="text-2xl font-bold text-text-heading mb-6">Dashboard</h1>
+  <div class="flex flex-col h-[calc(100vh-11rem)] overflow-hidden">
+    <h1 class="text-xl font-bold text-text-heading mb-4 shrink-0">Dashboard</h1>
 
-    <!-- Loading state -->
+    <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-12">
       <Spinner size="lg" label="Loading dashboard..." />
     </div>
 
-    <!-- Error state -->
+    <!-- Error -->
     <Alert v-else-if="error" variant="error" :title="error">
       <template #action>
         <Button variant="ghost" size="sm" @click="$router.go(0)">Retry</Button>
@@ -69,138 +77,154 @@ const quickLinks = [
 
     <!-- Dashboard content -->
     <template v-else-if="stats">
-      <!-- Section 1: Overview KPI Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card variant="outlined" padding="lg">
-          <div class="text-sm text-text-meta mb-1">Total Users</div>
-          <div class="text-3xl font-bold text-text-heading">{{ stats.users.total }}</div>
-        </Card>
-        <Card variant="outlined" padding="lg">
-          <div class="text-sm text-text-meta mb-1">Role Assignments</div>
-          <div class="text-3xl font-bold text-text-heading">
-            {{ stats.roles.assignments.reduce((sum, r) => sum + r.userCount, 0) }}
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 shrink-0">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="material-symbols-outlined" style="font-size: 22px;">group</span>
           </div>
-        </Card>
-        <Card variant="outlined" padding="lg">
-          <div class="text-sm text-text-meta mb-1">Active Memberships</div>
-          <div class="text-3xl font-bold text-text-heading">
-            {{ stats.memberships.groups.reduce((sum, g) => sum + g.activeCount, 0) }}
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value">{{ stats.users.total }}</div>
+          <div class="stat-trend stat-trend--up">
+            <span class="material-symbols-outlined" style="font-size: 14px;">trending_up</span>
+            Active system
           </div>
-        </Card>
-        <Card variant="outlined" padding="lg">
-          <div class="text-sm text-text-meta mb-1">Pending Approvals</div>
-          <div class="text-3xl font-bold text-brand-primary">{{ stats.sellers.pending }}</div>
-        </Card>
-      </div>
-
-      <!-- Section 2 & 3: Role Distribution + Membership Overview -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <!-- Role Distribution -->
-        <Card variant="outlined" padding="lg">
-          <h2 class="text-lg font-semibold text-text-heading mb-4">Role Distribution</h2>
-          <div class="space-y-2">
-            <div
-              v-for="role in stats.roles.assignments"
-              :key="role.roleKey"
-              class="flex items-center justify-between"
-            >
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-brand-primary inline-block"></span>
-                <span class="text-sm text-text-body font-mono">{{ role.roleKey }}</span>
-              </div>
-              <span class="text-sm font-semibold text-text-heading">{{ role.userCount }}</span>
-            </div>
-          </div>
-        </Card>
-
-        <!-- Membership Overview -->
-        <Card variant="outlined" padding="lg">
-          <h2 class="text-lg font-semibold text-text-heading mb-4">Membership Overview</h2>
-          <div class="space-y-4">
-            <div v-for="group in stats.memberships.groups" :key="group.group">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-sm font-medium text-text-body">{{ group.group }}</span>
-                <span class="text-xs text-text-meta">{{ group.activeCount }} active</span>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <Badge
-                  v-for="tier in group.tiers"
-                  :key="tier.tierKey"
-                  variant="default"
-                  size="sm"
-                >
-                  {{ tier.displayName }}: <strong>{{ tier.count }}</strong>
-                </Badge>
-                <span
-                  v-if="group.tiers.length === 0"
-                  class="text-xs text-text-meta"
-                >No tiers configured</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Section 4: Recent Activity -->
-      <Card variant="outlined" padding="none" class="mb-6">
-        <div class="flex items-center justify-between p-5 pb-3">
-          <h2 class="text-lg font-semibold text-text-heading">Recent Activity</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            @click="router.push({ name: 'AuditLog' })"
-          >
-            View all
-          </Button>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-bg-elevated border-y border-border-default">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="material-symbols-outlined" style="font-size: 22px;">shield</span>
+          </div>
+          <div class="stat-label">Role Assignments</div>
+          <div class="stat-value">{{ totalRoleAssignments(stats) }}</div>
+          <div class="stat-trend">
+            <span class="text-text-meta">{{ stats.roles.total }} roles defined</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="material-symbols-outlined" style="font-size: 22px;">card_membership</span>
+          </div>
+          <div class="stat-label">Active Memberships</div>
+          <div class="stat-value">{{ totalActiveMemberships(stats) }}</div>
+          <div class="stat-trend">
+            <span class="text-text-meta">{{ stats.memberships.groups.length }} groups</span>
+          </div>
+        </div>
+        <div class="stat-card" :class="{ 'stat-card--warning': stats.sellers.pending > 0 }">
+          <div class="stat-icon">
+            <span class="material-symbols-outlined" style="font-size: 22px;">approval</span>
+          </div>
+          <div class="stat-label">Pending Approvals</div>
+          <div class="stat-value" :class="stats.sellers.pending > 0 ? 'text-status-warning' : ''">
+            {{ stats.sellers.pending }}
+          </div>
+          <div v-if="stats.sellers.pending > 0" class="stat-trend">
+            <Button variant="ghost" size="xs" @click="router.push({ name: 'SellerApprovals' })">
+              Review now
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle: Recent Activity (left) + Role Distribution (right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 flex-1 min-h-0 max-h-[45vh] overflow-hidden">
+        <!-- Recent Activity -->
+        <Card variant="elevated" padding="none" class="flex flex-col overflow-hidden min-h-0">
+          <div class="flex items-center justify-between px-5 py-3 shrink-0 border-b border-border-muted">
+            <h2 class="text-sm font-semibold text-text-heading">Recent Activity</h2>
+            <Button variant="ghost" size="xs" @click="router.push({ name: 'AuditLog' })">
+              View all
+            </Button>
+          </div>
+          <div class="flex-1 overflow-y-auto px-5 py-4">
+            <div v-if="stats.recentActivity.length === 0" class="text-sm text-text-meta text-center py-8">
+              No recent activity
+            </div>
+            <div v-else class="admin-timeline">
+              <div
+                v-for="(activity, idx) in stats.recentActivity.slice(0, 8)"
+                :key="idx"
+                class="admin-timeline-item"
+              >
+                <div class="timeline-time">{{ activity.createdAt ? timeAgo(activity.createdAt) : '-' }}</div>
+                <div class="timeline-content">
+                  <span :class="['event-badge', eventBadgeClass(activity.eventType)]">
+                    {{ formatEventType(activity.eventType) }}
+                  </span>
+                  <span class="ml-2">{{ activity.details }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <!-- Role Distribution -->
+        <Card variant="elevated" padding="none" class="flex flex-col overflow-hidden min-h-0">
+          <div class="px-5 py-3 shrink-0 border-b border-border-muted">
+            <h2 class="text-sm font-semibold text-text-heading">Role Distribution</h2>
+          </div>
+          <div class="flex-1 overflow-y-auto px-5 py-4">
+            <div class="space-y-3">
+              <div
+                v-for="role in stats.roles.assignments"
+                :key="role.roleKey"
+              >
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm text-text-body">{{ role.displayName }}</span>
+                  <span class="text-xs text-text-meta font-medium">
+                    {{ rolePercentage(role.userCount, totalRoleAssignments(stats)) }}%
+                  </span>
+                </div>
+                <Progress
+                  :value="Math.max(rolePercentage(role.userCount, totalRoleAssignments(stats)), 1)"
+                  :max="100"
+                  size="sm"
+                />
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Bottom: Membership Groups -->
+      <Card variant="elevated" padding="none" class="flex flex-col overflow-hidden shrink-0 max-h-[280px]">
+        <div class="px-5 py-3 border-b border-border-muted shrink-0 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-text-heading">Membership Groups</h2>
+          <span class="text-xs text-text-meta">{{ stats.memberships.groups.length }} groups</span>
+        </div>
+        <div class="flex-1 overflow-y-auto">
+          <table class="admin-table">
+            <thead class="sticky top-0 z-10">
               <tr>
-                <th class="text-left p-3 text-text-heading">Event</th>
-                <th class="text-left p-3 text-text-heading">Target</th>
-                <th class="text-left p-3 text-text-heading">Details</th>
-                <th class="text-left p-3 text-text-heading">Time</th>
+                <th>Group</th>
+                <th>Active Members</th>
+                <th>Tiers</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-if="stats.recentActivity.length === 0">
-                <td colspan="4" class="p-4 text-center text-text-meta">No recent activity</td>
-              </tr>
-              <tr
-                v-for="(activity, idx) in stats.recentActivity"
-                :key="idx"
-                class="border-b border-border-default last:border-b-0"
-              >
-                <td class="p-3">
-                  <Badge variant="default" size="sm">
-                    {{ formatEventType(activity.eventType) }}
-                  </Badge>
+              <tr v-for="group in stats.memberships.groups" :key="group.group">
+                <td class="font-medium">{{ group.group }}</td>
+                <td>{{ group.activeCount }}</td>
+                <td>
+                  <div class="flex flex-wrap gap-1">
+                    <Badge
+                      v-for="tier in group.tiers"
+                      :key="tier.tierKey"
+                      variant="neutral"
+                      size="sm"
+                    >
+                      {{ tier.displayName }} ({{ tier.count }})
+                    </Badge>
+                    <span v-if="group.tiers.length === 0" class="text-text-meta text-xs">-</span>
+                  </div>
                 </td>
-                <td class="p-3 font-mono text-xs text-text-body">{{ truncateId(activity.targetUserId) }}</td>
-                <td class="p-3 text-xs text-text-meta max-w-xs truncate">{{ activity.details }}</td>
-                <td class="p-3 text-xs text-text-meta whitespace-nowrap">
-                  {{ activity.createdAt ? timeAgo(activity.createdAt) : '-' }}
+                <td>
+                  <Badge variant="success" size="sm">Active</Badge>
                 </td>
               </tr>
             </tbody>
           </table>
-        </div>
-      </Card>
-
-      <!-- Section 5: Quick Links -->
-      <Card variant="outlined" padding="lg">
-        <h2 class="text-lg font-semibold text-text-heading mb-3">Quick Links</h2>
-        <div class="flex flex-wrap gap-2">
-          <Button
-            v-for="link in quickLinks"
-            :key="link.route"
-            variant="outline"
-            size="sm"
-            @click="router.push({ name: link.route })"
-          >
-            {{ link.label }}
-          </Button>
         </div>
       </Card>
     </template>

@@ -10,56 +10,44 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * 상품 정보를 나타내는 JPA 엔티티 클래스입니다.
- */
 @Entity
-@Table(name = "products") // 데이터베이스의 'products' 테이블과 매핑
+@Table(name = "products")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-@NoArgsConstructor // JPA 프록시 생성을 위한 기본 생성자
+@NoArgsConstructor
 public class Product {
 
-    /**
-     * 상품의 고유 ID (Auto Increment)
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * 상품명
-     */
     @Column(nullable = false)
     private String name;
 
-    /**
-     * 상품 설명
-     */
     private String description;
 
-    /**
-     * 상품 가격
-     */
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal price;
 
-    /**
-     * 상품 재고 수량
-     */
+    @Column(name = "discount_price", precision = 19, scale = 2)
+    private BigDecimal discountPrice;
+
     @Column(nullable = false)
     private Integer stock;
 
-    /**
-     * 상품 이미지 URL
-     */
     private String imageUrl;
 
-    /**
-     * 상품 카테고리
-     */
     private String category;
+
+    @Column(nullable = false)
+    private Boolean featured = false;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    private List<ProductImage> images = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -70,7 +58,19 @@ public class Product {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Product(String name, String description, BigDecimal price, Integer stock, String imageUrl, String category) {
+    public Product(String name, String description, BigDecimal price, BigDecimal discountPrice,
+                   Integer stock, String imageUrl, String category, Boolean featured) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.discountPrice = discountPrice;
+        this.stock = stock;
+        this.imageUrl = imageUrl;
+        this.category = category;
+        this.featured = featured != null ? featured : false;
+    }
+
+    public void update(String name, String description, BigDecimal price, Integer stock, String imageUrl, String category) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -79,21 +79,11 @@ public class Product {
         this.category = category;
     }
 
-    /**
-     * 상품 정보를 수정합니다.
-     * @param name 새로운 상품명
-     * @param description 새로운 상품 설명
-     * @param price 새로운 가격
-     * @param stock 새로운 재고 수량
-     * @param imageUrl 새로운 이미지 URL
-     * @param category 새로운 카테고리
-     */
-    public void update(String name, String description, BigDecimal price, Integer stock, String imageUrl, String category) {
-            this.name = name;
-            this.description = description;
-            this.price = price;
-            this.stock = stock;
-            this.imageUrl = imageUrl;
-            this.category = category;
+    public void updateDiscountPrice(BigDecimal discountPrice) {
+        this.discountPrice = discountPrice;
+    }
+
+    public void updateFeatured(Boolean featured) {
+        this.featured = featured;
     }
 }

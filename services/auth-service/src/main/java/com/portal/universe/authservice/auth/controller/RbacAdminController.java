@@ -90,6 +90,54 @@ public class RbacAdminController {
     }
 
     /**
+     * 역할의 direct includes를 조회합니다.
+     */
+    @GetMapping("/roles/{roleKey}/includes")
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> getRoleIncludes(@PathVariable String roleKey) {
+        return ResponseEntity.ok(ApiResponse.success(rbacService.getRoleIncludes(roleKey)));
+    }
+
+    /**
+     * 역할에 include를 추가합니다 (cycle detection 포함).
+     */
+    @PostMapping("/roles/{roleKey}/includes")
+    public ResponseEntity<ApiResponse<Void>> addRoleInclude(
+            @PathVariable String roleKey,
+            @Valid @RequestBody RoleIncludeRequest request,
+            @AuthenticationPrincipal String adminId) {
+        rbacService.addRoleInclude(roleKey, request.includedRoleKey(), adminId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null));
+    }
+
+    /**
+     * 역할에서 include를 제거합니다.
+     */
+    @DeleteMapping("/roles/{roleKey}/includes/{includedRoleKey}")
+    public ResponseEntity<ApiResponse<Void>> removeRoleInclude(
+            @PathVariable String roleKey,
+            @PathVariable String includedRoleKey,
+            @AuthenticationPrincipal String adminId) {
+        rbacService.removeRoleInclude(roleKey, includedRoleKey, adminId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * 역할의 effective roles와 permissions를 조회합니다.
+     */
+    @GetMapping("/roles/{roleKey}/resolved")
+    public ResponseEntity<ApiResponse<ResolvedRoleResponse>> getResolvedRole(@PathVariable String roleKey) {
+        return ResponseEntity.ok(ApiResponse.success(rbacService.getResolvedRole(roleKey)));
+    }
+
+    /**
+     * 전체 역할 계층 DAG 구조를 조회합니다.
+     */
+    @GetMapping("/roles/hierarchy")
+    public ResponseEntity<ApiResponse<RoleHierarchyResponse>> getRoleHierarchy() {
+        return ResponseEntity.ok(ApiResponse.success(rbacService.getRoleHierarchy()));
+    }
+
+    /**
      * 역할에 할당된 권한 목록을 조회합니다.
      */
     @GetMapping("/roles/{roleKey}/permissions")

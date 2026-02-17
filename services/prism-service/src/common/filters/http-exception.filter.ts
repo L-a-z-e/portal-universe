@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiResponse, FieldError } from '../dto/api-response.dto';
-import { BusinessException } from './business.exception';
+import { BusinessException, PrismErrorCode } from './business.exception';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -20,7 +20,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let code = 'C001';
+    let code: string = PrismErrorCode.INTERNAL_ERROR;
     let message = 'Internal Server Error';
     let details: FieldError[] = [];
 
@@ -30,14 +30,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message = exception.message;
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
+      code = this.resolveHttpErrorCode(status);
       const exceptionResponse = exception.getResponse();
 
       if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
         const resp = exceptionResponse as Record<string, unknown>;
 
-        // NestJS ValidationPipe returns { message: string[] } for validation errors
         if (status === HttpStatus.BAD_REQUEST && Array.isArray(resp.message)) {
-          code = 'C002';
+          code = PrismErrorCode.VALIDATION_ERROR;
           message = 'Invalid Input Value';
           details = (resp.message as string[]).map((msg) => ({
             field: this.extractField(msg),
@@ -45,11 +45,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           }));
         } else {
           message = (resp.message as string) || exception.message;
-          code = `P${status}`;
         }
       } else {
         message = exception.message;
-        code = `P${status}`;
       }
     } else if (exception instanceof Error) {
       message = exception.message;
@@ -68,9 +66,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     response.status(status).json(errorResponse);
   }
 
+  private resolveHttpErrorCode(status: number): string {
+    switch (status) {
+      case HttpStatus.UNAUTHORIZED:
+        return PrismErrorCode.UNAUTHORIZED;
+      case HttpStatus.FORBIDDEN:
+        return PrismErrorCode.FORBIDDEN;
+      case HttpStatus.NOT_FOUND:
+        return PrismErrorCode.NOT_FOUND;
+      case HttpStatus.BAD_REQUEST:
+        return PrismErrorCode.INVALID_REQUEST;
+      default:
+        return PrismErrorCode.INTERNAL_ERROR;
+    }
+  }
+
   private extractField(validationMessage: string): string {
-    // NestJS class-validator messages often start with the property name
-    // e.g., "title should not be empty", "price must be a positive number"
     const match = validationMessage.match(/^(\w+)\s/);
     return match?.[1] ?? 'unknown';
   }

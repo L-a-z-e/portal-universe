@@ -15,14 +15,14 @@ export class CreateProviderDto {
   @ApiProperty({ enum: ProviderType, example: ProviderType.OPENAI })
   @IsEnum(ProviderType)
   @IsNotEmpty()
-  providerType: ProviderType;
+  providerType!: ProviderType;
 
   @ApiProperty({ example: 'My OpenAI Account' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   @NoXss()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ example: 'sk-xxxxxxxxxxxxxxxx' })
   @IsString()

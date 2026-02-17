@@ -4,7 +4,7 @@ title: Admin Frontend System Overview
 type: architecture
 status: current
 created: 2026-02-07
-updated: 2026-02-07
+updated: 2026-02-15
 author: Laze
 tags: [architecture, vue, admin, rbac, membership, module-federation]
 ---
@@ -31,7 +31,7 @@ Admin Frontend는 Portal Universe의 RBAC(Role-Based Access Control) 및 멤버�
 - **Embedded/Standalone 듀얼 모드**: `window.__POWERED_BY_PORTAL_SHELL__` 플래그로 분기
 - **Admin Role 제한**: portal-shell Sidebar에서 `authStore.isAdmin` 체크로 메뉴 조건부 표시
 - **Portal Shell 인증 공유**: 별도 로그인 없음, portal-shell의 `portal/api` (토큰 갱신, 401 재시도) 사용
-- **Portal Shell 스토어 공유**: `portal/stores` (useAuthStore, useThemeStore) MF 공유
+- **Portal Shell 스토어 공유**: `@portal/vue-bridge` (usePortalAuth, usePortalTheme) 기반 adapter 소비
 
 ---
 
@@ -70,7 +70,7 @@ admin-frontend/
 │   ├── router/
 │   │   └── index.ts       # 듀얼 라우터 (Memory/Web History)
 │   ├── types/
-│   │   └── federation.d.ts # portal/api, portal/stores 모듈 선언
+│   │   └── federation.d.ts # portal/api, portal/stores (adapter) 모듈 선언
 │   └── views/
 │       ├── DashboardPage.vue
 │       ├── UsersPage.vue
@@ -132,7 +132,7 @@ portal-shell (Host, Vue 3)
 |------|------|------|
 | Expose | `./bootstrap` | `mountAdminApp()` 함수 |
 | Consume | `portal/api` | apiClient (토큰 갱신, 401/429 재시도) |
-| Consume | `portal/stores` | useAuthStore, useThemeStore |
+| Consume | `portal/stores` | authAdapter, themeAdapter (via @portal/vue-bridge) |
 
 ### Shared Dependencies
 

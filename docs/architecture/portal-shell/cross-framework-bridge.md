@@ -4,9 +4,9 @@ title: Cross-Framework Bridge Architecture
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-15
 author: Laze
-tags: [architecture, cross-framework, store-adapter, vue, react, pinia]
+tags: [architecture, cross-framework, store-adapter, vue, react, pinia, vue-bridge, react-bridge]
 related:
   - arch-portal-shell-system-overview
   - arch-portal-shell-module-federation
@@ -17,14 +17,22 @@ related:
 
 ## 개요
 
-Portal Shell(Vue 3)은 React 18 Remote 앱(Shopping, Prism)과 상태를 공유해야 합니다. Pinia Store는 Vue의 반응형 시스템에 의존하므로 React에서 직접 사용할 수 없습니다. storeAdapter가 Pinia를 `getState()`/`subscribe()` 패턴으로 래핑하여 React의 `useSyncExternalStore`와 호환되게 합니다.
+Portal Shell(Vue 3)은 Vue/React Remote 앱과 상태를 공유해야 합니다. Pinia Store는 Vue의 반응형 시스템에 의존하므로, storeAdapter가 Pinia를 프레임워크 무관 `getState()`/`subscribe()` 패턴으로 래핑합니다. 이를 기반으로 프레임워크별 Bridge 패키지가 소비합니다.
+
+### 2-Layer Bridge 아키텍처
+
+| Layer | 역할 | 패키지 | 핵심 패턴 |
+|-------|------|--------|-----------|
+| **Layer 1** (공통) | Pinia → 프레임워크 무관 인터페이스 | `portal/stores` (MF expose) | `getState()` / `subscribe()` |
+| **Layer 2** (Vue) | adapter → Vue reactive | `@portal/vue-bridge` | `ref()` + `computed()` + `watch()` |
+| **Layer 2** (React) | adapter → React hook | `@portal/react-bridge` | `useSyncExternalStore()` |
 
 | 항목 | 내용 |
 |------|------|
 | **범위** | Component |
-| **주요 기술** | Vue watch, 스냅샷 캐싱, CustomEvent, window 전역 함수 |
+| **주요 기술** | Vue watch, 스냅샷 캐싱, CustomEvent, vue-bridge, react-bridge |
 | **배포 환경** | Docker Compose, Kubernetes |
-| **관련 서비스** | Shopping Frontend (React), Prism Frontend (React) |
+| **관련 서비스** | Blog (Vue), Admin (Vue), Drive (Vue), Shopping (React), Prism (React), Seller (React) |
 
 ---
 
@@ -44,26 +52,41 @@ graph LR
     end
 
     subgraph "Module Federation"
-        MF["portal/stores"]
+        MF["portal/stores<br/>(Layer 1: 프레임워크 무관)"]
         IDX --> MF
     end
 
-    subgraph "React Remote"
-        USE[useSyncExternalStore]
-        HOOK[usePortalAuth / usePortalTheme]
-
-        MF --> USE
-        USE --> HOOK
+    subgraph "Layer 2: Vue Bridge"
+        VB["@portal/vue-bridge"]
+        VC["usePortalAuth / usePortalTheme<br/>ref + computed + watch"]
+        MF --> VB
+        VB --> VC
     end
 
-    subgraph "Cross-Framework Events"
-        CE["portal:auth-changed<br/>CustomEvent"]
-        WG["window.__PORTAL_*<br/>전역 함수"]
+    subgraph "Layer 2: React Bridge"
+        RB["@portal/react-bridge"]
+        RC["usePortalAuth / usePortalTheme<br/>useSyncExternalStore"]
+        MF --> RB
+        RB --> RC
     end
 
-    AUTH -.->|dispatch| CE
-    CE -.->|listen| HOOK
-    SA -.->|expose| WG
+    subgraph "Vue Remotes"
+        BLOG[blog]
+        ADMIN[admin]
+        DRIVE[drive]
+        VC --> BLOG
+        VC --> ADMIN
+        VC --> DRIVE
+    end
+
+    subgraph "React Remotes"
+        SHOP[shopping]
+        PRISM[prism]
+        SELLER[seller]
+        RC --> SHOP
+        RC --> PRISM
+        RC --> SELLER
+    end
 ```
 
 ---
@@ -165,14 +188,17 @@ useEffect(() => {
 }, []);
 ```
 
-### window 전역 함수
+### window 전역 함수 (레거시, Bridge 패키지로 대체)
 
-| 전역 변수 | 타입 | 설명 |
-|-----------|------|------|
-| `__PORTAL_ACCESS_TOKEN__` | `string` | Access Token 직접 참조 (deprecated) |
-| `__PORTAL_GET_ACCESS_TOKEN__` | `() => string \| null` | Access Token getter (권장) |
-| `__PORTAL_ON_AUTH_ERROR__` | `() => void` | 인증 에러 시 로그인 모달 표시 |
-| `__PORTAL_SHOW_LOGIN__` | `() => void` | 로그인 모달 표시 |
+| 전역 변수 | 타입 | 상태 | 대체 수단 |
+|-----------|------|------|-----------|
+| `__PORTAL_ACCESS_TOKEN__` | `string` | deprecated | `authAdapter.getAccessToken()` |
+| `__PORTAL_GET_ACCESS_TOKEN__` | `() => string \| null` | deprecated | `authAdapter.getAccessToken()` |
+| `__PORTAL_ON_AUTH_ERROR__` | `() => void` | deprecated | `authAdapter.logout()` |
+| `__PORTAL_SHOW_LOGIN__` | `() => void` | deprecated | `authAdapter.requestLogin()` |
+| `__PORTAL_POWERED_BY_PORTAL_SHELL__` | `boolean` | 유지 | `isEmbedded()` (bridge 유틸) |
+
+> **참고**: portal-shell의 authService.ts에서 window 전역 변수는 하위 호환을 위해 여전히 설정됩니다. Remote 앱에서는 Bridge 패키지를 통해 접근해야 합니다.
 
 타입 정의: `src/types/global.d.ts`
 
@@ -230,40 +256,45 @@ sequenceDiagram
 
 ---
 
-## React 측 사용 패턴 (참고)
+## Bridge 패키지 사용 패턴
+
+### Vue Remote (`@portal/vue-bridge`)
 
 ```typescript
-// React Remote에서의 사용 예시
-import { authAdapter, themeAdapter } from 'portal/stores';
-import { useSyncExternalStore } from 'react';
+// Vue Remote (blog, admin, drive)
+import { usePortalAuth, usePortalTheme } from '@portal/vue-bridge'
 
-function usePortalAuth() {
-  return useSyncExternalStore(
-    authAdapter.subscribe,
-    authAdapter.getState
-  );
-}
+// 컴포넌트에서
+const { isAuthenticated, displayName, logout } = usePortalAuth()
+const { isDark, toggle } = usePortalTheme()
 
-function usePortalTheme() {
-  return useSyncExternalStore(
-    themeAdapter.subscribe,
-    themeAdapter.getState
-  );
-}
+// 라우터 가드에서 (sync)
+import { getPortalAuthState } from '@portal/vue-bridge'
+const authState = getPortalAuthState()
+if (!authState.isAuthenticated) return '/login'
 
-// 컴포넌트에서 사용
+// MF unmount 시 cleanup
+import { disposePortalAuth, disposePortalTheme } from '@portal/vue-bridge'
+```
+
+### React Remote (`@portal/react-bridge`)
+
+```typescript
+// React Remote (shopping, prism, seller)
+import { usePortalAuth, usePortalTheme } from '@portal/react-bridge'
+
 function MyComponent() {
-  const auth = usePortalAuth();
-  const theme = usePortalTheme();
+  const auth = usePortalAuth()
+  const theme = usePortalTheme()
 
   return (
     <div>
       {auth.isAuthenticated ? auth.displayName : 'Guest'}
-      <button onClick={themeAdapter.toggle}>
+      <button onClick={theme.toggle}>
         {theme.isDark ? 'Light' : 'Dark'}
       </button>
     </div>
-  );
+  )
 }
 ```
 

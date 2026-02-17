@@ -11,6 +11,11 @@ import java.util.List;
 public interface SeriesRepository extends MongoRepository<Series, String> {
 
     /**
+     * 전체 시리즈 목록 조회 (최신순)
+     */
+    List<Series> findAllByOrderByUpdatedAtDesc();
+
+    /**
      * 작성자별 시리즈 목록 조회 (최신순)
      */
     List<Series> findByAuthorIdOrderByCreatedAtDesc(String authorId);

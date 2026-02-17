@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getRemoteConfigs } from '../config/remoteRegistry'
+import MaterialIcon from './MaterialIcon.vue'
 
 // Props & Emits
 const props = defineProps<{
@@ -35,7 +36,7 @@ const allActions = computed(() => {
     {
       id: 'action-new-post',
       type: 'action' as const,
-      icon: '✏️',
+      icon: 'edit_note',
       title: '새 글 작성',
       description: '블로그에 새 글을 작성합니다',
       path: '/blog/write',
@@ -44,7 +45,7 @@ const allActions = computed(() => {
     {
       id: 'action-browse-products',
       type: 'action' as const,
-      icon: '🛍️',
+      icon: 'storefront',
       title: '상품 둘러보기',
       description: '쇼핑몰 상품 목록으로 이동',
       path: '/shopping',
@@ -53,7 +54,7 @@ const allActions = computed(() => {
     {
       id: 'action-my-orders',
       type: 'action' as const,
-      icon: '📦',
+      icon: 'package_2',
       title: '주문 내역',
       description: '내 주문 내역 확인',
       path: '/shopping/orders',
@@ -62,7 +63,7 @@ const allActions = computed(() => {
     {
       id: 'action-home',
       type: 'navigation' as const,
-      icon: '🏠',
+      icon: 'dashboard',
       title: '홈으로',
       description: '메인 페이지로 이동',
       path: '/',
@@ -170,11 +171,7 @@ onUnmounted(() => {
         >
           <!-- Search Input -->
           <div class="flex items-center gap-3 px-4 py-3 border-b border-border-default">
-            <span class="text-text-meta">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </span>
+            <MaterialIcon name="search" :size="20" class="text-text-meta" />
             <input
               ref="inputRef"
               v-model="searchQuery"
@@ -202,7 +199,7 @@ onUnmounted(() => {
                     : 'hover:bg-bg-elevated text-text-body'
                 ]"
               >
-                <span class="text-xl">{{ action.icon }}</span>
+                <MaterialIcon :name="action.icon" :size="20" class="text-brand-primary" />
                 <div class="flex-1 min-w-0">
                   <p class="font-medium truncate">{{ action.title }}</p>
                   <p class="text-sm text-text-meta truncate">{{ action.description }}</p>
@@ -216,7 +213,7 @@ onUnmounted(() => {
               </div>
             </template>
             <div v-else class="px-4 py-8 text-center text-text-meta">
-              <p class="text-4xl mb-2">🔍</p>
+              <MaterialIcon name="search_off" :size="40" class="mb-2" />
               <p>검색 결과가 없습니다</p>
             </div>
           </div>

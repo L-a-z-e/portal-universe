@@ -2,8 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
-import { Button } from '@portal/design-system-vue';
-import { NotificationBell } from './notification';
+import MaterialIcon from './MaterialIcon.vue';
 
 // Screen size detection for mobile header
 const isMobile = ref(false);
@@ -22,16 +21,6 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateIsMobile);
 });
 
-// Login/Logout 함수 정의
-const handleLogin = () => {
-  // App.vue의 글로벌 LoginModal을 사용 (authStore.requestLogin)
-  authStore.requestLogin();
-};
-
-const handleLogout = async () => {
-  await authStore.logout();
-};
-
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -45,23 +34,23 @@ const baseNavItems = [
   {
     name: 'Home',
     path: '/',
-    icon: '🏠',
+    icon: 'home',
     exact: true,
   },
   {
     name: 'Blog',
     path: '/blog',
-    icon: '📝',
+    icon: 'article',
     children: [
-      { name: 'Posts', path: '/blog' },
-      { name: 'Series', path: '/blog/my?tab=series' },
-      { name: 'Write', path: '/blog/write' },
+      { name: 'Feed', path: '/blog' },
+      { name: 'Series', path: '/blog/series' },
+      { name: 'My Blog', path: '/blog/my' },
     ],
   },
   {
     name: 'Shopping',
     path: '/shopping',
-    icon: '🛒',
+    icon: 'shopping_cart',
     children: [
       { name: 'Products', path: '/shopping' },
       { name: 'Cart', path: '/shopping/cart' },
@@ -73,7 +62,7 @@ const baseNavItems = [
   {
     name: 'Prism',
     path: '/prism',
-    icon: '🤖',
+    icon: 'smart_toy',
     children: [
       { name: 'Boards', path: '/prism' },
       { name: 'Agents', path: '/prism/agents' },
@@ -85,7 +74,7 @@ const baseNavItems = [
 const sellerNavItem = {
   name: 'Seller',
   path: '/seller',
-  icon: '🏪',
+  icon: 'storefront',
   children: [
     { name: 'Dashboard', path: '/seller' },
     { name: 'Products', path: '/seller/products' },
@@ -100,17 +89,28 @@ const sellerNavItem = {
 const adminNavItem = {
   name: 'Admin',
   path: '/admin',
-  icon: '⚙️',
+  icon: 'admin_panel_settings',
   children: [
     { name: 'Dashboard', path: '/admin' },
     { name: 'Users', path: '/admin/users' },
     { name: 'Roles', path: '/admin/roles' },
     { name: 'Memberships', path: '/admin/memberships' },
+    { name: 'Approvals', path: '/admin/seller-approvals' },
+    { name: 'Audit Logs', path: '/admin/audit-log' },
   ],
 };
 
 const navItems = computed(() => {
   const items = [...baseNavItems];
+  if (authStore.isAuthenticated) {
+    // Insert Dashboard after Home
+    items.splice(1, 0, {
+      name: 'Dashboard',
+      path: '/dashboard',
+      icon: 'dashboard',
+      exact: true,
+    });
+  }
   if (authStore.isSeller) {
     items.push(sellerNavItem);
   }
@@ -166,7 +166,7 @@ const navigate = (path: string) => {
     @click="toggleMobile"
   />
 
-  <!-- Mobile Header Bar (only shown on mobile) -->
+  <!-- Mobile Header Bar -->
   <div
     v-if="isMobile"
     class="fixed top-0 left-0 right-0 h-14 bg-bg-card/95 backdrop-blur-md border-b border-border-default z-50 flex items-center px-4"
@@ -175,13 +175,11 @@ const navigate = (path: string) => {
       @click="toggleMobile"
       class="p-2 rounded-lg hover:bg-bg-elevated transition-colors"
     >
-      <svg class="w-6 h-6 text-text-body" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
+      <MaterialIcon name="menu" :size="24" class="text-text-body" />
     </button>
     <router-link to="/" class="ml-3 flex items-center gap-2">
-      <div class="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center">
-        <span class="text-white font-bold text-sm">P</span>
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-nightfall-300 to-nightfall-500 flex items-center justify-center">
+        <MaterialIcon name="grid_view" :size="18" class="text-white" :filled="true" />
       </div>
       <span class="font-semibold text-text-heading">Portal Universe</span>
     </router-link>
@@ -190,16 +188,16 @@ const navigate = (path: string) => {
   <!-- Sidebar -->
   <aside
     :class="[
-      'fixed top-0 left-0 h-full bg-bg-card border-r border-border-default z-50 transition-all duration-300 flex flex-col',
-      isCollapsed ? 'w-16' : 'w-64',
+      'fixed top-0 left-0 h-full bg-bg-sidebar border-r border-border-default z-50 transition-all duration-300 flex flex-col',
+      isCollapsed ? 'w-16' : 'w-72',
       isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
     ]"
   >
     <!-- Logo Section -->
     <div class="h-14 flex items-center px-4 border-b border-border-default shrink-0">
       <router-link to="/" class="flex items-center gap-3 overflow-hidden">
-        <div class="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center shrink-0">
-          <span class="text-white font-bold text-sm">P</span>
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-nightfall-300 to-nightfall-500 flex items-center justify-center shrink-0">
+          <MaterialIcon name="grid_view" :size="18" class="text-white" :filled="true" />
         </div>
         <span
           v-if="!isCollapsed"
@@ -211,160 +209,101 @@ const navigate = (path: string) => {
     </div>
 
     <!-- Navigation -->
-    <nav class="py-4 px-2 overflow-y-auto">
+    <nav class="py-4 px-3 overflow-y-auto flex-1">
       <div class="space-y-1">
         <template v-for="item in navItems" :key="item.path">
           <!-- Main nav item -->
-          <Button
-            variant="ghost"
+          <button
             @click="navigate(item.path)"
             :class="[
-              'w-full justify-start gap-3',
+              'flex items-center gap-3 w-full rounded-lg text-sm font-medium transition-all duration-100 cursor-pointer select-none',
+              isCollapsed ? 'px-0 py-2 justify-center' : 'px-3 py-2',
               isActive(item.path, item.exact)
-                ? 'bg-brand-primary/10 text-brand-primary'
-                : ''
+                ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20'
+                : 'text-text-meta border border-transparent hover:text-text-heading hover:bg-white/5 light:hover:bg-black/5'
             ]"
+            :title="isCollapsed ? item.name : undefined"
           >
-            <span class="text-lg shrink-0">{{ item.icon }}</span>
-            <span
-              v-if="!isCollapsed"
-              class="font-medium whitespace-nowrap"
-            >
-              {{ item.name }}
-            </span>
-          </Button>
+            <MaterialIcon :name="item.icon" :size="20" :filled="isActive(item.path, item.exact)" />
+            <span v-if="!isCollapsed" class="whitespace-nowrap">{{ item.name }}</span>
+          </button>
 
           <!-- Sub items (only when expanded and parent is active) -->
           <div
             v-if="!isCollapsed && item.children && isActive(item.path)"
-            class="ml-9 space-y-0.5 mt-1"
+            class="ml-10 space-y-0.5 mt-1"
           >
-            <Button
+            <button
               v-for="child in item.children"
               :key="child.path"
-              variant="ghost"
-              size="sm"
               @click="navigate(child.path)"
               :class="[
-                'w-full justify-start',
+                'w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors',
                 route.path === child.path
                   ? 'text-brand-primary font-medium'
-                  : 'text-text-meta'
+                  : 'text-text-meta hover:text-text-body'
               ]"
             >
               {{ child.name }}
-            </Button>
+            </button>
           </div>
         </template>
       </div>
+
+      <!-- Divider -->
+      <div class="border-t border-border-default mx-0 my-4" />
+
+      <!-- Bottom nav items -->
+      <div class="space-y-1">
+        <!-- Status -->
+        <button
+          @click="navigate('/status')"
+          :class="[
+            'flex items-center gap-3 w-full rounded-lg text-sm font-medium transition-all duration-100 cursor-pointer',
+            isCollapsed ? 'px-0 py-2 justify-center' : 'px-3 py-2',
+            isActive('/status', true)
+              ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20'
+              : 'text-text-meta border border-transparent hover:text-text-heading hover:bg-white/5 light:hover:bg-black/5'
+          ]"
+          :title="isCollapsed ? 'Status' : undefined"
+        >
+          <MaterialIcon name="bar_chart" :size="20" :filled="isActive('/status', true)" />
+          <span v-if="!isCollapsed">Status</span>
+        </button>
+
+        <!-- Settings -->
+        <button
+          @click="navigate('/settings')"
+          :class="[
+            'flex items-center gap-3 w-full rounded-lg text-sm font-medium transition-all duration-100 cursor-pointer',
+            isCollapsed ? 'px-0 py-2 justify-center' : 'px-3 py-2',
+            isActive('/settings', true)
+              ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20'
+              : 'text-text-meta border border-transparent hover:text-text-heading hover:bg-white/5 light:hover:bg-black/5'
+          ]"
+          :title="isCollapsed ? 'Settings' : undefined"
+        >
+          <MaterialIcon name="settings" :size="20" :filled="isActive('/settings', true)" />
+          <span v-if="!isCollapsed">Settings</span>
+        </button>
+      </div>
     </nav>
 
-    <!-- Spacer to push bottom section down -->
-    <div class="flex-1"></div>
-
-    <!-- Bottom Section -->
-    <div class="border-t border-border-default p-3 space-y-2 shrink-0">
-      <!-- User Section with Notification Bell (통합) -->
-      <template v-if="authStore.isAuthenticated">
-        <!-- Expanded: Profile + Bell in same row -->
-        <div v-if="!isCollapsed" class="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            @click="navigate('/profile')"
-            :class="[
-              'flex-1 justify-start gap-3',
-              isActive('/profile', true) ? 'bg-brand-primary/10' : 'bg-bg-elevated'
-            ]"
-          >
-            <div class="w-8 h-8 rounded-full bg-brand-primary/20 flex items-center justify-center shrink-0">
-              <span class="text-brand-primary font-medium text-sm">
-                {{ authStore.displayName?.charAt(0)?.toUpperCase() || 'U' }}
-              </span>
-            </div>
-            <div class="flex-1 min-w-0 text-left">
-              <p class="text-sm font-medium text-text-heading truncate">
-                {{ authStore.displayName }}
-              </p>
-              <span v-if="authStore.isAdmin" class="text-xs px-2 py-0.5 bg-status-error text-white rounded-full">ADMIN</span>
-            </div>
-          </Button>
-          <!-- Notification Bell (우측) -->
-          <NotificationBell dropdown-direction="right" />
-        </div>
-
-        <!-- Collapsed: Bell only (centered) -->
-        <div v-else class="flex justify-center">
-          <NotificationBell dropdown-direction="right" />
-        </div>
-      </template>
-
-      <!-- Login Button (비로그인 시) -->
-      <template v-else>
-        <Button
-          variant="primary"
-          @click="handleLogin"
-          class="w-full justify-start gap-3"
-        >
-          <span class="text-lg shrink-0">🔐</span>
-          <span v-if="!isCollapsed" class="font-medium">Login</span>
-        </Button>
-      </template>
-
-      <!-- Service Status -->
-      <Button
-        variant="ghost"
-        @click="navigate('/status')"
-        :class="[
-          'w-full justify-start gap-3',
-          isActive('/status', true) ? 'bg-brand-primary/10 text-brand-primary' : ''
-        ]"
-      >
-        <span class="text-lg shrink-0">📊</span>
-        <span v-if="!isCollapsed" class="font-medium whitespace-nowrap">Status</span>
-      </Button>
-
-      <!-- Settings -->
-      <Button
-        variant="ghost"
-        @click="navigate('/settings')"
-        :class="[
-          'w-full justify-start gap-3',
-          isActive('/settings', true) ? 'bg-brand-primary/10 text-brand-primary' : ''
-        ]"
-      >
-        <span class="text-lg shrink-0">⚙️</span>
-        <span v-if="!isCollapsed" class="font-medium whitespace-nowrap">Settings</span>
-      </Button>
-
-      <!-- Logout (로그인된 경우) -->
-      <Button
-        v-if="authStore.isAuthenticated"
-        variant="ghost"
-        @click="handleLogout"
-        class="w-full justify-start gap-3 text-status-error hover:bg-status-error/10"
-      >
-        <span class="text-lg shrink-0">🚪</span>
-        <span v-if="!isCollapsed" class="font-medium">Logout</span>
-      </Button>
-
-      <!-- Collapse Toggle (Desktop only) -->
-      <Button
-        variant="ghost"
+    <!-- Bottom: Collapse Toggle -->
+    <div class="border-t border-border-default p-3 shrink-0">
+      <button
         @click="toggleSidebar"
-        class="hidden lg:flex w-full justify-start gap-3"
+        :class="[
+          'hidden lg:flex items-center gap-3 w-full rounded-lg text-sm text-text-meta hover:text-text-heading hover:bg-white/5 light:hover:bg-black/5 transition-colors cursor-pointer',
+          isCollapsed ? 'px-0 py-2 justify-center' : 'px-3 py-2',
+        ]"
       >
-        <svg
-          :class="['w-5 h-5 transition-transform', isCollapsed ? 'rotate-180' : '']"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-        </svg>
+        <MaterialIcon
+          :name="isCollapsed ? 'chevron_right' : 'chevron_left'"
+          :size="20"
+        />
         <span v-if="!isCollapsed" class="text-sm">Collapse</span>
-      </Button>
+      </button>
     </div>
   </aside>
-
-
 </template>

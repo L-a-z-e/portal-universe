@@ -18,18 +18,18 @@ export class CreateAgentDto {
   @ApiProperty({ example: 1 })
   @IsInt()
   @IsPositive()
-  providerId: number;
+  providerId!: number;
 
   @ApiProperty({ example: 'PM Agent' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   @NoXss()
-  name: string;
+  name!: string;
 
   @ApiProperty({ enum: AgentRole, example: AgentRole.PM })
   @IsEnum(AgentRole)
-  role: AgentRole;
+  role!: AgentRole;
 
   @ApiPropertyOptional({
     example: 'Project management and task coordination agent',
@@ -46,13 +46,13 @@ export class CreateAgentDto {
   @IsString()
   @IsNotEmpty()
   @NoXss()
-  systemPrompt: string;
+  systemPrompt!: string;
 
   @ApiProperty({ example: 'gpt-4o' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  model: string;
+  model!: string;
 
   @ApiPropertyOptional({ example: 0.7, default: 0.7 })
   @IsOptional()

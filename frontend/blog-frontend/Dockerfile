@@ -8,38 +8,30 @@ WORKDIR /workspace
 # 1. workspace 루트 package.json 복사
 COPY package.json package-lock.json ./
 
-# 2. design-tokens 복사
-COPY design-tokens/package.json ./design-tokens/
-COPY design-tokens/ ./design-tokens/
+# 2. design-core 복사
+COPY design-core/package.json ./design-core/
+COPY design-core/ ./design-core/
 
-# 3. design-types 복사
-COPY design-types/package.json ./design-types/
-COPY design-types/ ./design-types/
+# 3. design-vue 복사
+COPY design-vue/package.json ./design-vue/
+COPY design-vue/ ./design-vue/
 
-# 4. design-system-vue 복사
-COPY design-system-vue/package.json ./design-system-vue/
-COPY design-system-vue/ ./design-system-vue/
-
-# 5. blog-frontend 복사
+# 4. blog-frontend 복사
 COPY blog-frontend/package.json ./blog-frontend/
 COPY blog-frontend/ ./blog-frontend/
 
 # 6. 의존성 설치
 RUN --mount=type=cache,target=/root/.npm npm ci
 
-# 7. design-tokens 빌드
-WORKDIR /workspace/design-tokens
+# 7. design-core 빌드
+WORKDIR /workspace/design-core
 RUN npm run build
 
-# 8. design-types 빌드
-WORKDIR /workspace/design-types
+# 8. design-vue 빌드
+WORKDIR /workspace/design-vue
 RUN npm run build
 
-# 9. design-system-vue 빌드
-WORKDIR /workspace/design-system-vue
-RUN npm run build
-
-# 10. blog-frontend 빌드
+# 9. blog-frontend 빌드
 ARG BUILD_MODE=docker
 WORKDIR /workspace/blog-frontend
 RUN npm run build:${BUILD_MODE}

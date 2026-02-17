@@ -8,7 +8,7 @@ export class CreateBoardDto {
   @IsNotEmpty()
   @MaxLength(100)
   @NoXss()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({
     example: 'Main project board for feature development',

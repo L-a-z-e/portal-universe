@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useThemeStore } from '../store/theme';
-import { Button } from '@portal/design-system-vue';
+import { Button } from '@portal/design-vue';
 
 const themeStore = useThemeStore();
 

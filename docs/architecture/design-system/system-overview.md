@@ -4,58 +4,62 @@ title: Design System 아키텍처 개요
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-17
 author: Laze
 tags: [design-system, architecture, multi-package, module-federation]
 related:
   - arch-design-system-index
   - arch-token-system
   - arch-theming
+  - adr-043-design-system-package-consolidation
 ---
 
 # Design System 아키텍처 개요
 
 ## 개요
 
-Portal Universe Design System은 4개 패키지로 구성된 멀티 프레임워크 디자인 시스템이다. 프레임워크 무관한 토큰/타입 계층 위에 Vue 3과 React 18 컴포넌트 라이브러리를 제공하여, Module Federation 기반의 마이크로 프론트엔드 환경에서 일관된 UI를 보장한다.
+Portal Universe Design System은 3개 패키지로 구성된 멀티 프레임워크 디자인 시스템이다. 프레임워크 무관한 토큰/타입/variant 코어 계층 위에 Vue 3과 React 18 컴포넌트 라이브러리를 제공하여, Module Federation 기반의 마이크로 프론트엔드 환경에서 일관된 UI를 보장한다.
 
 | 항목 | 내용 |
 |------|------|
-| 패키지 수 | 4 (`design-tokens`, `design-types`, `design-system-vue`, `design-system-react`) |
+| 패키지 수 | 3 (`design-core`, `design-vue`, `design-react`) |
 | 컴포넌트 수 | Vue 26 + React 30 (공유 25, Vue-only 1, React-only 5) |
 | 테마 | 4개 서비스 (Portal, Blog, Shopping, Prism) + Dark/Light 모드 |
-| 소비자 앱 | 4개 (portal-shell, blog-frontend, shopping-frontend, prism-frontend) |
+| 소비자 앱 | 7개 (portal-shell, blog, shopping, prism, admin, drive, shopping-seller) |
 
 ## 아키텍처 다이어그램
 
 ```mermaid
 graph TB
-    subgraph "Layer 1: Foundation"
-        DT["@portal/design-tokens<br/>토큰 JSON → CSS/JS/d.ts<br/>+ Tailwind preset"]
-        DY["@portal/design-types<br/>공유 TypeScript 타입<br/>30+ 컴포넌트 Props"]
+    subgraph "Layer 1: Core"
+        DC["@portal/design-core<br/>토큰 + 타입 + variant 정의<br/>+ Tailwind preset"]
     end
 
     subgraph "Layer 2: Component Libraries"
-        VUE["@portal/design-system-vue<br/>26 컴포넌트 + 3 composable<br/>Vite library mode"]
-        REACT["@portal/design-system-react<br/>30 컴포넌트 + 3 hook<br/>Vite library mode"]
+        VUE["@portal/design-vue<br/>26 컴포넌트 + 4 composable<br/>Vite library mode"]
+        REACT["@portal/design-react<br/>30 컴포넌트 + 4 hook<br/>Vite library mode"]
     end
 
     subgraph "Layer 3: Consumer Apps"
         SHELL["portal-shell :30000<br/>Vue 3 Host"]
         BLOG["blog-frontend :30001<br/>Vue 3 Remote"]
+        ADMIN["admin-frontend :30004<br/>Vue 3 Remote"]
+        DRIVE["drive-frontend :30005<br/>Vue 3 Remote"]
         SHOP["shopping-frontend :30002<br/>React 18 Remote"]
         PRISM["prism-frontend :30003<br/>React 18 Remote"]
+        SELLER["shopping-seller :30006<br/>React 18 Remote"]
     end
 
-    DT --> VUE
-    DT --> REACT
-    DY --> VUE
-    DY --> REACT
+    DC --> VUE
+    DC --> REACT
 
     VUE --> SHELL
     VUE --> BLOG
+    VUE --> ADMIN
+    VUE --> DRIVE
     REACT --> SHOP
     REACT --> PRISM
+    REACT --> SELLER
 
     SHELL -.->|Module Federation| BLOG
     SHELL -.->|Module Federation| SHOP
@@ -64,56 +68,46 @@ graph TB
 
 ## 핵심 컴포넌트
 
-### 1. @portal/design-tokens
+### 1. @portal/design-core
 
-프레임워크 무관한 디자인 토큰 패키지. JSON 정의에서 여러 포맷으로 빌드한다.
+프레임워크 무관한 코어 패키지. 토큰, 타입, variant 정의를 단일 패키지로 통합한다 ([ADR-043](../../adr/ADR-043-design-system-package-consolidation.md)).
 
 **역할**:
-- 3계층 토큰 정의 (Base → Semantic → Component)
-- 빌드 스크립트로 5개 출력 생성 (CSS, JSON, ESM, CJS, d.ts)
-- Tailwind preset 제공 (semantic 토큰을 Tailwind 클래스로 매핑)
-- 4개 서비스 테마 + Dark/Light 모드 CSS 변수 생성
+- 3계층 토큰 정의 (Base → Semantic → Component) + 빌드 스크립트
+- 공유 TypeScript 타입 (Props, variant, size 등)
+- 컴포넌트 variant 클래스 정의 (버튼, 탭, 배지 등의 Tailwind 클래스 SSOT)
+- Tailwind preset 제공 (semantic 토큰 → Tailwind 클래스 매핑)
+- 서비스별 테마 CSS (blog.css, shopping.css, prism.css)
 
 **Exports**:
 ```
-@portal/design-tokens       → dist/tokens.js (ESM) / dist/tokens.cjs (CJS)
-@portal/design-tokens/css   → dist/tokens.css
-@portal/design-tokens/json  → dist/tokens.json
-@portal/design-tokens/tailwind → tailwind.preset.js
+@portal/design-core         → dist/index.js (타입 + variant)
+@portal/design-core/css     → dist/tokens.css
+@portal/design-core/tailwind → tailwind.preset.js
 ```
 
-### 2. @portal/design-types
+**구성**:
+- `src/tokens/` - 토큰 JSON (base, semantic, themes)
+- `src/types/` - TypeScript 타입 (common, components, api, logger)
+- `src/variants/` - 컴포넌트 variant 클래스 (button, tabs, badge 등)
+- `src/styles/` - CSS 파일 (tokens, themes)
+- `scripts/build-tokens.js` - 토큰 빌드 스크립트
+- `tailwind.preset.js` - Tailwind 프리셋
 
-프레임워크 무관한 TypeScript 타입 패키지. 컴포넌트 Props의 단일 소스(Single Source of Truth)를 제공한다.
+### 2. @portal/design-vue
 
-**역할**:
-- `ServiceType`, `ThemeMode`, `ThemeConfig` 정의
-- 공통 variant/size 타입 (ButtonVariant, BadgeVariant, Size 등)
-- 30+ 컴포넌트 Props 인터페이스 (ButtonProps, InputProps 등)
-- 구조화된 로깅 유틸리티 (`createLogger`)
-
-**구성 파일**:
-- `index.ts` - 재수출 + 테마 타입
-- `common.ts` - 공통 variant/size 열거형
-- `components.ts` - 컴포넌트별 Props 인터페이스
-- `api.ts` - API 응답/요청 타입
-- `logger.ts` - Logger 팩토리 함수, LogLevel, ErrorReporter 인터페이스
-
-### 3. @portal/design-system-vue
-
-Vue 3 전용 컴포넌트 라이브러리. `<script setup>` + Composition API 패턴을 사용한다.
+Vue 3 전용 컴포넌트 라이브러리. `<script setup>` + Composition API 패턴. `@portal/design-core`에서 타입과 variant를 import.
 
 **역할**:
 - 26개 Vue 컴포넌트 (Form 8, Feedback 7, Layout 5, Navigation 3, Display 2, Utility 1)
 - 4개 composable (useTheme, useToast, useApiError, useLogger)
 - 전역 에러 핸들러 유틸리티 (`setupErrorHandler`)
-- 서비스별 테마 CSS (blog.css, shopping.css, prism.css)
 
-**소비자**: portal-shell (:30000), blog-frontend (:30001), drive-frontend (:30005), admin-frontend (:30004)
+**소비자**: portal-shell (:30000), blog-frontend (:30001), admin-frontend (:30004), drive-frontend (:30005)
 
-### 4. @portal/design-system-react
+### 3. @portal/design-react
 
-React 18 전용 컴포넌트 라이브러리. Hooks + forwardRef 패턴을 사용한다.
+React 18 전용 컴포넌트 라이브러리. Hooks + forwardRef 패턴. `@portal/design-core`에서 타입과 variant를 import.
 
 **역할**:
 - 30개 React 컴포넌트 (Vue 25개 공유 + React-only 5개)
@@ -121,22 +115,20 @@ React 18 전용 컴포넌트 라이브러리. Hooks + forwardRef 패턴을 사�
 - 4개 hook (useTheme, useToast, useApiError, useLogger)
 - `cn()` 유틸리티 (clsx + tailwind-merge)
 
-**소비자**: shopping-frontend (:30002), prism-frontend (:30003)
+**소비자**: shopping-frontend (:30002), prism-frontend (:30003), shopping-seller-frontend (:30006)
 
 ## 데이터 플로우
 
 ### 토큰 빌드 파이프라인
 
 ```
-┌───────────────────────┐     ┌──────────────────┐     ┌──────────────────────┐
-│  Input (12 JSON)      │     │  Build Script    │     │  Output (5 files)    │
-│                       │ --> │  build-tokens.js │ --> │                      │
-│  base/ (7 files)      │     │  462 lines       │     │  tokens.css          │
-│  semantic/ (1 file)   │     │                  │     │  tokens.json         │
-│  themes/ (4 files)    │     │  5-step process  │     │  tokens.js (ESM)     │
-└───────────────────────┘     └──────────────────┘     │  tokens.cjs (CJS)    │
-                                                       │  tokens.d.ts         │
-                                                       └──────────────────────┘
+┌──────────────────────────┐     ┌──────────────────┐     ┌──────────────────────┐
+│  Input (design-core)     │     │  Build Script    │     │  Output (dist/)      │
+│                          │ --> │  build-tokens.js │ --> │                      │
+│  src/tokens/base/ (5)    │     │                  │     │  tokens.css          │
+│  src/tokens/semantic/ (1)│     │                  │     │  index.js (타입+var) │
+│  src/tokens/themes/ (3)  │     │                  │     │  index.d.ts          │
+└──────────────────────────┘     └──────────────────┘     └──────────────────────┘
 ```
 
 **빌드 단계**:
@@ -150,14 +142,12 @@ React 18 전용 컴포넌트 라이브러리. Hooks + forwardRef 패턴을 사�
 
 ```mermaid
 sequenceDiagram
-    participant Token as design-tokens
-    participant Type as design-types
-    participant Lib as design-system-vue/react
+    participant Core as design-core
+    participant Lib as design-vue/react
     participant App as Consumer App
     participant DOM as Browser DOM
 
-    Token->>Lib: CSS 변수 import<br/>Tailwind preset 참조
-    Type->>Lib: Props 타입 import
+    Core->>Lib: CSS 변수 + 타입 + variant import
     Lib->>App: 컴포넌트 import<br/>composable/hook import
     App->>DOM: data-service, data-theme 속성 설정
     DOM->>DOM: CSS 변수 cascade로 테마 적용
@@ -165,7 +155,7 @@ sequenceDiagram
 
 ### Module Federation에서의 디자인 시스템 공유
 
-portal-shell(Host)이 Vue 디자인 시스템을 사용하고, React Remote(shopping, prism)는 각자 `@portal/design-system-react`를 번들한다. 테마는 Host가 `<html>` 요소에 설정한 `data-service`, `data-theme` 속성을 통해 전체 앱에 일관되게 적용된다.
+portal-shell(Host)이 Vue 디자인 시스템을 사용하고, React Remote(shopping, prism, seller)는 각자 `@portal/design-react`를 번들한다. 테마는 Host가 `<html>` 요소에 설정한 `data-service`, `data-theme` 속성을 통해 전체 앱에 일관되게 적용된다.
 
 ```
 portal-shell (Host)
@@ -181,8 +171,8 @@ portal-shell (Host)
 - **Dark-first (Portal)**: Portal 서비스는 dark 모드가 기본. Linear 스타일의 개발자 친화적 UI 지향. Blog/Shopping/Prism은 light-first.
 - **CSS Variables 런타임 테마**: 빌드 타임이 아닌 런타임에 `data-service` + `data-theme` 속성으로 테마를 전환. 컴포넌트 코드 변경 없이 스타일 적용 가능.
 - **data-attribute 기반 전환**: `class` 기반 대신 `data-service`, `data-theme` HTML 속성을 사용. Tailwind `darkMode: ['class', '[data-theme="dark"]']`와 호환.
-- **단일 타입 소스**: `@portal/design-types`에서 컴포넌트 Props를 한 번 정의하고, Vue/React 양쪽에서 참조. 타입 일관성 보장.
-- **Vite Library Mode**: 두 컴포넌트 라이브러리 모두 Vite library mode로 빌드. `react`, `react-dom`, `@portal/design-tokens`, `@portal/design-types`는 external로 처리.
+- **단일 코어 소스**: `@portal/design-core`에서 토큰, 타입, variant를 한 곳에서 정의하고, Vue/React 양쪽에서 참조. 일관성 보장.
+- **Vite Library Mode**: 두 컴포넌트 라이브러리 모두 Vite library mode로 빌드. `react`, `react-dom`, `@portal/design-core`는 external로 처리.
 
 ### 제약사항
 
@@ -197,10 +187,9 @@ portal-shell (Host)
 의존성 그래프에 따른 필수 빌드 순서:
 
 ```
-1. @portal/design-tokens   (npm run build:tokens → npm run build)
-2. @portal/design-types    (npm run build)
-3. @portal/design-system-vue  +  @portal/design-system-react  (병렬 가능)
-4. Consumer Apps (portal-shell → blog/shopping/prism)
+1. @portal/design-core    (토큰 빌드 + tsc)
+2. @portal/design-vue  +  @portal/design-react  (병렬 가능)
+3. Consumer Apps (portal-shell → blog/shopping/prism/admin/drive/seller)
 ```
 
 모노레포 루트에서 `npm run build:design` → `npm run build:libs` → `npm run build:apps` 순서로 실행.
@@ -209,13 +198,14 @@ portal-shell (Host)
 
 | 패키지 | Storybook 포트 |
 |--------|---------------|
-| design-system-vue | 6006 |
-| design-system-react | 6007 |
+| design-vue | 6006 |
+| design-react | 6007 |
 
 ### 확장 전략
 
-- 새 서비스 테마 추가: `design-tokens/src/tokens/themes/` 에 JSON 추가 후 빌드
-- 새 컴포넌트 추가: `design-types`에 Props 정의 → Vue/React 양쪽 구현 (자세한 절차는 [Component Matrix](./component-matrix.md) 참조)
+- 새 서비스 테마 추가: `design-core/src/tokens/themes/` 에 JSON 추가 후 빌드
+- 새 variant 추가: `design-core/src/variants/`에 정의 → Vue/React에서 import
+- 새 컴포넌트 추가: `design-core`에 타입+variant 정의 → Vue/React 양쪽 구현 (자세한 절차는 [Component Matrix](./component-matrix.md) 참조)
 
 ## 관련 문서
 
@@ -233,3 +223,4 @@ portal-shell (Host)
 |------|----------|--------|
 | 2026-02-06 | 초안 작성 | Laze |
 | 2026-02-14 | 에러 핸들링/로깅 유틸리티 추가 (ADR-040) | Laze |
+| 2026-02-17 | 4→3 패키지 통합 반영 (ADR-043) | Laze |

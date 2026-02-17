@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select, useApiError } from '@portal/design-system-react';
+import { Modal, Button, Input, Select, useApiError } from '@portal/design-react';
 import { useProviderStore } from '@/stores/providerStore';
 import type { CreateProviderRequest, ProviderType } from '@/types';
 
@@ -129,14 +129,16 @@ function ProvidersPage() {
                   <span className={`px-2 py-0.5 text-xs rounded-full ${provider.isActive ? 'bg-status-success/10 text-status-success' : 'bg-bg-muted text-text-meta'}`}>
                     {provider.isActive ? 'Active' : 'Inactive'}
                   </span>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDelete(provider.id)}
-                    className="p-1 text-text-muted hover:text-status-error rounded-lg hover:bg-bg-hover"
+                    className="p-1 text-text-muted hover:text-status-error"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                  </button>
+                  </Button>
                 </div>
               </div>
               {provider.baseUrl && (

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useApiError } from '@portal/design-system-react';
+import { useApiError } from '@portal/design-react';
 import {
   DndContext,
   DragEndEvent,

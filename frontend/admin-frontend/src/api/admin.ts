@@ -10,8 +10,14 @@ import type {
   UpdateRoleRequest,
   UserRole,
   UserPermissions,
+  ResolvedRoleResponse,
+  RoleHierarchyResponse,
   MembershipTierResponse,
   MembershipResponse,
+  UpdateMembershipTierRequest,
+  CreateMembershipTierRequest,
+  RoleDefaultMappingResponse,
+  RoleDefaultMappingRequest,
   SellerApplication,
   AuditLog,
   DashboardStats,
@@ -99,6 +105,37 @@ export async function revokeRole(userId: string, roleKey: string): Promise<void>
   await apiClient.delete(`${ADMIN_RBAC_BASE}/users/${userId}/roles/${roleKey}`);
 }
 
+// === Role Includes ===
+
+export async function fetchRoleIncludes(roleKey: string): Promise<RoleResponse[]> {
+  const res = await apiClient.get<ApiResponse<RoleResponse[]>>(
+    `${ADMIN_RBAC_BASE}/roles/${roleKey}/includes`,
+  );
+  return res.data.data;
+}
+
+export async function addRoleInclude(roleKey: string, includedRoleKey: string): Promise<void> {
+  await apiClient.post(`${ADMIN_RBAC_BASE}/roles/${roleKey}/includes`, { includedRoleKey });
+}
+
+export async function removeRoleInclude(roleKey: string, includedRoleKey: string): Promise<void> {
+  await apiClient.delete(`${ADMIN_RBAC_BASE}/roles/${roleKey}/includes/${includedRoleKey}`);
+}
+
+export async function fetchResolvedRole(roleKey: string): Promise<ResolvedRoleResponse> {
+  const res = await apiClient.get<ApiResponse<ResolvedRoleResponse>>(
+    `${ADMIN_RBAC_BASE}/roles/${roleKey}/resolved`,
+  );
+  return res.data.data;
+}
+
+export async function fetchRoleHierarchy(): Promise<RoleHierarchyResponse> {
+  const res = await apiClient.get<ApiResponse<RoleHierarchyResponse>>(
+    `${ADMIN_RBAC_BASE}/roles/hierarchy`,
+  );
+  return res.data.data;
+}
+
 // === Membership ===
 
 export async function fetchMembershipGroups(): Promise<string[]> {
@@ -118,6 +155,54 @@ export async function fetchUserMemberships(userId: string): Promise<MembershipRe
 
 export async function changeUserMembership(userId: string, membershipGroup: string, tierKey: string): Promise<void> {
   await apiClient.put(`${ADMIN_MEMBERSHIP_BASE}/users/${userId}`, { membershipGroup, tierKey });
+}
+
+export async function updateMembershipTier(
+  tierId: number,
+  data: UpdateMembershipTierRequest,
+): Promise<MembershipTierResponse> {
+  const res = await apiClient.put<ApiResponse<MembershipTierResponse>>(
+    `${ADMIN_MEMBERSHIP_BASE}/tiers/${tierId}`, data,
+  );
+  return res.data.data;
+}
+
+export async function createMembershipTier(data: CreateMembershipTierRequest): Promise<MembershipTierResponse> {
+  const res = await apiClient.post<ApiResponse<MembershipTierResponse>>(
+    `${ADMIN_MEMBERSHIP_BASE}/tiers`, data,
+  );
+  return res.data.data;
+}
+
+export async function deleteMembershipTier(tierId: number): Promise<void> {
+  await apiClient.delete(`${ADMIN_MEMBERSHIP_BASE}/tiers/${tierId}`);
+}
+
+// === Role-Default Membership Mapping ===
+
+export async function fetchAllRoleDefaults(): Promise<RoleDefaultMappingResponse[]> {
+  const res = await apiClient.get<ApiResponse<RoleDefaultMappingResponse[]>>(
+    `${ADMIN_MEMBERSHIP_BASE}/role-defaults`,
+  );
+  return res.data.data;
+}
+
+export async function fetchRoleDefaults(roleKey: string): Promise<RoleDefaultMappingResponse[]> {
+  const res = await apiClient.get<ApiResponse<RoleDefaultMappingResponse[]>>(
+    `${ADMIN_MEMBERSHIP_BASE}/role-defaults/${roleKey}`,
+  );
+  return res.data.data;
+}
+
+export async function addRoleDefault(data: RoleDefaultMappingRequest): Promise<RoleDefaultMappingResponse> {
+  const res = await apiClient.post<ApiResponse<RoleDefaultMappingResponse>>(
+    `${ADMIN_MEMBERSHIP_BASE}/role-defaults`, data,
+  );
+  return res.data.data;
+}
+
+export async function removeRoleDefault(roleKey: string, membershipGroup: string): Promise<void> {
+  await apiClient.delete(`${ADMIN_MEMBERSHIP_BASE}/role-defaults/${roleKey}/${membershipGroup}`);
 }
 
 // === Seller ===

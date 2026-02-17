@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useThemeStore, type ThemeMode } from '../store/theme';
 import { useSettingsStore, type Language } from '../store/settings';
 import { useAuthStore } from '../store/auth';
-import { Switch, Button } from '@portal/design-system-vue';
+import { Switch, Button } from '@portal/design-vue';
 
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();

@@ -4,6 +4,7 @@ import App from './App.vue';
 import type { Router } from 'vue-router';
 import { createDriveRouter, logRouterInfo } from "./router";
 import { createPinia } from "pinia";
+import { disposePortalAuth } from '@portal/vue-bridge';
 
 export type MountOptions = {
   initialPath?: string;
@@ -89,6 +90,9 @@ export function mountDriveApp(
 
     unmount: () => {
       console.group('[Drive] Unmounting app');
+
+      // Portal auth 구독 해제
+      disposePortalAuth();
 
       try {
         app.unmount();

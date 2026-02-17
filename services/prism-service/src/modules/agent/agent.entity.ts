@@ -26,52 +26,52 @@ export enum AgentRole {
 @Index(['userId', 'id'])
 export class Agent {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'user_id', type: 'varchar', length: 36 })
-  userId: string;
+  userId!: string;
 
   @Column({ name: 'provider_id', type: 'int' })
-  providerId: number;
+  providerId!: number;
 
   @ManyToOne(() => AIProvider, (provider) => provider.agents)
   @JoinColumn({ name: 'provider_id' })
-  provider: AIProvider;
+  provider!: AIProvider;
 
   @Column({ length: 100 })
-  name: string;
+  name!: string;
 
   @Column({
     type: 'enum',
     enum: AgentRole,
     default: AgentRole.CUSTOM,
   })
-  role: AgentRole;
+  role!: AgentRole;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({ name: 'system_prompt', type: 'text' })
-  systemPrompt: string;
+  systemPrompt!: string;
 
   @Column({ length: 100 })
-  model: string;
+  model!: string;
 
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0.7 })
-  temperature: number;
+  temperature!: number;
 
   @Column({ name: 'max_tokens', type: 'int', default: 4096 })
-  maxTokens: number;
+  maxTokens!: number;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Task, (task) => task.agent)
-  tasks: Task[];
+  tasks!: Task[];
 
   @OneToMany(() => Execution, (execution) => execution.agent)
-  executions: Execution[];
+  executions!: Execution[];
 }

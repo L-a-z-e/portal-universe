@@ -12,9 +12,11 @@ public record ProductCreateRequest(
         @NotBlank @Size(max = 255) String name,
         String description,
         @NotNull @Min(0) BigDecimal price,
+        @Min(0) BigDecimal discountPrice,
         @NotNull @Min(0) Integer stock,
         @Size(max = 500) String imageUrl,
-        @Size(max = 100) String category
+        @Size(max = 100) String category,
+        Boolean featured
 ) {
     public Product toEntity(Long sellerId) {
         return Product.builder()
@@ -22,9 +24,11 @@ public record ProductCreateRequest(
                 .name(name)
                 .description(description)
                 .price(price)
+                .discountPrice(discountPrice)
                 .stock(stock)
                 .imageUrl(imageUrl)
                 .category(category)
+                .featured(featured)
                 .build();
     }
 }

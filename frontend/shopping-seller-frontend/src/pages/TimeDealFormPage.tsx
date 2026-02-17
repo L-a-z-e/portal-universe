@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { sellerTimeDealApi, sellerProductApi } from '@/api'
-import { Button, Input, Textarea } from '@portal/design-system-react'
+import { Button, Input, Textarea, Select } from '@portal/design-react'
+import type { SelectOption } from '@portal/design-core'
 
 const timeDealFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -50,6 +51,14 @@ export const TimeDealFormPage: React.FC = () => {
       setAvailableProducts(items)
     }).catch(() => {})
   }, [])
+
+  const productOptions: SelectOption[] = [
+    { value: 0, label: 'Select product' },
+    ...availableProducts.map((p: any) => ({
+      value: p.id as number,
+      label: p.name as string,
+    })),
+  ]
 
   const onSubmit = async (data: TimeDealFormData) => {
     try {
@@ -130,18 +139,20 @@ export const TimeDealFormPage: React.FC = () => {
               {fields.map((field, index) => (
                 <div key={field.id} className="p-4 border border-border-default rounded-lg">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-xs text-text-meta mb-1">Product</label>
-                      <select
-                        className="w-full px-3 py-2 border border-border-default rounded-md bg-bg-default text-text-body text-sm"
-                        {...register(`products.${index}.productId`, { valueAsNumber: true })}
-                      >
-                        <option value={0}>Select product</option>
-                        {availableProducts.map((p: any) => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <Controller
+                      name={`products.${index}.productId`}
+                      control={control}
+                      render={({ field: controllerField }) => (
+                        <Select
+                          label="Product"
+                          options={productOptions}
+                          value={controllerField.value}
+                          onChange={(val) => controllerField.onChange(val !== null ? Number(val) : 0)}
+                          error={!!errors.products?.[index]?.productId}
+                          errorMessage={errors.products?.[index]?.productId?.message}
+                        />
+                      )}
+                    />
                     <Input
                       label="Deal Price"
                       type="number"
@@ -167,13 +178,15 @@ export const TimeDealFormPage: React.FC = () => {
                         />
                       </div>
                       {fields.length > 1 && (
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => remove(index)}
-                          className="mb-1 p-2 text-status-error hover:bg-status-error-bg rounded transition-colors"
+                          className="mb-1 text-status-error hover:bg-status-error-bg"
                         >
                           Remove
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>

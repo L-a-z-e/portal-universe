@@ -15,4 +15,6 @@ public interface MembershipTierRepository extends JpaRepository<MembershipTier, 
     boolean existsByMembershipGroupAndTierKey(String membershipGroup, String tierKey);
 
     List<MembershipTier> findByActiveTrue();
+
+    boolean existsByMembershipGroupAndTierKeyAndActiveTrue(String membershipGroup, String tierKey);
 }

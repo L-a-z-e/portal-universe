@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAdminTimeDeals, useCancelTimeDeal } from '@/hooks/useAdminTimeDeals'
 import { TIMEDEAL_STATUS_LABELS } from '@/types'
-import { Button, Card, Badge, Spinner, useApiError, useToast } from '@portal/design-system-react'
+import { Button, Card, Badge, Spinner, useApiError, useToast } from '@portal/design-react'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -51,7 +51,7 @@ export function AdminTimeDealListPage() {
         </div>
         <Link
           to="/admin/time-deals/new"
-          className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-md bg-[#E03131] text-white hover:bg-[#C92A2A] active:bg-[#A51D1D] border border-transparent shadow-sm transition-all"
+          className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-md bg-status-error text-white hover:opacity-90 active:opacity-80 border border-transparent shadow-sm transition-all"
         >
           새 타임딜 생성
         </Link>
@@ -66,7 +66,7 @@ export function AdminTimeDealListPage() {
 
       {/* 에러 */}
       {error && (
-        <Card variant="elevated" padding="md" className="mb-6 border-status-error bg-[#E03131]/10 light:bg-red-50">
+        <Card variant="elevated" padding="md" className="mb-6 border-status-error bg-status-error/10">
           <p className="text-status-error">{error.message}</p>
         </Card>
       )}
@@ -76,7 +76,7 @@ export function AdminTimeDealListPage() {
         <>
           <Card variant="elevated" padding="none" className="overflow-hidden">
             <table className="w-full">
-              <thead className="bg-bg-hover light:bg-gray-50">
+              <thead className="bg-bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">타임딜</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">상품</th>
@@ -148,13 +148,15 @@ export function AdminTimeDealListPage() {
                             </td>
                             <td className="px-4 py-3 text-center" rowSpan={timeDeal.products?.length || 1}>
                               {(timeDeal.status === 'ACTIVE' || timeDeal.status === 'SCHEDULED') && (
-                                <button
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => handleCancel(timeDeal.id, timeDeal.name)}
                                   disabled={isCancelling}
-                                  className="text-sm text-status-error hover:text-[#C92A2A] disabled:opacity-50 transition-colors"
+                                  className="text-status-error hover:opacity-80"
                                 >
                                   취소
-                                </button>
+                                </Button>
                               )}
                             </td>
                           </>

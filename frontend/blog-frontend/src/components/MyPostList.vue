@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Tag, Alert, Spinner, Tabs, useApiError } from '@portal/design-system-vue';
-import type { TabItem } from '@portal/design-system-vue';
+import { Button, Tag, Alert, Spinner, Tabs, useApiError } from '@portal/design-vue';
+import type { TabItem } from '@portal/design-vue';
 import type { PostSummaryResponse, PostStatus } from '@/dto/post';
 import { getMyPosts, deletePost, changePostStatus } from '@/api/posts';
 

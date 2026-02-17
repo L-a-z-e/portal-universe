@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { Button, Input, Tag } from '@portal/design-system-vue';
+import { Button, Input, Tag } from '@portal/design-vue';
 import { searchTags } from '@/api/tags';
 import type { TagResponse } from '@/types';
 

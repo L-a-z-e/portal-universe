@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useApiError } from '@portal/design-system-vue';
+import { useApiError } from '@portal/design-vue';
 import { searchPosts } from '../api/posts';
 import type { PostSummaryResponse, PageResponse } from '@/types';
 

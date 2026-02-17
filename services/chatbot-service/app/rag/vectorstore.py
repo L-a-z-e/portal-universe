@@ -8,15 +8,13 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-COLLECTION_NAME = "chatbot_documents"
-
 
 class VectorStoreManager:
     """ChromaDB 벡터 스토어 관리."""
 
     def __init__(self, embeddings: Embeddings):
         self._store = Chroma(
-            collection_name=COLLECTION_NAME,
+            collection_name=settings.vector_collection_name,
             embedding_function=embeddings,
             persist_directory=settings.chroma_persist_dir,
         )
@@ -45,10 +43,12 @@ class VectorStoreManager:
 
     def delete_by_source(self, source: str) -> None:
         """특정 소스 문서의 모든 청크 삭제."""
-        # ChromaDB where 필터로 삭제
-        self._store._collection.delete(where={"source": source})
+        # ChromaDB public API 사용
+        ids = self._store.get(where={"source": source})["ids"]
+        if ids:
+            self._store.delete(ids=ids)
         logger.info("Deleted chunks for source: %s", source)
 
     def get_document_count(self) -> int:
         """저장된 총 청크 수."""
-        return self._store._collection.count()
+        return len(self._store.get()["ids"])

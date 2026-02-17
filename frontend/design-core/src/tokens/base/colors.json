@@ -1,0 +1,203 @@
+{
+  "color": {
+    "brand": {
+      "primary": {
+        "$value": "#5e6ad2",
+        "$description": "Default brand primary - Linear indigo"
+      },
+      "primaryHover": {
+        "$value": "#4f5bc0",
+        "$description": "Default brand primary hover state"
+      },
+      "secondary": {
+        "$value": "#8f9df8",
+        "$description": "Default brand secondary color"
+      }
+    },
+    "neutral": {
+      "white": "#ffffff",
+      "50": "#f9fafb",
+      "100": "#f3f4f6",
+      "200": "#e5e7eb",
+      "300": "#d1d5db",
+      "400": "#9ca3af",
+      "500": "#6b7280",
+      "600": "#4b5563",
+      "700": "#374151",
+      "800": "#1f2937",
+      "900": "#111827",
+      "black": "#000000"
+    },
+    "linear": {
+      "$description": "Linear.app gray scale - optimized for dark UI",
+      "50": "#f7f8f8",
+      "100": "#ebeced",
+      "200": "#d0d6e0",
+      "300": "#b4b4b4",
+      "400": "#6b6b6b",
+      "500": "#5c6169",
+      "600": "#3e3e44",
+      "700": "#2a2a2a",
+      "800": "#18191b",
+      "850": "#0f1011",
+      "900": "#0e0f10",
+      "950": "#08090a"
+    },
+    "indigo": {
+      "$description": "Linear primary accent - indigo",
+      "50": "#e8eaf8",
+      "100": "#c2c7ef",
+      "200": "#9ba3e5",
+      "300": "#747fdb",
+      "400": "#5e6ad2",
+      "500": "#4754c9",
+      "600": "#3f4ab8",
+      "700": "#363fa3",
+      "800": "#2e348f",
+      "900": "#1e2266"
+    },
+    "green": {
+      "$description": "Blog signature color - for blog service",
+      "50": "#E6FCF5",
+      "100": "#C3FAE8",
+      "200": "#96F2D7",
+      "300": "#63E6BE",
+      "400": "#38D9A9",
+      "500": "#20C997",
+      "600": "#12B886",
+      "700": "#0CA678",
+      "800": "#099268",
+      "900": "#087F5B"
+    },
+    "orange": {
+      "$description": "Warm accent - for shopping service",
+      "50": "#FFF7ED",
+      "100": "#FFEDD5",
+      "200": "#FED7AA",
+      "300": "#FDBA74",
+      "400": "#FB923C",
+      "500": "#F97316",
+      "600": "#EA580C",
+      "700": "#C2410C",
+      "800": "#9A3412",
+      "900": "#7C2D12"
+    },
+    "gray": {
+      "$description": "Optimized for text readability",
+      "50": "#F8F9FA",
+      "100": "#F1F3F5",
+      "200": "#E9ECEF",
+      "300": "#DEE2E6",
+      "400": "#CED4DA",
+      "500": "#ADB5BD",
+      "600": "#868E96",
+      "700": "#495057",
+      "800": "#343A40",
+      "900": "#212529"
+    },
+    "red": {
+      "$description": "Error and destructive actions",
+      "50": "#FFE3E3",
+      "100": "#ffccd5",
+      "200": "#ffb3c1",
+      "300": "#ff8fa3",
+      "400": "#ff758f",
+      "500": "#FA5252",
+      "600": "#F03E3E",
+      "700": "#d62828",
+      "800": "#a4161a",
+      "900": "#C92A2A"
+    },
+    "blue": {
+      "$description": "Info and links",
+      "50": "#D0EBFF",
+      "100": "#bbd9f8",
+      "200": "#96c4f0",
+      "300": "#70afe8",
+      "400": "#4a9ae0",
+      "500": "#339AF0",
+      "600": "#228BE6",
+      "700": "#1976D2",
+      "800": "#145eaa",
+      "900": "#1864AB"
+    },
+    "yellow": {
+      "$description": "Warning states",
+      "50": "#FFF9DB",
+      "100": "#fff3bf",
+      "200": "#ffec99",
+      "300": "#ffe066",
+      "400": "#ffd43b",
+      "500": "#FCC419",
+      "600": "#FAB005",
+      "700": "#f59f00",
+      "800": "#e67700",
+      "900": "#d9480f"
+    },
+    "cyan": {
+      "$description": "Cyan accent - for drive service",
+      "50": "#ECFEFF",
+      "100": "#CFFAFE",
+      "200": "#A5F3FC",
+      "300": "#67E8F9",
+      "400": "#22D3EE",
+      "500": "#06B6D4",
+      "600": "#0891B2",
+      "700": "#0E7490",
+      "800": "#155E75",
+      "900": "#164E63"
+    },
+    "violet": {
+      "$description": "Violet accent - for prism service",
+      "50": "#F5F3FF",
+      "100": "#EDE9FE",
+      "200": "#DDD6FE",
+      "300": "#C4B5FD",
+      "400": "#A78BFA",
+      "500": "#8B5CF6",
+      "600": "#7C3AED",
+      "700": "#6D28D9",
+      "800": "#5B21B6",
+      "900": "#4C1D95"
+    },
+    "nightfall": {
+      "$description": "Vivid Nightfall - portal brand purple palette",
+      "50": "#f3e8ff",
+      "100": "#e0aaff",
+      "200": "#c77dff",
+      "300": "#9d4edd",
+      "400": "#7b2cbf",
+      "500": "#5a189a",
+      "600": "#3c096c",
+      "700": "#240046",
+      "800": "#10002b",
+      "900": "#0a0018"
+    },
+    "sage": {
+      "$description": "Serene Nature Tones - blog brand palette",
+      "50": "#f6fff8",
+      "100": "#eaf4f4",
+      "200": "#cce3de",
+      "300": "#a4c3b2",
+      "400": "#6b9080",
+      "500": "#5a7d6e",
+      "600": "#4a6a5c",
+      "700": "#3a574a",
+      "800": "#2a4438",
+      "900": "#1a3126"
+    },
+    "monochromeChic": {
+      "$description": "Monochrome Chic - Admin premium palette",
+      "900": "#2d232e",
+      "800": "#3a2f3b",
+      "700": "#474448",
+      "600": "#534b52",
+      "500": "#6b5b6e",
+      "400": "#8a7b8d",
+      "300": "#a09a9e",
+      "200": "#e0ddcf",
+      "100": "#ede9e1",
+      "50": "#f1f0ea"
+    }
+  }
+}

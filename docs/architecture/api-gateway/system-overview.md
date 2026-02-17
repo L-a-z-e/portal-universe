@@ -4,7 +4,7 @@ title: API Gateway System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-18
 author: Laze
 tags: [api-gateway, spring-cloud-gateway, security, jwt, rate-limiting, circuit-breaker]
 related:
@@ -59,8 +59,8 @@ OAuth2 Resource Server가 아닌 **직접 구현한 `JwtAuthenticationFilter`**�
 ### 4. Header Sanitization
 외부에서 주입된 `X-User-*` 헤더를 필터 진입 시 제거하여 **Header Injection 공격**을 방지합니다. JWT 검증 후 게이트웨이가 직접 `X-User-Id`, `X-User-Roles`, `X-User-Effective-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name` 헤더를 설정합니다.
 
-### 4.1 Role Hierarchy Resolution
-`RoleHierarchyResolver`가 auth-service의 내부 API (`/api/v1/internal/role-hierarchy/effective-roles`)를 호출하여 JWT의 역할 목록을 계층적으로 확장합니다. 결과는 Redis에 5분간 캐시됩니다. `X-User-Roles`는 원본 역할, `X-User-Effective-Roles`는 계층 확장된 역할을 담습니다.
+### 4.1 Role Hierarchy Resolution (JWT effectiveRoles)
+JWT access token에 `effectiveRoles` claim이 내장되어 있습니다 (auth-service에서 토큰 발급 시 `role_includes` DAG를 BFS 탐색하여 계산). Gateway는 JWT claim을 직접 파싱하여 사용하므로 **auth-service API 호출이 불필요**합니다. `effectiveRoles` claim이 없는 구형 JWT의 경우 `roles` claim을 fallback으로 사용합니다. `X-User-Roles`는 원본 역할, `X-User-Effective-Roles`는 DAG 확장된 유효 역할을 담습니다.
 
 ### 5. Redis 기반 Rate Limiting
 5종의 `RedisRateLimiter`와 3종의 `KeyResolver`를 조합하여 엔드포인트별 차별화된 속도 제한을 적용합니다. 개발 환경(local/docker)에서는 자동으로 완화된 제한을 적용합니다.
@@ -179,8 +179,8 @@ Spring Security WebFlux 보안 필터 체인을 구성합니다.
 3. `Authorization: Bearer` 헤더에서 토큰 추출
 4. JWT 헤더의 `kid`(Key ID) 추출 → 해당 키로 HMAC-SHA256 서명 검증
 5. Redis Token Blacklist 확인 (reactive)
-6. Claims에서 `roles`, `memberships`, `nickname`, `username` 추출
-7. `RoleHierarchyResolver`로 역할 계층 확장 (Redis 캐시, auth-service 내부 API 호출)
+6. Claims에서 `roles`, `effectiveRoles`, `memberships`, `nickname`, `username` 추출
+7. JWT `effectiveRoles` claim 파싱 (없으면 `roles` fallback — auth-service API 호출 불필요)
 8. `UsernamePasswordAuthenticationToken` 생성 (effective roles 기반 Authority)
 9. 하위 서비스 전달 헤더 설정: `X-User-Id`, `X-User-Roles`, `X-User-Effective-Roles`, `X-User-Memberships`, `X-User-Nickname`, `X-User-Name`
 
@@ -381,7 +381,8 @@ Rate Limiting 응답 헤더를 로깅하고, 429 응답 시 `Retry-After` 헤더
 | JWT Claim | 전달 헤더 | 비고 |
 |----------|----------|------|
 | `sub` | X-User-Id | UUID |
-| `roles` | X-User-Roles | 쉼표 구분 (예: `ROLE_USER,ROLE_SHOPPING_SELLER`) |
+| `roles` | X-User-Roles | 쉼표 구분, 직접 할당 역할 (예: `ROLE_SUPER_ADMIN`) |
+| `effectiveRoles` | X-User-Effective-Roles | 쉼표 구분, DAG 확장 유효 역할 (예: `ROLE_SUPER_ADMIN,ROLE_SHOPPING_ADMIN,...`) |
 | `memberships` | X-User-Memberships | JSON 문자열 (예: `{"shopping":"PREMIUM"}`) |
 | `nickname` | X-User-Nickname | URL 인코딩 |
 | `username` | X-User-Name | URL 인코딩 |
@@ -667,3 +668,4 @@ stateDiagram-v2
 |------|------|----------|------|
 | 2026-01-18 | 1.0 | 초기 문서 작성 | Laze |
 | 2026-02-06 | 2.0 | 코드베이스 기준 전면 재작성 (24개 Java 파일, application.yml 검증) | Laze |
+| 2026-02-18 | 2.1 | RoleHierarchyResolver 제거 → JWT effectiveRoles claim 직접 파싱으로 전환 (ADR-044) | Laze |

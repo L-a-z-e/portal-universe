@@ -7,8 +7,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useCreateCoupon } from '@/hooks/useAdminCoupons'
 import type { DiscountType, CouponCreateRequest } from '@/types'
 import { DISCOUNT_TYPE_LABELS } from '@/types'
-import { Button, Card, Input, Textarea, Select, useApiError, useToast } from '@portal/design-system-react'
-import type { SelectOption } from '@portal/design-types'
+import { Button, Card, Input, Textarea, Select, useApiError, useToast } from '@portal/design-react'
+import type { SelectOption } from '@portal/design-core'
 
 export function AdminCouponFormPage() {
   const navigate = useNavigate()

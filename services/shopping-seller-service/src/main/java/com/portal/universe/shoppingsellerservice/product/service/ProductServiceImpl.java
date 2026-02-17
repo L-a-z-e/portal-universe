@@ -56,6 +56,10 @@ public class ProductServiceImpl implements ProductService {
         }
         product.update(request.name(), request.description(), request.price(),
                 request.stock(), request.imageUrl(), request.category());
+        product.updateDiscountPrice(request.discountPrice());
+        if (request.featured() != null) {
+            product.updateFeatured(request.featured());
+        }
         return ProductResponse.from(product);
     }
 

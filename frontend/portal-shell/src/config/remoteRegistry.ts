@@ -24,7 +24,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'blog/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
-      icon: '📝',
+      icon: 'article',
       description: '블로그 서비스'
     },
     {
@@ -34,7 +34,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'shopping/bootstrap',
       mountFn: 'mountShoppingApp',
       basePath: '/shopping',
-      icon: '🛒',
+      icon: 'shopping_cart',
       description: '쇼핑 서비스'
     },
     {
@@ -44,7 +44,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'prism/bootstrap',
       mountFn: 'mountPrismApp',
       basePath: '/prism',
-      icon: '🤖',
+      icon: 'smart_toy',
       description: 'AI 에이전트 오케스트레이션'
     },
     {
@@ -54,7 +54,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'drive/bootstrap',
       mountFn: 'mountDriveApp',
       basePath: '/drive',
-      icon: '💾',
+      icon: 'cloud_upload',
       description: '파일 관리'
     },
     {
@@ -64,7 +64,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'admin/bootstrap',
       mountFn: 'mountAdminApp',
       basePath: '/admin',
-      icon: '⚙️',
+      icon: 'admin_panel_settings',
       description: '관리 대시보드'
     },
     {
@@ -74,7 +74,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'seller/bootstrap',
       mountFn: 'mountSellerApp',
       basePath: '/seller',
-      icon: '🏪',
+      icon: 'storefront',
       description: '쇼핑몰 판매자 관리'
     },
   ],
@@ -86,7 +86,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'blog/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
-      icon: '📝',
+      icon: 'article',
       description: '블로그 서비스'
     },
     {
@@ -96,7 +96,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'shopping/bootstrap',
       mountFn: 'mountShoppingApp',
       basePath: '/shopping',
-      icon: '🛒',
+      icon: 'shopping_cart',
       description: '쇼핑 서비스'
     },
     {
@@ -106,7 +106,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'prism/bootstrap',
       mountFn: 'mountPrismApp',
       basePath: '/prism',
-      icon: '🤖',
+      icon: 'smart_toy',
       description: 'AI 에이전트 오케스트레이션'
     },
     {
@@ -116,7 +116,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'drive/bootstrap',
       mountFn: 'mountDriveApp',
       basePath: '/drive',
-      icon: '💾',
+      icon: 'cloud_upload',
       description: '파일 관리'
     },
     {
@@ -126,7 +126,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'admin/bootstrap',
       mountFn: 'mountAdminApp',
       basePath: '/admin',
-      icon: '⚙️',
+      icon: 'admin_panel_settings',
       description: '관리 대시보드'
     },
     {
@@ -136,7 +136,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'seller/bootstrap',
       mountFn: 'mountSellerApp',
       basePath: '/seller',
-      icon: '🏪',
+      icon: 'storefront',
       description: '쇼핑몰 판매자 관리'
     },
   ],
@@ -148,7 +148,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'blog/bootstrap',
       mountFn: 'mountBlogApp',
       basePath: '/blog',
-      icon: '📝',
+      icon: 'article',
       description: '블로그 서비스'
     },
     {
@@ -158,7 +158,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'shopping/bootstrap',
       mountFn: 'mountShoppingApp',
       basePath: '/shopping',
-      icon: '🛒',
+      icon: 'shopping_cart',
       description: '쇼핑 서비스'
     },
     {
@@ -168,7 +168,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'prism/bootstrap',
       mountFn: 'mountPrismApp',
       basePath: '/prism',
-      icon: '🤖',
+      icon: 'smart_toy',
       description: 'AI 에이전트 오케스트레이션'
     },
     {
@@ -178,7 +178,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'drive/bootstrap',
       mountFn: 'mountDriveApp',
       basePath: '/drive',
-      icon: '💾',
+      icon: 'cloud_upload',
       description: '파일 관리'
     },
     {
@@ -188,7 +188,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'admin/bootstrap',
       mountFn: 'mountAdminApp',
       basePath: '/admin',
-      icon: '⚙️',
+      icon: 'admin_panel_settings',
       description: '관리 대시보드'
     },
     {
@@ -198,7 +198,7 @@ const remoteConfigs: Record<EnvironmentMode, RemoteConfig[]> = {
       module: 'seller/bootstrap',
       mountFn: 'mountSellerApp',
       basePath: '/seller',
-      icon: '🏪',
+      icon: 'storefront',
       description: '쇼핑몰 판매자 관리'
     },
   ]

@@ -32,57 +32,57 @@ export enum TaskPriority {
 @Index(['boardId', 'status'])
 export class Task {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'board_id', type: 'int' })
-  boardId: number;
+  boardId!: number;
 
   @ManyToOne(() => Board, (board) => board.tasks)
   @JoinColumn({ name: 'board_id' })
-  board: Board;
+  board!: Board;
 
   @Column({ name: 'agent_id', type: 'int', nullable: true })
-  agentId: number | null;
+  agentId!: number | null;
 
   @ManyToOne(() => Agent, (agent) => agent.tasks, { nullable: true })
   @JoinColumn({ name: 'agent_id' })
-  agent: Agent | null;
+  agent!: Agent | null;
 
   @Column({ length: 200 })
-  title: string;
+  title!: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
+  description!: string | null;
 
   @Column({
     type: 'enum',
     enum: TaskStatus,
     default: TaskStatus.TODO,
   })
-  status: TaskStatus;
+  status!: TaskStatus;
 
   @Column({
     type: 'enum',
     enum: TaskPriority,
     default: TaskPriority.MEDIUM,
   })
-  priority: TaskPriority;
+  priority!: TaskPriority;
 
   @Column({ type: 'int', default: 0 })
-  position: number;
+  position!: number;
 
   @Column({ name: 'due_date', type: 'date', nullable: true })
-  dueDate: Date | null;
+  dueDate!: Date | null;
 
   @Column({ name: 'referenced_task_ids', type: 'simple-array', nullable: true })
-  referencedTaskIds: number[] | null;
+  referencedTaskIds!: number[] | null;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Execution, (execution) => execution.task)
-  executions: Execution[];
+  executions!: Execution[];
 }

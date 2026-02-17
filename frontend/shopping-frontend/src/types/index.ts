@@ -3,7 +3,7 @@
  * Domain DTOs re-exported from dto/ modules
  */
 
-// Common types (includes @portal/design-types re-exports)
+// Common types (includes @portal/design-core re-exports)
 export * from './common'
 
 // Domain DTOs

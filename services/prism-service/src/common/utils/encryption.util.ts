@@ -59,7 +59,9 @@ export class EncryptionUtil {
         throw new Error('Invalid encrypted format');
       }
 
-      const [ivHex, authTagHex, encrypted] = parts;
+      const ivHex = parts[0]!;
+      const authTagHex = parts[1]!;
+      const encrypted = parts[2]!;
       const iv = Buffer.from(ivHex, 'hex');
       const authTag = Buffer.from(authTagHex, 'hex');
 

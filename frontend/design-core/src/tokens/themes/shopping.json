@@ -1,0 +1,334 @@
+{
+  "$description": "Shopping service theme - Tropical Sunrise palette (#ff9f1c, #ffbf69, #ffffff, #cbf3f0, #2ec4b6)",
+  "color": {
+    "brand": {
+      "primary": {
+        "$value": "#ff9f1c",
+        "$description": "Shopping brand primary - Tropical Gold",
+        "$type": "color"
+      },
+      "primaryHover": {
+        "$value": "#e88e17",
+        "$description": "Shopping brand primary hover - Gold darken",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "#ffbf69",
+        "$description": "Shopping brand secondary - Tangerine",
+        "$type": "color"
+      }
+    },
+    "accent": {
+      "seafoam": {
+        "$value": "#cbf3f0",
+        "$description": "Shopping accent seafoam - highlight, info assist",
+        "$type": "color"
+      },
+      "teal": {
+        "$value": "#2ec4b6",
+        "$description": "Shopping accent teal - secondary CTA, success alternative",
+        "$type": "color"
+      }
+    },
+    "text": {
+      "heading": {
+        "$value": "{color.gray.900}",
+        "$description": "Shopping light mode heading text",
+        "$type": "color"
+      },
+      "body": {
+        "$value": "{color.gray.900}",
+        "$description": "Shopping light mode body text - optimized for product showcase",
+        "$type": "color"
+      },
+      "meta": {
+        "$value": "{color.gray.600}",
+        "$description": "Shopping light mode meta text",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.gray.500}",
+        "$description": "Shopping light mode muted text",
+        "$type": "color"
+      },
+      "inverse": {
+        "$value": "{color.neutral.white}",
+        "$description": "Shopping light mode inverse text",
+        "$type": "color"
+      },
+      "link": {
+        "$value": "{color.blue.600}",
+        "$description": "Shopping light mode link text",
+        "$type": "color"
+      },
+      "linkHover": {
+        "$value": "{color.blue.700}",
+        "$description": "Shopping light mode link hover text",
+        "$type": "color"
+      }
+    },
+    "bg": {
+      "page": {
+        "$value": "{color.neutral.white}",
+        "$description": "Shopping light mode page background - clean white for products",
+        "$type": "color"
+      },
+      "card": {
+        "$value": "{color.neutral.white}",
+        "$description": "Shopping light mode card background - clean white",
+        "$type": "color"
+      },
+      "elevated": {
+        "$value": "{color.neutral.white}",
+        "$description": "Shopping light mode elevated background - clean white",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.gray.50}",
+        "$description": "Shopping light mode muted background - neutral",
+        "$type": "color"
+      },
+      "hover": {
+        "$value": "{color.gray.100}",
+        "$description": "Shopping light mode hover background",
+        "$type": "color"
+      },
+      "sidebar": {
+        "$value": "#f8f8fa",
+        "$description": "Shopping light mode sidebar background",
+        "$type": "color"
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{color.gray.200}",
+        "$description": "Shopping light mode default border",
+        "$type": "color"
+      },
+      "hover": {
+        "$value": "{color.gray.300}",
+        "$description": "Shopping light mode hover border",
+        "$type": "color"
+      },
+      "focus": {
+        "$value": "#ff9f1c",
+        "$description": "Shopping light mode focus border - Tropical Gold accent",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "{color.gray.100}",
+        "$description": "Shopping light mode muted border",
+        "$type": "color"
+      }
+    },
+    "status": {
+      "success": {
+        "$value": "{color.green.600}",
+        "$description": "Shopping success status",
+        "$type": "color"
+      },
+      "successBg": {
+        "$value": "{color.green.50}",
+        "$description": "Shopping success background",
+        "$type": "color"
+      },
+      "error": {
+        "$value": "{color.red.600}",
+        "$description": "Shopping error status",
+        "$type": "color"
+      },
+      "errorBg": {
+        "$value": "{color.red.50}",
+        "$description": "Shopping error background",
+        "$type": "color"
+      },
+      "warning": {
+        "$value": "{color.yellow.600}",
+        "$description": "Shopping warning status",
+        "$type": "color"
+      },
+      "warningBg": {
+        "$value": "{color.yellow.50}",
+        "$description": "Shopping warning background",
+        "$type": "color"
+      },
+      "info": {
+        "$value": "{color.blue.600}",
+        "$description": "Shopping info status",
+        "$type": "color"
+      },
+      "infoBg": {
+        "$value": "{color.blue.50}",
+        "$description": "Shopping info background",
+        "$type": "color"
+      }
+    }
+  },
+  "darkMode": {
+    "$description": "Shopping dark mode - Tropical Sunrise warm accent on dark background",
+    "color": {
+      "brand": {
+        "primary": {
+          "$value": "#ff9f1c",
+          "$description": "Shopping dark mode brand primary - Tropical Gold warm accent",
+          "$type": "color"
+        },
+        "primaryHover": {
+          "$value": "#ffbf69",
+          "$description": "Shopping dark mode brand primary hover - Tangerine",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "#ffbf69",
+          "$description": "Shopping dark mode brand secondary - Tangerine",
+          "$type": "color"
+        }
+      },
+      "accent": {
+        "seafoam": {
+          "$value": "#2ec4b6",
+          "$description": "Shopping dark mode accent seafoam",
+          "$type": "color"
+        },
+        "teal": {
+          "$value": "#cbf3f0",
+          "$description": "Shopping dark mode accent teal",
+          "$type": "color"
+        }
+      },
+      "text": {
+        "heading": {
+          "$value": "#ffffff",
+          "$description": "Shopping dark mode heading text - Pure white",
+          "$type": "color"
+        },
+        "body": {
+          "$value": "#b4b4b4",
+          "$description": "Shopping dark mode body text - Unified gray",
+          "$type": "color"
+        },
+        "meta": {
+          "$value": "#6b6b6b",
+          "$description": "Shopping dark mode meta text",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "#6b6b6b",
+          "$description": "Shopping dark mode muted text",
+          "$type": "color"
+        },
+        "inverse": {
+          "$value": "#08090a",
+          "$description": "Shopping dark mode inverse text",
+          "$type": "color"
+        },
+        "link": {
+          "$value": "#ff9f1c",
+          "$description": "Shopping dark mode link text - Tropical Gold",
+          "$type": "color"
+        },
+        "linkHover": {
+          "$value": "#ffbf69",
+          "$description": "Shopping dark mode link hover text - Tangerine",
+          "$type": "color"
+        }
+      },
+      "bg": {
+        "page": {
+          "$value": "#08090a",
+          "$description": "Shopping dark mode page background - Unified near black",
+          "$type": "color"
+        },
+        "card": {
+          "$value": "#0f1011",
+          "$description": "Shopping dark mode card background - Unified dark gray",
+          "$type": "color"
+        },
+        "elevated": {
+          "$value": "#18191b",
+          "$description": "Shopping dark mode elevated background - Unified",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "{color.linear.900}",
+          "$description": "Shopping dark mode muted background",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{color.linear.700}",
+          "$description": "Shopping dark mode hover background",
+          "$type": "color"
+        },
+        "sidebar": {
+          "$value": "#0e0f11",
+          "$description": "Shopping dark mode sidebar background",
+          "$type": "color"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#2a2a2a",
+          "$description": "Shopping dark mode default border - Unified",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{color.linear.600}",
+          "$description": "Shopping dark mode hover border",
+          "$type": "color"
+        },
+        "focus": {
+          "$value": "#ff9f1c",
+          "$description": "Shopping dark mode focus border - Tropical Gold",
+          "$type": "color"
+        },
+        "muted": {
+          "$value": "{color.linear.800}",
+          "$description": "Shopping dark mode muted border",
+          "$type": "color"
+        }
+      },
+      "status": {
+        "success": {
+          "$value": "{color.green.500}",
+          "$description": "Shopping dark mode success status",
+          "$type": "color"
+        },
+        "successBg": {
+          "$value": "#0a4034",
+          "$description": "Shopping dark mode success background",
+          "$type": "color"
+        },
+        "error": {
+          "$value": "{color.red.500}",
+          "$description": "Shopping dark mode error status",
+          "$type": "color"
+        },
+        "errorBg": {
+          "$value": "#4a1c1c",
+          "$description": "Shopping dark mode error background",
+          "$type": "color"
+        },
+        "warning": {
+          "$value": "{color.yellow.500}",
+          "$description": "Shopping dark mode warning status",
+          "$type": "color"
+        },
+        "warningBg": {
+          "$value": "#4a3c0f",
+          "$description": "Shopping dark mode warning background",
+          "$type": "color"
+        },
+        "info": {
+          "$value": "{color.blue.500}",
+          "$description": "Shopping dark mode info status",
+          "$type": "color"
+        },
+        "infoBg": {
+          "$value": "#1a3a52",
+          "$description": "Shopping dark mode info background",
+          "$type": "color"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+/* ============================================
+   Drive Service Theme Component Styles
+   ============================================
+   NOTE: Color definitions are now auto-generated
+   by build-tokens.js from themes/drive.json
+   ============================================ */
+
+/* Drive-specific components */
+[data-service="drive"] {
+    /* File/Folder cards */
+    .file-card {
+        @apply bg-bg-card border border-border-default;
+        @apply rounded-lg overflow-hidden;
+        @apply transition-all cursor-pointer;
+    }
+
+    .file-card:hover {
+        @apply shadow-md;
+        border-color: var(--semantic-brand-primary);
+    }
+
+    .file-card.selected {
+        border-color: var(--semantic-brand-primary);
+        background-color: color-mix(in srgb, var(--semantic-brand-primary) 5%, transparent);
+    }
+
+    /* File icon container */
+    .file-icon {
+        @apply w-12 h-12 rounded-lg flex items-center justify-center;
+        background-color: color-mix(in srgb, var(--semantic-brand-primary) 10%, transparent);
+        color: var(--semantic-brand-primary);
+    }
+
+    /* Storage usage bar */
+    .storage-bar {
+        @apply h-2 rounded-full bg-bg-muted overflow-hidden;
+    }
+
+    .storage-bar-fill {
+        @apply h-full rounded-full;
+        background-color: var(--semantic-brand-primary);
+    }
+
+    /* Upload dropzone */
+    .dropzone {
+        @apply border-2 border-dashed border-border-default rounded-xl;
+        @apply p-8 text-center;
+        @apply transition-colors;
+    }
+
+    .dropzone:hover,
+    .dropzone.active {
+        border-color: var(--semantic-brand-primary);
+        background-color: color-mix(in srgb, var(--semantic-brand-primary) 5%, transparent);
+    }
+}

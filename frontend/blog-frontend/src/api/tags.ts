@@ -1,7 +1,7 @@
 // blog-frontend/src/api/tags.ts
 
 import apiClient from './index';
-import type { PageResponse } from '@portal/design-types';
+import type { PageResponse } from '@portal/design-core';
 import type {
   ApiResponse,
   TagResponse,

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KanbanBoard, TaskModal, TaskResultModal } from '@/components/kanban';
-import { Button } from '@portal/design-system-react';
+import { Button } from '@portal/design-react';
 import { useBoardStore } from '@/stores/boardStore';
 import { useTaskStore } from '@/stores/taskStore';
 import { useSse, SseEvent } from '@/hooks/useSse';
@@ -174,14 +174,16 @@ function BoardPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => navigate('/boards')}
-              className="p-1 text-text-muted hover:text-text-body rounded-lg hover:bg-bg-hover"
+              className="p-1 text-text-muted hover:text-text-body"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-            </button>
+            </Button>
             <h1 className="text-2xl font-bold text-text-heading">{currentBoard.name}</h1>
           </div>
           {currentBoard.description && (

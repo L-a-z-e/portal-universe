@@ -1,13 +1,8 @@
-/**
- * Product Card Component
- *
- * 상품 목록에서 사용되는 상품 카드
- */
 import React from 'react'
 import { Link } from 'react-router-dom'
 import type { Product, Inventory } from '@/types'
-import { useCartStore } from '@/stores/cartStore'
-import { Button } from '@portal/design-system-react'
+import StarRating from '@/components/common/StarRating'
+import PriceDisplay from '@/components/common/PriceDisplay'
 
 interface ProductCardProps {
   product: Product
@@ -15,125 +10,79 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, inventory }) => {
-  const { addItem, loading: cartLoading } = useCartStore()
-  const [adding, setAdding] = React.useState(false)
   const [imgError, setImgError] = React.useState(false)
 
   const isInStock = inventory ? inventory.availableQuantity > 0 : true
-  const stockLevel = inventory?.availableQuantity ?? 0
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW'
-    }).format(price)
-  }
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (!isInStock || adding) return
-
-    setAdding(true)
-    try {
-      await addItem(product.id, product.name, product.price, 1)
-      // Show success feedback (could use toast)
-      console.log(`Added ${product.name} to cart`)
-    } catch (error) {
-      console.error('Failed to add to cart:', error)
-    } finally {
-      setAdding(false)
-    }
-  }
+  const isNew = product.createdAt
+    ? Date.now() - new Date(product.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+    : false
 
   return (
     <Link
       to={`/products/${product.id}`}
-      className="group bg-bg-card border border-border-default rounded-lg overflow-hidden hover:shadow-lg hover:border-brand-primary/30 transition-all"
+      className={`group flex flex-col ${!isInStock ? 'opacity-70' : ''}`}
     >
-      {/* Product Image */}
-      <div className="aspect-square bg-bg-subtle relative overflow-hidden">
+      {/* Image */}
+      <div className="relative aspect-square rounded-3xl overflow-hidden bg-bg-subtle">
         {product.imageUrl && !imgError ? (
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             onError={() => setImgError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-text-placeholder">
-            <svg
-              className="w-16 h-16"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+            <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         )}
 
-        {/* Stock Badge */}
-        {inventory && (
-          <div
-            className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium ${
-              isInStock
-                ? stockLevel <= 5
-                  ? 'bg-status-warning-bg text-status-warning'
-                  : 'bg-status-success-bg text-status-success'
-                : 'bg-status-error-bg text-status-error'
-            }`}
-          >
-            {isInStock
-              ? stockLevel <= 5
-                ? `Only ${stockLevel} left`
-                : 'In Stock'
-              : 'Out of Stock'}
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          {product.featured && (
+            <span className="px-2.5 py-1 rounded-full bg-brand-primary text-white text-[10px] font-bold uppercase tracking-wider">
+              Bestseller
+            </span>
+          )}
+          {isNew && !product.featured && (
+            <span className="px-2.5 py-1 rounded-full bg-accent-teal text-white text-[10px] font-bold uppercase tracking-wider">
+              New
+            </span>
+          )}
+        </div>
+
+        {!isInStock && (
+          <div className="absolute inset-0 bg-bg-page/50 flex items-center justify-center">
+            <span className="px-3 py-1.5 rounded-full bg-bg-card text-text-meta text-sm font-medium">
+              Out of Stock
+            </span>
           </div>
         )}
       </div>
 
-      {/* Product Info */}
-      <div className="p-4 space-y-3">
-        {/* Category */}
+      {/* Info */}
+      <div className="mt-4 space-y-1.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-medium text-text-heading line-clamp-1 group-hover:text-brand-primary transition-colors">
+            {product.name}
+          </h3>
+          {product.averageRating != null && product.averageRating > 0 && (
+            <StarRating rating={product.averageRating} size="sm" />
+          )}
+        </div>
+
         {product.category && (
-          <span className="text-xs text-text-meta uppercase tracking-wider">
-            {product.category}
-          </span>
+          <p className="text-xs text-text-meta">{product.category}</p>
         )}
 
-        {/* Name */}
-        <h3 className="font-medium text-text-heading line-clamp-2 group-hover:text-brand-primary transition-colors">
-          {product.name}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-text-meta line-clamp-2">
-          {product.description}
-        </p>
-
-        {/* Price & Add to Cart */}
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-lg font-bold text-brand-primary">
-            {formatPrice(product.price)}
-          </span>
-
-          <Button
-            variant="primary"
-            size="sm"
-            loading={adding}
-            disabled={!isInStock || adding}
-            onClick={handleAddToCart}
-          >
-            {adding ? 'Adding...' : 'Add to Cart'}
-          </Button>
-        </div>
+        <PriceDisplay
+          price={product.price}
+          discountPrice={product.discountPrice}
+          size="sm"
+        />
       </div>
     </Link>
   )

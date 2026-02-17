@@ -11,6 +11,7 @@ import { findOneOrThrow } from '../../common/utils/repository.util';
 import {
   PaginationDto,
   PaginatedResult,
+  toPaginatedResult,
 } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -70,14 +71,7 @@ export class AgentService {
       take: pagination?.take ?? 20,
     });
     const items = agents.map((a) => AgentResponseDto.from(a));
-    const size = pagination?.size ?? 20;
-    return {
-      items,
-      page: pagination?.page ?? 1,
-      size,
-      totalElements: total,
-      totalPages: Math.ceil(total / size),
-    };
+    return toPaginatedResult(items, total, pagination);
   }
 
   async findOne(userId: string, id: number): Promise<AgentResponseDto> {

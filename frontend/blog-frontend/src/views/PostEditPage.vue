@@ -6,7 +6,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
-import { Button, Card, Input, Select, useToast, useApiError } from '@portal/design-system-vue';
+import { Button, Card, Input, Select, useToast, useApiError } from '@portal/design-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import { getMySeries, getSeriesByPostId, addPostToSeries, removePostFromSeries } from '../api/series';
@@ -305,7 +305,7 @@ onBeforeUnmount(() => {
     <!-- Header -->
     <header class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-text-heading">✏️ 게시글 수정</h1>
+        <h1 class="text-3xl font-bold text-text-heading">게시글 수정</h1>
         <p class="text-text-meta mt-1">게시글을 수정하세요</p>
       </div>
       <Button variant="secondary" @click="handleCancel">
@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
         class="bg-status-error-bg border-status-error"
     >
       <div class="text-center py-8">
-        <p class="text-xl text-status-error mb-4">❌ {{ error }}</p>
+        <p class="text-xl text-status-error mb-4">{{ error }}</p>
         <Button variant="secondary" @click="router.push('/')">
           목록으로 돌아가기
         </Button>
@@ -390,7 +390,7 @@ onBeforeUnmount(() => {
       <!-- Actions -->
       <div class="flex items-center justify-between pt-6 border-t border-border-default">
         <div class="text-sm text-text-meta">
-          ✨ 변경사항을 저장하면 즉시 반영됩니다
+          변경사항을 저장하면 즉시 반영됩니다
         </div>
         <div class="flex gap-3">
           <Button
@@ -407,7 +407,7 @@ onBeforeUnmount(() => {
               :disabled="isSubmitting"
               @click="handleSubmit"
           >
-            {{ isSubmitting ? '저장 중...' : '💾 수정 완료' }}
+            {{ isSubmitting ? '저장 중...' : '수정 완료' }}
           </Button>
         </div>
       </div>

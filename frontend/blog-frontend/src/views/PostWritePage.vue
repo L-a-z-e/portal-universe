@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Input, Card, Textarea, Select, useToast, useApiError } from '@portal/design-system-vue';
+import { Button, Input, Card, Textarea, Select, useToast, useApiError } from '@portal/design-vue';
 import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
   <div class="max-w-5xl mx-auto px-4 py-8">
     <!-- Header -->
     <header class="flex items-center justify-between mb-6">
-      <h1 class="text-3xl font-bold text-text-heading">✍️ 새 글 작성</h1>
+      <h1 class="text-3xl font-bold text-text-heading">새 글 작성</h1>
       <Button variant="secondary" @click="router.back()">
         취소
       </Button>
@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
       <!-- 버튼 -->
       <div class="flex items-center justify-between pt-6 border-t border-border-muted">
         <div class="text-sm text-text-meta">
-          💾 30초마다 자동 저장됩니다
+          30초마다 자동 저장됩니다
         </div>
         <div class="flex gap-3">
           <Button

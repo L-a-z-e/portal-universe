@@ -11,7 +11,8 @@ import type { AddressRequest, PaymentMethod, Order, UserCoupon } from '@/types'
 import { PAYMENT_METHOD_LABELS } from '@/types'
 import { CouponSelector } from '@/components/coupon/CouponSelector'
 import { calculateDiscountFromUserCoupon } from '@/hooks/useCoupons'
-import { Button, Alert, Input } from '@portal/design-system-react'
+import { Button, Alert, Input, Radio } from '@portal/design-react'
+import type { RadioOption } from '@portal/design-core'
 
 type CheckoutStep = 'address' | 'payment' | 'confirm' | 'complete'
 
@@ -282,28 +283,16 @@ const CheckoutPage: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-lg font-bold text-text-heading">Payment Method</h2>
 
-      <div className="space-y-3">
-        {(Object.entries(PAYMENT_METHOD_LABELS) as [PaymentMethod, string][]).map(([method, label]) => (
-          <label
-            key={method}
-            className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
-              paymentMethod === method
-                ? 'border-brand-primary bg-brand-primary/5'
-                : 'border-border-default hover:border-brand-primary/50'
-            }`}
-          >
-            <input
-              type="radio"
-              name="paymentMethod"
-              value={method}
-              checked={paymentMethod === method}
-              onChange={() => setPaymentMethod(method)}
-              className="w-4 h-4 text-brand-primary"
-            />
-            <span className="ml-3 font-medium text-text-heading">{label}</span>
-          </label>
-        ))}
-      </div>
+      <Radio
+        name="paymentMethod"
+        value={paymentMethod}
+        options={(Object.entries(PAYMENT_METHOD_LABELS) as [PaymentMethod, string][]).map(([method, label]): RadioOption => ({
+          value: method,
+          label,
+        }))}
+        onChange={(value) => setPaymentMethod(value as PaymentMethod)}
+        direction="vertical"
+      />
 
       {/* Order Summary */}
       {order && (

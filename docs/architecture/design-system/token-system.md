@@ -4,24 +4,25 @@ title: 3계층 토큰 시스템
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-17
 author: Laze
 tags: [design-system, tokens, css-variables, tailwind, build-pipeline]
 related:
   - arch-design-system-overview
   - arch-theming
+  - adr-043-design-system-package-consolidation
 ---
 
 # 3계층 토큰 시스템
 
 ## 개요
 
-Design Tokens는 디자인 결정을 플랫폼에 구애받지 않는 방식으로 변수화한 값이다. `@portal/design-tokens` 패키지에서 JSON으로 정의하고, 빌드 스크립트로 CSS 변수, JS 모듈, TypeScript 타입을 생성한다. 3계층 구조(Base → Semantic → Component)로 확장 가능하고 유지보수하기 쉬운 토큰 시스템을 제공한다.
+Design Tokens는 디자인 결정을 플랫폼에 구애받지 않는 방식으로 변수화한 값이다. `@portal/design-core` 패키지의 `src/tokens/`에서 JSON으로 정의하고, 빌드 스크립트로 CSS 변수, JS 모듈, TypeScript 타입을 생성한다. 3계층 구조(Base → Semantic → Component)로 확장 가능하고 유지보수하기 쉬운 토큰 시스템을 제공한다.
 
 | 항목 | 내용 |
 |------|------|
-| 패키지 | `@portal/design-tokens` |
-| 입력 | 12개 JSON 파일 (7 base + 1 semantic + 4 theme) |
+| 패키지 | `@portal/design-core` (토큰 + 타입 + variant 통합, [ADR-043](../../adr/ADR-043-design-system-package-consolidation.md)) |
+| 입력 | 11개 JSON 파일 (5 base + 1 semantic + 3 theme + 2 추가) |
 | 출력 | 5개 파일 (CSS, JSON, ESM, CJS, d.ts) |
 | Tailwind | `tailwind.preset.js`로 Semantic 토큰 → 유틸리티 클래스 매핑 |
 
@@ -171,7 +172,7 @@ Base 토큰을 참조하여 UI 역할 기반의 색상을 정의한다. `{color.
 
 ### 3. Component Layer (Tailwind 프리셋)
 
-위치: `tailwind.preset.js` (225줄)
+위치: `design-core/tailwind.preset.js`
 
 Semantic CSS 변수를 Tailwind 유틸리티 클래스로 매핑한다. 소비자 앱의 `tailwind.config.js`에서 이 preset을 확장하여 사용.
 
@@ -336,7 +337,7 @@ npm run build:tokens  # scripts/build-tokens.js 실행
 - **JSON 기반 Single Source of Truth**: 모든 디자인 값은 JSON 토큰 파일에서 시작. 어떤 플랫폼에서든 동일한 소스 참조.
 - **커스텀 빌드 스크립트**: Style Dictionary 대신 자체 `build-tokens.js` 사용. Portal의 3계층 구조, 서비스 테마, dark-first/light-first 구분에 최적화.
 - **CSS Variables 런타임 전환**: 빌드 타임이 아닌 런타임에 테마 전환 가능. `data-service` + `data-theme` HTML 속성으로 제어.
-- **Tailwind Preset 분리**: 토큰 패키지가 Tailwind preset을 제공. 소비자 앱은 `presets: [require('@portal/design-tokens/tailwind')]`로 간단히 적용.
+- **Tailwind Preset 분리**: 코어 패키지가 Tailwind preset을 제공. 소비자 앱은 `presets: [require('@portal/design-core/tailwind')]`로 간단히 적용.
 
 ### 테마 전략
 
@@ -373,4 +374,12 @@ npm run build:tokens  # scripts/build-tokens.js 실행
 - [Vue Components](./vue-components.md) - Vue 컴포넌트에서의 토큰 사용
 - [React Components](./react-components.md) - React 컴포넌트에서의 토큰 사용
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-01-18 | 초안 작성 | Laze |
+| 2026-02-06 | 업데이트 | Laze |
+| 2026-02-17 | 4→3 패키지 통합 반영: design-tokens → design-core (ADR-043) | Laze |

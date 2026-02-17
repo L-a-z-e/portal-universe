@@ -1,10 +1,11 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { sellerCouponApi } from '@/api'
-import { Button, Input, Textarea } from '@portal/design-system-react'
+import { Button, Input, Textarea, Select } from '@portal/design-react'
+import type { SelectOption } from '@portal/design-core'
 
 const couponFormSchema = z.object({
   code: z.string().min(1, 'Coupon code is required').max(50),
@@ -21,11 +22,17 @@ const couponFormSchema = z.object({
 
 type CouponFormData = z.infer<typeof couponFormSchema>
 
+const discountTypeOptions: SelectOption[] = [
+  { value: 'FIXED', label: 'Fixed Amount' },
+  { value: 'PERCENTAGE', label: 'Percentage' },
+]
+
 export const CouponFormPage: React.FC = () => {
   const navigate = useNavigate()
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CouponFormData>({
@@ -96,18 +103,21 @@ export const CouponFormPage: React.FC = () => {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-text-heading mb-1">
-                Discount Type <span className="text-status-error">*</span>
-              </label>
-              <select
-                className="w-full px-3 py-2 border border-border-default rounded-md bg-bg-default text-text-body"
-                {...register('discountType')}
-              >
-                <option value="FIXED">Fixed Amount</option>
-                <option value="PERCENTAGE">Percentage</option>
-              </select>
-            </div>
+            <Controller
+              name="discountType"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Discount Type"
+                  required
+                  options={discountTypeOptions}
+                  value={field.value}
+                  onChange={(val) => field.onChange(val ?? 'FIXED')}
+                  error={!!errors.discountType}
+                  errorMessage={errors.discountType?.message}
+                />
+              )}
+            />
             <Input
               label="Discount Value"
               type="number"

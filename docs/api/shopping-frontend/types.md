@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-17
 author: Laze
 tags: [api, shopping, frontend, typescript, types]
 related: [api-shopping-client]
@@ -108,9 +108,14 @@ export interface Product {
   name: string
   description: string
   price: number
-  stockQuantity?: number  // optional, 재고 정보는 Inventory에서 관리
+  discountPrice?: number     // 할인가 (null이면 할인 없음)
+  stockQuantity?: number     // optional, 재고 정보는 Inventory에서 관리
   imageUrl?: string
+  images?: string[]          // 다중 이미지 URL 리스트
   category?: string
+  featured?: boolean         // 추천 상품 여부 (BESTSELLER 배지용)
+  averageRating?: number     // 리뷰 평균 평점 (상세 조회 시만, 목록에서는 null)
+  reviewCount?: number       // 리뷰 수 (상세 조회 시만, 목록에서는 null)
   createdAt: string
   updatedAt?: string
 }
@@ -863,4 +868,4 @@ const createProduct = async (data: ProductCreateRequest): Promise<Product> => {
 
 ---
 
-**최종 업데이트**: 2026-02-09
+**최종 업데이트**: 2026-02-17

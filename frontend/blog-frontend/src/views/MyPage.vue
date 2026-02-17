@@ -1,24 +1,55 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { Button, Spinner, Alert, Card, Tabs } from '@portal/design-system-vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { Button, Spinner, Alert, Card } from '@portal/design-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import ProfileEditForm from '@/components/ProfileEditForm.vue';
 import MyPostList from '@/components/MyPostList.vue';
 import MySeriesList from '@/components/MySeriesList.vue';
+import AuthorCategories from '@/components/AuthorCategories.vue';
+import AuthorTags from '@/components/AuthorTags.vue';
+import AuthorStats from '@/components/AuthorStats.vue';
 import type { UserProfileResponse } from '@/dto/user';
 import { getMyProfile } from '@/api/users';
 
 const route = useRoute();
+const router = useRouter();
 
 // 상태
 const user = ref<UserProfileResponse | null>(null);
 const loading = ref(false);
 const error = ref('');
-const isEditMode = ref(false);
-const activeTab = ref<'posts' | 'series'>(
-  route.query.tab === 'series' ? 'series' : 'posts'
-);
+
+type TabType = 'posts' | 'series' | 'categories' | 'tags' | 'stats' | 'about' | 'write';
+
+const validTabs: TabType[] = ['posts', 'series', 'categories', 'tags', 'stats', 'about', 'write'];
+
+const resolveTab = (query: string | undefined): TabType => {
+  if (query && validTabs.includes(query as TabType)) return query as TabType;
+  return 'posts';
+};
+
+const activeTab = ref<TabType>(resolveTab(route.query.tab as string));
+
+const tabs: { label: string; value: TabType }[] = [
+  { label: '글', value: 'posts' },
+  { label: '시리즈', value: 'series' },
+  { label: '카테고리', value: 'categories' },
+  { label: '태그', value: 'tags' },
+  { label: '통계', value: 'stats' },
+  { label: '소개', value: 'about' },
+  { label: '글쓰기', value: 'write' },
+];
+
+// URL 쿼리 동기화
+const handleTabChange = (tab: TabType) => {
+  if (tab === 'write') {
+    router.push('/write');
+    return;
+  }
+  activeTab.value = tab;
+  router.replace({ query: { tab } });
+};
 
 // 프로필 조회
 const fetchProfile = async () => {
@@ -34,21 +65,26 @@ const fetchProfile = async () => {
   }
 };
 
-// 프로필 수정 모드 토글
-const toggleEditMode = () => {
-  isEditMode.value = !isEditMode.value;
+// 프로필 수정 → "소개" 탭으로 이동
+const goToAboutTab = () => {
+  handleTabChange('about');
 };
 
 // 프로필 수정 성공
 const handleProfileUpdateSuccess = (updatedUser: UserProfileResponse) => {
   user.value = updatedUser;
-  isEditMode.value = false;
+  handleTabChange('posts');
 };
 
 // 프로필 수정 취소
 const handleProfileUpdateCancel = () => {
-  isEditMode.value = false;
+  handleTabChange('posts');
 };
+
+// URL 변경 감지 (뒤로가기 등)
+watch(() => route.query.tab, (newTab) => {
+  activeTab.value = resolveTab(newTab as string);
+});
 
 // 초기 로드
 onMounted(() => {
@@ -57,149 +93,76 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="my-page">
-    <!-- 로딩 -->
-    <div v-if="loading" class="loading-container">
-      <Spinner size="lg" />
-    </div>
+  <div class="w-full min-h-screen">
+    <div class="max-w-3xl mx-auto px-6 pt-16 pb-32">
+      <!-- 로딩 -->
+      <div v-if="loading" class="flex justify-center items-center min-h-[50vh]">
+        <Spinner size="lg" />
+      </div>
 
-    <!-- 에러 -->
-    <Alert v-else-if="error" variant="error" class="error-alert">
-      {{ error }}
-    </Alert>
+      <!-- 에러 -->
+      <Alert v-else-if="error" variant="error" class="max-w-md mx-auto">
+        {{ error }}
+      </Alert>
 
-    <!-- 마이페이지 콘텐츠 -->
-    <div v-else-if="user" class="page-container">
-      <!-- 프로필 섹션 -->
-      <section class="profile-section">
-        <!-- 프로필 보기 모드 -->
-        <div v-if="!isEditMode" class="profile-view">
-          <UserProfileCard :user="user" />
-          <div class="profile-actions">
-            <Button variant="primary" @click="toggleEditMode">
+      <!-- 마이페이지 콘텐츠 -->
+      <template v-else-if="user">
+        <!-- 프로필 섹션 -->
+        <section class="mb-8">
+          <UserProfileCard :user="user" :is-current-user="true" />
+          <div class="flex justify-center mt-4">
+            <Button variant="secondary" size="sm" class="!rounded-full !px-6" @click="goToAboutTab">
               프로필 수정
             </Button>
           </div>
+        </section>
+
+        <!-- 탭 -->
+        <div class="flex items-center gap-1 mb-8 border-b border-border-default overflow-x-auto">
+          <button
+            v-for="tab in tabs"
+            :key="tab.value"
+            class="pb-3 px-3 text-sm font-medium transition-all border-b-2 whitespace-nowrap"
+            :class="activeTab === tab.value
+              ? 'text-brand-primary border-brand-primary'
+              : 'text-text-meta border-transparent hover:text-text-heading hover:border-border-hover'"
+            @click="handleTabChange(tab.value)"
+          >
+            {{ tab.label }}
+          </button>
         </div>
-
-        <!-- 프로필 수정 모드 -->
-        <Card v-else padding="lg">
-          <ProfileEditForm
-            :user="user"
-            @success="handleProfileUpdateSuccess"
-            @cancel="handleProfileUpdateCancel"
-          />
-        </Card>
-      </section>
-
-      <!-- 콘텐츠 섹션 -->
-      <section class="content-section">
-        <!-- 탭 네비게이션 -->
-        <Tabs
-          v-model="activeTab"
-          :items="[
-            { label: '내 게시글', value: 'posts' },
-            { label: '내 시리즈', value: 'series' },
-          ]"
-          class="mb-8"
-        />
 
         <!-- 탭 콘텐츠 -->
-        <div class="tab-content">
-          <!-- 게시글 탭 -->
-          <div v-if="activeTab === 'posts'" class="posts-tab">
-            <MyPostList />
-          </div>
-
-          <!-- 시리즈 탭 -->
-          <div v-else-if="activeTab === 'series'" class="series-tab">
-            <MySeriesList />
-          </div>
+        <div v-if="activeTab === 'posts'">
+          <MyPostList />
         </div>
-      </section>
+
+        <div v-else-if="activeTab === 'series'">
+          <MySeriesList />
+        </div>
+
+        <div v-else-if="activeTab === 'categories'">
+          <AuthorCategories :author-id="String(user.id)" />
+        </div>
+
+        <div v-else-if="activeTab === 'tags'">
+          <AuthorTags :author-id="String(user.id)" />
+        </div>
+
+        <div v-else-if="activeTab === 'stats'">
+          <AuthorStats :author-id="String(user.id)" />
+        </div>
+
+        <div v-else-if="activeTab === 'about'">
+          <Card padding="lg">
+            <ProfileEditForm
+              :user="user"
+              @success="handleProfileUpdateSuccess"
+              @cancel="handleProfileUpdateCancel"
+            />
+          </Card>
+        </div>
+      </template>
     </div>
   </div>
 </template>
-
-<style scoped>
-.my-page {
-  width: 100%;
-  min-height: 100vh;
-  padding: 2rem 1rem;
-}
-
-/* 로딩 */
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 50vh;
-}
-
-/* 에러 */
-.error-alert {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-/* 페이지 컨테이너 */
-.page-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
-}
-
-/* 프로필 섹션 */
-.profile-section {
-  width: 100%;
-}
-
-.profile-view {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.profile-actions {
-  display: flex;
-  justify-content: center;
-}
-
-@media (min-width: 768px) {
-  .profile-actions {
-    justify-content: flex-start;
-  }
-}
-
-/* 콘텐츠 섹션 */
-.content-section {
-  width: 100%;
-}
-
-/* 탭 콘텐츠 */
-.tab-content {
-  width: 100%;
-}
-
-.posts-tab,
-.series-tab {
-  width: 100%;
-}
-
-/* 빈 상태 */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 1rem;
-  text-align: center;
-}
-
-.empty-message {
-  font-size: 1rem;
-  color: var(--semantic-text-meta);
-}
-</style>

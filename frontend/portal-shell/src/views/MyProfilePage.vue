@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useAuthStore } from '../store/auth';
 import { useRouter } from 'vue-router';
 import { profileService, type ProfileResponse, type UpdateProfileRequest } from '../services/profileService';
-import { useToast, useApiError, Input, Checkbox, Modal, Button, Spinner, Alert, Textarea } from '@portal/design-system-vue';
+import { useToast, useApiError, Input, Checkbox, Modal, Button, Spinner, Alert, Textarea } from '@portal/design-vue';
 import { ROLES, ROLE_PREFIX } from '../constants/roles';
 
 const authStore = useAuthStore();
@@ -131,7 +131,7 @@ const socialProviderInfo = computed(() => {
       case 'KAKAO':
         return { name: 'Kakao', icon: '🟡', color: 'bg-yellow-500' };
       default:
-        return { name: provider, icon: '🔗', color: 'bg-gray-500' };
+        return { name: provider, icon: '🔗', color: 'bg-text-muted' };
     }
   });
 });

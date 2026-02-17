@@ -21,39 +21,39 @@ export enum ProviderType {
 @Index(['userId', 'id'])
 export class AIProvider {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'user_id', type: 'varchar', length: 36 })
-  userId: string;
+  userId!: string;
 
   @Column({
     name: 'provider_type',
     type: 'enum',
     enum: ProviderType,
   })
-  providerType: ProviderType;
+  providerType!: ProviderType;
 
   @Column({ length: 100 })
-  name: string;
+  name!: string;
 
   @Column({ name: 'api_key_encrypted', type: 'text' })
-  apiKeyEncrypted: string;
+  apiKeyEncrypted!: string;
 
   @Column({ name: 'base_url', type: 'varchar', length: 255, nullable: true })
-  baseUrl: string | null;
+  baseUrl!: string | null;
 
   @Column({ name: 'is_active', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
-  models: string[] | null;
+  models!: string[] | null;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Agent, (agent) => agent.provider)
-  agents: Agent[];
+  agents!: Agent[];
 }

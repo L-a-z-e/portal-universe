@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { Spinner, Alert } from '@portal/design-system-vue';
+import { useRouter, useRoute } from 'vue-router';
+import { Spinner, Alert } from '@portal/design-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import PostCard from '@/components/PostCard.vue';
+import AuthorSeriesList from '@/components/AuthorSeriesList.vue';
+import AuthorCategories from '@/components/AuthorCategories.vue';
+import AuthorTags from '@/components/AuthorTags.vue';
+import AuthorStats from '@/components/AuthorStats.vue';
 import type { UserProfileResponse } from '@/dto/user';
 import type { PostSummaryResponse } from '@/dto/post';
 import { getPublicProfile } from '@/api/users';
@@ -15,6 +19,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const router = useRouter();
+const route = useRoute();
 
 // 상태
 const user = ref<UserProfileResponse | null>(null);
@@ -26,6 +31,32 @@ const currentPage = ref(1);
 const totalPages = ref(0);
 const hasMore = ref(false);
 
+// 탭
+type TabType = 'posts' | 'series' | 'categories' | 'tags' | 'stats' | 'about';
+
+const validTabs: TabType[] = ['posts', 'series', 'categories', 'tags', 'stats', 'about'];
+
+const resolveTab = (query: string | undefined): TabType => {
+  if (query && validTabs.includes(query as TabType)) return query as TabType;
+  return 'posts';
+};
+
+const currentTab = ref<TabType>(resolveTab(route.query.tab as string));
+
+const tabs: { label: string; value: TabType }[] = [
+  { label: '글', value: 'posts' },
+  { label: '시리즈', value: 'series' },
+  { label: '카테고리', value: 'categories' },
+  { label: '태그', value: 'tags' },
+  { label: '통계', value: 'stats' },
+  { label: '소개', value: 'about' },
+];
+
+const handleTabChange = (tab: TabType) => {
+  currentTab.value = tab;
+  router.replace({ query: { tab } });
+};
+
 // 사용자 프로필 조회
 const fetchUserProfile = async () => {
   loading.value = true;
@@ -33,7 +64,6 @@ const fetchUserProfile = async () => {
 
   try {
     user.value = await getPublicProfile(props.username);
-    // 프로필 조회 성공 후 게시글 조회
     fetchUserPosts(1);
   } catch (err: any) {
     if (err.response?.status === 404) {
@@ -80,6 +110,7 @@ const loadMore = () => {
 
 // 무한 스크롤
 const handleScroll = () => {
+  if (currentTab.value !== 'posts') return;
   const scrollTop = window.scrollY;
   const windowHeight = window.innerHeight;
   const documentHeight = document.documentElement.scrollHeight;
@@ -94,6 +125,11 @@ const handlePostClick = (postId: string) => {
   router.push(`/${postId}`);
 };
 
+// URL 변경 감지
+watch(() => route.query.tab, (newTab) => {
+  currentTab.value = resolveTab(newTab as string);
+});
+
 // 초기 로드
 onMounted(() => {
   fetchUserProfile();
@@ -105,159 +141,103 @@ watch(() => props.username, () => {
   fetchUserProfile();
 });
 
-// Cleanup: scroll listener 제거
+// Cleanup
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
 });
 </script>
 
 <template>
-  <div class="user-blog-page">
-    <!-- 로딩 -->
-    <div v-if="loading" class="loading-container">
-      <Spinner size="lg" />
-    </div>
+  <div class="w-full min-h-screen">
+    <div class="max-w-3xl mx-auto px-6 pt-16 pb-32">
+      <!-- 로딩 -->
+      <div v-if="loading" class="flex justify-center items-center min-h-[50vh]">
+        <Spinner size="lg" />
+      </div>
 
-    <!-- 에러 -->
-    <Alert v-else-if="error" variant="error" class="error-alert">
-      {{ error }}
-    </Alert>
+      <!-- 에러 -->
+      <Alert v-else-if="error" variant="error" class="max-w-md mx-auto">
+        {{ error }}
+      </Alert>
 
-    <!-- 사용자 블로그 -->
-    <div v-else-if="user" class="blog-container">
-      <!-- 프로필 헤더 -->
-      <section class="profile-section">
+      <!-- 사용자 블로그 -->
+      <template v-else-if="user">
+        <!-- 프로필 -->
         <UserProfileCard :user="user" />
-      </section>
 
-      <!-- 게시글 목록 -->
-      <section class="posts-section">
-        <h2 class="section-title">게시글</h2>
-
-        <!-- 게시글 그리드 -->
-        <div v-if="posts.length > 0" class="posts-grid">
-          <PostCard
-            v-for="post in posts"
-            :key="post.id"
-            :post="post"
-            @click="handlePostClick"
-          />
+        <!-- 탭 -->
+        <div class="flex items-center gap-1 mb-12 border-b border-border-default overflow-x-auto">
+          <button
+            v-for="tab in tabs"
+            :key="tab.value"
+            class="pb-3 px-3 text-sm font-medium transition-all border-b-2 whitespace-nowrap"
+            :class="currentTab === tab.value
+              ? 'text-brand-primary border-brand-primary'
+              : 'text-text-meta border-transparent hover:text-text-heading hover:border-border-hover'"
+            @click="handleTabChange(tab.value)"
+          >
+            {{ tab.label }}
+          </button>
         </div>
 
-        <!-- 빈 상태 -->
-        <div v-else-if="!postsLoading" class="empty-state">
-          <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        <!-- 글 탭 -->
+        <template v-if="currentTab === 'posts'">
+          <div v-if="posts.length > 0">
+            <PostCard
+              v-for="post in posts"
+              :key="post.id"
+              :post="post"
+              @click="handlePostClick"
             />
-          </svg>
-          <p class="empty-message">작성한 게시글이 없습니다.</p>
-        </div>
+          </div>
 
-        <!-- 로딩 (더 보기) -->
-        <div v-if="postsLoading && posts.length > 0" class="loading-more">
-          <Spinner size="md" />
-        </div>
-      </section>
+          <!-- 빈 상태 -->
+          <div v-else-if="!postsLoading" class="flex flex-col items-center justify-center py-16 text-center">
+            <svg class="w-16 h-16 text-text-meta mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <p class="text-text-meta">작성한 게시글이 없습니다.</p>
+          </div>
+
+          <!-- 로딩 (더 보기) -->
+          <div v-if="postsLoading && posts.length > 0" class="flex justify-center py-12">
+            <div class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+          </div>
+        </template>
+
+        <!-- 시리즈 탭 -->
+        <template v-else-if="currentTab === 'series'">
+          <AuthorSeriesList :author-id="String(user.id)" />
+        </template>
+
+        <!-- 카테고리 탭 -->
+        <template v-else-if="currentTab === 'categories'">
+          <AuthorCategories :author-id="String(user.id)" />
+        </template>
+
+        <!-- 태그 탭 -->
+        <template v-else-if="currentTab === 'tags'">
+          <AuthorTags :author-id="String(user.id)" />
+        </template>
+
+        <!-- 통계 탭 -->
+        <template v-else-if="currentTab === 'stats'">
+          <AuthorStats :author-id="String(user.id)" />
+        </template>
+
+        <!-- 소개 탭 -->
+        <template v-else-if="currentTab === 'about'">
+          <div class="py-8">
+            <p v-if="user.bio" class="text-text-body leading-relaxed whitespace-pre-wrap">{{ user.bio }}</p>
+            <p v-else class="text-text-meta text-center py-16">소개글이 없습니다.</p>
+          </div>
+        </template>
+      </template>
     </div>
   </div>
 </template>
-
-<style scoped>
-.user-blog-page {
-  width: 100%;
-  min-height: 100vh;
-  padding: 2rem 1rem;
-}
-
-/* 로딩 */
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 50vh;
-}
-
-/* 에러 */
-.error-alert {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-/* 블로그 컨테이너 */
-.blog-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
-}
-
-/* 프로필 섹션 */
-.profile-section {
-  width: 100%;
-}
-
-/* 게시글 섹션 */
-.posts-section {
-  width: 100%;
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--semantic-text-heading);
-  margin-bottom: 1.5rem;
-}
-
-/* 게시글 그리드 */
-.posts-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 640px) {
-  .posts-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .posts-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* 빈 상태 */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 1rem;
-  text-align: center;
-}
-
-.empty-icon {
-  width: 4rem;
-  height: 4rem;
-  color: var(--semantic-text-meta);
-  margin-bottom: 1rem;
-}
-
-.empty-message {
-  font-size: 1rem;
-  color: var(--semantic-text-meta);
-}
-
-/* 로딩 (더 보기) */
-.loading-more {
-  display: flex;
-  justify-content: center;
-  padding: 2rem 0;
-}
-</style>

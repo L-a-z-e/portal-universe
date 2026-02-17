@@ -5,60 +5,60 @@ import { TaskStateMachine } from '../task-state-machine';
 
 export class TaskAgentDto {
   @ApiProperty({ example: 1 })
-  id: number;
+  id!: number;
 
   @ApiProperty({ example: 'PM Agent' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ enum: AgentRole })
-  role: AgentRole;
+  role!: AgentRole;
 }
 
 export class TaskResponseDto {
   @ApiProperty({ example: 1 })
-  id: number;
+  id!: number;
 
   @ApiProperty({ example: 1 })
-  boardId: number;
+  boardId!: number;
 
   @ApiPropertyOptional({ example: 1 })
-  agentId: number | null;
+  agentId!: number | null;
 
   @ApiPropertyOptional({ type: TaskAgentDto })
   agent?: TaskAgentDto;
 
   @ApiProperty({ example: 'Implement user authentication' })
-  title: string;
+  title!: string;
 
   @ApiPropertyOptional({ example: 'Add JWT-based authentication' })
-  description: string | null;
+  description!: string | null;
 
   @ApiProperty({ enum: TaskStatus, example: TaskStatus.TODO })
-  status: TaskStatus;
+  status!: TaskStatus;
 
   @ApiProperty({ enum: TaskPriority, example: TaskPriority.MEDIUM })
-  priority: TaskPriority;
+  priority!: TaskPriority;
 
   @ApiProperty({ example: 0 })
-  position: number;
+  position!: number;
 
   @ApiPropertyOptional({ example: '2026-02-28' })
-  dueDate: string | null;
+  dueDate!: string | null;
 
   @ApiPropertyOptional({ example: [1, 2] })
-  referencedTaskIds: number[] | null;
+  referencedTaskIds!: number[] | null;
 
   @ApiProperty({
     example: ['execute', 'cancel'],
     description: 'Available actions based on current status',
   })
-  availableActions: string[];
+  availableActions!: string[];
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   static from(entity: Task): TaskResponseDto {
     const dto = new TaskResponseDto();
@@ -71,7 +71,7 @@ export class TaskResponseDto {
     dto.priority = entity.priority;
     dto.position = entity.position;
     dto.dueDate = entity.dueDate
-      ? entity.dueDate.toISOString().split('T')[0]
+      ? (entity.dueDate.toISOString().split('T')[0] ?? null)
       : null;
     dto.referencedTaskIds = entity.referencedTaskIds?.map(Number) ?? null;
     dto.availableActions = TaskStateMachine.getAvailableActions(entity.status);

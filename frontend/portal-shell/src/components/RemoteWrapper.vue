@@ -20,7 +20,8 @@ import { useRoute, useRouter } from "vue-router";
 import type { RemoteConfig } from "../config/remoteRegistry";
 import { remoteLoader } from "../services/remoteLoader";
 import { useThemeStore } from "../store/theme";
-import { Spinner, Button, Card } from '@portal/design-system-vue';
+import { Spinner, Button, Card } from '@portal/design-vue';
+import MaterialIcon from './MaterialIcon.vue';
 
 interface RemoteAppInstance {
   unmount?: () => void;
@@ -382,7 +383,7 @@ async function retry() {
     <div v-else-if="error" class="max-w-2xl mx-auto my-16 px-4">
       <Card variant="elevated" padding="lg">
         <div class="text-center py-8">
-          <div class="text-6xl mb-6">{{ config.icon || '⚠️' }}</div>
+          <MaterialIcon :name="config.icon || 'warning'" :size="64" class="text-text-muted mb-6" />
           <h2 class="text-2xl font-bold text-status-error mb-3">
             {{ config.name }} 서비스를 사용할 수 없습니다
           </h2>

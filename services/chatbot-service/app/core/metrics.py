@@ -1,8 +1,14 @@
+import re
 import time
 
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from starlette.requests import Request
 from starlette.responses import Response
+
+_UUID_PATTERN = re.compile(
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+    re.IGNORECASE,
+)
 
 # HTTP metrics
 http_requests_total = Counter(
@@ -38,7 +44,7 @@ async def metrics_middleware(request: Request, call_next):
         return await call_next(request)
 
     method = request.method
-    path = request.url.path
+    path = _UUID_PATTERN.sub("{id}", request.url.path)
     start = time.perf_counter()
 
     response = await call_next(request)

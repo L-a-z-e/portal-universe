@@ -7,7 +7,7 @@ import {
   Navigate,
   useLocation
 } from 'react-router-dom'
-import { Spinner } from '@portal/design-system-react'
+import { Spinner } from '@portal/design-react'
 
 type RouterInstance = ReturnType<typeof createBrowserRouter>
 

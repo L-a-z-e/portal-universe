@@ -22,16 +22,10 @@ const MAX_RECONNECT_ATTEMPTS = 5;
  * Get access token from various sources
  */
 function getAccessToken(): string | null {
-  // 1. Bridge에서 토큰 가져오기 (우선)
   if (isBridgeReady()) {
-    const token = getAdapter('auth').getAccessToken?.();
-    if (token) return token;
+    return getAdapter('auth').getAccessToken?.() ?? null;
   }
-  // 2. Fallback: window globals
-  const globalToken = window.__PORTAL_GET_ACCESS_TOKEN__?.() ?? window.__PORTAL_ACCESS_TOKEN__;
-  if (globalToken) return globalToken;
-  // 3. localStorage (standalone 모드)
-  return localStorage.getItem('access_token');
+  return null;
 }
 
 /**

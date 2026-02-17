@@ -9,7 +9,7 @@ router = APIRouter()
 @router.get("/health")
 async def health_check():
     doc_count = 0
-    if rag_engine._initialized:
+    if rag_engine.is_initialized:
         doc_count = rag_engine.vectorstore.get_document_count()
 
     return {

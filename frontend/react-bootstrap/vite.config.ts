@@ -7,7 +7,7 @@ import { resolve } from 'path';
  * @portal/react-bootstrap - Vite Library Mode Config
  *
  * React 마이크로프론트엔드의 공통 부트스트랩 로직을 라이브러리로 빌드합니다.
- * design-system-react와 동일한 패턴을 따릅니다.
+ * design-react와 동일한 패턴을 따릅니다.
  */
 export default defineConfig({
   plugins: [

@@ -55,5 +55,5 @@ export class UpdateTaskDto {
 export class ChangePositionDto {
   @ApiPropertyOptional({ example: 0, description: 'New position index' })
   @IsInt()
-  position: number;
+  position!: number;
 }

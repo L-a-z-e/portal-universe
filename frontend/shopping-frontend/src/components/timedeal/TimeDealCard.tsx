@@ -3,7 +3,7 @@
  * 타임딜 카드 UI
  */
 import { Link } from 'react-router-dom'
-import { Badge } from '@portal/design-system-react'
+import { Badge } from '@portal/design-react'
 import { CountdownTimer } from './CountdownTimer'
 import { calculateStockPercentage } from '@/hooks/useTimeDeals'
 import type { TimeDeal } from '@/types'

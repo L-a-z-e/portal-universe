@@ -5,7 +5,7 @@
  */
 
 /* Design System 스타일 import */
-@import '@portal/design-system-react/style.css';
+@import '@portal/design-react/style.css';
 
 @tailwind base;
 @tailwind components;

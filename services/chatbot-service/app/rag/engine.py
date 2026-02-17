@@ -9,6 +9,8 @@ from langchain_community.document_loaders import (
 )
 
 from app.core.config import settings
+from app.core.error_codes import ChatbotErrorCode
+from app.core.exceptions import BusinessException
 from app.providers.base import EmbeddingProvider, LLMProvider
 from app.providers.factory import create_embedding_provider, create_llm_provider
 from app.rag.chunker import create_text_splitter
@@ -35,13 +37,19 @@ class RAGEngine:
 
     @property
     def llm(self) -> LLMProvider:
-        assert self._llm is not None, "RAG engine not initialized"
+        if self._llm is None:
+            raise BusinessException(ChatbotErrorCode.ENGINE_NOT_INITIALIZED)
         return self._llm
 
     @property
     def vectorstore(self) -> VectorStoreManager:
-        assert self._vectorstore is not None, "RAG engine not initialized"
+        if self._vectorstore is None:
+            raise BusinessException(ChatbotErrorCode.ENGINE_NOT_INITIALIZED)
         return self._vectorstore
+
+    @property
+    def is_initialized(self) -> bool:
+        return self._initialized
 
     async def initialize(self) -> None:
         """엔진 초기화: Provider 생성 + VectorStore 연결."""
@@ -62,7 +70,10 @@ class RAGEngine:
         suffix = file_path.suffix.lower()
         loader_cls = LOADER_MAP.get(suffix)
         if loader_cls is None:
-            raise ValueError(f"Unsupported file type: {suffix}. Supported: {list(LOADER_MAP)}")
+            raise BusinessException(
+                ChatbotErrorCode.UNSUPPORTED_FILE_TYPE,
+                f"Unsupported file type: {suffix}. Supported: {list(LOADER_MAP)}",
+            )
 
         loader = loader_cls(str(file_path))
         raw_docs = loader.load()
@@ -88,29 +99,39 @@ class RAGEngine:
         cleaned = cleaned.rstrip("?？").strip()
         return cleaned if cleaned else question
 
+    @staticmethod
+    def _build_context(results: list) -> str:
+        """검색 결과로부터 LLM 컨텍스트 문자열을 조합."""
+        return "\n\n---\n\n".join(
+            f"[출처: {doc.metadata.get('source', 'unknown')}]\n{doc.page_content}"
+            for doc, _ in results
+        )
+
+    @staticmethod
+    def _build_sources(results: list) -> list[SourceInfo]:
+        """검색 결과로부터 SourceInfo 리스트 생성."""
+        return [
+            SourceInfo(
+                document=doc.metadata.get("source", "unknown"),
+                chunk=doc.page_content[: settings.source_chunk_preview_length],
+                relevance_score=round(score, 3),
+            )
+            for doc, score in results
+        ]
+
+    _NO_RESULTS_MESSAGE = "해당 정보를 찾을 수 없습니다. 제공된 문서에 관련 내용이 없습니다."
+
     async def query(self, question: str) -> tuple[str, list[SourceInfo]]:
         """질문에 대한 RAG 기반 답변 생성."""
         processed_question = self._preprocess_query(question)
         results = self.vectorstore.search(processed_question)
 
         if not results:
-            return "해당 정보를 찾을 수 없습니다. 제공된 문서에 관련 내용이 없습니다.", []
+            return self._NO_RESULTS_MESSAGE, []
 
-        context = "\n\n---\n\n".join(
-            f"[출처: {doc.metadata.get('source', 'unknown')}]\n{doc.page_content}"
-            for doc, _ in results
-        )
-
+        context = self._build_context(results)
         answer = await self.llm.generate(question, context)
-
-        sources = [
-            SourceInfo(
-                document=doc.metadata.get("source", "unknown"),
-                chunk=doc.page_content[:200],
-                relevance_score=round(score, 3),
-            )
-            for doc, score in results
-        ]
+        sources = self._build_sources(results)
 
         return answer, sources
 
@@ -120,29 +141,16 @@ class RAGEngine:
         results = self.vectorstore.search(processed_question)
 
         if not results:
-            yield {
-                "type": "token",
-                "content": "해당 정보를 찾을 수 없습니다. 제공된 문서에 관련 내용이 없습니다.",
-            }
+            yield {"type": "token", "content": self._NO_RESULTS_MESSAGE}
             yield {"type": "done"}
             return
 
-        context = "\n\n---\n\n".join(
-            f"[출처: {doc.metadata.get('source', 'unknown')}]\n{doc.page_content}"
-            for doc, _ in results
-        )
+        context = self._build_context(results)
 
         async for token in self.llm.stream(question, context):
             yield {"type": "token", "content": token}
 
-        sources = [
-            {
-                "document": doc.metadata.get("source", "unknown"),
-                "chunk": doc.page_content[:200],
-                "relevance_score": round(score, 3),
-            }
-            for doc, score in results
-        ]
+        sources = [s.model_dump() for s in self._build_sources(results)]
         yield {"type": "sources", "sources": sources}
         yield {"type": "done"}
 

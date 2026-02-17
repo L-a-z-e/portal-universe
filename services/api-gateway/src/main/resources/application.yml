@@ -576,7 +576,6 @@ gateway:
       - "/auth-service/oauth2/"
       - "/auth-service/login/oauth2/"
       - "/api/v1/auth/"
-      - "/api/v1/users/"
       - "/api/health/"
       - "/actuator/"
       - "/api/v1/shopping/products"

@@ -4,13 +4,12 @@ import { useRouter, useRoute } from "vue-router";
 import { getPublishedPosts, getTrendingPosts, getFeed } from "../api/posts";
 import type { PostSummaryResponse } from "../dto/post";
 import type { PageResponse } from "@/types";
-import { Button, Card, SearchBar, Tabs, Spinner } from '@portal/design-system-vue';
-import type { TabItem } from '@portal/design-system-vue';
+import { Button, Card, SearchBar, Spinner } from '@portal/design-vue';
 import PostCard from '../components/PostCard.vue';
-import { useApiError } from '@portal/design-system-vue';
+import { useApiError } from '@portal/design-vue';
 import { useSearchStore } from '../stores/searchStore';
 import { useFollowStore } from '../stores/followStore';
-import { usePortalAuth } from '@/composables/usePortalAuth';
+import { usePortalAuth } from '@portal/vue-bridge';
 
 const router = useRouter();
 const route = useRoute();
@@ -26,15 +25,14 @@ type PeriodType = 'today' | 'week' | 'month' | 'year';
 const currentTab = ref<TabType>('trending');
 const currentPeriod = ref<PeriodType>('week');
 
-// Tab items for DS Tabs component
-const tabItems = computed<TabItem[]>(() => {
-  const items: TabItem[] = [];
+const tabs = computed(() => {
+  const items: { label: string; value: TabType }[] = [];
   if (isAuthenticated.value) {
-    items.push({ label: '📬 피드', value: 'feed' });
+    items.push({ label: '피드', value: 'feed' });
   }
   items.push(
-    { label: '🔥 트렌딩', value: 'trending' },
-    { label: '🕐 최신', value: 'recent' },
+    { label: '트렌딩', value: 'trending' },
+    { label: '최신', value: 'recent' },
   );
   return items;
 });
@@ -87,11 +85,6 @@ const isEmpty = computed(() => !currentLoading.value && displayPosts.value.lengt
 
 // 더 로드 가능 여부
 const canLoadMore = computed(() => currentHasMore.value && !isLoadingMore.value && !currentLoading.value);
-
-// 총 게시글 수
-const totalCount = computed(() => {
-  return isSearchMode.value ? searchStore.results.length : totalElements.value;
-});
 
 // 일반 게시글 목록 로드
 async function loadPosts(page: number = 1, append: boolean = false) {
@@ -182,7 +175,6 @@ function handleSearch(keyword: string) {
 // 검색 초기화
 function handleClearSearch() {
   searchStore.clear();
-  // 일반 목록이 비어있으면 다시 로드
   if (posts.value.length === 0) {
     loadPosts(1, false);
   }
@@ -202,9 +194,7 @@ function changeTab(tab: TabType) {
   posts.value = [];
   hasMore.value = true;
 
-  // URL 쿼리 업데이트
   updateQueryParams();
-
   loadPosts(1, false);
 }
 
@@ -217,9 +207,7 @@ function changePeriod(period: PeriodType) {
   posts.value = [];
   hasMore.value = true;
 
-  // URL 쿼리 업데이트
   updateQueryParams();
-
   loadPosts(1, false);
 }
 
@@ -239,7 +227,6 @@ function initializeFromQuery() {
   const { tab, period } = route.query;
 
   if (tab === 'feed' || tab === 'trending' || tab === 'recent') {
-    // 피드 탭은 로그인한 사용자만 접근 가능
     if (tab === 'feed' && !isAuthenticated.value) {
       currentTab.value = 'trending';
     } else {
@@ -294,62 +281,64 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- ✅ 수정: max-w 제거, container 스타일 명확화 -->
   <div class="w-full min-h-screen">
-    <!-- Inner Container: 최대 너비와 패딩 제어 -->
-    <div class="mx-auto px-6 sm:px-8 lg:px-12 py-8">
+    <div class="max-w-3xl mx-auto px-6 py-8">
       <!-- Header -->
-      <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+      <header class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-3xl sm:text-4xl font-bold text-text-heading mb-2">
-            📝 Blog
-          </h1>
-          <p class="text-text-meta">
-            {{ isSearchMode ? `"${searchStore.keyword}" 검색 결과` : `총 ${totalCount}개의 게시글` }}
+          <h1 class="text-2xl font-bold text-text-heading">블로그</h1>
+          <p v-if="isSearchMode" class="text-sm text-text-meta mt-1">
+            "{{ searchStore.keyword }}" 검색 결과
           </p>
         </div>
         <Button
-            v-if="isAuthenticated"
-            variant="primary"
-            size="md"
-            @click="router.push('/write')"
+          v-if="isAuthenticated"
+          variant="primary"
+          size="sm"
+          @click="router.push('/write')"
         >
-          ✍️ 새 글 작성
+          글 작성
         </Button>
       </header>
 
       <!-- SearchBar -->
       <div class="mb-6">
         <SearchBar
-            v-model="searchStore.keyword"
-            placeholder="제목, 내용, 태그로 검색..."
-            :loading="searchStore.isSearching"
-            @search="handleSearch"
-            @clear="handleClearSearch"
+          v-model="searchStore.keyword"
+          placeholder="제목, 내용, 태그로 검색..."
+          :loading="searchStore.isSearching"
+          @search="handleSearch"
+          @clear="handleClearSearch"
         />
       </div>
 
-      <!-- 탭 시스템 (검색 모드가 아닐 때만 표시) -->
-      <div v-if="!isSearchMode" class="mb-6">
-        <!-- 탭 버튼 -->
-        <Tabs
-          v-model="currentTab"
-          :items="tabItems"
-          class="mb-4"
-          data-testid="post-list-tabs"
-          @change="(tab: string) => changeTab(tab as TabType)"
-        />
-
-        <!-- 기간 필터 (트렌딩 탭일 때만 표시) -->
-        <div v-if="currentTab === 'trending'" class="flex items-center gap-2">
+      <!-- 탭 (검색 모드가 아닐 때) -->
+      <div v-if="!isSearchMode" class="mb-8">
+        <!-- 탭 바 -->
+        <div class="flex items-center gap-6 border-b border-border-default">
           <button
-              v-for="period in ['today', 'week', 'month', 'year']"
-              :key="period"
-              @click="changePeriod(period as PeriodType)"
-              class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
-              :class="currentPeriod === period
-                ? 'bg-brand-primary text-white'
-                : 'bg-bg-muted text-text-meta hover:bg-bg-hover hover:text-text-body'"
+            v-for="tab in tabs"
+            :key="tab.value"
+            class="pb-3 px-1 text-base font-medium transition-all border-b-2"
+            :class="currentTab === tab.value
+              ? 'text-brand-primary border-brand-primary'
+              : 'text-text-meta border-transparent hover:text-text-heading hover:border-border-hover'"
+            @click="changeTab(tab.value)"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <!-- 기간 필터 (트렌딩 탭) -->
+        <div v-if="currentTab === 'trending'" class="flex items-center gap-2 mt-4">
+          <button
+            v-for="period in (['today', 'week', 'month', 'year'] as const)"
+            :key="period"
+            @click="changePeriod(period)"
+            class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+            :class="currentPeriod === period
+              ? 'bg-brand-primary text-white'
+              : 'bg-bg-muted text-text-meta hover:bg-bg-hover hover:text-text-body'"
           >
             {{ { today: '오늘', week: '이번 주', month: '이번 달', year: '올해' }[period] }}
           </button>
@@ -357,31 +346,31 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Loading State (초기 로드) -->
-      <Card v-if="isInitialLoad && isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none" data-testid="feed-loading">
-        <Spinner size="lg" class="mx-auto mb-5" />
-        <p class="text-text-meta text-lg">게시글을 불러오는 중...</p>
-      </Card>
+      <div v-if="isInitialLoad && isLoading" class="flex justify-center py-24" data-testid="feed-loading">
+        <div class="text-center">
+          <Spinner size="lg" class="mx-auto mb-4" />
+          <p class="text-text-meta">게시글을 불러오는 중...</p>
+        </div>
+      </div>
 
       <!-- Error State -->
       <Card v-else-if="currentError && isEmpty" class="bg-status-error-bg border-status-error/20 py-16 text-center" data-testid="feed-error">
-        <div class="text-4xl text-status-error mb-4">❌</div>
-        <div class="text-status-error font-semibold text-lg mb-2">{{ currentError }}</div>
-        <Button variant="secondary" class="mt-4" @click="refresh" data-testid="retry-button">
+        <div class="text-status-error font-semibold mb-2">{{ currentError }}</div>
+        <Button variant="secondary" size="sm" class="mt-4" @click="refresh" data-testid="retry-button">
           다시 시도
         </Button>
       </Card>
 
       <!-- Empty State -->
-      <Card v-else-if="isEmpty" class="text-center py-20" data-testid="empty-feed">
-        <div class="text-6xl mb-4">{{ isSearchMode ? '🔍' : (currentTab === 'feed' ? '👋' : '📭') }}</div>
-        <h3 class="text-2xl font-bold text-text-heading mb-2">
+      <div v-else-if="isEmpty" class="text-center py-20" data-testid="empty-feed">
+        <h3 class="text-lg font-semibold text-text-heading mb-2">
           <template v-if="isSearchMode">검색 결과가 없습니다</template>
           <template v-else-if="currentTab === 'feed'">
             {{ followStore.followingIds.length === 0 ? '팔로우하는 사용자가 없습니다' : '피드가 비어있습니다' }}
           </template>
           <template v-else>아직 게시글이 없습니다</template>
         </h3>
-        <p class="text-text-meta mb-6">
+        <p class="text-text-meta text-sm mb-6">
           <template v-if="isSearchMode">다른 검색어를 시도해보세요.</template>
           <template v-else-if="currentTab === 'feed'">
             {{ followStore.followingIds.length === 0 ? '관심 있는 사용자를 팔로우해보세요!' : '팔로우한 사용자들이 아직 게시글을 작성하지 않았습니다.' }}
@@ -389,77 +378,53 @@ onBeforeUnmount(() => {
           <template v-else>첫 게시글을 작성해보세요!</template>
         </p>
         <Button
-            v-if="!isSearchMode && isAuthenticated && currentTab !== 'feed'"
-            variant="primary"
-            @click="router.push('/write')"
+          v-if="!isSearchMode && isAuthenticated && currentTab !== 'feed'"
+          variant="primary"
+          size="sm"
+          @click="router.push('/write')"
         >
           첫 글 작성하기
         </Button>
         <Button
-            v-if="currentTab === 'feed' && followStore.followingIds.length === 0"
-            variant="primary"
-            @click="changeTab('trending')"
-            data-testid="go-to-trending"
+          v-if="currentTab === 'feed' && followStore.followingIds.length === 0"
+          variant="primary"
+          size="sm"
+          @click="changeTab('trending')"
+          data-testid="go-to-trending"
         >
           트렌딩 게시글 보기
         </Button>
-      </Card>
+      </div>
 
-      <!-- Post Grid -->
+      <!-- Post List (단일 컬럼 피드) -->
       <div v-else>
-        <!-- ✅ 수정: 반응형 그리드 브레이크포인트 명확화 -->
-        <!--
-          sm (640px):  1열
-          md (768px):  2열
-          lg (1024px): 3열
-          xl (1280px): 4열
-          2xl (1536px): 5열
-        -->
-        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+        <div>
           <PostCard
-              v-for="post in displayPosts"
-              :key="post.id"
-              :post="post"
-              @click="goToPost"
+            v-for="post in displayPosts"
+            :key="post.id"
+            :post="post"
+            @click="goToPost"
           />
         </div>
 
         <!-- Infinite Scroll Trigger -->
         <div
-            v-if="currentHasMore"
-            ref="loadMoreTrigger"
-            class="min-h-[100px] flex items-center justify-center mt-8"
+          v-if="currentHasMore"
+          ref="loadMoreTrigger"
+          class="flex items-center justify-center py-12"
         >
-          <div v-if="isLoadingMore || searchStore.isSearching" class="text-center py-8" data-testid="loading-more">
-            <Spinner size="md" class="mx-auto mb-3" />
-            <p class="text-text-meta text-sm">더 많은 게시글을 불러오는 중...</p>
+          <div v-if="isLoadingMore || searchStore.isSearching" class="text-center" data-testid="loading-more">
+            <div class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin mx-auto"></div>
           </div>
         </div>
 
         <!-- 모두 로드 완료 -->
-        <div v-else class="text-center py-8 mt-8" data-testid="feed-end">
-          <div class="inline-flex items-center gap-2 px-4 py-2 bg-bg-muted rounded-full">
-            <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-text-meta text-sm font-medium">
-              {{ isSearchMode ? '모든 검색 결과를 불러왔습니다' : '모든 게시글을 불러왔습니다' }}
-            </span>
-          </div>
+        <div v-else class="text-center py-12" data-testid="feed-end">
+          <span class="text-xs text-text-meta">
+            {{ isSearchMode ? '모든 검색 결과를 불러왔습니다' : '모든 게시글을 불러왔습니다' }}
+          </span>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-/* 그리드 디버깅용 (개발 중에만 사용) */
-/*
-.grid {
-  border: 2px solid red;
-}
-.grid > * {
-  border: 1px solid blue;
-}
-*/
-</style>

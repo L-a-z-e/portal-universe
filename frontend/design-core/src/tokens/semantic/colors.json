@@ -1,0 +1,185 @@
+{
+  "color": {
+    "brand": {
+      "primary": {
+        "$value": "{color.nightfall.300}",
+        "$type": "color",
+        "$description": "Primary brand color - Vivid Nightfall purple"
+      },
+      "primaryHover": {
+        "$value": "{color.nightfall.200}",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "{color.nightfall.100}",
+        "$type": "color"
+      }
+    },
+    "text": {
+      "heading": {
+        "$value": "#ffffff",
+        "$type": "color",
+        "$description": "Main headings - Pure white for dark mode"
+      },
+      "body": {
+        "$value": "#b4b4b4",
+        "$type": "color",
+        "$description": "Body text - Optimized for readability on dark backgrounds"
+      },
+      "meta": {
+        "$value": "{color.linear.400}",
+        "$type": "color",
+        "$description": "Metadata, timestamps, secondary info"
+      },
+      "muted": {
+        "$value": "#6b6b6b",
+        "$type": "color",
+        "$description": "Disabled or de-emphasized text"
+      },
+      "inverse": {
+        "$value": "{color.linear.950}",
+        "$type": "color",
+        "$description": "Text on light backgrounds"
+      },
+      "link": {
+        "$value": "{color.nightfall.300}",
+        "$type": "color",
+        "$description": "Hyperlinks - brand color"
+      },
+      "linkHover": {
+        "$value": "{color.nightfall.200}",
+        "$type": "color"
+      }
+    },
+    "bg": {
+      "page": {
+        "$value": "#08090a",
+        "$type": "color",
+        "$description": "Main page background - Near black"
+      },
+      "card": {
+        "$value": "#0f1011",
+        "$type": "color",
+        "$description": "Card/elevated surface - Dark gray"
+      },
+      "elevated": {
+        "$value": "#18191b",
+        "$type": "color",
+        "$description": "Modals, dropdowns - Higher elevation"
+      },
+      "muted": {
+        "$value": "{color.linear.900}",
+        "$type": "color",
+        "$description": "Subtle backgrounds"
+      },
+      "hover": {
+        "$value": "{color.linear.700}",
+        "$type": "color",
+        "$description": "Interactive element hover"
+      },
+      "overlay": {
+        "$value": "rgba(0, 0, 0, 0.6)",
+        "$type": "color",
+        "$description": "Modal/dialog backdrop overlay"
+      },
+      "sidebar": {
+        "$value": "#0e0f11",
+        "$type": "color",
+        "$description": "Sidebar background"
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "#2a2a2a",
+        "$type": "color",
+        "$description": "Default border - Linear style subtle"
+      },
+      "hover": {
+        "$value": "{color.linear.600}",
+        "$type": "color"
+      },
+      "focus": {
+        "$value": "{color.nightfall.300}",
+        "$type": "color",
+        "$description": "Focus state border - brand color"
+      },
+      "muted": {
+        "$value": "{color.linear.800}",
+        "$type": "color"
+      },
+      "subtle": {
+        "$value": "rgba(255, 255, 255, 0.1)",
+        "$type": "color",
+        "$description": "Very subtle border for glassmorphism"
+      }
+    },
+    "status": {
+      "success": {
+        "$value": "{color.green.500}",
+        "$type": "color"
+      },
+      "successBg": {
+        "$value": "#0a4034",
+        "$type": "color",
+        "$description": "Success background - dark green"
+      },
+      "error": {
+        "$value": "{color.red.500}",
+        "$type": "color"
+      },
+      "errorBg": {
+        "$value": "#4a1c1c",
+        "$type": "color",
+        "$description": "Error background - dark red"
+      },
+      "warning": {
+        "$value": "{color.yellow.500}",
+        "$type": "color"
+      },
+      "warningBg": {
+        "$value": "#4a3c0f",
+        "$type": "color",
+        "$description": "Warning background - dark yellow"
+      },
+      "info": {
+        "$value": "{color.blue.500}",
+        "$type": "color"
+      },
+      "infoBg": {
+        "$value": "#1a3a52",
+        "$type": "color",
+        "$description": "Info background - dark blue"
+      }
+    },
+    "accent": {
+      "indigo": {
+        "$value": "{color.indigo.400}",
+        "$type": "color"
+      },
+      "blue": {
+        "$value": "{color.blue.500}",
+        "$type": "color"
+      },
+      "green": {
+        "$value": "{color.green.500}",
+        "$type": "color"
+      },
+      "red": {
+        "$value": "{color.red.500}",
+        "$type": "color"
+      },
+      "orange": {
+        "$value": "{color.orange.500}",
+        "$type": "color"
+      },
+      "yellow": {
+        "$value": "{color.yellow.500}",
+        "$type": "color"
+      },
+      "cyan": {
+        "$value": "{color.cyan.500}",
+        "$type": "color"
+      }
+    }
+  }
+}

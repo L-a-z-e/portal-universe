@@ -218,7 +218,7 @@ export const SellerLayout: React.FC = () => {
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-gray-900/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-bg-overlay z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

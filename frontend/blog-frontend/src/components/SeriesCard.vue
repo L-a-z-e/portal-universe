@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Card } from '@portal/design-system-vue';
+import { Card } from '@portal/design-vue';
 import type { SeriesListResponse } from '../dto/series';
 import { DEFAULT_THUMBNAILS } from '../config/assets';
 

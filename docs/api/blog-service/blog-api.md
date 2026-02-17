@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-15
+updated: 2026-02-17
 author: Laze
 tags: [api, blog, mongodb, post, comment, series, tag, file, like]
 related:
@@ -66,6 +66,8 @@ Gateway: /api/v1/blog/{path} → StripPrefix=3 → blog-service:8082/{path}
 | GET | `/posts/stats/categories` | 카테고리 통계 조회 | ❌ | `List<CategoryStats>` |
 | GET | `/posts/stats/tags` | 인기 태그 통계 조회 | ❌ | `List<TagStatsResponse>` |
 | GET | `/posts/stats/author/{authorId}` | 작성자 통계 조회 | ❌ | `AuthorStats` |
+| GET | `/posts/stats/author/{authorId}/categories` | 작성자별 카테고리 통계 | ❌ | `List<CategoryStats>` |
+| GET | `/posts/stats/author/{authorId}/tags` | 작성자별 태그 통계 | ❌ | `List<TagStatsResponse>` |
 | GET | `/posts/stats/blog` | 전체 블로그 통계 조회 | ❌ | `BlogStats` |
 | GET | `/posts/product/{productId}` | 상품별 게시물 조회 | ❌ | `List<PostResponse>` |
 | GET | `/posts/feed` | 피드 게시물 조회 | ❌ | `Page<PostSummaryResponse>` |
@@ -93,6 +95,7 @@ Gateway: /api/v1/blog/{path} → StripPrefix=3 → blog-service:8082/{path}
 | Method | Endpoint | 설명 | 인증 | 반환 타입 |
 |--------|----------|------|------|-----------|
 | POST | `/series` | 시리즈 생성 | ✅ | `SeriesResponse` |
+| GET | `/series` | 전체 시리즈 목록 조회 | ❌ | `List<SeriesListResponse>` |
 | GET | `/series/{seriesId}` | 시리즈 상세 조회 | ❌ | `SeriesResponse` |
 | PUT | `/series/{seriesId}` | 시리즈 수정 | ✅ | `SeriesResponse` |
 | DELETE | `/series/{seriesId}` | 시리즈 삭제 | ✅ | `Void` |
@@ -756,7 +759,87 @@ GET /api/v1/blog/posts/stats/author/{authorId}
 
 ---
 
-### 22. 전체 블로그 통계 조회
+### 22. 작성자별 카테고리 통계 조회
+
+특정 작성자의 게시물을 카테고리별로 집계합니다.
+
+```http
+GET /api/v1/blog/posts/stats/author/{authorId}/categories
+```
+
+#### Path Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `authorId` | string | ✅ | 작성자 UUID |
+
+#### Response (200 OK) - `List<CategoryStats>`
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "categoryName": "Backend",
+      "postCount": 15,
+      "latestPostDate": "2026-02-17T10:30:00"
+    },
+    {
+      "categoryName": "Frontend",
+      "postCount": 8,
+      "latestPostDate": "2026-02-15T14:00:00"
+    }
+  ],
+  "timestamp": "2026-02-17T11:00:00"
+}
+```
+
+---
+
+### 23. 작성자별 태그 통계 조회
+
+특정 작성자의 게시물에서 사용된 태그를 빈도순으로 집계합니다.
+
+```http
+GET /api/v1/blog/posts/stats/author/{authorId}/tags?limit=20
+```
+
+#### Path Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `authorId` | string | ✅ | 작성자 UUID |
+
+#### Query Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 | 기본값 |
+|----------|------|------|------|--------|
+| `limit` | int | ❌ | 조회할 개수 | 20 |
+
+#### Response (200 OK) - `List<TagStatsResponse>`
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "spring",
+      "postCount": 12,
+      "totalViews": 0
+    },
+    {
+      "name": "java",
+      "postCount": 10,
+      "totalViews": 0
+    }
+  ],
+  "timestamp": "2026-02-17T11:00:00"
+}
+```
+
+---
+
+### 24. 전체 블로그 통계 조회
 
 ```http
 GET /api/v1/blog/posts/stats/blog
@@ -1305,6 +1388,38 @@ GET /api/v1/blog/series/by-post/{postId}
 
 ---
 
+### 12. 전체 시리즈 목록 조회
+
+모든 사용자의 시리즈를 최근 업데이트순으로 조회합니다.
+
+```http
+GET /api/v1/blog/series
+```
+
+#### Response (200 OK) - `List<SeriesListResponse>`
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "677dd567e8f9g0h1i2j3k4l5",
+      "name": "Spring Boot 마스터 시리즈",
+      "description": "스프링 부트를 처음부터 끝까지 마스터하는 시리즈",
+      "authorId": "user-123",
+      "authorName": "홍길동",
+      "thumbnailUrl": "https://s3.amazonaws.com/bucket/series-thumb.jpg",
+      "postCount": 5,
+      "createdAt": "2026-01-18T11:15:00",
+      "updatedAt": "2026-02-17T10:00:00"
+    }
+  ],
+  "timestamp": "2026-02-17T11:00:00"
+}
+```
+
+---
+
 ## Tag API
 
 ### 1. 태그 생성
@@ -1683,4 +1798,4 @@ grant_type=password&username=user@example.com&password=password123
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-17

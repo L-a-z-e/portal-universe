@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-08
+updated: 2026-02-17
 author: Laze
 tags: [api, shopping, frontend, product, admin]
 related: [api-shopping-types, api-shopping-inventory]
@@ -59,22 +59,33 @@ Authorization: Bearer {token}
     "items": [
       {
         "id": 1,
-        "name": "스프링 부트 완벽 가이드",
-        "description": "Spring Boot 실전 가이드",
-        "price": 35000,
+        "name": "MacBook Pro 14\"",
+        "description": "Apple M3 Pro 칩, 18GB RAM, 512GB SSD",
+        "price": 2390000,
+        "discountPrice": 2190000,
         "stockQuantity": 50,
-        "imageUrl": "https://cdn.example.com/1.jpg",
-        "category": "books",
-        "createdAt": "2026-01-10T10:00:00Z"
+        "imageUrl": "https://picsum.photos/seed/macbook/600/400",
+        "category": "전자제품",
+        "featured": true,
+        "images": [
+          "https://picsum.photos/seed/macbook1/600/400",
+          "https://picsum.photos/seed/macbook2/600/400"
+        ],
+        "averageRating": null,
+        "reviewCount": null,
+        "createdAt": "2026-02-17T10:00:00",
+        "updatedAt": "2026-02-17T10:00:00"
       }
     ],
     "page": 1,
     "size": 12,
-    "totalElements": 150,
-    "totalPages": 13
+    "totalElements": 16,
+    "totalPages": 2
   }
 }
 ```
+
+> **Note**: `averageRating`과 `reviewCount`는 목록 조회에서 `null`로 반환됩니다. 상세 조회에서만 Blog Service Feign 호출을 통해 계산됩니다.
 
 **사용 예시**
 
@@ -107,14 +118,22 @@ Authorization: Bearer {token}
   "success": true,
   "data": {
     "id": 1,
-    "name": "스프링 부트 완벽 가이드",
-    "description": "Spring Boot 3.x 기반 마이크로서비스 구축 실전 가이드",
-    "price": 35000,
+    "name": "MacBook Pro 14\"",
+    "description": "Apple M3 Pro 칩, 18GB RAM, 512GB SSD",
+    "price": 2390000,
+    "discountPrice": 2190000,
     "stockQuantity": 50,
-    "imageUrl": "https://cdn.example.com/1.jpg",
-    "category": "books",
-    "createdAt": "2026-01-10T10:00:00Z",
-    "updatedAt": "2026-01-15T14:30:00Z"
+    "imageUrl": "https://picsum.photos/seed/macbook/600/400",
+    "category": "전자제품",
+    "featured": true,
+    "images": [
+      "https://picsum.photos/seed/macbook1/600/400",
+      "https://picsum.photos/seed/macbook2/600/400"
+    ],
+    "averageRating": 4.5,
+    "reviewCount": 12,
+    "createdAt": "2026-02-17T10:00:00",
+    "updatedAt": "2026-02-17T10:00:00"
   }
 }
 ```
@@ -579,9 +598,10 @@ export function ProductDeleteButton({ id }: { id: number }) {
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-17 | Product 확장: discountPrice, featured, images, averageRating, reviewCount 필드 추가. 응답 예시 갱신 |
 | 2026-02-08 | 페이지네이션 기본값 수정: page 0 → 1 (ADR-031 정합) |
 | 2026-02-06 | 최초 작성 |
 
 ---
 
-**최종 업데이트**: 2026-02-08
+**최종 업데이트**: 2026-02-17

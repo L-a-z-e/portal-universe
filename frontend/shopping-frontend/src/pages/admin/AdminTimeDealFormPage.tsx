@@ -7,8 +7,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useCreateTimeDeal } from '@/hooks/useAdminTimeDeals'
 import { adminProductApi } from '@/api'
 import type { Product } from '@/types'
-import { Button, Card, Input, Select, Spinner, useApiError, useToast } from '@portal/design-system-react'
-import type { SelectOption } from '@portal/design-types'
+import { Button, Card, Input, Select, Spinner, useApiError, useToast } from '@portal/design-react'
+import type { SelectOption } from '@portal/design-core'
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('ko-KR').format(price)
@@ -222,9 +222,9 @@ export function AdminTimeDealFormPage() {
 
           {/* 선택된 상품 정보 */}
           {selectedProduct && (
-            <div className="mt-4 p-4 bg-bg-hover light:bg-gray-50 rounded-lg">
+            <div className="mt-4 p-4 bg-bg-muted rounded-lg">
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 bg-bg-muted light:bg-gray-200 rounded flex items-center justify-center">
+                <div className="w-20 h-20 bg-bg-muted rounded flex items-center justify-center">
                   <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -261,7 +261,7 @@ export function AdminTimeDealFormPage() {
               <label className="block mb-1.5 text-sm font-medium text-text-body">
                 할인율
               </label>
-              <div className="h-9 px-3 py-2 border border-border-default rounded-md bg-bg-hover light:bg-gray-50 flex items-center">
+              <div className="h-9 px-3 py-2 border border-border-default rounded-md bg-bg-muted flex items-center">
                 <span className={`text-lg font-bold ${discountRate > 0 ? 'text-status-error' : 'text-text-muted'}`}>
                   {discountRate > 0 ? `${discountRate}% OFF` : '-'}
                 </span>
@@ -270,7 +270,7 @@ export function AdminTimeDealFormPage() {
           </div>
 
           {selectedProduct && formData.dealPrice > 0 && (
-            <div className="mt-4 p-4 bg-[#E03131]/10 light:bg-red-50 border border-status-error rounded-lg">
+            <div className="mt-4 p-4 bg-status-error/10 border border-status-error rounded-lg">
               <div className="flex items-baseline gap-2">
                 <span className="text-text-muted line-through">{formatPrice(selectedProduct.price)}원</span>
                 <span className="text-2xl font-bold text-status-error">{formatPrice(formData.dealPrice)}원</span>

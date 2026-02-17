@@ -3,7 +3,6 @@ package com.portal.universe.apigateway.config;
 import com.portal.universe.apigateway.filter.JwtAuthenticationFilter;
 import com.portal.universe.apigateway.security.CustomAccessDeniedHandler;
 import com.portal.universe.apigateway.security.CustomAuthenticationEntryPoint;
-import com.portal.universe.apigateway.service.RoleHierarchyResolver;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,11 +40,10 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final TokenBlacklistChecker tokenBlacklistChecker;
-    private final RoleHierarchyResolver roleHierarchyResolver;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker, roleHierarchyResolver);
+        return new JwtAuthenticationFilter(jwtProperties, publicPathProperties, tokenBlacklistChecker);
     }
 
     /**
