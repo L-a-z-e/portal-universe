@@ -11,7 +11,9 @@ public record ProductUpdateRequest(
         @NotBlank @Size(max = 255) String name,
         String description,
         @NotNull @Min(0) BigDecimal price,
+        @Min(0) BigDecimal discountPrice,
         @NotNull @Min(0) Integer stock,
         @Size(max = 500) String imageUrl,
-        @Size(max = 100) String category
+        @Size(max = 100) String category,
+        Boolean featured
 ) {}

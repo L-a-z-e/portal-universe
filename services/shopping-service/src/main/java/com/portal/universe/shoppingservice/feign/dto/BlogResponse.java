@@ -14,5 +14,6 @@ public record BlogResponse(
         String title,
         String content,
         String authorId,
-        String productId
+        String productId,
+        Integer rating
 ) {}
