@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Button } from '@portal/design-system-react'
+import { Button } from '@portal/design-react'
 import { sellerApi } from '@/api'
 
 const ProfilePage: React.FC = () => {

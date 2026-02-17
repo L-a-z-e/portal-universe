@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import { useDashboard } from '../composables/useDashboard'
-import { Button, Badge } from '@portal/design-system-vue'
+import { Button, Badge } from '@portal/design-vue'
 import { getRemoteConfigs } from '../config/remoteRegistry'
 import { formatRelativeTime } from '../utils/dateUtils'
 

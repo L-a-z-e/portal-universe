@@ -1,0 +1,44 @@
+{
+  "name": "@portal/design-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./css": "./dist/tokens.css",
+    "./json": "./dist/tokens.json",
+    "./tailwind": "./tailwind.preset.js",
+    "./variants": {
+      "types": "./dist/variants/index.d.ts",
+      "import": "./dist/variants/index.js"
+    },
+    "./styles/*": "./dist/styles/*"
+  },
+  "files": [
+    "dist",
+    "tailwind.preset.js"
+  ],
+  "scripts": {
+    "build": "node scripts/build-tokens.js && node scripts/copy-styles.js && npx tsc -p tsconfig.cjs.json && npx tsc",
+    "build:tokens": "node scripts/build-tokens.js",
+    "type-check": "npx tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "typescript": "~5.9.3"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

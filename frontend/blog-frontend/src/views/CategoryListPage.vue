@@ -3,7 +3,7 @@ import { onMounted, onBeforeUnmount, ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { getCategoryStats, getPostsByCategory, getPublishedPosts } from '../api/posts';
 import type { CategoryStats, PostSummaryResponse, PageResponse } from '@/types';
-import { Card, useApiError } from '@portal/design-system-vue';
+import { Card, useApiError } from '@portal/design-vue';
 import PostCard from '../components/PostCard.vue';
 
 const router = useRouter();

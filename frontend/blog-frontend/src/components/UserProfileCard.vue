@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Avatar, Button, Card } from '@portal/design-system-vue';
+import { Avatar, Button, Card } from '@portal/design-vue';
 import type { UserProfileResponse } from '@/dto/user';
 import FollowButton from './FollowButton.vue';
 import FollowerModal from './FollowerModal.vue';

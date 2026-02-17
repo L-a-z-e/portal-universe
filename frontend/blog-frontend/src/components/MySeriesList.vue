@@ -5,7 +5,7 @@ import { getMySeries, createSeries, updateSeries, deleteSeries, getSeriesPosts, 
 import { getMyPosts } from '@/api/posts'
 import type { SeriesListResponse, SeriesCreateRequest, SeriesUpdateRequest } from '@/dto/series'
 import type { PostSummaryResponse } from '@/dto/post'
-import { Button, Card, Input, Textarea, Modal } from '@portal/design-system-vue'
+import { Button, Card, Input, Textarea, Modal } from '@portal/design-vue'
 
 const router = useRouter()
 

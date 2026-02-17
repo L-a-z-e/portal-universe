@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sellerProductApi } from '@/api'
-import { Button } from '@portal/design-system-react'
+import { Button } from '@portal/design-react'
 import type { Product } from '@/types'
 
 export const ProductListPage: React.FC = () => {

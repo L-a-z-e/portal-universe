@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { sellerCouponApi } from '@/api'
-import { Button, Input, Textarea } from '@portal/design-system-react'
+import { Button, Input, Textarea } from '@portal/design-react'
 
 const couponFormSchema = z.object({
   code: z.string().min(1, 'Coupon code is required').max(50),

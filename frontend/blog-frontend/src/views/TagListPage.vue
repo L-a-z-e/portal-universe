@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllTags } from '../api/tags';
 import type { TagResponse } from '@/types';
-import { Card, Button, Input, Spinner } from '@portal/design-system-vue';
+import { Card, Button, Input, Spinner } from '@portal/design-vue';
 
 const router = useRouter();
 

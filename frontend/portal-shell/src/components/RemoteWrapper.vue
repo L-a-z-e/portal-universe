@@ -20,7 +20,7 @@ import { useRoute, useRouter } from "vue-router";
 import type { RemoteConfig } from "../config/remoteRegistry";
 import { remoteLoader } from "../services/remoteLoader";
 import { useThemeStore } from "../store/theme";
-import { Spinner, Button, Card } from '@portal/design-system-vue';
+import { Spinner, Button, Card } from '@portal/design-vue';
 
 interface RemoteAppInstance {
   unmount?: () => void;

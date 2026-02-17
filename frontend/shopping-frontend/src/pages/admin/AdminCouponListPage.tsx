@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAdminCoupons, useDeactivateCoupon } from '@/hooks/useAdminCoupons'
 import { COUPON_STATUS_LABELS, DISCOUNT_TYPE_LABELS } from '@/types'
-import { Button, Card, Badge, Spinner, useApiError, useToast } from '@portal/design-system-react'
+import { Button, Card, Badge, Spinner, useApiError, useToast } from '@portal/design-react'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('ko-KR', {

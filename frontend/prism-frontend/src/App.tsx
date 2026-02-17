@@ -7,7 +7,7 @@
 import { useEffect } from 'react';
 import { PrismRouter } from '@/router';
 import { usePortalTheme } from '@portal/react-bridge';
-import { ToastContainer, useToast, ErrorBoundary } from '@portal/design-system-react';
+import { ToastContainer, useToast, ErrorBoundary } from '@portal/design-react';
 
 /**
  * App Props 인터페이스

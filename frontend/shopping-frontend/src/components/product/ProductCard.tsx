@@ -7,7 +7,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import type { Product, Inventory } from '@/types'
 import { useCartStore } from '@/stores/cartStore'
-import { Button } from '@portal/design-system-react'
+import { Button } from '@portal/design-react'
 
 interface ProductCardProps {
   product: Product

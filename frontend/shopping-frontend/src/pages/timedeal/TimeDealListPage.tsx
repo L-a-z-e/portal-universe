@@ -2,7 +2,7 @@
  * TimeDealListPage
  * 타임딜 목록 페이지
  */
-import { Spinner, Button } from '@portal/design-system-react'
+import { Spinner, Button } from '@portal/design-react'
 import { useActiveTimeDeals } from '@/hooks/useTimeDeals'
 import { TimeDealCard } from '@/components/timedeal/TimeDealCard'
 

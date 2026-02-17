@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react'
 import { useActivateQueue, useDeactivateQueue, useProcessQueue } from '@/hooks/useAdminQueue'
-import { Button, Input, Alert } from '@portal/design-system-react'
+import { Button, Input, Alert } from '@portal/design-react'
 
 const AdminQueuePage: React.FC = () => {
   const [eventType, setEventType] = useState('TIME_DEAL')

@@ -3,7 +3,7 @@
  * 체크아웃 시 쿠폰 선택 UI
  */
 import { useState } from 'react'
-import { Spinner } from '@portal/design-system-react'
+import { Spinner } from '@portal/design-react'
 import { useAvailableUserCoupons, calculateDiscountFromUserCoupon, canApplyUserCoupon } from '@/hooks/useCoupons'
 import type { UserCoupon } from '@/types'
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KanbanBoard, TaskModal, TaskResultModal } from '@/components/kanban';
-import { Button } from '@portal/design-system-react';
+import { Button } from '@portal/design-react';
 import { useBoardStore } from '@/stores/boardStore';
 import { useTaskStore } from '@/stores/taskStore';
 import { useSse, SseEvent } from '@/hooks/useSse';

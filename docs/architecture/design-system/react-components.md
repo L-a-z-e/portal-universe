@@ -4,27 +4,28 @@ title: React 컴포넌트 라이브러리
 type: architecture
 status: current
 created: 2026-01-19
-updated: 2026-02-06
+updated: 2026-02-17
 author: Laze
 tags: [design-system, react18, components, hooks, forwardRef]
 related:
   - arch-design-system-overview
   - arch-vue-components
   - arch-component-matrix
+  - adr-043-design-system-package-consolidation
 ---
 
 # React 컴포넌트 라이브러리
 
 ## 개요
 
-`@portal/design-system-react`는 React 18 Hooks + forwardRef 기반 컴포넌트 라이브러리이다. 30개 컴포넌트와 3개 hook을 제공하며, Vue 라이브러리와 25개 공유 컴포넌트 + 5개 React-only 컴포넌트로 구성된다.
+`@portal/design-react`는 React 18 Hooks + forwardRef 기반 컴포넌트 라이브러리이다. 30개 컴포넌트와 4개 hook을 제공하며, Vue 라이브러리와 25개 공유 컴포넌트 + 5개 React-only 컴포넌트로 구성된다.
 
 | 항목 | 내용 |
 |------|------|
-| 패키지 | `@portal/design-system-react` |
+| 패키지 | `@portal/design-react` |
 | 컴포넌트 | 30개 (공유 25 + React-only 5) + ErrorBoundary |
 | Hook | 4개 (useTheme, useToast, useApiError, useLogger) |
-| 소비자 앱 | shopping-frontend (:30002), prism-frontend (:30003) |
+| 소비자 앱 | shopping-frontend (:30002), prism-frontend (:30003), shopping-seller-frontend (:30006) |
 | 빌드 | Vite library mode |
 | 테스팅 | Vitest + @testing-library/react |
 | Storybook | port 6007 |
@@ -34,28 +35,28 @@ related:
 ```mermaid
 graph TB
     subgraph "Dependencies"
-        DT["@portal/design-tokens<br/>CSS 변수 + Tailwind preset"]
-        DY["@portal/design-types<br/>Props 타입"]
+        DC["@portal/design-core<br/>CSS 변수 + 타입 + variant + Tailwind preset"]
         CLSX["clsx + tailwind-merge<br/>cn() 유틸리티"]
     end
 
-    subgraph "@portal/design-system-react"
+    subgraph "@portal/design-react"
         COMP["components/ (30개)<br/>Alert, Button, Table..."]
-        HOOKS["hooks/ (3개)<br/>useTheme, useToast, useApiError"]
+        HOOKS["hooks/ (4개)<br/>useTheme, useToast, useApiError, useLogger"]
         UTILS["utils/cn.ts"]
     end
 
     subgraph "Consumers"
         SHOP["shopping-frontend :30002"]
         PRISM["prism-frontend :30003"]
+        SELLER["shopping-seller :30006"]
     end
 
-    DT --> COMP
-    DY --> COMP
+    DC --> COMP
     CLSX --> UTILS
     UTILS --> COMP
     COMP --> SHOP
     COMP --> PRISM
+    COMP --> SELLER
     HOOKS --> SHOP
     HOOKS --> PRISM
 ```
@@ -117,7 +118,7 @@ React-only 컴포넌트는 Shopping/Prism 서비스에서 필요하지만 Blog/P
 
 ### ErrorBoundary 컴포넌트
 
-위치: `src/components/ErrorBoundary/ErrorBoundary.tsx`
+위치: `src/components/ErrorBoundary.tsx`
 
 React Error Boundary로 컴포넌트 트리의 에러를 캐치하고 fallback UI를 표시한다.
 
@@ -128,7 +129,7 @@ React Error Boundary로 컴포넌트 트리의 에러를 캐치하고 fallback U
 **사용 예시**:
 ```tsx
 // main.tsx
-import { ErrorBoundary } from '@portal/design-system-react'
+import { ErrorBoundary } from '@portal/design-react'
 
 <ErrorBoundary fallback={<div>Something went wrong</div>}>
   <App />
@@ -139,7 +140,7 @@ import { ErrorBoundary } from '@portal/design-system-react'
 
 ### cn() 유틸리티
 
-위치: `src/utils/cn.ts`
+위치: `src/utils/index.ts`
 
 `clsx`와 `tailwind-merge`를 결합하여 Tailwind 클래스 충돌을 자동 해결한다.
 
@@ -166,11 +167,11 @@ export function cn(...inputs: ClassValue[]) {
 
 ### 컴포넌트 패턴
 
-모든 인터랙티브 컴포넌트는 `forwardRef` + `@portal/design-types` Props 패턴을 따른다.
+모든 인터랙티브 컴포넌트는 `forwardRef` + `@portal/design-core` Props 패턴을 따른다.
 
 ```tsx
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
-import type { ButtonProps } from '@portal/design-types'
+import type { ButtonProps } from '@portal/design-core'
 import { cn } from '../../utils/cn'
 
 export interface ButtonComponentProps
@@ -291,8 +292,7 @@ export const Primary: Story = {
 |--------|------|------|
 | `react` | ^18.0.0 | 컴포넌트 프레임워크 |
 | `react-dom` | ^18.0.0 | DOM 렌더링 |
-| `@portal/design-tokens` | workspace | 토큰 + Tailwind preset |
-| `@portal/design-types` | workspace | Props 타입 |
+| `@portal/design-core` | workspace | 토큰 + 타입 + variant + Tailwind preset |
 | `clsx` | ^2.1.1 | 조건부 className |
 | `tailwind-merge` | ^2.5.5 | Tailwind 클래스 병합 |
 | `@fontsource-variable/inter` | ^5.0.0 | Inter 폰트 |
@@ -306,11 +306,11 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'DesignSystemReact',
+      name: 'DesignReact',
       formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      external: ['react', 'react-dom', '@portal/design-tokens', '@portal/design-types'],
+      external: ['react', 'react-dom', '@portal/design-core'],
     },
   },
 })
@@ -319,8 +319,8 @@ export default defineConfig({
 **출력 파일**:
 ```
 dist/
-├── design-system-react.es.js    # ESM
-├── design-system-react.cjs.js   # CommonJS
+├── design-react.es.js           # ESM
+├── design-react.cjs.js          # CommonJS
 ├── style.css                    # 스타일
 └── types/                       # TypeScript 타입
 ```
@@ -341,3 +341,4 @@ dist/
 | 2026-01-19 | 초안 작성 | Laze |
 | 2026-02-06 | 업데이트 | Laze |
 | 2026-02-14 | ErrorBoundary 컴포넌트, useLogger hook 추가 (ADR-040) | Laze |
+| 2026-02-17 | 4→3 패키지 통합 반영: design-system-react → design-react (ADR-043) | Laze |

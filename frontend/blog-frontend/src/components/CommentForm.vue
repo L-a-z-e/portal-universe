@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Textarea, Button } from '@portal/design-system-vue'
+import { Textarea, Button } from '@portal/design-vue'
 
 interface Props {
   postId: string

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, onActivated } from 'vue';
 import { useRoute } from 'vue-router';
-import { Button, ToastContainer } from '@portal/design-system-vue';
+import { Button, ToastContainer } from '@portal/design-vue';
 import { usePortalTheme, isEmbedded as checkEmbedded } from '@portal/vue-bridge';
 
 const route = useRoute();

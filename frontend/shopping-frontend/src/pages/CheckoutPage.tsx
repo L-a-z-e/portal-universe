@@ -11,7 +11,7 @@ import type { AddressRequest, PaymentMethod, Order, UserCoupon } from '@/types'
 import { PAYMENT_METHOD_LABELS } from '@/types'
 import { CouponSelector } from '@/components/coupon/CouponSelector'
 import { calculateDiscountFromUserCoupon } from '@/hooks/useCoupons'
-import { Button, Alert, Input } from '@portal/design-system-react'
+import { Button, Alert, Input } from '@portal/design-react'
 
 type CheckoutStep = 'address' | 'payment' | 'confirm' | 'complete'
 

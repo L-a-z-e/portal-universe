@@ -1,4 +1,4 @@
-import type { ApiErrorResponse, ErrorDetails } from '@portal/design-types';
+import type { ApiErrorResponse, ErrorDetails } from '@portal/design-core';
 
 /**
  * fetch API용 에러 클래스.

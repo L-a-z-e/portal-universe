@@ -6,7 +6,7 @@ import React, { useState } from 'react'
 import { useTrackDelivery, useUpdateDeliveryStatus } from '@/hooks/useAdminDelivery'
 import { DELIVERY_STATUS_LABELS } from '@/types'
 import type { DeliveryStatus, Delivery } from '@/types'
-import { Button, Spinner, Input, Alert } from '@portal/design-system-react'
+import { Button, Spinner, Input, Alert } from '@portal/design-react'
 
 const DELIVERY_STATUS_OPTIONS: DeliveryStatus[] = [
   'PENDING', 'PREPARING', 'SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'

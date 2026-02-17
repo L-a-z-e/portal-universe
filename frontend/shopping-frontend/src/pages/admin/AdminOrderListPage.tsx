@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAdminOrders } from '@/hooks/useAdminOrders'
 import { ORDER_STATUS_LABELS } from '@/types'
 import type { OrderStatus } from '@/types'
-import { Button, Spinner, Input } from '@portal/design-system-react'
+import { Button, Spinner, Input } from '@portal/design-react'
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'All Status' },

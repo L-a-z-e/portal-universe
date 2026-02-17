@@ -4,7 +4,7 @@
  */
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Spinner, Button, useApiError, useToast } from '@portal/design-system-react'
+import { Spinner, Button, useApiError, useToast } from '@portal/design-react'
 import { useTimeDeal, usePurchaseTimeDeal, calculateStockPercentage } from '@/hooks/useTimeDeals'
 import { CountdownTimer } from '@/components/timedeal/CountdownTimer'
 import { TIMEDEAL_STATUS_LABELS } from '@/types'

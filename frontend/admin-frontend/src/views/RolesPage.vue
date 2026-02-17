@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Card, Button, Badge, Spinner, Alert, SearchBar, Select, Input, useApiError } from '@portal/design-system-vue';
-import type { SelectOption } from '@portal/design-system-vue';
+import { Card, Button, Badge, Spinner, Alert, SearchBar, Select, Input, useApiError } from '@portal/design-vue';
+import type { SelectOption } from '@portal/design-vue';
 import {
   fetchRoles,
   fetchRoleDetail,

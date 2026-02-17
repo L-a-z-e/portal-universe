@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Card, Button, Badge, Spinner, Alert, useApiError } from '@portal/design-system-vue';
+import { Card, Button, Badge, Spinner, Alert, useApiError } from '@portal/design-vue';
 import { fetchDashboardStats } from '@/api/admin';
 import type { DashboardStats } from '@/dto/admin';
 

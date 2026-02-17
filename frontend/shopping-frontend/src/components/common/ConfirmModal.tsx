@@ -3,7 +3,7 @@
  * design-system Modal 기반 확인 모달
  */
 import React from 'react'
-import { Modal, Button } from '@portal/design-system-react'
+import { Modal, Button } from '@portal/design-react'
 import type { ConfirmModalProps } from '@/types'
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({

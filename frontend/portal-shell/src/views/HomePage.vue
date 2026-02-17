@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button, Badge } from '@portal/design-system-vue';
+import { Button, Badge } from '@portal/design-vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import DashboardPage from './DashboardPage.vue';

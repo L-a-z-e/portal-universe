@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useApiError } from '@portal/design-system-vue';
+import { useApiError } from '@portal/design-vue';
 import { fetchPendingSellerApplications, reviewSellerApplication } from '@/api/admin';
 import type { SellerApplication, PageResponse } from '@/dto/admin';
 

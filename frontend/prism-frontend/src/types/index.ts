@@ -128,8 +128,8 @@ export interface Execution {
 
 export type ExecutionStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
-// API Types (from @portal/design-types)
-export type { ApiResponse, ApiErrorResponse, ErrorDetails, FieldError } from '@portal/design-types';
+// API Types (from @portal/design-core)
+export type { ApiResponse, ApiErrorResponse, ErrorDetails, FieldError } from '@portal/design-core';
 
 // Kanban DnD Types
 export interface KanbanColumn {

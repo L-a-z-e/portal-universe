@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Button, Switch } from '@portal/design-system-vue';
+import { Button, Switch } from '@portal/design-vue';
 import { useHealthCheck } from '../composables/useHealthCheck';
 import type { ServiceStatus, ServiceHealth } from '../store/serviceStatus';
 

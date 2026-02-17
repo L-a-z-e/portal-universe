@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import { authService } from '../services/authService';
-import { Spinner, Card } from '@portal/design-system-vue';
+import { Spinner, Card } from '@portal/design-vue';
 
 const router = useRouter();
 const authStore = useAuthStore();

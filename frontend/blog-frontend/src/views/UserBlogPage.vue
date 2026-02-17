@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Spinner, Alert } from '@portal/design-system-vue';
+import { Spinner, Alert } from '@portal/design-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import PostCard from '@/components/PostCard.vue';
 import type { UserProfileResponse } from '@/dto/user';

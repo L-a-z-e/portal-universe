@@ -11,7 +11,7 @@ import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById, deletePost } from "../api/posts";
 import { getSeriesByPostId } from "../api/series";
-import {Button, Tag, Avatar, Card, Modal, useApiError} from "@portal/design-system-vue";
+import {Button, Tag, Avatar, Card, Modal, useApiError} from "@portal/design-vue";
 import type { PostResponse } from "@/dto/post.ts";
 import LikeButton from "@/components/LikeButton.vue";
 import { toggleLike } from '@/api/likes';

@@ -4,7 +4,7 @@
  */
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@portal/design-system-react'
+import { Button } from '@portal/design-react'
 
 export const ForbiddenPage: React.FC = () => {
   const navigate = useNavigate()

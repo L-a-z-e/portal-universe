@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { Avatar, Button, Modal, Spinner } from '@portal/design-system-vue';
+import { Avatar, Button, Modal, Spinner } from '@portal/design-vue';
 import { useFollowStore } from '@/stores/followStore';
 import FollowButton from './FollowButton.vue';
 import type { FollowUserResponse, FollowListResponse } from '@/dto/follow';

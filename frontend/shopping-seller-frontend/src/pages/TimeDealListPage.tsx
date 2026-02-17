@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sellerTimeDealApi } from '@/api'
-import { Button } from '@portal/design-system-react'
+import { Button } from '@portal/design-react'
 
 export const TimeDealListPage: React.FC = () => {
   const navigate = useNavigate()

@@ -2,7 +2,7 @@
  * QueueStatus Component
  * 대기열 상태 표시 컴포넌트
  */
-import { Button, Progress } from '@portal/design-system-react'
+import { Button, Progress } from '@portal/design-react'
 import { formatWaitTime } from '@/hooks/useQueue'
 import type { QueueStatusResponse } from '@/types'
 

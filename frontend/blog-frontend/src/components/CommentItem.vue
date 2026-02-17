@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Avatar, Button } from '@portal/design-system-vue'
+import { Avatar, Button } from '@portal/design-vue'
 import type { CommentResponse } from '@/dto/comment'
 import CommentForm from './CommentForm.vue'
 import { formatRelativeTime } from '@/composables/useRelativeTime'

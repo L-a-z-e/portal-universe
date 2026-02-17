@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
-import { Button } from '@portal/design-system-vue';
+import { Button } from '@portal/design-vue';
 import { NotificationBell } from './notification';
 
 // Screen size detection for mobile header

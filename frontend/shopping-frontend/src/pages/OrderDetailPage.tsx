@@ -8,7 +8,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { orderApi, deliveryApi } from '@/api'
 import type { Order, Delivery, OrderStatus, DeliveryStatus } from '@/types'
 import { ORDER_STATUS_LABELS, DELIVERY_STATUS_LABELS } from '@/types'
-import { Button, Spinner, Alert, Badge, useApiError } from '@portal/design-system-react'
+import { Button, Spinner, Alert, Badge, useApiError } from '@portal/design-react'
 
 const OrderDetailPage: React.FC = () => {
   const { orderNumber } = useParams<{ orderNumber: string }>()

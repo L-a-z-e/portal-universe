@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { SellerRouter } from '@/router'
 import { usePortalTheme } from '@portal/react-bridge'
-import { ToastContainer, useToast, ErrorBoundary } from '@portal/design-system-react'
+import { ToastContainer, useToast, ErrorBoundary } from '@portal/design-react'
 import './styles/index.css'
 
 interface AppProps {

@@ -3,7 +3,7 @@
  * 쿠폰 목록 페이지 - 발급 가능한 쿠폰 및 내 쿠폰 관리
  */
 import { useState } from 'react'
-import { Button, Spinner, Badge, useApiError, useToast } from '@portal/design-system-react'
+import { Button, Spinner, Badge, useApiError, useToast } from '@portal/design-react'
 import { useAvailableCoupons, useUserCoupons, useIssueCoupon } from '@/hooks/useCoupons'
 import { CouponCard } from '@/components/coupon/CouponCard'
 
