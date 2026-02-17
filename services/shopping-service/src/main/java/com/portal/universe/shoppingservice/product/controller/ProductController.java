@@ -32,8 +32,12 @@ public class ProductController {
     @GetMapping
     public ApiResponse<PageResponse<ProductResponse>> getAllProducts(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int size) {
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String category) {
         Pageable pageable = PageRequest.of(page - 1, size);
+        if (category != null && !category.isBlank()) {
+            return ApiResponse.success(PageResponse.from(productService.getProductsByCategory(category, pageable)));
+        }
         return ApiResponse.success(PageResponse.from(productService.getAllProducts(pageable)));
     }
 

@@ -38,6 +38,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<ProductResponse> getProductsByCategory(String category, Pageable pageable) {
+        Page<Product> productPage = productRepository.findByCategory(category, pageable);
+        return productPage.map(this::convertToResponse);
+    }
+
+    @Override
     @Transactional
     public ProductResponse createProduct(ProductCreateRequest request) {
         Product newProduct = Product.builder()

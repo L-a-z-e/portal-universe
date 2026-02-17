@@ -1,6 +1,8 @@
 package com.portal.universe.shoppingservice.product.repository;
 
 import com.portal.universe.shoppingservice.product.domain.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -23,4 +25,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @return 상품 정보
      */
     Optional<Product> findByName(String name);
+
+    Page<Product> findByCategory(String category, Pageable pageable);
 }
