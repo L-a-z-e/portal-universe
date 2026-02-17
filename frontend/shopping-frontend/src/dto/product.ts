@@ -3,9 +3,14 @@ export interface Product {
   name: string
   description: string
   price: number
+  discountPrice?: number
   stockQuantity?: number
   imageUrl?: string
+  images?: string[]
   category?: string
+  featured?: boolean
+  averageRating?: number
+  reviewCount?: number
   createdAt: string
   updatedAt?: string
 }

@@ -189,7 +189,7 @@ const OrderDetailPage: React.FC = () => {
         {/* Order Details */}
         <div className="lg:col-span-2 space-y-6">
           {/* Status Card */}
-          <div className="bg-bg-card border border-border-default rounded-lg p-6">
+          <div className="bg-bg-card border border-border-default rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-text-heading">Order Status</h2>
               <span className={`px-3 py-1 rounded text-sm font-medium ${getStatusColor(order.status)}`}>
@@ -218,14 +218,14 @@ const OrderDetailPage: React.FC = () => {
           </div>
 
           {/* Items */}
-          <div className="bg-bg-card border border-border-default rounded-lg p-6">
+          <div className="bg-bg-card border border-border-default rounded-2xl p-6">
             <h2 className="text-lg font-bold text-text-heading mb-4">Order Items</h2>
 
             <div className="divide-y divide-border-default">
               {(order.items || []).map((item) => (
                 <div key={item.id} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-bg-subtle rounded-lg flex items-center justify-center text-text-placeholder">
+                    <div className="w-16 h-16 bg-bg-subtle rounded-xl flex items-center justify-center text-text-placeholder">
                       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"
@@ -237,9 +237,12 @@ const OrderDetailPage: React.FC = () => {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-text-heading truncate">
+                      <Link
+                        to={`/products/${item.productId}`}
+                        className="font-medium text-text-heading truncate block hover:text-brand-primary transition-colors"
+                      >
                         {item.productName}
-                      </h3>
+                      </Link>
                       <p className="text-sm text-text-meta">
                         {formatPrice(item.price)} x {item.quantity}
                       </p>
@@ -258,7 +261,7 @@ const OrderDetailPage: React.FC = () => {
 
           {/* Delivery Tracking */}
           {delivery && (
-            <div className="bg-bg-card border border-border-default rounded-lg p-6">
+            <div className="bg-bg-card border border-border-default rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-text-heading">Delivery Tracking</h2>
                 <span className={`px-3 py-1 rounded text-sm font-medium ${getStatusColor(delivery.status)}`}>
@@ -325,7 +328,7 @@ const OrderDetailPage: React.FC = () => {
 
         {/* Summary Sidebar */}
         <div className="lg:col-span-1">
-          <div className="bg-bg-card border border-border-default rounded-lg p-6 sticky top-6">
+          <div className="bg-bg-card border border-border-default rounded-2xl p-6 sticky top-6">
             {/* Shipping Address */}
             <div className="mb-6">
               <h3 className="font-medium text-text-heading mb-2">Shipping Address</h3>
