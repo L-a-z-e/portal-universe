@@ -177,9 +177,14 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
       </main>
 
       <!-- Footer -->
-      <footer class="bg-bg-card border-t border-border-default py-4 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-          <p class="text-sm text-text-meta">© 2025 Portal Universe. All rights reserved.</p>
+      <footer class="border-t border-border-default py-8 mt-auto bg-bg-card">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-text-meta">
+          <div>Portal Universe &copy; {{ new Date().getFullYear() }}</div>
+          <div class="flex gap-8">
+            <a href="https://github.com" target="_blank" rel="noopener" class="hover:text-text-heading transition-colors">GitHub</a>
+            <router-link to="/blog" class="hover:text-text-heading transition-colors">Blog</router-link>
+            <router-link to="/status" class="hover:text-text-heading transition-colors">Status</router-link>
+          </div>
         </div>
       </footer>
     </div>
