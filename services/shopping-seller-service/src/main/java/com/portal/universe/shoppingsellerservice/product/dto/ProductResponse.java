@@ -11,9 +11,11 @@ public record ProductResponse(
         String name,
         String description,
         BigDecimal price,
+        BigDecimal discountPrice,
         Integer stock,
         String imageUrl,
         String category,
+        Boolean featured,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -24,9 +26,11 @@ public record ProductResponse(
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
+                product.getDiscountPrice(),
                 product.getStock(),
                 product.getImageUrl(),
                 product.getCategory(),
+                product.getFeatured(),
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );

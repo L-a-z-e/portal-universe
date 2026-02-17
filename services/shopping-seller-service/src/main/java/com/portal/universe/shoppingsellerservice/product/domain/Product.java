@@ -33,6 +33,9 @@ public class Product {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "discount_price", precision = 19, scale = 2)
+    private BigDecimal discountPrice;
+
     @Column(nullable = false)
     private Integer stock;
 
@@ -40,6 +43,9 @@ public class Product {
     private String imageUrl;
 
     private String category;
+
+    @Column(nullable = false)
+    private Boolean featured = false;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -51,14 +57,17 @@ public class Product {
 
     @Builder
     public Product(Long sellerId, String name, String description, BigDecimal price,
-                   Integer stock, String imageUrl, String category) {
+                   BigDecimal discountPrice, Integer stock, String imageUrl, String category,
+                   Boolean featured) {
         this.sellerId = sellerId;
         this.name = name;
         this.description = description;
         this.price = price;
+        this.discountPrice = discountPrice;
         this.stock = stock;
         this.imageUrl = imageUrl;
         this.category = category;
+        this.featured = featured != null ? featured : false;
     }
 
     public void update(String name, String description, BigDecimal price,
@@ -69,5 +78,13 @@ public class Product {
         this.stock = stock;
         this.imageUrl = imageUrl;
         this.category = category;
+    }
+
+    public void updateDiscountPrice(BigDecimal discountPrice) {
+        this.discountPrice = discountPrice;
+    }
+
+    public void updateFeatured(Boolean featured) {
+        this.featured = featured;
     }
 }

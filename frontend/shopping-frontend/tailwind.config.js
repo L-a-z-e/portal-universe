@@ -11,5 +11,15 @@ export default {
     "../design-core/src/styles/**/*.css",
     "../design-react/src/**/*.{js,ts,jsx,tsx}",
   ],
+  theme: {
+    extend: {
+      colors: {
+        accent: {
+          seafoam: 'var(--color-accent-seafoam, #cbf3f0)',
+          teal: 'var(--color-accent-teal, #2ec4b6)',
+        },
+      },
+    },
+  },
   plugins: [],
 }

@@ -16,6 +16,11 @@ public interface ProductService {
     Page<ProductResponse> getAllProducts(Pageable pageable);
 
     /**
+     * 카테고리별 상품 목록을 조회합니다.
+     */
+    Page<ProductResponse> getProductsByCategory(String category, Pageable pageable);
+
+    /**
      * 새로운 상품을 생성합니다.
      * @param request 생성할 상품 정보 DTO
      * @return 생성된 상품 정보 DTO

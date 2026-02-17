@@ -2,7 +2,7 @@
 
 **Database**: MySQL 8.0 (shopping_db) + Elasticsearch + Redis
 **Entity Count**: 11 (10 JPA + 1 Elasticsearch Document)
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-02-17
 
 > **서비스 분해 (2026-02-14)**: Product, Inventory, StockMovement, Seller는 `shopping_seller_db`로 이전되었습니다.
 > Coupon, TimeDeal, WaitingQueue도 `shopping_seller_db`로 이전되었으며, 이 서비스에는 UserCoupon, TimeDealPurchase, QueueEntry만 유지됩니다.
@@ -19,6 +19,16 @@ erDiagram
         Long sellerId FK
         String name
         BigDecimal price
+        BigDecimal discountPrice
+        Boolean featured
+    }
+
+    ProductImage["ProductImage<br/>(seller_db)"] {
+        Long id PK
+        Long productId FK
+        String imageUrl
+        Integer sortOrder
+        String altText
     }
 
     Inventory["Inventory<br/>(seller_db)"] {
@@ -195,6 +205,9 @@ erDiagram
     Order ||--o| SagaState : tracks
     Delivery ||--o{ DeliveryHistory : has
 
+    %% shopping_seller_db 내부 관계
+    Product ||--o{ ProductImage : has
+
     %% shopping_db -> shopping_seller_db 참조 (ID만)
     CartItem }o..|| Product : "references (ID)"
     OrderItem }o..|| Product : "references (ID)"
@@ -232,7 +245,8 @@ erDiagram
 
 | Entity | 설명 | 이전일 | 위치 |
 |--------|------|--------|------|
-| Product | 상품 정보 | 2026-02-14 | shopping_seller_db |
+| Product | 상품 정보 (discountPrice, featured 추가) | 2026-02-14 | shopping_seller_db |
+| ProductImage | 상품 다중 이미지 | 2026-02-17 (신규) | shopping_seller_db |
 | Inventory | 재고 | 2026-02-14 | shopping_seller_db |
 | StockMovement | 재고 이동 이력 | 2026-02-14 | shopping_seller_db |
 | Coupon | 쿠폰 | 2026-02-14 | shopping_seller_db |
@@ -327,5 +341,6 @@ erDiagram
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-17 | Product 확장: discountPrice, featured 필드 추가, ProductImage 테이블 신규 (V2 migration) | Laze |
 | 2026-02-14 | 서비스 분해: Product, Inventory, Coupon, TimeDeal, WaitingQueue를 shopping_seller_db로 이전 | Laze |
 | 2026-02-06 | 초기 문서 작성 | Laze |
