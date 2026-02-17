@@ -61,4 +61,19 @@ public class MembershipTier {
         this.sortOrder = sortOrder;
         this.active = true;
     }
+
+    public void updateInfo(String displayName, BigDecimal priceMonthly, BigDecimal priceYearly, int sortOrder) {
+        this.displayName = displayName;
+        this.priceMonthly = priceMonthly;
+        this.priceYearly = priceYearly;
+        this.sortOrder = sortOrder;
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
 }
