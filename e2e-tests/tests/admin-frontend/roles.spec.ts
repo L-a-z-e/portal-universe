@@ -92,4 +92,62 @@ test.describe('Admin Role Management', () => {
       .isVisible({ timeout: 1000 }).catch(() => false)
     expect(hasPerms || noPerms).toBeTruthy()
   })
+
+  test('should show default memberships section for selected role', async ({ page }) => {
+    await expect(page.locator('h1:has-text("Roles")')).toBeVisible({ timeout: 15000 })
+    await page.locator('.w-80 [class*="cursor-pointer"]').first().click()
+    await page.waitForTimeout(2000)
+
+    // Default Memberships section should be visible
+    await expect(page.getByText('Default Memberships')).toBeVisible({ timeout: 10000 })
+    // Should show mapping tags or empty message
+    const hasMappings = await page.locator('text=→').first()
+      .isVisible({ timeout: 3000 }).catch(() => false)
+    const noMappings = await page.getByText('No default membership mappings')
+      .isVisible({ timeout: 1000 }).catch(() => false)
+    expect(hasMappings || noMappings).toBeTruthy()
+  })
+
+  test('should navigate to role by clicking DAG node', async ({ page }) => {
+    await expect(page.locator('h1:has-text("Roles")')).toBeVisible({ timeout: 15000 })
+    await page.locator('.w-80 [class*="cursor-pointer"]').first().click()
+    await page.waitForTimeout(2000)
+
+    // Expand DAG if collapsed
+    const dagHeader = page.getByText('Role Hierarchy (DAG)')
+    await expect(dagHeader).toBeVisible({ timeout: 10000 })
+
+    const svg = page.locator('[data-testid="role-dag-svg"]')
+    if (!(await svg.isVisible({ timeout: 3000 }).catch(() => false))) {
+      // DAG may be collapsed or have no data — skip
+      test.skip()
+      return
+    }
+
+    // Get the current selected role key from detail header
+    const currentRoleKey = await page.locator('.font-mono.text-xs.text-text-meta').first().textContent()
+
+    // Click a different node in the DAG
+    const nodes = svg.locator('g.cursor-pointer')
+    const nodeCount = await nodes.count()
+    if (nodeCount < 2) {
+      test.skip()
+      return
+    }
+
+    // Find a node that is not the currently selected one
+    for (let i = 0; i < nodeCount; i++) {
+      const nodeText = await nodes.nth(i).locator('text').textContent()
+      if (nodeText && nodeText !== currentRoleKey?.trim()) {
+        await nodes.nth(i).click()
+        await page.waitForTimeout(2000)
+        // Detail panel should now show a different role
+        const newRoleKey = await page.locator('.font-mono.text-xs.text-text-meta').first().textContent()
+        expect(newRoleKey?.trim()).not.toBe(currentRoleKey?.trim())
+        return
+      }
+    }
+    // Only one unique node — can't test navigation
+    test.skip()
+  })
 })
