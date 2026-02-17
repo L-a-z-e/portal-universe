@@ -30,8 +30,7 @@ const placementClasses = {
 };
 
 const menuClasses = computed(() => [
-  'absolute z-50 py-1 bg-white border border-border-default rounded-lg shadow-lg',
-  'dark:bg-gray-800 dark:border-gray-600',
+  'absolute z-50 py-1 bg-bg-elevated border border-border-default rounded-lg shadow-lg',
   placementClasses[props.placement],
 ]);
 
@@ -168,7 +167,7 @@ onUnmounted(() => {
       <slot name="trigger">
         <button
           type="button"
-          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-text-body bg-white border border-border-default rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-text-body bg-bg-elevated border border-border-default rounded-lg hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
         >
           Options
           <svg
@@ -204,7 +203,7 @@ onUnmounted(() => {
           <!-- Divider -->
           <div
             v-if="item.divider"
-            class="my-1 border-t border-border-default dark:border-gray-600"
+            class="my-1 border-t border-border-default"
             role="separator"
           />
           <!-- Menu item -->
@@ -218,8 +217,8 @@ onUnmounted(() => {
               item.disabled
                 ? 'text-text-muted cursor-not-allowed'
                 : getItemIndex(item) === highlightedIndex
-                  ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                  : 'text-text-body hover:bg-gray-50 dark:hover:bg-gray-700',
+                  ? 'bg-bg-hover text-brand-primary'
+                  : 'text-text-body hover:bg-bg-hover',
             ]"
             @click="selectItem(item)"
             @mouseenter="highlightedIndex = getItemIndex(item)"

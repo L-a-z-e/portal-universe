@@ -407,15 +407,13 @@ onBeforeUnmount(() => {
 
       <!-- Post Grid -->
       <div v-else>
-        <!-- ✅ 수정: 반응형 그리드 브레이크포인트 명확화 -->
         <!--
-          sm (640px):  1열
+          sm (640px):  2열
           md (768px):  2열
           lg (1024px): 3열
           xl (1280px): 4열
-          2xl (1536px): 5열
         -->
-        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <PostCard
               v-for="post in displayPosts"
               :key="post.id"

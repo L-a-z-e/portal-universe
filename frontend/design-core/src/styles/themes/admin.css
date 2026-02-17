@@ -1,0 +1,58 @@
+/* ============================================
+   Admin Service Theme Component Styles
+   ============================================
+   NOTE: Color definitions are now auto-generated
+   by build-tokens.js from themes/admin.json
+   ============================================ */
+
+/* Admin-specific components */
+[data-service="admin"] {
+    /* Data table */
+    .admin-table {
+        @apply w-full border-collapse;
+    }
+
+    .admin-table th {
+        @apply bg-bg-muted text-text-heading font-semibold text-left;
+        @apply px-4 py-3 text-sm;
+        @apply border-b border-border-default;
+    }
+
+    .admin-table td {
+        @apply px-4 py-3 text-sm;
+        @apply border-b border-border-muted;
+    }
+
+    .admin-table tr:hover td {
+        @apply bg-bg-hover;
+    }
+
+    /* Stats card */
+    .stat-card {
+        @apply bg-bg-card border border-border-default rounded-lg p-4;
+    }
+
+    .stat-value {
+        @apply text-2xl font-bold text-text-heading;
+    }
+
+    .stat-label {
+        @apply text-sm text-text-meta mt-1;
+    }
+
+    /* Navigation sidebar */
+    .admin-nav-item {
+        @apply flex items-center gap-3 px-3 py-2 rounded-md;
+        @apply text-text-body text-sm;
+        @apply transition-colors;
+    }
+
+    .admin-nav-item:hover {
+        @apply bg-bg-hover text-text-heading;
+    }
+
+    .admin-nav-item.active {
+        @apply bg-bg-muted text-text-heading;
+        color: var(--semantic-brand-primary);
+    }
+}

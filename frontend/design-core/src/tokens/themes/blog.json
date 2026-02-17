@@ -72,8 +72,8 @@
         "$type": "color"
       },
       "muted": {
-        "$value": "{color.green.50}",
-        "$description": "Blog light mode muted background - green tint",
+        "$value": "{color.gray.50}",
+        "$description": "Blog light mode muted background - neutral",
         "$type": "color"
       },
       "hover": {

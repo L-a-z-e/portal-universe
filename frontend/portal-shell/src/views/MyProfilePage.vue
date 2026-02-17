@@ -131,7 +131,7 @@ const socialProviderInfo = computed(() => {
       case 'KAKAO':
         return { name: 'Kakao', icon: '🟡', color: 'bg-yellow-500' };
       default:
-        return { name: provider, icon: '🔗', color: 'bg-gray-500' };
+        return { name: provider, icon: '🔗', color: 'bg-text-muted' };
     }
   });
 });

@@ -3,12 +3,12 @@
   "color": {
     "brand": {
       "primary": {
-        "$value": "#FF6B35",
-        "$description": "Shopping brand primary - Warm Orange (Shopify recommended)",
+        "$value": "{color.orange.500}",
+        "$description": "Shopping brand primary - Orange accent",
         "$type": "color"
       },
       "primaryHover": {
-        "$value": "#E55A2B",
+        "$value": "{color.orange.600}",
         "$description": "Shopping brand primary hover",
         "$type": "color"
       },
@@ -72,12 +72,12 @@
         "$type": "color"
       },
       "muted": {
-        "$value": "{color.orange.50}",
-        "$description": "Shopping light mode muted background - orange tint",
+        "$value": "{color.gray.50}",
+        "$description": "Shopping light mode muted background - neutral",
         "$type": "color"
       },
       "hover": {
-        "$value": "{color.orange.50}",
+        "$value": "{color.gray.100}",
         "$description": "Shopping light mode hover background",
         "$type": "color"
       }
@@ -89,13 +89,13 @@
         "$type": "color"
       },
       "hover": {
-        "$value": "{color.orange.300}",
-        "$description": "Shopping light mode hover border - orange",
+        "$value": "{color.gray.300}",
+        "$description": "Shopping light mode hover border",
         "$type": "color"
       },
       "focus": {
-        "$value": "{color.orange.600}",
-        "$description": "Shopping light mode focus border - orange",
+        "$value": "{color.orange.500}",
+        "$description": "Shopping light mode focus border - accent",
         "$type": "color"
       },
       "muted": {

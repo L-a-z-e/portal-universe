@@ -2,16 +2,16 @@
   "color": {
     "brand": {
       "primary": {
-        "$value": "{color.indigo.400}",
+        "$value": "{color.nightfall.300}",
         "$type": "color",
-        "$description": "Primary brand color - Linear indigo"
+        "$description": "Primary brand color - Vivid Nightfall purple"
       },
       "primaryHover": {
-        "$value": "{color.indigo.300}",
+        "$value": "{color.nightfall.200}",
         "$type": "color"
       },
       "secondary": {
-        "$value": "{color.indigo.200}",
+        "$value": "{color.nightfall.100}",
         "$type": "color"
       }
     },
@@ -42,12 +42,12 @@
         "$description": "Text on light backgrounds"
       },
       "link": {
-        "$value": "{color.indigo.400}",
+        "$value": "{color.nightfall.300}",
         "$type": "color",
         "$description": "Hyperlinks - brand color"
       },
       "linkHover": {
-        "$value": "{color.indigo.300}",
+        "$value": "{color.nightfall.200}",
         "$type": "color"
       }
     },
@@ -76,6 +76,16 @@
         "$value": "{color.linear.700}",
         "$type": "color",
         "$description": "Interactive element hover"
+      },
+      "overlay": {
+        "$value": "rgba(0, 0, 0, 0.6)",
+        "$type": "color",
+        "$description": "Modal/dialog backdrop overlay"
+      },
+      "sidebar": {
+        "$value": "#0e0f11",
+        "$type": "color",
+        "$description": "Sidebar background"
       }
     },
     "border": {
@@ -89,7 +99,7 @@
         "$type": "color"
       },
       "focus": {
-        "$value": "{color.indigo.400}",
+        "$value": "{color.nightfall.300}",
         "$type": "color",
         "$description": "Focus state border - brand color"
       },

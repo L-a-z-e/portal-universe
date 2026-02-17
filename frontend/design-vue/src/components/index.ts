@@ -31,3 +31,15 @@ export * from './Alert';
 export * from './Spinner';
 export * from './Skeleton';
 export * from './Toast';
+export * from './Progress';
+
+// Data Display components
+export * from './Table';
+export * from './Tooltip';
+export * from './Pagination';
+
+// Overlay components
+export * from './Popover';
+
+// Error Handling
+export * from './ErrorBoundary';

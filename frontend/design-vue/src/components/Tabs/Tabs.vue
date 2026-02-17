@@ -20,7 +20,7 @@ const containerClasses = computed(() => {
   if (props.variant === 'default') {
     base.push('border-b border-border-default');
   } else if (props.variant === 'pills') {
-    base.push('gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-800');
+    base.push('gap-1 p-1 bg-bg-muted rounded-lg');
   } else if (props.variant === 'underline') {
     base.push('border-b-2 border-border-default');
   }
@@ -36,7 +36,7 @@ const getTabClasses = (tab: TabItem) => {
   const isActive = props.modelValue === tab.value;
   const base = [
     'relative inline-flex items-center justify-center font-medium transition-all duration-200',
-    'focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:ring-offset-2',
+    'focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:ring-offset-2',
     tabsSizes[props.size],
   ];
 
@@ -53,20 +53,20 @@ const getTabClasses = (tab: TabItem) => {
   if (props.variant === 'default') {
     base.push(
       isActive
-        ? 'text-brand-600 border-b-2 border-brand-600 -mb-px dark:text-brand-400 dark:border-brand-400'
+        ? 'text-brand-primary border-b-2 border-brand-primary -mb-px'
         : 'text-text-muted hover:text-text-body border-b-2 border-transparent -mb-px'
     );
   } else if (props.variant === 'pills') {
     base.push(
       'rounded-md',
       isActive
-        ? 'bg-white text-brand-600 shadow-sm dark:bg-gray-700 dark:text-brand-400'
-        : 'text-text-muted hover:text-text-body'
+        ? 'bg-bg-elevated text-text-heading shadow-sm'
+        : 'text-text-muted hover:text-text-body hover:bg-bg-hover'
     );
   } else if (props.variant === 'underline') {
     base.push(
       isActive
-        ? 'text-brand-600 border-b-2 border-brand-600 -mb-0.5 dark:text-brand-400 dark:border-brand-400'
+        ? 'text-brand-primary border-b-2 border-brand-primary -mb-0.5'
         : 'text-text-muted hover:text-text-body border-b-2 border-transparent -mb-0.5'
     );
   }

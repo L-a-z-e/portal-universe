@@ -7,6 +7,7 @@ import { useWebSocket } from "./composables/useWebSocket.ts";
 import { onMounted, onBeforeUnmount, watch, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
+import TopBar from "./components/TopBar.vue";
 import QuickActions from "./components/QuickActions.vue";
 import LoginModal from "./components/LoginModal.vue";
 import ChatWidget from "./components/chat/ChatWidget.vue";
@@ -43,7 +44,7 @@ const handleStorageChange = (e: StorageEvent) => {
 
 // Computed class for main content margin
 const mainClass = computed(() => ({
-  'lg:ml-64': !sidebarCollapsed.value,
+  'lg:ml-72': !sidebarCollapsed.value,
   'lg:ml-16': sidebarCollapsed.value,
   'pt-14 lg:pt-0': true, // Mobile header offset
 }));
@@ -143,6 +144,9 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
     <div
       :class="['min-h-screen flex flex-col transition-all duration-300', mainClass]"
     >
+      <!-- TopBar -->
+      <TopBar @open-search="showQuickActions = true" />
+
       <!-- Main Content -->
       <main class="flex-1">
         <Suspense>

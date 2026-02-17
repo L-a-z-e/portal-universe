@@ -67,10 +67,10 @@ const getTagColor = (tagName: string): string => {
     'text-green-600 hover:text-green-700',
     'text-purple-600 hover:text-purple-700',
     'text-pink-600 hover:text-pink-700',
-    'text-indigo-600 hover:text-indigo-700',
+    'text-violet-600 hover:text-violet-700',
     'text-red-600 hover:text-red-700',
     'text-orange-600 hover:text-orange-700',
-    'text-teal-600 hover:text-teal-700',
+    'text-cyan-600 hover:text-cyan-700',
   ];
 
   let hash = 0;

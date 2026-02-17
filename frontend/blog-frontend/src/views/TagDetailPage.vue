@@ -44,10 +44,10 @@ const tagColor = computed(() => {
     'bg-green-500',
     'bg-purple-500',
     'bg-pink-500',
-    'bg-indigo-500',
+    'bg-violet-500',
     'bg-red-500',
     'bg-orange-500',
-    'bg-teal-500',
+    'bg-cyan-500',
   ];
 
   let hash = 0;
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
 
       <!-- Post Grid -->
       <div v-else>
-        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <PostCard
             v-for="post in posts"
             :key="post.id"

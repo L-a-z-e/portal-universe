@@ -1,19 +1,19 @@
 {
-  "$description": "Prism service theme - Blue-Indigo branding for AI orchestration with unified dark mode",
+  "$description": "Prism service theme - Violet branding for AI orchestration with unified dark mode",
   "color": {
     "brand": {
       "primary": {
-        "$value": "#4F46E5",
-        "$description": "Prism brand primary - Indigo (AI/Tech feel)",
+        "$value": "{color.violet.500}",
+        "$description": "Prism brand primary - Violet accent",
         "$type": "color"
       },
       "primaryHover": {
-        "$value": "#4338CA",
+        "$value": "{color.violet.600}",
         "$description": "Prism brand primary hover",
         "$type": "color"
       },
       "secondary": {
-        "$value": "#6366F1",
+        "$value": "{color.violet.400}",
         "$description": "Prism brand secondary",
         "$type": "color"
       }
@@ -45,12 +45,12 @@
         "$type": "color"
       },
       "link": {
-        "$value": "#4F46E5",
+        "$value": "{color.violet.500}",
         "$description": "Prism light mode link text",
         "$type": "color"
       },
       "linkHover": {
-        "$value": "#4338CA",
+        "$value": "{color.violet.600}",
         "$description": "Prism light mode link hover text",
         "$type": "color"
       }
@@ -72,12 +72,12 @@
         "$type": "color"
       },
       "muted": {
-        "$value": "#EEF2FF",
-        "$description": "Prism light mode muted background - indigo tint",
+        "$value": "{color.gray.50}",
+        "$description": "Prism light mode muted background - neutral",
         "$type": "color"
       },
       "hover": {
-        "$value": "#E0E7FF",
+        "$value": "{color.gray.100}",
         "$description": "Prism light mode hover background",
         "$type": "color"
       }
@@ -89,13 +89,13 @@
         "$type": "color"
       },
       "hover": {
-        "$value": "#818CF8",
-        "$description": "Prism light mode hover border - indigo",
+        "$value": "{color.gray.300}",
+        "$description": "Prism light mode hover border",
         "$type": "color"
       },
       "focus": {
-        "$value": "#4F46E5",
-        "$description": "Prism light mode focus border - indigo",
+        "$value": "{color.violet.500}",
+        "$description": "Prism light mode focus border - accent",
         "$type": "color"
       },
       "muted": {

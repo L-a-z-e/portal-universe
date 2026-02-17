@@ -1,55 +1,85 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { TextareaProps } from './Input.types';
 
 const props = withDefaults(defineProps<TextareaProps>(), {
   modelValue: '',
-  placeholder: '',
+  rows: 4,
+  resize: 'vertical',
+  size: 'md',
   disabled: false,
   error: false,
-  errorMessage: '',
-  label: '',
   required: false,
-  rows: 5
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string];
 }>();
 
-function handleInput(event: Event) {
+const sizeClasses: Record<string, string> = {
+  sm: 'px-3 py-2 text-sm',
+  md: 'px-3 py-2.5 text-base',
+  lg: 'px-4 py-3 text-lg',
+};
+
+const resizeClasses: Record<string, string> = {
+  none: 'resize-none',
+  vertical: 'resize-y',
+  horizontal: 'resize-x',
+  both: 'resize',
+};
+
+const inputId = computed(() => props.id || `textarea-${Math.random().toString(36).slice(2, 9)}`);
+
+const handleInput = (event: Event) => {
   const target = event.target as HTMLTextAreaElement;
   emit('update:modelValue', target.value);
-}
+};
 </script>
 
 <template>
-  <div class="textarea-wrapper">
-    <!-- Label -->
-    <label v-if="label" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+  <div class="w-full">
+    <label
+      v-if="label"
+      :for="inputId"
+      :class="[
+        'block mb-1.5 text-sm font-medium text-text-body',
+        disabled && 'opacity-50',
+      ]"
+    >
       {{ label }}
-      <span v-if="required" class="text-red-500">*</span>
+      <span v-if="required" class="text-status-error ml-0.5">*</span>
     </label>
 
-    <!-- Textarea -->
     <textarea
-        :value="modelValue"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :rows="rows"
-        @input="handleInput"
-        :class="[
-        'w-full px-4 py-2 border rounded-lg transition-all duration-200',
-        'focus:outline-none focus:ring-2 resize-vertical',
-        'dark:bg-gray-800 dark:text-gray-100',
+      :id="inputId"
+      :value="modelValue"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :rows="rows"
+      :required="required"
+      :name="name"
+      :aria-invalid="error || undefined"
+      :aria-describedby="error && errorMessage ? `${inputId}-error` : undefined"
+      :class="[
+        'w-full rounded-md border bg-bg-card text-text-body placeholder:text-text-muted',
+        'transition-all duration-150',
+        'focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent',
+        sizeClasses[size],
+        resizeClasses[resize],
         error
-          ? 'border-red-500 focus:ring-red-500/20'
-          : 'border-gray-300 focus:ring-brand-500/20 focus:border-brand-500 dark:border-gray-600 dark:focus:border-brand-500',
-        disabled && 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-60'
+          ? 'border-status-error focus:ring-status-error'
+          : 'border-border-default hover:border-border-hover',
+        disabled && 'opacity-50 cursor-not-allowed bg-bg-muted',
       ]"
+      @input="handleInput"
     />
 
-    <!-- Error Message -->
-    <p v-if="error && errorMessage" class="mt-1 text-sm text-red-600 dark:text-red-400">
+    <p
+      v-if="error && errorMessage"
+      :id="`${inputId}-error`"
+      class="mt-1.5 text-sm text-status-error"
+    >
       {{ errorMessage }}
     </p>
   </div>

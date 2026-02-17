@@ -3,6 +3,7 @@ import { Button, Badge } from '@portal/design-vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import DashboardPage from './DashboardPage.vue';
+import MaterialIcon from '../components/MaterialIcon.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -12,7 +13,7 @@ const services = [
     id: 1,
     title: 'Blog',
     desc: '생각을 기록하고 공유하세요',
-    icon: '✍️',
+    icon: 'article',
     link: '/blog',
     gradient: 'from-brand-primary to-brand-primaryHover'
   },
@@ -20,24 +21,24 @@ const services = [
     id: 2,
     title: 'Shopping',
     desc: '원하는 상품을 찾아보세요',
-    icon: '🛒',
+    icon: 'shopping_cart',
     link: '/shopping',
     gradient: 'from-status-info to-status-info'
   },
   {
     id: 3,
-    title: 'Notes',
-    desc: '메모와 아이디어를 정리하세요',
-    icon: '📝',
-    link: '#',
+    title: 'Prism',
+    desc: 'AI 에이전트와 대화하세요',
+    icon: 'smart_toy',
+    link: '/prism',
     gradient: 'from-brand-primary to-status-info'
   },
   {
     id: 4,
-    title: 'Gallery',
-    desc: '소중한 순간을 저장하세요',
-    icon: '📸',
-    link: '#',
+    title: 'Drive',
+    desc: '파일을 안전하게 관리하세요',
+    icon: 'cloud_upload',
+    link: '/drive',
     gradient: 'from-status-info to-brand-primary'
   }
 ];
@@ -47,19 +48,19 @@ const features = [
     id: 1,
     title: '통합 인증',
     desc: '하나의 계정으로 모든 서비스 이용',
-    icon: '🔐'
+    icon: 'lock'
   },
   {
     id: 2,
     title: '실시간 동기화',
     desc: '모든 디바이스에서 즉시 동기화',
-    icon: '🔄'
+    icon: 'sync'
   },
   {
     id: 3,
     title: '안전한 저장',
     desc: '엔드투엔드 암호화로 데이터 보호',
-    icon: '🛡️'
+    icon: 'shield'
   }
 ];
 
@@ -159,7 +160,9 @@ function handleStartClick() {
             class="group relative overflow-hidden rounded-xl p-6 bg-bg-card border border-border-default hover:border-brand-primary/50 transition-all duration-normal cursor-pointer"
         >
           <div class="relative z-10">
-            <div class="text-4xl mb-4">{{ service.icon }}</div>
+            <div class="mb-4">
+              <MaterialIcon :name="service.icon" :size="36" class="text-brand-primary" />
+            </div>
             <h3 class="text-lg font-semibold text-text-heading mb-1">{{ service.title }}</h3>
             <p class="text-text-meta text-sm">{{ service.desc }}</p>
           </div>
@@ -188,7 +191,9 @@ function handleStartClick() {
             :key="feature.id"
             class="group p-6 rounded-xl bg-bg-card border border-border-default hover:border-brand-primary/30 transition-all duration-normal"
         >
-          <div class="text-3xl mb-4">{{ feature.icon }}</div>
+          <div class="mb-4">
+            <MaterialIcon :name="feature.icon" :size="32" class="text-brand-primary" />
+          </div>
           <h3 class="text-lg font-semibold text-text-heading mb-2">{{ feature.title }}</h3>
           <p class="text-text-meta text-sm">{{ feature.desc }}</p>
         </div>
@@ -215,8 +220,8 @@ function handleStartClick() {
             :key="post.id"
             class="group bg-bg-card rounded-xl overflow-hidden border border-border-default hover:border-brand-primary/30 transition-all duration-normal cursor-pointer"
         >
-          <div class="h-40 bg-gradient-to-br from-bg-elevated to-bg-card flex items-center justify-center text-5xl">
-            📄
+          <div class="h-40 bg-gradient-to-br from-bg-elevated to-bg-card flex items-center justify-center">
+            <MaterialIcon name="description" :size="48" class="text-text-muted" />
           </div>
 
           <div class="p-5">

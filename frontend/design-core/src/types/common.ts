@@ -22,7 +22,7 @@ export type StatusVariant = 'info' | 'success' | 'warning' | 'error';
 export type TagVariant = 'default' | 'primary' | 'success' | 'error' | 'warning' | 'info';
 
 // Card variants
-export type CardVariant = 'elevated' | 'outlined' | 'flat' | 'glass' | 'interactive';
+export type CardVariant = 'elevated' | 'outlined' | 'flat' | 'glass' | 'interactive' | 'glassStats';
 
 // Padding options
 export type PaddingSize = 'none' | 'sm' | 'md' | 'lg' | 'xl';

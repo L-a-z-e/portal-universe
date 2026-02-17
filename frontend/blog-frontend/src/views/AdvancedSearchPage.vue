@@ -338,7 +338,7 @@ onBeforeUnmount(() => {
       <!-- 검색 결과 -->
       <div v-else-if="results.length > 0">
         <div
-          class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
+          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
         >
           <PostCard v-for="post in results" :key="post.id" :post="post" @click="goToPost" />
         </div>
