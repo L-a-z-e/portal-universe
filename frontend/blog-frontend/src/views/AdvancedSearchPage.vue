@@ -187,15 +187,12 @@ onBeforeUnmount(() => {
     <div class="max-w-3xl mx-auto px-6 py-8">
       <!-- Header -->
       <header class="mb-8">
-        <button
-          @click="goBack"
-          class="text-sm text-text-meta hover:text-text-heading transition-colors mb-4 inline-flex items-center gap-1"
-        >
+        <Button variant="ghost" size="sm" @click="goBack" class="mb-4">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
           뒤로가기
-        </button>
+        </Button>
         <h1 class="text-2xl font-bold text-text-heading mb-1">고급 검색</h1>
         <p class="text-sm text-text-meta">
           {{ hasSearched ? `${totalElements}개의 검색 결과` : '다양한 조건으로 게시글을 검색하세요' }}
@@ -238,11 +235,11 @@ onBeforeUnmount(() => {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label for="startDate" class="block text-sm font-medium text-text-heading mb-2">시작일</label>
-              <input id="startDate" v-model="startDate" type="date" class="w-full px-3 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent" />
+              <Input id="startDate" v-model="startDate" type="date" class="w-full" />
             </div>
             <div>
               <label for="endDate" class="block text-sm font-medium text-text-heading mb-2">종료일</label>
-              <input id="endDate" v-model="endDate" type="date" class="w-full px-3 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent" />
+              <Input id="endDate" v-model="endDate" type="date" class="w-full" />
             </div>
           </div>
 
@@ -261,7 +258,7 @@ onBeforeUnmount(() => {
       <!-- Error -->
       <div v-if="error && !isLoading" class="text-center py-8 mb-8">
         <div class="text-status-error font-semibold mb-2">{{ error }}</div>
-        <button class="text-sm text-brand-primary hover:underline" @click="handleSearch(1, false)">다시 시도</button>
+        <Button variant="ghost" size="sm" @click="handleSearch(1, false)">다시 시도</Button>
       </div>
 
       <!-- Loading (초기) -->
@@ -273,7 +270,7 @@ onBeforeUnmount(() => {
       <div v-else-if="isEmpty" class="text-center py-20">
         <h3 class="text-lg font-semibold text-text-heading mb-2">검색 결과가 없습니다</h3>
         <p class="text-text-meta text-sm mb-4">다른 검색 조건을 시도해보세요.</p>
-        <button class="text-sm text-brand-primary hover:underline" @click="resetSearch">검색 조건 초기화</button>
+        <Button variant="ghost" size="sm" @click="resetSearch">검색 조건 초기화</Button>
       </div>
 
       <!-- 검색 결과 -->
