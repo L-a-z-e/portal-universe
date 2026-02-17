@@ -1,9 +1,13 @@
 package com.portal.universe.authservice.auth.service;
 
-import com.portal.universe.authservice.auth.domain.*;
-import com.portal.universe.authservice.auth.repository.*;
+import com.portal.universe.authservice.auth.domain.RoleEntity;
+import com.portal.universe.authservice.auth.domain.UserRole;
+import com.portal.universe.authservice.auth.repository.RoleEntityRepository;
+import com.portal.universe.authservice.auth.repository.UserRoleRepository;
+import com.portal.universe.event.auth.RoleAssignedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,8 +18,7 @@ public class RbacInitializationService {
 
     private final RoleEntityRepository roleEntityRepository;
     private final UserRoleRepository userRoleRepository;
-    private final MembershipTierRepository membershipTierRepository;
-    private final UserMembershipRepository userMembershipRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void initializeNewUser(String userId) {
@@ -25,7 +28,6 @@ public class RbacInitializationService {
         }
 
         assignDefaultRole(userId);
-        createDefaultMemberships(userId);
 
         log.info("RBAC initialized for new user: {}", userId);
     }
@@ -39,26 +41,8 @@ public class RbacInitializationService {
                 .role(userRole)
                 .assignedBy("SYSTEM_REGISTRATION")
                 .build());
-    }
 
-    private void createDefaultMemberships(String userId) {
-        createMembershipIfAbsent(userId, MembershipGroupConstants.USER_BLOG);
-        createMembershipIfAbsent(userId, MembershipGroupConstants.USER_SHOPPING);
-    }
-
-    private void createMembershipIfAbsent(String userId, String membershipGroup) {
-        if (userMembershipRepository.existsByUserIdAndMembershipGroup(userId, membershipGroup)) {
-            return;
-        }
-
-        MembershipTier freeTier = membershipTierRepository.findByMembershipGroupAndTierKey(membershipGroup, "FREE")
-                .orElseThrow(() -> new IllegalStateException(
-                        "Required membership tier FREE not found for group: " + membershipGroup
-                                + ". Ensure RBAC data is properly initialized."));
-        userMembershipRepository.save(UserMembership.builder()
-                .userId(userId)
-                .membershipGroup(membershipGroup)
-                .tier(freeTier)
-                .build());
+        // 역할 할당 이벤트 → MembershipAutoAssignHandler가 기본 멤버십 자동 생성
+        eventPublisher.publishEvent(RoleAssignedEvent.of(userId, "ROLE_USER", "SYSTEM_REGISTRATION"));
     }
 }

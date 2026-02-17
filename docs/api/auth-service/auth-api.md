@@ -15,6 +15,7 @@ related:
   - ADR-021-role-based-membership-restructure
   - ADR-015-role-hierarchy-implementation
   - ADR-044-role-multi-include-dag
+  - ADR-045-role-default-membership-mapping
 ---
 
 # Auth Service API
@@ -2312,6 +2313,170 @@ Content-Type: application/json
 
 ---
 
+### 8.4. Role Default Mapping 전체 조회 (GET `/api/v1/admin/memberships/role-defaults`)
+
+역할 할당 시 자동 부여될 기본 멤버십 매핑 목록을 전체 조회합니다.
+
+**Request**
+```http
+GET /api/v1/admin/memberships/role-defaults
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": [
+    { "id": 1, "roleKey": "ROLE_USER", "membershipGroup": "user:blog", "defaultTierKey": "FREE" },
+    { "id": 2, "roleKey": "ROLE_USER", "membershipGroup": "user:shopping", "defaultTierKey": "FREE" },
+    { "id": 3, "roleKey": "ROLE_SHOPPING_SELLER", "membershipGroup": "seller:shopping", "defaultTierKey": "BRONZE" }
+  ],
+  "error": null,
+  "timestamp": "2026-02-18T10:00:00Z"
+}
+```
+
+---
+
+### 8.5. Role Default Mapping 역할별 조회 (GET `/api/v1/admin/memberships/role-defaults/{roleKey}`)
+
+특정 역할에 대한 기본 멤버십 매핑 목록을 조회합니다.
+
+**Request**
+```http
+GET /api/v1/admin/memberships/role-defaults/ROLE_USER
+Authorization: Bearer {accessToken}
+```
+
+**Response**: 8.4와 동일한 구조 (해당 역할의 매핑만 필터링)
+
+---
+
+### 8.6. Role Default Mapping 추가 (POST `/api/v1/admin/memberships/role-defaults`)
+
+새 역할-멤버십 기본 매핑을 추가합니다.
+
+**Request**
+```http
+POST /api/v1/admin/memberships/role-defaults
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "roleKey": "ROLE_BLOG_ADMIN",
+  "membershipGroup": "user:blog",
+  "defaultTierKey": "PRO"
+}
+```
+
+**Request Body** (`RoleDefaultMappingRequest`)
+
+| 필드 | 타입 | 필수 | 제약조건 | 설명 |
+|------|------|------|----------|------|
+| `roleKey` | string | ✅ | @NotBlank @Size(max=50) | 역할 키 (존재 검증) |
+| `membershipGroup` | string | ✅ | @NotBlank @Size(max=50) | 멤버십 그룹 (포맷 검증) |
+| `defaultTierKey` | string | ✅ | @NotBlank @Size(max=50) | 기본 티어 키 (존재 검증) |
+
+**Response (200 OK)** (`RoleDefaultMappingResponse`)
+
+**Error Codes**: `A030` (ROLE_NOT_FOUND), `A036` (MEMBERSHIP_TIER_NOT_FOUND), `A048` (ROLE_DEFAULT_MAPPING_ALREADY_EXISTS)
+
+---
+
+### 8.7. Role Default Mapping 제거 (DELETE `/api/v1/admin/memberships/role-defaults/{roleKey}/{membershipGroup}`)
+
+역할-멤버십 기본 매핑을 제거합니다.
+
+**Request**
+```http
+DELETE /api/v1/admin/memberships/role-defaults/ROLE_USER/user:blog
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)**
+
+**Error Codes**: `A047` (ROLE_DEFAULT_MAPPING_NOT_FOUND)
+
+---
+
+### 8.8. Membership Tier 생성 (POST `/api/v1/admin/memberships/tiers`)
+
+새 멤버십 티어를 생성합니다.
+
+**Request**
+```http
+POST /api/v1/admin/memberships/tiers
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "membershipGroup": "user:blog",
+  "tierKey": "ENTERPRISE",
+  "displayName": "엔터프라이즈",
+  "priceMonthly": 99000,
+  "priceYearly": 990000,
+  "sortOrder": 5
+}
+```
+
+**Request Body** (`CreateMembershipTierRequest`)
+
+| 필드 | 타입 | 필수 | 제약조건 | 설명 |
+|------|------|------|----------|------|
+| `membershipGroup` | string | ✅ | @NotBlank @Size(max=50) | 멤버십 그룹 |
+| `tierKey` | string | ✅ | @NotBlank @Size(max=50) | 티어 키 |
+| `displayName` | string | ✅ | @NotBlank @Size(max=100) | 표시 이름 |
+| `priceMonthly` | decimal | ❌ | | 월간 가격 |
+| `priceYearly` | decimal | ❌ | | 연간 가격 |
+| `sortOrder` | integer | ✅ | @NotNull | 정렬 순서 |
+
+**Response (200 OK)** (`MembershipTierResponse`)
+
+**Error Codes**: `A050` (MEMBERSHIP_TIER_ALREADY_EXISTS)
+
+---
+
+### 8.9. Membership Tier 수정 (PUT `/api/v1/admin/memberships/tiers/{tierId}`)
+
+멤버십 티어의 표시 이름, 가격, 정렬 순서를 수정합니다.
+
+**Request**
+```http
+PUT /api/v1/admin/memberships/tiers/1
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "displayName": "프로 플러스",
+  "priceMonthly": 15000,
+  "priceYearly": 150000,
+  "sortOrder": 3
+}
+```
+
+**Response (200 OK)** (`MembershipTierResponse`)
+
+**Error Codes**: `A036` (MEMBERSHIP_TIER_NOT_FOUND)
+
+---
+
+### 8.10. Membership Tier 삭제 (DELETE `/api/v1/admin/memberships/tiers/{tierId}`)
+
+멤버십 티어를 삭제합니다. 사용 중인 사용자가 있으면 soft delete (비활성화), 없으면 hard delete.
+
+**Request**
+```http
+DELETE /api/v1/admin/memberships/tiers/5
+Authorization: Bearer {accessToken}
+```
+
+**Response (200 OK)**
+
+**Error Codes**: `A036` (MEMBERSHIP_TIER_NOT_FOUND)
+
+---
+
 ## 🛒 9. SellerController (`/api/v1/seller`)
 
 셀러(판매자) 신청 API.
@@ -2927,6 +3092,7 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 - [ADR-008: JWT Stateless + Redis](../../adr/ADR-008-jwt-stateless-redis.md)
 - [ADR-015: Role Hierarchy 구현](../../adr/ADR-015-role-hierarchy-implementation.md)
 - [ADR-021: 역할 기반 멤버십 재구조화](../../adr/ADR-021-role-based-membership-restructure.md)
+- [ADR-045: Role-Default Membership Mapping](../../adr/ADR-045-role-default-membership-mapping.md)
 - [Architecture Overview](../../architecture/auth-service/system-overview.md)
 
 ---
@@ -2938,6 +3104,16 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 
 ### v2.4.1 (2026-02-07)
 - 관련 문서 링크 수정 (존재하지 않는 ADR-006/009 → 실제 ADR-003/008/015/021)
+
+### v3.1.0 (2026-02-18)
+- **Role-Default Membership Mapping** (ADR-045): 역할 할당 시 멤버십 자동 생성
+- `role_default_memberships` 테이블 + Dual ApplicationEvent Handler
+- MembershipAdminController 7개 엔드포인트 추가 (Section 8.4~8.10):
+  - Role Default Mapping CRUD (4개): GET/POST/DELETE `/role-defaults`
+  - Tier CRUD (3개): POST/PUT/DELETE `/tiers`
+- Kafka topic `auth.role.assigned` 추가
+- RbacInitializationService, SellerApplicationService Clean Switch (하드코딩 멤버십 생성 제거)
+- Error Code A047~A050 추가
 
 ### v3.0.0 (2026-02-18)
 - **Role Multi-Include DAG 전환** (ADR-044): `parentRoleKey` 단일 FK → `includedRoleKeys` 다대다 DAG 구조
@@ -2995,4 +3171,4 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 
 ---
 
-**최종 업데이트**: 2026-02-07
+**최종 업데이트**: 2026-02-18

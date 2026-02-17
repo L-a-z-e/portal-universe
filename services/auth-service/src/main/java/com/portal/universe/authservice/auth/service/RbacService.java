@@ -7,8 +7,10 @@ import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.user.domain.UserStatus;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.auth.RoleAssignedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +45,7 @@ public class RbacService {
     private final AuthAuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
     private final SellerApplicationRepository sellerApplicationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final Pattern UUID_PATTERN =
             Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-.*");
@@ -372,6 +375,9 @@ public class RbacService {
         // 감사 로그
         logAudit(AuditEventType.ROLE_ASSIGNED, assignedBy, request.userId(),
                 "Role assigned: " + request.roleKey());
+
+        // 역할 할당 이벤트 발행 → 멤버십 자동 할당 + Kafka 발행
+        eventPublisher.publishEvent(RoleAssignedEvent.of(request.userId(), request.roleKey(), assignedBy));
 
         log.info("Role assigned: userId={}, role={}, by={}", request.userId(), request.roleKey(), assignedBy);
         return UserRoleResponse.from(saved);

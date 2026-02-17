@@ -5,8 +5,10 @@ import com.portal.universe.authservice.auth.dto.seller.*;
 import com.portal.universe.authservice.auth.repository.*;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.auth.RoleAssignedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,9 +28,8 @@ public class SellerApplicationService {
     private final SellerApplicationRepository sellerApplicationRepository;
     private final RoleEntityRepository roleEntityRepository;
     private final UserRoleRepository userRoleRepository;
-    private final MembershipTierRepository membershipTierRepository;
-    private final UserMembershipRepository userMembershipRepository;
     private final AuthAuditLogRepository auditLogRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 셀러 신청서를 제출합니다.
@@ -129,7 +130,6 @@ public class SellerApplicationService {
     }
 
     private void assignSellerRoleAndMembership(String userId, String assignedBy) {
-        // 1. ROLE_SHOPPING_SELLER 할당
         RoleEntity sellerRole = roleEntityRepository.findByRoleKey("ROLE_SHOPPING_SELLER")
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
 
@@ -144,22 +144,9 @@ public class SellerApplicationService {
 
             logAudit(AuditEventType.ROLE_ASSIGNED, assignedBy, userId,
                     "ROLE_SHOPPING_SELLER auto-assigned on application approval");
-        }
 
-        // 2. seller:shopping BRONZE 멤버십 생성
-        if (!userMembershipRepository.existsByUserIdAndMembershipGroup(userId, MembershipGroupConstants.SELLER_SHOPPING)) {
-            MembershipTier bronzeTier = membershipTierRepository
-                    .findByMembershipGroupAndTierKey(MembershipGroupConstants.SELLER_SHOPPING, "BRONZE")
-                    .orElseThrow(() -> new IllegalStateException("BRONZE tier not found for seller:shopping"));
-
-            userMembershipRepository.save(UserMembership.builder()
-                    .userId(userId)
-                    .membershipGroup(MembershipGroupConstants.SELLER_SHOPPING)
-                    .tier(bronzeTier)
-                    .build());
-
-            logAudit(AuditEventType.MEMBERSHIP_CREATED, assignedBy, userId,
-                    "seller:shopping BRONZE membership created on seller approval");
+            // 역할 할당 이벤트 → MembershipAutoAssignHandler가 seller:shopping/BRONZE 자동 생성
+            eventPublisher.publishEvent(RoleAssignedEvent.of(userId, "ROLE_SHOPPING_SELLER", assignedBy));
         }
     }
 
