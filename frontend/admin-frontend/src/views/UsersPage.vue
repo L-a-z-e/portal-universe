@@ -278,20 +278,21 @@ onMounted(async () => {
             @keyup.enter="handleSearch"
           />
         </div>
-        <button
+        <Button
           v-if="query"
+          variant="ghost"
+          size="xs"
           @click="handleClear"
-          class="text-xs text-text-meta hover:text-text-body"
         >
           Clear
-        </button>
+        </Button>
       </div>
     </div>
 
     <!-- Error -->
     <Alert v-if="listError" variant="error" :title="listError" class="mb-4">
       <template #action>
-        <button class="text-sm underline" @click="loadUsers(currentPage)">Retry</button>
+        <Button variant="ghost" size="xs" class="underline" @click="loadUsers(currentPage)">Retry</Button>
       </template>
     </Alert>
 
@@ -348,21 +349,23 @@ onMounted(async () => {
           >
             <span class="text-text-meta">{{ totalElements }} users</span>
             <div class="flex items-center gap-1">
-              <button
+              <Button
+                variant="ghost"
+                size="xs"
                 :disabled="currentPage === 1"
                 @click="loadUsers(currentPage - 1)"
-                class="px-2 py-1 rounded hover:bg-bg-hover disabled:opacity-30 text-text-body"
               >
                 Prev
-              </button>
+              </Button>
               <span class="text-text-meta px-2">{{ currentPage }} / {{ totalPages }}</span>
-              <button
+              <Button
+                variant="ghost"
+                size="xs"
                 :disabled="currentPage >= totalPages"
                 @click="loadUsers(currentPage + 1)"
-                class="px-2 py-1 rounded hover:bg-bg-hover disabled:opacity-30 text-text-body"
               >
                 Next
-              </button>
+              </Button>
             </div>
           </div>
         </div>

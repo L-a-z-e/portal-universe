@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Badge, Spinner, Alert, Card, Select, Button, useApiError, useToast } from '@portal/design-vue';
+import { Badge, Spinner, Alert, Card, Select, Button, Textarea, useApiError, useToast } from '@portal/design-vue';
 import { fetchPendingSellerApplications, reviewSellerApplication } from '@/api/admin';
 import type { SellerApplication, PageResponse } from '@/dto/admin';
 
@@ -337,11 +337,11 @@ onMounted(load);
                           >
                             Review Comments
                           </label>
-                          <textarea
+                          <Textarea
                             v-model="reviewComment"
-                            rows="5"
+                            :rows="5"
                             placeholder="Add an internal note or reason for rejection..."
-                            class="w-full px-3 py-2.5 bg-bg-card border border-border-default rounded text-sm text-text-body placeholder:text-text-muted focus:outline-none focus:border-border-focus resize-none"
+                            resize="none"
                             @click.stop
                           />
                         </div>
