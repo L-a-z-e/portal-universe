@@ -4,7 +4,7 @@ title: 컴포넌트 비교 매트릭스
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-18
 author: Laze
 tags: [design-system, vue, react, comparison, matrix]
 related:
@@ -21,9 +21,9 @@ Vue 3과 React 18 디자인 시스템 라이브러리 간의 컴포넌트 지원
 
 | 항목 | Vue | React |
 |------|-----|-------|
-| 총 컴포넌트 | 26 | 30 |
-| 공유 컴포넌트 | 25 | 25 |
-| 프레임워크 전용 | 1 (ToastContainer) | 5 (Pagination, Popover, Progress, Table, Tooltip) |
+| 총 컴포넌트 | 27 | 30 |
+| 공유 컴포넌트 | 26 | 26 |
+| 프레임워크 전용 | 1 (ToastContainer) | 4 (Pagination, Popover, Progress, Tooltip) |
 | Composable / Hook | 3 | 3 |
 
 ## 컴포넌트 지원 매트릭스
@@ -56,7 +56,7 @@ Vue 3과 React 18 디자인 시스템 라이브러리 간의 컴포넌트 지원
 | 22 | Spinner | O | O | Feedback | |
 | 23 | Stack | O | O | Layout | |
 | 24 | Switch | O | O | Form | |
-| 25 | Table | - | O | Display | React-only |
+| 25 | Table | O | O | Display | onRowClick prop 추가 |
 | 26 | Tabs | O | O | Navigation | |
 | 27 | Tag | O | O | Feedback | |
 | 28 | Textarea | O | O | Form | |
@@ -64,7 +64,7 @@ Vue 3과 React 18 디자인 시스템 라이브러리 간의 컴포넌트 지원
 | 30 | ToastContainer | O | - | Utility | Vue-only |
 | 31 | Tooltip | - | O | Feedback | React-only |
 
-**요약**: 공유 25, Vue-only 1, React-only 5
+**요약**: 공유 26, Vue-only 1, React-only 4
 
 ### React-only 컴포넌트 사유
 
@@ -73,7 +73,6 @@ Vue 3과 React 18 디자인 시스템 라이브러리 간의 컴포넌트 지원
 | Pagination | Shopping 서비스 상품 목록 페이지네이션. Blog는 무한 스크롤 사용. |
 | Popover | Prism 서비스 인터랙티브 정보 표시. Vue는 Dropdown으로 대체. |
 | Progress | 파일 업로드/로딩 진행률. Shopping/Prism 서비스 요구사항. |
-| Table | 데이터 테이블 (정렬/필터). Shopping 상품 관리, Prism 데이터 표시. |
 | Tooltip | 아이콘/버튼 호버 설명. Vue는 title 속성이나 Dropdown으로 대체. |
 
 ### Vue-only 컴포넌트 사유

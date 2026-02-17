@@ -1,5 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Button } from '@portal/design-react';
 import { useTaskStore } from '@/stores/taskStore';
 import type { Task, TaskPriority } from '@/types';
 
@@ -113,42 +114,49 @@ export function TaskCard({ task, onEdit, onExecute, onView }: TaskCardProps) {
             <>
               {/* TODO: Run 버튼 */}
               {canRun && (
-                <button
+                <Button
+                  size="xs"
+                  variant="primary"
                   onClick={handleExecute}
-                  className="text-xs px-2 py-1 bg-brand-primary text-white rounded hover:bg-brand-primaryHover transition-colors"
                 >
                   Run
-                </button>
+                </Button>
               )}
 
               {/* IN_REVIEW: View (결과 확인 + Approve/Reject) */}
               {showReviewActions && (
-                <button
+                <Button
+                  size="xs"
+                  variant="ghost"
                   onClick={handleView}
-                  className="text-xs px-2 py-1 bg-status-warning/20 text-status-warning rounded hover:bg-status-warning/30 transition-colors"
+                  className="bg-status-warning/20 text-status-warning hover:bg-status-warning/30"
                 >
                   Review
-                </button>
+                </Button>
               )}
 
               {/* IN_PROGRESS, DONE, CANCELLED: View 버튼 */}
               {canView && !showReviewActions && (
-                <button
+                <Button
+                  size="xs"
+                  variant="ghost"
                   onClick={handleView}
-                  className="text-xs px-2 py-1 text-text-meta hover:text-text-heading hover:bg-bg-hover rounded transition-colors"
+                  className="text-text-meta hover:text-text-heading"
                 >
                   View
-                </button>
+                </Button>
               )}
 
               {/* TODO: Edit 버튼 */}
               {canEdit && (
-                <button
+                <Button
+                  size="xs"
+                  variant="ghost"
                   onClick={handleEdit}
-                  className="text-xs px-2 py-1 text-text-meta hover:text-text-heading hover:bg-bg-hover rounded transition-colors"
+                  className="text-text-meta hover:text-text-heading"
                 >
                   Edit
-                </button>
+                </Button>
               )}
             </>
           )}

@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import { useDashboard } from '../composables/useDashboard'
-import { Badge } from '@portal/design-vue'
+import { Badge, Button } from '@portal/design-vue'
 import { getRemoteConfigs } from '../config/remoteRegistry'
 import { formatRelativeTime } from '../utils/dateUtils'
 import MaterialIcon from '../components/MaterialIcon.vue'
@@ -152,13 +152,14 @@ function navigateTo(path: string) {
                 <MaterialIcon name="timeline" :size="20" class="text-brand-primary" />
                 Activity
               </h2>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 @click="fetchAll"
-                class="text-sm text-text-meta hover:text-text-heading transition-colors flex items-center gap-1"
               >
                 <MaterialIcon name="refresh" :size="16" />
                 Refresh
-              </button>
+              </Button>
             </div>
 
             <!-- Loading -->
@@ -176,9 +177,9 @@ function navigateTo(path: string) {
             <div v-else-if="errors.activities" class="text-center py-8 text-text-meta">
               <MaterialIcon name="error_outline" :size="32" class="mb-2" />
               <p>Failed to load activities</p>
-              <button @click="fetchAll" class="text-sm text-brand-primary hover:underline mt-2">
+              <Button variant="ghost" size="sm" @click="fetchAll" class="mt-2">
                 Try again
-              </button>
+              </Button>
             </div>
 
             <!-- Empty -->

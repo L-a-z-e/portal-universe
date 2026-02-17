@@ -16,6 +16,7 @@ export const Table = forwardRef<HTMLTableElement, TableComponentProps>(
       emptyText = 'No data available',
       striped = false,
       hoverable = true,
+      onRowClick,
       className,
       ...props
     },
@@ -78,8 +79,10 @@ export const Table = forwardRef<HTMLTableElement, TableComponentProps>(
                   className={cn(
                     'border-b border-border-default transition-colors',
                     striped && rowIndex % 2 === 1 && 'bg-bg-muted/50',
-                    hoverable && 'hover:bg-bg-hover'
+                    hoverable && 'hover:bg-bg-hover',
+                    onRowClick && 'cursor-pointer'
                   )}
+                  onClick={() => onRowClick?.(row, rowIndex)}
                 >
                   {columns.map((column: TableColumn) => {
                     const value = (row as Record<string, unknown>)[column.key];

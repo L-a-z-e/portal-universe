@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { Badge, Spinner } from '@portal/design-vue';
+import { Badge, Spinner, Table } from '@portal/design-vue';
+import type { TableColumn } from '@portal/design-core';
 import { fetchResolvedRole } from '@/api/admin';
 import type { ResolvedRoleResponse, PermissionResponse } from '@/dto/admin';
 
@@ -12,7 +13,12 @@ const props = defineProps<{
 const resolved = ref<ResolvedRoleResponse | null>(null);
 const loading = ref(false);
 
-const resolvedPermissions = computed(() => {
+interface ResolvedPermission {
+  key: string;
+  source: 'own' | 'inherited';
+}
+
+const resolvedPermissions = computed<ResolvedPermission[]>(() => {
   if (!resolved.value) return [];
   const ownKeys = new Set(props.ownPermissions.map((p) => p.permissionKey));
   return resolved.value.effectivePermissions.map((key) => ({
@@ -20,6 +26,11 @@ const resolvedPermissions = computed(() => {
     source: ownKeys.has(key) ? 'own' as const : 'inherited' as const,
   }));
 });
+
+const permissionColumns: TableColumn<ResolvedPermission>[] = [
+  { key: 'key', label: 'Permission' },
+  { key: 'source', label: 'Source', width: '96px' },
+];
 
 async function load(roleKey: string) {
   loading.value = true;
@@ -50,31 +61,19 @@ watch(() => props.roleKey, (key) => {
     </div>
 
     <div v-else class="max-h-60 overflow-y-auto">
-      <table class="w-full text-sm">
-        <thead class="sticky top-0 bg-bg-card">
-          <tr class="border-b border-border-default">
-            <th class="text-left py-1.5 px-2 text-text-meta font-medium">Permission</th>
-            <th class="text-left py-1.5 px-2 text-text-meta font-medium w-24">Source</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="perm in resolvedPermissions"
-            :key="perm.key"
-            class="border-b border-border-muted last:border-b-0"
+      <Table :columns="permissionColumns" :data="resolvedPermissions" :hoverable="false">
+        <template #cell-key="{ value }">
+          <span class="font-mono">{{ value }}</span>
+        </template>
+        <template #cell-source="{ row }">
+          <Badge
+            :variant="row.source === 'own' ? 'success' : 'info'"
+            size="sm"
           >
-            <td class="py-1.5 px-2 font-mono text-text-body">{{ perm.key }}</td>
-            <td class="py-1.5 px-2">
-              <Badge
-                :variant="perm.source === 'own' ? 'success' : 'info'"
-                size="sm"
-              >
-                {{ perm.source === 'own' ? 'Own' : 'Inherited' }}
-              </Badge>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            {{ row.source === 'own' ? 'Own' : 'Inherited' }}
+          </Badge>
+        </template>
+      </Table>
     </div>
   </div>
 </template>

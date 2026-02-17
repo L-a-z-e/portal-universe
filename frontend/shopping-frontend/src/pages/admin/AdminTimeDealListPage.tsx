@@ -148,13 +148,15 @@ export function AdminTimeDealListPage() {
                             </td>
                             <td className="px-4 py-3 text-center" rowSpan={timeDeal.products?.length || 1}>
                               {(timeDeal.status === 'ACTIVE' || timeDeal.status === 'SCHEDULED') && (
-                                <button
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => handleCancel(timeDeal.id, timeDeal.name)}
                                   disabled={isCancelling}
-                                  className="text-sm text-status-error hover:opacity-80 disabled:opacity-50 transition-colors"
+                                  className="text-status-error hover:opacity-80"
                                 >
                                   취소
-                                </button>
+                                </Button>
                               )}
                             </td>
                           </>

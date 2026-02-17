@@ -6,8 +6,9 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdminOrders } from '@/hooks/useAdminOrders'
 import { ORDER_STATUS_LABELS } from '@/types'
-import type { OrderStatus } from '@/types'
-import { Button, Spinner, Input } from '@portal/design-react'
+import type { OrderStatus, Order } from '@/types'
+import { Button, Spinner, Input, Select, Table } from '@portal/design-react'
+import type { SelectOption, TableColumn } from '@portal/design-core'
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'All Status' },
@@ -38,6 +39,11 @@ const getStatusColor = (status: OrderStatus): string => {
   }
 }
 
+const STATUS_SELECT_OPTIONS: SelectOption[] = STATUS_OPTIONS.map(opt => ({
+  value: opt.value,
+  label: opt.label,
+}))
+
 const AdminOrderListPage: React.FC = () => {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
@@ -58,8 +64,8 @@ const AdminOrderListPage: React.FC = () => {
     setPage(1)
   }
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value)
+  const handleStatusChange = (value: string | number | null) => {
+    setStatusFilter(String(value ?? ''))
     setPage(1)
   }
 
@@ -78,15 +84,12 @@ const AdminOrderListPage: React.FC = () => {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <select
+        <Select
           value={statusFilter}
+          options={STATUS_SELECT_OPTIONS}
           onChange={handleStatusChange}
-          className="px-4 py-2 border border-border-default rounded-lg bg-bg-card text-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary"
-        >
-          {STATUS_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+          className="w-40"
+        />
 
         <form onSubmit={handleSearch} className="flex items-center gap-2">
           <Input
@@ -119,63 +122,57 @@ const AdminOrderListPage: React.FC = () => {
       )}
 
       {/* Table */}
-      {!isLoading && !error && data && (
+      {!error && (
         <>
           <div className="bg-bg-card border border-border-default rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-bg-subtle border-b border-border-default">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Order Number</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">User</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Status</th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-text-meta">Amount</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Items</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text-meta">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-default">
-                {data.items.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-text-meta">
-                      No orders found
-                    </td>
-                  </tr>
-                ) : (
-                  data.items.map((order) => (
-                    <tr
-                      key={order.id}
-                      onClick={() => navigate(`/admin/orders/${order.orderNumber}`)}
-                      className="hover:bg-bg-hover transition-colors cursor-pointer"
-                    >
-                      <td className="px-6 py-4 text-sm font-mono text-brand-primary">
-                        {order.orderNumber}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-body">
-                        {order.userId}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
-                          {ORDER_STATUS_LABELS[order.status]}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-body text-right font-medium">
-                        {formatPrice(order.finalAmount ?? order.totalAmount)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-meta">
-                        {order.items?.length ?? 0} items
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-meta">
-                        {formatDate(order.createdAt)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <Table<Order>
+              columns={[
+                {
+                  key: 'orderNumber',
+                  label: 'Order Number',
+                  render: (_, row) => (
+                    <span className="font-mono text-brand-primary">{row.orderNumber}</span>
+                  ),
+                },
+                { key: 'userId', label: 'User' },
+                {
+                  key: 'status',
+                  label: 'Status',
+                  render: (_, row) => (
+                    <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getStatusColor(row.status)}`}>
+                      {ORDER_STATUS_LABELS[row.status]}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'totalAmount',
+                  label: 'Amount',
+                  align: 'right',
+                  render: (_, row) => (
+                    <span className="font-medium">{formatPrice(row.finalAmount ?? row.totalAmount)}</span>
+                  ),
+                },
+                {
+                  key: 'items',
+                  label: 'Items',
+                  render: (_, row) => `${row.items?.length ?? 0} items`,
+                } as TableColumn<Order>,
+                {
+                  key: 'createdAt',
+                  label: 'Date',
+                  render: (_, row) => formatDate(row.createdAt),
+                },
+              ]}
+              data={data?.items ?? []}
+              loading={isLoading}
+              hoverable
+              onRowClick={(row) => navigate(`/admin/orders/${row.orderNumber}`)}
+              emptyText="No orders found"
+            />
           </div>
 
           {/* Pagination */}
-          {data.totalPages > 1 && (
+          {data && data.totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-6">
               <Button
                 variant="secondary"

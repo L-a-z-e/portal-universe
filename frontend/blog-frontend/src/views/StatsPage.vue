@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Spinner, Button } from '@portal/design-vue'
+import { Spinner, Button, Table } from '@portal/design-vue'
+import type { TableColumn } from '@portal/design-core'
 import { getBlogStats, getCategoryStats, getPopularTags, getAuthorStats } from '@/api/posts'
 import type { BlogStats, CategoryStats, TagStatsResponse, AuthorStats } from '@/types'
 import { usePortalAuth } from '@portal/vue-bridge'
@@ -51,6 +52,12 @@ const fetchAuthorStats = async () => {
     console.error('Failed to fetch author stats:', e)
   }
 }
+
+const categoryColumns: TableColumn<CategoryStats>[] = [
+  { key: 'categoryName', label: '카테고리' },
+  { key: 'postCount', label: '게시글 수' },
+  { key: 'latestPostDate', label: '최근 게시일' },
+]
 
 const fetchAllStats = async () => {
   loading.value = true
@@ -162,28 +169,14 @@ onMounted(() => {
         <!-- 카테고리 통계 -->
         <section v-if="categoryStats.length > 0">
           <h2 class="text-lg font-semibold text-text-heading mb-4">카테고리별 통계</h2>
-          <div class="rounded-lg border border-border-default overflow-hidden">
-            <table class="w-full">
-              <thead class="bg-bg-muted">
-                <tr>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-text-heading border-b-2 border-border-default">카테고리</th>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-text-heading border-b-2 border-border-default">게시글 수</th>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-text-heading border-b-2 border-border-default">최근 게시일</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="cat in categoryStats"
-                  :key="cat.categoryName"
-                  class="hover:bg-bg-muted transition-colors"
-                >
-                  <td class="px-4 py-3 text-sm font-medium text-text-heading border-b border-border-default">{{ cat.categoryName }}</td>
-                  <td class="px-4 py-3 text-sm font-semibold text-brand-primary border-b border-border-default">{{ formatNumber(cat.postCount) }}</td>
-                  <td class="px-4 py-3 text-sm text-text-meta border-b border-border-default">{{ formatDate(cat.latestPostDate) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <Table :columns="categoryColumns" :data="categoryStats" hoverable>
+            <template #cell-postCount="{ value }">
+              <span class="font-semibold text-brand-primary">{{ formatNumber(value as number) }}</span>
+            </template>
+            <template #cell-latestPostDate="{ value }">
+              {{ formatDate(value as string) }}
+            </template>
+          </Table>
         </section>
 
         <!-- 인기 태그 -->

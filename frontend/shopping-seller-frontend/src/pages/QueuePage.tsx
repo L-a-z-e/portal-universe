@@ -1,6 +1,13 @@
 import React, { useState } from 'react'
 import { sellerQueueApi } from '@/api'
-import { Button, Input } from '@portal/design-react'
+import { Button, Input, Select } from '@portal/design-react'
+import type { SelectOption } from '@portal/design-core'
+
+const eventTypeOptions: SelectOption[] = [
+  { value: 'TIME_DEAL', label: 'Time Deal' },
+  { value: 'COUPON', label: 'Coupon' },
+  { value: 'FLASH_SALE', label: 'Flash Sale' },
+]
 
 export const QueuePage: React.FC = () => {
   const [eventType, setEventType] = useState('TIME_DEAL')
@@ -66,18 +73,12 @@ export const QueuePage: React.FC = () => {
 
       <div className="bg-bg-card border border-border-default rounded-lg p-6 shadow-sm mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-text-heading mb-1">Event Type</label>
-            <select
-              className="w-full px-3 py-2 border border-border-default rounded-md bg-bg-default text-text-body"
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-            >
-              <option value="TIME_DEAL">Time Deal</option>
-              <option value="COUPON">Coupon</option>
-              <option value="FLASH_SALE">Flash Sale</option>
-            </select>
-          </div>
+          <Select
+            label="Event Type"
+            options={eventTypeOptions}
+            value={eventType}
+            onChange={(val) => setEventType((val as string) ?? 'TIME_DEAL')}
+          />
           <Input
             label="Event ID"
             value={eventId}

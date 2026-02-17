@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllTags } from '../api/tags';
 import type { TagResponse } from '@/types';
-import { Input, Spinner } from '@portal/design-vue';
+import { Input, Spinner, Button } from '@portal/design-vue';
 
 const router = useRouter();
 
@@ -142,9 +142,9 @@ onMounted(() => {
       <!-- Error -->
       <div v-else-if="error" class="text-center py-16">
         <div class="text-status-error font-semibold mb-2">{{ error }}</div>
-        <button class="text-sm text-brand-primary hover:underline mt-2" @click="loadTags">
+        <Button variant="ghost" size="sm" @click="loadTags" class="mt-2">
           다시 시도
-        </button>
+        </Button>
       </div>
 
       <!-- Empty -->

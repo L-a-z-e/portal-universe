@@ -6,7 +6,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAdminCoupons, useDeactivateCoupon } from '@/hooks/useAdminCoupons'
 import { COUPON_STATUS_LABELS, DISCOUNT_TYPE_LABELS } from '@/types'
-import { Button, Card, Badge, Spinner, useApiError, useToast } from '@portal/design-react'
+import type { Coupon } from '@/types'
+import { Button, Card, Badge, Spinner, Table, useApiError, useToast } from '@portal/design-react'
+import type { TableColumn } from '@portal/design-core'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -73,74 +75,75 @@ export function AdminCouponListPage() {
       {!isLoading && data && (
         <>
           <Card variant="elevated" padding="none" className="overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-bg-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">코드</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">이름</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">할인</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-text-meta">발급/총수량</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-text-meta">상태</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">유효기간</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-text-meta">관리</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-default">
-                {data.items.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-text-muted">
-                      등록된 쿠폰이 없습니다
-                    </td>
-                  </tr>
-                ) : (
-                  data.items.map((coupon) => (
-                    <tr key={coupon.id} className="hover:bg-bg-hover transition-colors">
-                      <td className="px-4 py-3 text-sm font-mono text-text-heading">{coupon.code}</td>
-                      <td className="px-4 py-3 text-sm text-text-body">{coupon.name}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className="text-brand-primary font-medium">
-                          {coupon.discountType === 'FIXED'
-                            ? `${formatPrice(coupon.discountValue)}원`
-                            : `${coupon.discountValue}%`}
-                        </span>
-                        <span className="text-text-muted ml-1">
-                          ({DISCOUNT_TYPE_LABELS[coupon.discountType]})
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center text-text-meta">
-                        {coupon.issuedQuantity} / {coupon.totalQuantity}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <Badge
-                          variant={
-                            coupon.status === 'ACTIVE' ? 'success' :
-                            coupon.status === 'INACTIVE' ? 'neutral' :
-                            coupon.status === 'EXPIRED' ? 'error' :
-                            'warning'
-                          }
-                        >
-                          {COUPON_STATUS_LABELS[coupon.status]}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-text-meta">
-                        {formatDate(coupon.startsAt)} ~ {formatDate(coupon.expiresAt)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {coupon.status === 'ACTIVE' && (
-                          <button
-                            onClick={() => handleDeactivate(coupon.id, coupon.name)}
-                            disabled={isDeactivating}
-                            className="text-sm text-status-error hover:opacity-80 disabled:opacity-50 transition-colors"
-                          >
-                            비활성화
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <Table<Coupon>
+              columns={[
+                {
+                  key: 'code',
+                  label: '코드',
+                  render: (_, row) => <span className="font-mono text-text-heading">{row.code}</span>,
+                },
+                { key: 'name', label: '이름' },
+                {
+                  key: 'discountValue',
+                  label: '할인',
+                  render: (_, row) => (
+                    <>
+                      <span className="text-brand-primary font-medium">
+                        {row.discountType === 'FIXED' ? `${formatPrice(row.discountValue)}원` : `${row.discountValue}%`}
+                      </span>
+                      <span className="text-text-muted ml-1">({DISCOUNT_TYPE_LABELS[row.discountType]})</span>
+                    </>
+                  ),
+                },
+                {
+                  key: 'issuedQuantity',
+                  label: '발급/총수량',
+                  align: 'center',
+                  render: (_, row) => `${row.issuedQuantity} / ${row.totalQuantity}`,
+                } as TableColumn<Coupon>,
+                {
+                  key: 'status',
+                  label: '상태',
+                  align: 'center',
+                  render: (_, row) => (
+                    <Badge
+                      variant={
+                        row.status === 'ACTIVE' ? 'success' :
+                        row.status === 'INACTIVE' ? 'neutral' :
+                        row.status === 'EXPIRED' ? 'error' :
+                        'warning'
+                      }
+                    >
+                      {COUPON_STATUS_LABELS[row.status]}
+                    </Badge>
+                  ),
+                },
+                {
+                  key: 'startsAt',
+                  label: '유효기간',
+                  render: (_, row) => `${formatDate(row.startsAt)} ~ ${formatDate(row.expiresAt)}`,
+                },
+                {
+                  key: 'id',
+                  label: '관리',
+                  align: 'center',
+                  render: (_, row) => row.status === 'ACTIVE' ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeactivate(row.id, row.name)}
+                      disabled={isDeactivating}
+                      className="text-status-error hover:opacity-80"
+                    >
+                      비활성화
+                    </Button>
+                  ) : null,
+                } as TableColumn<Coupon>,
+              ]}
+              data={data.items}
+              hoverable
+              emptyText="등록된 쿠폰이 없습니다"
+            />
           </Card>
 
           {/* 페이지네이션 */}

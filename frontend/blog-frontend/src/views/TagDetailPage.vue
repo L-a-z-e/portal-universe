@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { getTagByName, getPostsByTag } from '../api/tags';
 import type { TagResponse, PostSummaryResponse, PageResponse } from '@/types';
 import PostCard from '../components/PostCard.vue';
+import { Button } from '@portal/design-vue';
 
 interface Props {
   tagName: string;
@@ -156,15 +157,12 @@ onBeforeUnmount(() => {
   <div class="w-full min-h-screen">
     <div class="max-w-3xl mx-auto px-6 py-8">
       <!-- 뒤로가기 -->
-      <button
-        @click="goToTagList"
-        class="text-sm text-text-meta hover:text-text-heading transition-colors mb-6 inline-flex items-center gap-1"
-      >
+      <Button variant="ghost" size="sm" @click="goToTagList" class="mb-6">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
         태그 목록
-      </button>
+      </Button>
 
       <!-- 태그 정보 헤더 -->
       <header class="mb-8 pb-8 border-b border-border-default">
@@ -203,9 +201,9 @@ onBeforeUnmount(() => {
       <!-- Error -->
       <div v-else-if="error && posts.length === 0" class="text-center py-16">
         <div class="text-status-error font-semibold mb-2">{{ error }}</div>
-        <button class="text-sm text-brand-primary hover:underline mt-2" @click="refresh">
+        <Button variant="ghost" size="sm" @click="refresh" class="mt-2">
           다시 시도
-        </button>
+        </Button>
       </div>
 
       <!-- Empty -->

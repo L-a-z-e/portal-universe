@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Badge, Select, Button, Card, Spinner, Alert, useApiError, useToast } from '@portal/design-vue';
+import { Badge, Select, Button, Card, Spinner, Alert, Table, useApiError, useToast } from '@portal/design-vue';
+import type { TableColumn } from '@portal/design-core';
 import type { SelectOption } from '@portal/design-vue';
 import {
   fetchAllRoleDefaults,
@@ -47,6 +48,13 @@ const tierOptions = computed<SelectOption[]>(() => {
 });
 
 const canAdd = computed(() => newRoleKey.value && newGroup.value && newTierKey.value);
+
+const mappingColumns: TableColumn<RoleDefaultMappingResponse>[] = [
+  { key: 'roleKey', label: 'Role Key' },
+  { key: 'membershipGroup', label: 'Membership Group' },
+  { key: 'defaultTierKey', label: 'Default Tier' },
+  { key: 'actions', label: 'Actions', align: 'right', width: '80px' },
+];
 
 async function loadData() {
   loading.value = true;
@@ -123,38 +131,23 @@ onMounted(loadData);
 
     <template v-else>
       <!-- Table -->
-      <div class="overflow-x-auto mb-4">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-border-default">
-              <th class="text-left py-2 px-3 text-text-meta font-medium">Role Key</th>
-              <th class="text-left py-2 px-3 text-text-meta font-medium">Membership Group</th>
-              <th class="text-left py-2 px-3 text-text-meta font-medium">Default Tier</th>
-              <th class="text-right py-2 px-3 text-text-meta font-medium w-20">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="mappings.length === 0">
-              <td colspan="4" class="py-4 text-center text-text-meta">No mappings found</td>
-            </tr>
-            <tr
-              v-for="m in mappings"
-              :key="m.id"
-              class="border-b border-border-muted last:border-b-0"
-            >
-              <td class="py-2 px-3 font-mono text-text-body">{{ m.roleKey }}</td>
-              <td class="py-2 px-3">
-                <Badge variant="info" size="sm">{{ m.membershipGroup }}</Badge>
-              </td>
-              <td class="py-2 px-3 font-mono font-semibold text-text-body">{{ m.defaultTierKey }}</td>
-              <td class="py-2 px-3 text-right">
-                <Button variant="ghost" size="sm" @click="handleRemove(m)">
-                  <span class="material-symbols-outlined text-status-error" style="font-size: 16px;">delete</span>
-                </Button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="mb-4">
+        <Table :columns="mappingColumns" :data="mappings" :hoverable="false" empty-text="No mappings found">
+          <template #cell-roleKey="{ value }">
+            <span class="font-mono">{{ value }}</span>
+          </template>
+          <template #cell-membershipGroup="{ row }">
+            <Badge variant="info" size="sm">{{ row.membershipGroup }}</Badge>
+          </template>
+          <template #cell-defaultTierKey="{ value }">
+            <span class="font-mono font-semibold">{{ value }}</span>
+          </template>
+          <template #cell-actions="{ row }">
+            <Button variant="ghost" size="sm" @click="handleRemove(row)">
+              <span class="material-symbols-outlined text-status-error" style="font-size: 16px;">delete</span>
+            </Button>
+          </template>
+        </Table>
       </div>
 
       <!-- Add Form -->
