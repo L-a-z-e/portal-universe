@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Card, Button, Badge, Spinner, Alert, SearchBar, Select, Input, useApiError } from '@portal/design-vue';
+import { Badge, Spinner, Alert, Select, Input, useApiError } from '@portal/design-vue';
 import type { SelectOption } from '@portal/design-vue';
 import {
   fetchRoles,
@@ -223,12 +223,16 @@ onMounted(() => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-text-heading mb-6">Role Management</h1>
-
-    <!-- Toolbar -->
-    <div class="flex items-center justify-between gap-4 mb-4">
-      <SearchBar v-model="searchQuery" placeholder="Search roles..." class="flex-1 max-w-sm" />
-      <Button variant="primary" @click="enterCreateMode">Create Role</Button>
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-text-heading">Roles</h1>
+      <button
+        @click="enterCreateMode"
+        class="flex items-center gap-1.5 px-3 py-2 bg-brand-primary text-white rounded-lg text-sm font-medium hover:bg-brand-primaryHover transition-colors"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+        Create Role
+      </button>
     </div>
 
     <!-- Error -->
@@ -241,204 +245,233 @@ onMounted(() => {
       <Spinner size="lg" />
     </div>
 
-    <!-- Roles Table -->
-    <Card v-else variant="outlined" padding="none" class="mb-6">
-      <table class="w-full text-sm">
-        <thead class="bg-bg-elevated border-b border-border-default">
-          <tr>
-            <th class="text-left p-3 text-text-heading">Role Key</th>
-            <th class="text-left p-3 text-text-heading">Display Name</th>
-            <th class="text-left p-3 text-text-heading">Scope</th>
-            <th class="text-left p-3 text-text-heading">Parent</th>
-            <th class="text-left p-3 text-text-heading">System</th>
-            <th class="text-left p-3 text-text-heading">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="filteredRoles.length === 0">
-            <td colspan="6" class="p-4 text-center text-text-meta">No roles found</td>
-          </tr>
-          <tr
-            v-for="role in filteredRoles"
-            :key="role.id"
-            class="border-b border-border-default hover:bg-bg-elevated transition-colors cursor-pointer"
-            :class="{ 'bg-bg-elevated': selectedRole?.roleKey === role.roleKey }"
-            @click="selectRole(role.roleKey)"
-          >
-            <td class="p-3 font-mono text-text-body">{{ role.roleKey }}</td>
-            <td class="p-3 text-text-body">{{ role.displayName }}</td>
-            <td class="p-3 text-text-meta">{{ role.serviceScope ?? '-' }}</td>
-            <td class="p-3 text-text-meta">{{ role.parentRoleKey ?? '-' }}</td>
-            <td class="p-3">
-              <Badge v-if="role.system" variant="info" size="sm">System</Badge>
-              <span v-else class="text-text-meta">-</span>
-            </td>
-            <td class="p-3">
-              <Badge :variant="role.active ? 'success' : 'danger'" size="sm">
-                {{ role.active ? 'Active' : 'Inactive' }}
-              </Badge>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </Card>
-
-    <!-- Create Role Panel -->
-    <Card v-if="createMode" variant="outlined" padding="lg" class="mb-6">
-      <h2 class="text-lg font-semibold text-text-heading mb-4">Create New Role</h2>
-
-      <Alert v-if="createError" variant="error" dismissible class="mb-4" @dismiss="createError = ''">
-        {{ createError }}
-      </Alert>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <Input
-          v-model="createForm.roleKey"
-          label="Role Key"
-          placeholder="ROLE_CUSTOM_NAME"
-          required
-        />
-        <Input
-          v-model="createForm.displayName"
-          label="Display Name"
-          placeholder="Custom Role Name"
-          required
-        />
-        <Input v-model="createForm.description" label="Description" placeholder="Role description" />
-        <Input v-model="createForm.serviceScope" label="Service Scope" placeholder="e.g. shopping" />
-        <Input
-          v-model="createForm.membershipGroup"
-          label="Membership Group"
-          placeholder="e.g. USER_SHOPPING"
-        />
-        <Select
-          v-model="createForm.parentRoleKey"
-          :options="parentRoleOptions"
-          label="Parent Role"
-          placeholder="Select parent role (optional)"
-          clearable
-        />
-      </div>
-
-      <div class="flex gap-2">
-        <Button variant="primary" :loading="createSaving" @click="handleCreate">Create</Button>
-        <Button variant="ghost" @click="createMode = false">Cancel</Button>
-      </div>
-    </Card>
-
-    <!-- Role Detail Panel -->
-    <Card v-if="selectedRole || detailLoading" variant="outlined" padding="lg">
-      <div v-if="detailLoading" class="flex justify-center py-8">
-        <Spinner size="md" />
-      </div>
-
-      <template v-else-if="selectedRole">
-        <!-- Header -->
-        <div class="flex items-start justify-between mb-4">
-          <div>
-            <h2 class="text-lg font-semibold text-text-heading">{{ selectedRole.displayName }}</h2>
-            <p class="font-mono text-sm text-text-meta">{{ selectedRole.roleKey }}</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <Badge v-if="selectedRole.system" variant="info" size="sm">System</Badge>
-            <Badge :variant="selectedRole.active ? 'success' : 'danger'" size="sm">
-              {{ selectedRole.active ? 'Active' : 'Inactive' }}
-            </Badge>
-          </div>
+    <div v-else class="flex gap-6">
+      <!-- Role List (Left Panel) -->
+      <div class="w-80 shrink-0">
+        <!-- Search -->
+        <div class="relative mb-3">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" style="font-size: 18px;">search</span>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search roles..."
+            class="w-full pl-9 pr-3 py-2 bg-bg-card border border-border-default rounded-lg text-sm text-text-body placeholder:text-text-muted focus:outline-none focus:border-border-focus"
+          />
         </div>
 
-        <!-- Edit Mode -->
-        <div v-if="editMode" class="mb-4 space-y-3">
-          <Input v-model="editDisplayName" label="Display Name" required />
-          <Input v-model="editDescription" label="Description" />
-          <div class="flex gap-2">
-            <Button variant="primary" size="sm" :loading="editSaving" @click="saveEdit">Save</Button>
-            <Button variant="ghost" size="sm" @click="editMode = false">Cancel</Button>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div v-else class="flex gap-2 mb-4">
-          <Button variant="outline" size="sm" @click="enterEditMode">Edit</Button>
-          <Button
-            v-if="!selectedRole.system"
-            :variant="selectedRole.active ? 'danger' : 'primary'"
-            size="sm"
-            @click="handleToggleActive"
-          >
-            {{ selectedRole.active ? 'Deactivate' : 'Activate' }}
-          </Button>
-        </div>
-
-        <!-- Description -->
-        <p v-if="selectedRole.description && !editMode" class="text-sm text-text-body mb-4">
-          {{ selectedRole.description }}
-        </p>
-
-        <!-- Permissions Section -->
-        <section class="mb-4">
-          <h3 class="text-sm font-semibold text-text-heading mb-2">Permissions</h3>
-
-          <div v-if="selectedRole.permissions.length === 0" class="text-sm text-text-meta mb-2">
-            No permissions assigned
-          </div>
-
-          <div class="flex flex-wrap gap-2 mb-3">
-            <span
-              v-for="perm in selectedRole.permissions"
-              :key="perm.id"
-              class="inline-flex items-center gap-1"
+        <div class="bg-bg-card border border-border-default rounded-lg overflow-hidden">
+          <div class="max-h-[calc(100vh-280px)] overflow-y-auto">
+            <div v-if="filteredRoles.length === 0" class="px-4 py-8 text-center text-text-meta text-sm">
+              No roles found
+            </div>
+            <div
+              v-for="role in filteredRoles"
+              :key="role.id"
+              @click="selectRole(role.roleKey)"
+              :class="[
+                'px-4 py-3 cursor-pointer transition-colors border-b border-border-muted last:border-b-0',
+                selectedRole?.roleKey === role.roleKey
+                  ? 'bg-brand-primary/5 border-l-2 border-l-brand-primary'
+                  : 'hover:bg-bg-hover border-l-2 border-l-transparent'
+              ]"
             >
-              <Badge variant="outline" size="sm">{{ perm.permissionKey }}</Badge>
-              <button
-                class="text-text-meta hover:text-status-error transition-colors text-xs"
-                title="Remove permission"
-                @click="handleRemovePermission(perm.permissionKey)"
-              >
-                &times;
-              </button>
-            </span>
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-text-heading">{{ role.displayName }}</span>
+                <Badge :variant="role.active ? 'success' : 'danger'" size="sm">
+                  {{ role.active ? 'Active' : 'Inactive' }}
+                </Badge>
+              </div>
+              <div class="text-xs text-text-meta font-mono mt-0.5">{{ role.roleKey }}</div>
+              <div class="flex items-center gap-2 mt-1">
+                <Badge v-if="role.system" variant="info" size="sm">System</Badge>
+                <span v-if="role.serviceScope" class="text-[11px] text-text-muted">{{ role.serviceScope }}</span>
+              </div>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div class="flex items-end gap-2">
+      <!-- Right Panel -->
+      <div class="flex-1 min-w-0">
+        <!-- Create Mode -->
+        <div v-if="createMode" class="bg-bg-card border border-border-default rounded-lg p-5">
+          <h2 class="text-base font-semibold text-text-heading mb-4">Create New Role</h2>
+
+          <Alert v-if="createError" variant="error" dismissible class="mb-4" @dismiss="createError = ''">
+            {{ createError }}
+          </Alert>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <Input v-model="createForm.roleKey" label="Role Key" placeholder="ROLE_CUSTOM_NAME" required />
+            <Input v-model="createForm.displayName" label="Display Name" placeholder="Custom Role Name" required />
+            <Input v-model="createForm.description" label="Description" placeholder="Role description" />
+            <Input v-model="createForm.serviceScope" label="Service Scope" placeholder="e.g. shopping" />
+            <Input v-model="createForm.membershipGroup" label="Membership Group" placeholder="e.g. USER_SHOPPING" />
             <Select
-              v-model="selectedPermissionKey"
-              :options="permissionOptions"
-              placeholder="Select permission to assign"
-              searchable
+              v-model="createForm.parentRoleKey"
+              :options="parentRoleOptions"
+              label="Parent Role"
+              placeholder="Select parent role (optional)"
               clearable
-              size="sm"
-              class="flex-1 max-w-md"
             />
-            <Button
-              variant="outline"
-              size="sm"
-              :loading="permissionAssigning"
-              :disabled="!selectedPermissionKey"
-              @click="handleAssignPermission"
-            >
-              Assign
-            </Button>
           </div>
-        </section>
 
-        <!-- Info Section -->
-        <section>
-          <h3 class="text-sm font-semibold text-text-heading mb-2">Info</h3>
-          <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            <dt class="text-text-meta">Service Scope</dt>
-            <dd class="text-text-body">{{ selectedRole.serviceScope ?? '-' }}</dd>
-            <dt class="text-text-meta">Membership Group</dt>
-            <dd class="text-text-body">{{ selectedRole.membershipGroup ?? '-' }}</dd>
-            <dt class="text-text-meta">Parent Role</dt>
-            <dd class="text-text-body">{{ selectedRole.parentRoleKey ?? '-' }}</dd>
-            <dt class="text-text-meta">Created</dt>
-            <dd class="text-text-body">{{ selectedRole.createdAt ?? '-' }}</dd>
-            <dt class="text-text-meta">Updated</dt>
-            <dd class="text-text-body">{{ selectedRole.updatedAt ?? '-' }}</dd>
-          </dl>
-        </section>
-      </template>
-    </Card>
+          <div class="flex gap-2">
+            <button
+              :disabled="createSaving"
+              @click="handleCreate"
+              class="px-4 py-2 bg-brand-primary text-white rounded text-sm font-medium hover:bg-brand-primaryHover disabled:opacity-40 transition-colors"
+            >
+              {{ createSaving ? 'Creating...' : 'Create' }}
+            </button>
+            <button
+              @click="createMode = false"
+              class="px-4 py-2 text-text-body text-sm hover:bg-bg-hover rounded transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Role Detail -->
+        <template v-else-if="selectedRole || detailLoading">
+          <div class="bg-bg-card border border-border-default rounded-lg">
+            <div v-if="detailLoading" class="flex justify-center py-12">
+              <Spinner size="md" />
+            </div>
+
+            <template v-else-if="selectedRole">
+              <!-- Header -->
+              <div class="p-5 border-b border-border-default">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h2 class="text-lg font-semibold text-text-heading">{{ selectedRole.displayName }}</h2>
+                    <p class="font-mono text-xs text-text-meta mt-0.5">{{ selectedRole.roleKey }}</p>
+                    <p v-if="selectedRole.description && !editMode" class="text-sm text-text-body mt-2">
+                      {{ selectedRole.description }}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Badge v-if="selectedRole.system" variant="info" size="sm">System</Badge>
+                    <Badge :variant="selectedRole.active ? 'success' : 'danger'" size="sm">
+                      {{ selectedRole.active ? 'Active' : 'Inactive' }}
+                    </Badge>
+                  </div>
+                </div>
+
+                <!-- Edit Mode -->
+                <div v-if="editMode" class="mt-4 space-y-3">
+                  <Input v-model="editDisplayName" label="Display Name" required />
+                  <Input v-model="editDescription" label="Description" />
+                  <div class="flex gap-2">
+                    <button
+                      :disabled="editSaving"
+                      @click="saveEdit"
+                      class="px-3 py-1.5 bg-brand-primary text-white rounded text-xs font-medium hover:bg-brand-primaryHover disabled:opacity-40"
+                    >
+                      Save
+                    </button>
+                    <button @click="editMode = false" class="px-3 py-1.5 text-text-body text-xs hover:bg-bg-hover rounded">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div v-else class="flex gap-2 mt-3">
+                  <button
+                    @click="enterEditMode"
+                    class="px-3 py-1.5 border border-border-default rounded text-xs text-text-body hover:bg-bg-hover transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    v-if="!selectedRole.system"
+                    @click="handleToggleActive"
+                    :class="[
+                      'px-3 py-1.5 rounded text-xs font-medium transition-colors',
+                      selectedRole.active
+                        ? 'bg-status-error/10 text-status-error hover:bg-status-error/20'
+                        : 'bg-status-success/10 text-status-success hover:bg-status-success/20'
+                    ]"
+                  >
+                    {{ selectedRole.active ? 'Deactivate' : 'Activate' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Own Permissions -->
+              <div class="p-5 border-b border-border-default">
+                <h3 class="text-sm font-semibold text-text-heading mb-3">Own Permissions</h3>
+                <div class="space-y-1.5 mb-3">
+                  <div
+                    v-for="perm in selectedRole.permissions"
+                    :key="perm.id"
+                    class="flex items-center justify-between py-1.5 px-3 bg-bg-elevated rounded"
+                  >
+                    <div>
+                      <span class="font-mono text-xs text-text-body">{{ perm.permissionKey }}</span>
+                      <span v-if="perm.description" class="text-xs text-text-meta ml-2">{{ perm.description }}</span>
+                    </div>
+                    <button
+                      @click="handleRemovePermission(perm.permissionKey)"
+                      class="text-text-muted hover:text-status-error transition-colors"
+                      title="Remove"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+                    </button>
+                  </div>
+                  <p v-if="selectedRole.permissions.length === 0" class="text-sm text-text-meta">
+                    No permissions assigned
+                  </p>
+                </div>
+
+                <div class="flex items-end gap-2">
+                  <Select
+                    v-model="selectedPermissionKey"
+                    :options="permissionOptions"
+                    placeholder="Add permission..."
+                    searchable
+                    clearable
+                    size="sm"
+                    class="flex-1"
+                  />
+                  <button
+                    :disabled="!selectedPermissionKey || permissionAssigning"
+                    @click="handleAssignPermission"
+                    class="px-3 py-2 bg-brand-primary text-white rounded text-xs font-medium hover:bg-brand-primaryHover disabled:opacity-40 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <!-- Role Info -->
+              <div class="p-5">
+                <h3 class="text-sm font-semibold text-text-heading mb-3">Info</h3>
+                <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                  <dt class="text-text-meta">Service Scope</dt>
+                  <dd class="text-text-body">{{ selectedRole.serviceScope ?? '-' }}</dd>
+                  <dt class="text-text-meta">Membership Group</dt>
+                  <dd class="text-text-body">{{ selectedRole.membershipGroup ?? '-' }}</dd>
+                  <dt class="text-text-meta">Parent Role</dt>
+                  <dd class="text-text-body">{{ selectedRole.parentRoleKey ?? '-' }}</dd>
+                  <dt class="text-text-meta">Created</dt>
+                  <dd class="text-text-body">{{ selectedRole.createdAt ?? '-' }}</dd>
+                  <dt class="text-text-meta">Updated</dt>
+                  <dd class="text-text-body">{{ selectedRole.updatedAt ?? '-' }}</dd>
+                </dl>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <!-- Empty State -->
+        <div v-else class="flex flex-col items-center justify-center py-20 text-text-muted">
+          <span class="material-symbols-outlined mb-3" style="font-size: 48px; opacity: 0.3;">shield</span>
+          <p class="text-sm">Select a role to view details</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
