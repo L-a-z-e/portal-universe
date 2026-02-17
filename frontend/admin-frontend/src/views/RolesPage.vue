@@ -11,6 +11,8 @@ import {
   fetchPermissions,
   assignPermission,
   removePermission,
+  addRoleInclude,
+  removeRoleInclude,
 } from '@/api/admin';
 import type {
   RoleResponse,
@@ -48,7 +50,7 @@ const createForm = ref<CreateRoleRequest>({
   description: '',
   serviceScope: '',
   membershipGroup: '',
-  parentRoleKey: '',
+  includedRoleKeys: [],
 });
 const createSaving = ref(false);
 const createError = ref('');
@@ -56,6 +58,10 @@ const createError = ref('');
 // Permission assignment
 const selectedPermissionKey = ref<string | null>(null);
 const permissionAssigning = ref(false);
+
+// Include management
+const selectedIncludeRoleKey = ref<string | null>(null);
+const includeAdding = ref(false);
 
 // === Computed ===
 const filteredRoles = computed(() => {
@@ -66,7 +72,15 @@ const filteredRoles = computed(() => {
   );
 });
 
-const parentRoleOptions = computed<SelectOption[]>(() =>
+const includeRoleOptions = computed<SelectOption[]>(() => {
+  const currentIncludes = new Set(selectedRole.value?.includedRoleKeys ?? []);
+  const currentKey = selectedRole.value?.roleKey;
+  return roles.value
+    .filter((r) => r.active && r.roleKey !== currentKey && !currentIncludes.has(r.roleKey))
+    .map((r) => ({ value: r.roleKey, label: `${r.displayName} (${r.roleKey})` }));
+});
+
+const createIncludeOptions = computed<SelectOption[]>(() =>
   roles.value
     .filter((r) => r.active)
     .map((r) => ({ value: r.roleKey, label: `${r.displayName} (${r.roleKey})` })),
@@ -163,7 +177,7 @@ function enterCreateMode() {
     description: '',
     serviceScope: '',
     membershipGroup: '',
-    parentRoleKey: '',
+    includedRoleKeys: [],
   };
   createMode.value = true;
 }
@@ -179,7 +193,7 @@ async function handleCreate() {
     if (createForm.value.description) payload.description = createForm.value.description;
     if (createForm.value.serviceScope) payload.serviceScope = createForm.value.serviceScope;
     if (createForm.value.membershipGroup) payload.membershipGroup = createForm.value.membershipGroup;
-    if (createForm.value.parentRoleKey) payload.parentRoleKey = createForm.value.parentRoleKey;
+    if (createForm.value.includedRoleKeys?.length) payload.includedRoleKeys = createForm.value.includedRoleKeys;
 
     await createRole(payload);
     createMode.value = false;
@@ -212,6 +226,32 @@ async function handleRemovePermission(permissionKey: string) {
     await selectRole(selectedRole.value.roleKey);
   } catch (e: unknown) {
     error.value = getErrorMessage(e, 'Failed to remove permission');
+  }
+}
+
+async function handleAddInclude() {
+  if (!selectedRole.value || !selectedIncludeRoleKey.value) return;
+  includeAdding.value = true;
+  try {
+    await addRoleInclude(selectedRole.value.roleKey, selectedIncludeRoleKey.value);
+    selectedIncludeRoleKey.value = null;
+    await selectRole(selectedRole.value.roleKey);
+    await loadRoles();
+  } catch (e: unknown) {
+    error.value = getErrorMessage(e, 'Failed to add include');
+  } finally {
+    includeAdding.value = false;
+  }
+}
+
+async function handleRemoveInclude(includedRoleKey: string) {
+  if (!selectedRole.value) return;
+  try {
+    await removeRoleInclude(selectedRole.value.roleKey, includedRoleKey);
+    await selectRole(selectedRole.value.roleKey);
+    await loadRoles();
+  } catch (e: unknown) {
+    error.value = getErrorMessage(e, 'Failed to remove include');
   }
 }
 
@@ -305,11 +345,13 @@ onMounted(() => {
             <Input v-model="createForm.serviceScope" label="Service Scope" placeholder="e.g. shopping" />
             <Input v-model="createForm.membershipGroup" label="Membership Group" placeholder="e.g. USER_SHOPPING" />
             <Select
-              v-model="createForm.parentRoleKey"
-              :options="parentRoleOptions"
-              label="Parent Role"
-              placeholder="Select parent role (optional)"
+              v-model="createForm.includedRoleKeys"
+              :options="createIncludeOptions"
+              label="Included Roles"
+              placeholder="Select included roles (optional)"
               clearable
+              searchable
+              multiple
             />
           </div>
 
@@ -430,6 +472,65 @@ onMounted(() => {
                 </div>
               </div>
 
+              <!-- Included Roles -->
+              <div class="p-5 border-b border-border-default">
+                <h3 class="text-sm font-semibold text-text-heading mb-3">Included Roles</h3>
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <Tag
+                    v-for="key in selectedRole.includedRoleKeys"
+                    :key="key"
+                    variant="default"
+                    size="md"
+                    removable
+                    @remove="handleRemoveInclude(key)"
+                  >
+                    <span class="font-mono">{{ key }}</span>
+                  </Tag>
+                  <p v-if="selectedRole.includedRoleKeys.length === 0" class="text-sm text-text-meta">
+                    No included roles
+                  </p>
+                </div>
+
+                <div class="flex items-end gap-2">
+                  <Select
+                    v-model="selectedIncludeRoleKey"
+                    :options="includeRoleOptions"
+                    placeholder="Add included role..."
+                    searchable
+                    clearable
+                    size="sm"
+                    class="flex-1"
+                  />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    :disabled="!selectedIncludeRoleKey"
+                    :loading="includeAdding"
+                    @click="handleAddInclude"
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              <!-- Effective Roles -->
+              <div class="p-5 border-b border-border-default">
+                <h3 class="text-sm font-semibold text-text-heading mb-3">Effective Roles</h3>
+                <div class="flex flex-wrap gap-2">
+                  <Tag
+                    v-for="key in selectedRole.effectiveRoleKeys"
+                    :key="key"
+                    variant="info"
+                    size="sm"
+                  >
+                    <span class="font-mono">{{ key }}</span>
+                  </Tag>
+                  <p v-if="selectedRole.effectiveRoleKeys.length === 0" class="text-sm text-text-meta">
+                    No effective roles
+                  </p>
+                </div>
+              </div>
+
               <!-- Role Info -->
               <div class="p-5">
                 <h3 class="text-sm font-semibold text-text-heading mb-3">Info</h3>
@@ -438,8 +539,6 @@ onMounted(() => {
                   <dd class="text-text-body">{{ selectedRole.serviceScope ?? '-' }}</dd>
                   <dt class="text-text-meta">Membership Group</dt>
                   <dd class="text-text-body">{{ selectedRole.membershipGroup ?? '-' }}</dd>
-                  <dt class="text-text-meta">Parent Role</dt>
-                  <dd class="text-text-body">{{ selectedRole.parentRoleKey ?? '-' }}</dd>
                   <dt class="text-text-meta">Created</dt>
                   <dd class="text-text-body">{{ selectedRole.createdAt ?? '-' }}</dd>
                   <dt class="text-text-meta">Updated</dt>

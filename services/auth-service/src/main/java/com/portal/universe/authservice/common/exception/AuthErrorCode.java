@@ -150,6 +150,12 @@ public enum AuthErrorCode implements ErrorCode {
     MEMBERSHIP_ALREADY_EXISTS(HttpStatus.CONFLICT, "A037", "Membership already exists for this service"),
     MEMBERSHIP_EXPIRED(HttpStatus.FORBIDDEN, "A038", "Membership has expired"),
 
+    // Role Include
+    ROLE_INCLUDE_CYCLE_DETECTED(HttpStatus.BAD_REQUEST, "A043", "Adding this include would create a circular dependency"),
+    ROLE_INCLUDE_ALREADY_EXISTS(HttpStatus.CONFLICT, "A044", "Role include relationship already exists"),
+    ROLE_INCLUDE_NOT_FOUND(HttpStatus.NOT_FOUND, "A045", "Role include relationship not found"),
+    ROLE_INCLUDE_SELF_REFERENCE(HttpStatus.BAD_REQUEST, "A046", "A role cannot include itself"),
+
     // Seller
     SELLER_APPLICATION_ALREADY_PENDING(HttpStatus.CONFLICT, "A040", "Seller application already pending"),
     SELLER_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "A041", "Seller application not found"),

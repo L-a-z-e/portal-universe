@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-08
+updated: 2026-02-18
 author: Laze
 tags: [api, auth, oauth2, jwt, rbac, membership, follow, seller]
 related:
@@ -14,6 +14,7 @@ related:
   - ADR-008-jwt-stateless-redis
   - ADR-021-role-based-membership-restructure
   - ADR-015-role-hierarchy-implementation
+  - ADR-044-role-multi-include-dag
 ---
 
 # Auth Service API
@@ -1096,7 +1097,7 @@ Authorization: Bearer {accessToken}
       "description": "Full system access",
       "serviceScope": "SYSTEM",
       "membershipGroup": null,
-      "parentRoleKey": null,
+      "includedRoleKeys": [],
       "system": true,
       "active": true
     },
@@ -1107,7 +1108,7 @@ Authorization: Bearer {accessToken}
       "description": "Blog management access",
       "serviceScope": "BLOG",
       "membershipGroup": null,
-      "parentRoleKey": null,
+      "includedRoleKeys": [],
       "system": false,
       "active": true
     },
@@ -1118,7 +1119,7 @@ Authorization: Bearer {accessToken}
       "description": "Shopping service management access",
       "serviceScope": "SHOPPING",
       "membershipGroup": null,
-      "parentRoleKey": null,
+      "includedRoleKeys": [],
       "system": false,
       "active": true
     }
@@ -1480,7 +1481,7 @@ Authorization: Bearer {accessToken}
     "description": "Blog management access",
     "serviceScope": "BLOG",
     "membershipGroup": null,
-    "parentRoleKey": null,
+    "includedRoleKeys": [],
     "system": false,
     "active": true,
     "createdAt": "2026-01-01T00:00:00Z",
@@ -1554,7 +1555,7 @@ Content-Type: application/json
   "description": "Moderate blog comments and posts",
   "serviceScope": "BLOG",
   "membershipGroup": null,
-  "parentRoleKey": "ROLE_USER"
+  "includedRoleKeys": ["ROLE_USER"]
 }
 ```
 
@@ -1567,7 +1568,7 @@ Content-Type: application/json
 | `description` | string | ❌ | - | 역할 설명 |
 | `serviceScope` | string | ❌ | - | 서비스 범위 (SYSTEM, BLOG, SHOPPING 등) |
 | `membershipGroup` | string | ❌ | - | 멤버십 그룹 (user:blog 등) |
-| `parentRoleKey` | string | ❌ | - | 상위 역할 키 (계층 구조) |
+| `includedRoleKeys` | string[] | ❌ | - | 포함할 역할 키 목록 (DAG 계층 구조) |
 
 **Response (201 Created)** (`RoleResponse`)
 ```json
@@ -1580,7 +1581,7 @@ Content-Type: application/json
     "description": "Moderate blog comments and posts",
     "serviceScope": "BLOG",
     "membershipGroup": null,
-    "parentRoleKey": "ROLE_USER",
+    "includedRoleKeys": ["ROLE_USER"],
     "system": false,
     "active": true
   },
@@ -1651,7 +1652,7 @@ Content-Type: application/json
     "description": "Moderate all blog content including posts and comments",
     "serviceScope": "BLOG",
     "membershipGroup": null,
-    "parentRoleKey": "ROLE_USER",
+    "includedRoleKeys": ["ROLE_USER"],
     "system": false,
     "active": true
   },
@@ -1702,7 +1703,7 @@ Authorization: Bearer {accessToken}
     "description": "Moderate all blog content including posts and comments",
     "serviceScope": "BLOG",
     "membershipGroup": null,
-    "parentRoleKey": "ROLE_USER",
+    "includedRoleKeys": ["ROLE_USER"],
     "system": false,
     "active": false
   },
@@ -2610,7 +2611,7 @@ GET /api/v1/internal/role-hierarchy/effective-roles?roles=ROLE_SHOPPING_SELLER,R
 }
 ```
 
-**동작**: 각 역할의 `parentRoleKey`를 재귀적으로 탐색하여 상위 역할이 하위 역할을 포함하도록 확장합니다.
+**동작**: `role_includes` DAG를 BFS 탐색하여 역할이 포함하는 모든 하위 역할을 확장합니다. JWT `effectiveRoles` claim에 내장되어 Gateway에서 직접 사용됩니다.
 
 ---
 
@@ -2937,6 +2938,21 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 
 ### v2.4.1 (2026-02-07)
 - 관련 문서 링크 수정 (존재하지 않는 ADR-006/009 → 실제 ADR-003/008/015/021)
+
+### v3.0.0 (2026-02-18)
+- **Role Multi-Include DAG 전환** (ADR-044): `parentRoleKey` 단일 FK → `includedRoleKeys` 다대다 DAG 구조
+- `role_includes` 테이블 도입, `parent_role_id` 컬럼 제거 (V4 Flyway)
+- `ROLE_GUEST` 역할 추가 (6개 시스템 역할)
+- JWT `effectiveRoles` claim 추가 → Gateway에서 auth-service API 호출 제거
+- RbacAdminController 5개 엔드포인트 추가:
+  - `GET /roles/{roleKey}/includes` - direct includes 조회
+  - `POST /roles/{roleKey}/includes` - include 추가 (cycle detection)
+  - `DELETE /roles/{roleKey}/includes/{includedRoleKey}` - include 제거
+  - `GET /roles/{roleKey}/resolved` - effective roles + permissions
+  - `GET /roles/hierarchy` - 전체 DAG 구조
+- Error Code A043~A046 추가 (cycle detection, include 관련)
+- RoleResponse/RoleDetailResponse: `parentRoleKey` → `includedRoleKeys` + `effectiveRoleKeys`
+- RoleHierarchyResolver @Deprecated (구형 JWT fallback용으로만 유지)
 
 ### v2.4.0 (2026-02-07)
 - RbacAdminController에 역할 CRUD 8개 엔드포인트 추가 (상세, 생성, 수정, 상태변경, 권한 조회/할당/해제, 전체 권한 목록)

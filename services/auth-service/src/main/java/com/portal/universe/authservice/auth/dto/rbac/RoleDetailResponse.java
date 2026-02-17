@@ -2,6 +2,7 @@ package com.portal.universe.authservice.auth.dto.rbac;
 
 import com.portal.universe.authservice.auth.domain.PermissionEntity;
 import com.portal.universe.authservice.auth.domain.RoleEntity;
+import com.portal.universe.authservice.auth.domain.RoleInclude;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -13,14 +14,20 @@ public record RoleDetailResponse(
         String description,
         String serviceScope,
         String membershipGroup,
-        String parentRoleKey,
+        List<String> includedRoleKeys,
+        List<String> effectiveRoleKeys,
         boolean system,
         boolean active,
         String createdAt,
         String updatedAt,
         List<PermissionResponse> permissions
 ) {
-    public static RoleDetailResponse from(RoleEntity entity, List<PermissionEntity> permissions) {
+    public static RoleDetailResponse from(RoleEntity entity, List<RoleInclude> includes,
+                                          List<String> effectiveRoleKeys,
+                                          List<PermissionEntity> permissions) {
+        List<String> includeKeys = includes.stream()
+                .map(ri -> ri.getIncludedRole().getRoleKey())
+                .toList();
         return new RoleDetailResponse(
                 entity.getId(),
                 entity.getRoleKey(),
@@ -28,7 +35,8 @@ public record RoleDetailResponse(
                 entity.getDescription(),
                 entity.getServiceScope(),
                 entity.getMembershipGroup(),
-                entity.getParentRole() != null ? entity.getParentRole().getRoleKey() : null,
+                includeKeys,
+                effectiveRoleKeys,
                 entity.isSystem(),
                 entity.isActive(),
                 entity.getCreatedAt() != null

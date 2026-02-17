@@ -10,6 +10,8 @@ import type {
   UpdateRoleRequest,
   UserRole,
   UserPermissions,
+  ResolvedRoleResponse,
+  RoleHierarchyResponse,
   MembershipTierResponse,
   MembershipResponse,
   UpdateMembershipTierRequest,
@@ -98,6 +100,37 @@ export async function assignRole(userId: string, roleKey: string): Promise<void>
 
 export async function revokeRole(userId: string, roleKey: string): Promise<void> {
   await apiClient.delete(`${ADMIN_RBAC_BASE}/users/${userId}/roles/${roleKey}`);
+}
+
+// === Role Includes ===
+
+export async function fetchRoleIncludes(roleKey: string): Promise<RoleResponse[]> {
+  const res = await apiClient.get<ApiResponse<RoleResponse[]>>(
+    `${ADMIN_RBAC_BASE}/roles/${roleKey}/includes`,
+  );
+  return res.data.data;
+}
+
+export async function addRoleInclude(roleKey: string, includedRoleKey: string): Promise<void> {
+  await apiClient.post(`${ADMIN_RBAC_BASE}/roles/${roleKey}/includes`, { includedRoleKey });
+}
+
+export async function removeRoleInclude(roleKey: string, includedRoleKey: string): Promise<void> {
+  await apiClient.delete(`${ADMIN_RBAC_BASE}/roles/${roleKey}/includes/${includedRoleKey}`);
+}
+
+export async function fetchResolvedRole(roleKey: string): Promise<ResolvedRoleResponse> {
+  const res = await apiClient.get<ApiResponse<ResolvedRoleResponse>>(
+    `${ADMIN_RBAC_BASE}/roles/${roleKey}/resolved`,
+  );
+  return res.data.data;
+}
+
+export async function fetchRoleHierarchy(): Promise<RoleHierarchyResponse> {
+  const res = await apiClient.get<ApiResponse<RoleHierarchyResponse>>(
+    `${ADMIN_RBAC_BASE}/roles/hierarchy`,
+  );
+  return res.data.data;
 }
 
 // === Membership ===

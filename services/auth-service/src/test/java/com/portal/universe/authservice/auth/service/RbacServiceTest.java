@@ -6,6 +6,7 @@ import com.portal.universe.authservice.auth.dto.rbac.RoleResponse;
 import com.portal.universe.authservice.auth.dto.rbac.UserPermissionsResponse;
 import com.portal.universe.authservice.auth.dto.rbac.UserRoleResponse;
 import com.portal.universe.authservice.auth.repository.*;
+import java.util.Collections;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +47,12 @@ class RbacServiceTest {
     @Mock
     private AuthAuditLogRepository auditLogRepository;
 
+    @Mock
+    private RoleIncludeRepository roleIncludeRepository;
+
+    @Mock
+    private RoleHierarchyService roleHierarchyService;
+
     @InjectMocks
     private RbacService rbacService;
 
@@ -79,6 +86,7 @@ class RbacServiceTest {
             RoleEntity role1 = createRole("ROLE_USER", true);
             RoleEntity role2 = createRole("ROLE_ADMIN", false);
             when(roleEntityRepository.findByActiveTrue()).thenReturn(List.of(role1, role2));
+            when(roleIncludeRepository.findAllWithRoles()).thenReturn(Collections.emptyList());
 
             // when
             List<RoleResponse> result = rbacService.getAllActiveRoles();

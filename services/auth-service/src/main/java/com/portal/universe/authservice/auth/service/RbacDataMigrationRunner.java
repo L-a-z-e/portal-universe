@@ -25,6 +25,7 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
     private final RoleEntityRepository roleEntityRepository;
     private final PermissionRepository permissionRepository;
     private final RolePermissionRepository rolePermissionRepository;
+    private final RoleIncludeRepository roleIncludeRepository;
     private final UserRoleRepository userRoleRepository;
     private final MembershipTierRepository membershipTierRepository;
     private final UserMembershipRepository userMembershipRepository;
@@ -52,6 +53,13 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
     private void seedRoles() {
         log.info("Seeding roles...");
 
+        RoleEntity guestRole = roleEntityRepository.save(RoleEntity.builder()
+                .roleKey("ROLE_GUEST")
+                .displayName("Guest")
+                .description("Unauthenticated guest role with minimal access")
+                .system(true)
+                .build());
+
         RoleEntity userRole = roleEntityRepository.save(RoleEntity.builder()
                 .roleKey("ROLE_USER")
                 .displayName("User")
@@ -66,37 +74,46 @@ public class RbacDataMigrationRunner implements ApplicationRunner {
                 .system(true)
                 .build());
 
-        // Shopping service roles (hierarchy: SUPER_ADMIN → SHOPPING_ADMIN → SHOPPING_SELLER → USER)
         RoleEntity shoppingSeller = roleEntityRepository.save(RoleEntity.builder()
                 .roleKey("ROLE_SHOPPING_SELLER")
                 .displayName("Shopping Seller")
                 .description("Shopping service seller who can manage own products")
                 .serviceScope("shopping")
                 .membershipGroup(MembershipGroupConstants.SELLER_SHOPPING)
-                .parentRole(userRole)
                 .system(true)
                 .build());
 
-        roleEntityRepository.save(RoleEntity.builder()
+        RoleEntity shoppingAdmin = roleEntityRepository.save(RoleEntity.builder()
                 .roleKey("ROLE_SHOPPING_ADMIN")
                 .displayName("Shopping Admin")
                 .description("Shopping service administrator")
                 .serviceScope("shopping")
-                .parentRole(shoppingSeller)
                 .system(true)
                 .build());
 
-        // Blog service roles (hierarchy: SUPER_ADMIN → BLOG_ADMIN → USER)
-        roleEntityRepository.save(RoleEntity.builder()
+        RoleEntity blogAdmin = roleEntityRepository.save(RoleEntity.builder()
                 .roleKey("ROLE_BLOG_ADMIN")
                 .displayName("Blog Admin")
                 .description("Blog service administrator")
                 .serviceScope("blog")
-                .parentRole(userRole)
                 .system(true)
                 .build());
 
-        log.info("Seeded 5 system roles");
+        // role_includes DAG 관계 설정
+        // ROLE_USER → ROLE_GUEST
+        roleIncludeRepository.save(new RoleInclude(userRole, guestRole));
+        // ROLE_SHOPPING_SELLER → ROLE_USER
+        roleIncludeRepository.save(new RoleInclude(shoppingSeller, userRole));
+        // ROLE_SHOPPING_ADMIN → ROLE_SHOPPING_SELLER
+        roleIncludeRepository.save(new RoleInclude(shoppingAdmin, shoppingSeller));
+        // ROLE_BLOG_ADMIN → ROLE_USER
+        roleIncludeRepository.save(new RoleInclude(blogAdmin, userRole));
+        // ROLE_SUPER_ADMIN → ROLE_SHOPPING_ADMIN
+        roleIncludeRepository.save(new RoleInclude(superAdmin, shoppingAdmin));
+        // ROLE_SUPER_ADMIN → ROLE_BLOG_ADMIN
+        roleIncludeRepository.save(new RoleInclude(superAdmin, blogAdmin));
+
+        log.info("Seeded 6 system roles with DAG includes");
     }
 
     private void seedPermissions() {

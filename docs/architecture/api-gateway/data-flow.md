@@ -4,7 +4,7 @@ title: API Gateway Data Flow
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-18
 author: Laze
 tags: [api-gateway, data-flow, jwt, rate-limiting, circuit-breaker, health-check]
 related:
@@ -68,8 +68,8 @@ sequenceDiagram
     JWT->>REDIS: blacklist:{token} 존재?
     REDIS-->>JWT: false (유효)
 
-    JWT->>JWT: Claims 파싱<br/>(sub, roles, memberships)
-    JWT->>JWT: RoleHierarchyResolver로 역할 계층 확장
+    JWT->>JWT: Claims 파싱<br/>(sub, roles, effectiveRoles, memberships)
+    JWT->>JWT: effectiveRoles claim 파싱 (없으면 roles fallback)
     JWT->>JWT: X-User-Id, X-User-Roles, X-User-Effective-Roles 헤더 설정
     JWT->>JWT: SecurityContext에 Authentication 저장
 
@@ -165,14 +165,18 @@ sequenceDiagram
         F-->>F: 401 GW-A005 "Token revoked"
     end
 
-    Note over F: 7. Role Hierarchy Resolution
-    F->>F: RoleHierarchyResolver 호출 (Redis 캐시 → auth-service)
-    F->>F: 원본 roles → effective roles 확장
+    Note over F: 7. effectiveRoles 파싱
+    F->>F: JWT effectiveRoles claim 파싱
+    alt effectiveRoles claim 존재
+        F->>F: claim 값 사용 (DAG 확장 역할)
+    else claim 없음 (구형 JWT)
+        F->>F: roles claim을 fallback으로 사용
+    end
 
     Note over F: 8. Claims → 헤더 변환
     F->>F: sub → X-User-Id
-    F->>F: roles[] → X-User-Roles (쉼표 구분, 원본)
-    F->>F: effectiveRoles[] → X-User-Effective-Roles (계층 확장)
+    F->>F: roles[] → X-User-Roles (쉼표 구분, 직접 할당)
+    F->>F: effectiveRoles[] → X-User-Effective-Roles (DAG 확장)
     F->>F: memberships{} → X-User-Memberships (JSON)
     F->>F: nickname → X-User-Nickname (URL encoded)
     F->>F: username → X-User-Name (URL encoded)
@@ -469,3 +473,4 @@ sequenceDiagram
 | 날짜 | 작성자 | 변경 내용 |
 |------|--------|-----------|
 | 2026-02-06 | Laze | 코드베이스 기준 신규 작성 (24개 Java 파일, application.yml 검증) |
+| 2026-02-18 | Laze | RoleHierarchyResolver 제거 → JWT effectiveRoles claim 직접 파싱 (ADR-044) |

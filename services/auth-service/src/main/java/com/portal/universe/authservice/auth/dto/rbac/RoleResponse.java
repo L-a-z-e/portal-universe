@@ -1,6 +1,9 @@
 package com.portal.universe.authservice.auth.dto.rbac;
 
 import com.portal.universe.authservice.auth.domain.RoleEntity;
+import com.portal.universe.authservice.auth.domain.RoleInclude;
+
+import java.util.List;
 
 public record RoleResponse(
         Long id,
@@ -9,11 +12,14 @@ public record RoleResponse(
         String description,
         String serviceScope,
         String membershipGroup,
-        String parentRoleKey,
+        List<String> includedRoleKeys,
         boolean system,
         boolean active
 ) {
-    public static RoleResponse from(RoleEntity entity) {
+    public static RoleResponse from(RoleEntity entity, List<RoleInclude> includes) {
+        List<String> includeKeys = includes.stream()
+                .map(ri -> ri.getIncludedRole().getRoleKey())
+                .toList();
         return new RoleResponse(
                 entity.getId(),
                 entity.getRoleKey(),
@@ -21,7 +27,7 @@ public record RoleResponse(
                 entity.getDescription(),
                 entity.getServiceScope(),
                 entity.getMembershipGroup(),
-                entity.getParentRole() != null ? entity.getParentRole().getRoleKey() : null,
+                includeKeys,
                 entity.isSystem(),
                 entity.isActive()
         );

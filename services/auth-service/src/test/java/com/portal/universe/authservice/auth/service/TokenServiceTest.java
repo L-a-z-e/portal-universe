@@ -42,6 +42,9 @@ class TokenServiceTest {
     @Mock
     private UserMembershipRepository userMembershipRepository;
 
+    @Mock
+    private RoleHierarchyService roleHierarchyService;
+
     @InjectMocks
     private TokenService tokenService;
 
@@ -115,6 +118,8 @@ class TokenServiceTest {
             User user = createTestUser();
             when(userRoleRepository.findActiveRoleKeysByUserId(USER_UUID))
                     .thenReturn(List.of("ROLE_USER"));
+            when(roleHierarchyService.resolveEffectiveRoles(List.of("ROLE_USER")))
+                    .thenReturn(List.of("ROLE_USER", "ROLE_GUEST"));
 
             MembershipTier freeTier = createFreeTier("user:shopping");
             UserMembership membership = UserMembership.builder()

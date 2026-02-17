@@ -8,7 +8,7 @@ export interface RoleResponse {
   description: string;
   serviceScope: string | null;
   membershipGroup: string | null;
-  parentRoleKey: string | null;
+  includedRoleKeys: string[];
   system: boolean;
   active: boolean;
 }
@@ -20,7 +20,8 @@ export interface RoleDetailResponse {
   description: string;
   serviceScope: string | null;
   membershipGroup: string | null;
-  parentRoleKey: string | null;
+  includedRoleKeys: string[];
+  effectiveRoleKeys: string[];
   system: boolean;
   active: boolean;
   createdAt: string;
@@ -44,7 +45,17 @@ export interface CreateRoleRequest {
   description?: string;
   serviceScope?: string;
   membershipGroup?: string;
-  parentRoleKey?: string;
+  includedRoleKeys?: string[];
+}
+
+export interface ResolvedRoleResponse {
+  roleKey: string;
+  effectiveRoles: string[];
+  effectivePermissions: string[];
+}
+
+export interface RoleHierarchyResponse {
+  graph: Record<string, string[]>;
 }
 
 export interface UpdateRoleRequest {
