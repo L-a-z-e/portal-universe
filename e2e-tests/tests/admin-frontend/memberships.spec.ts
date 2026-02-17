@@ -5,74 +5,110 @@ test.describe('Admin Membership Management', () => {
     await navigateToAdminPage(page, '/admin/memberships')
   })
 
-  test('should load membership management page', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Membership Management")')).toBeVisible({ timeout: 15000 })
+  test('should load memberships page with 3-column layout', async ({ page }) => {
+    await expect(page.locator('h1:has-text("Memberships")')).toBeVisible({ timeout: 15000 })
+    // Wait for loading to complete
+    await page.locator('.animate-spin').first().waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
+    // Groups column (w-52) should have items
+    const groupItems = page.locator('.w-52').first().locator('[class*="cursor-pointer"]')
+    await expect(groupItems.first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('should display tier configuration with group tabs', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Membership Management")')).toBeVisible({ timeout: 15000 })
-    // Wait for loading spinner to disappear before checking section content
-    await page.locator('.animate-spin, [class*="spinner"]').first().waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
-    await expect(page.getByText('Tier Configuration')).toBeVisible({ timeout: 15000 })
+  test('should select group and show tiers', async ({ page }) => {
+    await expect(page.locator('h1:has-text("Memberships")')).toBeVisible({ timeout: 15000 })
+    await page.locator('.animate-spin').first().waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
 
-    const groupButtons = page.locator('section').filter({ hasText: 'Tier Configuration' }).getByRole('button')
-    await expect(groupButtons.first()).toBeVisible({ timeout: 5000 })
+    // First group should be auto-selected, tiers column should have items
+    const tiersColumn = page.locator('.w-52').nth(1)
+    const tierItems = tiersColumn.locator('[class*="cursor-pointer"]')
+    await expect(tierItems.first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('should switch group tabs and show tier table', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Membership Management")')).toBeVisible({ timeout: 15000 })
+  test('should select tier and show detail', async ({ page }) => {
+    await expect(page.locator('h1:has-text("Memberships")')).toBeVisible({ timeout: 15000 })
+    await page.locator('.animate-spin').first().waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
 
-    const groupButtons = page.locator('section').filter({ hasText: 'Tier Configuration' }).getByRole('button')
-    const count = await groupButtons.count()
-    if (count < 2) {
-      test.skip()
-      return
-    }
-
-    await groupButtons.nth(1).click()
+    // Click first tier
+    const tiersColumn = page.locator('.w-52').nth(1)
+    const firstTier = tiersColumn.locator('[class*="cursor-pointer"]').first()
+    await firstTier.click()
     await page.waitForTimeout(1000)
 
-    await expect(page.locator('th:has-text("Tier Key")')).toBeVisible()
+    // Detail panel should show tier info
+    await expect(page.locator('h3:has-text("Info")')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('Tier Key')).toBeVisible()
+    await expect(page.getByText('Membership Group')).toBeVisible()
   })
 
-  test('should display tier table columns', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Membership Management")')).toBeVisible({ timeout: 15000 })
+  test('should edit tier details', async ({ page }) => {
+    await expect(page.locator('h1:has-text("Memberships")')).toBeVisible({ timeout: 15000 })
+    await page.locator('.animate-spin').first().waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
 
-    await expect(page.locator('th:has-text("Tier Key")')).toBeVisible({ timeout: 10000 })
-    await expect(page.locator('th:has-text("Display Name")')).toBeVisible()
-    await expect(page.locator('th:has-text("Monthly")')).toBeVisible()
-    await expect(page.locator('th:has-text("Yearly")')).toBeVisible()
-    await expect(page.locator('th:has-text("Order")')).toBeVisible()
+    // Select first tier
+    const tiersColumn = page.locator('.w-52').nth(1)
+    await tiersColumn.locator('[class*="cursor-pointer"]').first().click()
+    await page.waitForTimeout(1000)
+
+    // Click Edit button
+    await page.getByRole('button', { name: 'Edit' }).click()
+    await expect(page.getByText('Save Changes')).toBeVisible({ timeout: 5000 })
+
+    // Should show edit form with Display Name, prices, Sort Order
+    await expect(page.locator('label:has-text("Display Name")')).toBeVisible()
+    await expect(page.locator('label:has-text("Sort Order")')).toBeVisible()
+
+    // Cancel edit
+    await page.getByRole('button', { name: 'Cancel' }).click()
+    await expect(page.getByText('Save Changes')).toBeHidden({ timeout: 3000 })
   })
 
-  test('should search users by email', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Membership Management")')).toBeVisible({ timeout: 15000 })
+  test('should create new tier', async ({ page }) => {
+    await expect(page.locator('h1:has-text("Memberships")')).toBeVisible({ timeout: 15000 })
+    await page.locator('.animate-spin').first().waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
 
-    const searchInput = page.getByPlaceholder('Search by email, username or UUID...')
-    await searchInput.fill('test@test.com')
-    await page.getByRole('button', { name: 'Search' }).click()
+    // Click "Add Tier" button
+    await page.getByRole('button', { name: 'Add Tier' }).click()
+    await expect(page.getByText('Create New Tier')).toBeVisible({ timeout: 5000 })
+
+    // Fill form
+    const tierKey = `E2E_TIER_${Date.now()}`
+    await page.getByPlaceholder('e.g. PREMIUM').fill(tierKey)
+    await page.getByPlaceholder('e.g. Premium').fill('E2E Test Tier')
+
+    // Create
+    await page.getByRole('button', { name: 'Create', exact: true }).click()
     await page.waitForTimeout(3000)
 
-    const hasSearchResults = await page.locator('ul li').first().isVisible({ timeout: 5000 }).catch(() => false)
-    const hasUserCard = await page.locator('text=test@test.com').isVisible({ timeout: 2000 }).catch(() => false)
-    expect(hasSearchResults || hasUserCard).toBeTruthy()
+    // Form should close and tier should appear in list
+    await expect(page.getByText('Create New Tier')).toBeHidden({ timeout: 5000 })
+    await expect(page.locator(`text=${tierKey}`)).toBeVisible({ timeout: 5000 })
   })
 
-  test('should select user from search results and show memberships', async ({ page }) => {
-    await expect(page.locator('h1:has-text("Membership Management")')).toBeVisible({ timeout: 15000 })
+  test('should delete tier', async ({ page }) => {
+    await expect(page.locator('h1:has-text("Memberships")')).toBeVisible({ timeout: 15000 })
+    await page.locator('.animate-spin').first().waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {})
 
-    const searchInput = page.getByPlaceholder('Search by email, username or UUID...')
-    await searchInput.fill('test')
-    await page.getByRole('button', { name: 'Search' }).click()
+    // First create a tier to delete
+    await page.getByRole('button', { name: 'Add Tier' }).click()
+    await expect(page.getByText('Create New Tier')).toBeVisible({ timeout: 5000 })
+
+    const tierKey = `E2E_DEL_${Date.now()}`
+    await page.getByPlaceholder('e.g. PREMIUM').fill(tierKey)
+    await page.getByPlaceholder('e.g. Premium').fill('Delete Me')
+    await page.getByRole('button', { name: 'Create', exact: true }).click()
     await page.waitForTimeout(3000)
 
-    const firstResult = page.locator('ul li').first()
-    if (await firstResult.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await firstResult.click()
-      await page.waitForTimeout(3000)
+    // The newly created tier should be selected
+    await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible({ timeout: 5000 })
 
-      // User info card should be visible with UUID
-      await expect(page.locator('.font-mono').first()).toBeVisible({ timeout: 5000 })
-    }
+    // Click Delete
+    await page.getByRole('button', { name: 'Delete' }).click()
+    // Confirm deletion
+    await expect(page.getByText('Are you sure')).toBeVisible({ timeout: 3000 })
+    await page.getByRole('button', { name: 'Confirm Delete' }).click()
+    await page.waitForTimeout(3000)
+
+    // Tier should be removed
+    await expect(page.locator(`text=${tierKey}`)).toBeHidden({ timeout: 5000 })
   })
 })
