@@ -80,6 +80,11 @@
         "$value": "{color.gray.100}",
         "$description": "Blog light mode hover background",
         "$type": "color"
+      },
+      "sidebar": {
+        "$value": "#f8f8fa",
+        "$description": "Blog light mode sidebar background",
+        "$type": "color"
       }
     },
     "border": {
@@ -228,6 +233,11 @@
         "hover": {
           "$value": "{color.linear.700}",
           "$description": "Blog dark mode hover background",
+          "$type": "color"
+        },
+        "sidebar": {
+          "$value": "#0e0f11",
+          "$description": "Blog dark mode sidebar background",
           "$type": "color"
         }
       },

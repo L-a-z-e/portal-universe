@@ -80,6 +80,11 @@
         "$value": "{color.gray.100}",
         "$description": "Prism light mode hover background",
         "$type": "color"
+      },
+      "sidebar": {
+        "$value": "#f8f8fa",
+        "$description": "Prism light mode sidebar background",
+        "$type": "color"
       }
     },
     "border": {
@@ -228,6 +233,11 @@
         "hover": {
           "$value": "{color.linear.700}",
           "$description": "Prism dark mode hover background",
+          "$type": "color"
+        },
+        "sidebar": {
+          "$value": "#0e0f11",
+          "$description": "Prism dark mode sidebar background",
           "$type": "color"
         }
       },
