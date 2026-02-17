@@ -5,11 +5,14 @@ import {
   fetchMembershipGroups,
   fetchMembershipTiers,
   updateMembershipTier,
+  createMembershipTier,
+  deleteMembershipTier,
 } from '@/api/admin';
 import type { MembershipTierResponse } from '@/dto/admin';
+import RoleDefaultMappingSection from '@/components/memberships/RoleDefaultMappingSection.vue';
 
 const { getErrorMessage } = useApiError();
-const { addToast } = useToast();
+const { success: toastSuccess } = useToast();
 
 // === State ===
 const groups = ref<string[]>([]);
@@ -23,8 +26,16 @@ const editMode = ref(false);
 const editForm = ref({ displayName: '', priceMonthly: null as number | null, priceYearly: null as number | null, sortOrder: 0 });
 const editSaving = ref(false);
 
+// Create tier
+const createTierMode = ref(false);
+const createTierForm = ref({ tierKey: '', displayName: '', priceMonthly: null as number | null, priceYearly: null as number | null, sortOrder: 0 });
+const createTierSaving = ref(false);
+
+// Delete tier
+const deleteConfirm = ref(false);
+const deleting = ref(false);
+
 const error = ref('');
-const success = ref('');
 
 // === Computed ===
 const filteredGroups = computed(() => {
@@ -45,10 +56,14 @@ function selectGroup(group: string) {
   selectedGroup.value = group;
   selectedTier.value = null;
   editMode.value = false;
+  createTierMode.value = false;
+  deleteConfirm.value = false;
 }
 
 function selectTier(tier: MembershipTierResponse) {
   editMode.value = false;
+  createTierMode.value = false;
+  deleteConfirm.value = false;
   selectedTier.value = tier;
 }
 
@@ -82,11 +97,69 @@ async function saveEdit() {
     }
     selectedTier.value = updated;
     editMode.value = false;
-    addToast({ variant: 'success', message: 'Tier updated successfully' });
+    toastSuccess('Tier updated successfully');
   } catch (e: unknown) {
     error.value = getErrorMessage(e, 'Failed to update tier');
   } finally {
     editSaving.value = false;
+  }
+}
+
+function enterCreateTierMode() {
+  if (!selectedGroup.value) return;
+  selectedTier.value = null;
+  editMode.value = false;
+  deleteConfirm.value = false;
+  createTierForm.value = { tierKey: '', displayName: '', priceMonthly: null, priceYearly: null, sortOrder: 0 };
+  createTierMode.value = true;
+}
+
+async function handleCreateTier() {
+  if (!selectedGroup.value) return;
+  createTierSaving.value = true;
+  error.value = '';
+  try {
+    const created = await createMembershipTier({
+      membershipGroup: selectedGroup.value,
+      tierKey: createTierForm.value.tierKey,
+      displayName: createTierForm.value.displayName,
+      priceMonthly: createTierForm.value.priceMonthly,
+      priceYearly: createTierForm.value.priceYearly,
+      sortOrder: createTierForm.value.sortOrder,
+    });
+    if (!allGroupTiers.value[selectedGroup.value]) {
+      allGroupTiers.value[selectedGroup.value] = [];
+    }
+    allGroupTiers.value[selectedGroup.value]!.push(created);
+    createTierMode.value = false;
+    selectedTier.value = created;
+    toastSuccess('Tier created successfully');
+  } catch (e: unknown) {
+    error.value = getErrorMessage(e, 'Failed to create tier');
+  } finally {
+    createTierSaving.value = false;
+  }
+}
+
+async function handleDeleteTier() {
+  if (!selectedTier.value) return;
+  deleting.value = true;
+  error.value = '';
+  try {
+    const tierId = selectedTier.value.id;
+    const group = selectedTier.value.membershipGroup;
+    await deleteMembershipTier(tierId);
+    const tiers = allGroupTiers.value[group];
+    if (tiers) {
+      allGroupTiers.value[group] = tiers.filter((t) => t.id !== tierId);
+    }
+    selectedTier.value = null;
+    deleteConfirm.value = false;
+    toastSuccess('Tier deleted successfully');
+  } catch (e: unknown) {
+    error.value = getErrorMessage(e, 'Failed to delete tier');
+  } finally {
+    deleting.value = false;
   }
 }
 
@@ -115,14 +188,22 @@ onMounted(loadGroups);
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-text-heading mb-6">Memberships</h1>
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-text-heading">Memberships</h1>
+      <Button
+        v-if="selectedGroup"
+        variant="primary"
+        size="sm"
+        @click="enterCreateTierMode"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+        Add Tier
+      </Button>
+    </div>
 
-    <!-- Error / Success -->
+    <!-- Error -->
     <Alert v-if="error" variant="error" dismissible class="mb-4" @dismiss="error = ''">
       {{ error }}
-    </Alert>
-    <Alert v-if="success" variant="success" dismissible class="mb-4" @dismiss="success = ''">
-      {{ success }}
     </Alert>
 
     <!-- Loading -->
@@ -210,9 +291,37 @@ onMounted(loadGroups);
         </Card>
       </div>
 
-      <!-- Col 3: Tier Detail -->
+      <!-- Col 3: Tier Detail / Create -->
       <div class="flex-1 min-w-0 flex flex-col">
-        <template v-if="selectedTier">
+        <!-- Create Tier Form -->
+        <Card v-if="createTierMode" variant="elevated" padding="lg" class="flex-1">
+          <h2 class="text-base font-semibold text-text-heading mb-4">Create New Tier</h2>
+          <p class="text-sm text-text-meta mb-4">Group: <Badge variant="info" size="sm">{{ selectedGroup }}</Badge></p>
+
+          <div class="space-y-4 mb-4">
+            <div class="grid grid-cols-2 gap-4">
+              <Input v-model="createTierForm.tierKey" label="Tier Key" placeholder="e.g. PREMIUM" required />
+              <Input v-model="createTierForm.displayName" label="Display Name" placeholder="e.g. Premium" required />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <Input v-model="createTierForm.priceMonthly" label="Monthly Price" type="number" placeholder="null = free" />
+              <Input v-model="createTierForm.priceYearly" label="Yearly Price" type="number" placeholder="null = free" />
+            </div>
+            <Input v-model="createTierForm.sortOrder" label="Sort Order" type="number" required />
+          </div>
+
+          <div class="flex gap-2">
+            <Button variant="primary" size="sm" :loading="createTierSaving" @click="handleCreateTier">
+              Create
+            </Button>
+            <Button variant="ghost" size="sm" @click="createTierMode = false">
+              Cancel
+            </Button>
+          </div>
+        </Card>
+
+        <!-- Tier Detail -->
+        <template v-else-if="selectedTier">
           <Card variant="elevated" padding="none" class="flex-1">
             <!-- Header -->
             <div class="p-5 border-b border-border-default">
@@ -224,11 +333,30 @@ onMounted(loadGroups);
                     <Badge variant="info" size="sm">{{ selectedTier.membershipGroup }}</Badge>
                   </div>
                 </div>
-                <Button v-if="!editMode" variant="outline" size="sm" @click="enterEditMode">
-                  <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
-                  Edit
-                </Button>
+                <div v-if="!editMode" class="flex gap-2">
+                  <Button variant="outline" size="sm" @click="enterEditMode">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                    Edit
+                  </Button>
+                  <Button variant="danger" size="sm" @click="deleteConfirm = true">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                    Delete
+                  </Button>
+                </div>
               </div>
+
+              <!-- Delete Confirmation -->
+              <Alert v-if="deleteConfirm" variant="error" class="mt-4">
+                <p class="text-sm mb-2">Are you sure you want to delete tier <strong>{{ selectedTier.tierKey }}</strong>?</p>
+                <div class="flex gap-2">
+                  <Button variant="danger" size="sm" :loading="deleting" @click="handleDeleteTier">
+                    Confirm Delete
+                  </Button>
+                  <Button variant="ghost" size="sm" @click="deleteConfirm = false">
+                    Cancel
+                  </Button>
+                </div>
+              </Alert>
 
               <!-- Edit Mode -->
               <div v-if="editMode" class="mt-4 space-y-3">
@@ -275,6 +403,11 @@ onMounted(loadGroups);
           <p class="text-sm">Select a tier to view details</p>
         </div>
       </div>
+    </div>
+
+    <!-- Role-Default Mapping Section -->
+    <div class="mt-6">
+      <RoleDefaultMappingSection />
     </div>
   </div>
 </template>
