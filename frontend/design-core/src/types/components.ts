@@ -362,6 +362,7 @@ export interface TableProps<T = unknown> {
   emptyText?: string;
   striped?: boolean;
   hoverable?: boolean;
+  onRowClick?: (row: T, index: number) => void;
 }
 
 // ============================================

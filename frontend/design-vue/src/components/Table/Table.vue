@@ -71,7 +71,9 @@ const getCellValue = (row: T, column: TableColumn<T>) => {
             'border-b border-border-default transition-colors',
             striped && rowIndex % 2 === 1 && 'bg-bg-muted/50',
             hoverable && 'hover:bg-bg-hover',
+            onRowClick && 'cursor-pointer',
           ]"
+          @click="onRowClick && onRowClick(row, rowIndex)"
         >
           <td
             v-for="column in columns"
