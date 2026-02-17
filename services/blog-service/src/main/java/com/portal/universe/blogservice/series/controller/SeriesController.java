@@ -54,6 +54,13 @@ public class SeriesController {
         return ApiResponse.success(null);
     }
 
+    @Operation(summary = "전체 시리즈 목록 조회")
+    @GetMapping
+    public ApiResponse<List<SeriesListResponse>> getAllSeries() {
+        List<SeriesListResponse> responses = seriesService.getAllSeries();
+        return ApiResponse.success(responses);
+    }
+
     @Operation(summary = "시리즈 상세 조회")
     @GetMapping("/{seriesId}")
     public ApiResponse<SeriesResponse> getSeriesById(

@@ -1,19 +1,19 @@
 {
-  "$description": "Blog service theme - Teal/Mint branding (Velog style) with unified dark mode",
+  "$description": "Blog service theme - Serene Nature Tones (sage green) with unified dark mode",
   "color": {
     "brand": {
       "primary": {
-        "$value": "#12B886",
-        "$description": "Blog brand primary - Teal (Velog style)",
+        "$value": "{color.sage.400}",
+        "$description": "Blog brand primary - Sage green",
         "$type": "color"
       },
       "primaryHover": {
-        "$value": "#0CA678",
+        "$value": "{color.sage.500}",
         "$description": "Blog brand primary hover",
         "$type": "color"
       },
       "secondary": {
-        "$value": "{color.green.400}",
+        "$value": "{color.sage.300}",
         "$description": "Blog brand secondary",
         "$type": "color"
       }
@@ -45,12 +45,12 @@
         "$type": "color"
       },
       "link": {
-        "$value": "{color.blue.600}",
-        "$description": "Blog light mode link text",
+        "$value": "{color.sage.600}",
+        "$description": "Blog light mode link text - Sage accent",
         "$type": "color"
       },
       "linkHover": {
-        "$value": "{color.blue.700}",
+        "$value": "{color.sage.700}",
         "$description": "Blog light mode link hover text",
         "$type": "color"
       }
@@ -72,13 +72,18 @@
         "$type": "color"
       },
       "muted": {
-        "$value": "{color.green.50}",
-        "$description": "Blog light mode muted background - green tint",
+        "$value": "{color.sage.50}",
+        "$description": "Blog light mode muted background - Sage tint",
         "$type": "color"
       },
       "hover": {
-        "$value": "{color.gray.100}",
+        "$value": "{color.sage.100}",
         "$description": "Blog light mode hover background",
+        "$type": "color"
+      },
+      "sidebar": {
+        "$value": "#f8f8fa",
+        "$description": "Blog light mode sidebar background",
         "$type": "color"
       }
     },
@@ -94,8 +99,8 @@
         "$type": "color"
       },
       "focus": {
-        "$value": "{color.green.600}",
-        "$description": "Blog light mode focus border - green",
+        "$value": "{color.sage.400}",
+        "$description": "Blog light mode focus border - Sage",
         "$type": "color"
       },
       "muted": {
@@ -148,21 +153,21 @@
     }
   },
   "darkMode": {
-    "$description": "Blog dark mode - Unified Linear-style dark theme with Indigo accent",
+    "$description": "Blog dark mode - Unified Linear-style dark theme with Sage accent",
     "color": {
       "brand": {
         "primary": {
-          "$value": "{color.indigo.400}",
-          "$description": "Blog dark mode brand primary - Unified Indigo accent",
+          "$value": "{color.sage.300}",
+          "$description": "Blog dark mode brand primary - Sage accent",
           "$type": "color"
         },
         "primaryHover": {
-          "$value": "{color.indigo.300}",
+          "$value": "{color.sage.200}",
           "$description": "Blog dark mode brand primary hover",
           "$type": "color"
         },
         "secondary": {
-          "$value": "{color.indigo.200}",
+          "$value": "{color.sage.100}",
           "$description": "Blog dark mode brand secondary",
           "$type": "color"
         }
@@ -194,12 +199,12 @@
           "$type": "color"
         },
         "link": {
-          "$value": "{color.indigo.400}",
-          "$description": "Blog dark mode link text - Indigo accent",
+          "$value": "{color.sage.300}",
+          "$description": "Blog dark mode link text - Sage accent",
           "$type": "color"
         },
         "linkHover": {
-          "$value": "{color.indigo.300}",
+          "$value": "{color.sage.200}",
           "$description": "Blog dark mode link hover text",
           "$type": "color"
         }
@@ -229,6 +234,11 @@
           "$value": "{color.linear.700}",
           "$description": "Blog dark mode hover background",
           "$type": "color"
+        },
+        "sidebar": {
+          "$value": "#0e0f11",
+          "$description": "Blog dark mode sidebar background",
+          "$type": "color"
         }
       },
       "border": {
@@ -243,8 +253,8 @@
           "$type": "color"
         },
         "focus": {
-          "$value": "{color.indigo.400}",
-          "$description": "Blog dark mode focus border - Indigo accent",
+          "$value": "{color.sage.300}",
+          "$description": "Blog dark mode focus border - Sage accent",
           "$type": "color"
         },
         "muted": {

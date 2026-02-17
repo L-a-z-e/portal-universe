@@ -48,12 +48,12 @@ const getRadioClasses = (option: RadioProps['options'][0]) => {
     'relative flex items-center justify-center rounded-full border-2 transition-all duration-200',
     sizeClasses[props.size].radio,
     isDisabled
-      ? 'bg-gray-100 border-gray-300 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600'
+      ? 'bg-bg-disabled border-border-muted cursor-not-allowed'
       : props.error
         ? 'border-status-error focus-within:ring-2 focus-within:ring-status-error/20'
         : isSelected
-          ? 'border-brand-600 dark:border-brand-500'
-          : 'border-border-default hover:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-gray-500',
+          ? 'border-brand-primary'
+          : 'border-border-default hover:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary/20',
   ];
 };
 
@@ -66,8 +66,8 @@ const getDotClasses = (option: RadioProps['options'][0]) => {
     sizeClasses[props.size].dot,
     isSelected
       ? isDisabled
-        ? 'bg-gray-400 dark:bg-gray-500'
-        : 'bg-brand-600 dark:bg-brand-500'
+        ? 'bg-text-muted'
+        : 'bg-brand-primary'
       : 'bg-transparent',
   ];
 };

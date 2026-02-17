@@ -47,6 +47,8 @@ export default {
                     'subtle': 'var(--semantic-bg-muted)',
                     'input': 'var(--semantic-bg-card)',
                     'disabled': 'var(--semantic-bg-muted)',
+                    'overlay': 'var(--semantic-bg-overlay)',
+                    'sidebar': 'var(--semantic-bg-sidebar)',
                 },
                 'border': {
                     'default': 'var(--semantic-border-default)',
@@ -89,6 +91,50 @@ export default {
                     '400': '#5e6ad2',
                     '500': '#4754c9',
                     '600': '#3f4ab8',
+                },
+                'orange': {
+                    '400': '#FB923C',
+                    '500': '#F97316',
+                    '600': '#EA580C',
+                },
+                'cyan': {
+                    '400': '#22D3EE',
+                    '500': '#06B6D4',
+                    '600': '#0891B2',
+                },
+                'violet': {
+                    '400': '#A78BFA',
+                    '500': '#8B5CF6',
+                    '600': '#7C3AED',
+                },
+                'teal': {
+                    '400': '#38D9A9',
+                    '500': '#20C997',
+                    '600': '#12B886',
+                },
+                'nightfall': {
+                    '50': '#f3e8ff',
+                    '100': '#e0aaff',
+                    '200': '#c77dff',
+                    '300': '#9d4edd',
+                    '400': '#7b2cbf',
+                    '500': '#5a189a',
+                    '600': '#3c096c',
+                    '700': '#240046',
+                    '800': '#10002b',
+                    '900': '#0a0018',
+                },
+                'sage': {
+                    '50': '#f6fff8',
+                    '100': '#eaf4f4',
+                    '200': '#cce3de',
+                    '300': '#a4c3b2',
+                    '400': '#6b9080',
+                    '500': '#5a7d6e',
+                    '600': '#4a6a5c',
+                    '700': '#3a574a',
+                    '800': '#2a4438',
+                    '900': '#1a3126',
                 },
             },
 
@@ -157,12 +203,16 @@ export default {
                 'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
                 '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
                 'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
-                'glow': '0 0 20px rgba(94, 106, 210, 0.3)',
-                'glow-lg': '0 0 40px rgba(94, 106, 210, 0.4)',
+                'glow': '0 0 20px rgba(157, 78, 221, 0.3)',
+                'glow-lg': '0 0 40px rgba(157, 78, 221, 0.4)',
             },
             maxWidth: {
                 'content': '768px',
                 'container': '1280px',
+            },
+            width: {
+                'sidebar': '16rem',
+                'sidebar-xl': '18rem',
             },
 
             // 4. Animation & Transitions (Linear-style)

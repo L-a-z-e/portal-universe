@@ -458,6 +458,18 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public List<CategoryStats> getAuthorCategoryStats(String authorId) {
+        log.info("Fetching author category statistics for authorId: {}", authorId);
+        return postRepository.aggregateAuthorCategoryStats(authorId, PostStatus.PUBLISHED);
+    }
+
+    @Override
+    public List<com.portal.universe.blogservice.tag.dto.TagStatsResponse> getAuthorPopularTags(String authorId, int limit) {
+        log.info("Fetching author popular tags for authorId: {}, limit: {}", authorId, limit);
+        return postRepository.aggregateAuthorTagStats(authorId, PostStatus.PUBLISHED, limit);
+    }
+
+    @Override
     public BlogStats getBlogStats() {
         log.info("Fetching blog statistics");
 

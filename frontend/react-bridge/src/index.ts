@@ -21,6 +21,7 @@ export { PortalBridgeProvider } from './PortalBridgeProvider'
 export { usePortalAuth } from './hooks/usePortalAuth'
 export { usePortalTheme } from './hooks/usePortalTheme'
 export { usePortalBridge } from './hooks/usePortalBridge'
+export { useIsEmbedded } from './hooks/useIsEmbedded'
 
 // Components
 export { RequireAuth } from './components/RequireAuth'

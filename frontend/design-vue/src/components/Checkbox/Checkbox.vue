@@ -38,12 +38,12 @@ const boxClasses = computed(() => [
   'relative flex items-center justify-center rounded border-2 transition-all duration-200',
   sizeClasses[props.size].box,
   props.disabled
-    ? 'bg-gray-100 border-gray-300 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600'
+    ? 'bg-bg-disabled border-border-muted cursor-not-allowed'
     : props.error
       ? 'border-status-error focus-within:ring-2 focus-within:ring-status-error/20'
       : props.modelValue || props.indeterminate
-        ? 'bg-brand-600 border-brand-600 dark:bg-brand-500 dark:border-brand-500'
-        : 'border-border-default hover:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-gray-500',
+        ? 'bg-brand-primary border-brand-primary'
+        : 'border-border-default hover:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary/20',
 ]);
 
 const handleChange = (event: Event) => {

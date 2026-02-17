@@ -1,19 +1,19 @@
 {
-  "$description": "Portal service theme - Linear-inspired dark-first design with light mode support",
+  "$description": "Portal service theme - Vivid Nightfall dark-first design with light mode support",
   "color": {
     "brand": {
       "primary": {
-        "$value": "{color.indigo.400}",
-        "$description": "Portal brand primary - Linear indigo",
+        "$value": "{color.nightfall.300}",
+        "$description": "Portal brand primary - Vivid Nightfall purple",
         "$type": "color"
       },
       "primaryHover": {
-        "$value": "{color.indigo.300}",
+        "$value": "{color.nightfall.200}",
         "$description": "Portal brand primary hover",
         "$type": "color"
       },
       "secondary": {
-        "$value": "{color.indigo.200}",
+        "$value": "{color.nightfall.100}",
         "$description": "Portal brand secondary",
         "$type": "color"
       }
@@ -45,12 +45,12 @@
         "$type": "color"
       },
       "link": {
-        "$value": "{color.indigo.400}",
+        "$value": "{color.nightfall.300}",
         "$description": "Portal dark mode link text",
         "$type": "color"
       },
       "linkHover": {
-        "$value": "{color.indigo.300}",
+        "$value": "{color.nightfall.200}",
         "$description": "Portal dark mode link hover text",
         "$type": "color"
       }
@@ -80,6 +80,11 @@
         "$value": "{color.linear.700}",
         "$description": "Portal dark mode hover background",
         "$type": "color"
+      },
+      "sidebar": {
+        "$value": "#0e0f11",
+        "$description": "Portal dark mode sidebar background",
+        "$type": "color"
       }
     },
     "border": {
@@ -94,7 +99,7 @@
         "$type": "color"
       },
       "focus": {
-        "$value": "{color.indigo.400}",
+        "$value": "{color.nightfall.300}",
         "$description": "Portal dark mode focus border",
         "$type": "color"
       },
@@ -148,21 +153,21 @@
     }
   },
   "lightMode": {
-    "$description": "Portal light mode - inverted Linear palette",
+    "$description": "Portal light mode - Vivid Nightfall light palette",
     "color": {
       "brand": {
         "primary": {
-          "$value": "{color.indigo.500}",
+          "$value": "{color.nightfall.400}",
           "$description": "Portal light mode brand primary",
           "$type": "color"
         },
         "primaryHover": {
-          "$value": "{color.indigo.600}",
+          "$value": "{color.nightfall.500}",
           "$description": "Portal light mode brand primary hover",
           "$type": "color"
         },
         "secondary": {
-          "$value": "{color.indigo.400}",
+          "$value": "{color.nightfall.300}",
           "$description": "Portal light mode brand secondary",
           "$type": "color"
         }
@@ -194,12 +199,12 @@
           "$type": "color"
         },
         "link": {
-          "$value": "{color.indigo.500}",
+          "$value": "{color.nightfall.400}",
           "$description": "Portal light mode link text",
           "$type": "color"
         },
         "linkHover": {
-          "$value": "{color.indigo.600}",
+          "$value": "{color.nightfall.500}",
           "$description": "Portal light mode link hover text",
           "$type": "color"
         }
@@ -229,6 +234,11 @@
           "$value": "{color.linear.100}",
           "$description": "Portal light mode hover background",
           "$type": "color"
+        },
+        "sidebar": {
+          "$value": "#f8f8fa",
+          "$description": "Portal light mode sidebar background",
+          "$type": "color"
         }
       },
       "border": {
@@ -243,7 +253,7 @@
           "$type": "color"
         },
         "focus": {
-          "$value": "{color.indigo.500}",
+          "$value": "{color.nightfall.400}",
           "$description": "Portal light mode focus border",
           "$type": "color"
         },

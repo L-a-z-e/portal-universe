@@ -248,6 +248,25 @@ public class PostController {
         return ApiResponse.success(stats);
     }
 
+    @Operation(summary = "작성자별 카테고리 통계 조회")
+    @GetMapping("/stats/author/{authorId}/categories")
+    public ApiResponse<List<CategoryStats>> getAuthorCategoryStats(
+            @Parameter(description = "작성자 ID") @PathVariable String authorId
+    ) {
+        List<CategoryStats> stats = postService.getAuthorCategoryStats(authorId);
+        return ApiResponse.success(stats);
+    }
+
+    @Operation(summary = "작성자별 인기 태그 통계 조회")
+    @GetMapping("/stats/author/{authorId}/tags")
+    public ApiResponse<List<TagStatsResponse>> getAuthorPopularTags(
+            @Parameter(description = "작성자 ID") @PathVariable String authorId,
+            @Parameter(description = "조회할 개수") @RequestParam(defaultValue = "20") int limit
+    ) {
+        List<TagStatsResponse> tags = postService.getAuthorPopularTags(authorId, limit);
+        return ApiResponse.success(tags);
+    }
+
     @Operation(summary = "전체 블로그 통계 조회")
     @GetMapping("/stats/blog")
     public ApiResponse<BlogStats> getBlogStats() {

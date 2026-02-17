@@ -70,17 +70,17 @@
       "900": "#087F5B"
     },
     "orange": {
-      "$description": "Warm accent - for shopping service (Shopify recommended)",
-      "50": "#FFF4E6",
-      "100": "#FFE8CC",
-      "200": "#FFD8A8",
-      "300": "#FFC078",
-      "400": "#FFA94D",
-      "500": "#FF6B35",
-      "600": "#FF6B35",
-      "700": "#E55A2B",
-      "800": "#E8590C",
-      "900": "#D9480F"
+      "$description": "Warm accent - for shopping service",
+      "50": "#FFF7ED",
+      "100": "#FFEDD5",
+      "200": "#FED7AA",
+      "300": "#FDBA74",
+      "400": "#FB923C",
+      "500": "#F97316",
+      "600": "#EA580C",
+      "700": "#C2410C",
+      "800": "#9A3412",
+      "900": "#7C2D12"
     },
     "gray": {
       "$description": "Optimized for text readability",
@@ -135,17 +135,56 @@
       "900": "#d9480f"
     },
     "cyan": {
-      "$description": "Linear accent cyan",
-      "50": "#e6fcf5",
-      "100": "#c3fae8",
-      "200": "#96f2d7",
-      "300": "#63e6be",
-      "400": "#38d9a9",
-      "500": "#20c997",
-      "600": "#12b886",
-      "700": "#0ca678",
-      "800": "#099268",
-      "900": "#087f5b"
+      "$description": "Cyan accent - for drive service",
+      "50": "#ECFEFF",
+      "100": "#CFFAFE",
+      "200": "#A5F3FC",
+      "300": "#67E8F9",
+      "400": "#22D3EE",
+      "500": "#06B6D4",
+      "600": "#0891B2",
+      "700": "#0E7490",
+      "800": "#155E75",
+      "900": "#164E63"
+    },
+    "violet": {
+      "$description": "Violet accent - for prism service",
+      "50": "#F5F3FF",
+      "100": "#EDE9FE",
+      "200": "#DDD6FE",
+      "300": "#C4B5FD",
+      "400": "#A78BFA",
+      "500": "#8B5CF6",
+      "600": "#7C3AED",
+      "700": "#6D28D9",
+      "800": "#5B21B6",
+      "900": "#4C1D95"
+    },
+    "nightfall": {
+      "$description": "Vivid Nightfall - portal brand purple palette",
+      "50": "#f3e8ff",
+      "100": "#e0aaff",
+      "200": "#c77dff",
+      "300": "#9d4edd",
+      "400": "#7b2cbf",
+      "500": "#5a189a",
+      "600": "#3c096c",
+      "700": "#240046",
+      "800": "#10002b",
+      "900": "#0a0018"
+    },
+    "sage": {
+      "$description": "Serene Nature Tones - blog brand palette",
+      "50": "#f6fff8",
+      "100": "#eaf4f4",
+      "200": "#cce3de",
+      "300": "#a4c3b2",
+      "400": "#6b9080",
+      "500": "#5a7d6e",
+      "600": "#4a6a5c",
+      "700": "#3a574a",
+      "800": "#2a4438",
+      "900": "#1a3126"
     }
   }
 }

@@ -23,7 +23,13 @@ const navigate = (path: string) => {
   router.push(path);
 };
 
-const isEmbedded = computed(() => (window as any).__POWERED_BY_PORTAL_SHELL__ === true);
+const isEmbedded = computed(() => {
+  try {
+    return (window as unknown as Record<string, unknown>).__POWERED_BY_PORTAL_SHELL__ === true;
+  } catch {
+    return false;
+  }
+});
 </script>
 
 <template>
@@ -31,7 +37,7 @@ const isEmbedded = computed(() => (window as any).__POWERED_BY_PORTAL_SHELL__ ==
     <!-- Admin Sidebar (only in standalone mode; embedded uses portal-shell sidebar) -->
     <aside
       v-if="!isEmbedded"
-      class="w-56 bg-bg-card border-r border-border-default flex flex-col shrink-0"
+      class="w-sidebar bg-bg-card border-r border-border-default flex flex-col shrink-0"
     >
       <div class="p-4 text-lg font-bold text-text-heading border-b border-border-default">
         Portal Admin

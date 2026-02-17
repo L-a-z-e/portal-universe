@@ -39,6 +39,14 @@ export const cardVariants: Record<CardVariant, string> = {
     'light:hover:border-gray-300 light:hover:bg-gray-50',
     'light:hover:shadow-lg',
   ].join(' '),
+
+  glassStats: [
+    'bg-[rgba(20,21,22,0.7)]',
+    'backdrop-blur-[10px]',
+    'border border-white/[0.06]',
+    'shadow-[0_4px_24px_rgba(0,0,0,0.2)]',
+    'light:bg-white/80 light:border-gray-200/50 light:shadow-sm',
+  ].join(' '),
 };
 
 export const cardPadding: Record<PaddingSize, string> = {

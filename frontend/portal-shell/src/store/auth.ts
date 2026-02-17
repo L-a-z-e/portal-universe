@@ -94,12 +94,10 @@ export const useAuthStore = defineStore('auth', () => {
       showLoginModal.value = false;
       console.log('✅ [Auth Store] Login successful');
 
-      // Redirect to the originally requested path if any
-      if (redirectPath.value) {
-        const path = redirectPath.value;
-        redirectPath.value = null;
-        router.push(path);
-      }
+      // Redirect after login: saved path or dashboard
+      const path = redirectPath.value || '/dashboard';
+      redirectPath.value = null;
+      router.push(path);
 
       // Notify Remote apps (React Zustand) of auth state change
       window.dispatchEvent(new CustomEvent('portal:auth-changed'));

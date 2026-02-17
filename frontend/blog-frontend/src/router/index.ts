@@ -14,6 +14,7 @@ import MyPage from '../views/MyPage.vue';
 import CategoryListPage from '../views/CategoryListPage.vue';
 import AdvancedSearchPage from '../views/AdvancedSearchPage.vue';
 import StatsPage from '../views/StatsPage.vue';
+import SeriesListPage from '../views/SeriesListPage.vue';
 
 import { getPortalAuthState } from '@portal/vue-bridge';
 
@@ -84,6 +85,11 @@ const routes: RouteRecordRaw[] = [
     name: 'PostEdit',
     component: PostEditPage,
     props: true
+  },
+  {
+    path: '/series',
+    name: 'SeriesList',
+    component: SeriesListPage
   },
   {
     path: '/series/:seriesId',

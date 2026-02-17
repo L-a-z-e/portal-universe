@@ -49,7 +49,7 @@ export function AdminCouponListPage() {
         </div>
         <Link
           to="/admin/coupons/new"
-          className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-md bg-white/90 text-[#08090a] hover:bg-white active:bg-white/80 light:bg-brand-primary light:text-white light:hover:bg-brand-primaryHover border border-transparent shadow-sm transition-all"
+          className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-md bg-white/90 text-text-inverse hover:bg-white active:bg-white/80 light:bg-brand-primary light:text-white light:hover:bg-brand-primaryHover border border-transparent shadow-sm transition-all"
         >
           새 쿠폰 생성
         </Link>
@@ -64,7 +64,7 @@ export function AdminCouponListPage() {
 
       {/* 에러 */}
       {error && (
-        <Card variant="elevated" padding="md" className="mb-6 border-status-error bg-[#E03131]/10 light:bg-red-50">
+        <Card variant="elevated" padding="md" className="mb-6 border-status-error bg-status-error/10">
           <p className="text-status-error">{error.message}</p>
         </Card>
       )}
@@ -74,7 +74,7 @@ export function AdminCouponListPage() {
         <>
           <Card variant="elevated" padding="none" className="overflow-hidden">
             <table className="w-full">
-              <thead className="bg-bg-hover light:bg-gray-50">
+              <thead className="bg-bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">코드</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-text-meta">이름</th>
@@ -130,7 +130,7 @@ export function AdminCouponListPage() {
                           <button
                             onClick={() => handleDeactivate(coupon.id, coupon.name)}
                             disabled={isDeactivating}
-                            className="text-sm text-status-error hover:text-[#C92A2A] disabled:opacity-50 transition-colors"
+                            className="text-sm text-status-error hover:opacity-80 disabled:opacity-50 transition-colors"
                           >
                             비활성화
                           </button>

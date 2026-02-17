@@ -85,6 +85,7 @@ public class SecurityConfig {
                         // Gateway StripPrefix=2 적용 후 경로 (/api/blog 제거됨)
                         // ========================================
                         .requestMatchers(HttpMethod.GET, "/posts", "/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/series", "/series/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/tags", "/tags/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
 

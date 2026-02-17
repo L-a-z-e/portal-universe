@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Avatar, Button, Card } from '@portal/design-vue';
+import { Avatar } from '@portal/design-vue';
 import type { UserProfileResponse } from '@/dto/user';
 import FollowButton from './FollowButton.vue';
 import FollowerModal from './FollowerModal.vue';
@@ -60,247 +60,90 @@ function openFollowingModal() {
 </script>
 
 <template>
-  <Card class="user-profile-card" padding="lg">
-    <div class="profile-container">
-      <!-- 프로필 이미지 -->
-      <div class="avatar-section">
-        <Avatar
-          :src="user.profileImageUrl ?? undefined"
-          :name="user.nickname || user.username || user.email"
-          size="2xl"
-          class="profile-avatar"
-        />
-      </div>
-
-      <!-- 프로필 정보 -->
-      <div class="info-section">
-        <!-- 이름 + 팔로우 버튼 -->
-        <div class="name-row">
-          <h2 class="user-name">{{ user.nickname }}</h2>
-          <FollowButton
-            v-if="!isCurrentUser && user.username"
-            :username="user.username"
-            :target-uuid="user.uuid"
-            size="sm"
-            @follow-changed="handleFollowChanged"
-          />
-        </div>
-
-        <!-- Username -->
-        <p v-if="user.username" class="username">@{{ user.username }}</p>
-
-        <!-- 팔로워/팔로잉 수 -->
-        <div class="follow-stats">
-          <Button variant="ghost" class="stat-button" @click="openFollowerModal">
-            <span class="stat-count">{{ followerCount }}</span>
-            <span class="stat-label">팔로워</span>
-          </Button>
-          <Button variant="ghost" class="stat-button" @click="openFollowingModal">
-            <span class="stat-count">{{ followingCount }}</span>
-            <span class="stat-label">팔로잉</span>
-          </Button>
-        </div>
-
-        <!-- Bio -->
-        <p v-if="user.bio" class="bio">{{ user.bio }}</p>
-
-        <!-- Website -->
-        <a
-          v-if="websiteUrl"
-          :href="websiteUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="website-link"
-        >
-          <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-            />
-          </svg>
-          {{ user.website }}
-        </a>
-
-        <!-- 가입일 -->
-        <div class="join-date">
-          <svg class="calendar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-          <span>{{ formattedDate }} 가입</span>
-        </div>
-      </div>
+  <div class="flex flex-col items-center mb-12">
+    <!-- 아바타 -->
+    <div class="relative mb-6">
+      <Avatar
+        :src="user.profileImageUrl ?? undefined"
+        :name="user.nickname || user.username || user.email"
+        size="2xl"
+        class="!w-20 !h-20 border-2 border-bg-page shadow-2xl"
+      />
     </div>
 
-    <!-- 팔로워/팔로잉 모달 -->
-    <FollowerModal
-      v-if="user.username"
-      :username="user.username"
-      :is-open="modalOpen"
-      :type="modalType"
-      @close="modalOpen = false"
-    />
-  </Card>
+    <!-- 이름 -->
+    <h1 class="text-2xl font-bold text-text-heading mb-2">{{ user.nickname }}</h1>
+
+    <!-- Username -->
+    <p v-if="user.username" class="text-text-meta mb-2">@{{ user.username }}</p>
+
+    <!-- Bio -->
+    <p v-if="user.bio" class="text-text-meta text-center max-w-md mb-4 leading-relaxed">
+      {{ user.bio }}
+    </p>
+
+    <!-- 통계 -->
+    <div class="flex items-center gap-6 text-sm text-text-meta mb-8">
+      <button class="hover:text-text-heading transition-colors" @click="openFollowerModal">
+        <strong class="text-text-heading">{{ followerCount }}</strong> 팔로워
+      </button>
+      <span class="w-1 h-1 rounded-full bg-border-default"></span>
+      <button class="hover:text-text-heading transition-colors" @click="openFollowingModal">
+        <strong class="text-text-heading">{{ followingCount }}</strong> 팔로잉
+      </button>
+    </div>
+
+    <!-- 액션 버튼 -->
+    <div class="flex items-center gap-3">
+      <FollowButton
+        v-if="!isCurrentUser && user.username"
+        :username="user.username"
+        :target-uuid="user.uuid"
+        size="md"
+        class="!rounded-full !px-6"
+        @follow-changed="handleFollowChanged"
+      />
+
+      <!-- Website 링크 -->
+      <a
+        v-if="websiteUrl"
+        :href="websiteUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="w-9 h-9 flex items-center justify-center rounded-full border border-border-default text-text-meta hover:text-text-heading hover:bg-bg-hover transition-colors"
+        :title="user.website ?? undefined"
+      >
+        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+          />
+        </svg>
+      </a>
+    </div>
+
+    <!-- 가입일 -->
+    <div class="flex items-center gap-2 text-xs text-text-meta mt-6">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+      </svg>
+      <span>{{ formattedDate }} 가입</span>
+    </div>
+  </div>
+
+  <!-- 팔로워/팔로잉 모달 -->
+  <FollowerModal
+    v-if="user.username"
+    :username="user.username"
+    :is-open="modalOpen"
+    :type="modalType"
+    @close="modalOpen = false"
+  />
 </template>
-
-<style scoped>
-.profile-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 1.5rem;
-}
-
-.avatar-section {
-  flex-shrink: 0;
-}
-
-.profile-avatar {
-  border: 3px solid var(--semantic-border-default);
-}
-
-.info-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-.name-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.user-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--semantic-text-heading);
-  margin: 0;
-}
-
-/* 팔로우 통계 */
-.follow-stats {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin: 0.5rem 0;
-}
-
-.stat-button {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-radius: 0.25rem;
-  transition: background 0.2s;
-}
-
-.stat-button:hover {
-  background: var(--semantic-surface-alt);
-}
-
-.stat-count {
-  font-weight: 700;
-  color: var(--semantic-text-heading);
-}
-
-.stat-label {
-  color: var(--semantic-text-meta);
-  font-size: 0.875rem;
-}
-
-.username {
-  font-size: 1rem;
-  color: var(--semantic-text-meta);
-  margin: 0;
-}
-
-.bio {
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  color: var(--semantic-text-body);
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-.website-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--semantic-brand-primary);
-  text-decoration: none;
-  transition: color 0.2s;
-  width: fit-content;
-  margin: 0 auto;
-}
-
-.website-link:hover {
-  color: var(--semantic-brand-primary-hover);
-  text-decoration: underline;
-}
-
-.link-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-  flex-shrink: 0;
-}
-
-.join-date {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--semantic-text-meta);
-  margin-top: 0.5rem;
-}
-
-.calendar-icon {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
-}
-
-/* 반응형 - 태블릿 이상 */
-@media (min-width: 768px) {
-  .profile-container {
-    flex-direction: row;
-    text-align: left;
-    align-items: flex-start;
-  }
-
-  .info-section {
-    align-items: flex-start;
-  }
-
-  .name-row {
-    justify-content: flex-start;
-  }
-
-  .follow-stats {
-    justify-content: flex-start;
-  }
-
-  .website-link {
-    margin: 0;
-  }
-
-  .join-date {
-    justify-content: flex-start;
-  }
-}
-</style>

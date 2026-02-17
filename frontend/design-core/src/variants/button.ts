@@ -4,13 +4,13 @@ export const buttonBase = [
   'inline-flex items-center justify-center',
   'font-medium rounded-md',
   'transition-all duration-150 ease-out',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#08090a]',
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-page',
   'light:focus-visible:ring-offset-white',
 ].join(' ');
 
 export const buttonVariants: Record<ButtonVariant, string> = {
   primary: [
-    'bg-white/90 text-[#08090a]',
+    'bg-white/90 text-text-inverse',
     'hover:bg-white',
     'active:bg-white/80 active:scale-[0.98]',
     'light:bg-brand-primary light:text-white',
@@ -24,9 +24,9 @@ export const buttonVariants: Record<ButtonVariant, string> = {
     'bg-transparent text-text-body',
     'hover:bg-white/5 hover:text-text-heading',
     'active:bg-white/10 active:scale-[0.98]',
-    'border border-[#2a2a2a]',
-    'light:hover:bg-gray-100',
-    'light:border-gray-200',
+    'border border-border-default',
+    'light:hover:bg-bg-hover',
+    'light:border-border-default',
   ].join(' '),
 
   ghost: [
@@ -34,30 +34,30 @@ export const buttonVariants: Record<ButtonVariant, string> = {
     'hover:bg-white/5 hover:text-text-heading',
     'active:bg-white/10 active:scale-[0.98]',
     'border border-transparent',
-    'light:hover:bg-gray-100',
+    'light:hover:bg-bg-hover',
   ].join(' '),
 
   outline: [
     'bg-transparent text-text-body',
-    'hover:bg-white/5 hover:border-[#3a3a3a]',
+    'hover:bg-white/5 hover:border-border-hover',
     'active:bg-white/10 active:scale-[0.98]',
-    'border border-[#2a2a2a]',
-    'light:border-gray-300 light:hover:border-gray-400',
-    'light:hover:bg-gray-50',
+    'border border-border-default',
+    'light:border-border-default light:hover:border-border-hover',
+    'light:hover:bg-bg-hover',
   ].join(' '),
 
   danger: [
-    'bg-[#E03131] text-white',
-    'hover:bg-[#C92A2A]',
-    'active:bg-[#A51D1D] active:scale-[0.98]',
+    'bg-status-error text-white',
+    'hover:bg-red-700',
+    'active:bg-red-800 active:scale-[0.98]',
     'border border-transparent',
     'shadow-sm',
   ].join(' '),
 
   error: [
-    'bg-[#E03131] text-white',
-    'hover:bg-[#C92A2A]',
-    'active:bg-[#A51D1D] active:scale-[0.98]',
+    'bg-status-error text-white',
+    'hover:bg-red-700',
+    'active:bg-red-800 active:scale-[0.98]',
     'border border-transparent',
     'shadow-sm',
   ].join(' '),
