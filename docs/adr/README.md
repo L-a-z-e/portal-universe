@@ -20,7 +20,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-012 | [Shopping Frontend-Backend Gap Analysis](./ADR-012-shopping-frontend-backend-gap-analysis.md) | Accepted   | 2026-01-28 |
 | ADR-013 | [서비스 상태 모니터링 전략](./ADR-013-service-status-monitoring.md)                                      | Accepted   | 2026-01-21 |
 | ADR-014 | [마이프로필 단계별 구현 전략](./ADR-014-my-profile-phased-approach.md)                                    | Accepted   | 2026-01-21 |
-| ADR-015 | [Role Hierarchy 구현 방안](./ADR-015-role-hierarchy-implementation.md)                            | Accepted   | 2026-01-31 |
+| ADR-015 | [Role Hierarchy 구현 방안](./ADR-015-role-hierarchy-implementation.md)                            | Superseded | 2026-01-31 |
 | ADR-016 | [Shopping Saga Pattern과 분산 트랜잭션](./ADR-016-shopping-feature-implementation.md)                | Accepted   | 2026-02-01 |
 | ADR-017 | [Prism AI Agent 칸반 시스템](./ADR-017-prism-basic-implementation.md)                              | Accepted   | 2026-02-01 |
 | ADR-018 | [Design System Single Source of Truth](./ADR-018-design-system-architecture.md)               | Accepted   | 2026-02-01 |
@@ -48,7 +48,9 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-040 | [Frontend Error Handling Standardization](./ADR-040-frontend-error-handling-standardization.md) | Accepted   | 2026-02-14 |
 | ADR-041 | [Shopping Service 분해 및 멀티셀러 마켓플레이스 전환](./ADR-041-shopping-service-decomposition.md) | Accepted   | 2026-02-14 |
 | ADR-042 | [Module Federation Remote에서의 인증 상태 공유](./ADR-042-mf-remote-auth-state-sharing.md) | Accepted   | 2026-02-15 |
-
+| ADR-043 | [Design System 3-Package 통합](./ADR-043-design-system-package-consolidation.md) | Accepted   | 2026-02-17 |
+| ADR-044 | [Role Multi-Include DAG + JWT Effective Roles](./ADR-044-role-multi-include-dag.md) | Accepted   | 2026-02-18 |
+| ADR-045 | [역할 기본 멤버십 자동 매핑](./ADR-045-role-default-membership-mapping.md) | Accepted   | 2026-02-18 |
 
 ## 상태 정의
 

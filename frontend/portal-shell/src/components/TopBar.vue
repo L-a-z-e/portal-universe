@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import { NotificationBell } from './notification'
 import MaterialIcon from './MaterialIcon.vue'
+import { Dropdown, Button } from '@portal/design-vue'
+import type { DropdownItem } from '@portal/design-vue'
 
 const emit = defineEmits<{
   (e: 'open-search'): void
@@ -12,6 +14,21 @@ const emit = defineEmits<{
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
+const userMenuItems: DropdownItem[] = [
+  { label: 'My Profile', value: 'profile', icon: 'person' },
+  { label: '', divider: true },
+  { label: 'Logout', value: 'logout', icon: 'logout' },
+]
+
+const handleUserMenuSelect = async (item: DropdownItem) => {
+  if (item.value === 'profile') {
+    router.push('/profile')
+  } else if (item.value === 'logout') {
+    await authStore.logout()
+    router.push('/')
+  }
+}
 
 const breadcrumbs = computed(() => {
   const matched = route.matched
@@ -78,21 +95,31 @@ const handleLogin = () => {
 
       <!-- User Avatar / Login -->
       <template v-if="authStore.isAuthenticated">
-        <button
-          @click="router.push('/profile')"
-          class="w-8 h-8 rounded-full bg-gradient-to-br from-nightfall-300 to-nightfall-500 flex items-center justify-center text-white text-xs font-semibold ring-2 ring-transparent hover:ring-nightfall-300/30 transition-all cursor-pointer"
+        <Dropdown
+          :items="userMenuItems"
+          placement="bottom-end"
+          @select="handleUserMenuSelect"
         >
-          {{ userInitial }}
-        </button>
+          <template #trigger>
+            <button
+              class="w-8 h-8 rounded-full bg-gradient-to-br from-nightfall-300 to-nightfall-500 flex items-center justify-center text-white text-xs font-semibold ring-2 ring-transparent hover:ring-nightfall-300/30 transition-all cursor-pointer"
+            >
+              {{ userInitial }}
+            </button>
+          </template>
+          <template #item="{ item }">
+            <span :class="['flex items-center gap-2.5', item.value === 'logout' && 'text-red-500']">
+              <MaterialIcon :name="item.icon ?? ''" :size="18" />
+              {{ item.label }}
+            </span>
+          </template>
+        </Dropdown>
       </template>
       <template v-else>
-        <button
-          @click="handleLogin"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-brand-primary text-white hover:bg-brand-primaryHover transition-colors"
-        >
+        <Button variant="primary" size="sm" @click="handleLogin">
           <MaterialIcon name="login" :size="16" />
           Login
-        </button>
+        </Button>
       </template>
     </div>
   </header>
