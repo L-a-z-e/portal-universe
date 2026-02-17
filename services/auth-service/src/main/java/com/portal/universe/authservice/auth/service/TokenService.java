@@ -28,6 +28,7 @@ public class TokenService {
     private final JwtProperties jwtProperties;
     private final UserRoleRepository userRoleRepository;
     private final UserMembershipRepository userMembershipRepository;
+    private final RoleHierarchyService roleHierarchyService;
 
     private String getCurrentKeyId() {
         return jwtProperties.getCurrentKeyId();
@@ -117,6 +118,10 @@ public class TokenService {
                             + ". RBAC data may not be properly initialized.");
         }
         claims.put("roles", roleKeys);
+
+        // effectiveRoles: DAG에서 resolve된 전체 유효 역할
+        List<String> effectiveRoles = roleHierarchyService.resolveEffectiveRoles(roleKeys);
+        claims.put("effectiveRoles", effectiveRoles);
 
         // memberships: enriched format {membershipGroup: {tier, order}}
         List<UserMembership> activeMemberships = userMembershipRepository.findActiveByUserId(user.getUuid());

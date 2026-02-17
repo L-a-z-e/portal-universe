@@ -7,8 +7,10 @@ import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.user.domain.UserStatus;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.auth.RoleAssignedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -35,12 +37,15 @@ public class RbacService {
     private final UserRoleRepository userRoleRepository;
     private final RolePermissionRepository rolePermissionRepository;
     private final PermissionRepository permissionRepository;
+    private final RoleIncludeRepository roleIncludeRepository;
+    private final RoleHierarchyService roleHierarchyService;
     private final MembershipTierPermissionRepository membershipTierPermissionRepository;
     private final MembershipTierRepository membershipTierRepository;
     private final UserMembershipRepository userMembershipRepository;
     private final AuthAuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
     private final SellerApplicationRepository sellerApplicationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final Pattern UUID_PATTERN =
             Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-.*");
@@ -65,21 +70,27 @@ public class RbacService {
      * 모든 활성 역할을 조회합니다.
      */
     public List<RoleResponse> getAllActiveRoles() {
-        return roleEntityRepository.findByActiveTrue().stream()
-                .map(RoleResponse::from)
+        List<RoleEntity> roles = roleEntityRepository.findByActiveTrue();
+        List<RoleInclude> allIncludes = roleIncludeRepository.findAllWithRoles();
+        Map<Long, List<RoleInclude>> includesByRoleId = allIncludes.stream()
+                .collect(Collectors.groupingBy(ri -> ri.getRole().getId()));
+        return roles.stream()
+                .map(role -> RoleResponse.from(role, includesByRoleId.getOrDefault(role.getId(), List.of())))
                 .toList();
     }
 
     /**
-     * 역할 상세 정보를 권한 목록과 함께 조회합니다.
+     * 역할 상세 정보를 권한 목록, includes, effectiveRoles와 함께 조회합니다.
      */
     public RoleDetailResponse getRoleDetail(String roleKey) {
         RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        List<RoleInclude> includes = roleIncludeRepository.findByRole(role);
+        List<String> effectiveRoleKeys = roleHierarchyService.resolveEffectiveRoles(List.of(roleKey));
         List<PermissionEntity> permissions = rolePermissionRepository.findByRole(role).stream()
                 .map(RolePermission::getPermission)
                 .toList();
-        return RoleDetailResponse.from(role, permissions);
+        return RoleDetailResponse.from(role, includes, effectiveRoleKeys, permissions);
     }
 
     /**
@@ -91,26 +102,30 @@ public class RbacService {
             throw new CustomBusinessException(AuthErrorCode.ROLE_KEY_ALREADY_EXISTS);
         }
 
-        RoleEntity parentRole = null;
-        if (request.parentRoleKey() != null && !request.parentRoleKey().isBlank()) {
-            parentRole = roleEntityRepository.findByRoleKey(request.parentRoleKey())
-                    .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
-        }
-
         RoleEntity role = RoleEntity.builder()
                 .roleKey(request.roleKey())
                 .displayName(request.displayName())
                 .description(request.description())
                 .serviceScope(request.serviceScope())
                 .membershipGroup(request.membershipGroup())
-                .parentRole(parentRole)
                 .system(false)
                 .build();
 
         RoleEntity saved = roleEntityRepository.save(role);
+
+        // includedRoleKeys 처리
+        List<RoleInclude> includes = new ArrayList<>();
+        if (request.includedRoleKeys() != null) {
+            for (String includedKey : request.includedRoleKeys()) {
+                RoleEntity includedRole = roleEntityRepository.findByRoleKey(includedKey)
+                        .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+                includes.add(roleIncludeRepository.save(new RoleInclude(saved, includedRole)));
+            }
+        }
+
         logAudit(AuditEventType.ROLE_ASSIGNED, createdBy, null, "Role created: " + request.roleKey());
         log.info("Role created: roleKey={}, by={}", request.roleKey(), createdBy);
-        return RoleResponse.from(saved);
+        return RoleResponse.from(saved, includes);
     }
 
     /**
@@ -121,8 +136,9 @@ public class RbacService {
         RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
                 .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
         role.update(request.displayName(), request.description());
+        List<RoleInclude> includes = roleIncludeRepository.findByRole(role);
         log.info("Role updated: roleKey={}, by={}", roleKey, updatedBy);
-        return RoleResponse.from(role);
+        return RoleResponse.from(role, includes);
     }
 
     /**
@@ -137,8 +153,9 @@ public class RbacService {
         } else {
             role.deactivate();
         }
+        List<RoleInclude> includes = roleIncludeRepository.findByRole(role);
         log.info("Role status changed: roleKey={}, active={}, by={}", roleKey, active, updatedBy);
-        return RoleResponse.from(role);
+        return RoleResponse.from(role, includes);
     }
 
     /**
@@ -186,6 +203,94 @@ public class RbacService {
         logAudit(AuditEventType.PERMISSION_REMOVED, removedBy, null,
                 "Permission " + permissionKey + " removed from role " + roleKey);
         log.info("Permission removed: role={}, permission={}, by={}", roleKey, permissionKey, removedBy);
+    }
+
+    /**
+     * 역할에 include를 추가합니다 (자기참조, 중복, cycle 검사 포함).
+     */
+    @Transactional
+    public void addRoleInclude(String roleKey, String includedRoleKey, String adminId) {
+        if (roleKey.equals(includedRoleKey)) {
+            throw new CustomBusinessException(AuthErrorCode.ROLE_INCLUDE_SELF_REFERENCE);
+        }
+
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        RoleEntity includedRole = roleEntityRepository.findByRoleKey(includedRoleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+
+        if (roleIncludeRepository.existsByRoleAndIncludedRole(role, includedRole)) {
+            throw new CustomBusinessException(AuthErrorCode.ROLE_INCLUDE_ALREADY_EXISTS);
+        }
+
+        if (roleHierarchyService.wouldCreateCycle(roleKey, includedRoleKey)) {
+            throw new CustomBusinessException(AuthErrorCode.ROLE_INCLUDE_CYCLE_DETECTED);
+        }
+
+        roleIncludeRepository.save(new RoleInclude(role, includedRole));
+        logAudit(AuditEventType.ROLE_ASSIGNED, adminId, null,
+                "Role include added: " + roleKey + " → " + includedRoleKey);
+        log.info("Role include added: {} → {}, by={}", roleKey, includedRoleKey, adminId);
+    }
+
+    /**
+     * 역할에서 include를 제거합니다.
+     */
+    @Transactional
+    public void removeRoleInclude(String roleKey, String includedRoleKey, String adminId) {
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        RoleEntity includedRole = roleEntityRepository.findByRoleKey(includedRoleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+
+        if (!roleIncludeRepository.existsByRoleAndIncludedRole(role, includedRole)) {
+            throw new CustomBusinessException(AuthErrorCode.ROLE_INCLUDE_NOT_FOUND);
+        }
+
+        roleIncludeRepository.deleteByRoleAndIncludedRole(role, includedRole);
+        logAudit(AuditEventType.ROLE_REVOKED, adminId, null,
+                "Role include removed: " + roleKey + " → " + includedRoleKey);
+        log.info("Role include removed: {} → {}, by={}", roleKey, includedRoleKey, adminId);
+    }
+
+    /**
+     * 역할의 direct includes 목록을 조회합니다.
+     */
+    public List<RoleResponse> getRoleIncludes(String roleKey) {
+        RoleEntity role = roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+        List<RoleInclude> includes = roleIncludeRepository.findByRole(role);
+        return includes.stream()
+                .map(ri -> {
+                    RoleEntity included = ri.getIncludedRole();
+                    List<RoleInclude> subIncludes = roleIncludeRepository.findByRole(included);
+                    return RoleResponse.from(included, subIncludes);
+                })
+                .toList();
+    }
+
+    /**
+     * 역할의 effective roles와 effective permissions를 해결합니다.
+     */
+    public ResolvedRoleResponse getResolvedRole(String roleKey) {
+        roleEntityRepository.findByRoleKey(roleKey)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
+
+        List<String> effectiveRoles = roleHierarchyService.resolveEffectiveRoles(List.of(roleKey));
+        List<String> effectivePermissions = effectiveRoles.isEmpty()
+                ? List.of()
+                : rolePermissionRepository.findPermissionKeysByRoleKeys(effectiveRoles).stream()
+                        .distinct()
+                        .toList();
+
+        return new ResolvedRoleResponse(roleKey, effectiveRoles, effectivePermissions);
+    }
+
+    /**
+     * 전체 역할 계층 DAG 구조를 반환합니다.
+     */
+    public RoleHierarchyResponse getRoleHierarchy() {
+        return new RoleHierarchyResponse(roleHierarchyService.getHierarchyGraph());
     }
 
     /**
@@ -270,6 +375,9 @@ public class RbacService {
         // 감사 로그
         logAudit(AuditEventType.ROLE_ASSIGNED, assignedBy, request.userId(),
                 "Role assigned: " + request.roleKey());
+
+        // 역할 할당 이벤트 발행 → 멤버십 자동 할당 + Kafka 발행
+        eventPublisher.publishEvent(RoleAssignedEvent.of(request.userId(), request.roleKey(), assignedBy));
 
         log.info("Role assigned: userId={}, role={}, by={}", request.userId(), request.roleKey(), assignedBy);
         return UserRoleResponse.from(saved);

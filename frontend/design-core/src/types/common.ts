@@ -19,7 +19,7 @@ export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'dang
 export type StatusVariant = 'info' | 'success' | 'warning' | 'error';
 
 // Tag variants
-export type TagVariant = 'default' | 'primary' | 'success' | 'error' | 'warning' | 'info';
+export type TagVariant = 'default' | 'primary' | 'solid' | 'success' | 'error' | 'warning' | 'info';
 
 // Card variants
 export type CardVariant = 'elevated' | 'outlined' | 'flat' | 'glass' | 'interactive' | 'glassStats';

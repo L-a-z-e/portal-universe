@@ -150,6 +150,18 @@ public enum AuthErrorCode implements ErrorCode {
     MEMBERSHIP_ALREADY_EXISTS(HttpStatus.CONFLICT, "A037", "Membership already exists for this service"),
     MEMBERSHIP_EXPIRED(HttpStatus.FORBIDDEN, "A038", "Membership has expired"),
 
+    // Role Include
+    ROLE_INCLUDE_CYCLE_DETECTED(HttpStatus.BAD_REQUEST, "A043", "Adding this include would create a circular dependency"),
+    ROLE_INCLUDE_ALREADY_EXISTS(HttpStatus.CONFLICT, "A044", "Role include relationship already exists"),
+    ROLE_INCLUDE_NOT_FOUND(HttpStatus.NOT_FOUND, "A045", "Role include relationship not found"),
+    ROLE_INCLUDE_SELF_REFERENCE(HttpStatus.BAD_REQUEST, "A046", "A role cannot include itself"),
+
+    // Role Default Mapping
+    ROLE_DEFAULT_MAPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "A047", "Role default membership mapping not found"),
+    ROLE_DEFAULT_MAPPING_ALREADY_EXISTS(HttpStatus.CONFLICT, "A048", "Role default membership mapping already exists"),
+    MEMBERSHIP_TIER_IN_USE(HttpStatus.CONFLICT, "A049", "Membership tier is in use and cannot be deleted"),
+    MEMBERSHIP_TIER_ALREADY_EXISTS(HttpStatus.CONFLICT, "A050", "Membership tier already exists"),
+
     // Seller
     SELLER_APPLICATION_ALREADY_PENDING(HttpStatus.CONFLICT, "A040", "Seller application already pending"),
     SELLER_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "A041", "Seller application not found"),

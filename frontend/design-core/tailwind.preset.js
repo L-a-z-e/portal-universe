@@ -50,6 +50,9 @@ export default {
                     'overlay': 'var(--semantic-bg-overlay)',
                     'sidebar': 'var(--semantic-bg-sidebar)',
                 },
+                'sidebar': {
+                    'DEFAULT': 'var(--semantic-bg-sidebar)',
+                },
                 'border': {
                     'default': 'var(--semantic-border-default)',
                     'hover': 'var(--semantic-border-hover)',
@@ -135,6 +138,18 @@ export default {
                     '700': '#3a574a',
                     '800': '#2a4438',
                     '900': '#1a3126',
+                },
+                'monochromeChic': {
+                    '50': '#f1f0ea',
+                    '100': '#ede9e1',
+                    '200': '#e0ddcf',
+                    '300': '#a09a9e',
+                    '400': '#8a7b8d',
+                    '500': '#6b5b6e',
+                    '600': '#534b52',
+                    '700': '#474448',
+                    '800': '#3a2f3b',
+                    '900': '#2d232e',
                 },
             },
 

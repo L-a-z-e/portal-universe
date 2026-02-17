@@ -37,10 +37,6 @@ public class RoleEntity {
     @Column(name = "membership_group", length = 50)
     private String membershipGroup;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_role_id")
-    private RoleEntity parentRole;
-
     @Column(name = "is_system", nullable = false)
     private boolean system;
 
@@ -56,14 +52,12 @@ public class RoleEntity {
 
     @Builder
     public RoleEntity(String roleKey, String displayName, String description,
-                      String serviceScope, String membershipGroup,
-                      RoleEntity parentRole, boolean system) {
+                      String serviceScope, String membershipGroup, boolean system) {
         this.roleKey = roleKey;
         this.displayName = displayName;
         this.description = description;
         this.serviceScope = serviceScope;
         this.membershipGroup = membershipGroup;
-        this.parentRole = parentRole;
         this.system = system;
         this.active = true;
     }

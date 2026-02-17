@@ -12,6 +12,10 @@ import { adminTestUser } from '../fixtures/auth'
 const authFile = './tests/.auth/admin.json'
 const tokenFile = './tests/.auth/admin-access-token.json'
 
+// After login, Login button disappears and Dashboard nav appears
+const LOGIN_BUTTON = 'button:has-text("Login")'
+const AUTH_INDICATOR = 'a[href="/dashboard"], a:has-text("Dashboard")'
+
 setup('authenticate as admin', async ({ page, context }) => {
   let capturedAccessToken: string | null = null
 
@@ -41,12 +45,11 @@ setup('authenticate as admin', async ({ page, context }) => {
   await page.waitForTimeout(3000)
 
   // Perform login
-  const loginButton = page.locator('button:has-text("Login")')
-  const logoutButton = page.locator('button:has-text("Logout")')
+  const loginButton = page.locator(LOGIN_BUTTON)
 
-  if (await loginButton.isVisible()) {
+  if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
     await loginButton.click()
-    await expect(page.locator('h3:has-text("로그인")')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: '로그인', exact: true })).toBeVisible({ timeout: 5000 })
 
     await page.locator('input[placeholder="your@email.com"]').first().fill(adminTestUser.email)
     await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill(adminTestUser.password)
@@ -54,25 +57,10 @@ setup('authenticate as admin', async ({ page, context }) => {
     await page.getByRole('button', { name: '로그인', exact: true }).click()
     await page.waitForTimeout(3000)
 
-    await expect(page.locator('button:has-text("Logout")')).toBeVisible({ timeout: 10000 })
-  } else if (await logoutButton.isVisible()) {
-    // Already logged in as different user - logout first, then login as admin
-    await logoutButton.click()
-    await page.waitForTimeout(2000)
-
-    const loginBtn = page.locator('button:has-text("Login")')
-    await expect(loginBtn).toBeVisible({ timeout: 5000 })
-    await loginBtn.click()
-    await expect(page.locator('h3:has-text("로그인")')).toBeVisible({ timeout: 5000 })
-
-    await page.locator('input[placeholder="your@email.com"]').first().fill(adminTestUser.email)
-    await page.locator('input[placeholder="••••••••"], input[type="password"]').first().fill(adminTestUser.password)
-
-    await page.getByRole('button', { name: '로그인', exact: true }).click()
-    await page.waitForTimeout(3000)
-
-    await expect(page.locator('button:has-text("Logout")')).toBeVisible({ timeout: 10000 })
+    // Wait for Login button to disappear (replaced by user avatar)
+    await expect(page.locator(LOGIN_BUTTON)).toBeHidden({ timeout: 10000 })
   }
+  // else: already authenticated (no Login button visible)
 
   // Try window global
   const windowToken = await page.evaluate(() => {

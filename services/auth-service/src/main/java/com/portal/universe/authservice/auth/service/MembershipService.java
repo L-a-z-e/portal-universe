@@ -128,6 +128,57 @@ public class MembershipService {
         return userMembershipRepository.save(membership);
     }
 
+    // --- Tier CRUD (Admin) ---
+
+    @Transactional
+    public MembershipTierResponse createTier(CreateMembershipTierRequest request, String adminId) {
+        MembershipGroupConstants.validate(request.membershipGroup());
+
+        if (membershipTierRepository.existsByMembershipGroupAndTierKey(
+                request.membershipGroup(), request.tierKey())) {
+            throw new CustomBusinessException(AuthErrorCode.MEMBERSHIP_TIER_ALREADY_EXISTS);
+        }
+
+        MembershipTier tier = MembershipTier.builder()
+                .membershipGroup(request.membershipGroup())
+                .tierKey(request.tierKey())
+                .displayName(request.displayName())
+                .priceMonthly(request.priceMonthly())
+                .priceYearly(request.priceYearly())
+                .sortOrder(request.sortOrder())
+                .build();
+
+        MembershipTier saved = membershipTierRepository.save(tier);
+        log.info("Membership tier created: group={}, tierKey={}, by={}", request.membershipGroup(), request.tierKey(), adminId);
+        return MembershipTierResponse.from(saved);
+    }
+
+    @Transactional
+    public MembershipTierResponse updateTier(Long tierId, UpdateMembershipTierRequest request, String adminId) {
+        MembershipTier tier = membershipTierRepository.findById(tierId)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.MEMBERSHIP_TIER_NOT_FOUND));
+
+        tier.updateInfo(request.displayName(), request.priceMonthly(), request.priceYearly(), request.sortOrder());
+        log.info("Membership tier updated: tierId={}, by={}", tierId, adminId);
+        return MembershipTierResponse.from(tier);
+    }
+
+    @Transactional
+    public void deleteTier(Long tierId, String adminId) {
+        MembershipTier tier = membershipTierRepository.findById(tierId)
+                .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.MEMBERSHIP_TIER_NOT_FOUND));
+
+        // 사용 중인 멤버십이 있으면 soft delete
+        long activeCount = userMembershipRepository.countByTierAndStatus(tier);
+        if (activeCount > 0) {
+            tier.deactivate();
+            log.info("Membership tier deactivated (in use): tierId={}, activeUsers={}, by={}", tierId, activeCount, adminId);
+        } else {
+            membershipTierRepository.delete(tier);
+            log.info("Membership tier deleted: tierId={}, by={}", tierId, adminId);
+        }
+    }
+
     private void logAudit(AuditEventType eventType, String actorId, String targetUserId, String details) {
         AuthAuditLog auditLog = AuthAuditLog.builder()
                 .eventType(eventType)

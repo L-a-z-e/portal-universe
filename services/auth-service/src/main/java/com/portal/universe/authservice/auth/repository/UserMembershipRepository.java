@@ -1,6 +1,7 @@
 package com.portal.universe.authservice.auth.repository;
 
 import com.portal.universe.authservice.auth.domain.MembershipStatus;
+import com.portal.universe.authservice.auth.domain.MembershipTier;
 import com.portal.universe.authservice.auth.domain.UserMembership;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,4 +30,7 @@ public interface UserMembershipRepository extends JpaRepository<UserMembership, 
             "GROUP BY um.membershipGroup, um.tier.tierKey, um.tier.displayName " +
             "ORDER BY um.membershipGroup, um.tier.displayName")
     List<Object[]> countActiveGroupByGroupAndTier();
+
+    @Query("SELECT COUNT(um) FROM UserMembership um WHERE um.tier = :tier AND um.status = 'ACTIVE'")
+    long countByTierAndStatus(@Param("tier") MembershipTier tier);
 }

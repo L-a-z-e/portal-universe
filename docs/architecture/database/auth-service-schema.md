@@ -1,7 +1,7 @@
 # Auth Service Database Schema
 
 **Database**: MySQL
-**Last Updated**: 2026-02-06
+**Last Updated**: 2026-02-18
 
 ## ERD
 
@@ -61,11 +61,17 @@ erDiagram
         String description
         String serviceScope
         String membershipGroup
-        Long parentRoleId FK
         Boolean system
         Boolean active
         LocalDateTime createdAt
         LocalDateTime updatedAt
+    }
+
+    RoleInclude {
+        Long id PK
+        Long roleId FK
+        Long includedRoleId FK
+        LocalDateTime createdAt
     }
 
     PermissionEntity {
@@ -167,7 +173,8 @@ erDiagram
 
     RoleEntity ||--o{ UserRole : assigned-to
     RoleEntity ||--o{ RolePermission : has
-    RoleEntity ||--o{ RoleEntity : "parent (hierarchy)"
+    RoleEntity ||--o{ RoleInclude : "includes (DAG)"
+    RoleInclude }o--|| RoleEntity : "included role"
 
     PermissionEntity ||--o{ RolePermission : granted-to
     PermissionEntity ||--o{ MembershipTierPermission : granted-to
@@ -186,6 +193,7 @@ erDiagram
 | Follow | 팔로우 관계 | id, followerId, followingId |
 | PasswordHistory | 비밀번호 변경 이력 | id, userId, passwordHash |
 | RoleEntity | 역할 정의 | id, roleKey, displayName, serviceScope, membershipGroup |
+| RoleInclude | 역할 포함 관계 (DAG) | id, roleId, includedRoleId |
 | PermissionEntity | 권한 정의 | id, permissionKey, resource, action |
 | UserRole | 사용자-역할 매핑 | id, userId, roleId, expiresAt |
 | RolePermission | 역할-권한 매핑 | id, roleId, permissionId |
@@ -209,7 +217,7 @@ erDiagram
 ### RBAC (Role-Based Access Control)
 - User M:N RoleEntity (via UserRole): 사용자는 여러 역할 보유 가능
 - RoleEntity M:N PermissionEntity (via RolePermission): 역할은 여러 권한 보유
-- RoleEntity: 계층 구조 지원 (parentRoleId)
+- RoleEntity M:N RoleEntity (via RoleInclude): DAG 기반 역할 포함 관계 (다중 상속 지원)
 
 ### 멤버십
 - User 1:N UserMembership: 사용자는 서비스별 멤버십 보유
@@ -242,8 +250,10 @@ erDiagram
 - **Self-referencing**: User 간 팔로우 관계
 - **Unique Constraint**: (followerId, followingId) 중복 방지
 
-### 5. 역할 계층
-- **parentRoleId**: 역할 상속 구조
+### 5. 역할 계층 (DAG)
+- **role_includes**: 다대다 테이블로 DAG(Directed Acyclic Graph) 구조 지원 (V4 마이그레이션)
+- 하나의 역할이 여러 역할을 포함 가능 (예: SUPER_ADMIN → [SHOPPING_ADMIN, BLOG_ADMIN])
+- cycle detection으로 순환 참조 방지
 - **serviceScope**: 서비스별 역할 범위 (global, shopping, blog 등)
 
 ### 6. 감사 추적
@@ -277,7 +287,7 @@ erDiagram
 ### 역할 및 권한
 - **시스템 역할**: system=true는 수정/삭제 불가
 - **역할 만료**: UserRole.expiresAt으로 임시 권한 부여 가능
-- **권한 상속**: 부모 역할의 권한 자동 상속
+- **권한 상속**: role_includes DAG를 BFS 탐색하여 포함된 역할의 권한 자동 상속
 
 ### 멤버십
 - **역할+서비스 복합 그룹**: `membershipGroup = {role_scope}:{service}` 형태로 역할과 서비스 조합별 독립 티어 체계 (예: `user:blog`, `seller:shopping`)
@@ -303,3 +313,15 @@ erDiagram
 | 티어 변경 | `user:blog` 그룹: BASIC→PRO, PREMIUM→MAX, VIP 삭제 |
 | 역할 계층 | SHOPPING_ADMIN → SHOPPING_SELLER → USER, BLOG_ADMIN → USER |
 | 인덱스 | `idx_mt_membership_group`, `idx_um_membership_group` 추가 |
+
+### V4: Role Multi-Include DAG (ADR-044)
+
+| 변경 | 내용 |
+|------|------|
+| `role_includes` 테이블 | 신규 생성 — `role_id`, `included_role_id` (MtM), UK `uk_role_include` |
+| `roles.parent_role_id` | FK 제거 후 컬럼 DROP |
+| 기존 데이터 마이그레이션 | `parent_role_id` → `role_includes` 레코드로 자동 전환 |
+| `ROLE_GUEST` | 신규 역할 추가 (최소 접근 권한) |
+| `ROLE_USER → ROLE_GUEST` | include 관계 추가 |
+| `ROLE_SUPER_ADMIN → ROLE_SHOPPING_ADMIN` | include 관계 추가 (다중 포함) |
+| `ROLE_SUPER_ADMIN → ROLE_BLOG_ADMIN` | include 관계 추가 (다중 포함) |

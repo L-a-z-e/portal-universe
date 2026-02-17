@@ -5,6 +5,7 @@ export const tagBase = 'inline-flex items-center gap-1 font-medium transition-al
 export const tagVariants: Record<TagVariant, string> = {
   default: 'bg-bg-muted text-text-body hover:bg-bg-hover border border-border-default',
   primary: 'bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 border border-brand-primary/20',
+  solid: 'bg-brand-primary text-white hover:bg-brand-primaryHover border border-transparent shadow-sm',
   success: 'bg-status-successBg text-status-success hover:bg-status-successBg/80 border border-status-success/20',
   error: 'bg-status-errorBg text-status-error hover:bg-status-errorBg/80 border border-status-error/20',
   warning: 'bg-status-warningBg text-status-warning hover:bg-status-warningBg/80 border border-status-warning/20',

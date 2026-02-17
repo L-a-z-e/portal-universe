@@ -8,6 +8,7 @@
 @import '@portal/design-core/styles/themes/blog.css';
 @import '@portal/design-core/styles/themes/shopping.css';
 @import '@portal/design-core/styles/themes/prism.css';
+@import '@portal/design-core/styles/themes/admin.css';
 
 @tailwind base;
 @tailwind components;

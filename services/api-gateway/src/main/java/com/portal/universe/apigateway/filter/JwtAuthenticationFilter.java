@@ -4,7 +4,6 @@ import com.portal.universe.apigateway.config.JwtProperties;
 import com.portal.universe.apigateway.config.PublicPathProperties;
 import com.portal.universe.apigateway.exception.GatewayErrorCode;
 import com.portal.universe.apigateway.exception.GatewayErrorResponse;
-import com.portal.universe.apigateway.service.RoleHierarchyResolver;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -45,16 +44,13 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     private final JwtProperties jwtProperties;
     private final TokenBlacklistChecker tokenBlacklistChecker;
-    private final RoleHierarchyResolver roleHierarchyResolver;
     private final String[] skipJwtParsingPrefixes;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JwtAuthenticationFilter(JwtProperties jwtProperties, PublicPathProperties publicPathProperties,
-                                   TokenBlacklistChecker tokenBlacklistChecker,
-                                   RoleHierarchyResolver roleHierarchyResolver) {
+                                   TokenBlacklistChecker tokenBlacklistChecker) {
         this.jwtProperties = jwtProperties;
         this.tokenBlacklistChecker = tokenBlacklistChecker;
-        this.roleHierarchyResolver = roleHierarchyResolver;
         this.skipJwtParsingPrefixes = publicPathProperties.getSkipJwtParsing().toArray(String[]::new);
     }
 
@@ -168,40 +164,37 @@ public class JwtAuthenticationFilter implements WebFilter {
                     // JWT memberships 파싱 (enriched JSON passthrough)
                     String membershipsHeader = parseMemberships(claims);
 
-                    // Role Hierarchy resolve → effective roles 계산
-                    return roleHierarchyResolver.resolveEffectiveRoles(rolesList)
-                            .map(effectiveRoles -> {
-                                String effectiveRolesHeader = String.join(",", effectiveRoles);
+                    // JWT effectiveRoles claim 사용 (없으면 direct roles fallback)
+                    List<String> effectiveRoles = parseEffectiveRoles(claims, rolesList);
+                    String effectiveRolesHeader = String.join(",", effectiveRoles);
 
-                                log.debug("JWT validated for user: {}, roles: {}, effectiveRoles: {}, memberships: {}",
-                                        userId, rolesList, effectiveRoles, membershipsHeader);
+                    log.debug("JWT validated for user: {}, roles: {}, effectiveRoles: {}, memberships: {}",
+                            userId, rolesList, effectiveRoles, membershipsHeader);
 
-                                // effective roles 기반 Authority 생성
-                                List<SimpleGrantedAuthority> authorities = effectiveRoles.stream()
-                                        .map(SimpleGrantedAuthority::new)
-                                        .collect(Collectors.toList());
+                    // effective roles 기반 Authority 생성
+                    List<SimpleGrantedAuthority> authorities = effectiveRoles.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
 
-                                UsernamePasswordAuthenticationToken authentication =
-                                        new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
-                                // 하위 서비스로 전달할 헤더 설정
-                                ServerHttpRequest mutatedRequest = sanitizedRequest.mutate()
-                                        .header("X-User-Id", userId)
-                                        .header("X-User-Roles", rolesHeader)
-                                        .header("X-User-Effective-Roles", effectiveRolesHeader)
-                                        .header("X-User-Memberships", membershipsHeader)
-                                        .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
-                                        .header("X-User-Name", username != null ? URLEncoder.encode(username, StandardCharsets.UTF_8) : "")
-                                        .build();
+                    // 하위 서비스로 전달할 헤더 설정
+                    ServerHttpRequest mutatedRequest = sanitizedRequest.mutate()
+                            .header("X-User-Id", userId)
+                            .header("X-User-Roles", rolesHeader)
+                            .header("X-User-Effective-Roles", effectiveRolesHeader)
+                            .header("X-User-Memberships", membershipsHeader)
+                            .header("X-User-Nickname", nickname != null ? URLEncoder.encode(nickname, StandardCharsets.UTF_8) : "")
+                            .header("X-User-Name", username != null ? URLEncoder.encode(username, StandardCharsets.UTF_8) : "")
+                            .build();
 
-                                ServerWebExchange mutatedExchange = sanitizedExchange.mutate()
-                                        .request(mutatedRequest)
-                                        .build();
+                    ServerWebExchange mutatedExchange = sanitizedExchange.mutate()
+                            .request(mutatedRequest)
+                            .build();
 
-                                return Map.entry(mutatedExchange, authentication);
-                            })
-                            .flatMap(entry -> chain.filter(entry.getKey())
-                                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(entry.getValue())));
+                    return chain.filter(mutatedExchange)
+                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
                 });
     }
 
@@ -230,6 +223,22 @@ public class JwtAuthenticationFilter implements WebFilter {
             log.warn("Unexpected roles claim type: {}", rolesClaim.getClass().getName());
         }
         return Collections.emptyList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> parseEffectiveRoles(Claims claims, List<String> directRoles) {
+        Object effectiveRolesClaim = claims.get("effectiveRoles");
+        if (effectiveRolesClaim instanceof List<?> rolesArr) {
+            List<String> result = ((List<Object>) rolesArr).stream()
+                    .map(Object::toString)
+                    .toList();
+            if (!result.isEmpty()) {
+                log.debug("Using effectiveRoles from JWT claim: {}", result);
+                return result;
+            }
+        }
+        log.debug("No effectiveRoles in JWT, using direct roles: {}", directRoles);
+        return directRoles;
     }
 
     private String parseMemberships(Claims claims) {
