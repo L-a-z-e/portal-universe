@@ -6,7 +6,8 @@ import React, { useState } from 'react'
 import { useTrackDelivery, useUpdateDeliveryStatus } from '@/hooks/useAdminDelivery'
 import { DELIVERY_STATUS_LABELS } from '@/types'
 import type { DeliveryStatus, Delivery } from '@/types'
-import { Button, Spinner, Input, Alert } from '@portal/design-react'
+import { Button, Spinner, Input, Alert, Select } from '@portal/design-react'
+import type { SelectOption } from '@portal/design-core'
 
 const DELIVERY_STATUS_OPTIONS: DeliveryStatus[] = [
   'PENDING', 'PREPARING', 'SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'
@@ -117,15 +118,14 @@ const AdminDeliveryPage: React.FC = () => {
             {/* Status Update */}
             <div className="pt-4 border-t border-border-default space-y-3">
               <h3 className="text-sm font-medium text-text-heading">Update Status</h3>
-              <select
+              <Select
                 value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value as DeliveryStatus)}
-                className="w-full px-3 py-2 border border-border-default rounded-lg bg-bg-card text-text-body text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              >
-                {DELIVERY_STATUS_OPTIONS.map(s => (
-                  <option key={s} value={s}>{DELIVERY_STATUS_LABELS[s]}</option>
-                ))}
-              </select>
+                options={DELIVERY_STATUS_OPTIONS.map((s): SelectOption => ({
+                  value: s,
+                  label: DELIVERY_STATUS_LABELS[s],
+                }))}
+                onChange={(value) => setNewStatus(value as DeliveryStatus)}
+              />
               <Input
                 type="text"
                 value={location}

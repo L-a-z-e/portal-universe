@@ -161,9 +161,9 @@ const ProductListPage: React.FC = () => {
               {searchKeyword && (
                 <p className="text-text-meta text-sm">
                   Try different keywords or{' '}
-                  <button onClick={clearSearch} className="text-brand-primary hover:underline">
+                  <Button variant="ghost" size="sm" onClick={clearSearch} className="text-brand-primary hover:underline p-0 h-auto inline">
                     clear the search
-                  </button>
+                  </Button>
                 </p>
               )}
             </div>

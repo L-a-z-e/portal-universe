@@ -1,4 +1,5 @@
 import React from 'react'
+import { Button } from '@portal/design-react'
 
 interface FilterChipsProps {
   categories: string[]
@@ -14,17 +15,19 @@ const FilterChips: React.FC<FilterChipsProps> = ({ categories, active, onChange 
       {allCategories.map((cat) => {
         const isActive = cat === 'All' ? !active : active === cat
         return (
-          <button
+          <Button
             key={cat}
+            variant="outline"
+            size="sm"
             onClick={() => onChange(cat === 'All' ? '' : cat)}
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`flex-shrink-0 rounded-full ${
               isActive
-                ? 'bg-brand-primary/10 text-brand-primary ring-1 ring-brand-primary/50'
+                ? 'bg-brand-primary/10 text-brand-primary ring-1 ring-brand-primary/50 border-brand-primary/50'
                 : 'bg-bg-elevated text-text-meta hover:text-text-heading'
             }`}
           >
             {cat}
-          </button>
+          </Button>
         )
       })}
     </div>

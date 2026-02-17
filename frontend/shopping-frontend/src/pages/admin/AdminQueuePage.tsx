@@ -4,7 +4,8 @@
  */
 import React, { useState } from 'react'
 import { useActivateQueue, useDeactivateQueue, useProcessQueue } from '@/hooks/useAdminQueue'
-import { Button, Input, Alert } from '@portal/design-react'
+import { Button, Input, Alert, Select } from '@portal/design-react'
+import type { SelectOption } from '@portal/design-core'
 
 const AdminQueuePage: React.FC = () => {
   const [eventType, setEventType] = useState('TIME_DEAL')
@@ -78,15 +79,15 @@ const AdminQueuePage: React.FC = () => {
 
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-text-body mb-1">Event Type</label>
-              <select
+              <Select
+                label="Event Type"
                 value={eventType}
-                onChange={(e) => setEventType(e.target.value)}
-                className="w-full px-3 py-2 border border-border-default rounded-lg bg-bg-card text-text-body text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              >
-                <option value="TIME_DEAL">Time Deal</option>
-                <option value="COUPON">Coupon</option>
-              </select>
+                options={[
+                  { value: 'TIME_DEAL', label: 'Time Deal' },
+                  { value: 'COUPON', label: 'Coupon' },
+                ] as SelectOption[]}
+                onChange={(value) => setEventType(String(value ?? 'TIME_DEAL'))}
+              />
             </div>
 
             <div>
