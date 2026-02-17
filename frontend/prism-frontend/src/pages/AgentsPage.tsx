@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-system-react';
+import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-react';
 import { useAgentStore } from '@/stores/agentStore';
 import { useProviderStore } from '@/stores/providerStore';
 import { api } from '@/services/api';

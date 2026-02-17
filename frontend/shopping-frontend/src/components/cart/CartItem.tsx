@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Button } from '@portal/design-system-react'
+import { Button } from '@portal/design-react'
 import { useCartStore } from '@/stores/cartStore'
 import type { CartItem } from '@/types'
 

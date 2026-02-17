@@ -10,7 +10,7 @@ import Sidebar from "./components/Sidebar.vue";
 import QuickActions from "./components/QuickActions.vue";
 import LoginModal from "./components/LoginModal.vue";
 import ChatWidget from "./components/chat/ChatWidget.vue";
-import { ToastContainer } from "@portal/design-system-vue";
+import { ToastContainer } from "@portal/design-vue";
 
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();

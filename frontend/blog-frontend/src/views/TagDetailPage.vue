@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { getTagByName, getPostsByTag } from '../api/tags';
 import type { TagResponse, PostSummaryResponse, PageResponse } from '@/types';
-import { Card, Button } from '@portal/design-system-vue';
+import { Card, Button } from '@portal/design-vue';
 import PostCard from '../components/PostCard.vue';
 
 interface Props {

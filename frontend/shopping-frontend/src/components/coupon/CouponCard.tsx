@@ -4,7 +4,7 @@
  * - coupon prop: 발급 가능한 쿠폰 (CouponResponse)
  * - userCoupon prop: 사용자가 보유한 쿠폰 (UserCouponResponse, flat 구조)
  */
-import { Button, Badge } from '@portal/design-system-react'
+import { Button, Badge } from '@portal/design-react'
 import type { Coupon, UserCoupon } from '@/types'
 import { DISCOUNT_TYPE_LABELS, USER_COUPON_STATUS_LABELS } from '@/types'
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Button, useApiError } from '@portal/design-system-vue';
+import { Button, useApiError } from '@portal/design-vue';
 import { toggleLike, getLikeStatus } from '@/api/likes';
 
 interface Props {

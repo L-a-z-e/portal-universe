@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { signup, getPasswordPolicy, type SignupRequest, type PasswordPolicyResponse } from '@/api/users';
-import { Button, Card, Input, Checkbox, Alert, useToast, useApiError } from '@portal/design-system-vue';
+import { Button, Card, Input, Checkbox, Alert, useToast, useApiError } from '@portal/design-vue';
 
 const router = useRouter();
 const toast = useToast();

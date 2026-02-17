@@ -10,7 +10,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useInventoryStream } from '@/hooks/useInventoryStream'
 import type { Product, Inventory } from '@/types'
 import ProductReviews from '@/components/product/ProductReviews'
-import { Button, Spinner, Alert, Badge } from '@portal/design-system-react'
+import { Button, Spinner, Alert, Badge } from '@portal/design-react'
 
 const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>()

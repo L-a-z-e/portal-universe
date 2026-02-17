@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { sellerProductApi } from '@/api'
-import { Button, Input, Textarea } from '@portal/design-system-react'
+import { Button, Input, Textarea } from '@portal/design-react'
 import type { ProductFormData } from '@/types'
 
 const productFormSchema = z.object({

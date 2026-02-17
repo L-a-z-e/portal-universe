@@ -6,7 +6,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useTimeDealPurchases } from '@/hooks/useTimeDeals'
-import { Button, Spinner, Alert } from '@portal/design-system-react'
+import { Button, Spinner, Alert } from '@portal/design-react'
 
 const TimeDealPurchasesPage: React.FC = () => {
   const { data: purchases, isLoading, error, refetch } = useTimeDealPurchases()

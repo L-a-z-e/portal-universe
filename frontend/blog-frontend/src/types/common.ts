@@ -7,4 +7,4 @@ export type {
   ErrorDetails,
   FieldError,
   PageResponse
-} from '@portal/design-types';
+} from '@portal/design-core';

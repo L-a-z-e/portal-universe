@@ -1,7 +1,7 @@
-// Re-export API types from design-types (canonical source)
+// Re-export API types from design-core (canonical source)
 export type {
   FieldError,
   ErrorDetails,
   ApiResponse,
   ApiErrorResponse,
-} from '@portal/design-types';
+} from '@portal/design-core';

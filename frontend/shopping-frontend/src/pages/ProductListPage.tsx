@@ -11,7 +11,7 @@ import ProductCard from '@/components/product/ProductCard'
 import SearchAutocomplete from '@/components/search/SearchAutocomplete'
 import PopularKeywords from '@/components/search/PopularKeywords'
 import RecentKeywords from '@/components/search/RecentKeywords'
-import { Button, Spinner, Alert } from '@portal/design-system-react'
+import { Button, Spinner, Alert } from '@portal/design-react'
 
 const ProductListPage: React.FC = () => {
   // URL query params

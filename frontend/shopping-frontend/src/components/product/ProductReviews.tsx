@@ -4,7 +4,7 @@
  */
 import React from 'react'
 import { useProductReviews } from '@/hooks/useProductReviews'
-import { Spinner } from '@portal/design-system-react'
+import { Spinner } from '@portal/design-react'
 
 interface ProductReviewsProps {
   productId: number

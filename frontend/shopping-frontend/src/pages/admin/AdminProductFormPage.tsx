@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAdminProduct, useCreateProduct, useUpdateProduct } from '@/hooks/useAdminProducts'
-import { Button, Input, Textarea } from '@portal/design-system-react'
+import { Button, Input, Textarea } from '@portal/design-react'
 import type { ProductFormData } from '@/types'
 
 // Zod 스키마 정의

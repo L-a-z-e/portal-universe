@@ -14,7 +14,7 @@ import {
   PAYMENT_METHOD_LABELS
 } from '@/types'
 import type { OrderStatus, Payment, Delivery } from '@/types'
-import { Button, Spinner, Alert } from '@portal/design-system-react'
+import { Button, Spinner, Alert } from '@portal/design-react'
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   PENDING: ['CONFIRMED', 'CANCELLED'],

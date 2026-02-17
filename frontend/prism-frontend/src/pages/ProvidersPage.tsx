@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select, useApiError } from '@portal/design-system-react';
+import { Modal, Button, Input, Select, useApiError } from '@portal/design-react';
 import { useProviderStore } from '@/stores/providerStore';
 import type { CreateProviderRequest, ProviderType } from '@/types';
 

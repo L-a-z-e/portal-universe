@@ -4,12 +4,13 @@ title: 테마 시스템 아키텍처
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-17
 author: Laze
 tags: [design-system, theming, dark-mode, css-variables, vue, react]
 related:
   - arch-design-system-overview
   - arch-token-system
+  - adr-043-design-system-package-consolidation
 ---
 
 # 테마 시스템 아키텍처
@@ -96,7 +97,7 @@ graph TB
 }
 ```
 
-Vue 테마 CSS 위치: `design-system-vue/src/styles/themes/blog.css`
+테마 CSS 위치: `design-core/src/styles/themes/blog.css`
 
 #### Shopping (Light-first)
 
@@ -114,11 +115,11 @@ Vue 테마 CSS 위치: `design-system-vue/src/styles/themes/blog.css`
 }
 ```
 
-Vue 테마 CSS 위치: `design-system-vue/src/styles/themes/shopping.css`
+테마 CSS 위치: `design-core/src/styles/themes/shopping.css`
 
 #### Prism (Light-first)
 
-별도 브랜드 색상. 기존 문서에서 누락되어 있었으나 `design-tokens/src/tokens/themes/prism.json`에 정의됨.
+별도 브랜드 색상. `design-core/src/tokens/themes/prism.json`에 정의됨.
 
 ```css
 [data-service="prism"] {
@@ -126,7 +127,7 @@ Vue 테마 CSS 위치: `design-system-vue/src/styles/themes/shopping.css`
 }
 ```
 
-Vue 테마 CSS 위치: `design-system-vue/src/styles/themes/prism.css`
+테마 CSS 위치: `design-core/src/styles/themes/prism.css`
 
 ### 2. Dark/Light 모드 전환
 
@@ -157,7 +158,7 @@ Vue 테마 CSS 위치: `design-system-vue/src/styles/themes/prism.css`
 
 ### 3. Vue useTheme Composable
 
-위치: `design-system-vue/src/composables/useTheme.ts`
+위치: `design-vue/src/composables/useTheme.ts`
 
 ```typescript
 export type ServiceType = 'portal' | 'blog' | 'shopping'
@@ -185,10 +186,10 @@ export function useTheme() {
 
 ### 4. React useTheme Hook
 
-위치: `design-system-react/src/hooks/useTheme.ts`
+위치: `design-react/src/hooks/useTheme.ts`
 
 ```typescript
-export type ServiceType = /* @portal/design-types에서 정의 */
+export type ServiceType = /* @portal/design-core에서 정의 */
 export type ThemeMode = 'light' | 'dark' | 'system'
 
 interface UseThemeOptions {
@@ -233,7 +234,7 @@ export function useTheme(options?: UseThemeOptions): UseThemeReturn
 
 | 항목 | Vue | React | 비고 |
 |------|-----|-------|------|
-| ServiceType 'prism' | 포함 안 됨 | design-types에서 참조 | Vue 앱에서 Prism 미사용 |
+| ServiceType 'prism' | 포함 안 됨 | design-core에서 참조 | Vue 앱에서 Prism 미사용 |
 | ThemeMode 'system' | 없음 (`'light' \| 'dark'`) | 있음 (`'light' \| 'dark' \| 'system'`) | React만 시스템 모드 지원 |
 
 ## 데이터 플로우
@@ -260,7 +261,7 @@ sequenceDiagram
 <script setup lang="ts">
 import { watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useTheme } from '@portal/design-system-vue'
+import { useTheme } from '@portal/design-vue'
 
 const route = useRoute()
 const { setService } = useTheme()
@@ -279,7 +280,7 @@ watch(
 
 **React Remote Standalone 모드**:
 ```tsx
-import { useTheme } from '@portal/design-system-react'
+import { useTheme } from '@portal/design-react'
 
 function App() {
   const { setService } = useTheme({ defaultService: 'shopping', defaultMode: 'system' })
@@ -301,7 +302,7 @@ function App() {
 ```javascript
 // tailwind.config.js (소비자 앱)
 export default {
-  presets: [require('@portal/design-tokens/tailwind')],
+  presets: [require('@portal/design-core/tailwind')],
   // darkMode 설정이 preset에 포함됨:
   // darkMode: ['class', '[data-theme="dark"]']
 }
@@ -324,4 +325,12 @@ Tailwind preset에 `light:` variant가 정의되어 있어 `[data-theme="light"]
 - [Vue Components](./vue-components.md) - Vue 컴포넌트에서의 테마 사용
 - [React Components](./react-components.md) - React 컴포넌트에서의 테마 사용
 
-**최종 업데이트**: 2026-02-06
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-01-18 | 초안 작성 | Laze |
+| 2026-02-06 | 업데이트 | Laze |
+| 2026-02-17 | 4→3 패키지 통합 반영: 패키지명/경로 업데이트 (ADR-043) | Laze |

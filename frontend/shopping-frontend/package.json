@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@portal/design-system-react": "*",
-    "@portal/design-tokens": "*",
+    "@portal/design-core": "*",
+    "@portal/design-react": "*",
     "@portal/react-bootstrap": "*",
     "@portal/react-bridge": "*",
     "axios": "^1.12.2",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Card, Spinner, Button } from '@portal/design-system-vue'
+import { Card, Spinner, Button } from '@portal/design-vue'
 import { getBlogStats, getCategoryStats, getPopularTags, getAuthorStats } from '@/api/posts'
 import type { BlogStats, CategoryStats, TagStatsResponse, AuthorStats } from '@/types'
 import { usePortalAuth } from '@portal/vue-bridge'

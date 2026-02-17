@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-system-react';
+import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-react';
 import { useAgentStore } from '@/stores/agentStore';
 import { useTaskStore } from '@/stores/taskStore';
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskPriority } from '@/types';

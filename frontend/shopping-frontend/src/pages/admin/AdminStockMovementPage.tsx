@@ -5,7 +5,7 @@
 import React, { useState } from 'react'
 import { useAdminStockMovements } from '@/hooks/useAdminStockMovements'
 import type { MovementType } from '@/types'
-import { Button, Spinner, Input } from '@portal/design-system-react'
+import { Button, Spinner, Input } from '@portal/design-react'
 
 const MOVEMENT_TYPE_LABELS: Record<MovementType, string> = {
   INITIAL: 'Initial Stock',

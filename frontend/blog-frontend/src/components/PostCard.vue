@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Card, Tag, Avatar } from '@portal/design-system-vue';
+import { Card, Tag, Avatar } from '@portal/design-vue';
 import type { PostSummaryResponse } from '../dto/post';
 import { DEFAULT_THUMBNAILS } from '../config/assets';
 import { useRelativeTime } from '@/composables/useRelativeTime';

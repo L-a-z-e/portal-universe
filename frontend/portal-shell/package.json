@@ -13,8 +13,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@portal/design-system-vue": "*",
-    "@portal/design-tokens": "*",
+    "@portal/design-core": "*",
+    "@portal/design-vue": "*",
     "@stomp/stompjs": "^7.3.0",
     "axios": "^1.12.2",
     "pinia": "^3.0.3",

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Input, Card, Textarea, Select, useToast, useApiError } from '@portal/design-system-vue';
+import { Button, Input, Card, Textarea, Select, useToast, useApiError } from '@portal/design-vue';
 import Editor from '@toast-ui/editor';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';

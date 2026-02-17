@@ -5,10 +5,10 @@ import { createPinia } from 'pinia';
 import './style.css'
 import router from './router'
 import { useAuthStore } from './store/auth';
-import '@portal/design-system-vue/style.css';
+import '@portal/design-vue/style.css';
 import './style.css';
 import AppVue from './App.vue';
-import { setupErrorHandler } from '@portal/design-system-vue';
+import { setupErrorHandler } from '@portal/design-vue';
 
 const app = createApp(AppVue);
 const pinia = createPinia();

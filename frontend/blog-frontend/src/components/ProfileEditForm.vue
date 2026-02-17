@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Button, Input, Textarea, Alert } from '@portal/design-system-vue';
+import { Button, Input, Textarea, Alert } from '@portal/design-vue';
 import type { UserProfileResponse, UserProfileUpdateRequest } from '@/dto/user';
 import { updateProfile, setUsername, checkUsername } from '@/api/users';
 

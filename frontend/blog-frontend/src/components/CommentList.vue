@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Card, useApiError } from '@portal/design-system-vue'
+import { Card, useApiError } from '@portal/design-vue'
 import type { CommentResponse } from '@/dto/comment'
 import {
   getCommentsByPostId,

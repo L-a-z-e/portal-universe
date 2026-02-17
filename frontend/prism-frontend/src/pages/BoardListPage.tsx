@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Button, Input, Textarea, useApiError } from '@portal/design-system-react';
+import { Modal, Button, Input, Textarea, useApiError } from '@portal/design-react';
 import { useBoardStore } from '@/stores/boardStore';
 import type { CreateBoardRequest } from '@/types';
 

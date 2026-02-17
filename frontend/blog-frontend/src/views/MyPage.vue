@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { Button, Spinner, Alert, Card, Tabs } from '@portal/design-system-vue';
+import { Button, Spinner, Alert, Card, Tabs } from '@portal/design-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import ProfileEditForm from '@/components/ProfileEditForm.vue';
 import MyPostList from '@/components/MyPostList.vue';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { sellerOrderApi } from '@/api'
-import { Button } from '@portal/design-system-react'
+import { Button } from '@portal/design-react'
 
 export const OrderDetailPage: React.FC = () => {
   const { orderNumber } = useParams<{ orderNumber: string }>()

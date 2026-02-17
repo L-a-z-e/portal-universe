@@ -4,7 +4,7 @@ title: Design System Architecture Index
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-17
 author: Laze
 tags: [design-system, architecture, index]
 ---
@@ -17,11 +17,11 @@ Portal Universe Design System의 아키텍처 문서 인덱스. 3계층 토큰 �
 
 | 문서 | 설명 | 범위 |
 |------|------|------|
-| [System Overview](./system-overview.md) | 멀티 패키지 아키텍처 전체 개요 | 전체 |
-| [Token System](./token-system.md) | 3계층 토큰 시스템, 빌드 파이프라인 | `@portal/design-tokens` |
+| [System Overview](./system-overview.md) | 3패키지 아키텍처 전체 개요 | 전체 |
+| [Token System](./token-system.md) | 3계층 토큰 시스템, 빌드 파이프라인 | `@portal/design-core` |
 | [Theming](./theming.md) | 테마 시스템 (서비스별, Light/Dark) | Vue + React |
-| [Vue Components](./vue-components.md) | Vue 3 컴포넌트 라이브러리 | `@portal/design-system-vue` |
-| [React Components](./react-components.md) | React 18 컴포넌트 라이브러리 | `@portal/design-system-react` |
+| [Vue Components](./vue-components.md) | Vue 3 컴포넌트 라이브러리 | `@portal/design-vue` |
+| [React Components](./react-components.md) | React 18 컴포넌트 라이브러리 | `@portal/design-react` |
 | [Component Matrix](./component-matrix.md) | 크로스 프레임워크 비교표 | Vue + React |
 
 ## 핵심 개념
@@ -49,39 +49,42 @@ Component Layer (Application)  Tailwind preset 클래스: bg-brand-primary, text
 
 - **Vue 3**: 26개 컴포넌트 + 4개 composable + 에러 핸들러
 - **React 18**: 30개 컴포넌트 + ErrorBoundary + 4개 hook
-- **공유 타입**: `@portal/design-types`에서 단일 소스
-- **공유 로거**: Framework-agnostic `createLogger` (design-types)
+- **공유 코어**: `@portal/design-core`에서 토큰, 타입, variant 단일 소스
+- **공유 로거**: Framework-agnostic `createLogger` (design-core)
 
 ## 패키지 관계
 
 ```mermaid
 graph TB
-    subgraph "Foundation (프레임워크 무관)"
-        DT["@portal/design-tokens<br/>토큰 정의 + 빌드 + Tailwind preset"]
-        DY["@portal/design-types<br/>공유 TypeScript 타입"]
+    subgraph "Core (프레임워크 무관)"
+        DC["@portal/design-core<br/>토큰 + 타입 + variant + Tailwind preset"]
     end
 
     subgraph "Component Libraries"
-        VUE["@portal/design-system-vue<br/>Vue 3 컴포넌트 26개"]
-        REACT["@portal/design-system-react<br/>React 18 컴포넌트 30개"]
+        VUE["@portal/design-vue<br/>Vue 3 컴포넌트 26개"]
+        REACT["@portal/design-react<br/>React 18 컴포넌트 30개"]
     end
 
     subgraph "Consumer Apps"
-        SHELL["portal-shell :30000<br/>Vue 3 Host"]
-        BLOG["blog-frontend :30001<br/>Vue 3"]
-        SHOP["shopping-frontend :30002<br/>React 18"]
-        PRISM["prism-frontend :30003<br/>React 18"]
+        SHELL["portal-shell :30000"]
+        BLOG["blog-frontend :30001"]
+        ADMIN["admin-frontend :30004"]
+        DRIVE["drive-frontend :30005"]
+        SHOP["shopping-frontend :30002"]
+        PRISM["prism-frontend :30003"]
+        SELLER["shopping-seller :30006"]
     end
 
-    DT --> VUE
-    DT --> REACT
-    DY --> VUE
-    DY --> REACT
+    DC --> VUE
+    DC --> REACT
 
     VUE --> SHELL
     VUE --> BLOG
+    VUE --> ADMIN
+    VUE --> DRIVE
     REACT --> SHOP
     REACT --> PRISM
+    REACT --> SELLER
 ```
 
 ## 기술 스택
@@ -101,33 +104,26 @@ graph TB
 
 ```
 frontend/
-├── design-tokens/               # @portal/design-tokens
-│   ├── src/tokens/
-│   │   ├── base/                # 7개 원시 토큰 JSON
-│   │   ├── semantic/            # 의미 기반 토큰
-│   │   └── themes/              # 서비스별 테마 (4개)
+├── design-core/                 # @portal/design-core
+│   ├── src/
+│   │   ├── tokens/              # 토큰 JSON (base, semantic, themes)
+│   │   ├── types/               # 공유 TypeScript 타입
+│   │   ├── variants/            # 컴포넌트 variant 클래스 (SSOT)
+│   │   └── styles/              # CSS (tokens, themes)
 │   ├── scripts/build-tokens.js  # 토큰 빌드 스크립트
 │   └── tailwind.preset.js       # Tailwind 프리셋
 │
-├── design-types/                # @portal/design-types
-│   └── src/
-│       ├── index.ts             # ServiceType, ThemeMode 등
-│       ├── common.ts            # 공통 variant/size 타입
-│       ├── components.ts        # 컴포넌트 Props 인터페이스
-│       ├── api.ts               # API 타입
-│       └── logger.ts            # 구조화된 로거 (createLogger)
-│
-├── design-system-vue/           # @portal/design-system-vue
+├── design-vue/                  # @portal/design-vue
 │   └── src/
 │       ├── components/          # 26개 Vue 컴포넌트
-│       ├── composables/         # useTheme, useToast, useApiError, useLogger, setupErrorHandler
-│       └── styles/themes/       # blog.css, shopping.css, prism.css
+│       ├── composables/         # useTheme, useToast, useApiError, useLogger
+│       └── styles/              # index.css (design-core import)
 │
-└── design-system-react/         # @portal/design-system-react
+└── design-react/                # @portal/design-react
     └── src/
         ├── components/          # 30개 React 컴포넌트 + ErrorBoundary
         ├── hooks/               # useTheme, useToast, useApiError, useLogger
-        └── utils/cn.ts          # clsx + tailwind-merge
+        └── utils/               # cn (clsx + tailwind-merge), useLogger
 ```
 
 ## 관련 문서
@@ -143,3 +139,4 @@ frontend/
 | 2026-01-18 | 초안 작성 | Laze |
 | 2026-02-06 | 업데이트 | Laze |
 | 2026-02-14 | 에러 핸들링/로깅 유틸리티 추가 (ADR-040) | Laze |
+| 2026-02-17 | 4→3 패키지 통합 반영 (ADR-043) | Laze |

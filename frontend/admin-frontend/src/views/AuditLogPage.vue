@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { useApiError } from '@portal/design-system-vue';
+import { useApiError } from '@portal/design-vue';
 import { fetchAuditLogs } from '@/api/admin';
 import type { AuditLog, PageResponse } from '@/dto/admin';
 

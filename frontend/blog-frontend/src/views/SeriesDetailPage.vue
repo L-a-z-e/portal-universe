@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { Card, Button, Avatar } from '@portal/design-system-vue';
+import { Card, Button, Avatar } from '@portal/design-vue';
 import { getSeriesById, getSeriesPosts } from '../api/series';
 import type { SeriesResponse, PostSummaryResponse } from '@/types';
 import { DEFAULT_THUMBNAILS } from '../config/assets';

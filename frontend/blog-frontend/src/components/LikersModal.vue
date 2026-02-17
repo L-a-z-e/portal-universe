@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Avatar, Button, Modal, Spinner } from '@portal/design-system-vue';
+import { Avatar, Button, Modal, Spinner } from '@portal/design-vue';
 import { getLikers } from '@/api/likes';
 import type { LikerResponse, PageResponse } from '@/types';
 

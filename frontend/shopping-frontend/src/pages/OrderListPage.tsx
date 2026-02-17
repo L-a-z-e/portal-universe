@@ -8,7 +8,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { orderApi } from '@/api'
 import type { Order, OrderStatus } from '@/types'
 import { ORDER_STATUS_LABELS } from '@/types'
-import { Button, Spinner, Alert, Badge } from '@portal/design-system-react'
+import { Button, Spinner, Alert, Badge } from '@portal/design-react'
 
 const OrderListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()

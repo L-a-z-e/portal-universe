@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { sellerQueueApi } from '@/api'
-import { Button, Input } from '@portal/design-system-react'
+import { Button, Input } from '@portal/design-react'
 
 export const QueuePage: React.FC = () => {
   const [eventType, setEventType] = useState('TIME_DEAL')

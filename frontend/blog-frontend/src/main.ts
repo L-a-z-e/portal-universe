@@ -5,7 +5,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import { createStandaloneBlogRouter } from './router';
 import {createPinia} from "pinia";
-import { setupErrorHandler } from '@portal/design-system-vue';
+import { setupErrorHandler } from '@portal/design-vue';
 
 /**
  * 앱 모드 감지

@@ -1,5 +1,5 @@
 // admin-frontend/src/dto/admin.ts
-export type { PageResponse } from '@portal/design-types';
+export type { PageResponse } from '@portal/design-core';
 
 export interface RoleResponse {
   id: number;
