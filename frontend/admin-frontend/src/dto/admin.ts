@@ -96,6 +96,28 @@ export interface UpdateMembershipTierRequest {
   sortOrder: number;
 }
 
+export interface CreateMembershipTierRequest {
+  membershipGroup: string;
+  tierKey: string;
+  displayName: string;
+  priceMonthly: number | null;
+  priceYearly: number | null;
+  sortOrder: number;
+}
+
+export interface RoleDefaultMappingResponse {
+  id: number;
+  roleKey: string;
+  membershipGroup: string;
+  defaultTierKey: string;
+}
+
+export interface RoleDefaultMappingRequest {
+  roleKey: string;
+  membershipGroup: string;
+  defaultTierKey: string;
+}
+
 export interface MembershipResponse {
   id: number;
   userId: string;
