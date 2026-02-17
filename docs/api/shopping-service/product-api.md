@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-08
+updated: 2026-02-17
 author: Laze
 tags: [api, shopping-service, product]
 related:
@@ -59,6 +59,7 @@ GET /api/shopping/products?page=1&size=12
 |----------|------|------|------|--------|
 | `page` | integer | ❌ | 페이지 번호 (1부터 시작) | 1 |
 | `size` | integer | ❌ | 페이지 크기 | 12 |
+| `category` | string | ❌ | 카테고리 필터 | - |
 
 ### Response (200 OK)
 
@@ -69,25 +70,30 @@ GET /api/shopping/products?page=1&size=12
     "items": [
       {
         "id": 1,
-        "name": "Spring Boot 완벽 가이드",
-        "description": "Spring Boot 3.0 기반 마이크로서비스 구축",
-        "price": 35000.0,
-        "stock": 100
-      },
-      {
-        "id": 2,
-        "name": "Kotlin In Action",
-        "description": "Kotlin 프로그래밍 언어 가이드",
-        "price": 40000.0,
-        "stock": 50
+        "name": "MacBook Pro 14\"",
+        "description": "Apple M3 Pro 칩, 18GB RAM, 512GB SSD",
+        "price": 2390000.0,
+        "discountPrice": 2190000.0,
+        "stock": 50,
+        "imageUrl": "https://picsum.photos/seed/macbook/600/400",
+        "category": "전자제품",
+        "featured": true,
+        "images": [
+          "https://picsum.photos/seed/macbook1/600/400",
+          "https://picsum.photos/seed/macbook2/600/400"
+        ],
+        "averageRating": null,
+        "reviewCount": null,
+        "createdAt": "2026-02-17T10:00:00",
+        "updatedAt": "2026-02-17T10:00:00"
       }
     ],
     "page": 1,
     "size": 12,
-    "totalElements": 45,
-    "totalPages": 4
+    "totalElements": 16,
+    "totalPages": 2
   },
-  "timestamp": "2026-01-30T10:30:00Z"
+  "timestamp": "2026-02-17T10:30:00Z"
 }
 ```
 
@@ -166,14 +172,28 @@ GET /api/shopping/products/{productId}
   "success": true,
   "data": {
     "id": 1,
-    "name": "Spring Boot 완벽 가이드",
-    "description": "Spring Boot 3.0 기반 마이크로서비스 구축",
-    "price": 35000.0,
-    "stock": 100
+    "name": "MacBook Pro 14\"",
+    "description": "Apple M3 Pro 칩, 18GB RAM, 512GB SSD",
+    "price": 2390000.0,
+    "discountPrice": 2190000.0,
+    "stock": 50,
+    "imageUrl": "https://picsum.photos/seed/macbook/600/400",
+    "category": "전자제품",
+    "featured": true,
+    "images": [
+      "https://picsum.photos/seed/macbook1/600/400",
+      "https://picsum.photos/seed/macbook2/600/400"
+    ],
+    "averageRating": 4.5,
+    "reviewCount": 12,
+    "createdAt": "2026-02-17T10:00:00",
+    "updatedAt": "2026-02-17T10:00:00"
   },
-  "timestamp": "2026-01-18T10:30:00Z"
+  "timestamp": "2026-02-17T10:30:00Z"
 }
 ```
+
+> **Note**: `averageRating`과 `reviewCount`는 상세 조회 시에만 Blog Service Feign 호출을 통해 계산됩니다. 목록 조회에서는 `null`로 반환됩니다.
 
 ### Error Response
 
@@ -344,9 +364,10 @@ GET /api/shopping/products/{productId}/with-reviews
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-02-17 | Product 확장: discountPrice, featured, images, averageRating, reviewCount 필드 추가. 상품 목록 조회에 category 필터 파라미터 추가 |
 | 2026-02-08 | 페이지네이션 기본값 수정: page 0 → 1 (ADR-031 정합) |
 | 2026-02-07 | 최초 작성 |
 
 ---
 
-**최종 업데이트**: 2026-02-08
+**최종 업데이트**: 2026-02-17
