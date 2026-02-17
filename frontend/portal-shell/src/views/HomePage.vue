@@ -10,28 +10,28 @@ const authStore = useAuthStore();
 const services = [
   {
     title: 'Blog',
-    desc: '컨텐츠 관리 및 출판 시스템',
+    desc: '생각을 글로, 글을 세상으로',
     icon: 'article',
     link: '/blog',
     color: 'teal',
   },
   {
     title: 'Shopping',
-    desc: '커머스 주문 및 재고 관리',
+    desc: '발견하고, 비교하고, 구매하세요',
     icon: 'storefront',
     link: '/shopping',
     color: 'orange',
   },
   {
     title: 'Prism',
-    desc: 'AI 에이전트 오케스트레이션',
+    desc: 'AI와 대화 한 번으로 복잡한 일을 해결',
     icon: 'smart_toy',
     link: '/prism',
     color: 'indigo',
   },
   {
     title: 'Drive',
-    desc: '안전한 클라우드 스토리지',
+    desc: '소중한 파일, 어디서든 안전하게',
     icon: 'cloud_upload',
     link: '/drive',
     color: 'sky',
@@ -40,19 +40,19 @@ const services = [
 
 const features = [
   {
-    title: '통합 인증',
-    desc: '하나의 계정으로 모든 서비스를 이용할 수 있습니다',
-    icon: 'lock',
+    title: '한 번의 로그인',
+    desc: '하나의 계정으로 모든 서비스를 자유롭게 넘나드세요',
+    icon: 'passkey',
   },
   {
-    title: '실시간 동기화',
-    desc: '모든 서비스의 데이터가 즉시 동기화됩니다',
-    icon: 'sync',
+    title: '끊김 없는 흐름',
+    desc: '서비스 사이를 자연스럽게 이동하세요. 컨텍스트가 따라갑니다',
+    icon: 'swap_horiz',
   },
   {
-    title: '안전한 저장',
-    desc: '엔드투엔드 암호화로 데이터를 보호합니다',
-    icon: 'shield',
+    title: '나에게 맞춘 공간',
+    desc: '대시보드, 테마, 알림까지 나만의 방식으로 설정하세요',
+    icon: 'tune',
   },
 ];
 
@@ -82,7 +82,7 @@ function handleStartClick() {
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
           </span>
-          Unified Digital Workspace
+          All-in-One Digital Life
         </div>
 
         <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-text-heading mb-8 leading-[1.1]">
@@ -90,10 +90,9 @@ function handleStartClick() {
           <span class="bg-gradient-to-r from-brand-primary to-brand-primaryHover bg-clip-text text-transparent">Universe</span>
         </h1>
 
-        <p class="text-lg md:text-xl text-text-meta max-w-3xl mx-auto mb-12 leading-relaxed">
-          모든 것이 연결된 당신만의 공간.
-          <span class="text-text-heading">Blog, Shopping, AI Orchestration</span> 등
-          다양한 서비스를 하나의 포털에서 경험하세요.
+        <p class="text-lg md:text-xl text-text-meta max-w-2xl mx-auto mb-12 leading-relaxed">
+          글을 쓰고, 쇼핑하고, AI와 대화하고, 파일을 보관하세요.<br />
+          흩어진 디지털 일상을 <span class="text-text-heading">하나의 공간</span>으로 연결합니다.
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -199,8 +198,8 @@ function handleStartClick() {
     <section class="py-32 border-t border-border-default bg-bg-card/30">
       <div class="max-w-7xl mx-auto px-6">
         <div class="text-center mb-20">
-          <h2 class="text-3xl md:text-4xl font-semibold text-text-heading mb-4">통합된 생태계</h2>
-          <p class="text-text-meta text-base md:text-lg max-w-2xl mx-auto">팀이 필요로 하는 모든 도구가 준비되어 있습니다.</p>
+          <h2 class="text-3xl md:text-4xl font-semibold text-text-heading mb-4">하나의 공간, 무한한 가능성</h2>
+          <p class="text-text-meta text-base md:text-lg max-w-2xl mx-auto">일상의 모든 디지털 활동이 여기에 있습니다.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -235,9 +234,9 @@ function handleStartClick() {
     <section class="py-32 relative overflow-hidden">
       <div class="max-w-5xl mx-auto px-6">
         <div class="mb-20 text-center">
-          <h2 class="text-3xl md:text-4xl font-semibold text-text-heading mb-6">연결된 경험</h2>
-          <p class="text-text-meta text-lg max-w-2xl mx-auto">
-            데이터가 사일로에 갇히지 않습니다. 모든 서비스가 유기적으로 연결되어 끊김 없는 워크플로우를 제공합니다.
+          <h2 class="text-3xl md:text-4xl font-semibold text-text-heading mb-6">왜 Portal Universe인가?</h2>
+          <p class="text-text-meta text-lg max-w-xl mx-auto">
+            여러 앱을 오가는 대신, 하나의 공간에서 모든 걸 해결하세요.
           </p>
         </div>
 

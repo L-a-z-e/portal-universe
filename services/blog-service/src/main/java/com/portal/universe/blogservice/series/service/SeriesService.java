@@ -100,6 +100,17 @@ public class SeriesService {
     }
 
     /**
+     * 전체 시리즈 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<SeriesListResponse> getAllSeries() {
+        List<Series> seriesList = seriesRepository.findAllByOrderByUpdatedAtDesc();
+        return seriesList.stream()
+                .map(this::toListResponse)
+                .toList();
+    }
+
+    /**
      * 작성자별 시리즈 목록 조회
      */
     @Transactional(readOnly = true)

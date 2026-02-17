@@ -4,7 +4,7 @@ title: Blog Frontend System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-15
+updated: 2026-02-17
 author: Laze
 tags: [architecture, vue3, micro-frontend, module-federation, dual-mode]
 related:
@@ -59,22 +59,23 @@ graph TB
         B[main.ts / bootstrap.ts<br/>Entry Points]
 
         subgraph "Router Layer"
-            R[Vue Router<br/>12 routes + Auth Guard]
+            R[Vue Router<br/>13 routes + Auth Guard]
         end
 
-        subgraph "View Layer (12 Views)"
+        subgraph "View Layer (13 Views)"
             V_POST[Post 도메인<br/>List, Detail, Write, Edit]
             V_SOCIAL[Social 도메인<br/>UserBlog, MyPage]
-            V_DISCOVER[탐색 도메인<br/>Tags, Categories, Series]
+            V_DISCOVER[탐색 도메인<br/>Tags, Categories, Series, SeriesList]
             V_UTIL[유틸 도메인<br/>AdvancedSearch, Stats]
         end
 
-        subgraph "Component Layer (17 Components)"
+        subgraph "Component Layer (21 Components)"
             C_POST[Post: PostCard, PostNavigation, RelatedPosts]
             C_COMMENT[Comment: CommentList, CommentItem, CommentForm]
             C_SOCIAL[Social: LikeButton, FollowButton, LikersModal, FollowerModal]
             C_SERIES[Series: SeriesBox, SeriesCard]
             C_USER[User/My: UserProfileCard, ProfileEditForm, MyPostList, MySeriesList]
+            C_AUTHOR[Author: AuthorCategories, AuthorTags, AuthorStats, AuthorSeriesList]
             C_TAG[Tag: TagAutocomplete]
         end
 
@@ -156,7 +157,7 @@ graph TB
 
 ## Router Configuration
 
-### Route 테이블 (12개)
+### Route 테이블 (13개)
 
 | Route | Name | Component | Auth | Props | 설명 |
 |-------|------|-----------|------|-------|------|
@@ -168,9 +169,10 @@ graph TB
 | `/stats` | Stats | StatsPage | - | - | 블로그 통계 대시보드 |
 | `/write` | PostWrite | PostWritePage | - | - | 새 게시물 작성 |
 | `/edit/:postId` | PostEdit | PostEditPage | - | `true` | 게시물 수정 |
+| `/series` | SeriesList | SeriesListPage | - | - | 전체 시리즈 목록 (최신순/인기순) |
 | `/series/:seriesId` | SeriesDetail | SeriesDetailPage | - | `true` | 시리즈 상세 및 포스트 목록 |
-| `/my` | MyPage | MyPage | ✅ | - | 내 블로그 관리 (글, 시리즈) |
-| `/@:username` | UserBlog | UserBlogPage | - | `true` | 사용자 블로그 프로필 |
+| `/my` | MyPage | MyPage | ✅ | - | 내 블로그 대시보드 (7탭: 글/시리즈/카테고리/태그/통계/소개/글쓰기) |
+| `/@:username` | UserBlog | UserBlogPage | - | `true` | 사용자 블로그 프로필 (6탭: 글/시리즈/카테고리/태그/통계/소개) |
 | `/:postId` | PostDetail | PostDetailPage | - | `true` | 게시물 상세 (댓글, 좋아요) |
 
 ### Auth Guard (`addAuthGuard`)
@@ -188,7 +190,7 @@ graph TB
 
 ---
 
-## View Layer (12 Views)
+## View Layer (13 Views)
 
 ### Post 도메인
 
@@ -203,8 +205,8 @@ graph TB
 
 | View | 역할 | 주요 API | 사용 컴포넌트 |
 |------|------|----------|--------------|
-| **UserBlogPage** | 사용자 공개 프로필 + 게시물 목록 | `getPublicProfile` (auth-service), `getPostsByAuthor` (blog-service) | UserProfileCard, FollowButton, PostCard, FollowerModal |
-| **MyPage** | 내 블로그 관리 (게시물, 시리즈, 프로필 편집) | `getMyProfile`, `getMyPosts`, `getMySeries`, `updateProfile` | MyPostList, MySeriesList, ProfileEditForm |
+| **UserBlogPage** | 사용자 공개 블로그 (6탭: 글/시리즈/카테고리/태그/통계/소개) | `getPublicProfile` (auth-service), `getPostsByAuthor` (blog-service), `getAuthorCategoryStats`, `getAuthorTagStats`, `getAuthorStats` | UserProfileCard, FollowButton, PostCard, FollowerModal, AuthorCategories, AuthorTags, AuthorStats, AuthorSeriesList |
+| **MyPage** | 내 블로그 대시보드 (7탭: 글/시리즈/카테고리/태그/통계/소개/글쓰기) | `getMyProfile`, `getMyPosts`, `getMySeries`, `updateProfile`, `getAuthorCategoryStats`, `getAuthorTagStats`, `getAuthorStats` | MyPostList, MySeriesList, ProfileEditForm, AuthorCategories, AuthorTags, AuthorStats |
 
 ### 탐색 도메인
 
@@ -213,6 +215,7 @@ graph TB
 | **TagListPage** | 전체 태그 목록 (인기 태그 포함) | `getAllTags`, `getPopularTags` | - |
 | **TagDetailPage** | 특정 태그의 게시물 목록 | `getTagByName`, `getPostsByTag` | PostCard |
 | **CategoryListPage** | 카테고리 목록 및 통계 | `getCategoryStats` | - |
+| **SeriesListPage** | 전체 시리즈 목록 (최신순/인기순 정렬) | `getAllSeries` | SeriesCard |
 | **SeriesDetailPage** | 시리즈 상세 + 포함 포스트 목록 | `getSeriesById`, `getSeriesPosts` | SeriesCard, PostCard |
 
 ### 유틸 도메인
@@ -224,7 +227,7 @@ graph TB
 
 ---
 
-## Component Layer (17 Components)
+## Component Layer (21 Components)
 
 ### Post (3)
 
@@ -266,6 +269,15 @@ graph TB
 | **ProfileEditForm** | 프로필 편집 폼 (닉네임, bio, 이미지, 웹사이트) | `profile: UserProfileResponse` |
 | **MyPostList** | 내 게시물 목록 (상태별 필터) | - |
 | **MySeriesList** | 내 시리즈 목록 (CRUD) | - |
+
+### Author (4)
+
+| Component | 역할 | Props |
+|-----------|------|-------|
+| **AuthorCategories** | 작성자별 카테고리 통계 (게시글 수, 최근 게시일) | `authorId: string` |
+| **AuthorTags** | 작성자별 태그 통계 (게시글 수 리스트) | `authorId: string` |
+| **AuthorStats** | 작성자별 통계 카드 (총 게시글, 발행, 조회수, 좋아요) | `authorId: string` |
+| **AuthorSeriesList** | 작성자별 시리즈 목록 (읽기 전용) | `authorId: string` |
 
 ### Tag (1)
 
@@ -317,10 +329,10 @@ graph TB
 
 | 모듈 | Base Path | 함수 수 | 주요 기능 |
 |------|-----------|---------|-----------|
-| **posts.ts** | `/api/v1/blog/posts` | 22 | CRUD, 목록(전체/내글/작성자별/카테고리별/태그별/인기/트렌딩/최근/관련), 검색(간단/고급), 상태변경, 통계(카테고리/태그/작성자/블로그), 네비게이션, 피드 |
+| **posts.ts** | `/api/v1/blog/posts` | 24 | CRUD, 목록(전체/내글/작성자별/카테고리별/태그별/인기/트렌딩/최근/관련), 검색(간단/고급), 상태변경, 통계(카테고리/태그/작성자/블로그/작성자별카테고리/작성자별태그), 네비게이션, 피드 |
 | **comments.ts** | `/api/v1/blog/comments` | 4 | 댓글 CRUD (게시글별 조회, 작성, 수정, 삭제) |
 | **likes.ts** | `/api/v1/blog/posts/{postId}` | 3 | 좋아요 토글, 상태 확인, 좋아요 사용자 목록 |
-| **series.ts** | `/api/v1/blog/series` | 10 | 시리즈 CRUD, 포스트 추가/제거/순서변경, 내 시리즈, 포스트별 시리즈 |
+| **series.ts** | `/api/v1/blog/series` | 11 | 시리즈 CRUD, 전체 목록, 포스트 추가/제거/순서변경, 내 시리즈, 포스트별 시리즈 |
 | **tags.ts** | `/api/v1/blog/tags` | 6 | 태그 목록, 상세, 인기 태그, 태그 검색, 태그별 포스트 |
 | **files.ts** | `/api/v1/blog/file` | 2 | 파일 업로드(S3), 파일 삭제 |
 
@@ -370,9 +382,9 @@ blog-frontend/
 │   ├── style.css                  # Global styles
 │   │
 │   ├── router/
-│   │   └── index.ts               # Router 설정 (12 routes, Auth Guard)
+│   │   └── index.ts               # Router 설정 (13 routes, Auth Guard)
 │   │
-│   ├── views/                     # 페이지 컴포넌트 (12)
+│   ├── views/                     # 페이지 컴포넌트 (13)
 │   │   ├── PostListPage.vue       # 게시물 목록 (검색, 무한 스크롤)
 │   │   ├── PostDetailPage.vue     # 게시물 상세 (댓글, 좋아요, 시리즈)
 │   │   ├── PostWritePage.vue      # 게시물 작성 (ToastUI Editor)
@@ -380,13 +392,14 @@ blog-frontend/
 │   │   ├── TagListPage.vue        # 태그 목록
 │   │   ├── TagDetailPage.vue      # 태그별 게시물
 │   │   ├── CategoryListPage.vue   # 카테고리 목록
+│   │   ├── SeriesListPage.vue     # 전체 시리즈 목록
 │   │   ├── SeriesDetailPage.vue   # 시리즈 상세
 │   │   ├── AdvancedSearchPage.vue # 고급 검색
 │   │   ├── StatsPage.vue          # 통계 대시보드
-│   │   ├── UserBlogPage.vue       # 사용자 블로그 (@username)
-│   │   └── MyPage.vue             # 내 블로그 관리 (requiresAuth)
+│   │   ├── UserBlogPage.vue       # 사용자 블로그 (@username, 6탭)
+│   │   └── MyPage.vue             # 내 블로그 대시보드 (requiresAuth, 7탭)
 │   │
-│   ├── components/                # 재사용 컴포넌트 (17)
+│   ├── components/                # 재사용 컴포넌트 (21)
 │   │   ├── PostCard.vue           # 게시물 카드
 │   │   ├── PostNavigation.vue     # 이전/다음 네비게이션
 │   │   ├── RelatedPosts.vue       # 관련 게시물
@@ -403,6 +416,10 @@ blog-frontend/
 │   │   ├── ProfileEditForm.vue    # 프로필 편집 폼
 │   │   ├── MyPostList.vue         # 내 게시물 목록
 │   │   ├── MySeriesList.vue       # 내 시리즈 목록
+│   │   ├── AuthorCategories.vue   # 작성자별 카테고리 통계
+│   │   ├── AuthorTags.vue         # 작성자별 태그 통계
+│   │   ├── AuthorStats.vue        # 작성자별 통계 카드
+│   │   ├── AuthorSeriesList.vue   # 작성자별 시리즈 목록 (읽기 전용)
 │   │   └── TagAutocomplete.vue    # 태그 자동완성
 │   │
 │   ├── api/                       # API 클라이언트 (8 + index)
@@ -611,4 +628,4 @@ npm run build:k8s      # Kubernetes 환경
 
 ---
 
-**최종 업데이트**: 2026-02-15
+**최종 업데이트**: 2026-02-17

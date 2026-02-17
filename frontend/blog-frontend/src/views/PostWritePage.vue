@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
   <div class="max-w-5xl mx-auto px-4 py-8">
     <!-- Header -->
     <header class="flex items-center justify-between mb-6">
-      <h1 class="text-3xl font-bold text-text-heading">✍️ 새 글 작성</h1>
+      <h1 class="text-3xl font-bold text-text-heading">새 글 작성</h1>
       <Button variant="secondary" @click="router.back()">
         취소
       </Button>
@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
       <!-- 버튼 -->
       <div class="flex items-center justify-between pt-6 border-t border-border-muted">
         <div class="text-sm text-text-meta">
-          💾 30초마다 자동 저장됩니다
+          30초마다 자동 저장됩니다
         </div>
         <div class="flex gap-3">
           <Button

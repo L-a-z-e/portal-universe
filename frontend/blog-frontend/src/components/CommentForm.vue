@@ -47,15 +47,15 @@ const submitButtonText = props.mode === 'edit' ? '수정' : '등록'
 </script>
 
 <template>
-  <div class="comment-form space-y-3">
+  <div class="relative rounded-xl bg-bg-elevated border border-border-default overflow-hidden">
     <Textarea
       v-model="content"
       :rows="mode === 'reply' ? 2 : 3"
       :placeholder="placeholder"
-      class="w-full"
+      class="w-full !border-0 !bg-transparent !ring-0 !shadow-none focus:!ring-0 focus:!border-0"
     />
 
-    <div class="flex gap-2" :class="mode === 'create' ? 'justify-end' : 'justify-between'">
+    <div class="flex items-center justify-end gap-2 px-3 pb-3">
       <!-- 답글/수정 모드일 때만 취소 버튼 표시 -->
       <Button
         v-if="mode !== 'create'"
@@ -77,9 +77,3 @@ const submitButtonText = props.mode === 'edit' ? '수정' : '등록'
     </div>
   </div>
 </template>
-
-<style scoped>
-.comment-form {
-  width: 100%;
-}
-</style>

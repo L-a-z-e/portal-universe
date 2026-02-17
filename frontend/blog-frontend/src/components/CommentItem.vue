@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Avatar, Button } from '@portal/design-vue'
+import { Avatar } from '@portal/design-vue'
 import type { CommentResponse } from '@/dto/comment'
 import CommentForm from './CommentForm.vue'
 import { formatRelativeTime } from '@/composables/useRelativeTime'
@@ -97,14 +97,12 @@ const handleReplyCancel = () => {
     :style="{ paddingLeft }"
     :class="{
       'border-l-2 border-border-muted': depth > 0,
-      'deleted': comment.isDeleted
+      'opacity-60': comment.isDeleted
     }"
   >
-    <div class="comment-content p-4 rounded-lg transition-colors"
-         :class="depth === 0 ? 'bg-bg-card border border-border-default' : 'bg-transparent'">
-
+    <div class="py-4">
       <!-- 삭제된 댓글 -->
-      <div v-if="comment.isDeleted" class="text-text-meta italic">
+      <div v-if="comment.isDeleted" class="text-text-meta italic text-sm">
         삭제된 댓글입니다.
       </div>
 
@@ -112,69 +110,61 @@ const handleReplyCancel = () => {
       <div v-else>
         <!-- 수정 모드가 아닐 때 -->
         <div v-if="!isEditMode">
-          <!-- 헤더 (작성자 정보) -->
-          <div class="flex items-start justify-between mb-3">
-            <div class="flex items-center gap-3">
-              <Avatar :name="comment.authorName" size="sm" />
-              <div class="flex flex-col">
-                <span class="font-semibold text-text-heading text-sm">
-                  {{ comment.authorName }}
-                </span>
-                <span class="text-xs text-text-meta">
-                  {{ formatRelativeTime(comment.createdAt) }}
-                  <span v-if="comment.updatedAt !== comment.createdAt" class="ml-1">
-                    (수정됨)
+          <!-- 헤더: 아바타 + 정보 -->
+          <div class="flex items-start gap-3 mb-3">
+            <Avatar :name="comment.authorName" size="sm" class="flex-shrink-0 mt-0.5" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-text-heading text-sm">
+                    {{ comment.authorName }}
                   </span>
-                </span>
+                  <span class="text-xs text-text-meta">
+                    {{ formatRelativeTime(comment.createdAt) }}
+                    <span v-if="comment.updatedAt !== comment.createdAt" class="ml-1">(수정됨)</span>
+                  </span>
+                </div>
+
+                <!-- 수정/삭제 버튼 (본인만) -->
+                <div v-if="isOwnComment" class="flex gap-1">
+                  <button
+                    class="text-xs text-text-meta hover:text-text-heading transition-colors px-1"
+                    @click="toggleEditMode"
+                  >
+                    수정
+                  </button>
+                  <button
+                    class="text-xs text-text-meta hover:text-status-error transition-colors px-1"
+                    @click="handleDelete"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+
+              <!-- 댓글 내용 -->
+              <p class="text-text-body whitespace-pre-wrap text-sm leading-relaxed mt-1">
+                {{ comment.content }}
+              </p>
+
+              <!-- 액션 버튼 -->
+              <div class="flex items-center gap-3 mt-2 text-xs">
+                <button
+                  class="text-text-meta hover:text-brand-primary font-medium transition-colors"
+                  @click="toggleReplyForm"
+                >
+                  답글
+                </button>
+
+                <button
+                  v-if="replyCount > 0"
+                  class="text-brand-primary hover:text-brand-primaryHover font-medium transition-colors"
+                  @click="toggleReplies"
+                >
+                  {{ isRepliesExpanded ? '답글 접기' : `답글 ${replyCount}개` }}
+                </button>
               </div>
             </div>
-
-            <!-- 수정/삭제 버튼 (본인만) -->
-            <div v-if="isOwnComment" class="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                @click="toggleEditMode"
-              >
-                수정
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                @click="handleDelete"
-              >
-                삭제
-              </Button>
-            </div>
-          </div>
-
-          <!-- 댓글 내용 -->
-          <p class="text-text-body whitespace-pre-wrap mb-3 text-sm leading-relaxed">
-            {{ comment.content }}
-          </p>
-
-          <!-- 액션 버튼 -->
-          <div class="flex items-center gap-3 text-xs">
-            <!-- 답글 버튼 -->
-            <Button
-              variant="ghost"
-              size="sm"
-              class="text-text-meta hover:text-brand-primary font-medium !p-0 !h-auto !min-h-0"
-              @click="toggleReplyForm"
-            >
-              답글
-            </Button>
-
-            <!-- 답글 개수 표시 (답글이 있을 때) -->
-            <Button
-              v-if="replyCount > 0"
-              variant="ghost"
-              size="sm"
-              class="text-brand-primary hover:text-brand-primary-hover font-medium !p-0 !h-auto !min-h-0"
-              @click="toggleReplies"
-            >
-              {{ isRepliesExpanded ? '답글 접기' : `답글 ${replyCount}개` }}
-            </Button>
           </div>
         </div>
 
@@ -192,7 +182,7 @@ const handleReplyCancel = () => {
     </div>
 
     <!-- 답글 입력 폼 -->
-    <div v-if="showReplyForm && !comment.isDeleted" class="mt-3">
+    <div v-if="showReplyForm && !comment.isDeleted" class="ml-10 mb-3">
       <CommentForm
         :post-id="comment.postId"
         :parent-comment-id="comment.id"
@@ -204,7 +194,7 @@ const handleReplyCancel = () => {
     </div>
 
     <!-- 답글 목록 (재귀) -->
-    <div v-if="isRepliesExpanded && replyCount > 0 && !comment.isDeleted" class="replies mt-2">
+    <div v-if="isRepliesExpanded && replyCount > 0 && !comment.isDeleted">
       <CommentItem
         v-for="reply in replies"
         :key="reply.id"
@@ -222,33 +212,3 @@ const handleReplyCancel = () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.comment-item {
-  transition: all 0.2s ease;
-}
-
-.comment-content {
-  position: relative;
-}
-
-.comment-item.deleted {
-  opacity: 0.6;
-}
-
-/* 답글 영역 스타일 */
-.replies {
-  margin-top: 0.5rem;
-}
-
-/* 호버 효과 */
-.comment-content:hover {
-  background-color: var(--semantic-bg-muted);
-}
-
-/* 버튼 호버 효과 */
-button {
-  cursor: pointer;
-  user-select: none;
-}
-</style>

@@ -42,9 +42,9 @@ const baseNavItems = [
     path: '/blog',
     icon: 'article',
     children: [
-      { name: 'Posts', path: '/blog' },
-      { name: 'Series', path: '/blog/my?tab=series' },
-      { name: 'Write', path: '/blog/write' },
+      { name: 'Feed', path: '/blog' },
+      { name: 'Series', path: '/blog/series' },
+      { name: 'My Blog', path: '/blog/my' },
     ],
   },
   {

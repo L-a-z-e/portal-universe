@@ -85,4 +85,16 @@ public interface PostRepositoryCustom {
      * 개선 방식: $match + $group으로 DB에서 합산 = 1번 쿼리
      */
     AuthorStats aggregateAuthorStats(String authorId);
+
+    /**
+     * 작성자별 카테고리 통계 조회
+     * $match(authorId+status) → $group(category, count, maxDate) → $sort(count desc)
+     */
+    List<CategoryStats> aggregateAuthorCategoryStats(String authorId, PostStatus status);
+
+    /**
+     * 작성자별 태그 통계 조회
+     * $match(authorId+status) → $unwind(tags) → $group(tag, count) → $sort → $limit
+     */
+    List<TagStatsResponse> aggregateAuthorTagStats(String authorId, PostStatus status, int limit);
 }

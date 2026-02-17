@@ -258,6 +258,23 @@ export async function getAuthorStats(authorId: string): Promise<AuthorStats> {
   return response.data.data;
 }
 
+/** 작성자별 카테고리 통계 */
+export async function getAuthorCategoryStats(authorId: string): Promise<CategoryStats[]> {
+  const response = await apiClient.get<ApiResponse<CategoryStats[]>>(
+    `${BASE_PATH}/stats/author/${authorId}/categories`
+  );
+  return response.data.data;
+}
+
+/** 작성자별 인기 태그 */
+export async function getAuthorTagStats(authorId: string, limit: number = 20): Promise<TagStatsResponse[]> {
+  const response = await apiClient.get<ApiResponse<TagStatsResponse[]>>(
+    `${BASE_PATH}/stats/author/${authorId}/tags`,
+    { params: { limit } }
+  );
+  return response.data.data;
+}
+
 /** 블로그 전체 통계 */
 export async function getBlogStats(): Promise<BlogStats> {
   const response = await apiClient.get<ApiResponse<BlogStats>>(`${BASE_PATH}/stats/blog`);

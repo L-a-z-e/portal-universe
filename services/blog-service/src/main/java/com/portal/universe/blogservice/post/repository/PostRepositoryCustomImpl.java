@@ -383,6 +383,77 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         );
     }
 
+    @Override
+    public List<CategoryStats> aggregateAuthorCategoryStats(String authorId, PostStatus status) {
+        log.debug("Aggregating author category stats for authorId: {}, status: {}", authorId, status);
+
+        MatchOperation matchStage = Aggregation.match(
+                Criteria.where("authorId").is(authorId)
+                        .and("status").is(status.name())
+                        .and("category").ne(null)
+        );
+
+        GroupOperation groupStage = Aggregation.group("category")
+                .count().as("postCount")
+                .max("publishedAt").as("latestPostDate");
+
+        SortOperation sortStage = Aggregation.sort(Sort.Direction.DESC, "postCount");
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                matchStage,
+                groupStage,
+                sortStage
+        );
+
+        AggregationResults<CategoryStatsResult> results = mongoTemplate.aggregate(
+                aggregation,
+                Post.class,
+                CategoryStatsResult.class
+        );
+
+        return results.getMappedResults().stream()
+                .map(r -> new CategoryStats(r.id(), r.postCount(), r.latestPostDate()))
+                .toList();
+    }
+
+    @Override
+    public List<TagStatsResponse> aggregateAuthorTagStats(String authorId, PostStatus status, int limit) {
+        log.debug("Aggregating author tag stats for authorId: {}, status: {}, limit: {}", authorId, status, limit);
+
+        MatchOperation matchStage = Aggregation.match(
+                Criteria.where("authorId").is(authorId)
+                        .and("status").is(status.name())
+        );
+
+        UnwindOperation unwindStage = Aggregation.unwind("tags");
+
+        GroupOperation groupStage = Aggregation.group("tags")
+                .count().as("postCount")
+                .sum("viewCount").as("totalViews");
+
+        SortOperation sortStage = Aggregation.sort(Sort.Direction.DESC, "postCount");
+
+        LimitOperation limitStage = Aggregation.limit(limit);
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                matchStage,
+                unwindStage,
+                groupStage,
+                sortStage,
+                limitStage
+        );
+
+        AggregationResults<TagStatsResult> results = mongoTemplate.aggregate(
+                aggregation,
+                Post.class,
+                TagStatsResult.class
+        );
+
+        return results.getMappedResults().stream()
+                .map(r -> new TagStatsResponse(r.id(), r.postCount(), r.totalViews()))
+                .toList();
+    }
+
     /**
      * MongoDB Date를 LocalDateTime으로 변환
      */

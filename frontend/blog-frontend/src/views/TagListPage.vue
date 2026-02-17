@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllTags } from '../api/tags';
 import type { TagResponse } from '@/types';
-import { Card, Button, Input, Spinner } from '@portal/design-vue';
+import { Input, Spinner } from '@portal/design-vue';
 
 const router = useRouter();
 
@@ -20,7 +20,6 @@ const sortOption = ref<'popular' | 'name' | 'latest'>('popular');
 const sortedTags = computed(() => {
   let filtered = tags.value;
 
-  // 검색 필터
   if (searchKeyword.value.trim()) {
     const keyword = searchKeyword.value.toLowerCase();
     filtered = filtered.filter(tag =>
@@ -29,7 +28,6 @@ const sortedTags = computed(() => {
     );
   }
 
-  // 정렬
   const sorted = [...filtered];
   switch (sortOption.value) {
     case 'popular':
@@ -48,7 +46,7 @@ const sortedTags = computed(() => {
   return sorted;
 });
 
-// 태그 크기 계산 (postCount 기반)
+// 태그 크기 계산 (postCount 기반, 이름순 클라우드용)
 const getTagSize = (postCount: number): string => {
   const maxCount = Math.max(...tags.value.map(t => t.postCount), 1);
   const ratio = postCount / maxCount;
@@ -58,28 +56,6 @@ const getTagSize = (postCount: number): string => {
   if (ratio >= 0.4) return 'text-2xl font-semibold';
   if (ratio >= 0.2) return 'text-xl font-medium';
   return 'text-lg';
-};
-
-// 태그 색상 (해시 기반)
-const getTagColor = (tagName: string): string => {
-  const colors = [
-    'text-blue-600 hover:text-blue-700',
-    'text-green-600 hover:text-green-700',
-    'text-purple-600 hover:text-purple-700',
-    'text-pink-600 hover:text-pink-700',
-    'text-violet-600 hover:text-violet-700',
-    'text-red-600 hover:text-red-700',
-    'text-orange-600 hover:text-orange-700',
-    'text-cyan-600 hover:text-cyan-700',
-  ];
-
-  let hash = 0;
-  for (let i = 0; i < tagName.length; i++) {
-    hash = tagName.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const index = Math.abs(hash) % colors.length;
-  return colors[index] as string;
 };
 
 // 태그 로드
@@ -118,20 +94,17 @@ onMounted(() => {
 
 <template>
   <div class="w-full min-h-screen">
-    <div class="mx-auto px-6 sm:px-8 lg:px-12 py-8">
+    <div class="max-w-3xl mx-auto px-6 py-8">
       <!-- Header -->
       <header class="mb-8">
-        <h1 class="text-3xl sm:text-4xl font-bold text-text-heading mb-2">
-          🏷️ 태그
-        </h1>
-        <p class="text-text-meta">
+        <h1 class="text-2xl font-bold text-text-heading mb-1">태그</h1>
+        <p class="text-sm text-text-meta">
           {{ tags.length }}개의 태그로 게시글을 탐색하세요
         </p>
       </header>
 
       <!-- 검색 및 정렬 -->
       <div class="mb-8 flex flex-col sm:flex-row gap-4">
-        <!-- 검색 -->
         <div class="flex-1">
           <Input
             v-model="searchKeyword"
@@ -139,151 +112,116 @@ onMounted(() => {
           />
         </div>
 
-        <!-- 정렬 옵션 -->
         <div class="flex gap-2">
-          <Button
-            :variant="sortOption === 'popular' ? 'primary' : 'secondary'"
-            size="md"
-            @click="sortOption = 'popular'"
+          <button
+            v-for="opt in ([
+              { label: '인기순', value: 'popular' as const },
+              { label: '이름순', value: 'name' as const },
+              { label: '최신순', value: 'latest' as const },
+            ])"
+            :key="opt.value"
+            @click="sortOption = opt.value"
+            class="px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+            :class="sortOption === opt.value
+              ? 'bg-brand-primary text-white'
+              : 'bg-bg-muted text-text-meta hover:bg-bg-hover hover:text-text-body'"
           >
-            인기순
-          </Button>
-          <Button
-            :variant="sortOption === 'name' ? 'primary' : 'secondary'"
-            size="md"
-            @click="sortOption = 'name'"
-          >
-            이름순
-          </Button>
-          <Button
-            :variant="sortOption === 'latest' ? 'primary' : 'secondary'"
-            size="md"
-            @click="sortOption = 'latest'"
-          >
-            최신순
-          </Button>
+            {{ opt.label }}
+          </button>
         </div>
       </div>
 
-      <!-- Loading State -->
-      <Card v-if="isLoading" class="text-center py-24 bg-bg-muted border-0 shadow-none">
-        <Spinner size="lg" class="mx-auto mb-5" />
-        <p class="text-text-meta text-lg">태그 목록을 불러오는 중...</p>
-      </Card>
+      <!-- Loading -->
+      <div v-if="isLoading" class="flex justify-center py-24">
+        <div class="text-center">
+          <Spinner size="lg" class="mx-auto mb-4" />
+          <p class="text-text-meta">태그 목록을 불러오는 중...</p>
+        </div>
+      </div>
 
-      <!-- Error State -->
-      <Card v-else-if="error" class="bg-status-error-bg border-status-error/20 py-16 text-center">
-        <div class="text-4xl text-status-error mb-4">❌</div>
-        <div class="text-status-error font-semibold text-lg mb-2">{{ error }}</div>
-        <Button variant="secondary" class="mt-4" @click="loadTags">
+      <!-- Error -->
+      <div v-else-if="error" class="text-center py-16">
+        <div class="text-status-error font-semibold mb-2">{{ error }}</div>
+        <button class="text-sm text-brand-primary hover:underline mt-2" @click="loadTags">
           다시 시도
-        </Button>
-      </Card>
+        </button>
+      </div>
 
-      <!-- Empty State -->
-      <Card v-else-if="sortedTags.length === 0" class="text-center py-20">
-        <div class="text-6xl mb-4">🔍</div>
-        <h3 class="text-2xl font-bold text-text-heading mb-2">
+      <!-- Empty -->
+      <div v-else-if="sortedTags.length === 0" class="text-center py-20">
+        <h3 class="text-lg font-semibold text-text-heading mb-2">
           {{ searchKeyword ? '검색 결과가 없습니다' : '태그가 없습니다' }}
         </h3>
-        <p class="text-text-meta">
+        <p class="text-text-meta text-sm">
           {{ searchKeyword ? '다른 검색어를 시도해보세요.' : '아직 생성된 태그가 없습니다.' }}
         </p>
-      </Card>
+      </div>
 
-      <!-- Tag Cloud -->
+      <!-- Tag List -->
       <div v-else>
-        <!-- 그리드 뷰 (인기순, 최신순) -->
-        <div
-          v-if="sortOption !== 'name'"
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <Card
+        <!-- 리스트 뷰 (인기순, 최신순) -->
+        <div v-if="sortOption !== 'name'" class="space-y-0">
+          <button
             v-for="tag in sortedTags"
             :key="tag.id"
-            hoverable
             @click="goToTag(tag.name)"
-            class="cursor-pointer group"
+            class="w-full flex items-center justify-between py-4 border-b border-border-default hover:bg-bg-hover transition-colors text-left group"
           >
-            <div class="p-6">
-              <div class="flex items-start justify-between mb-3">
-                <h3 :class="['font-bold group-hover:text-brand-primary transition-colors', getTagColor(tag.name)]">
-                  #{{ tag.name }}
-                </h3>
-                <span class="px-3 py-1 bg-brand-primary/10 text-brand-primary text-sm rounded-full font-semibold">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold text-text-heading group-hover:text-brand-primary transition-colors">#{{ tag.name }}</span>
+                <span class="px-2 py-0.5 bg-brand-primary/10 text-brand-primary text-xs rounded-full font-medium">
                   {{ tag.postCount }}
                 </span>
               </div>
-
-              <p v-if="tag.description" class="text-text-meta text-sm mb-4 line-clamp-2">
+              <p v-if="tag.description" class="text-sm text-text-meta line-clamp-1">
                 {{ tag.description }}
               </p>
-
-              <div class="text-xs text-text-meta">
-                마지막 사용: {{ formatDate(tag.lastUsedAt) }}
-              </div>
             </div>
-          </Card>
+            <span class="text-xs text-text-meta ml-4 flex-shrink-0">
+              {{ formatDate(tag.lastUsedAt) }}
+            </span>
+          </button>
         </div>
 
         <!-- 태그 클라우드 (이름순) -->
-        <Card v-else class="p-8">
-          <div class="flex flex-wrap gap-6 justify-center items-center">
-            <button
-              v-for="tag in sortedTags"
-              :key="tag.id"
-              @click="goToTag(tag.name)"
-              :class="[
-                'transition-all hover:scale-110',
-                getTagSize(tag.postCount),
-                getTagColor(tag.name)
-              ]"
-            >
-              #{{ tag.name }}
-              <span class="text-sm text-text-meta ml-1">({{ tag.postCount }})</span>
-            </button>
-          </div>
-        </Card>
+        <div v-else class="flex flex-wrap gap-4 justify-center items-center py-8">
+          <button
+            v-for="tag in sortedTags"
+            :key="tag.id"
+            @click="goToTag(tag.name)"
+            :class="[
+              'transition-all hover:text-brand-primary text-text-heading',
+              getTagSize(tag.postCount),
+            ]"
+          >
+            #{{ tag.name }}
+            <span class="text-sm text-text-meta ml-1">({{ tag.postCount }})</span>
+          </button>
+        </div>
       </div>
 
       <!-- 통계 요약 -->
-      <Card v-if="!isLoading && !error && sortedTags.length > 0" class="mt-8 p-6 bg-bg-muted">
+      <div v-if="!isLoading && !error && sortedTags.length > 0" class="mt-8 py-6 border-t border-border-default">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           <div>
-            <div class="text-2xl font-bold text-brand-primary">
-              {{ sortedTags.length }}
-            </div>
-            <div class="text-text-meta text-sm">전체 태그</div>
+            <div class="text-2xl font-bold text-brand-primary">{{ sortedTags.length }}</div>
+            <div class="text-text-meta text-xs">전체 태그</div>
           </div>
           <div>
-            <div class="text-2xl font-bold text-brand-primary">
-              {{ sortedTags.reduce((sum, tag) => sum + tag.postCount, 0) }}
-            </div>
-            <div class="text-text-meta text-sm">전체 게시글</div>
+            <div class="text-2xl font-bold text-brand-primary">{{ sortedTags.reduce((sum, tag) => sum + tag.postCount, 0) }}</div>
+            <div class="text-text-meta text-xs">전체 게시글</div>
           </div>
           <div>
-            <div class="text-2xl font-bold text-brand-primary">
-              {{ Math.max(...sortedTags.map(t => t.postCount), 0) }}
-            </div>
-            <div class="text-text-meta text-sm">최다 게시글</div>
+            <div class="text-2xl font-bold text-brand-primary">{{ Math.max(...sortedTags.map(t => t.postCount), 0) }}</div>
+            <div class="text-text-meta text-xs">최다 게시글</div>
           </div>
           <div>
-            <div class="text-2xl font-bold text-brand-primary">
-              {{ (sortedTags.reduce((sum, tag) => sum + tag.postCount, 0) / sortedTags.length).toFixed(1) }}
-            </div>
-            <div class="text-text-meta text-sm">평균 게시글</div>
+            <div class="text-2xl font-bold text-brand-primary">{{ (sortedTags.reduce((sum, tag) => sum + tag.postCount, 0) / sortedTags.length).toFixed(1) }}</div>
+            <div class="text-text-meta text-xs">평균 게시글</div>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>
