@@ -34,7 +34,7 @@ const baseNavItems = [
   {
     name: 'Home',
     path: '/',
-    icon: 'dashboard',
+    icon: 'home',
     exact: true,
   },
   {
@@ -100,6 +100,15 @@ const adminNavItem = {
 
 const navItems = computed(() => {
   const items = [...baseNavItems];
+  if (authStore.isAuthenticated) {
+    // Insert Dashboard after Home
+    items.splice(1, 0, {
+      name: 'Dashboard',
+      path: '/dashboard',
+      icon: 'dashboard',
+      exact: true,
+    });
+  }
   if (authStore.isSeller) {
     items.push(sellerNavItem);
   }

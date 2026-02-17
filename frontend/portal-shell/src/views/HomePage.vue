@@ -2,7 +2,6 @@
 import { Button, Badge } from '@portal/design-vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
-import DashboardPage from './DashboardPage.vue';
 import MaterialIcon from '../components/MaterialIcon.vue';
 
 const router = useRouter();
@@ -96,19 +95,15 @@ const posts = [
 
 function handleStartClick() {
   if (authStore.isAuthenticated) {
-    router.push('/blog');
+    router.push('/dashboard');
   } else {
-    authStore.requestLogin();
+    authStore.requestLogin('/dashboard');
   }
 }
 </script>
 
 <template>
-  <!-- Show Dashboard for authenticated users -->
-  <DashboardPage v-if="authStore.isAuthenticated" />
-
-  <!-- Marketing page for guests -->
-  <div v-else class="bg-bg-page text-text-body">
+  <div class="bg-bg-page text-text-body">
 
     <!-- Hero Section - Linear style dark gradient -->
     <section class="relative overflow-hidden bg-gradient-to-b from-bg-page via-bg-card to-bg-page">
@@ -139,7 +134,7 @@ function handleStartClick() {
 
           <div class="flex flex-wrap gap-3">
             <Button variant="primary" size="lg" @click="handleStartClick">
-              {{ authStore.isAuthenticated ? '블로그 시작하기' : '시작하기' }} →
+              {{ authStore.isAuthenticated ? '대시보드로 이동' : '시작하기' }} →
             </Button>
 
             <Button variant="secondary" size="lg">
@@ -266,7 +261,7 @@ function handleStartClick() {
         </p>
         <div class="flex flex-wrap gap-3 justify-center">
           <Button variant="secondary" size="lg" @click="handleStartClick">
-            {{ authStore.isAuthenticated ? '블로그 시작하기' : '무료로 시작하기' }}
+            {{ authStore.isAuthenticated ? '대시보드로 이동' : '무료로 시작하기' }}
           </Button>
           <Button variant="ghost" size="lg" class="text-white border border-white/20 hover:bg-white/20">
             가격 보기
