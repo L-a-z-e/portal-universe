@@ -1,0 +1,167 @@
+[
+  {
+    "key": "post-1",
+    "title": "Spring Boot 3.x 마이그레이션 후기",
+    "authorId": "00000000-0000-0000-0000-000000000101",
+    "authorName": "김개발",
+    "category": "Backend",
+    "tags": ["Spring Boot"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-10-05T09:30:00",
+    "content": "# Spring Boot 3.x 마이그레이션 후기\n\n## 배경\n\n기존 Spring Boot 2.7 기반 프로젝트를 3.x로 마이그레이션한 경험을 공유합니다.\n\n## 주요 변경사항\n\n### 1. Jakarta EE 전환\n가장 큰 변화는 `javax.*` 패키지가 `jakarta.*`로 변경된 것입니다.\nIDE의 일괄 변환 기능을 활용하면 빠르게 처리할 수 있습니다.\n\n### 2. Spring Security 설정 변경\n`WebSecurityConfigurerAdapter`가 deprecated 되면서 `SecurityFilterChain` 빈 등록 방식으로 전환했습니다.\n\n### 3. Native Image 지원\nGraalVM Native Image 지원이 공식적으로 추가되었습니다. 빌드 시간은 길지만 시작 시간이 크게 단축됩니다.\n\n## 마이그레이션 팁\n\n- Spring Boot Migrator 도구를 먼저 실행해보세요\n- 의존성 호환성을 하나씩 확인하세요\n- 테스트 코드가 있다면 마이그레이션 검증이 수월합니다\n\n마이그레이션을 고려하고 계신 분들에게 도움이 되면 좋겠습니다."
+  },
+  {
+    "key": "post-2",
+    "title": "제주도 한 달 살기 - 1주차 일기",
+    "authorId": "00000000-0000-0000-0000-000000000102",
+    "authorName": "이여행",
+    "category": "여행",
+    "tags": ["여행", "일상"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-10-12T14:00:00",
+    "content": "# 제주도 한 달 살기 - 1주차 일기\n\n## 도착\n\n서울에서의 바쁜 일상을 뒤로하고 제주도에 도착했습니다. 공항을 나서자마자 느껴지는 바다 냄새가 인상적이었어요.\n\n## 숙소\n\n한림읍 근처의 작은 게스트하우스를 한 달간 빌렸습니다. 바다까지 도보 10분, 편의점 5분 거리로 생활하기 편합니다.\n\n## 1주차 하이라이트\n\n- **월요일**: 협재해수욕장 산책. 에메랄드빛 바다가 정말 예뻤어요.\n- **수요일**: 한림 올레시장에서 장보기. 신선한 해산물이 가득!\n- **금요일**: 카페에서 원격 근무. 바다가 보이는 카페에서 일하니 능률이 올라가는 느낌.\n\n## 생활비 (1주차)\n\n| 항목 | 금액 |\n|------|------|\n| 숙소 | 이미 결제 |\n| 식비 | 15만원 |\n| 교통 | 5만원 |\n| 카페 | 3만원 |\n\n다음 주에는 동쪽으로 탐험을 떠날 예정입니다!"
+  },
+  {
+    "key": "post-3",
+    "title": "디자인 시스템 구축기: 토큰부터 컴포넌트까지",
+    "authorId": "00000000-0000-0000-0000-000000000103",
+    "authorName": "박디자인",
+    "category": "Design",
+    "tags": ["UI/UX"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-10-28T10:15:00",
+    "content": "# 디자인 시스템 구축기: 토큰부터 컴포넌트까지\n\n## 왜 디자인 시스템인가?\n\n프로젝트가 커지면서 UI 일관성 유지가 어려워졌습니다. 같은 버튼인데 미묘하게 다른 스타일, 반복되는 컬러 코드... 이런 문제를 해결하기 위해 디자인 시스템을 도입했습니다.\n\n## Design Tokens\n\n디자인 시스템의 기초는 토큰입니다. 색상, 간격, 타이포그래피 등을 변수로 관리합니다.\n\n```json\n{\n  \"color\": {\n    \"brand\": { \"primary\": \"#2563EB\" },\n    \"text\": { \"body\": \"#1F2937\" }\n  },\n  \"spacing\": { \"4\": \"1rem\", \"8\": \"2rem\" }\n}\n```\n\n## 컴포넌트 설계 원칙\n\n1. **Composition over Configuration**: props 폭발 방지\n2. **Accessibility First**: ARIA 속성 필수\n3. **Theme-aware**: 다크 모드 기본 지원\n\n## 성과\n\n- UI 개발 속도 40% 향상\n- 디자인-개발 커뮤니케이션 비용 절감\n- 일관된 사용자 경험 제공"
+  },
+  {
+    "key": "post-4",
+    "title": "Vue 3 Composition API 실전 팁 5가지",
+    "authorId": "00000000-0000-0000-0000-000000000101",
+    "authorName": "김개발",
+    "category": "Frontend",
+    "tags": ["Vue.js", "TypeScript"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-11-03T11:00:00",
+    "content": "# Vue 3 Composition API 실전 팁 5가지\n\n## 1. ref vs reactive 선택 기준\n\n원시값(string, number)은 `ref()`, 객체는 상황에 따라 선택하되 `ref()`가 더 안전합니다.\n\n## 2. Composable 패턴 활용\n\n반복되는 로직은 `useXxx()` 형태의 composable로 추출하세요.\n\n```typescript\nexport function useDebounce<T>(value: Ref<T>, delay = 300) {\n  const debounced = ref(value.value)\n  let timer: ReturnType<typeof setTimeout>\n  watch(value, (newVal) => {\n    clearTimeout(timer)\n    timer = setTimeout(() => { debounced.value = newVal }, delay)\n  })\n  return debounced\n}\n```\n\n## 3. defineModel() 활용 (3.4+)\n\nv-model 바인딩이 훨씬 간결해집니다.\n\n## 4. Suspense와 async setup\n\n비동기 컴포넌트 로딩을 깔끔하게 처리할 수 있습니다.\n\n## 5. shallowRef로 성능 최적화\n\n대량 데이터를 다룰 때 `shallowRef()`를 사용하면 불필요한 deep watch를 방지합니다."
+  },
+  {
+    "key": "post-5",
+    "title": "서울 을지로 골목 맛집 투어",
+    "authorId": "00000000-0000-0000-0000-000000000105",
+    "authorName": "정맛집",
+    "category": "맛집",
+    "tags": ["맛집", "일상"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-11-10T12:30:00",
+    "content": "# 서울 을지로 골목 맛집 투어\n\n## 을지로의 매력\n\n을지로는 오래된 골목과 새로운 카페가 공존하는 독특한 동네입니다.\n\n## 추천 맛집\n\n### 1. 을지면옥\n냉면 맛집으로 유명한 곳. 면이 쫄깃하고 육수가 시원합니다.\n\n### 2. 을지로 노가리 골목\n퇴근 후 간단하게 맥주 한 잔 하기 좋은 곳. 분위기가 정겹습니다.\n\n### 3. 양미옥\n설렁탕이 일품인 노포. 깊은 국물 맛이 일품입니다.\n\n### 4. 을지다락\n을지로 뒷골목에 숨어있는 카페. 빈티지한 인테리어가 포인트.\n\n## 을지로 산책 코스\n\n세운상가 → 을지면옥(점심) → 골목 구경 → 노가리 골목(저녁)\n\n을지로는 갈 때마다 새로운 가게를 발견하는 재미가 있습니다!"
+  },
+  {
+    "key": "post-6",
+    "title": "비전공자 개발 공부 3개월 회고",
+    "authorId": "00000000-0000-0000-0000-000000000104",
+    "authorName": "최공부",
+    "category": "회고",
+    "tags": ["취업준비"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-11-18T20:00:00",
+    "content": "# 비전공자 개발 공부 3개월 회고\n\n## 시작\n\n경영학과를 졸업하고 개발자로 전환을 결심한 지 3개월이 지났습니다.\n\n## 공부 방법\n\n### 1개월차: HTML/CSS/JavaScript\n기초부터 시작했습니다. 매일 코딩하는 습관을 만드는 게 목표였어요.\n\n### 2개월차: Java + 알고리즘\nJava 문법과 함께 백준 문제를 매일 1개씩 풀었습니다.\n\n### 3개월차: Spring Boot\n간단한 CRUD API를 만들어보면서 백엔드 개발의 흐름을 이해했습니다.\n\n## 느낀 점\n\n- 꾸준함이 재능보다 중요하다\n- 완벽하게 이해하려 하지 말고, 일단 만들어보자\n- 커뮤니티의 힘이 크다 (스터디 그룹 추천!)\n\n## 앞으로의 계획\n\nJPA, Spring Security를 공부하고 포트폴리오 프로젝트를 시작할 예정입니다."
+  },
+  {
+    "key": "post-7",
+    "title": "React 18 동시성 기능 정리",
+    "authorId": "00000000-0000-0000-0000-000000000101",
+    "authorName": "김개발",
+    "category": "Frontend",
+    "tags": ["React", "TypeScript"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-11-25T15:45:00",
+    "content": "# React 18 동시성 기능 정리\n\n## Concurrent Features란?\n\nReact 18에서 도입된 동시성 기능은 UI 렌더링의 우선순위를 관리할 수 있게 해줍니다.\n\n## 주요 기능\n\n### useTransition\n상태 업데이트의 우선순위를 낮춰 UI 응답성을 유지합니다.\n\n```jsx\nconst [isPending, startTransition] = useTransition();\n\nfunction handleSearch(query) {\n  startTransition(() => {\n    setSearchResults(filterData(query));\n  });\n}\n```\n\n### useDeferredValue\n값의 업데이트를 지연시켜 무거운 렌더링을 최적화합니다.\n\n### Suspense 개선\n서버 사이드 렌더링과 함께 사용 가능하게 개선되었습니다.\n\n## 실전 활용 팁\n\n- 검색 자동완성에 `useTransition` 적용\n- 대용량 리스트 렌더링에 `useDeferredValue` 활용\n- `<Suspense>`로 로딩 상태 선언적 관리"
+  },
+  {
+    "key": "post-8",
+    "title": "제주도 한 달 살기 - 카페 워커의 일상",
+    "authorId": "00000000-0000-0000-0000-000000000102",
+    "authorName": "이여행",
+    "category": "여행",
+    "tags": ["여행", "일상"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-12-01T10:00:00",
+    "content": "# 제주도 한 달 살기 - 카페 워커의 일상\n\n## 원격 근무 in 제주\n\n제주도에서 원격 근무를 시작한 지 3주가 지났습니다. 카페에서 일하는 일상을 공유합니다.\n\n## 추천 카페\n\n### 1. 카페 공백 (한림)\n넓은 좌석과 안정적인 와이파이. 콘센트도 넉넉합니다.\n\n### 2. 봄날 카페 (애월)\n바다가 보이는 창가석이 인기. 아메리카노가 맛있어요.\n\n### 3. 하루 서재 (서귀포)\n조용한 분위기. 집중이 잘 되는 곳입니다.\n\n## 카페 워커 팁\n\n- 오전에 일찍 가면 좋은 자리 확보 가능\n- 보조 배터리 필수\n- 이어폰은 노이즈캔슬링 추천\n\n## 일과\n\n| 시간 | 활동 |\n|------|------|\n| 08:00 | 기상 + 산책 |\n| 09:00 | 카페 이동 |\n| 09:30-13:00 | 집중 업무 |\n| 13:00-14:00 | 점심 |\n| 14:00-18:00 | 오후 업무 |\n| 18:30 | 해변 산책 |\n\n제주도 카페 워크, 강력 추천합니다!"
+  },
+  {
+    "key": "post-9",
+    "title": "Docker Compose로 개발 환경 한 방에 구축하기",
+    "authorId": "00000000-0000-0000-0000-000000000101",
+    "authorName": "김개발",
+    "category": "DevOps",
+    "tags": ["Docker", "Spring Boot"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-12-15T09:00:00",
+    "content": "# Docker Compose로 개발 환경 한 방에 구축하기\n\n## 동기\n\n로컬에 MySQL, Redis, Kafka를 각각 설치하는 것은 번거롭습니다. Docker Compose로 한 번에 관리하는 방법을 소개합니다.\n\n## docker-compose.yml 구성\n\n```yaml\nservices:\n  postgresql:\n    image: postgres:17\n    ports:\n      - \"5432:5432\"\n    environment:\n      POSTGRES_PASSWORD: devpass\n\n  redis:\n    image: redis:7\n    ports:\n      - \"6379:6379\"\n\n  zookeeper:\n    image: confluentinc/cp-zookeeper:7.5.0\n    environment:\n      ZOOKEEPER_CLIENT_PORT: 2181\n\n  kafka:\n    image: confluentinc/cp-kafka:7.5.0\n    depends_on:\n      - zookeeper\n```\n\n## Spring Boot 연동\n\n`application-local.yml`에서 Docker Compose 서비스 주소를 참조하면 됩니다.\n\n## 팁\n\n- `depends_on`으로 시작 순서 제어\n- `healthcheck`로 서비스 준비 상태 확인\n- volume으로 데이터 영속화"
+  },
+  {
+    "key": "post-10",
+    "title": "피그마에서 코드까지 — 디자인 핸드오프 가이드",
+    "authorId": "00000000-0000-0000-0000-000000000103",
+    "authorName": "박디자인",
+    "category": "Design",
+    "tags": ["UI/UX"],
+    "status": "PUBLISHED",
+    "publishedAt": "2025-12-22T13:00:00",
+    "content": "# 피그마에서 코드까지 — 디자인 핸드오프 가이드\n\n## 디자인 핸드오프란?\n\n디자이너가 만든 UI를 개발자가 구현하기 위해 넘겨받는 과정입니다.\n\n## 효율적인 핸드오프를 위한 체크리스트\n\n### 디자이너 측\n1. Auto Layout 적용 (개발자가 Flexbox로 변환 용이)\n2. 컴포넌트화 (재사용 가능한 단위로)\n3. 디자인 토큰 명시 (컬러, 간격, 폰트)\n4. 상태별 디자인 (hover, active, disabled)\n\n### 개발자 측\n1. Figma Dev Mode 활용\n2. 디자인 토큰을 CSS 변수로 매핑\n3. 컴포넌트 단위로 구현\n4. 반응형 breakpoint 확인\n\n## 추천 도구\n\n- **Figma Dev Mode**: 무료 플랜에서도 기본 기능 제공\n- **Storybook**: 구현된 컴포넌트를 시각적으로 확인\n- **Chromatic**: 시각적 회귀 테스트\n\n좋은 핸드오프는 디자이너와 개발자의 신뢰를 만듭니다."
+  },
+  {
+    "key": "post-11",
+    "title": "홍대 연말 디저트 카페 베스트 5",
+    "authorId": "00000000-0000-0000-0000-000000000105",
+    "authorName": "정맛집",
+    "category": "맛집",
+    "tags": ["맛집"],
+    "status": "PUBLISHED",
+    "publishedAt": "2026-01-05T16:00:00",
+    "content": "# 홍대 연말 디저트 카페 베스트 5\n\n## 연말 분위기 가득한 디저트 카페\n\n홍대에서 연말 분위기를 느낄 수 있는 디저트 카페를 소개합니다.\n\n### 1. 스위트 포레스트\n시그니처 크리스마스 케이크가 유명합니다. 딸기 생크림 케이크 추천!\n\n### 2. 마카롱 하우스\n20가지 이상의 마카롱 종류. 선물 세트도 예쁘게 포장해줍니다.\n\n### 3. 와플 스튜디오\n벨기에식 와플에 아이스크림 토핑. 따뜻한 와플과 차가운 아이스크림의 조합!\n\n### 4. 쇼콜라띠에\n핫초코가 진하고 맛있는 곳. 추운 날씨에 딱!\n\n### 5. 르 파티시에\n프렌치 디저트 전문점. 밀푀유와 에클레어가 일품.\n\n## 방문 팁\n\n- 주말은 웨이팅이 길어요. 평일 방문 추천\n- 인스타그램 체크하면 한정 메뉴 정보 확인 가능"
+  },
+  {
+    "key": "post-12",
+    "title": "코딩테스트 대비 알고리즘 정리 (Java)",
+    "authorId": "00000000-0000-0000-0000-000000000104",
+    "authorName": "최공부",
+    "category": "공부",
+    "tags": ["취업준비", "Spring Boot"],
+    "status": "PUBLISHED",
+    "publishedAt": "2026-01-15T22:00:00",
+    "content": "# 코딩테스트 대비 알고리즘 정리 (Java)\n\n## 필수 자료구조\n\n### HashMap\n조회 O(1). 빈도수 카운팅, 중복 체크에 활용.\n\n### PriorityQueue\n최솟값/최댓값 빠르게 접근. 다익스트라 알고리즘에 필수.\n\n### Stack/Deque\n괄호 매칭, 히스토그램 문제에 활용.\n\n## 필수 알고리즘\n\n### 이분탐색\n정렬된 배열에서 O(log N) 탐색. `lower_bound`, `upper_bound` 개념 중요.\n\n### BFS/DFS\n그래프 탐색의 기본. BFS는 최단거리, DFS는 경로 탐색에 유리.\n\n### 동적 프로그래밍\n점화식을 세우는 연습이 핵심. 유명 문제부터 연습하세요.\n\n## 공부 순서 추천\n\n1. 구현/시뮬레이션 → 2. 탐색(BFS/DFS) → 3. DP → 4. 그리디 → 5. 그래프\n\n매일 꾸준히 1-2문제씩 푸는 것이 가장 효과적입니다."
+  },
+  {
+    "key": "post-13",
+    "title": "MongoDB 인덱스 최적화 전략",
+    "authorId": "00000000-0000-0000-0000-000000000101",
+    "authorName": "김개발",
+    "category": "Backend",
+    "tags": ["MongoDB", "Spring Boot"],
+    "status": "PUBLISHED",
+    "publishedAt": "2026-01-28T08:30:00",
+    "content": "# MongoDB 인덱스 최적화 전략\n\n## 인덱스의 중요성\n\nMongoDB에서 인덱스 없이 쿼리하면 Collection Scan이 발생합니다. 데이터가 많아질수록 성능 차이가 극명합니다.\n\n## 인덱스 종류\n\n### Single Field Index\n가장 기본. 특정 필드 기준으로 정렬된 인덱스를 생성합니다.\n\n### Compound Index\n여러 필드를 조합한 인덱스. 필드 순서가 중요합니다 (ESR Rule).\n\n### Text Index\n전문 검색용 인덱스. `$text` 쿼리와 함께 사용합니다.\n\n## ESR Rule\n\nCompound Index 설계 시:\n1. **E**quality: 등호 조건 필드를 먼저\n2. **S**ort: 정렬 필드를 다음에\n3. **R**ange: 범위 조건 필드를 마지막에\n\n## explain() 활용\n\n```javascript\ndb.posts.find({ status: \"PUBLISHED\" }).sort({ publishedAt: -1 }).explain(\"executionStats\")\n```\n\n`winningPlan`의 stage가 `IXSCAN`인지 확인하세요."
+  },
+  {
+    "key": "post-14",
+    "title": "Kubernetes 입문: Pod에서 Service까지",
+    "authorId": "00000000-0000-0000-0000-000000000101",
+    "authorName": "김개발",
+    "category": "DevOps",
+    "tags": ["Kubernetes", "Docker"],
+    "status": "PUBLISHED",
+    "publishedAt": "2026-02-10T10:00:00",
+    "content": "# Kubernetes 입문: Pod에서 Service까지\n\n## Kubernetes란?\n\n컨테이너화된 애플리케이션의 배포, 스케일링, 관리를 자동화하는 플랫폼입니다.\n\n## 핵심 개념\n\n### Pod\n가장 작은 배포 단위. 하나 이상의 컨테이너를 포함합니다.\n\n### Deployment\nPod의 선언적 관리. 원하는 상태를 정의하면 Kubernetes가 유지합니다.\n\n### Service\nPod에 안정적인 네트워크 접근을 제공합니다. ClusterIP, NodePort, LoadBalancer 타입이 있습니다.\n\n## 간단한 배포 예시\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: my-app\n  template:\n    metadata:\n      labels:\n        app: my-app\n    spec:\n      containers:\n      - name: my-app\n        image: my-app:1.0\n        ports:\n        - containerPort: 8080\n```\n\n## 다음 단계\n\nConfigMap, Secret, Ingress를 공부하면 실무에서 활용할 수 있습니다."
+  },
+  {
+    "key": "post-15",
+    "title": "포트폴리오 정리하면서 느낀 점",
+    "authorId": "00000000-0000-0000-0000-000000000104",
+    "authorName": "최공부",
+    "category": "회고",
+    "tags": ["취업준비", "일상"],
+    "status": "DRAFT",
+    "publishedAt": null,
+    "content": "# 포트폴리오 정리하면서 느낀 점\n\n## 포트폴리오 정리 시작\n\n취업 준비를 본격적으로 시작하면서 포트폴리오를 정리하기 시작했습니다.\n\n## 깨달은 점\n\n### 1. 프로젝트 선정이 중요\nCRUD만 있는 프로젝트보다는 문제 해결 과정이 드러나는 프로젝트가 좋습니다.\n\n### 2. README가 곧 첫인상\n프로젝트 소개, 기술 스택, 아키텍처 다이어그램을 깔끔하게 정리하세요.\n\n### 3. 배포까지 해야 완성\n로컬에서만 돌아가는 프로젝트는 반쪽짜리입니다.\n\n## TODO\n\n- [ ] GitHub 프로필 README 정리\n- [ ] 기술 블로그 링크 추가\n- [ ] 프로젝트별 회고 작성\n- [ ] 이력서와 연동\n\n정리하면서 부족한 부분이 많이 보이네요. 하나씩 채워나가겠습니다."
+  }
+]

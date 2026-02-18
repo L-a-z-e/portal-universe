@@ -196,6 +196,33 @@ cd services/chatbot-service
 
 ---
 
+### Step 5: 테스트 데이터 확인
+`local`, `docker` profile로 서비스를 실행하면 `DataInitializer`가 자동으로 테스트 데이터를 생성합니다.
+
+#### 테스트 계정 (auth-service)
+
+| 역할 | Email | Password | UUID |
+|------|-------|----------|------|
+| 일반 사용자 | test@test.com | test1234 | `00000000-...-000000000001` |
+| 관리자 | admin@test.com | admin1234 | `00000000-...-000000000002` |
+| 블로거 (김개발) | dev.kim@test.com | test1234 | `00000000-...-000000000101` |
+| 블로거 (이여행) | travel.lee@test.com | test1234 | `00000000-...-000000000102` |
+| 블로거 (박디자인) | design.park@test.com | test1234 | `00000000-...-000000000103` |
+| 블로거 (최공부) | study.choi@test.com | test1234 | `00000000-...-000000000104` |
+| 블로거 (정맛집) | cook.jung@test.com | test1234 | `00000000-...-000000000105` |
+
+#### 블로그 Seed Data (blog-service)
+auth-service의 블로거 UUID와 매칭되는 블로그 데이터가 자동 생성됩니다:
+- **태그**: 12개 (Spring Boot, Vue.js, React, TypeScript, Docker, Kubernetes, 여행, 맛집, UI/UX, 취업준비, 일상, MongoDB)
+- **게시물**: 15개 (2025-10 ~ 2026-02 분포, 14개 발행 + 1개 초안)
+- **시리즈**: 3개 (Spring Boot 실전, 제주도 한 달 살기, 디자인 시스템 이야기)
+- **댓글**: 15개 (교차 작성, 대댓글 포함)
+- **좋아요**: 게시물별 1~3개 (교차 좋아요)
+
+**멱등성**: 이미 데이터가 존재하면 재생성하지 않습니다. 초기화가 필요하면 MongoDB의 `blog_db`를 drop한 후 서비스를 재시작하세요.
+
+---
+
 ## 검증
 
 ### 최종 확인 체크리스트
