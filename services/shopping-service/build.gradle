@@ -48,13 +48,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web (MVC)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // Spring Data JPA
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation
-    runtimeOnly 'com.mysql:mysql-connector-j' // MySQL Driver
+    runtimeOnly 'org.postgresql:postgresql' // PostgreSQL Driver
 
     // =======================================
     // Database Migration
     // =======================================
     implementation 'org.flywaydb:flyway-core' // Database migration
-    implementation 'org.flywaydb:flyway-mysql' // Flyway MySQL support
+    implementation 'org.flywaydb:flyway-database-postgresql' // Flyway PostgreSQL support
 
     // =======================================
     // Messaging (Kafka)
@@ -110,7 +110,7 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test' // Kafka testing
     testImplementation 'org.testcontainers:junit-jupiter' // Integration tests with Docker containers
-    testImplementation 'org.testcontainers:mysql' // MySQL container for testing
+    testImplementation 'org.testcontainers:postgresql' // PostgreSQL container for testing
     testImplementation 'org.testcontainers:kafka' // Kafka container for testing
     testImplementation 'com.redis:testcontainers-redis:2.2.2' // Redis container for testing
     testImplementation 'org.testcontainers:elasticsearch' // Elasticsearch container for testing
