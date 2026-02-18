@@ -31,10 +31,10 @@ spring:
     uris: http://elasticsearch:9200
 
   datasource:
-    url: jdbc:mysql://mysql-db:3306/shopping_db?useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:postgresql://postgresql:5432/shopping_db
     username: ${DB_USER}
     password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
 
   flyway:
     baseline-on-migrate: true
@@ -43,7 +43,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    database-platform: org.hibernate.dialect.MySQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   kafka:
     bootstrap-servers: kafka:29092

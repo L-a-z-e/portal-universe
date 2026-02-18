@@ -1,8 +1,8 @@
 # Shopping Service Database Schema
 
-**Database**: MySQL 8.0 (shopping_db) + Elasticsearch + Redis
+**Database**: PostgreSQL (shopping_db) + Elasticsearch + Redis
 **Entity Count**: 11 (10 JPA + 1 Elasticsearch Document)
-**Last Updated**: 2026-02-17
+**Last Updated**: 2026-02-18
 
 > **서비스 분해 (2026-02-14)**: Product, Inventory, StockMovement, Seller는 `shopping_seller_db`로 이전되었습니다.
 > Coupon, TimeDeal, WaitingQueue도 `shopping_seller_db`로 이전되었으며, 이 서비스에는 UserCoupon, TimeDealPurchase, QueueEntry만 유지됩니다.
@@ -341,6 +341,7 @@ erDiagram
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-18 | MySQL → PostgreSQL 전환 (ADR-046) | Laze |
 | 2026-02-17 | Product 확장: discountPrice, featured 필드 추가, ProductImage 테이블 신규 (V2 migration) | Laze |
 | 2026-02-14 | 서비스 분해: Product, Inventory, Coupon, TimeDeal, WaitingQueue를 shopping_seller_db로 이전 | Laze |
 | 2026-02-06 | 초기 문서 작성 | Laze |

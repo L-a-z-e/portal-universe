@@ -1,6 +1,6 @@
 # Auth Service Database Schema
 
-**Database**: MySQL
+**Database**: PostgreSQL (auth_db)
 **Last Updated**: 2026-02-18
 
 ## ERD
@@ -300,6 +300,15 @@ erDiagram
 - 승인 시 ROLE_SHOPPING_SELLER 역할 자동 부여
 
 ## Migrations
+
+### ADR-046: MySQL → PostgreSQL 전환 (2026-02-18)
+
+| 변경 | 내용 |
+|------|------|
+| DB 엔진 | MySQL 8.0 → PostgreSQL |
+| Flyway | V1~V5 통합 → V1__init.sql (최종 상태) |
+| updated_at | ON UPDATE CURRENT_TIMESTAMP → PostgreSQL Trigger |
+| AUTO_INCREMENT | GENERATED ALWAYS AS IDENTITY |
 
 ### V2: 역할+서비스 복합 멤버십 재구조화 (ADR-021)
 

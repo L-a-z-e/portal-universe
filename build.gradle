@@ -17,6 +17,24 @@ subprojects {
         return
     }
 
+    // bootRun 시 .env.local 자동 로드 (비밀번호 등 민감 정보 분리)
+    tasks.matching { it.name == 'bootRun' }.configureEach {
+        doFirst {
+            def envFile = file("${projectDir}/.env.local")
+            if (envFile.exists()) {
+                envFile.readLines().each { line ->
+                    def trimmed = line.trim()
+                    if (trimmed && !trimmed.startsWith('#') && trimmed.contains('=')) {
+                        def idx = trimmed.indexOf('=')
+                        def key = trimmed.substring(0, idx).trim()
+                        def value = trimmed.substring(idx + 1).trim()
+                        environment key, value
+                    }
+                }
+            }
+        }
+    }
+
     // Java 플러그인이 적용된 프로젝트에 공통 설정
     pluginManager.withPlugin('java') {
         apply plugin: 'io.spring.dependency-management'

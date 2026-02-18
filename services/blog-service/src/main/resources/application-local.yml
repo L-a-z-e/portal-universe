@@ -25,7 +25,7 @@ services:
 spring:
   data:
     mongodb:
-      uri: mongodb://laze:${MONGO_PASSWORD:password}@localhost:27017/blog_db?authSource=admin
+      uri: mongodb://laze:${MONGO_PASSWORD}@localhost:27017/blog_db?authSource=admin
 
   kafka:
     bootstrap-servers: localhost:9092
