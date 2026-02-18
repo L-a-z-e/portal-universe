@@ -2,7 +2,7 @@
 
 > MSA + MFA Polyglot Project 중앙 문서 저장소
 
-**마지막 업데이트**: 2026-02-13 (Prism/Chatbot 보안 아키텍처 추가)
+**마지막 업데이트**: 2026-02-18
 
 ---
 
@@ -28,21 +28,27 @@ docs/
 ### 백엔드
 | 서비스 | 아키텍처 | API |
 |--------|----------|-----|
-| **Auth** (8081) | [architecture/auth-service/](architecture/auth-service/) | [api/auth-service/](api/auth-service/) |
-| **Shopping** (8083) | [architecture/shopping-service/](architecture/shopping-service/) | [api/shopping-service/](api/shopping-service/) |
-| **Blog** (8082) | [architecture/blog-service/](architecture/blog-service/) | [api/blog-service/](api/blog-service/) |
-| **Notification** (8084) | [architecture/notification-service/](architecture/notification-service/) | [api/notification-service/](api/notification-service/) |
 | **API Gateway** (8080) | [architecture/api-gateway/](architecture/api-gateway/) | [api/api-gateway/](api/api-gateway/) |
-| **Chatbot** (8086) | [architecture/chatbot-service/](architecture/chatbot-service/) | [api/chatbot-service/](api/chatbot-service/) |
+| **Auth** (8081) | [architecture/auth-service/](architecture/auth-service/) | [api/auth-service/](api/auth-service/) |
+| **Blog** (8082) | [architecture/blog-service/](architecture/blog-service/) | [api/blog-service/](api/blog-service/) |
+| **Shopping** (8083) | [architecture/shopping-service/](architecture/shopping-service/) | [api/shopping-service/](api/shopping-service/) |
+| **Notification** (8084) | [architecture/notification-service/](architecture/notification-service/) | [api/notification-service/](api/notification-service/) |
 | **Prism** (8085) | [architecture/prism-service/](architecture/prism-service/) | - |
+| **Chatbot** (8086) | [architecture/chatbot-service/](architecture/chatbot-service/) | [api/chatbot-service/](api/chatbot-service/) |
+| **Drive** (8087) | - | - |
+| **Shopping Seller** (8088) | [architecture/shopping-seller-service/](architecture/shopping-seller-service/) | [api/shopping-seller-service/](api/shopping-seller-service/) |
+| **Shopping Settlement** (8089) | [architecture/shopping-settlement-service/](architecture/shopping-settlement-service/) | [api/shopping-settlement-service/](api/shopping-settlement-service/) |
 
 ### 프론트엔드
 | 프로젝트 | 아키텍처 | API |
 |---------|----------|-----|
 | **Portal Shell** (30000, Vue) | [architecture/portal-shell/](architecture/portal-shell/) | [api/portal-shell/](api/portal-shell/) |
-| **Shopping Frontend** (30002, React) | [architecture/shopping-frontend/](architecture/shopping-frontend/) | [api/shopping-frontend/](api/shopping-frontend/) |
 | **Blog Frontend** (30001, Vue) | [architecture/blog-frontend/](architecture/blog-frontend/) | [api/blog-frontend/](api/blog-frontend/) |
+| **Shopping Frontend** (30002, React) | [architecture/shopping-frontend/](architecture/shopping-frontend/) | [api/shopping-frontend/](api/shopping-frontend/) |
 | **Prism Frontend** (30003, React) | [architecture/prism-frontend/](architecture/prism-frontend/) | - |
+| **Admin Frontend** (30004, Vue) | [architecture/admin-frontend/](architecture/admin-frontend/) | - |
+| **Drive Frontend** (30005, Vue) | - | - |
+| **Shopping Seller Frontend** (30006, React) | [architecture/shopping-seller-frontend/](architecture/shopping-seller-frontend/) | - |
 | **Design System** (Vue + React) | [architecture/design-system/](architecture/design-system/) | - |
 
 ### 시스템
@@ -62,7 +68,7 @@ docs/
 
 ## ADR (Architecture Decision Records)
 
-[전체 ADR 목록](adr/_INDEX.md)
+[전체 ADR 목록](adr/README.md)
 
 ---
 

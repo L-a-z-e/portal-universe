@@ -51,6 +51,7 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-043 | [Design System 3-Package 통합](./ADR-043-design-system-package-consolidation.md) | Accepted   | 2026-02-17 |
 | ADR-044 | [Role Multi-Include DAG + JWT Effective Roles](./ADR-044-role-multi-include-dag.md) | Accepted   | 2026-02-18 |
 | ADR-045 | [역할 기본 멤버십 자동 매핑](./ADR-045-role-default-membership-mapping.md) | Accepted   | 2026-02-18 |
+| ADR-046 | [MySQL → PostgreSQL 마이그레이션](./ADR-046-mysql-to-postgresql-migration.md) | Accepted   | 2026-02-18 |
 
 ## 상태 정의
 

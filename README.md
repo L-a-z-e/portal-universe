@@ -7,14 +7,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-brightgreen)
-![NestJS](https://img.shields.io/badge/NestJS-10-red)
+![NestJS](https://img.shields.io/badge/NestJS-11-red)
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 
 > Polyglot microservices platform with Micro-Frontend architecture, Kafka event-driven communication, and full observability stack
 
 ## Overview
 
-- **Polyglot Microservices**: 8 backend services across Java/Spring Boot, NestJS, and Python/FastAPI
+- **Polyglot Microservices**: 10 backend services across Java/Spring Boot, NestJS, and Python/FastAPI
 - **Micro-Frontend**: Module Federation with Vue 3 Host + React 18 Remotes
 - **Event-Driven**: Kafka-based async communication with JSON Schema event contracts
 - **Full Observability**: Prometheus, Grafana, Zipkin, Loki, Kibana, Alertmanager
@@ -35,16 +35,21 @@ graph TB
     GW --> Prism[Prism Service :8085]
     GW --> Chat[Chatbot Service :8086]
     GW --> Drive[Drive Service :8087]
+    GW --> Seller[Shopping Seller :8088]
+    GW --> Settle[Shopping Settlement :8089]
 
-    Auth --> MySQL[(MySQL)]
+    Auth --> PostgreSQL[(PostgreSQL)]
     Blog --> MongoDB[(MongoDB)]
-    Shop --> MySQL
-    Notif --> MySQL
-    Drive --> PostgreSQL[(PostgreSQL)]
+    Shop --> PostgreSQL
+    Seller --> PostgreSQL
+    Settle --> PostgreSQL
+    Notif --> MySQL[(MySQL)]
+    Drive --> PostgreSQL
     Prism --> PostgreSQL
 
     Auth --> Kafka{{Kafka}}
     Shop --> Kafka
+    Seller --> Kafka
     Blog --> Kafka
     Drive --> Kafka
     Prism --> Kafka
@@ -65,9 +70,11 @@ graph LR
     Shell --> PrismFE[Prism :30003<br/>React 18]
     Shell --> AdminFE[Admin :30004<br/>Vue 3]
     Shell --> DriveFE[Drive :30005<br/>Vue 3]
+    Shell --> SellerFE[Shopping Seller :30006<br/>React 18]
 
     Shell -. "exposes: apiClient, authStore" .-> ShopFE
     Shell -. "exposes: apiClient, authStore" .-> PrismFE
+    Shell -. "exposes: apiClient, authStore" .-> SellerFE
 ```
 
 ## Project Structure
@@ -78,7 +85,9 @@ portal-universe/
 │   ├── api-gateway/             # Java/Spring - Routing, JWT, Circuit Breaker
 │   ├── auth-service/            # Java/Spring - Auth, OAuth2, RBAC
 │   ├── blog-service/            # Java/Spring - Blog, Markdown, S3
-│   ├── shopping-service/        # Java/Spring - E-commerce, Saga, Queue
+│   ├── shopping-service/        # Java/Spring - Cart, Order, Payment (Buyer)
+│   ├── shopping-seller-service/ # Java/Spring - Seller, Product, Inventory
+│   ├── shopping-settlement-service/ # Java/Spring - Settlement, Spring Batch
 │   ├── notification-service/    # Java/Spring - Kafka consumer, SSE
 │   ├── drive-service/           # Java/Spring - File storage
 │   ├── prism-service/           # NestJS - AI task management, Kanban
@@ -94,14 +103,15 @@ portal-universe/
 │   ├── prism-frontend/          # React 18 - MF Remote
 │   ├── admin-frontend/          # Vue 3 - MF Remote
 │   ├── drive-frontend/          # Vue 3 - MF Remote
-│   ├── design-system-vue/       # Vue component library (Storybook :6006)
-│   ├── design-system-react/     # React component library (Storybook :6007)
-│   ├── design-tokens/           # Shared design tokens
-│   ├── design-types/            # Shared TypeScript types
+│   ├── shopping-seller-frontend/# React 18 - MF Remote
+│   ├── design-core/             # Shared design tokens, types, variants
+│   ├── design-vue/              # Vue component library (Storybook :6006)
+│   ├── design-react/            # React component library (Storybook :6007)
+│   ├── vue-bridge/              # MF bridge for Vue remotes
 │   ├── react-bridge/            # MF bridge for React remotes
 │   └── react-bootstrap/         # React app bootstrapper
 ├── docs/                        # Documentation
-│   ├── adr/                     # Architecture Decision Records (39)
+│   ├── adr/                     # Architecture Decision Records (47)
 │   ├── api/                     # API specifications
 │   ├── architecture/            # System & service architecture
 │   ├── guides/                  # Development & deployment guides
@@ -117,10 +127,10 @@ portal-universe/
 
 | Category | Technologies |
 |----------|-------------|
-| **Backend** | Java 17, Spring Boot 3.5.5, Spring Cloud 2025.0.0, NestJS 10, Python 3.11 / FastAPI |
+| **Backend** | Java 17, Spring Boot 3.5.5, Spring Cloud 2025.0.0, NestJS 11, Python 3.11 / FastAPI |
 | **Frontend** | Vue 3, React 18, Vite, Module Federation, TypeScript |
 | **Design System** | Vue + React dual libraries, shared design tokens |
-| **Database** | MySQL 8.0, PostgreSQL 18, MongoDB 8.0, Redis 7.4 |
+| **Database** | PostgreSQL 18, MySQL 8.0, MongoDB 8.0, Redis 7.4 |
 | **Search** | Elasticsearch 8.18 |
 | **Messaging** | Apache Kafka 4.1 (KRaft mode) |
 | **Monitoring** | Prometheus, Grafana, Zipkin, Loki, Alertmanager, Kibana, Dozzle |
@@ -137,11 +147,13 @@ portal-universe/
 | API Gateway | 8080 | Java/Spring | Routing, JWT validation, Circuit Breaker | - |
 | Auth Service | 8081 | Java/Spring | OAuth2/JWT, social login, hierarchical RBAC, membership | [API](docs/api/auth-service/) |
 | Blog Service | 8082 | Java/Spring | Posts, series, comments, S3 file upload | [API](docs/api/blog-service/) |
-| Shopping Service | 8083 | Java/Spring | Products, cart, orders, Saga pattern, queue system | [API](docs/api/shopping-service/) |
+| Shopping Service | 8083 | Java/Spring | Cart, orders, payment, delivery (Buyer) | [API](docs/api/shopping-service/) |
 | Notification Service | 8084 | Java/Spring | Kafka event consumer, real-time SSE notifications | [API](docs/api/notification-service/) |
 | Prism Service | 8085 | NestJS | AI task management, Kanban board, AI execution | [Notion](https://www.notion.so/2f73df01028f81868293f88213d1a69c) |
 | Chatbot Service | 8086 | Python/FastAPI | AI chatbot, RAG-based conversation | [API](docs/api/chatbot-service/) |
 | Drive Service | 8087 | Java/Spring | File storage and management | - |
+| Shopping Seller Service | 8088 | Java/Spring | Seller, product, inventory, coupon, time-deal | [API](docs/api/shopping-seller-service/) |
+| Shopping Settlement Service | 8089 | Java/Spring | Settlement batch, Spring Batch | [API](docs/api/shopping-settlement-service/) |
 
 ### Shared Libraries
 
@@ -154,6 +166,7 @@ portal-universe/
 | `shopping-events` | Java | Shopping domain Kafka event DTOs |
 | `drive-events` | Java | Drive domain Kafka event DTOs |
 | `prism-events` | Java | Prism domain Kafka event DTOs |
+| `vue-bridge` | TypeScript | Module Federation bridge for Vue remotes |
 | `react-bridge` | TypeScript | Module Federation bridge for React remotes |
 | `react-bootstrap` | TypeScript | Bootstrapper for React remote apps |
 
@@ -163,26 +176,26 @@ portal-universe/
 |-----|------|------|---------|-------------|
 | Portal Shell | 30000 | Vue 3 | Host | Main shell, auth, routing, shared API client |
 | Blog Frontend | 30001 | Vue 3 | - | Blog with Markdown editor |
-| Shopping Frontend | 30002 | React 18 | Remote | E-commerce storefront + admin |
+| Shopping Frontend | 30002 | React 18 | Remote | E-commerce storefront (Buyer) |
 | Prism Frontend | 30003 | React 18 | Remote | AI task management, Kanban |
 | Admin Frontend | 30004 | Vue 3 | Remote | Admin dashboard |
 | Drive Frontend | 30005 | Vue 3 | Remote | File management |
+| Shopping Seller Frontend | 30006 | React 18 | Remote | Seller management (Product, Inventory) |
 
 ### Design System
 
-Dual component libraries with shared foundations:
+3-package architecture with shared foundations (ADR-043):
 
-- **design-tokens**: Platform-independent design tokens (colors, spacing, typography)
-- **design-types**: Shared TypeScript type definitions
-- **design-system-vue**: Vue 3 component library (Storybook on `:6006`)
-- **design-system-react**: React 18 component library (Storybook on `:6007`)
+- **design-core**: Design tokens, TypeScript types, variant classes (SSOT)
+- **design-vue**: Vue 3 component library (Storybook on `:6006`)
+- **design-react**: React 18 component library (Storybook on `:6007`)
 
 ### Infrastructure (docker-compose-local.yml)
 
 | Service | Port | Description |
 |---------|------|-------------|
-| MySQL | 3307 | Auth, Shopping, Notification data |
-| PostgreSQL | 5432 | Prism, Drive data |
+| PostgreSQL | 5432 | Auth, Shopping, Seller, Settlement, Prism, Drive data |
+| MySQL | 3307 | Notification data |
 | MongoDB | 27017 | Blog data |
 | Redis | 6379 | Caching, coupon issuing, queue |
 | Elasticsearch | 9200 | Search, Zipkin storage |
@@ -231,7 +244,7 @@ docker compose -f docker-compose-local.yml up -d
 
 ### 2. Backend Services
 
-#### Java/Spring (6 services)
+#### Java/Spring (8 services)
 
 Run from project root using Gradle multi-module:
 
@@ -240,6 +253,8 @@ Run from project root using Gradle multi-module:
 ./gradlew services:auth-service:bootRun --args='--spring.profiles.active=local'
 ./gradlew services:blog-service:bootRun --args='--spring.profiles.active=local'
 ./gradlew services:shopping-service:bootRun --args='--spring.profiles.active=local'
+./gradlew services:shopping-seller-service:bootRun --args='--spring.profiles.active=local'
+./gradlew services:shopping-settlement-service:bootRun --args='--spring.profiles.active=local'
 ./gradlew services:notification-service:bootRun --args='--spring.profiles.active=local'
 ./gradlew services:drive-service:bootRun --args='--spring.profiles.active=local'
 ```
@@ -304,6 +319,7 @@ Or run individually:
 | `npm run dev:prism` | Prism | 30003 |
 | `npm run dev:admin` | Admin | 30004 |
 | `npm run dev:drive` | Drive | 30005 |
+| `npm run dev:seller` | Shopping Seller | 30006 |
 
 > Hot reload is enabled for all frontend apps.
 
@@ -311,9 +327,9 @@ Or run individually:
 
 | Range | Services |
 |-------|----------|
-| **8080-8087** | Backend (API Gateway, Auth, Blog, Shopping, Notification, Prism, Chatbot, Drive) |
-| **30000-30005** | Frontend (Shell, Blog, Shopping, Prism, Admin, Drive) |
-| **3307, 5432, 27017** | Databases (MySQL, PostgreSQL, MongoDB) |
+| **8080-8089** | Backend (API Gateway, Auth, Blog, Shopping, Notification, Prism, Chatbot, Drive, Seller, Settlement) |
+| **30000-30006** | Frontend (Shell, Blog, Shopping, Prism, Admin, Drive, Seller) |
+| **5432, 3307, 27017** | Databases (PostgreSQL, MySQL, MongoDB) |
 | **6379, 9092, 9200** | Redis, Kafka, Elasticsearch |
 | **3000, 9090, 9411, 5601** | Monitoring (Grafana, Prometheus, Zipkin, Kibana) |
 
@@ -338,7 +354,7 @@ Open these URLs to confirm everything is running:
 
 | Category | Description | Link |
 |----------|-------------|------|
-| **ADR** | 39 Architecture Decision Records | [docs/adr/](docs/adr/) |
+| **ADR** | 47 Architecture Decision Records | [docs/adr/](docs/adr/) |
 | **API** | REST API specifications per service | [docs/api/](docs/api/) |
 | **Architecture** | System & service architecture | [docs/architecture/](docs/architecture/) |
 | **Guides** | Development & deployment guides | [docs/guides/](docs/guides/) |
