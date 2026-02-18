@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -30,8 +29,7 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    // 외부 노출용 식별자 (UUID v7 권장되나 편의상 기본 UUID 전략 사용)
-    @UuidGenerator
+    // 외부 노출용 식별자 (DataInitializer에서 고정 UUID 사전 할당 가능)
     @Column(nullable = false, unique = true, updatable = false)
     private String uuid;
 
@@ -68,6 +66,17 @@ public class User {
         this.email = email;
         this.password = password;
         this.status = UserStatus.ACTIVE;
+    }
+
+    @PrePersist
+    private void generateUuidIfNeeded() {
+        if (this.uuid == null) {
+            this.uuid = java.util.UUID.randomUUID().toString();
+        }
+    }
+
+    public void assignUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public void setProfile(UserProfile profile) {

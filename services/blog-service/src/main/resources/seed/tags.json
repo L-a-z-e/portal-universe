@@ -1,0 +1,14 @@
+[
+  { "name": "Spring Boot", "description": "Java 기반 웹 프레임워크" },
+  { "name": "Vue.js", "description": "Progressive JavaScript Framework" },
+  { "name": "React", "description": "UI 라이브러리" },
+  { "name": "TypeScript", "description": "타입 안전한 JavaScript" },
+  { "name": "Docker", "description": "컨테이너 플랫폼" },
+  { "name": "Kubernetes", "description": "컨테이너 오케스트레이션" },
+  { "name": "여행", "description": "국내외 여행 이야기" },
+  { "name": "맛집", "description": "맛집 탐방과 리뷰" },
+  { "name": "UI/UX", "description": "사용자 경험 디자인" },
+  { "name": "취업준비", "description": "개발자 취업 준비 기록" },
+  { "name": "일상", "description": "일상 이야기" },
+  { "name": "MongoDB", "description": "NoSQL 문서 데이터베이스" }
+]
