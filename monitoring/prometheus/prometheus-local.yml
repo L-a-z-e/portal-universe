@@ -75,12 +75,12 @@ scrape_configs:
       - target_label: service
         replacement: 'cadvisor'
 
-  - job_name: 'mysql-exporter'
+  - job_name: 'mysql-exporter'  # notification-service 전용 (MySQL)
     static_configs:
       - targets: ['mysql-exporter:9104']
     relabel_configs:
       - target_label: service
-        replacement: 'mysql'
+        replacement: 'mysql-notification'
 
   - job_name: 'redis-exporter'
     static_configs:

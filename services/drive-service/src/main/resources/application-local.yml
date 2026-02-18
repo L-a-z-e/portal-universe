@@ -9,7 +9,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/drive
     username: laze
-    password: ${DB_PASSWORD:password}
+    password: ${DB_PASSWORD:Laze2026!}
     driver-class-name: org.postgresql.Driver
 
   flyway:
