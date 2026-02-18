@@ -19,7 +19,7 @@ $$ LANGUAGE plpgsql;
 -- 판매자
 CREATE TABLE IF NOT EXISTS sellers (
   id                  BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
-  user_id             BIGINT NOT NULL,
+  user_id             VARCHAR(255) NOT NULL,
   business_name       VARCHAR(100) NOT NULL,
   business_number     VARCHAR(20) DEFAULT NULL,
   representative_name VARCHAR(50) DEFAULT NULL,
