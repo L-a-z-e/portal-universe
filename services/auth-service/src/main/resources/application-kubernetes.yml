@@ -39,7 +39,7 @@ feign:
 
 spring:
   datasource:
-    url: jdbc:mysql://mysql-db:3306/auth_db?useSSL=true&requireSSL=true&allowPublicKeyRetrieval=false
+    url: jdbc:postgresql://postgresql:5432/auth_db
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     hikari:
