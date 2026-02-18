@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://postgresql:5432/shopping_seller_db
     username: ${DB_USER:laze}
-    password: ${DB_PASSWORD:Laze2026!}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

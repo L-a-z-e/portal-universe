@@ -47,7 +47,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/auth_db
     username: ${DB_USER:laze}
-    password: ${DB_PASSWORD:password}
+    password: ${DB_PASSWORD}
 
   flyway:
     enabled: true
