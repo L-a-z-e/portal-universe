@@ -39,7 +39,7 @@
 
 | 서비스 | 디렉토리 | 설명 | 문서 수 |
 |--------|----------|------|---------|
-| Database | [database/](./database/) | ERD, Migration 전략 | 6 |
+| Database | [database/](./database/) | ERD, Migration 전략 | 8 |
 | System | [system/](./system/) | 통합 시스템 아키텍처, 보안, 모니터링 | 7 |
 
 ---
@@ -51,4 +51,4 @@
 
 ---
 
-**최종 업데이트**: 2026-02-14
+**최종 업데이트**: 2026-02-18

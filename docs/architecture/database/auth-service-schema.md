@@ -1,6 +1,6 @@
 # Auth Service Database Schema
 
-**Database**: MySQL
+**Database**: PostgreSQL (auth_db)
 **Last Updated**: 2026-02-18
 
 ## ERD
@@ -273,6 +273,22 @@ erDiagram
 - `roles.role_key`: 역할 키로 검색 (UK)
 - `permissions.permission_key`: 권한 키로 검색 (UK)
 
+## Seed Data (local/docker profile)
+
+`DataInitializer`가 서비스 시작 시 테스트 사용자를 자동 생성합니다. 이메일 중복 시 스킵 (멱등성).
+
+| Email | 닉네임 | 역할 | 고정 UUID |
+|-------|--------|------|-----------|
+| test@test.com | 테스트사용자 | ROLE_USER | `00000000-0000-0000-0000-000000000001` |
+| admin@test.com | 관리자 | ROLE_USER + ROLE_SUPER_ADMIN | `00000000-0000-0000-0000-000000000002` |
+| dev.kim@test.com | 김개발 | ROLE_USER | `00000000-0000-0000-0000-000000000101` |
+| travel.lee@test.com | 이여행 | ROLE_USER | `00000000-0000-0000-0000-000000000102` |
+| design.park@test.com | 박디자인 | ROLE_USER | `00000000-0000-0000-0000-000000000103` |
+| study.choi@test.com | 최공부 | ROLE_USER | `00000000-0000-0000-0000-000000000104` |
+| cook.jung@test.com | 정맛집 | ROLE_USER | `00000000-0000-0000-0000-000000000105` |
+
+블로거 5명의 UUID는 blog-service seed data와 매칭됩니다.
+
 ## Business Rules
 
 ### 사용자 가입
@@ -300,6 +316,15 @@ erDiagram
 - 승인 시 ROLE_SHOPPING_SELLER 역할 자동 부여
 
 ## Migrations
+
+### ADR-046: MySQL → PostgreSQL 전환 (2026-02-18)
+
+| 변경 | 내용 |
+|------|------|
+| DB 엔진 | MySQL 8.0 → PostgreSQL |
+| Flyway | V1~V5 통합 → V1__init.sql (최종 상태) |
+| updated_at | ON UPDATE CURRENT_TIMESTAMP → PostgreSQL Trigger |
+| AUTO_INCREMENT | GENERATED ALWAYS AS IDENTITY |
 
 ### V2: 역할+서비스 복합 멤버십 재구조화 (ADR-021)
 

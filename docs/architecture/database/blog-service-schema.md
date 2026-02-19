@@ -265,6 +265,25 @@ db.series.createIndex({ authorId: 1 })                     // 작성자별 시�
 - 시리즈에서 Post 제거 시 배열에서 삭제
 - 순서 변경은 배열 재정렬
 
+## Seed Data (local/docker profile)
+
+`DataInitializer`가 서비스 시작 시 seed data를 자동 생성합니다. `postRepository.count() > 0`이면 스킵 (멱등성).
+
+| Collection | 건수 | 설명 |
+|-----------|------|------|
+| tags | 12 | Spring Boot, Vue.js, React, TypeScript, Docker, Kubernetes, 여행, 맛집, UI/UX, 취업준비, 일상, MongoDB |
+| posts | 15 | 5명 블로거 작성, 2025-10~2026-02 분포, 14 PUBLISHED + 1 DRAFT |
+| series | 3 | Spring Boot 실전 / 제주도 한 달 살기 / 디자인 시스템 이야기 |
+| comments | 15 | 교차 작성, 대댓글 4개 포함 |
+| likes | ~20 | 게시물별 1~3개, 교차 좋아요 |
+
+**작성자 UUID** (auth-service DataInitializer 매칭):
+- 김개발: `00000000-0000-0000-0000-000000000101`
+- 이여행: `00000000-0000-0000-0000-000000000102`
+- 박디자인: `00000000-0000-0000-0000-000000000103`
+- 최공부: `00000000-0000-0000-0000-000000000104`
+- 정맛집: `00000000-0000-0000-0000-000000000105`
+
 ## MongoDB 최적화
 
 ### Aggregation Pipeline 활용

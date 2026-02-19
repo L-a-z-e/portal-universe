@@ -3,13 +3,13 @@
 # 프로덕션에서는 필요한 포트만 노출하세요.
 services:
   # ========================================
-  # PostgreSQL (for Prism Service)
+  # PostgreSQL (auth, shopping, seller, settlement, prism, drive)
   # ========================================
   postgresql:
     image: postgres:18-alpine
     container_name: postgresql
-    mem_limit: 256m
-    memswap_limit: 256m
+    mem_limit: 512m
+    memswap_limit: 512m
     cpus: 0.5
     pids_limit: 128
     logging:
@@ -18,10 +18,12 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgresql-data:/var/lib/postgresql/data
-      - ./infrastructure/postgresql/init-prism.sql:/docker-entrypoint-initdb.d/init-prism.sql
+      - ./infrastructure/postgresql/init-prism.sql:/docker-entrypoint-initdb.d/01-init-prism.sql
+      - ./infrastructure/postgresql/init-drive.sql:/docker-entrypoint-initdb.d/02-init-drive.sql
+      - ./infrastructure/postgresql/init-services.sql:/docker-entrypoint-initdb.d/03-init-services.sql
     env_file:
       - .env.docker
     networks:
@@ -32,27 +34,26 @@ services:
       timeout: 5s
       retries: 5
 
+  # MySQL (notification-service 전용)
   mysql-db:
     image: mysql:8.0
     container_name: mysql-db
-    mem_limit: 1g
-    memswap_limit: 1g
-    cpus: 1.0
-    pids_limit: 256
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
     logging:
       driver: json-file
       options:
-        max-size: "50m"
-        max-file: "5"
+        max-size: "10m"
+        max-file: "3"
     ports:
-      - "3307:3306"
+      - "127.0.0.1:3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./infrastructure/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     env_file:
       - .env.docker
-    environment:
-      - MYSQL_ROOT_HOST=%
     networks:
       - portal-universe-net
     healthcheck:
@@ -74,7 +75,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo-data:/data/db
     env_file:
@@ -95,7 +96,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
@@ -127,7 +128,7 @@ services:
       - http.compression=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
-      - "9200:9200"
+      - "127.0.0.1:9200:9200"
     volumes:
       - es-data:/usr/share/elasticsearch/data
     networks:
@@ -151,7 +152,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "5601:5601"
+      - "127.0.0.1:5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     depends_on:
@@ -173,9 +174,9 @@ services:
         max-size: "50m"
         max-file: "5"
     ports:
-      - "9092:9092"
-      - "29092:29092"
-      - "9093:9093"
+      - "127.0.0.1:9092:9092"
+      - "127.0.0.1:29092:29092"
+      - "127.0.0.1:9093:9093"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_NODE_ID: 1
@@ -217,7 +218,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_TRUSTEDPROXIES=[0.0.0.0/0]
@@ -249,7 +250,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     env_file:
       - path: ./services/auth-service/.env.docker
         required: true
@@ -261,15 +262,15 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DB_USER=laze
-      - DB_PASSWORD=password
+      - DB_PASSWORD=Laze2026!
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5
     depends_on:
-      mysql-db:
-        condition: service_started
+      postgresql:
+        condition: service_healthy
       kafka:
         condition: service_started
       redis:
@@ -292,11 +293,11 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "8082:8082"
+      - "127.0.0.1:8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - MONGO_USER=laze
-      - MONGO_PASSWORD=password
+      - MONGO_PASSWORD=Laze2026!
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
       interval: 10s
@@ -325,11 +326,11 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "8083:8083"
+      - "127.0.0.1:8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - DB_USER=laze
-      - DB_PASSWORD=password
+      - DB_PASSWORD=Laze2026!
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health" ]
       interval: 10s
@@ -338,8 +339,8 @@ services:
     depends_on:
       api-gateway:
         condition: service_healthy
-      mysql-db:
-        condition: service_started
+      postgresql:
+        condition: service_healthy
       kafka:
         condition: service_started
       redis:
@@ -364,11 +365,11 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "8084:8084"
+      - "127.0.0.1:8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - DB_USER=laze
-      - DB_PASSWORD=password
+      - DB_PASSWORD=Laze2026!
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
       interval: 10s
@@ -403,7 +404,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "30000:8443"
+      - "127.0.0.1:30000:8443"
     volumes:
       - ./certs:/etc/nginx/certs:ro
     depends_on:
@@ -429,7 +430,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "30001:8080"
+      - "127.0.0.1:30001:8080"
     depends_on:
       portal-shell:
         condition: service_started
@@ -453,7 +454,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "30002:8080"
+      - "127.0.0.1:30002:8080"
     depends_on:
       portal-shell:
         condition: service_started
@@ -478,7 +479,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "8085:8085"
+      - "127.0.0.1:8085:8085"
     env_file:
       - ./services/prism-service/.env.docker
     healthcheck:
@@ -515,7 +516,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "30003:8080"
+      - "127.0.0.1:30003:8080"
     depends_on:
       portal-shell:
         condition: service_started
@@ -539,7 +540,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "30004:8080"
+      - "127.0.0.1:30004:8080"
     depends_on:
       portal-shell:
         condition: service_started
@@ -564,7 +565,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "8086:8086"
+      - "127.0.0.1:8086:8086"
     environment:
       - AI_PROVIDER=${AI_PROVIDER:-ollama}
       - AI_MODEL=${AI_MODEL:-llama3}
@@ -614,7 +615,7 @@ services:
       - ./monitoring/prometheus/rules:/etc/prometheus/rules
       - prometheus-data:/prometheus
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     networks:
       - portal-universe-net
     command:
@@ -642,7 +643,7 @@ services:
       - ./monitoring/alertmanager/templates:/etc/alertmanager/templates
       - alertmanager-data:/alertmanager
     ports:
-      - "9094:9093"
+      - "127.0.0.1:9094:9093"
     networks:
       - portal-universe-net
     command:
@@ -672,7 +673,7 @@ services:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
       - portal-universe-net
     depends_on:
@@ -695,7 +696,7 @@ services:
       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
       - loki-data:/loki
     ports:
-      - "3100:3100"
+      - "127.0.0.1:3100:3100"
     networks:
       - portal-universe-net
     command: -config.file=/etc/loki/local-config.yaml
@@ -737,7 +738,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "9411:9411"
+      - "127.0.0.1:9411:9411"
     environment:
       - STORAGE_TYPE=elasticsearch
       - ES_HOSTS=http://elasticsearch:9200
@@ -769,7 +770,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "8888:8080"
+      - "127.0.0.1:8888:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /sys:/sys:ro
@@ -791,7 +792,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "9104:9104"
+      - "127.0.0.1:9104:9104"
     volumes:
       - ./infrastructure/mysql/exporter.my.cnf:/.my.cnf:ro
     depends_on:
@@ -814,7 +815,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "9121:9121"
+      - "127.0.0.1:9121:9121"
     environment:
       REDIS_ADDR: "redis://redis:6379"
     depends_on:
@@ -837,7 +838,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "9308:9308"
+      - "127.0.0.1:9308:9308"
     command:
       - "--kafka.server=kafka:29092"
       - "--topic.filter=.*"
@@ -862,7 +863,7 @@ services:
         max-size: "10m"
         max-file: "3"
     ports:
-      - "4566:4566"
+      - "127.0.0.1:4566:4566"
     environment:
       - SERVICES=s3
       - AWS_DEFAULT_REGION=ap-northeast-2
@@ -892,7 +893,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "9999:8080"
+      - "127.0.0.1:9999:8080"
     networks:
       - portal-universe-net
 

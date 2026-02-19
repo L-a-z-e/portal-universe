@@ -59,8 +59,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation API
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // Spring Data JPA
     implementation 'org.flywaydb:flyway-core' // Database migration
-    implementation 'org.flywaydb:flyway-mysql' // Flyway MySQL support
-    runtimeOnly 'com.mysql:mysql-connector-j' // MySQL Driver
+    implementation 'org.flywaydb:flyway-database-postgresql' // Flyway PostgreSQL support
+    runtimeOnly 'org.postgresql:postgresql' // PostgreSQL Driver
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis for token storage
 
@@ -89,7 +89,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:junit-jupiter' // Integration tests with Docker containers
-    testImplementation 'org.testcontainers:mysql' // MySQL container for testing
+    testImplementation 'org.testcontainers:postgresql' // PostgreSQL container for testing
     testImplementation 'io.jsonwebtoken:jjwt-api:0.12.6' // JWT token generation in tests
     testImplementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
     testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.6'

@@ -1,6 +1,5 @@
 package com.portal.universe.authservice.common.config;
 
-import com.portal.universe.authservice.auth.domain.RoleEntity;
 import com.portal.universe.authservice.auth.domain.UserRole;
 import com.portal.universe.authservice.auth.repository.RoleEntityRepository;
 import com.portal.universe.authservice.auth.repository.UserRoleRepository;
@@ -43,7 +42,8 @@ public class DataInitializer {
                     "test1234",
                     "테스트사용자",
                     "laze",
-                    false
+                    false,
+                    "00000000-0000-0000-0000-000000000001"
             );
 
             // Admin 테스트 유저 생성 (ROLE_USER + ROLE_SUPER_ADMIN + FREE 멤버십)
@@ -52,7 +52,54 @@ public class DataInitializer {
                     "admin1234",
                     "관리자",
                     "laze",
-                    true
+                    true,
+                    "00000000-0000-0000-0000-000000000002"
+            );
+
+            // 블로거 테스트 유저 5명 (ROLE_USER + FREE 멤버십)
+            createTestUser(
+                    "dev.kim@test.com",
+                    "test1234",
+                    "김개발",
+                    "김민수",
+                    false,
+                    "00000000-0000-0000-0000-000000000101"
+            );
+
+            createTestUser(
+                    "travel.lee@test.com",
+                    "test1234",
+                    "이여행",
+                    "이수진",
+                    false,
+                    "00000000-0000-0000-0000-000000000102"
+            );
+
+            createTestUser(
+                    "design.park@test.com",
+                    "test1234",
+                    "박디자인",
+                    "박지현",
+                    false,
+                    "00000000-0000-0000-0000-000000000103"
+            );
+
+            createTestUser(
+                    "study.choi@test.com",
+                    "test1234",
+                    "최공부",
+                    "최준호",
+                    false,
+                    "00000000-0000-0000-0000-000000000104"
+            );
+
+            createTestUser(
+                    "cook.jung@test.com",
+                    "test1234",
+                    "정맛집",
+                    "정서연",
+                    false,
+                    "00000000-0000-0000-0000-000000000105"
             );
         };
     }
@@ -63,9 +110,10 @@ public class DataInitializer {
      * RBAC 초기화(ROLE_USER + FREE 멤버십)를 함께 수행합니다.
      *
      * @param isAdmin true이면 ROLE_SUPER_ADMIN 추가 할당
+     * @param fixedUuid 고정 UUID (blog-service seed data 매칭용)
      */
     private void createTestUser(String email, String password, String nickname,
-                                String realName, boolean isAdmin) {
+                                String realName, boolean isAdmin, String fixedUuid) {
         if (userRepository.findByEmail(email).isPresent()) {
             log.info("Test user already exists: email={}", email);
             return;
@@ -74,6 +122,7 @@ public class DataInitializer {
         log.info("Creating test user: email={}, admin={}", email, isAdmin);
 
         User user = new User(email, passwordEncoder.encode(password));
+        user.assignUuid(fixedUuid);
         UserProfile profile = new UserProfile(user, nickname, realName, true);
         user.setProfile(profile);
         User savedUser = userRepository.save(user);
