@@ -26,7 +26,8 @@ export interface LikeStatusResponse {
  */
 export interface LikerResponse {
   userId: string;
-  username: string;
+  userName: string; // Handle
+  nickname: string; // Display Name
   profileImageUrl?: string;
   likedAt: string;
 }

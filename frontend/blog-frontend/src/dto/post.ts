@@ -108,7 +108,8 @@ export interface PostSearchRequest {
  */
 export interface AuthorStats {
   authorId: string;
-  authorName: string;
+  authorUsername: string;
+  authorNickname: string;
   totalPosts: number;
   publishedPosts: number;
   totalViews: number;

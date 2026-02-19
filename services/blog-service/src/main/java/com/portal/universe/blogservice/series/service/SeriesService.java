@@ -246,6 +246,7 @@ public class SeriesService {
                 series.getId(),
                 series.getName(),
                 series.getDescription(),
+                series.getAuthorId(),
                 series.getAuthorUsername(),
                 series.getAuthorNickname(),
                 series.getThumbnailUrl(),

@@ -9,6 +9,7 @@ import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.common.domain.SortDirection;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.blogservice.series.repository.SeriesRepository;
+import com.portal.universe.blogservice.tag.service.TagService;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
@@ -51,6 +52,9 @@ class PostServiceImplTest {
     @Mock
     private MongoTemplate mongoTemplate;
 
+    @Mock
+    private TagService tagService;
+
     @InjectMocks
     private PostServiceImpl postService;
 
@@ -84,7 +88,8 @@ class PostServiceImplTest {
                     .title(request.title())
                     .content(request.content())
                     .authorId("user1")
-                    .authorName("User One")
+                    .authorUsername("user1_handle")
+                    .authorNickname("User One")
                     .status(PostStatus.DRAFT)
                     .tags(request.tags())
                     .build();
@@ -93,7 +98,7 @@ class PostServiceImplTest {
             when(postRepository.save(any(Post.class))).thenReturn(savedPost);
 
             // when
-            PostResponse result = postService.createPost(request, "user1", "User One");
+            PostResponse result = postService.createPost(request, "user1", "user1_handle", "User One");
 
             // then
             assertThat(result.status()).isEqualTo(PostStatus.DRAFT);
@@ -122,7 +127,8 @@ class PostServiceImplTest {
                     .title(request.title())
                     .content(request.content())
                     .authorId("user1")
-                    .authorName("User One")
+                    .authorUsername("user1_handle")
+                    .authorNickname("User One")
                     .status(PostStatus.PUBLISHED)
                     .tags(request.tags())
                     .build();
@@ -132,7 +138,7 @@ class PostServiceImplTest {
             when(postRepository.save(any(Post.class))).thenReturn(savedPost);
 
             // when
-            PostResponse result = postService.createPost(request, "user1", "User One");
+            PostResponse result = postService.createPost(request, "user1", "user1_handle", "User One");
 
             // then
             assertThat(result.status()).isEqualTo(PostStatus.PUBLISHED);
@@ -692,7 +698,8 @@ class PostServiceImplTest {
                 .content("Test Content")
                 .summary("Test Summary")
                 .authorId(authorId)
-                .authorName("Test Author")
+                .authorUsername(authorId + "_handle")
+                .authorNickname("Test Author")
                 .status(status)
                 .tags(new HashSet<>())
                 .category("tech")

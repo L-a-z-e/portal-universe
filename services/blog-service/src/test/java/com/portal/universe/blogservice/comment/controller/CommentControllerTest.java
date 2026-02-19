@@ -55,6 +55,7 @@ class CommentControllerTest {
             "comment-1",
             "post-1",
             "user-1",
+            "user-1-username",
             "UserNick",
             "Test Comment Content",
             null,
@@ -78,7 +79,7 @@ class CommentControllerTest {
             null,
             "Test Comment Content"
         );
-        given(commentService.createComment(any(CommentCreateRequest.class), eq("user-1"), anyString()))
+        given(commentService.createComment(any(CommentCreateRequest.class), eq("user-1"), anyString(), anyString()))
             .willReturn(commentResponse);
 
         // when & then
@@ -91,7 +92,7 @@ class CommentControllerTest {
             .andExpect(jsonPath("$.data.id").value("comment-1"))
             .andExpect(jsonPath("$.data.content").value("Test Comment Content"));
 
-        verify(commentService).createComment(any(CommentCreateRequest.class), eq("user-1"), anyString());
+        verify(commentService).createComment(any(CommentCreateRequest.class), eq("user-1"), anyString(), anyString());
     }
 
     @Test

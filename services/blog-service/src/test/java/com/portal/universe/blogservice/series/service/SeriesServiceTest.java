@@ -69,7 +69,8 @@ class SeriesServiceTest {
                     .name(request.name())
                     .description(request.description())
                     .authorId("user1")
-                    .authorName("User One")
+                    .authorUsername("user1_handle")
+                    .authorNickname("User One")
                     .thumbnailUrl(request.thumbnailUrl())
                     .build();
             ReflectionTestUtils.setField(savedSeries, "id", "series-1");
@@ -77,11 +78,13 @@ class SeriesServiceTest {
             when(seriesRepository.save(any(Series.class))).thenReturn(savedSeries);
 
             // when
-            SeriesResponse result = seriesService.createSeries(request, "user1", "User One");
+            SeriesResponse result = seriesService.createSeries(request, "user1", "user1_handle", "User One");
 
             // then
             assertThat(result.name()).isEqualTo("Test Series");
             assertThat(result.authorId()).isEqualTo("user1");
+            assertThat(result.authorUsername()).isEqualTo("user1_handle");
+            assertThat(result.authorNickname()).isEqualTo("User One");
             verify(seriesRepository).save(any(Series.class));
         }
     }
@@ -315,7 +318,8 @@ class SeriesServiceTest {
                 .name("Test Series")
                 .description("Description")
                 .authorId(authorId)
-                .authorName("Author Name")
+                .authorUsername(authorId + "_handle")
+                .authorNickname("Author Name")
                 .build();
         ReflectionTestUtils.setField(series, "id", id);
         return series;
@@ -326,6 +330,8 @@ class SeriesServiceTest {
                 .title("Test Post")
                 .content("Content")
                 .authorId(authorId)
+                .authorUsername(authorId + "_handle")
+                .authorNickname("Author Name")
                 .status(PostStatus.PUBLISHED)
                 .build();
         ReflectionTestUtils.setField(post, "id", id);

@@ -43,11 +43,12 @@ public class LikeService {
      * 이미 좋아요가 있으면 취소, 없으면 추가
      * @param postId 포스트 ID
      * @param userId 사용자 ID
-     * @param userName 사용자 이름
+     * @param userName 사용자 Username (핸들)
+     * @param nickname 사용자 닉네임 (표시용)
      * @return 좋아요 토글 결과 (liked 상태, 총 좋아요 수)
      */
     @Transactional
-    public LikeToggleResponse toggleLike(String postId, String userId, String userName) {
+    public LikeToggleResponse toggleLike(String postId, String userId, String userName, String nickname) {
         // 1. Post 존재 여부 확인
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
@@ -69,6 +70,7 @@ public class LikeService {
                     .postId(postId)
                     .userId(userId)
                     .userName(userName)
+                    .nickname(nickname)
                     .build();
             Like savedLike = likeRepository.save(newLike);
             increment = 1;
@@ -83,7 +85,7 @@ public class LikeService {
                         post.getTitle(),
                         post.getAuthorId(),
                         userId,
-                        userName,
+                        nickname, // Use nickname for notification display
                         LocalDateTime.now()
                 ));
             }

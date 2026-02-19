@@ -292,7 +292,8 @@ public class Like {
     private String id;
     private String postId;                   // 게시물 ID
     private String userId;                   // 사용자 ID
-    private String userName;                 // 사용자 이름 (표시용)
+    private String userName;                 // 사용자 Username (핸들)
+    private String nickname;                 // 사용자 닉네임 (표시용)
     @CreatedDate
     private LocalDateTime createdAt;         // 생성일
 }

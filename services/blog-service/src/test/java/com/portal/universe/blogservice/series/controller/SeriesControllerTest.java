@@ -57,6 +57,7 @@ class SeriesControllerTest {
             "Test Series",
             "Test Description",
             "user-1",
+            "user-1-username",
             "UserNick",
             "thumbnail.jpg",
             List.of("post-1", "post-2"),
@@ -70,6 +71,7 @@ class SeriesControllerTest {
             "Post Title",
             "Post Summary",
             "user-1",
+            "user-1-username",
             "UserNick",
             Set.of("tag1"),
             "Technology",
@@ -96,7 +98,7 @@ class SeriesControllerTest {
             "Test Description",
             "thumbnail.jpg"
         );
-        given(seriesService.createSeries(any(SeriesCreateRequest.class), eq("user-1"), anyString()))
+        given(seriesService.createSeries(any(SeriesCreateRequest.class), eq("user-1"), anyString(), anyString()))
             .willReturn(seriesResponse);
 
         // when & then
@@ -109,7 +111,7 @@ class SeriesControllerTest {
             .andExpect(jsonPath("$.data.id").value("series-1"))
             .andExpect(jsonPath("$.data.name").value("Test Series"));
 
-        verify(seriesService).createSeries(any(SeriesCreateRequest.class), eq("user-1"), anyString());
+        verify(seriesService).createSeries(any(SeriesCreateRequest.class), eq("user-1"), anyString(), anyString());
     }
 
     @Test
@@ -192,6 +194,7 @@ class SeriesControllerTest {
             "Test Series",
             "Test Description",
             "user-1",
+            "user-1-username",
             "UserNick",
             "thumbnail.jpg",
             2,

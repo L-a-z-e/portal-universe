@@ -42,6 +42,7 @@ export interface SeriesListResponse {
   id: string;
   name: string;
   description: string;
+  authorId: string;
   authorUsername: string;
   authorNickname: string;
   thumbnailUrl: string;

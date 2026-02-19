@@ -1043,7 +1043,8 @@ GET /api/v1/blog/posts/{postId}/likes?page=1&size=20
     "items": [
       {
         "userId": "user-123",
-        "userName": "홍길동",
+        "userName": "gildong",
+        "nickname": "홍길동",
         "likedAt": "2026-01-26T10:00:00"
       }
     ],

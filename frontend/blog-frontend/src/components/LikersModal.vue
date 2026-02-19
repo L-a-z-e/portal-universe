@@ -48,8 +48,8 @@ function loadMore() {
 }
 
 function goToProfile(liker: LikerResponse) {
-  if (liker.username) {
-    router.push(`/@${liker.username}`);
+  if (liker.userName) {
+    router.push(`/@${liker.userName}`);
     emit('close');
   }
 }
@@ -97,11 +97,11 @@ watch(() => props.isOpen, (isOpen) => {
           <div class="user-info">
             <Avatar
               :src="liker.profileImageUrl ?? undefined"
-              :name="liker.username || 'User'"
+              :name="liker.nickname || 'User'"
               size="md"
             />
             <div class="user-details">
-              <span class="username">{{ liker.username || 'Unknown' }}</span>
+              <span class="username">{{ liker.nickname || 'Unknown' }}</span>
               <span class="liked-at">{{ new Date(liker.likedAt).toLocaleDateString('ko-KR') }}</span>
             </div>
           </div>
