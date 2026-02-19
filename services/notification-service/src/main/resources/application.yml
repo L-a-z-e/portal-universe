@@ -42,7 +42,7 @@ spring:
   # Database 공통 설정
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3307}/notification_db?useSSL=false&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME:laze}
+    username: ${DB_USER:laze}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
