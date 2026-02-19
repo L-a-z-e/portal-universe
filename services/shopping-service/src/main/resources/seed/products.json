@@ -1,0 +1,1052 @@
+[
+  {
+    "name": "Electronics Premium Item 1",
+    "description": "This is a high quality electronics product with ID 1.",
+    "price": 51000,
+    "discountPrice": 46000,
+    "stock": 11,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 2",
+    "description": "This is a high quality electronics product with ID 2.",
+    "price": 52000,
+    "discountPrice": 47000,
+    "stock": 12,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 3",
+    "description": "This is a high quality electronics product with ID 3.",
+    "price": 53000,
+    "discountPrice": 48000,
+    "stock": 13,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 4",
+    "description": "This is a high quality electronics product with ID 4.",
+    "price": 54000,
+    "discountPrice": 49000,
+    "stock": 14,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 5",
+    "description": "This is a high quality electronics product with ID 5.",
+    "price": 55000,
+    "discountPrice": 50000,
+    "stock": 15,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 6",
+    "description": "This is a high quality electronics product with ID 6.",
+    "price": 56000,
+    "discountPrice": 51000,
+    "stock": 16,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 7",
+    "description": "This is a high quality electronics product with ID 7.",
+    "price": 57000,
+    "discountPrice": 52000,
+    "stock": 17,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 8",
+    "description": "This is a high quality electronics product with ID 8.",
+    "price": 58000,
+    "discountPrice": 53000,
+    "stock": 18,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 9",
+    "description": "This is a high quality electronics product with ID 9.",
+    "price": 59000,
+    "discountPrice": 54000,
+    "stock": 19,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 10",
+    "description": "This is a high quality electronics product with ID 10.",
+    "price": 60000,
+    "discountPrice": 55000,
+    "stock": 20,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": true
+  },
+  {
+    "name": "Electronics Premium Item 11",
+    "description": "This is a high quality electronics product with ID 11.",
+    "price": 61000,
+    "discountPrice": 56000,
+    "stock": 21,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 12",
+    "description": "This is a high quality electronics product with ID 12.",
+    "price": 62000,
+    "discountPrice": 57000,
+    "stock": 22,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 13",
+    "description": "This is a high quality electronics product with ID 13.",
+    "price": 63000,
+    "discountPrice": 58000,
+    "stock": 23,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 14",
+    "description": "This is a high quality electronics product with ID 14.",
+    "price": 64000,
+    "discountPrice": 59000,
+    "stock": 24,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 15",
+    "description": "This is a high quality electronics product with ID 15.",
+    "price": 65000,
+    "discountPrice": 60000,
+    "stock": 25,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 16",
+    "description": "This is a high quality electronics product with ID 16.",
+    "price": 66000,
+    "discountPrice": 61000,
+    "stock": 26,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 17",
+    "description": "This is a high quality electronics product with ID 17.",
+    "price": 67000,
+    "discountPrice": 62000,
+    "stock": 27,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 18",
+    "description": "This is a high quality electronics product with ID 18.",
+    "price": 68000,
+    "discountPrice": 63000,
+    "stock": 28,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 19",
+    "description": "This is a high quality electronics product with ID 19.",
+    "price": 69000,
+    "discountPrice": 64000,
+    "stock": 29,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Electronics Premium Item 20",
+    "description": "This is a high quality electronics product with ID 20.",
+    "price": 70000,
+    "discountPrice": 65000,
+    "stock": 30,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": true
+  },
+  {
+    "name": "Electronics Premium Item 21",
+    "description": "This is a high quality electronics product with ID 21.",
+    "price": 71000,
+    "discountPrice": 66000,
+    "stock": 31,
+    "imageUrl": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=400",
+    "category": "Electronics",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 22",
+    "description": "This is a high quality fashion product with ID 22.",
+    "price": 72000,
+    "discountPrice": 67000,
+    "stock": 32,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 23",
+    "description": "This is a high quality fashion product with ID 23.",
+    "price": 73000,
+    "discountPrice": 68000,
+    "stock": 33,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 24",
+    "description": "This is a high quality fashion product with ID 24.",
+    "price": 74000,
+    "discountPrice": 69000,
+    "stock": 34,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 25",
+    "description": "This is a high quality fashion product with ID 25.",
+    "price": 75000,
+    "discountPrice": 70000,
+    "stock": 35,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 26",
+    "description": "This is a high quality fashion product with ID 26.",
+    "price": 76000,
+    "discountPrice": 71000,
+    "stock": 36,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 27",
+    "description": "This is a high quality fashion product with ID 27.",
+    "price": 77000,
+    "discountPrice": 72000,
+    "stock": 37,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 28",
+    "description": "This is a high quality fashion product with ID 28.",
+    "price": 78000,
+    "discountPrice": 73000,
+    "stock": 38,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 29",
+    "description": "This is a high quality fashion product with ID 29.",
+    "price": 79000,
+    "discountPrice": 74000,
+    "stock": 39,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 30",
+    "description": "This is a high quality fashion product with ID 30.",
+    "price": 80000,
+    "discountPrice": 75000,
+    "stock": 40,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": true
+  },
+  {
+    "name": "Fashion Premium Item 31",
+    "description": "This is a high quality fashion product with ID 31.",
+    "price": 81000,
+    "discountPrice": 76000,
+    "stock": 41,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 32",
+    "description": "This is a high quality fashion product with ID 32.",
+    "price": 82000,
+    "discountPrice": 77000,
+    "stock": 42,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 33",
+    "description": "This is a high quality fashion product with ID 33.",
+    "price": 83000,
+    "discountPrice": 78000,
+    "stock": 43,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 34",
+    "description": "This is a high quality fashion product with ID 34.",
+    "price": 84000,
+    "discountPrice": 79000,
+    "stock": 44,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 35",
+    "description": "This is a high quality fashion product with ID 35.",
+    "price": 85000,
+    "discountPrice": 80000,
+    "stock": 45,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 36",
+    "description": "This is a high quality fashion product with ID 36.",
+    "price": 86000,
+    "discountPrice": 81000,
+    "stock": 46,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 37",
+    "description": "This is a high quality fashion product with ID 37.",
+    "price": 87000,
+    "discountPrice": 82000,
+    "stock": 47,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 38",
+    "description": "This is a high quality fashion product with ID 38.",
+    "price": 88000,
+    "discountPrice": 83000,
+    "stock": 48,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 39",
+    "description": "This is a high quality fashion product with ID 39.",
+    "price": 89000,
+    "discountPrice": 84000,
+    "stock": 49,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 40",
+    "description": "This is a high quality fashion product with ID 40.",
+    "price": 90000,
+    "discountPrice": 85000,
+    "stock": 50,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": true
+  },
+  {
+    "name": "Fashion Premium Item 41",
+    "description": "This is a high quality fashion product with ID 41.",
+    "price": 91000,
+    "discountPrice": 86000,
+    "stock": 51,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Fashion Premium Item 42",
+    "description": "This is a high quality fashion product with ID 42.",
+    "price": 92000,
+    "discountPrice": 87000,
+    "stock": 52,
+    "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400",
+    "category": "Fashion",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 43",
+    "description": "This is a high quality home product with ID 43.",
+    "price": 93000,
+    "discountPrice": 88000,
+    "stock": 53,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 44",
+    "description": "This is a high quality home product with ID 44.",
+    "price": 94000,
+    "discountPrice": 89000,
+    "stock": 54,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 45",
+    "description": "This is a high quality home product with ID 45.",
+    "price": 95000,
+    "discountPrice": 90000,
+    "stock": 55,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 46",
+    "description": "This is a high quality home product with ID 46.",
+    "price": 96000,
+    "discountPrice": 91000,
+    "stock": 56,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 47",
+    "description": "This is a high quality home product with ID 47.",
+    "price": 97000,
+    "discountPrice": 92000,
+    "stock": 57,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 48",
+    "description": "This is a high quality home product with ID 48.",
+    "price": 98000,
+    "discountPrice": 93000,
+    "stock": 58,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 49",
+    "description": "This is a high quality home product with ID 49.",
+    "price": 99000,
+    "discountPrice": 94000,
+    "stock": 59,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 50",
+    "description": "This is a high quality home product with ID 50.",
+    "price": 100000,
+    "discountPrice": 95000,
+    "stock": 10,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": true
+  },
+  {
+    "name": "Home Premium Item 51",
+    "description": "This is a high quality home product with ID 51.",
+    "price": 101000,
+    "discountPrice": 96000,
+    "stock": 11,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 52",
+    "description": "This is a high quality home product with ID 52.",
+    "price": 102000,
+    "discountPrice": 97000,
+    "stock": 12,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 53",
+    "description": "This is a high quality home product with ID 53.",
+    "price": 103000,
+    "discountPrice": 98000,
+    "stock": 13,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 54",
+    "description": "This is a high quality home product with ID 54.",
+    "price": 104000,
+    "discountPrice": 99000,
+    "stock": 14,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 55",
+    "description": "This is a high quality home product with ID 55.",
+    "price": 105000,
+    "discountPrice": 100000,
+    "stock": 15,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 56",
+    "description": "This is a high quality home product with ID 56.",
+    "price": 106000,
+    "discountPrice": 101000,
+    "stock": 16,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 57",
+    "description": "This is a high quality home product with ID 57.",
+    "price": 107000,
+    "discountPrice": 102000,
+    "stock": 17,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 58",
+    "description": "This is a high quality home product with ID 58.",
+    "price": 108000,
+    "discountPrice": 103000,
+    "stock": 18,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 59",
+    "description": "This is a high quality home product with ID 59.",
+    "price": 109000,
+    "discountPrice": 104000,
+    "stock": 19,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 60",
+    "description": "This is a high quality home product with ID 60.",
+    "price": 110000,
+    "discountPrice": 105000,
+    "stock": 20,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": true
+  },
+  {
+    "name": "Home Premium Item 61",
+    "description": "This is a high quality home product with ID 61.",
+    "price": 111000,
+    "discountPrice": 106000,
+    "stock": 21,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 62",
+    "description": "This is a high quality home product with ID 62.",
+    "price": 112000,
+    "discountPrice": 107000,
+    "stock": 22,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Home Premium Item 63",
+    "description": "This is a high quality home product with ID 63.",
+    "price": 113000,
+    "discountPrice": 108000,
+    "stock": 23,
+    "imageUrl": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=400",
+    "category": "Home",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 64",
+    "description": "This is a high quality sports product with ID 64.",
+    "price": 114000,
+    "discountPrice": 109000,
+    "stock": 24,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 65",
+    "description": "This is a high quality sports product with ID 65.",
+    "price": 115000,
+    "discountPrice": 110000,
+    "stock": 25,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 66",
+    "description": "This is a high quality sports product with ID 66.",
+    "price": 116000,
+    "discountPrice": 111000,
+    "stock": 26,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 67",
+    "description": "This is a high quality sports product with ID 67.",
+    "price": 117000,
+    "discountPrice": 112000,
+    "stock": 27,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 68",
+    "description": "This is a high quality sports product with ID 68.",
+    "price": 118000,
+    "discountPrice": 113000,
+    "stock": 28,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 69",
+    "description": "This is a high quality sports product with ID 69.",
+    "price": 119000,
+    "discountPrice": 114000,
+    "stock": 29,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 70",
+    "description": "This is a high quality sports product with ID 70.",
+    "price": 120000,
+    "discountPrice": 115000,
+    "stock": 30,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": true
+  },
+  {
+    "name": "Sports Premium Item 71",
+    "description": "This is a high quality sports product with ID 71.",
+    "price": 121000,
+    "discountPrice": 116000,
+    "stock": 31,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 72",
+    "description": "This is a high quality sports product with ID 72.",
+    "price": 122000,
+    "discountPrice": 117000,
+    "stock": 32,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 73",
+    "description": "This is a high quality sports product with ID 73.",
+    "price": 123000,
+    "discountPrice": 118000,
+    "stock": 33,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 74",
+    "description": "This is a high quality sports product with ID 74.",
+    "price": 124000,
+    "discountPrice": 119000,
+    "stock": 34,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 75",
+    "description": "This is a high quality sports product with ID 75.",
+    "price": 125000,
+    "discountPrice": 120000,
+    "stock": 35,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 76",
+    "description": "This is a high quality sports product with ID 76.",
+    "price": 126000,
+    "discountPrice": 121000,
+    "stock": 36,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 77",
+    "description": "This is a high quality sports product with ID 77.",
+    "price": 127000,
+    "discountPrice": 122000,
+    "stock": 37,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 78",
+    "description": "This is a high quality sports product with ID 78.",
+    "price": 128000,
+    "discountPrice": 123000,
+    "stock": 38,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 79",
+    "description": "This is a high quality sports product with ID 79.",
+    "price": 129000,
+    "discountPrice": 124000,
+    "stock": 39,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 80",
+    "description": "This is a high quality sports product with ID 80.",
+    "price": 130000,
+    "discountPrice": 125000,
+    "stock": 40,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": true
+  },
+  {
+    "name": "Sports Premium Item 81",
+    "description": "This is a high quality sports product with ID 81.",
+    "price": 131000,
+    "discountPrice": 126000,
+    "stock": 41,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 82",
+    "description": "This is a high quality sports product with ID 82.",
+    "price": 132000,
+    "discountPrice": 127000,
+    "stock": 42,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 83",
+    "description": "This is a high quality sports product with ID 83.",
+    "price": 133000,
+    "discountPrice": 128000,
+    "stock": 43,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Sports Premium Item 84",
+    "description": "This is a high quality sports product with ID 84.",
+    "price": 134000,
+    "discountPrice": 129000,
+    "stock": 44,
+    "imageUrl": "https://images.unsplash.com/photo-1592432676556-382046a1fbd5?q=80&w=400",
+    "category": "Sports",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 85",
+    "description": "This is a high quality beauty product with ID 85.",
+    "price": 135000,
+    "discountPrice": 130000,
+    "stock": 45,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 86",
+    "description": "This is a high quality beauty product with ID 86.",
+    "price": 136000,
+    "discountPrice": 131000,
+    "stock": 46,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 87",
+    "description": "This is a high quality beauty product with ID 87.",
+    "price": 137000,
+    "discountPrice": 132000,
+    "stock": 47,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 88",
+    "description": "This is a high quality beauty product with ID 88.",
+    "price": 138000,
+    "discountPrice": 133000,
+    "stock": 48,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 89",
+    "description": "This is a high quality beauty product with ID 89.",
+    "price": 139000,
+    "discountPrice": 134000,
+    "stock": 49,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 90",
+    "description": "This is a high quality beauty product with ID 90.",
+    "price": 140000,
+    "discountPrice": 135000,
+    "stock": 50,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": true
+  },
+  {
+    "name": "Beauty Premium Item 91",
+    "description": "This is a high quality beauty product with ID 91.",
+    "price": 141000,
+    "discountPrice": 136000,
+    "stock": 51,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 92",
+    "description": "This is a high quality beauty product with ID 92.",
+    "price": 142000,
+    "discountPrice": 137000,
+    "stock": 52,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 93",
+    "description": "This is a high quality beauty product with ID 93.",
+    "price": 143000,
+    "discountPrice": 138000,
+    "stock": 53,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 94",
+    "description": "This is a high quality beauty product with ID 94.",
+    "price": 144000,
+    "discountPrice": 139000,
+    "stock": 54,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 95",
+    "description": "This is a high quality beauty product with ID 95.",
+    "price": 145000,
+    "discountPrice": 140000,
+    "stock": 55,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 96",
+    "description": "This is a high quality beauty product with ID 96.",
+    "price": 146000,
+    "discountPrice": 141000,
+    "stock": 56,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 97",
+    "description": "This is a high quality beauty product with ID 97.",
+    "price": 147000,
+    "discountPrice": 142000,
+    "stock": 57,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 98",
+    "description": "This is a high quality beauty product with ID 98.",
+    "price": 148000,
+    "discountPrice": 143000,
+    "stock": 58,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 99",
+    "description": "This is a high quality beauty product with ID 99.",
+    "price": 149000,
+    "discountPrice": 144000,
+    "stock": 59,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 100",
+    "description": "This is a high quality beauty product with ID 100.",
+    "price": 150000,
+    "discountPrice": 145000,
+    "stock": 10,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": true
+  },
+  {
+    "name": "Beauty Premium Item 101",
+    "description": "This is a high quality beauty product with ID 101.",
+    "price": 151000,
+    "discountPrice": 146000,
+    "stock": 11,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 102",
+    "description": "This is a high quality beauty product with ID 102.",
+    "price": 152000,
+    "discountPrice": 147000,
+    "stock": 12,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 103",
+    "description": "This is a high quality beauty product with ID 103.",
+    "price": 153000,
+    "discountPrice": 148000,
+    "stock": 13,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 104",
+    "description": "This is a high quality beauty product with ID 104.",
+    "price": 154000,
+    "discountPrice": 149000,
+    "stock": 14,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  },
+  {
+    "name": "Beauty Premium Item 105",
+    "description": "This is a high quality beauty product with ID 105.",
+    "price": 155000,
+    "discountPrice": 150000,
+    "stock": 15,
+    "imageUrl": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400",
+    "category": "Beauty",
+    "featured": false
+  }
+]
