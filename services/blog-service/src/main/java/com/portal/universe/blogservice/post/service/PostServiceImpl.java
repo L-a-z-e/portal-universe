@@ -52,15 +52,17 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostResponse createPost(PostCreateRequest request, String authorId, String authorName) {
-        log.info("Creating post with title: {}, authorId: {}, authorName: {}", request.title(), authorId, authorName);
+    public PostResponse createPost(PostCreateRequest request, String authorId, String authorUsername, String authorNickname) {
+        log.info("Creating post with title: {}, authorId: {}, authorUsername: {}, authorNickname: {}", 
+                request.title(), authorId, authorUsername, authorNickname);
 
         Post post = Post.builder()
                 .title(request.title())
                 .content(request.content())
                 .summary(request.summary())
                 .authorId(authorId)
-                .authorName(resolveAuthorName(authorId, authorName))
+                .authorUsername(authorUsername)
+                .authorNickname(resolveAuthorNickname(authorId, authorNickname))
                 .status(request.publishImmediately() ? PostStatus.PUBLISHED : PostStatus.DRAFT)
                 .tags(request.tags())
                 .category(request.category())
@@ -621,7 +623,8 @@ public class PostServiceImpl implements PostService {
                 post.getContent(),
                 post.getSummary(),
                 post.getAuthorId(),
-                resolveAuthorName(post.getAuthorId(), post.getAuthorName()),
+                post.getAuthorUsername(),
+                resolveAuthorNickname(post.getAuthorId(), post.getAuthorNickname()),
                 post.getStatus(),
                 post.getTags(),
                 post.getCategory(),
@@ -657,9 +660,9 @@ public class PostServiceImpl implements PostService {
         return Sort.by(sortDirection, field);
     }
 
-    private String resolveAuthorName(String authorId, String authorName) {
-        if (authorName != null && !authorName.isBlank()) {
-            return authorName;
+    private String resolveAuthorNickname(String authorId, String authorNickname) {
+        if (authorNickname != null && !authorNickname.isBlank()) {
+            return authorNickname;
         }
         return "사용자";
     }

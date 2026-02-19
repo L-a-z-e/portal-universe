@@ -145,10 +145,17 @@ onMounted(() => {
           </p>
 
           <div class="flex flex-wrap items-center gap-4 pt-4 border-t border-border-default">
-            <div class="flex items-center gap-2">
-              <Avatar :name="series.authorName" size="sm" />
-              <span class="text-sm font-medium text-text-body">{{ series.authorName }}</span>
-            </div>
+            <component
+              :is="series.authorUsername ? 'router-link' : 'div'"
+              :to="series.authorUsername ? `/@${series.authorUsername}` : undefined"
+              class="flex items-center gap-2"
+              :class="{ 'cursor-pointer hover:opacity-80 transition-opacity': series.authorUsername }"
+            >
+              <Avatar :name="series.authorNickname" size="sm" />
+              <span class="text-sm font-medium text-text-body" :class="{ 'hover:text-brand-primary transition-colors': series.authorUsername }">
+                {{ series.authorNickname }}
+              </span>
+            </component>
             <div class="flex items-center gap-2 text-xs text-text-meta">
               <span>{{ series.postCount }}개의 글</span>
               <span class="w-1 h-1 rounded-full bg-border-default"></span>

@@ -37,12 +37,13 @@ public class SeriesService {
     /**
      * 시리즈 생성
      */
-    public SeriesResponse createSeries(SeriesCreateRequest request, String authorId, String authorName) {
+    public SeriesResponse createSeries(SeriesCreateRequest request, String authorId, String authorUsername, String authorNickname) {
         Series series = Series.builder()
                 .name(request.name())
                 .description(request.description())
                 .authorId(authorId)
-                .authorName(authorName)
+                .authorUsername(authorUsername)
+                .authorNickname(authorNickname)
                 .thumbnailUrl(request.thumbnailUrl())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -230,7 +231,8 @@ public class SeriesService {
                 series.getName(),
                 series.getDescription(),
                 series.getAuthorId(),
-                series.getAuthorName(),
+                series.getAuthorUsername(),
+                series.getAuthorNickname(),
                 series.getThumbnailUrl(),
                 series.getPostIds(),
                 series.getPostCount(),
@@ -244,8 +246,8 @@ public class SeriesService {
                 series.getId(),
                 series.getName(),
                 series.getDescription(),
-                series.getAuthorId(),
-                series.getAuthorName(),
+                series.getAuthorUsername(),
+                series.getAuthorNickname(),
                 series.getThumbnailUrl(),
                 series.getPostCount(),
                 series.getCreatedAt(),

@@ -351,7 +351,8 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                         .sum("likeCount").as("totalLikes")
                         .min("createdAt").as("firstPostDate")
                         .max("createdAt").as("lastPostDate")
-                        .first("authorName").as("authorName")
+                        .first("authorUsername").as("authorUsername")
+                        .first("authorNickname").as("authorNickname")
         );
 
         AggregationResults<Document> results = mongoTemplate.aggregate(
@@ -359,7 +360,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
         Document stats = results.getUniqueMappedResult();
         if (stats == null) {
-            return new AuthorStats(authorId, null, 0L, 0L, 0L, 0L, null, null);
+            return new AuthorStats(authorId, null, null, 0L, 0L, 0L, 0L, null, null);
         }
 
         long publishedPosts = mongoTemplate.count(
@@ -373,7 +374,8 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
         return new AuthorStats(
                 authorId,
-                stats.getString("authorName"),
+                stats.getString("authorUsername"),
+                stats.getString("authorNickname"),
                 stats.get("totalPosts", Number.class).longValue(),
                 publishedPosts,
                 stats.get("totalViews", Number.class).longValue(),

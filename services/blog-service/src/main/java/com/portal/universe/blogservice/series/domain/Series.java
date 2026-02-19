@@ -52,9 +52,14 @@ public class Series {
     private String authorId;
 
     /**
-     * 작성자 이름 (표시용)
+     * 작성자 Username (핸들, URL용)
      */
-    private String authorName;
+    private String authorUsername;
+
+    /**
+     * 작성자 닉네임 (표시용)
+     */
+    private String authorNickname;
 
     /**
      * 시리즈 썸네일 이미지 URL

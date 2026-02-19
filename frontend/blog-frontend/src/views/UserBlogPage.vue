@@ -83,7 +83,7 @@ const fetchUserPosts = async (page: number = 1) => {
   postsLoading.value = true;
 
   try {
-    const response = await getPostsByAuthor(String(user.value.id), page, 12);
+    const response = await getPostsByAuthor(user.value.uuid, page, 12);
 
     if (page === 1) {
       posts.value = response.items;
@@ -212,22 +212,22 @@ onBeforeUnmount(() => {
 
         <!-- 시리즈 탭 -->
         <template v-else-if="currentTab === 'series'">
-          <AuthorSeriesList :author-id="String(user.id)" />
+          <AuthorSeriesList :author-id="user.uuid" />
         </template>
 
         <!-- 카테고리 탭 -->
         <template v-else-if="currentTab === 'categories'">
-          <AuthorCategories :author-id="String(user.id)" />
+          <AuthorCategories :author-id="user.uuid" />
         </template>
 
         <!-- 태그 탭 -->
         <template v-else-if="currentTab === 'tags'">
-          <AuthorTags :author-id="String(user.id)" />
+          <AuthorTags :author-id="user.uuid" />
         </template>
 
         <!-- 통계 탭 -->
         <template v-else-if="currentTab === 'stats'">
-          <AuthorStats :author-id="String(user.id)" />
+          <AuthorStats :author-id="user.uuid" />
         </template>
 
         <!-- 소개 탭 -->

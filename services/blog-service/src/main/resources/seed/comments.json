@@ -2,7 +2,8 @@
   {
     "postKey": "post-1",
     "authorId": "00000000-0000-0000-0000-000000000104",
-    "authorName": "최공부",
+    "authorUsername": "study_choi",
+    "authorNickname": "최공부",
     "content": "Spring Boot 3 마이그레이션 시 주의사항 잘 정리하셨네요!",
     "daysAfterBase": 0
   },
@@ -10,21 +11,24 @@
     "postKey": "post-1",
     "parentIndex": 0,
     "authorId": "00000000-0000-0000-0000-000000000101",
-    "authorName": "김개발",
+    "authorUsername": "dev_kim",
+    "authorNickname": "김개발",
     "content": "감사합니다. 추가 궁금한 점 있으면 편하게 물어보세요!",
     "daysAfterBase": 0
   },
   {
     "postKey": "post-2",
     "authorId": "00000000-0000-0000-0000-000000000105",
-    "authorName": "정맛집",
+    "authorUsername": "cook_jung",
+    "authorNickname": "정맛집",
     "content": "제주도 맛집 추천도 부탁드려요!",
     "daysAfterBase": 8
   },
   {
     "postKey": "post-3",
     "authorId": "00000000-0000-0000-0000-000000000101",
-    "authorName": "김개발",
+    "authorUsername": "dev_kim",
+    "authorNickname": "김개발",
     "content": "디자인 토큰 관리 도구는 뭘 사용하시나요?",
     "daysAfterBase": 24
   },
@@ -32,35 +36,40 @@
     "postKey": "post-3",
     "parentIndex": 3,
     "authorId": "00000000-0000-0000-0000-000000000103",
-    "authorName": "박디자인",
+    "authorUsername": "design_park",
+    "authorNickname": "박디자인",
     "content": "Style Dictionary 기반으로 관리하고 있어요.",
     "daysAfterBase": 24
   },
   {
     "postKey": "post-5",
     "authorId": "00000000-0000-0000-0000-000000000102",
-    "authorName": "이여행",
+    "authorUsername": "travel_lee",
+    "authorNickname": "이여행",
     "content": "을지로 진짜 맛집 많죠! 노가리 골목도 가보셨나요?",
     "daysAfterBase": 36
   },
   {
     "postKey": "post-6",
     "authorId": "00000000-0000-0000-0000-000000000101",
-    "authorName": "김개발",
+    "authorUsername": "dev_kim",
+    "authorNickname": "김개발",
     "content": "3개월 만에 이 정도면 대단하세요. 화이팅!",
     "daysAfterBase": 44
   },
   {
     "postKey": "post-7",
     "authorId": "00000000-0000-0000-0000-000000000103",
-    "authorName": "박디자인",
+    "authorUsername": "design_park",
+    "authorNickname": "박디자인",
     "content": "Suspense 예제 덕분에 이해가 잘 됐어요.",
     "daysAfterBase": 52
   },
   {
     "postKey": "post-9",
     "authorId": "00000000-0000-0000-0000-000000000104",
-    "authorName": "최공부",
+    "authorUsername": "study_choi",
+    "authorNickname": "최공부",
     "content": "docker-compose.yml 예제 파일 공유 가능할까요?",
     "daysAfterBase": 72
   },
@@ -68,42 +77,48 @@
     "postKey": "post-9",
     "parentIndex": 8,
     "authorId": "00000000-0000-0000-0000-000000000101",
-    "authorName": "김개발",
+    "authorUsername": "dev_kim",
+    "authorNickname": "김개발",
     "content": "GitHub 레포에 올려뒀어요. 링크 확인해보세요!",
     "daysAfterBase": 72
   },
   {
     "postKey": "post-10",
     "authorId": "00000000-0000-0000-0000-000000000102",
-    "authorName": "이여행",
+    "authorUsername": "travel_lee",
+    "authorNickname": "이여행",
     "content": "비개발자도 이해하기 쉽게 쓰셨네요.",
     "daysAfterBase": 79
   },
   {
     "postKey": "post-11",
     "authorId": "00000000-0000-0000-0000-000000000102",
-    "authorName": "이여행",
+    "authorUsername": "travel_lee",
+    "authorNickname": "이여행",
     "content": "홍대 디저트 카페 리스트 저장했어요!",
     "daysAfterBase": 93
   },
   {
     "postKey": "post-12",
     "authorId": "00000000-0000-0000-0000-000000000103",
-    "authorName": "박디자인",
+    "authorUsername": "design_park",
+    "authorNickname": "박디자인",
     "content": "알고리즘 정리 깔끔하네요. 참고하겠습니다.",
     "daysAfterBase": 103
   },
   {
     "postKey": "post-13",
     "authorId": "00000000-0000-0000-0000-000000000104",
-    "authorName": "최공부",
+    "authorUsername": "study_choi",
+    "authorNickname": "최공부",
     "content": "Compound Index 사용 사례도 궁금합니다.",
     "daysAfterBase": 116
   },
   {
     "postKey": "post-14",
     "authorId": "00000000-0000-0000-0000-000000000104",
-    "authorName": "최공부",
+    "authorUsername": "study_choi",
+    "authorNickname": "최공부",
     "content": "Helm Chart 배포도 다뤄주시면 좋겠어요!",
     "daysAfterBase": 129
   }

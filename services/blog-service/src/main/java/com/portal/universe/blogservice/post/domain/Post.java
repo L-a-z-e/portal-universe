@@ -60,9 +60,14 @@ public class Post {
     private String authorId;
 
     /**
-     * 작성자 이름 (표시용)
+     * 작성자 Username (핸들, URL용)
      */
-    private String authorName;
+    private String authorUsername;
+
+    /**
+     * 작성자 닉네임 (표시용)
+     */
+    private String authorNickname;
 
     /**
      * 게시물 상태 - PRD Phase 1: 기본 발행 관리
@@ -136,13 +141,14 @@ public class Post {
 
     @Builder
     public Post(String title, String content, String summary, String authorId,
-                String authorName, PostStatus status, Set<String> tags, String category,
+                String authorUsername, String authorNickname, PostStatus status, Set<String> tags, String category,
                 String metaDescription, String thumbnailUrl, List<String> images, String productId) {
         this.title = title;
         this.content = content;
         this.summary = summary != null ? summary : generateSummary(content);
         this.authorId = authorId;
-        this.authorName = authorName;
+        this.authorUsername = authorUsername;
+        this.authorNickname = authorNickname;
         this.status = status != null ? status : PostStatus.DRAFT;
         this.tags = tags != null ? new HashSet<>(tags) : new HashSet<>();
         this.category = category;

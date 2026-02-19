@@ -230,7 +230,8 @@ public class Post {
     private String content;                  // 본문
     private String summary;                  // 요약 (max 500자, 자동 생성)
     private String authorId;                 // 작성자 ID
-    private String authorName;               // 작성자 이름 (표시용)
+    private String authorUsername;           // 작성자 Username
+    private String authorNickname;           // 작성자 닉네임
     private PostStatus status;               // DRAFT | PUBLISHED | ARCHIVED
     private Set<String> tags;                // 태그 목록
     private String category;                 // 카테고리
@@ -270,7 +271,8 @@ public class Comment {
     private String id;
     private String postId;                   // 게시물 ID
     private String authorId;                 // 작성자 ID
-    private String authorName;               // 작성자 이름 (표시용)
+    private String authorUsername;           // 작성자 Username
+    private String authorNickname;           // 작성자 닉네임
     private String content;                  // 댓글 내용
     private String parentCommentId;          // 대댓글인 경우 부모 댓글 ID (null이면 루트)
     private Long likeCount;                  // 좋아요 수 (기본 0)
@@ -331,7 +333,8 @@ public class Series {
     private String name;                     // 시리즈 제목 (max 100자)
     private String description;              // 설명 (max 500자)
     private String authorId;                 // 작성자 ID
-    private String authorName;               // 작성자 이름 (표시용)
+    private String authorUsername;           // 작성자 Username
+    private String authorNickname;           // 작성자 닉네임
     private String thumbnailUrl;             // 썸네일 이미지 URL
     private List<String> postIds;            // 게시물 ID 목록 (인덱스 = 순서)
     private LocalDateTime createdAt;         // 생성일
