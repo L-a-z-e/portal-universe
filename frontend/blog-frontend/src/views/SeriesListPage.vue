@@ -95,7 +95,15 @@ onMounted(fetchSeries);
                 <h2 class="text-lg font-bold text-text-heading mb-1 truncate">{{ series.name }}</h2>
                 <p v-if="series.description" class="text-sm text-text-body mb-3 line-clamp-2">{{ series.description }}</p>
                 <div class="flex items-center gap-3 text-xs text-text-meta">
-                  <span class="text-text-body">{{ series.authorName }}</span>
+                  <component
+                    :is="series.authorUsername ? 'router-link' : 'span'"
+                    :to="series.authorUsername ? `/@${series.authorUsername}` : undefined"
+                    @click.stop
+                    class="text-text-body"
+                    :class="{ 'hover:text-brand-primary cursor-pointer transition-colors': series.authorUsername }"
+                  >
+                    {{ series.authorNickname }}
+                  </component>
                   <span>·</span>
                   <span class="font-semibold">게시글 {{ series.postCount }}개</span>
                   <span>·</span>

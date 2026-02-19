@@ -28,7 +28,7 @@ public class CommentController {
             @Valid @RequestBody CommentCreateRequest request,
             @CurrentUser AuthUser user
     ) {
-        CommentResponse response = commentService.createComment(request, user.uuid(), user.nickname());
+        CommentResponse response = commentService.createComment(request, user.uuid(), user.name(), user.nickname());
         return ApiResponse.success(response);
     }
 

@@ -41,6 +41,7 @@ public class DataInitializer {
                     "test@test.com",
                     "test1234",
                     "테스트사용자",
+                    "testuser",
                     "laze",
                     false,
                     "00000000-0000-0000-0000-000000000001"
@@ -51,6 +52,7 @@ public class DataInitializer {
                     "admin@test.com",
                     "admin1234",
                     "관리자",
+                    "admin",
                     "laze",
                     true,
                     "00000000-0000-0000-0000-000000000002"
@@ -61,6 +63,7 @@ public class DataInitializer {
                     "dev.kim@test.com",
                     "test1234",
                     "김개발",
+                    "dev_kim",
                     "김민수",
                     false,
                     "00000000-0000-0000-0000-000000000101"
@@ -70,6 +73,7 @@ public class DataInitializer {
                     "travel.lee@test.com",
                     "test1234",
                     "이여행",
+                    "travel_lee",
                     "이수진",
                     false,
                     "00000000-0000-0000-0000-000000000102"
@@ -79,6 +83,7 @@ public class DataInitializer {
                     "design.park@test.com",
                     "test1234",
                     "박디자인",
+                    "design_park",
                     "박지현",
                     false,
                     "00000000-0000-0000-0000-000000000103"
@@ -88,6 +93,7 @@ public class DataInitializer {
                     "study.choi@test.com",
                     "test1234",
                     "최공부",
+                    "study_choi",
                     "최준호",
                     false,
                     "00000000-0000-0000-0000-000000000104"
@@ -97,6 +103,7 @@ public class DataInitializer {
                     "cook.jung@test.com",
                     "test1234",
                     "정맛집",
+                    "cook_jung",
                     "정서연",
                     false,
                     "00000000-0000-0000-0000-000000000105"
@@ -112,7 +119,7 @@ public class DataInitializer {
      * @param isAdmin true이면 ROLE_SUPER_ADMIN 추가 할당
      * @param fixedUuid 고정 UUID (blog-service seed data 매칭용)
      */
-    private void createTestUser(String email, String password, String nickname,
+    private void createTestUser(String email, String password, String nickname, String username,
                                 String realName, boolean isAdmin, String fixedUuid) {
         if (userRepository.findByEmail(email).isPresent()) {
             log.info("Test user already exists: email={}", email);
@@ -124,6 +131,7 @@ public class DataInitializer {
         User user = new User(email, passwordEncoder.encode(password));
         user.assignUuid(fixedUuid);
         UserProfile profile = new UserProfile(user, nickname, realName, true);
+        profile.setUsername(username);
         user.setProfile(profile);
         User savedUser = userRepository.save(user);
 

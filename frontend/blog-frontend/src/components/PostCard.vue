@@ -66,14 +66,23 @@ const handleClick = () => {
         </p>
 
         <!-- 메타 정보 -->
-        <div class="flex items-center gap-3 mt-2 text-xs text-text-meta">
-          <Avatar
-            :src="undefined"
-            :name="post.authorName || '사용자'"
-            size="xs"
-          />
-          <span class="font-medium text-text-heading text-sm">{{ post.authorName || '사용자' }}</span>
-          <span>·</span>
+        <div class="flex items-center gap-2 mt-2 text-xs text-text-meta">
+          <component
+            :is="post.authorUsername ? 'router-link' : 'div'"
+            :to="post.authorUsername ? `/@${post.authorUsername}` : undefined"
+            @click.stop
+            class="flex items-center gap-2"
+            :class="{ 'hover:text-brand-primary transition-colors': post.authorUsername }"
+          >
+            <Avatar
+              :src="undefined"
+              :name="post.authorNickname || '사용자'"
+              size="xs"
+            />
+            <span class="font-medium text-text-heading text-sm">{{ post.authorNickname || '사용자' }}</span>
+          </component>
+          
+          <span class="ml-1">·</span>
           <span>{{ relativeTime }}</span>
           <span>·</span>
           <span>{{ readTime }}</span>

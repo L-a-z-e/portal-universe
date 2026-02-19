@@ -250,15 +250,22 @@ function handleLikeChanged(liked: boolean, count: number) {
           <!-- Author Meta -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-              <Avatar :name="post.authorName || '사용자'" size="md" class="border border-border-default" />
-              <div class="flex flex-col">
-                <span class="text-sm font-medium text-text-heading">
-                  {{ post.authorName || '사용자' }}
-                </span>
-                <span class="text-xs text-text-meta">
-                  {{ new Date(post.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) }}
-                </span>
-              </div>
+              <component
+                :is="post.authorUsername ? 'router-link' : 'div'"
+                :to="post.authorUsername ? `/@${post.authorUsername}` : undefined"
+                class="flex items-center gap-3 group"
+                :class="{ 'cursor-pointer hover:opacity-80 transition-opacity': post.authorUsername }"
+              >
+                <Avatar :name="post.authorNickname || '사용자'" size="md" class="border border-border-default group-hover:ring-2 ring-brand-primary/20 transition-all" />
+                <div class="flex flex-col">
+                  <span class="text-sm font-medium text-text-heading group-hover:text-brand-primary transition-colors">
+                    {{ post.authorNickname || '사용자' }}
+                  </span>
+                  <span class="text-xs text-text-meta">
+                    {{ new Date(post.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) }}
+                  </span>
+                </div>
+              </component>
             </div>
 
             <!-- Stats -->

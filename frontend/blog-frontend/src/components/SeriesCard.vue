@@ -79,7 +79,15 @@ const handleClick = () => {
         <!-- 하단 메타 정보 -->
         <div class="meta-section">
           <div class="meta-info">
-            <span class="author-name">{{ series.authorName }}</span>
+            <component
+              :is="series.authorUsername ? 'router-link' : 'span'"
+              :to="series.authorUsername ? `/@${series.authorUsername}` : undefined"
+              @click.stop
+              class="author-name"
+              :class="{ 'hover:text-brand-primary cursor-pointer transition-colors': series.authorUsername }"
+            >
+              {{ series.authorNickname }}
+            </component>
             <span class="separator">·</span>
             <span class="post-count">{{ series.postCount }}개의 글</span>
           </div>

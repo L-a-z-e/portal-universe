@@ -40,17 +40,18 @@ public class CommentService {
      * 댓글 생성
      */
     @Transactional
-    public CommentResponse createComment(CommentCreateRequest request, String authorId, String authorName) {
+    public CommentResponse createComment(CommentCreateRequest request, String authorId, String authorUsername, String authorNickname) {
         // 게시물 조회 (알림 발행을 위해)
         Post post = postRepository.findById(request.postId())
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        String decodedAuthorName = decodeHeaderValue(authorName);
+        String decodedAuthorNickname = decodeHeaderValue(authorNickname);
         Comment comment = Comment.builder()
                 .postId(request.postId())
                 .parentCommentId(request.parentCommentId())
                 .authorId(authorId)
-                .authorName(decodedAuthorName)
+                .authorUsername(authorUsername)
+                .authorNickname(decodedAuthorNickname)
                 .content(request.content())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -69,7 +70,7 @@ public class CommentService {
                     post.getTitle(),
                     post.getAuthorId(),
                     authorId,
-                    decodedAuthorName,
+                    decodedAuthorNickname,
                     request.content(),
                     LocalDateTime.now()
             ));
@@ -157,7 +158,8 @@ public class CommentService {
                 comment.getId(),
                 comment.getPostId(),
                 comment.getAuthorId(),
-                comment.getAuthorName(),
+                comment.getAuthorUsername(),
+                comment.getAuthorNickname(),
                 comment.getContent(),
                 comment.getParentCommentId(),
                 comment.getLikeCount(),

@@ -102,7 +102,8 @@ public class DataInitializer {
                     .title(seed.title())
                     .content(seed.content())
                     .authorId(seed.authorId())
-                    .authorName(seed.authorName())
+                    .authorUsername(seed.authorUsername())
+                    .authorNickname(seed.authorNickname())
                     .category(seed.category())
                     .tags(new HashSet<>(seed.tags()))
                     .status(PostStatus.valueOf(seed.status()))
@@ -157,7 +158,8 @@ public class DataInitializer {
                     .name(seed.name())
                     .description(seed.description())
                     .authorId(seed.authorId())
-                    .authorName(seed.authorName())
+                    .authorUsername(seed.authorUsername())
+                    .authorNickname(seed.authorNickname())
                     .postIds(new ArrayList<>(postIds))
                     .createdAt(now)
                     .updatedAt(now)
@@ -183,7 +185,8 @@ public class DataInitializer {
             Comment comment = commentRepository.save(Comment.builder()
                     .postId(postKeyToId.get(seed.postKey()))
                     .authorId(seed.authorId())
-                    .authorName(seed.authorName())
+                    .authorUsername(seed.authorUsername())
+                    .authorNickname(seed.authorNickname())
                     .content(seed.content())
                     .parentCommentId(parentId)
                     .createdAt(base.plusDays(seed.daysAfterBase()))
@@ -258,16 +261,16 @@ public class DataInitializer {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record PostSeed(String key, String title, String content, String authorId,
-                    String authorName, String category, List<String> tags,
+                    String authorUsername, String authorNickname, String category, List<String> tags,
                     String status, LocalDateTime publishedAt) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record SeriesSeed(String name, String description, String authorId,
-                      String authorName, List<String> postKeys) {}
+                      String authorUsername, String authorNickname, List<String> postKeys) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record CommentSeed(String postKey, Integer parentIndex, String authorId,
-                       String authorName, String content, int daysAfterBase) {}
+                       String authorUsername, String authorNickname, String content, int daysAfterBase) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record LikeSeed(String postKey, String userId, String userName) {}

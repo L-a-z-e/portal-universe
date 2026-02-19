@@ -3,21 +3,24 @@
     "name": "Spring Boot 실전 시리즈",
     "description": "Spring Boot 실전 경험을 공유하는 시리즈입니다.",
     "authorId": "00000000-0000-0000-0000-000000000101",
-    "authorName": "김개발",
+    "authorUsername": "dev_kim",
+    "authorNickname": "김개발",
     "postKeys": ["post-1", "post-9", "post-13"]
   },
   {
     "name": "제주도 한 달 살기",
     "description": "제주도에서 한 달간 살아본 이야기를 기록합니다.",
     "authorId": "00000000-0000-0000-0000-000000000102",
-    "authorName": "이여행",
+    "authorUsername": "travel_lee",
+    "authorNickname": "이여행",
     "postKeys": ["post-2", "post-8"]
   },
   {
     "name": "디자인 시스템 이야기",
     "description": "디자인 시스템을 구축하고 운영하는 과정을 공유합니다.",
     "authorId": "00000000-0000-0000-0000-000000000103",
-    "authorName": "박디자인",
+    "authorUsername": "design_park",
+    "authorNickname": "박디자인",
     "postKeys": ["post-3", "post-10"]
   }
 ]

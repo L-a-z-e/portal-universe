@@ -29,7 +29,7 @@ public class SeriesController {
             @Valid @RequestBody SeriesCreateRequest request,
             @CurrentUser AuthUser user
     ) {
-        SeriesResponse response = seriesService.createSeries(request, user.uuid(), user.nickname());
+        SeriesResponse response = seriesService.createSeries(request, user.uuid(), user.name(), user.nickname());
         return ApiResponse.success(response);
     }
 

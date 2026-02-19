@@ -112,13 +112,26 @@ const handleReplyCancel = () => {
         <div v-if="!isEditMode">
           <!-- 헤더: 아바타 + 정보 -->
           <div class="flex items-start gap-3 mb-3">
-            <Avatar :name="comment.authorName" size="sm" class="flex-shrink-0 mt-0.5" />
+            <component
+              :is="comment.authorUsername ? 'router-link' : 'div'"
+              :to="comment.authorUsername ? `/@${comment.authorUsername}` : undefined"
+              class="flex-shrink-0 mt-0.5"
+              :class="{ 'cursor-pointer hover:opacity-80 transition-opacity': comment.authorUsername }"
+            >
+              <Avatar :name="comment.authorNickname" size="sm" />
+            </component>
+            
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="font-semibold text-text-heading text-sm">
-                    {{ comment.authorName }}
-                  </span>
+                  <component
+                    :is="comment.authorUsername ? 'router-link' : 'span'"
+                    :to="comment.authorUsername ? `/@${comment.authorUsername}` : undefined"
+                    class="font-semibold text-text-heading text-sm"
+                    :class="{ 'hover:text-brand-primary cursor-pointer transition-colors': comment.authorUsername }"
+                  >
+                    {{ comment.authorNickname }}
+                  </component>
                   <span class="text-xs text-text-meta">
                     {{ formatRelativeTime(comment.createdAt) }}
                     <span v-if="comment.updatedAt !== comment.createdAt" class="ml-1">(수정됨)</span>

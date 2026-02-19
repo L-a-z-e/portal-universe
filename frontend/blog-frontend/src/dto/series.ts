@@ -8,7 +8,8 @@ export interface SeriesResponse {
   name: string;
   description: string;
   authorId: string;
-  authorName: string;
+  authorUsername: string;
+  authorNickname: string;
   thumbnailUrl: string;
   postIds: string[];
   postCount: number;
@@ -41,7 +42,8 @@ export interface SeriesListResponse {
   id: string;
   name: string;
   description: string;
-  authorName: string;
+  authorUsername: string;
+  authorNickname: string;
   thumbnailUrl: string;
   postCount: number;
   updatedAt: string;

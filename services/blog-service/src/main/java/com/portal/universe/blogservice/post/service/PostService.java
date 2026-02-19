@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface PostService {
 
-    PostResponse createPost(PostCreateRequest request, String authorId, String authorName);
+    PostResponse createPost(PostCreateRequest request, String authorId, String authorUsername, String authorNickname);
     Page<PostResponse> getAllPosts(int page, int size);
     PostResponse getPostById(String postId);
     PostResponse updatePost(String postId, PostUpdateRequest request, String userId);

@@ -7,7 +7,8 @@ export interface CommentResponse {
   id: string;
   postId: string;
   authorId: string;
-  authorName: string;
+  authorUsername: string;
+  authorNickname: string;
   content: string;
   parentCommentId: string | null;
   likeCount: number;

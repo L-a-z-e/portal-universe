@@ -14,16 +14,17 @@ export interface PostResponse {
   content: string;
   summary: string;
   authorId: string;
-  authorName: string;
+  authorUsername: string;
+  authorNickname: string;
   status: PostStatus;
-  tags: string[];  // Java Set<String> → TS string[]
+  tags: string[];
   category: string;
   metaDescription: string;
   thumbnailUrl: string;
-  images: string[];  // Java List<String> → TS string[]
-  viewCount: number;  // Java Long → TS number
+  images: string[];
+  viewCount: number;
   likeCount: number;
-  createdAt: string;  // Java LocalDateTime → TS string (ISO-8601)
+  createdAt: string;
   updatedAt: string;
   publishedAt: string;
   productId: string;
@@ -67,15 +68,16 @@ export interface PostSummaryResponse {
   title: string;
   summary: string;
   authorId: string;
-  authorName: string;
-  status?: PostStatus;  // 내 글 목록에서 상태 표시용
+  authorUsername: string;
+  authorNickname: string;
+  status?: PostStatus;
   tags: string[];
   category: string;
   thumbnailUrl: string;
   images: string[];
   viewCount: number;
   likeCount: number;
-  commentCount: number;  // Phase 3: 댓글 수 추가
+  commentCount: number;
   publishedAt: string;
   estimatedReadTime: number;
 }

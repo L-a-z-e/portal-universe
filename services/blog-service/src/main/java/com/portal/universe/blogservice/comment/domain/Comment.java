@@ -29,7 +29,9 @@ public class Comment {
     @NotBlank(message = "작성자 ID는 필수입니다")
     private String authorId;
 
-    private String authorName;
+    private String authorUsername;
+
+    private String authorNickname;
 
     @NotBlank(message = "댓글 내용은 필수입니다")
     private String content;

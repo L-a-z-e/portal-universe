@@ -24,7 +24,7 @@ const BLOG_API_BASE = '/api/v1/blog/posts';
  */
 export async function getPublicProfile(username: string): Promise<UserProfileResponse> {
   const response = await apiClient.get<ApiResponse<UserProfileResponse>>(
-    `${AUTH_API_BASE}/username/${username}`
+    `${AUTH_API_BASE}/${username}`
   );
   return response.data.data;
 }

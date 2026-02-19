@@ -36,8 +36,9 @@ public class PostController {
             @Valid @RequestBody PostCreateRequest request,
             @CurrentUser AuthUser user
     ) {
-        String authorName = resolveDisplayName(user);
-        PostResponse response = postService.createPost(request, user.uuid(), authorName);
+        String authorNickname = resolveDisplayName(user);
+        String authorUsername = user.name();
+        PostResponse response = postService.createPost(request, user.uuid(), authorUsername, authorNickname);
         return ApiResponse.success(response);
     }
 

@@ -4,7 +4,8 @@ import java.time.LocalDateTime;
 
 public record AuthorStats(
         String authorId,
-        String authorName,
+        String authorUsername,
+        String authorNickname,
         Long totalPosts,
         Long publishedPosts,
         Long totalViews,

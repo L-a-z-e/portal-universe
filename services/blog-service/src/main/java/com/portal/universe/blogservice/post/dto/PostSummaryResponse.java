@@ -9,14 +9,15 @@ public record PostSummaryResponse(
         String title,
         String summary,
         String authorId,
-        String authorName,
+        String authorUsername,
+        String authorNickname,
         Set<String> tags,
         String category,
         String thumbnailUrl,
         List<String> images,
         Long viewCount,
         Long likeCount,
-        Long commentCount,  // Phase 3: 댓글 수 추가
+        Long commentCount,
         LocalDateTime publishedAt,
         int estimatedReadTime
 ) {}
