@@ -11,7 +11,6 @@ import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.event.blog.PostLikedEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -79,15 +78,15 @@ public class LikeService {
 
             // 자기 글에 좋아요한 경우 알림 발행하지 않음
             if (!userId.equals(post.getAuthorId())) {
-                eventPublisher.publishPostLiked(new PostLikedEvent(
-                        savedLike.getId(),
-                        postId,
-                        post.getTitle(),
-                        post.getAuthorId(),
-                        userId,
-                        nickname, // Use nickname for notification display
-                        LocalDateTime.now()
-                ));
+                eventPublisher.publishPostLiked(PostLikedEvent.newBuilder()
+                        .setLikeId(savedLike.getId())
+                        .setPostId(postId)
+                        .setPostTitle(post.getTitle())
+                        .setAuthorId(post.getAuthorId())
+                        .setLikerId(userId)
+                        .setLikerName(nickname)
+                        .setTimestamp(java.time.Instant.now())
+                        .build());
             }
         }
 

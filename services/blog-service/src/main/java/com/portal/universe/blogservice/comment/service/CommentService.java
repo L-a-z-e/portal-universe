@@ -64,16 +64,16 @@ public class CommentService {
 
         // 자기 글에 댓글을 단 경우 알림 발행하지 않음
         if (!authorId.equals(post.getAuthorId())) {
-            eventPublisher.publishCommentCreated(new CommentCreatedEvent(
-                    savedComment.getId(),
-                    request.postId(),
-                    post.getTitle(),
-                    post.getAuthorId(),
-                    authorId,
-                    decodedAuthorNickname,
-                    request.content(),
-                    LocalDateTime.now()
-            ));
+            eventPublisher.publishCommentCreated(CommentCreatedEvent.newBuilder()
+                    .setCommentId(savedComment.getId())
+                    .setPostId(request.postId())
+                    .setPostTitle(post.getTitle())
+                    .setAuthorId(post.getAuthorId())
+                    .setCommenterId(authorId)
+                    .setCommenterName(decodedAuthorNickname)
+                    .setContent(request.content())
+                    .setTimestamp(java.time.Instant.now())
+                    .build());
         }
 
         return toResponse(savedComment);
