@@ -5,8 +5,12 @@ import com.portal.universe.event.blog.CommentCreatedEvent;
 import com.portal.universe.event.blog.CommentRepliedEvent;
 import com.portal.universe.event.blog.PostLikedEvent;
 import com.portal.universe.event.blog.UserFollowedEvent;
+import com.portal.universe.event.drive.FileUploadedEvent;
+import com.portal.universe.event.drive.FileDeletedEvent;
+import com.portal.universe.event.drive.FolderCreatedEvent;
 import com.portal.universe.event.prism.PrismTaskCompletedEvent;
 import com.portal.universe.event.prism.PrismTaskFailedEvent;
+import com.portal.universe.event.prism.TaskStatus;
 import com.portal.universe.event.shopping.*;
 import com.portal.universe.notificationservice.converter.NotificationEventConverter;
 import com.portal.universe.notificationservice.domain.Notification;
@@ -24,8 +28,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +64,9 @@ class NotificationConsumerTest {
     void should_createWelcomeNotification_when_userSignup() {
         // given
         String userId = "550e8400-e29b-41d4-a716-446655440000";
-        UserSignedUpEvent event = new UserSignedUpEvent(userId, "hong@test.com", "홍길동");
+        UserSignedUpEvent event = UserSignedUpEvent.newBuilder()
+                .setUserId(userId).setEmail("hong@test.com").setName("홍길동")
+                .setTimestamp(Instant.now()).build();
 
         Notification notification = Notification.builder()
                 .userId(userId)
@@ -95,7 +101,7 @@ class NotificationConsumerTest {
         // given
         String userId = "550e8400-e29b-41d4-a716-446655440000";
         OrderCreatedEvent event = new OrderCreatedEvent(
-                "ORD-001", userId, new java.math.BigDecimal("50000"), 2, java.util.List.of(), java.time.LocalDateTime.now()
+                "ORD-001", userId, new BigDecimal("50000"), 2, List.of(), Instant.now()
         );
 
         CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -133,7 +139,9 @@ class NotificationConsumerTest {
         @DisplayName("should_includeUserName_in_welcomeMessage")
         void should_includeUserName_in_welcomeMessage() {
             // given
-            UserSignedUpEvent event = new UserSignedUpEvent(TEST_USER_ID, "test@test.com", "김테스트");
+            UserSignedUpEvent event = UserSignedUpEvent.newBuilder()
+                    .setUserId(TEST_USER_ID).setEmail("test@test.com").setName("김테스트")
+                    .setTimestamp(Instant.now()).build();
 
             Notification notification = Notification.builder()
                     .userId(TEST_USER_ID)
@@ -160,7 +168,9 @@ class NotificationConsumerTest {
         @DisplayName("should_setSystemNotificationType_when_userSignup")
         void should_setSystemNotificationType_when_userSignup() {
             // given
-            UserSignedUpEvent event = new UserSignedUpEvent(TEST_USER_ID, "test@test.com", "테스터");
+            UserSignedUpEvent event = UserSignedUpEvent.newBuilder()
+                    .setUserId(TEST_USER_ID).setEmail("test@test.com").setName("테스터")
+                    .setTimestamp(Instant.now()).build();
 
             Notification notification = Notification.builder()
                     .userId(TEST_USER_ID)
@@ -185,7 +195,9 @@ class NotificationConsumerTest {
         @DisplayName("should_callValidateOnNotificationEvent_when_userSignup")
         void should_callValidateOnNotificationEvent_when_userSignup() {
             // given - valid event should pass validation and proceed
-            UserSignedUpEvent event = new UserSignedUpEvent(TEST_USER_ID, "test@test.com", "테스터");
+            UserSignedUpEvent event = UserSignedUpEvent.newBuilder()
+                    .setUserId(TEST_USER_ID).setEmail("test@test.com").setName("테스터")
+                    .setTimestamp(Instant.now()).build();
 
             Notification notification = Notification.builder()
                     .userId(TEST_USER_ID)
@@ -206,13 +218,11 @@ class NotificationConsumerTest {
         @Test
         @DisplayName("should_throwException_when_signupUserIdIsNull")
         void should_throwException_when_signupUserIdIsNull() {
-            // given - null userId will cause validate() to throw
-            UserSignedUpEvent event = new UserSignedUpEvent(null, "test@test.com", "테스터");
-
-            // when & then
-            assertThatThrownBy(() -> notificationConsumer.handleUserSignup(event))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("userId is required");
+            // Avro required string 필드에 null 설정 시 AvroRuntimeException 발생
+            assertThatThrownBy(() -> UserSignedUpEvent.newBuilder()
+                    .setUserId(null).setEmail("test@test.com").setName("테스터")
+                    .setTimestamp(Instant.now()).build())
+                    .isInstanceOf(org.apache.avro.AvroRuntimeException.class);
         }
     }
 
@@ -226,7 +236,7 @@ class NotificationConsumerTest {
             // given
             OrderCancelledEvent event = new OrderCancelledEvent(
                     "ORD-002", TEST_USER_ID, new BigDecimal("30000"),
-                    "고객 요청", LocalDateTime.now()
+                    "고객 요청", Instant.now()
             );
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -258,7 +268,7 @@ class NotificationConsumerTest {
             // given
             PaymentCompletedEvent event = new PaymentCompletedEvent(
                     "PAY-001", "ORD-001", TEST_USER_ID,
-                    new BigDecimal("50000"), "CARD", "PG-TX-001", LocalDateTime.now()
+                    new BigDecimal("50000"), "CARD", "PG-TX-001", Instant.now()
             );
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -290,7 +300,7 @@ class NotificationConsumerTest {
             // given
             PaymentFailedEvent event = new PaymentFailedEvent(
                     "PAY-002", "ORD-002", TEST_USER_ID,
-                    new BigDecimal("30000"), "CARD", "잔액 부족", LocalDateTime.now()
+                    new BigDecimal("30000"), "CARD", "잔액 부족", Instant.now()
             );
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -322,7 +332,7 @@ class NotificationConsumerTest {
             // given
             DeliveryShippedEvent event = new DeliveryShippedEvent(
                     "TRK-001", "ORD-001", TEST_USER_ID,
-                    "CJ대한통운", LocalDate.now().plusDays(2), LocalDateTime.now()
+                    "CJ대한통운", LocalDate.now().plusDays(2), Instant.now()
             );
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -354,7 +364,7 @@ class NotificationConsumerTest {
             // given
             CouponIssuedEvent event = new CouponIssuedEvent(
                     "1", "COUPON-001", "신규 가입 쿠폰",
-                    "PERCENTAGE", 10, LocalDateTime.now().plusDays(30)
+                    "PERCENTAGE", 10, Instant.now().plusSeconds(86400 * 30)
             );
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -385,7 +395,7 @@ class NotificationConsumerTest {
         void should_notCreateNotification_when_timeDealStarted() {
             // given
             TimeDealStartedEvent event = new TimeDealStartedEvent(
-                    1L, "여름 세일", LocalDateTime.now(), LocalDateTime.now().plusHours(2)
+                    1L, "여름 세일", Instant.now(), Instant.now().plusSeconds(3600 * 2)
             );
 
             // when
@@ -402,7 +412,7 @@ class NotificationConsumerTest {
         void should_notCallPushService_when_timeDealStarted() {
             // given
             TimeDealStartedEvent event = new TimeDealStartedEvent(
-                    2L, "겨울 세일", LocalDateTime.now(), LocalDateTime.now().plusHours(3)
+                    2L, "겨울 세일", Instant.now(), Instant.now().plusSeconds(3600 * 3)
             );
 
             // when
@@ -418,7 +428,7 @@ class NotificationConsumerTest {
             // given
             OrderCancelledEvent event = new OrderCancelledEvent(
                     "ORD-003", TEST_USER_ID, new BigDecimal("10000"),
-                    "품절", LocalDateTime.now()
+                    "품절", Instant.now()
             );
 
             given(converter.convert(event)).willThrow(new RuntimeException("Converter error"));
@@ -435,7 +445,7 @@ class NotificationConsumerTest {
             // given
             PaymentCompletedEvent event = new PaymentCompletedEvent(
                     "PAY-003", "ORD-003", TEST_USER_ID,
-                    new BigDecimal("20000"), "CARD", "PG-TX-003", LocalDateTime.now()
+                    new BigDecimal("20000"), "CARD", "PG-TX-003", Instant.now()
             );
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -459,7 +469,7 @@ class NotificationConsumerTest {
             // given
             PaymentFailedEvent event = new PaymentFailedEvent(
                     "PAY-004", "ORD-004", TEST_USER_ID,
-                    new BigDecimal("15000"), "CARD", "한도 초과", LocalDateTime.now()
+                    new BigDecimal("15000"), "CARD", "한도 초과", Instant.now()
             );
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -495,10 +505,11 @@ class NotificationConsumerTest {
         @DisplayName("should_createNotification_when_postLiked")
         void should_createNotification_when_postLiked() {
             // given
-            PostLikedEvent event = new PostLikedEvent(
-                    "LIKE-001", "POST-001", "테스트 게시글",
-                    "author-001", "liker-001", "좋아요 누른 사람", LocalDateTime.now()
-            );
+            PostLikedEvent event = PostLikedEvent.newBuilder()
+                    .setLikeId("LIKE-001").setPostId("POST-001").setPostTitle("테스트 게시글")
+                    .setAuthorId("author-001").setLikerId("liker-001").setLikerName("좋아요 누른 사람")
+                    .setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     "author-001", NotificationType.BLOG_LIKE,
@@ -528,11 +539,11 @@ class NotificationConsumerTest {
         @DisplayName("should_createNotification_when_commentCreated")
         void should_createNotification_when_commentCreated() {
             // given
-            CommentCreatedEvent event = new CommentCreatedEvent(
-                    "CMT-001", "POST-001", "테스트 게시글",
-                    "author-001", "commenter-001", "댓글 작성자",
-                    "좋은 글이네요!", LocalDateTime.now()
-            );
+            CommentCreatedEvent event = CommentCreatedEvent.newBuilder()
+                    .setCommentId("CMT-001").setPostId("POST-001").setPostTitle("테스트 게시글")
+                    .setAuthorId("author-001").setCommenterId("commenter-001").setCommenterName("댓글 작성자")
+                    .setContent("좋은 글이네요!").setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     "author-001", NotificationType.BLOG_COMMENT,
@@ -562,11 +573,11 @@ class NotificationConsumerTest {
         @DisplayName("should_createNotification_when_commentReplied")
         void should_createNotification_when_commentReplied() {
             // given
-            CommentRepliedEvent event = new CommentRepliedEvent(
-                    "REPLY-001", "POST-001", "CMT-001",
-                    "parent-author-001", "replier-001", "답글 작성자",
-                    "감사합니다!", LocalDateTime.now()
-            );
+            CommentRepliedEvent event = CommentRepliedEvent.newBuilder()
+                    .setReplyId("REPLY-001").setPostId("POST-001").setParentCommentId("CMT-001")
+                    .setParentCommentAuthorId("parent-author-001").setReplierId("replier-001").setReplierName("답글 작성자")
+                    .setContent("감사합니다!").setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     "parent-author-001", NotificationType.BLOG_REPLY,
@@ -596,10 +607,10 @@ class NotificationConsumerTest {
         @DisplayName("should_createNotification_when_userFollowed")
         void should_createNotification_when_userFollowed() {
             // given
-            UserFollowedEvent event = new UserFollowedEvent(
-                    "FOLLOW-001", "followee-001", "follower-001",
-                    "팔로워", LocalDateTime.now()
-            );
+            UserFollowedEvent event = UserFollowedEvent.newBuilder()
+                    .setFollowId("FOLLOW-001").setFolloweeId("followee-001").setFollowerId("follower-001")
+                    .setFollowerName("팔로워").setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     "followee-001", NotificationType.BLOG_FOLLOW,
@@ -629,10 +640,11 @@ class NotificationConsumerTest {
         @DisplayName("should_propagateException_when_postLikedFails")
         void should_propagateException_when_postLikedFails() {
             // given
-            PostLikedEvent event = new PostLikedEvent(
-                    "LIKE-002", "POST-002", "게시글 2",
-                    "author-002", "liker-002", "라이커", LocalDateTime.now()
-            );
+            PostLikedEvent event = PostLikedEvent.newBuilder()
+                    .setLikeId("LIKE-002").setPostId("POST-002").setPostTitle("게시글 2")
+                    .setAuthorId("author-002").setLikerId("liker-002").setLikerName("라이커")
+                    .setTimestamp(Instant.now())
+                    .build();
 
             given(converter.convert(event)).willThrow(new RuntimeException("Converter failed"));
 
@@ -646,11 +658,11 @@ class NotificationConsumerTest {
         @DisplayName("should_callConverterAndServiceAndPush_when_commentCreated")
         void should_callConverterAndServiceAndPush_when_commentCreated() {
             // given
-            CommentCreatedEvent event = new CommentCreatedEvent(
-                    "CMT-002", "POST-002", "게시글 2",
-                    "author-002", "commenter-002", "커멘터",
-                    "댓글 내용", LocalDateTime.now()
-            );
+            CommentCreatedEvent event = CommentCreatedEvent.newBuilder()
+                    .setCommentId("CMT-002").setPostId("POST-002").setPostTitle("게시글 2")
+                    .setAuthorId("author-002").setCommenterId("commenter-002").setCommenterName("커멘터")
+                    .setContent("댓글 내용").setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     "author-002", NotificationType.BLOG_COMMENT,
@@ -678,6 +690,129 @@ class NotificationConsumerTest {
     }
 
     @Nested
+    @DisplayName("Drive Events")
+    class DriveEvents {
+
+        @Test
+        @DisplayName("should_createNotification_when_fileUploaded")
+        void should_createNotification_when_fileUploaded() {
+            // given
+            FileUploadedEvent event = FileUploadedEvent.newBuilder()
+                    .setFileId("file-001").setFileName("report.pdf")
+                    .setUserId(TEST_USER_ID).setFileSize(1024000L)
+                    .setContentType("application/pdf")
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            CreateNotificationCommand cmd = new CreateNotificationCommand(
+                    TEST_USER_ID, NotificationType.DRIVE_FILE_UPLOADED,
+                    "파일이 업로드되었습니다", "\"report.pdf\" 파일이 업로드되었습니다 (1000.0 KB)",
+                    "/drive/files/file-001", "file-001", "file"
+            );
+
+            Notification notification = Notification.builder()
+                    .userId(TEST_USER_ID)
+                    .type(NotificationType.DRIVE_FILE_UPLOADED)
+                    .build();
+
+            given(converter.convert(event)).willReturn(cmd);
+            given(notificationService.create(cmd)).willReturn(notification);
+
+            // when
+            notificationConsumer.handleFileUploaded(event);
+
+            // then
+            verify(converter).convert(event);
+            verify(notificationService).create(cmd);
+            verify(pushService).push(notification);
+        }
+
+        @Test
+        @DisplayName("should_createNotification_when_fileDeleted")
+        void should_createNotification_when_fileDeleted() {
+            // given
+            FileDeletedEvent event = FileDeletedEvent.newBuilder()
+                    .setFileId("file-002").setUserId(TEST_USER_ID)
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            CreateNotificationCommand cmd = new CreateNotificationCommand(
+                    TEST_USER_ID, NotificationType.DRIVE_FILE_DELETED,
+                    "파일이 삭제되었습니다", "파일이 삭제되었습니다",
+                    "/drive", "file-002", "file"
+            );
+
+            Notification notification = Notification.builder()
+                    .userId(TEST_USER_ID)
+                    .type(NotificationType.DRIVE_FILE_DELETED)
+                    .build();
+
+            given(converter.convert(event)).willReturn(cmd);
+            given(notificationService.create(cmd)).willReturn(notification);
+
+            // when
+            notificationConsumer.handleFileDeleted(event);
+
+            // then
+            verify(converter).convert(event);
+            verify(notificationService).create(cmd);
+            verify(pushService).push(notification);
+        }
+
+        @Test
+        @DisplayName("should_createNotification_when_folderCreated")
+        void should_createNotification_when_folderCreated() {
+            // given
+            FolderCreatedEvent event = FolderCreatedEvent.newBuilder()
+                    .setFolderId("folder-001").setFolderName("프로젝트 자료")
+                    .setUserId(TEST_USER_ID).setParentFolderId("parent-folder-001")
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            CreateNotificationCommand cmd = new CreateNotificationCommand(
+                    TEST_USER_ID, NotificationType.DRIVE_FOLDER_CREATED,
+                    "폴더가 생성되었습니다", "\"프로젝트 자료\" 폴더가 생성되었습니다",
+                    "/drive/folders/folder-001", "folder-001", "folder"
+            );
+
+            Notification notification = Notification.builder()
+                    .userId(TEST_USER_ID)
+                    .type(NotificationType.DRIVE_FOLDER_CREATED)
+                    .build();
+
+            given(converter.convert(event)).willReturn(cmd);
+            given(notificationService.create(cmd)).willReturn(notification);
+
+            // when
+            notificationConsumer.handleFolderCreated(event);
+
+            // then
+            verify(converter).convert(event);
+            verify(notificationService).create(cmd);
+            verify(pushService).push(notification);
+        }
+
+        @Test
+        @DisplayName("should_propagateException_when_fileUploadedFails")
+        void should_propagateException_when_fileUploadedFails() {
+            // given
+            FileUploadedEvent event = FileUploadedEvent.newBuilder()
+                    .setFileId("file-003").setFileName("test.txt")
+                    .setUserId(TEST_USER_ID).setFileSize(100L)
+                    .setContentType("text/plain")
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            given(converter.convert(event)).willThrow(new RuntimeException("Drive error"));
+
+            // when & then
+            assertThatThrownBy(() -> notificationConsumer.handleFileUploaded(event))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("Drive error");
+        }
+    }
+
+    @Nested
     @DisplayName("Prism Events")
     class PrismEvents {
 
@@ -685,10 +820,12 @@ class NotificationConsumerTest {
         @DisplayName("should_createNotification_when_prismTaskCompleted")
         void should_createNotification_when_prismTaskCompleted() {
             // given
-            PrismTaskCompletedEvent event = new PrismTaskCompletedEvent(
-                    1, 10, TEST_USER_ID, "이미지 분류",
-                    "COMPLETED", "Claude Agent", 100, "2026-02-05T10:00:00"
-            );
+            PrismTaskCompletedEvent event = PrismTaskCompletedEvent.newBuilder()
+                    .setTaskId(1).setBoardId(10).setUserId(TEST_USER_ID)
+                    .setTitle("이미지 분류").setStatus(TaskStatus.DONE)
+                    .setAgentName("Claude Agent").setExecutionId(100)
+                    .setTimestamp(Instant.parse("2026-02-05T10:00:00Z"))
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     TEST_USER_ID, NotificationType.PRISM_TASK_COMPLETED,
@@ -718,10 +855,13 @@ class NotificationConsumerTest {
         @DisplayName("should_createNotification_when_prismTaskFailed")
         void should_createNotification_when_prismTaskFailed() {
             // given
-            PrismTaskFailedEvent event = new PrismTaskFailedEvent(
-                    2, 10, TEST_USER_ID, "텍스트 분석",
-                    "FAILED", "GPT Agent", 200, "timeout error", "2026-02-05T10:00:00"
-            );
+            PrismTaskFailedEvent event = PrismTaskFailedEvent.newBuilder()
+                    .setTaskId(2).setBoardId(10).setUserId(TEST_USER_ID)
+                    .setTitle("텍스트 분석").setStatus(TaskStatus.FAILED)
+                    .setAgentName("GPT Agent").setExecutionId(200)
+                    .setErrorMessage("timeout error")
+                    .setTimestamp(Instant.parse("2026-02-05T10:00:00Z"))
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     TEST_USER_ID, NotificationType.PRISM_TASK_FAILED,
@@ -751,10 +891,12 @@ class NotificationConsumerTest {
         @DisplayName("should_propagateException_when_prismTaskCompletedFails")
         void should_propagateException_when_prismTaskCompletedFails() {
             // given
-            PrismTaskCompletedEvent event = new PrismTaskCompletedEvent(
-                    3, 20, TEST_USER_ID, "작업",
-                    "COMPLETED", "Agent", 300, "2026-02-05T10:00:00"
-            );
+            PrismTaskCompletedEvent event = PrismTaskCompletedEvent.newBuilder()
+                    .setTaskId(3).setBoardId(20).setUserId(TEST_USER_ID)
+                    .setTitle("작업").setStatus(TaskStatus.DONE)
+                    .setAgentName("Agent").setExecutionId(300)
+                    .setTimestamp(Instant.parse("2026-02-05T10:00:00Z"))
+                    .build();
 
             given(converter.convert(event)).willThrow(new RuntimeException("Task processing error"));
 
@@ -768,10 +910,13 @@ class NotificationConsumerTest {
         @DisplayName("should_callConverterAndServiceAndPush_when_prismTaskFailed")
         void should_callConverterAndServiceAndPush_when_prismTaskFailed() {
             // given
-            PrismTaskFailedEvent event = new PrismTaskFailedEvent(
-                    4, 20, TEST_USER_ID, "작업 2",
-                    "FAILED", "Agent 2", 400, "memory error", "2026-02-05T10:00:00"
-            );
+            PrismTaskFailedEvent event = PrismTaskFailedEvent.newBuilder()
+                    .setTaskId(4).setBoardId(20).setUserId(TEST_USER_ID)
+                    .setTitle("작업 2").setStatus(TaskStatus.FAILED)
+                    .setAgentName("Agent 2").setExecutionId(400)
+                    .setErrorMessage("memory error")
+                    .setTimestamp(Instant.parse("2026-02-05T10:00:00Z"))
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     TEST_USER_ID, NotificationType.PRISM_TASK_FAILED,
@@ -808,7 +953,7 @@ class NotificationConsumerTest {
             // given
             DeliveryShippedEvent event = new DeliveryShippedEvent(
                     "TRK-002", "ORD-002", TEST_USER_ID,
-                    "한진택배", LocalDate.now().plusDays(3), LocalDateTime.now()
+                    "한진택배", LocalDate.now().plusDays(3), Instant.now()
             );
 
             CreateNotificationCommand expectedCmd = new CreateNotificationCommand(
@@ -838,7 +983,7 @@ class NotificationConsumerTest {
             // given
             CouponIssuedEvent event = new CouponIssuedEvent(
                     "2", "COUPON-002", "할인 쿠폰",
-                    "FIXED", 5000, LocalDateTime.now().plusDays(7)
+                    "FIXED", 5000, Instant.now().plusSeconds(86400 * 7)
             );
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
@@ -868,10 +1013,10 @@ class NotificationConsumerTest {
         @DisplayName("should_callConverterConvert_with_event_when_userFollowed")
         void should_callConverterConvert_with_event_when_userFollowed() {
             // given
-            UserFollowedEvent event = new UserFollowedEvent(
-                    "FOLLOW-002", "followee-002", "follower-002",
-                    "팔로워2", LocalDateTime.now()
-            );
+            UserFollowedEvent event = UserFollowedEvent.newBuilder()
+                    .setFollowId("FOLLOW-002").setFolloweeId("followee-002").setFollowerId("follower-002")
+                    .setFollowerName("팔로워2").setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     "followee-002", NotificationType.BLOG_FOLLOW,
@@ -901,11 +1046,11 @@ class NotificationConsumerTest {
         @DisplayName("should_callCreateAndPush_inOrder_when_commentReplied")
         void should_callCreateAndPush_inOrder_when_commentReplied() {
             // given
-            CommentRepliedEvent event = new CommentRepliedEvent(
-                    "REPLY-002", "POST-003", "CMT-002",
-                    "parent-author-002", "replier-002", "답글러",
-                    "답글 내용", LocalDateTime.now()
-            );
+            CommentRepliedEvent event = CommentRepliedEvent.newBuilder()
+                    .setReplyId("REPLY-002").setPostId("POST-003").setParentCommentId("CMT-002")
+                    .setParentCommentAuthorId("parent-author-002").setReplierId("replier-002").setReplierName("답글러")
+                    .setContent("답글 내용").setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     "parent-author-002", NotificationType.BLOG_REPLY,

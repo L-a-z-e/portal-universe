@@ -42,10 +42,8 @@ spring:
     bootstrap-servers: kafka:29092
     consumer:
       group-id: notification-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.portal.universe.*"
+    properties:
+      schema.registry.url: http://schema-registry:8081
 
 # Docker 환경 모니터링 설정
 management:

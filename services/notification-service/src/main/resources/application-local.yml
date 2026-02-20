@@ -37,10 +37,8 @@ spring:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: notification-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.portal.universe.*"
+    properties:
+      schema.registry.url: http://localhost:18081
 
 # Local Actuator 설정
 management:

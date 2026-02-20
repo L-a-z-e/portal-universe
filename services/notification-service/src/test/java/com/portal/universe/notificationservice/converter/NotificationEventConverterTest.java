@@ -4,8 +4,12 @@ import com.portal.universe.event.blog.CommentCreatedEvent;
 import com.portal.universe.event.blog.CommentRepliedEvent;
 import com.portal.universe.event.blog.PostLikedEvent;
 import com.portal.universe.event.blog.UserFollowedEvent;
+import com.portal.universe.event.drive.FileUploadedEvent;
+import com.portal.universe.event.drive.FileDeletedEvent;
+import com.portal.universe.event.drive.FolderCreatedEvent;
 import com.portal.universe.event.prism.PrismTaskCompletedEvent;
 import com.portal.universe.event.prism.PrismTaskFailedEvent;
+import com.portal.universe.event.prism.TaskStatus;
 import com.portal.universe.event.shopping.*;
 import com.portal.universe.notificationservice.domain.NotificationType;
 import com.portal.universe.notificationservice.dto.CreateNotificationCommand;
@@ -15,8 +19,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +48,7 @@ class NotificationEventConverterTest {
                     new BigDecimal("59000"),
                     3,
                     List.of(),
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -67,7 +71,7 @@ class NotificationEventConverterTest {
                     "user-123",
                     new BigDecimal("30000"),
                     "고객 요청",
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -92,7 +96,7 @@ class NotificationEventConverterTest {
                     new BigDecimal("150000"),
                     "CARD",
                     "PG-TX-001",
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -117,7 +121,7 @@ class NotificationEventConverterTest {
                     new BigDecimal("50000"),
                     "CARD",
                     longReason,
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -141,7 +145,7 @@ class NotificationEventConverterTest {
                     "user-123",
                     "CJ대한통운",
                     LocalDate.of(2025, 7, 5),
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -165,7 +169,7 @@ class NotificationEventConverterTest {
                     "여름 세일 쿠폰",
                     "PERCENTAGE",
                     15,
-                    LocalDateTime.now().plusDays(30)
+                    Instant.now().plusSeconds(86400 * 30)
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -189,7 +193,7 @@ class NotificationEventConverterTest {
                     "신규 가입 쿠폰",
                     "FIXED",
                     5000,
-                    LocalDateTime.now().plusDays(14)
+                    Instant.now().plusSeconds(86400 * 14)
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -209,7 +213,7 @@ class NotificationEventConverterTest {
                     "테스트 쿠폰",
                     "PERCENTAGE",
                     10,
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -225,15 +229,15 @@ class NotificationEventConverterTest {
         @Test
         @DisplayName("PostLikedEvent에서 authorId를 userId로 사용한다")
         void should_useAuthorIdAsUserId_forPostLiked() {
-            PostLikedEvent event = new PostLikedEvent(
-                    "like-001",
-                    "post-123",
-                    "나의 첫 블로그 글",
-                    "author-user-id",
-                    "liker-user-id",
-                    "홍길동",
-                    LocalDateTime.now()
-            );
+            PostLikedEvent event = PostLikedEvent.newBuilder()
+                    .setLikeId("like-001")
+                    .setPostId("post-123")
+                    .setPostTitle("나의 첫 블로그 글")
+                    .setAuthorId("author-user-id")
+                    .setLikerId("liker-user-id")
+                    .setLikerName("홍길동")
+                    .setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 
@@ -251,16 +255,16 @@ class NotificationEventConverterTest {
         @DisplayName("CommentCreatedEvent에서 content가 긴 경우 30자로 잘린다")
         void should_truncateContent_forCommentCreated() {
             String longContent = "이것은 매우 긴 댓글 내용입니다. 테스트를 위해 30자 이상으로 작성합니다.";
-            CommentCreatedEvent event = new CommentCreatedEvent(
-                    "comment-001",
-                    "post-123",
-                    "블로그 제목",
-                    "author-id",
-                    "commenter-id",
-                    "김철수",
-                    longContent,
-                    LocalDateTime.now()
-            );
+            CommentCreatedEvent event = CommentCreatedEvent.newBuilder()
+                    .setCommentId("comment-001")
+                    .setPostId("post-123")
+                    .setPostTitle("블로그 제목")
+                    .setAuthorId("author-id")
+                    .setCommenterId("commenter-id")
+                    .setCommenterName("김철수")
+                    .setContent(longContent)
+                    .setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 
@@ -278,16 +282,16 @@ class NotificationEventConverterTest {
         @Test
         @DisplayName("CommentRepliedEvent에서 anchor 링크가 생성되고 parentCommentAuthorId가 userId로 사용된다")
         void should_createAnchorLink_forCommentReplied() {
-            CommentRepliedEvent event = new CommentRepliedEvent(
-                    "reply-001",
-                    "post-456",
-                    "parent-comment-id",
-                    "parent-author-id",
-                    "replier-id",
-                    "이영희",
-                    "짧은 답글",
-                    LocalDateTime.now()
-            );
+            CommentRepliedEvent event = CommentRepliedEvent.newBuilder()
+                    .setReplyId("reply-001")
+                    .setPostId("post-456")
+                    .setParentCommentId("parent-comment-id")
+                    .setParentCommentAuthorId("parent-author-id")
+                    .setReplierId("replier-id")
+                    .setReplierName("이영희")
+                    .setContent("짧은 답글")
+                    .setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 
@@ -304,13 +308,13 @@ class NotificationEventConverterTest {
         @Test
         @DisplayName("UserFollowedEvent에서 followeeId를 userId로 사용한다")
         void should_useFolloweeIdAsUserId_forUserFollowed() {
-            UserFollowedEvent event = new UserFollowedEvent(
-                    "follow-001",
-                    "followee-user-id",
-                    "follower-user-id",
-                    "팔로워이름",
-                    LocalDateTime.now()
-            );
+            UserFollowedEvent event = UserFollowedEvent.newBuilder()
+                    .setFollowId("follow-001")
+                    .setFolloweeId("followee-user-id")
+                    .setFollowerId("follower-user-id")
+                    .setFollowerName("팔로워이름")
+                    .setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 
@@ -331,16 +335,16 @@ class NotificationEventConverterTest {
         @Test
         @DisplayName("PrismTaskCompletedEvent를 올바른 링크 형식으로 변환한다")
         void should_convertTaskCompleted_withCorrectLinkFormat() {
-            PrismTaskCompletedEvent event = new PrismTaskCompletedEvent(
-                    42,
-                    10,
-                    "user-123",
-                    "이미지 분석 태스크",
-                    "COMPLETED",
-                    "GPT-4 Agent",
-                    100,
-                    "2025-07-01T10:00:00"
-            );
+            PrismTaskCompletedEvent event = PrismTaskCompletedEvent.newBuilder()
+                    .setTaskId(42)
+                    .setBoardId(10)
+                    .setUserId("user-123")
+                    .setTitle("이미지 분석 태스크")
+                    .setStatus(TaskStatus.DONE)
+                    .setAgentName("GPT-4 Agent")
+                    .setExecutionId(100)
+                    .setTimestamp(Instant.parse("2025-07-01T10:00:00Z"))
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 
@@ -358,17 +362,17 @@ class NotificationEventConverterTest {
         @DisplayName("PrismTaskFailedEvent에서 errorMessage가 긴 경우 잘린다")
         void should_truncateErrorMessage_forTaskFailed() {
             String longError = "E".repeat(40); // 40자 > maxLength 30
-            PrismTaskFailedEvent event = new PrismTaskFailedEvent(
-                    55,
-                    20,
-                    "user-456",
-                    "데이터 처리 태스크",
-                    "FAILED",
-                    "Claude Agent",
-                    200,
-                    longError,
-                    "2025-07-01T12:00:00"
-            );
+            PrismTaskFailedEvent event = PrismTaskFailedEvent.newBuilder()
+                    .setTaskId(55)
+                    .setBoardId(20)
+                    .setUserId("user-456")
+                    .setTitle("데이터 처리 태스크")
+                    .setStatus(TaskStatus.FAILED)
+                    .setAgentName("Claude Agent")
+                    .setExecutionId(200)
+                    .setErrorMessage(longError)
+                    .setTimestamp(Instant.parse("2025-07-01T12:00:00Z"))
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 
@@ -383,22 +387,128 @@ class NotificationEventConverterTest {
     }
 
     @Nested
+    @DisplayName("Drive Events")
+    class DriveEventsTest {
+
+        @Test
+        @DisplayName("FileUploadedEvent를 DRIVE_FILE_UPLOADED 타입 커맨드로 변환한다")
+        void should_convertFileUploaded_toCommand() {
+            FileUploadedEvent event = FileUploadedEvent.newBuilder()
+                    .setFileId("file-001")
+                    .setFileName("presentation.pptx")
+                    .setUserId("user-123")
+                    .setFileSize(5242880L) // 5MB
+                    .setContentType("application/vnd.ms-powerpoint")
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            CreateNotificationCommand command = converter.convert(event);
+
+            assertThat(command.userId()).isEqualTo("user-123");
+            assertThat(command.type()).isEqualTo(NotificationType.DRIVE_FILE_UPLOADED);
+            assertThat(command.title()).isEqualTo("파일이 업로드되었습니다");
+            assertThat(command.message()).contains("presentation.pptx");
+            assertThat(command.message()).contains("5.0 MB");
+            assertThat(command.link()).isEqualTo("/drive/files/file-001");
+            assertThat(command.referenceId()).isEqualTo("file-001");
+            assertThat(command.referenceType()).isEqualTo("file");
+        }
+
+        @Test
+        @DisplayName("FileDeletedEvent를 DRIVE_FILE_DELETED 타입 커맨드로 변환한다")
+        void should_convertFileDeleted_toCommand() {
+            FileDeletedEvent event = FileDeletedEvent.newBuilder()
+                    .setFileId("file-002")
+                    .setUserId("user-456")
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            CreateNotificationCommand command = converter.convert(event);
+
+            assertThat(command.userId()).isEqualTo("user-456");
+            assertThat(command.type()).isEqualTo(NotificationType.DRIVE_FILE_DELETED);
+            assertThat(command.title()).isEqualTo("파일이 삭제되었습니다");
+            assertThat(command.link()).isEqualTo("/drive");
+            assertThat(command.referenceId()).isEqualTo("file-002");
+            assertThat(command.referenceType()).isEqualTo("file");
+        }
+
+        @Test
+        @DisplayName("FolderCreatedEvent를 DRIVE_FOLDER_CREATED 타입 커맨드로 변환한다")
+        void should_convertFolderCreated_toCommand() {
+            FolderCreatedEvent event = FolderCreatedEvent.newBuilder()
+                    .setFolderId("folder-001")
+                    .setFolderName("회의록")
+                    .setUserId("user-789")
+                    .setParentFolderId("parent-folder-001")
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            CreateNotificationCommand command = converter.convert(event);
+
+            assertThat(command.userId()).isEqualTo("user-789");
+            assertThat(command.type()).isEqualTo(NotificationType.DRIVE_FOLDER_CREATED);
+            assertThat(command.title()).isEqualTo("폴더가 생성되었습니다");
+            assertThat(command.message()).contains("회의록");
+            assertThat(command.link()).isEqualTo("/drive/folders/folder-001");
+            assertThat(command.referenceId()).isEqualTo("folder-001");
+            assertThat(command.referenceType()).isEqualTo("folder");
+        }
+
+        @Test
+        @DisplayName("FileUploadedEvent에서 파일 크기 포맷이 올바르다 (KB)")
+        void should_formatFileSize_inKB() {
+            FileUploadedEvent event = FileUploadedEvent.newBuilder()
+                    .setFileId("file-003")
+                    .setFileName("notes.txt")
+                    .setUserId("user-123")
+                    .setFileSize(2048L) // 2KB
+                    .setContentType("text/plain")
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            CreateNotificationCommand command = converter.convert(event);
+
+            assertThat(command.message()).contains("2.0 KB");
+        }
+
+        @Test
+        @DisplayName("FolderCreatedEvent에서 parentFolderId가 null이면 root 폴더")
+        void should_handleNullParentFolderId() {
+            FolderCreatedEvent event = FolderCreatedEvent.newBuilder()
+                    .setFolderId("folder-root")
+                    .setFolderName("내 파일")
+                    .setUserId("user-123")
+                    .setParentFolderId(null)
+                    .setTimestamp(Instant.now())
+                    .build();
+
+            CreateNotificationCommand command = converter.convert(event);
+
+            assertThat(command.userId()).isEqualTo("user-123");
+            assertThat(command.type()).isEqualTo(NotificationType.DRIVE_FOLDER_CREATED);
+            assertThat(command.message()).contains("내 파일");
+        }
+    }
+
+    @Nested
     @DisplayName("Helper Methods")
     class HelperMethodsTest {
 
         @Test
         @DisplayName("truncate에 null이 전달되면 빈 문자열이 반환된다")
         void should_returnEmptyString_when_truncateNull() {
-            // truncate(null) returns "" - PostLikedEvent의 postTitle이 null인 경우 검증
-            PostLikedEvent event = new PostLikedEvent(
-                    "like-001",
-                    "post-123",
-                    null, // null postTitle
-                    "author-id",
-                    "liker-id",
-                    "홍길동",
-                    LocalDateTime.now()
-            );
+            // truncate("") returns "" - PostLikedEvent의 postTitle이 빈 문자열인 경우 검증
+            // Avro required string 필드는 null 불가 → 빈 문자열("")로 대체
+            PostLikedEvent event = PostLikedEvent.newBuilder()
+                    .setLikeId("like-001")
+                    .setPostId("post-123")
+                    .setPostTitle("") // empty postTitle (Avro required field cannot be null)
+                    .setAuthorId("author-id")
+                    .setLikerId("liker-id")
+                    .setLikerName("홍길동")
+                    .setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 
@@ -410,15 +520,15 @@ class NotificationEventConverterTest {
         @DisplayName("truncate에 maxLength 이하 문자열은 그대로 반환된다")
         void should_returnOriginalString_when_withinMaxLength() {
             String shortTitle = "짧은 제목";
-            PostLikedEvent event = new PostLikedEvent(
-                    "like-002",
-                    "post-456",
-                    shortTitle,
-                    "author-id",
-                    "liker-id",
-                    "김철수",
-                    LocalDateTime.now()
-            );
+            PostLikedEvent event = PostLikedEvent.newBuilder()
+                    .setLikeId("like-002")
+                    .setPostId("post-456")
+                    .setPostTitle(shortTitle)
+                    .setAuthorId("author-id")
+                    .setLikerId("liker-id")
+                    .setLikerName("김철수")
+                    .setTimestamp(Instant.now())
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 
@@ -435,7 +545,7 @@ class NotificationEventConverterTest {
                     null, // null totalAmount
                     2,
                     List.of(),
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             CreateNotificationCommand command = converter.convert(event);
@@ -454,7 +564,7 @@ class NotificationEventConverterTest {
                     new BigDecimal("10000"),
                     "CARD",
                     shortReason,
-                    LocalDateTime.now()
+                    Instant.now()
             );
 
             CreateNotificationCommand command = converter.convert(event);
