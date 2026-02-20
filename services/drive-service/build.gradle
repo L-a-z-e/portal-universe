@@ -33,7 +33,7 @@ dependencies {
     // Internal Libraries
     // =======================================
     implementation project(':services:common-library')
-    implementation project(':services:drive-events')
+    implementation project(':services:event-contracts')
 
     // =======================================
     // Web & Data
