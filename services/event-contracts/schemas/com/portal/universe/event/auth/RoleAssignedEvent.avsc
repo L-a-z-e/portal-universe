@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "RoleAssignedEvent",
+  "namespace": "com.portal.universe.event.auth",
+  "doc": "Published by auth-service when a role is assigned to a user. Consumed by notification-service.",
+  "fields": [
+    { "name": "userId", "type": "string", "doc": "User UUID" },
+    { "name": "roleKey", "type": "string", "doc": "Assigned role key (e.g. ROLE_USER, ROLE_ADMIN)" },
+    { "name": "assignedBy", "type": "string", "doc": "Admin user who assigned the role" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp in epoch milliseconds" }
+  ]
+}

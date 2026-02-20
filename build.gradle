@@ -10,10 +10,11 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven { url 'https://packages.confluent.io/maven/' }
     }
 
-    // integration-tests는 별도 설정 사용
-    if (project.name == 'integration-tests') {
+    // integration-tests, event-contracts는 별도 설정 사용
+    if (project.name in ['integration-tests', 'event-contracts']) {
         return
     }
 

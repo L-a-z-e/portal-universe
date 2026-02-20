@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "OrderCancelledEvent",
+  "namespace": "com.portal.universe.event.shopping",
+  "doc": "주문 취소 시 발행되는 이벤트",
+  "fields": [
+    {"name": "orderNumber", "type": "string", "doc": "주문번호"},
+    {"name": "userId", "type": "string", "doc": "사용자 ID"},
+    {"name": "totalAmount", "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 2}, "doc": "총액"},
+    {"name": "cancelReason", "type": "string", "doc": "취소 사유"},
+    {"name": "cancelledAt", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "취소 시각"}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "FileDeletedEvent",
+  "namespace": "com.portal.universe.event.drive",
+  "doc": "Published by drive-service when a file is deleted. Consumed by notification-service.",
+  "fields": [
+    { "name": "fileId", "type": "string", "doc": "Unique file identifier" },
+    { "name": "userId", "type": "string", "doc": "User who deleted the file" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp in epoch milliseconds" }
+  ]
+}
