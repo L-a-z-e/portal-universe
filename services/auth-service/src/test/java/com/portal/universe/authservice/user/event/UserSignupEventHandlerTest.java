@@ -2,6 +2,7 @@ package com.portal.universe.authservice.user.event;
 
 import com.portal.universe.event.auth.AuthTopics;
 import com.portal.universe.event.auth.UserSignedUpEvent;
+import org.apache.avro.specific.SpecificRecord;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.time.Instant;
+
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -18,7 +21,7 @@ import static org.mockito.Mockito.verify;
 class UserSignupEventHandlerTest {
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
 
     @InjectMocks
     private UserSignupEventHandler userSignupEventHandler;
@@ -31,30 +34,32 @@ class UserSignupEventHandlerTest {
         @DisplayName("should_sendKafkaMessage_when_eventReceived")
         void should_sendKafkaMessage_when_eventReceived() {
             // given
-            UserSignedUpEvent event = new UserSignedUpEvent(
-                    "test-uuid", "test@example.com", "testNick"
-            );
+            UserSignedUpEvent event = UserSignedUpEvent.newBuilder()
+                    .setUserId("test-uuid").setEmail("test@example.com")
+                    .setName("testNick").setTimestamp(Instant.now())
+                    .build();
 
             // when
             userSignupEventHandler.handleUserSignup(event);
 
             // then
-            verify(kafkaTemplate).send(AuthTopics.USER_SIGNED_UP, event);
+            verify(avroKafkaTemplate).send(AuthTopics.USER_SIGNED_UP, event);
         }
 
         @Test
         @DisplayName("should_sendToCorrectTopic_when_eventPublished")
         void should_sendToCorrectTopic_when_eventPublished() {
             // given
-            UserSignedUpEvent event = new UserSignedUpEvent(
-                    "another-uuid", "another@example.com", "anotherNick"
-            );
+            UserSignedUpEvent event = UserSignedUpEvent.newBuilder()
+                    .setUserId("another-uuid").setEmail("another@example.com")
+                    .setName("anotherNick").setTimestamp(Instant.now())
+                    .build();
 
             // when
             userSignupEventHandler.handleUserSignup(event);
 
             // then
-            verify(kafkaTemplate).send(AuthTopics.USER_SIGNED_UP, event);
+            verify(avroKafkaTemplate).send(AuthTopics.USER_SIGNED_UP, event);
         }
     }
 }

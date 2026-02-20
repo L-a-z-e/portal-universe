@@ -34,7 +34,7 @@ dependencies {
     // Internal Libraries
     // =======================================
     implementation project(':services:common-library') // 공통 예외 처리, 응답 형식 등
-    implementation project(':services:auth-events') // Auth 도메인 이벤트
+    implementation project(':services:event-contracts') // Avro 이벤트 계약
 
     // =======================================
     // Security (OAuth2 Authorization Server + Client)
