@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "ReservedQuantity",
+  "namespace": "com.portal.universe.event.shopping",
+  "doc": "재고 예약 수량 (productId -> quantity 매핑, Avro map은 string key만 지원하므로 record array 사용)",
+  "fields": [
+    {"name": "productId", "type": "long", "doc": "상품 ID"},
+    {"name": "quantity", "type": "int", "doc": "예약 수량"}
+  ]
+}

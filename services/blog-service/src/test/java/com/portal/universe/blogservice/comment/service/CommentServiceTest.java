@@ -108,6 +108,7 @@ class CommentServiceTest {
                     .authorUsername("user1_handle")
                     .authorNickname("User One")
                     .build();
+            ReflectionTestUtils.setField(savedComment, "id", "comment-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);

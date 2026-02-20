@@ -27,6 +27,10 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
+    properties:
+      schema:
+        registry:
+          url: http://localhost:18081
 
 # Swagger (Local: enabled)
 springdoc:

@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "FolderCreatedEvent",
+  "namespace": "com.portal.universe.event.drive",
+  "doc": "Published by drive-service when a folder is created. Consumed by notification-service.",
+  "fields": [
+    { "name": "folderId", "type": "string", "doc": "Unique folder identifier" },
+    { "name": "folderName", "type": "string", "doc": "Folder name" },
+    { "name": "userId", "type": "string", "doc": "User who created the folder" },
+    { "name": "parentFolderId", "type": ["null", "string"], "default": null, "doc": "Parent folder identifier, null for root-level folders" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp in epoch milliseconds" }
+  ]
+}

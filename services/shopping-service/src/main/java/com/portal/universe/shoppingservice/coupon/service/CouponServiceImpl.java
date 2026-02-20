@@ -124,14 +124,14 @@ public class CouponServiceImpl implements CouponService {
                 couponId, userId, savedUserCoupon.getId());
 
         // 쿠폰 발급 이벤트 발행
-        eventPublisher.publishCouponIssued(new CouponIssuedEvent(
-                userId,
-                coupon.getCode(),
-                coupon.getName(),
-                coupon.getDiscountType().name(),
-                coupon.getDiscountValue().intValue(),
-                coupon.getExpiresAt()
-        ));
+        eventPublisher.publishCouponIssued(CouponIssuedEvent.newBuilder()
+                .setUserId(userId)
+                .setCouponCode(coupon.getCode())
+                .setCouponName(coupon.getName())
+                .setDiscountType(coupon.getDiscountType().name())
+                .setDiscountValue(coupon.getDiscountValue().intValue())
+                .setExpiresAt(coupon.getExpiresAt().atZone(java.time.ZoneId.systemDefault()).toInstant())
+                .build());
 
         return UserCouponResponse.from(savedUserCoupon);
     }

@@ -31,7 +31,7 @@ ext {
 dependencies {
     // Internal Libraries
     implementation project(':services:common-library')
-    implementation project(':services:shopping-events')
+    implementation project(':services:event-contracts')
 
     // Spring Cloud
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'

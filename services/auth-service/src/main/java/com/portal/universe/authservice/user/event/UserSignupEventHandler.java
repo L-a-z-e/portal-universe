@@ -4,6 +4,7 @@ import com.portal.universe.event.auth.AuthTopics;
 import com.portal.universe.event.auth.UserSignedUpEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -19,11 +20,11 @@ import org.springframework.transaction.event.TransactionPhase;
 @RequiredArgsConstructor
 public class UserSignupEventHandler {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserSignup(UserSignedUpEvent event) {
-        log.info("Publishing user signup event: userId={}, email={}", event.userId(), event.email());
-        kafkaTemplate.send(AuthTopics.USER_SIGNED_UP, event);
+        log.info("Publishing user signup event: userId={}, email={}", event.getUserId(), event.getEmail());
+        avroKafkaTemplate.send(AuthTopics.USER_SIGNED_UP, event);
     }
 }

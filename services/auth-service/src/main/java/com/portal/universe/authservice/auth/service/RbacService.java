@@ -377,7 +377,9 @@ public class RbacService {
                 "Role assigned: " + request.roleKey());
 
         // 역할 할당 이벤트 발행 → 멤버십 자동 할당 + Kafka 발행
-        eventPublisher.publishEvent(RoleAssignedEvent.of(request.userId(), request.roleKey(), assignedBy));
+        eventPublisher.publishEvent(RoleAssignedEvent.newBuilder()
+                .setUserId(request.userId()).setRoleKey(request.roleKey()).setAssignedBy(assignedBy)
+                .setTimestamp(java.time.Instant.now()).build());
 
         log.info("Role assigned: userId={}, role={}, by={}", request.userId(), request.roleKey(), assignedBy);
         return UserRoleResponse.from(saved);

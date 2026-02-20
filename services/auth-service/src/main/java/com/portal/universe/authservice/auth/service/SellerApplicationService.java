@@ -146,7 +146,9 @@ public class SellerApplicationService {
                     "ROLE_SHOPPING_SELLER auto-assigned on application approval");
 
             // 역할 할당 이벤트 → MembershipAutoAssignHandler가 seller:shopping/BRONZE 자동 생성
-            eventPublisher.publishEvent(RoleAssignedEvent.of(userId, "ROLE_SHOPPING_SELLER", assignedBy));
+            eventPublisher.publishEvent(RoleAssignedEvent.newBuilder()
+                    .setUserId(userId).setRoleKey("ROLE_SHOPPING_SELLER").setAssignedBy(assignedBy)
+                    .setTimestamp(java.time.Instant.now()).build());
         }
     }
 

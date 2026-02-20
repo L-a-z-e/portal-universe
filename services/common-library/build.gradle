@@ -22,6 +22,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://packages.confluent.io/maven/' }
 }
 
 dependencies {
@@ -56,6 +57,15 @@ dependencies {
     // --- Reactive (Optional) ---
     // WebFlux(Reactive) 환경에서만 필요한 의존성입니다.
     compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // =======================================
+    // Kafka + Avro
+    // =======================================
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.apache.avro:avro:1.12.1'
+    implementation('io.confluent:kafka-avro-serializer:8.1.1') {
+        exclude group: 'org.apache.kafka'
+    }
 
     // =======================================
     // Development Tools

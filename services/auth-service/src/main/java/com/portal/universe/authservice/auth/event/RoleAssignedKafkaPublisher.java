@@ -4,6 +4,7 @@ import com.portal.universe.event.auth.AuthTopics;
 import com.portal.universe.event.auth.RoleAssignedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -18,11 +19,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class RoleAssignedKafkaPublisher {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(RoleAssignedEvent event) {
-        log.info("Publishing role assigned event: userId={}, roleKey={}", event.userId(), event.roleKey());
-        kafkaTemplate.send(AuthTopics.ROLE_ASSIGNED, event.userId(), event);
+        log.info("Publishing role assigned event: userId={}, roleKey={}", event.getUserId(), event.getRoleKey());
+        avroKafkaTemplate.send(AuthTopics.ROLE_ASSIGNED, event.getUserId().toString(), event);
     }
 }

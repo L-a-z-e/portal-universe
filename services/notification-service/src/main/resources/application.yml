@@ -57,23 +57,10 @@ spring:
 
   # Kafka 공통 설정
   kafka:
-    # Broker 연결 설정
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-
-    # Consumer 설정
     consumer:
       group-id: notification-group
-      # earliest: 새 Consumer Group일 때 처음부터 읽기
-      # latest: 최신 메시지부터 읽기
       auto-offset-reset: earliest
-      # 수동 커밋 모드 (처리 완료 후 커밋)
       enable-auto-commit: false
-
-    # Producer 설정 (DLQ 발행용)
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      retries: 3
 
 # 로깅 설정은 logback-spring.xml에서 관리

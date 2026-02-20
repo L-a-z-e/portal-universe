@@ -132,6 +132,7 @@ class LikeServiceTest {
                     .userName("user1_handle")
                     .nickname("User One")
                     .build();
+            ReflectionTestUtils.setField(newLike, "id", "like-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(likeRepository.findByPostIdAndUserId("post-1", "user1")).thenReturn(Optional.empty());

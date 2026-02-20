@@ -8,7 +8,7 @@ Portal Universe의 이벤트 기반 아키텍처는 Apache Kafka를 통해 4개 
 | **범위** | System |
 | **주요 기술** | Apache Kafka (KRaft Mode), Spring Kafka, NestJS Kafka |
 | **배포 환경** | Docker Compose, Kubernetes |
-| **관련 서비스** | auth-service, shopping-service, blog-service, prism-service, notification-service |
+| **관련 서비스** | auth-service, shopping-service, shopping-seller-service, shopping-settlement-service, blog-service, prism-service, drive-service, notification-service |
 
 ---
 
@@ -16,14 +16,20 @@ Portal Universe의 이벤트 기반 아키텍처는 Apache Kafka를 통해 4개 
 
 ```mermaid
 graph LR
-    A[auth-service<br/>Java/Spring] -->|auth.user.signed-up| K[Kafka<br/>KRaft Mode]
+    A[auth-service<br/>Java/Spring] -->|auth.*| K[Kafka<br/>KRaft Mode]
     S[shopping-service<br/>Java/Spring] -->|shopping.*| K
+    SS[shopping-seller-service<br/>Java/Spring] -->|shopping.*| K
     B[blog-service<br/>Java/Spring] -->|blog.*| K
+    D[drive-service<br/>Java/Spring] -->|drive.*| K
     P[prism-service<br/>NestJS] -->|prism.*| K
     K -->|notification-group| N[notification-service<br/>Java/Spring]
+    K -->|seller-group| SS
+    K -->|settlement-group| ST[shopping-settlement-service<br/>Java/Spring]
+    K --- SR[Schema Registry<br/>Avro 스키마 관리]
 
     style K fill:#ff9900,stroke:#333,stroke-width:2px
     style N fill:#4CAF50,stroke:#333,stroke-width:2px
+    style SR fill:#9C27B0,stroke:#333,stroke-width:2px
 ```
 
 ---
@@ -39,10 +45,17 @@ graph LR
 - **auto-offset-reset**: `earliest` (처음부터 소비)
 - **enable-auto-commit**: `false` (수동 커밋으로 at-least-once 보장)
 
+### Schema Registry
+- **역할**: Avro 스키마 중앙 저장소 + 호환성 검증기
+- **스토리지**: Kafka `_schemas` 토픽 (별도 DB 불필요)
+- **호환성**: `BACKWARD_TRANSITIVE` (새 스키마로 기존 모든 버전 메시지 읽기 가능)
+- **포트**: 8081 (Docker 내부), 18081 (호스트 매핑)
+- **디버깅**: AKHQ (`:9000`) — Avro 메시지 자동 디시리얼라이제이션
+
 ### Topic 기본 설정
 - **파티션 수**: 3
 - **Replication Factor**: 1 (dev 환경 기준)
-- **Serialization**: StringSerializer (key), JsonSerializer (value)
+- **Serialization**: StringSerializer (key), KafkaAvroSerializer (value) — Avro Wire Format
 - **acks**: `all` (모든 replica 동기화 후 응답)
 - **retries**: 3회
 
@@ -87,16 +100,21 @@ graph LR
 #### auth-service (Java/Spring)
 **역할**: 사용자 인증 도메인 이벤트 발행
 
-**발행 패턴**:
+**발행 패턴** (Avro SpecificRecord):
 ```java
 @Component
 @RequiredArgsConstructor
 public class UserSignupEventHandler {
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleUserSignup(UserSignedUpEvent event) {
-        kafkaTemplate.send(AuthTopics.USER_SIGNED_UP, event);
+    public void handleUserSignup(UserSignedUpApplicationEvent event) {
+        var avroEvent = UserSignedUpEvent.newBuilder()
+            .setUserId(event.userId())
+            .setEmail(event.email())
+            .setTimestamp(Instant.now())
+            .build();
+        avroKafkaTemplate.send(AuthTopics.USER_SIGNED_UP, avroEvent);
     }
 }
 ```
@@ -104,6 +122,7 @@ public class UserSignupEventHandler {
 **주요 특징**:
 - `@TransactionalEventListener(AFTER_COMMIT)` 사용으로 트랜잭션 완료 후 발행
 - DB 커밋 실패 시 이벤트 미발행으로 일관성 보장
+- Avro SpecificRecord Builder 패턴으로 타입 안전한 이벤트 생성
 
 #### shopping-service (Java/Spring)
 **역할**: 쇼핑 도메인 이벤트 발행 (10개 토픽)
@@ -137,36 +156,34 @@ future.whenComplete((result, ex) -> {
 #### prism-service (NestJS)
 **역할**: AI 작업 결과 이벤트 발행
 
-**발행 패턴** (NestJS Kafka):
+**발행 패턴** (KafkaJS + Avro):
 ```typescript
+const encodedValue = await this.registry.encode(schemaId, event);
 await this.producer.send({
-  topic: 'prism.task.completed',
-  messages: [
-    {
-      key: taskId,
-      value: JSON.stringify(event)
-    }
-  ]
+  topic: PrismTopics.TASK_COMPLETED,
+  messages: [{ key: taskId, value: encodedValue }]
 });
 ```
 
 **주요 특징**:
 - 유일한 비-Spring 서비스
-- JSON 직렬화 후 발행
+- `@kafkajs/confluent-schema-registry`로 Avro Wire Format 발행
+- Schema Registry에서 스키마 ID 조회 + Avro 바이너리 인코딩
 
 ### 2. Event Subscriber (notification-service)
 
 **역할**: 모든 도메인 이벤트를 소비하여 사용자 알림 생성
 
-**구독 패턴**:
+**구독 패턴** (Avro SpecificRecord):
 ```java
 @KafkaListener(
     topics = "shopping.order.created",
-    groupId = "notification-group"
+    groupId = "notification-group",
+    containerFactory = "avroKafkaListenerContainerFactory"
 )
 public void handleOrderCreated(OrderCreatedEvent event) {
     notificationService.sendNotification(
-        event.getUserId(),
+        event.getUserId().toString(),
         "주문이 생성되었습니다: " + event.getOrderId(),
         NotificationType.ORDER
     );
@@ -188,43 +205,40 @@ public void handleOrderCreated(OrderCreatedEvent event) {
 
 ## 이벤트 스키마 거버넌스
 
-### 도메인별 이벤트 모듈 분리
+### Avro Schema + Schema Registry (ADR-047)
+
+모든 이벤트는 `event-contracts` 모듈에서 Avro Schema(`.avsc`)로 정의하고, Schema Registry가 런타임 호환성을 검증합니다.
 
 ```
-services/
-├── auth-events/          (com.portal.universe.event.auth)
-│   └── UserSignedUpEvent.java
-├── shopping-events/      (com.portal.universe.event.shopping)
-│   ├── OrderCreatedEvent.java
-│   ├── PaymentCompletedEvent.java
-│   └── ...
-├── blog-events/          (com.portal.universe.event.blog)
-│   ├── PostLikedEvent.java
-│   └── ...
-└── prism-events/         (com.portal.universe.event.prism)
-    ├── PrismTaskCompletedEvent.java
-    └── ...
+services/event-contracts/
+├── schemas/com/portal/universe/event/
+│   ├── auth/       UserSignedUpEvent.avsc, RoleAssignedEvent.avsc
+│   ├── blog/       PostLikedEvent.avsc, CommentCreatedEvent.avsc, ...
+│   ├── drive/      FileUploadedEvent.avsc, FileDeletedEvent.avsc, ...
+│   ├── prism/      PrismTaskCompletedEvent.avsc, PrismTaskFailedEvent.avsc, TaskStatus.avsc
+│   └── shopping/   OrderCreatedEvent.avsc, PaymentCompletedEvent.avsc, ...
+├── src/main/java/com/portal/universe/event/
+│   ├── auth/AuthTopics.java
+│   ├── blog/BlogTopics.java
+│   ├── drive/DriveTopics.java
+│   ├── prism/PrismTopics.java
+│   └── shopping/ShoppingTopics.java
+└── build.gradle    (gradle-avro-plugin → Java SpecificRecord 자동 생성)
 ```
 
 **설계 원칙**:
-- ✅ 각 도메인은 독립된 이벤트 모듈 관리
-- ✅ Consumer는 필요한 도메인의 이벤트 모듈만 의존
-- ❌ 공통 event 패키지 없음 (도메인 간 결합 방지)
+- `.avsc`가 이벤트 구조의 Single Source of Truth
+- Java: `gradle-avro-plugin`이 SpecificRecord 자동 생성 (수동 동기화 불필요)
+- TypeScript: `@kafkajs/confluent-schema-registry`로 런타임 encode/decode
+- Schema Registry가 `BACKWARD_TRANSITIVE` 호환성을 런타임에 자동 적용
+- Topics 상수는 `*Topics.java`에서 관리 (ADR-032)
 
-**예시**:
-```xml
-<!-- notification-service/pom.xml -->
-<dependencies>
-    <dependency>
-        <groupId>com.portal.universe</groupId>
-        <artifactId>auth-events</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>com.portal.universe</groupId>
-        <artifactId>shopping-events</artifactId>
-    </dependency>
-    <!-- blog-events, prism-events ... -->
-</dependencies>
+**의존성**:
+```groovy
+// notification-service/build.gradle (Consumer 예시)
+dependencies {
+    implementation project(':event-contracts')
+}
 ```
 
 ---
@@ -363,8 +377,8 @@ spring:
 ## 관련 문서
 - [service-communication.md](./service-communication.md) - 서비스 간 통신 패턴 (동기 vs 비동기)
 - [notification-service 아키텍처](../notification-service/architecture-overview.md)
-- [ADR-001: Kafka 도입 결정](../../adr/ADR-001-kafka-adoption.md) (작성 예정)
 - [ADR-032: Kafka Configuration Standardization](../../adr/ADR-032-kafka-configuration-standardization.md)
+- [ADR-047: Avro 및 Schema Registry 도입](../../adr/ADR-047-avro-schema-registry-adoption.md)
 - [Kafka 운영 가이드](../../runbooks/kafka-operations.md) (작성 예정)
 
 ---
@@ -375,6 +389,7 @@ spring:
 |------|-----------|--------|
 | 2026-02-06 | 실제 코드 기반 신규 작성 (17개 토픽 분석 완료) | Laze |
 | 2026-02-10 | ADR-032 반영: topic 명명 규칙 통일, user-signup → auth.user.signed-up, Topics SSOT 명시 | Laze |
+| 2026-02-21 | ADR-047 반영: JSON → Avro 전환, Schema Registry 추가, event-contracts 통합 모듈, 다이어그램 확장 | Laze |
 
 ---
 

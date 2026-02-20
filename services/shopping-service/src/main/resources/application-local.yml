@@ -43,6 +43,8 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
+    properties:
+      schema.registry.url: http://localhost:18081
 
   # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
 

@@ -27,74 +27,74 @@ public class NotificationEventConverter {
 
     public CreateNotificationCommand convert(OrderCreatedEvent event) {
         return new CreateNotificationCommand(
-                event.userId(),
+                event.getUserId(),
                 NotificationType.ORDER_CREATED,
                 "주문이 접수되었습니다",
                 String.format("%d개 상품, %s원 결제 대기중",
-                        event.itemCount(), formatPrice(event.totalAmount())),
-                "/shopping/orders/" + event.orderNumber(),
-                event.orderNumber(),
+                        event.getItemCount(), formatPrice(event.getTotalAmount())),
+                "/shopping/orders/" + event.getOrderNumber(),
+                event.getOrderNumber(),
                 "order"
         );
     }
 
     public CreateNotificationCommand convert(OrderCancelledEvent event) {
         return new CreateNotificationCommand(
-                event.userId(),
+                event.getUserId(),
                 NotificationType.ORDER_CANCELLED,
                 "주문이 취소되었습니다",
-                String.format("주문번호: %s - %s", event.orderNumber(), event.cancelReason()),
-                "/shopping/orders/" + event.orderNumber(),
-                event.orderNumber(),
+                String.format("주문번호: %s - %s", event.getOrderNumber(), event.getCancelReason()),
+                "/shopping/orders/" + event.getOrderNumber(),
+                event.getOrderNumber(),
                 "order"
         );
     }
 
     public CreateNotificationCommand convert(PaymentCompletedEvent event) {
         return new CreateNotificationCommand(
-                event.userId(),
+                event.getUserId(),
                 NotificationType.PAYMENT_COMPLETED,
                 "결제가 완료되었습니다",
-                String.format("%s원 결제 완료", formatPrice(event.amount())),
-                "/shopping/orders/" + event.orderNumber(),
-                event.paymentNumber(),
+                String.format("%s원 결제 완료", formatPrice(event.getAmount())),
+                "/shopping/orders/" + event.getOrderNumber(),
+                event.getPaymentNumber(),
                 "payment"
         );
     }
 
     public CreateNotificationCommand convert(PaymentFailedEvent event) {
         return new CreateNotificationCommand(
-                event.userId(),
+                event.getUserId(),
                 NotificationType.PAYMENT_FAILED,
                 "결제가 실패했습니다",
-                String.format("사유: %s", truncate(event.failureReason(), 50)),
-                "/shopping/orders/" + event.orderNumber(),
-                event.paymentNumber(),
+                String.format("사유: %s", truncate(event.getFailureReason(), 50)),
+                "/shopping/orders/" + event.getOrderNumber(),
+                event.getPaymentNumber(),
                 "payment"
         );
     }
 
     public CreateNotificationCommand convert(DeliveryShippedEvent event) {
         return new CreateNotificationCommand(
-                event.userId(),
+                event.getUserId(),
                 NotificationType.DELIVERY_STARTED,
                 "배송이 시작되었습니다",
-                String.format("운송장번호: %s (%s)", event.trackingNumber(), event.carrier()),
-                "/shopping/orders/" + event.orderNumber(),
-                event.trackingNumber(),
+                String.format("운송장번호: %s (%s)", event.getTrackingNumber(), event.getCarrier()),
+                "/shopping/orders/" + event.getOrderNumber(),
+                event.getTrackingNumber(),
                 "delivery"
         );
     }
 
     public CreateNotificationCommand convert(CouponIssuedEvent event) {
         return new CreateNotificationCommand(
-                String.valueOf(event.userId()),
+                String.valueOf(event.getUserId()),
                 NotificationType.COUPON_ISSUED,
                 "쿠폰이 발급되었습니다",
                 String.format("%s - %s할인",
-                        event.couponName(), formatDiscount(event.discountValue(), event.discountType())),
+                        event.getCouponName(), formatDiscount(event.getDiscountValue(), event.getDiscountType())),
                 "/shopping/coupons",
-                event.couponCode(),
+                event.getCouponCode(),
                 "coupon"
         );
     }
@@ -103,52 +103,52 @@ public class NotificationEventConverter {
 
     public CreateNotificationCommand convert(PostLikedEvent event) {
         return new CreateNotificationCommand(
-                event.authorId(),
+                event.getAuthorId(),
                 NotificationType.BLOG_LIKE,
                 "게시글에 좋아요가 달렸습니다",
                 String.format("\"%s\"에 %s님이 좋아요를 눌렀습니다",
-                        truncate(event.postTitle(), 30), event.likerName()),
-                "/blog/" + event.postId(),
-                event.likeId(),
+                        truncate(event.getPostTitle(), 30), event.getLikerName()),
+                "/blog/" + event.getPostId(),
+                event.getLikeId(),
                 "like"
         );
     }
 
     public CreateNotificationCommand convert(CommentCreatedEvent event) {
         return new CreateNotificationCommand(
-                event.authorId(),
+                event.getAuthorId(),
                 NotificationType.BLOG_COMMENT,
                 "게시글에 새 댓글이 달렸습니다",
                 String.format("\"%s\"에 %s님이 댓글을 달았습니다: %s",
-                        truncate(event.postTitle(), 20), event.commenterName(),
-                        truncate(event.content(), 30)),
-                "/blog/" + event.postId(),
-                event.commentId(),
+                        truncate(event.getPostTitle(), 20), event.getCommenterName(),
+                        truncate(event.getContent(), 30)),
+                "/blog/" + event.getPostId(),
+                event.getCommentId(),
                 "comment"
         );
     }
 
     public CreateNotificationCommand convert(CommentRepliedEvent event) {
         return new CreateNotificationCommand(
-                event.parentCommentAuthorId(),
+                event.getParentCommentAuthorId(),
                 NotificationType.BLOG_REPLY,
                 "댓글에 답글이 달렸습니다",
                 String.format("%s님이 회원님의 댓글에 답글을 달았습니다: %s",
-                        event.replierName(), truncate(event.content(), 40)),
-                "/blog/" + event.postId() + "#comment-" + event.parentCommentId(),
-                event.replyId(),
+                        event.getReplierName(), truncate(event.getContent(), 40)),
+                "/blog/" + event.getPostId() + "#comment-" + event.getParentCommentId(),
+                event.getReplyId(),
                 "reply"
         );
     }
 
     public CreateNotificationCommand convert(UserFollowedEvent event) {
         return new CreateNotificationCommand(
-                event.followeeId(),
+                event.getFolloweeId(),
                 NotificationType.BLOG_FOLLOW,
                 "새 팔로워가 생겼습니다",
-                String.format("%s님이 회원님을 팔로우하기 시작했습니다", event.followerName()),
-                "/blog/users/" + event.followeeId() + "/followers",
-                event.followId(),
+                String.format("%s님이 회원님을 팔로우하기 시작했습니다", event.getFollowerName()),
+                "/blog/users/" + event.getFolloweeId() + "/followers",
+                event.getFollowId(),
                 "follow"
         );
     }
@@ -157,27 +157,66 @@ public class NotificationEventConverter {
 
     public CreateNotificationCommand convert(PrismTaskCompletedEvent event) {
         return new CreateNotificationCommand(
-                event.userId(),
+                event.getUserId(),
                 NotificationType.PRISM_TASK_COMPLETED,
                 "AI 태스크가 완료되었습니다",
                 String.format("\"%s\" 태스크가 %s 에이전트에 의해 완료되었습니다",
-                        truncate(event.title(), 30), event.agentName()),
-                "/prism/boards/" + event.boardId() + "/tasks/" + event.taskId(),
-                String.valueOf(event.taskId()),
+                        truncate(event.getTitle(), 30), event.getAgentName()),
+                "/prism/boards/" + event.getBoardId() + "/tasks/" + event.getTaskId(),
+                String.valueOf(event.getTaskId()),
                 "task"
         );
     }
 
     public CreateNotificationCommand convert(PrismTaskFailedEvent event) {
         return new CreateNotificationCommand(
-                event.userId(),
+                event.getUserId(),
                 NotificationType.PRISM_TASK_FAILED,
                 "AI 태스크가 실패했습니다",
                 String.format("\"%s\" 태스크 실행 실패: %s",
-                        truncate(event.title(), 25), truncate(event.errorMessage(), 30)),
-                "/prism/boards/" + event.boardId() + "/tasks/" + event.taskId(),
-                String.valueOf(event.taskId()),
+                        truncate(event.getTitle(), 25), truncate(event.getErrorMessage(), 30)),
+                "/prism/boards/" + event.getBoardId() + "/tasks/" + event.getTaskId(),
+                String.valueOf(event.getTaskId()),
                 "task"
+        );
+    }
+
+    // ===== Drive Events =====
+
+    public CreateNotificationCommand convert(com.portal.universe.event.drive.FileUploadedEvent event) {
+        return new CreateNotificationCommand(
+                event.getUserId(),
+                NotificationType.DRIVE_FILE_UPLOADED,
+                "파일이 업로드되었습니다",
+                String.format("\"%s\" 파일이 업로드되었습니다 (%s)",
+                        truncate(event.getFileName(), 30), formatFileSize(event.getFileSize())),
+                "/drive/files/" + event.getFileId(),
+                event.getFileId(),
+                "file"
+        );
+    }
+
+    public CreateNotificationCommand convert(com.portal.universe.event.drive.FileDeletedEvent event) {
+        return new CreateNotificationCommand(
+                event.getUserId(),
+                NotificationType.DRIVE_FILE_DELETED,
+                "파일이 삭제되었습니다",
+                "파일이 삭제되었습니다",
+                "/drive",
+                event.getFileId(),
+                "file"
+        );
+    }
+
+    public CreateNotificationCommand convert(com.portal.universe.event.drive.FolderCreatedEvent event) {
+        return new CreateNotificationCommand(
+                event.getUserId(),
+                NotificationType.DRIVE_FOLDER_CREATED,
+                "폴더가 생성되었습니다",
+                String.format("\"%s\" 폴더가 생성되었습니다", truncate(event.getFolderName(), 30)),
+                "/drive/folders/" + event.getFolderId(),
+                event.getFolderId(),
+                "folder"
         );
     }
 
@@ -192,6 +231,13 @@ public class NotificationEventConverter {
         return "PERCENTAGE".equals(type)
                 ? value + "%"
                 : formatPrice(BigDecimal.valueOf(value)) + "원";
+    }
+
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
+        return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
     }
 
     private String truncate(String text, int maxLength) {

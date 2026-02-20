@@ -1,9 +1,9 @@
 # ADR-038: Polyglot 이벤트 계약(Event Contract) 관리 전략
 
-**Status**: Accepted
+**Status**: Superseded by [ADR-047](./ADR-047-avro-schema-registry-adoption.md)
 **Date**: 2026-02-13
 **Author**: Laze
-**Supersedes**: -
+**Superseded by**: ADR-047 (Avro + Schema Registry)
 
 ## Context
 
@@ -88,3 +88,4 @@ JSON Schema를 Single Source of Truth로 삼아 CI에서 Java 클래스 및 Type
 |------|----------|--------|
 | 2026-02-11 | 초안 작성 | Laze |
 | 2026-02-13 | Phase 1 구현 완료, Status: Proposed → Accepted | Laze |
+| 2026-02-21 | Status: Accepted → Superseded by ADR-047 (Avro + Schema Registry로 전환 완료) | Laze |

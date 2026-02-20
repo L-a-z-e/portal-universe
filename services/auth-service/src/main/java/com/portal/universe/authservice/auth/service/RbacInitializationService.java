@@ -43,6 +43,8 @@ public class RbacInitializationService {
                 .build());
 
         // 역할 할당 이벤트 → MembershipAutoAssignHandler가 기본 멤버십 자동 생성
-        eventPublisher.publishEvent(RoleAssignedEvent.of(userId, "ROLE_USER", "SYSTEM_REGISTRATION"));
+        eventPublisher.publishEvent(RoleAssignedEvent.newBuilder()
+                .setUserId(userId).setRoleKey("ROLE_USER").setAssignedBy("SYSTEM_REGISTRATION")
+                .setTimestamp(java.time.Instant.now()).build());
     }
 }

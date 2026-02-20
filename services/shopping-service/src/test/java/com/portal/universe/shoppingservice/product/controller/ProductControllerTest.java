@@ -59,8 +59,8 @@ class ProductControllerTest {
 
     private ProductResponse createProductResponse(Long id) {
         return new ProductResponse(id, "Test Product", "Description",
-                BigDecimal.valueOf(10000), 100, "http://img.com/1.jpg", "Electronics",
-                LocalDateTime.now(), LocalDateTime.now());
+                BigDecimal.valueOf(10000), null, 100, "http://img.com/1.jpg", "Electronics",
+                false, List.of(), null, 0, LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Test

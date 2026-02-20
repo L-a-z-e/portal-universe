@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "CommentCreatedEvent",
+  "namespace": "com.portal.universe.event.blog",
+  "doc": "블로그 댓글 작성 이벤트",
+  "fields": [
+    {"name": "commentId", "type": "string", "doc": "댓글 ID"},
+    {"name": "postId", "type": "string", "doc": "게시글 ID"},
+    {"name": "postTitle", "type": "string", "doc": "게시글 제목"},
+    {"name": "authorId", "type": "string", "doc": "글 작성자 ID (알림 수신자)"},
+    {"name": "commenterId", "type": "string", "doc": "댓글 작성자 ID"},
+    {"name": "commenterName", "type": "string", "doc": "댓글 작성자 이름"},
+    {"name": "content", "type": "string", "doc": "댓글 내용"},
+    {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "이벤트 발생 시각"}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "TimeDealStartedEvent",
+  "namespace": "com.portal.universe.event.shopping",
+  "doc": "타임딜 시작 시 발행되는 이벤트",
+  "fields": [
+    {"name": "timeDealId", "type": "long", "doc": "타임딜 ID"},
+    {"name": "timeDealName", "type": "string", "doc": "타임딜명"},
+    {"name": "startsAt", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "시작 시각"},
+    {"name": "endsAt", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "종료 시각"}
+  ]
+}

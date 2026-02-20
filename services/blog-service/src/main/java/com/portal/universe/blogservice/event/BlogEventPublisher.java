@@ -7,6 +7,7 @@ import com.portal.universe.event.blog.PostLikedEvent;
 import com.portal.universe.event.blog.UserFollowedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
@@ -21,26 +22,26 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class BlogEventPublisher {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
 
     public void publishPostLiked(PostLikedEvent event) {
-        publishEvent(BlogTopics.POST_LIKED, event.postId(), event);
+        publishEvent(BlogTopics.POST_LIKED, event.getPostId(), event);
     }
 
     public void publishCommentCreated(CommentCreatedEvent event) {
-        publishEvent(BlogTopics.POST_COMMENTED, event.postId(), event);
+        publishEvent(BlogTopics.POST_COMMENTED, event.getPostId(), event);
     }
 
     public void publishCommentReplied(CommentRepliedEvent event) {
-        publishEvent(BlogTopics.COMMENT_REPLIED, event.postId(), event);
+        publishEvent(BlogTopics.COMMENT_REPLIED, event.getPostId(), event);
     }
 
     public void publishUserFollowed(UserFollowedEvent event) {
-        publishEvent(BlogTopics.USER_FOLLOWED, event.followeeId(), event);
+        publishEvent(BlogTopics.USER_FOLLOWED, event.getFolloweeId(), event);
     }
 
-    private void publishEvent(String topic, String key, Object event) {
-        CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, key, event);
+    private void publishEvent(String topic, String key, SpecificRecord event) {
+        CompletableFuture<SendResult<String, SpecificRecord>> future = avroKafkaTemplate.send(topic, key, event);
 
         future.whenComplete((result, ex) -> {
             if (ex == null) {
