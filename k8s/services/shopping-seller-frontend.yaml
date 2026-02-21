@@ -1,0 +1,73 @@
+# ===================================================================
+# Shopping Seller Frontend: Deployment
+# 역할: Shopping Seller Frontend (React 18) 정적 파일을 Nginx로 서빙합니다.
+# ===================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-seller-frontend
+  namespace: portal-universe
+  labels:
+    app: shopping-seller-frontend
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopping-seller-frontend
+  template:
+    metadata:
+      labels:
+        app: shopping-seller-frontend
+    spec:
+      containers:
+        - name: shopping-seller-frontend
+          image: portal-universe-shopping-seller-frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
+
+# ===================================================================
+# Shopping Seller Frontend: Service
+# ===================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopping-seller-frontend
+  namespace: portal-universe
+  labels:
+    app: shopping-seller-frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: shopping-seller-frontend

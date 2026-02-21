@@ -115,8 +115,12 @@ BUSINESS_SERVICES=(
     "auth-service"
     "blog-service"
     "shopping-service"
+    "shopping-seller-service"
+    "shopping-settlement-service"
     "notification-service"
+    "drive-service"
     "prism-service"
+    "chatbot-service"
 )
 
 for SERVICE in "${BUSINESS_SERVICES[@]}"; do
@@ -139,6 +143,9 @@ FRONTEND_SERVICES=(
     "blog-frontend"
     "shopping-frontend"
     "prism-frontend"
+    "admin-frontend"
+    "drive-frontend"
+    "shopping-seller-frontend"
     "portal-shell"
 )
 

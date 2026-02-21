@@ -1,61 +1,49 @@
 # ===================================================================
-# Prism Service: Deployment
-# 역할: NestJS 기반 Prism Service를 배포합니다.
+# Drive Service: Deployment
+# 역할: 파일 관리(업로드/다운로드)를 담당하는 Drive Service를 배포합니다.
 # ===================================================================
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prism-service
+  name: drive-service
   namespace: portal-universe
   labels:
-    app: prism-service
+    app: drive-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: prism-service
+      app: drive-service
   template:
     metadata:
       labels:
-        app: prism-service
+        app: drive-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8087"
     spec:
       containers:
-        - name: prism-service
-          image: portal-universe-prism-service:latest
+        - name: drive-service
+          image: portal-universe-drive-service:latest
           imagePullPolicy: Never
           ports:
-            - containerPort: 8085
+            - containerPort: 8087
               name: http
           envFrom:
             - configMapRef:
                 name: portal-universe-config
           env:
-            - name: NODE_ENV
-              value: "production"
-            - name: PORT
-              value: "8085"
-            - name: DB_HOST
-              value: "postgresql"
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_DATABASE
-              value: "prism_db"
-            - name: DB_USERNAME
-              value: "laze"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: portal-universe-secret
                   key: POSTGRES_PASSWORD
-            - name: REDIS_HOST
-              value: "redis"
-            - name: REDIS_PORT
-              value: "6379"
-            - name: KAFKA_BROKERS
-              value: "kafka:29092"
-            - name: ENCRYPTION_KEY
-              value: "k8s-prism-encryption-key-32bytes!"
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "update"
           resources:
             requests:
               cpu: "100m"
@@ -65,45 +53,43 @@ spec:
               memory: "512Mi"
           startupProbe:
             httpGet:
-              path: /api/v1/health
-              port: 8085
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            failureThreshold: 30
+              path: /actuator/health
+              port: 8087
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 18
           livenessProbe:
             httpGet:
-              path: /api/v1/health
-              port: 8085
+              path: /actuator/health
+              port: 8087
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /api/v1/health
-              port: 8085
+              path: /actuator/health
+              port: 8087
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 3
 
 # ===================================================================
-# Prism Service: Service
-# 역할: 클러스터 내 다른 서비스들이 Prism Service에 접근할 수 있도록
-#       고정된 주소(prism-service:8085)를 제공합니다.
+# Drive Service: Service
 # ===================================================================
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: prism-service
+  name: drive-service
   namespace: portal-universe
   labels:
-    app: prism-service
+    app: drive-service
 spec:
   type: ClusterIP
   ports:
-    - port: 8085
-      targetPort: 8085
+    - port: 8087
+      targetPort: 8087
       protocol: TCP
       name: http
   selector:
-    app: prism-service
+    app: drive-service
