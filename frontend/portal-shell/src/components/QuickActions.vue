@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { getRemoteConfigs } from '../config/remoteRegistry'
 import MaterialIcon from './MaterialIcon.vue'
 
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+
 // Props & Emits
 const props = defineProps<{
   modelValue: boolean
@@ -162,7 +164,7 @@ onUnmounted(() => {
         @click.self="$emit('update:modelValue', false)"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="$emit('update:modelValue', false)" />
 
         <!-- Modal -->
         <div
@@ -233,7 +235,7 @@ onUnmounted(() => {
                 </span>
               </div>
               <span class="flex items-center gap-1">
-                <kbd class="px-1.5 py-0.5 bg-bg-card border border-border-default rounded">⌘</kbd>
+                <kbd class="px-1.5 py-0.5 bg-bg-card border border-border-default rounded">{{ isMac ? '⌘' : 'Ctrl' }}</kbd>
                 <kbd class="px-1.5 py-0.5 bg-bg-card border border-border-default rounded">K</kbd>
                 열기/닫기
               </span>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { productApi, inventoryApi, searchApi } from '@/api'
 import type { Product, Inventory } from '@/types'
@@ -14,6 +14,7 @@ const ProductListPage: React.FC = () => {
   const category = searchParams.get('category') || ''
 
   const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<string[]>([])
   const [inventories, setInventories] = useState<Map<number, Inventory>>(new Map())
   const [totalPages, setTotalPages] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -60,11 +61,11 @@ const ProductListPage: React.FC = () => {
     fetchProducts()
   }, [fetchProducts])
 
-  const categories = useMemo(() => {
-    const cats = new Set<string>()
-    products.forEach(p => { if (p.category) cats.add(p.category) })
-    return Array.from(cats).sort()
-  }, [products])
+  useEffect(() => {
+    productApi.getCategories()
+      .then(res => setCategories(res.data ?? []))
+      .catch(() => {})
+  }, [])
 
   const handleSearch = (keyword: string) => {
     const params = new URLSearchParams()
