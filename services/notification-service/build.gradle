@@ -33,9 +33,10 @@ dependencies {
     implementation project(':services:event-contracts')
 
     // =======================================
-    // Web
+    // Web & Security
     // =======================================
-    implementation 'org.springframework.boot:spring-boot-starter-web' // for Health Check endpoints
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // =======================================
     // Database
