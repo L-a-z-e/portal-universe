@@ -12,7 +12,7 @@ COPY build.gradle settings.gradle ./
 COPY gradle/ gradle/
 COPY gradlew ./
 COPY services/common-library/build.gradle services/common-library/
-COPY services/shopping-events/build.gradle services/shopping-events/
+COPY services/event-contracts/build.gradle services/event-contracts/
 COPY services/shopping-service/build.gradle services/shopping-service/
 
 # ---------------------------------------------
@@ -23,10 +23,10 @@ RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     ./gradlew :services:shopping-service:dependencies --no-daemon || true
 
 # ---------------------------------------------
-# Layer 3: 소스 코드 복사 (common-library, shopping-events 포함)
+# Layer 3: 소스 코드 복사 (common-library, event-contracts 포함)
 # ---------------------------------------------
 COPY services/common-library/ services/common-library/
-COPY services/shopping-events/ services/shopping-events/
+COPY services/event-contracts/ services/event-contracts/
 COPY services/shopping-service/ services/shopping-service/
 
 # ---------------------------------------------

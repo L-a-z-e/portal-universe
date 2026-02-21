@@ -9,6 +9,7 @@ app:
   cors:
     allowed-origins:
       - https://portal-universe
+      - http://portal-universe:8080
 
 # 서비스 URL 정의 (K8s DNS - 각 서비스 포트 명시)
 services:

@@ -353,11 +353,11 @@ spring:
                 - StripPrefix=1
               order: 49
 
-            # REST API route
-            - id: notification-service-route
+            # REST API route (via /notification/ prefix)
+            - id: notification-service-prefixed
               uri: ${services.notification.url:http://localhost:8084}
               predicates:
-                - Path=/notification/api/v1/notifications/**,/api/v1/notifications/**
+                - Path=/notification/api/v1/notifications/**
               filters:
                 - StripPrefix=1
                 - name: RequestRateLimiter
@@ -365,6 +365,18 @@ spring:
                     rate-limiter: "#{@authenticatedRedisRateLimiter}"
                     key-resolver: "#{@userKeyResolver}"
               order: 50
+
+            # REST API route (direct path)
+            - id: notification-service-route
+              uri: ${services.notification.url:http://localhost:8084}
+              predicates:
+                - Path=/api/v1/notifications/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+              order: 51
 
             # ========== Chatbot Service (RAG Q&A) ==========
             # Chatbot Health - public
@@ -596,6 +608,9 @@ jwt:
       secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
       activated-at: 2026-01-01T00:00:00
       # expires-at은 null이면 만료되지 않음
+    key-2026-01:
+      secret-key: ${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}
+      activated-at: 2026-01-01T00:00:00
 
 # 보안 헤더 설정
 security:

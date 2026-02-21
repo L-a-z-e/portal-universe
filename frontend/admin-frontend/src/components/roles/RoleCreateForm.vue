@@ -37,8 +37,8 @@ function updateField<K extends keyof CreateRoleRequest>(field: K, value: CreateR
       <Input :modelValue="createForm.serviceScope" @update:modelValue="updateField('serviceScope', $event as string)" label="Service Scope" placeholder="e.g. shopping" />
       <Input :modelValue="createForm.membershipGroup" @update:modelValue="updateField('membershipGroup', $event as string)" label="Membership Group" placeholder="e.g. USER_SHOPPING" />
       <Select
-        :modelValue="createForm.includedRoleKeys"
-        @update:modelValue="updateField('includedRoleKeys', $event as string[])"
+        :modelValue="(createForm.includedRoleKeys as unknown as string | number | undefined)"
+        @update:modelValue="updateField('includedRoleKeys', ($event as unknown) as string[])"
         :options="createIncludeOptions"
         label="Included Roles"
         placeholder="Select included roles (optional)"

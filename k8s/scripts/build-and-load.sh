@@ -35,7 +35,10 @@ BACKEND_SERVICES=(
     "auth-service"
     "blog-service"
     "shopping-service"
+    "shopping-seller-service"
+    "shopping-settlement-service"
     "notification-service"
+    "drive-service"
 )
 
 FRONTEND_SERVICES=(
@@ -43,6 +46,9 @@ FRONTEND_SERVICES=(
     "blog-frontend"
     "shopping-frontend"
     "prism-frontend"
+    "admin-frontend"
+    "drive-frontend"
+    "shopping-seller-frontend"
 )
 
 CLUSTER_NAME="portal-universe"
@@ -85,6 +91,17 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ design-system built${NC}"
 else
     echo -e "${RED}❌ design-system build failed${NC}"
+    exit 1
+fi
+
+# bridge 라이브러리 빌드 (vue-bridge → react-bridge → react-bootstrap)
+echo -e "${BLUE}Building bridge libraries...${NC}"
+npm run build:libs
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ bridge libraries built${NC}"
+else
+    echo -e "${RED}❌ bridge libraries build failed${NC}"
     exit 1
 fi
 
@@ -149,6 +166,22 @@ else
     exit 1
 fi
 
+# --- 3.6. Docker 이미지 빌드 (Python - Chatbot Service) ---
+echo ""
+echo -e "${YELLOW}🐳 Step 3.6: Docker Build (Chatbot Service)${NC}"
+
+docker build \
+    -t portal-universe-chatbot-service:latest \
+    -f services/chatbot-service/Dockerfile \
+    services/chatbot-service/
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ chatbot-service image built${NC}"
+else
+    echo -e "${RED}❌ chatbot-service image build failed${NC}"
+    exit 1
+fi
+
 # --- 4. Docker 이미지 빌드 (프론트엔드) ---
 echo ""
 echo -e "${YELLOW}🐳 Step 4: Docker Build (Frontend Services)${NC}"
@@ -191,7 +224,7 @@ fi
 echo ""
 echo -e "${YELLOW}📥 Step 5: Load Images to Kind Cluster${NC}"
 
-ALL_SERVICES=("${BACKEND_SERVICES[@]}" "prism-service" "${FRONTEND_SERVICES[@]}")
+ALL_SERVICES=("${BACKEND_SERVICES[@]}" "prism-service" "chatbot-service" "${FRONTEND_SERVICES[@]}")
 
 for SERVICE in "${ALL_SERVICES[@]}"; do
     echo -e "${BLUE}Loading ${SERVICE} to Kind...${NC}"

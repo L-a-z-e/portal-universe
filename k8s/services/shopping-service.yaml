@@ -43,13 +43,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: portal-universe-secret
-                  key: MYSQL_PASSWORD
-            # Config Server 설정 오버라이드 - 비밀번호 (하드코딩된 값 대체)
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: portal-universe-secret
-                  key: MYSQL_PASSWORD
+                  key: POSTGRES_PASSWORD
             # Config Server 설정 오버라이드 - 스키마 자동 생성
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: "update"

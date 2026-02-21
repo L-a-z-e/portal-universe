@@ -22,13 +22,16 @@ data:
   REDIS_PORT: "6379"
 
   # --- 데이터베이스 ---
-  # MySQL 호스트 주소입니다.
+  # PostgreSQL 호스트 주소입니다. (auth, shopping, seller, settlement, drive)
+  POSTGRES_HOST: "postgresql"
+  # MySQL 호스트 주소입니다. (notification만 사용)
   MYSQL_HOST: "mysql-db"
   # MongoDB 호스트 주소입니다.
   MONGODB_HOST: "mongodb"
   # DB 공통 환경변수 (Spring Boot에서 사용)
-  DB_HOST: "mysql-db"
-  DB_PORT: "3306"
+  DB_HOST: "postgresql"
+  DB_PORT: "5432"
+  DB_USER: "laze"
   DB_USERNAME: "laze"
 
   # --- 분산 추적 (Distributed Tracing) ---

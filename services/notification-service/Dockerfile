@@ -12,10 +12,7 @@ COPY build.gradle settings.gradle ./
 COPY gradle/ gradle/
 COPY gradlew ./
 COPY services/common-library/build.gradle services/common-library/
-COPY services/auth-events/build.gradle services/auth-events/
-COPY services/shopping-events/build.gradle services/shopping-events/
-COPY services/blog-events/build.gradle services/blog-events/
-COPY services/prism-events/build.gradle services/prism-events/
+COPY services/event-contracts/build.gradle services/event-contracts/
 COPY services/notification-service/build.gradle services/notification-service/
 
 # ---------------------------------------------
@@ -26,13 +23,10 @@ RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     ./gradlew :services:notification-service:dependencies --no-daemon || true
 
 # ---------------------------------------------
-# Layer 3: 소스 코드 복사 (모든 이벤트 모듈 포함)
+# Layer 3: 소스 코드 복사 (common-library, event-contracts 포함)
 # ---------------------------------------------
 COPY services/common-library/ services/common-library/
-COPY services/auth-events/ services/auth-events/
-COPY services/shopping-events/ services/shopping-events/
-COPY services/blog-events/ services/blog-events/
-COPY services/prism-events/ services/prism-events/
+COPY services/event-contracts/ services/event-contracts/
 COPY services/notification-service/ services/notification-service/
 
 # ---------------------------------------------

@@ -40,7 +40,7 @@ spec:
             - name: DB_PORT
               value: "5432"
             - name: DB_DATABASE
-              value: "prism"
+              value: "prism_db"
             - name: DB_USERNAME
               value: "laze"
             - name: DB_PASSWORD

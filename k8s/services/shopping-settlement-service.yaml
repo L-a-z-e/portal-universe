@@ -1,38 +1,36 @@
 # ===================================================================
-# Notification Service: Deployment
-# 역할: Kafka 메시지를 수신하여 알림을 처리하는 Notification Service를 배포합니다.
+# Shopping Settlement Service: Deployment
+# 역할: 정산 처리(Spring Batch)를 담당합니다.
 # ===================================================================
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification-service
+  name: shopping-settlement-service
   namespace: portal-universe
   labels:
-    app: notification-service
+    app: shopping-settlement-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notification-service
+      app: shopping-settlement-service
   template:
     metadata:
       labels:
-        app: notification-service
+        app: shopping-settlement-service
       annotations:
-        # Prometheus 메트릭 수집을 위한 어노테이션
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
-        prometheus.io/port: "8084"
+        prometheus.io/port: "8089"
     spec:
       containers:
-        - name: notification-service
-          image: portal-universe-notification-service:latest
+        - name: shopping-settlement-service
+          image: portal-universe-shopping-settlement-service:latest
           imagePullPolicy: Never
           ports:
-            - containerPort: 8084
+            - containerPort: 8089
               name: http
-          # ConfigMap에서 공통 환경변수를 로드합니다.
           envFrom:
             - configMapRef:
                 name: portal-universe-config
@@ -43,20 +41,9 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: portal-universe-secret
-                  key: MYSQL_PASSWORD
-            # Config Server에 datasource 설정이 없어 명시적으로 추가
-            - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://mysql-db:3306/notification_db?useSSL=false&allowPublicKeyRetrieval=true"
-            - name: SPRING_DATASOURCE_USERNAME
-              value: "laze"
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: portal-universe-secret
-                  key: MYSQL_PASSWORD
+                  key: POSTGRES_PASSWORD
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: "update"
-          # 리소스 제한 설정
           resources:
             requests:
               cpu: "100m"
@@ -64,50 +51,45 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
-          # Startup Probe: 컨테이너가 시작될 때, 애플리케이션이 완전히 구동될 때까지 기다립니다.
           startupProbe:
             httpGet:
               path: /actuator/health
-              port: 8084
+              port: 8089
             initialDelaySeconds: 30
             periodSeconds: 10
-            failureThreshold: 18  # 최대 3분
-          # Liveness Probe: Pod가 응답하지 않으면 재시작합니다.
+            failureThreshold: 18
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8084
+              port: 8089
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
-          # Readiness Probe: Pod가 트래픽을 받을 준비가 되었는지 확인합니다.
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8084
+              port: 8089
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 3
 
 # ===================================================================
-# Notification Service: Service
-# 역할: 클러스터 내 다른 서비스들이 Notification Service에 접근할 수 있도록
-#       고정된 주소(notification-service:8084)를 제공합니다.
+# Shopping Settlement Service: Service
 # ===================================================================
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: notification-service
+  name: shopping-settlement-service
   namespace: portal-universe
   labels:
-    app: notification-service
+    app: shopping-settlement-service
 spec:
   type: ClusterIP
   ports:
-    - port: 8084
-      targetPort: 8084
+    - port: 8089
+      targetPort: 8089
       protocol: TCP
       name: http
   selector:
-    app: notification-service
+    app: shopping-settlement-service

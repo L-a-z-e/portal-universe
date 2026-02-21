@@ -5,7 +5,7 @@ import { fetchPendingSellerApplications, reviewSellerApplication } from '@/api/a
 import type { SellerApplication, PageResponse } from '@/dto/admin';
 
 const { getErrorMessage, handleError } = useApiError();
-const { addToast } = useToast();
+const { add: addToast } = useToast();
 
 // === State ===
 const data = ref<PageResponse<SellerApplication> | null>(null);

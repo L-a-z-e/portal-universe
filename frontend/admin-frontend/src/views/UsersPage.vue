@@ -26,7 +26,7 @@ import type {
 } from '@/dto/admin';
 
 const { getErrorMessage, handleError } = useApiError();
-const { addToast } = useToast();
+const { add: addToast } = useToast();
 
 // --- Search & List ---
 const query = ref('');
@@ -174,15 +174,6 @@ function timeAgo(dateStr: string | null): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
-}
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
 }
 
 async function copyUuid() {

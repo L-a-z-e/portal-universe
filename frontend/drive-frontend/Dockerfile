@@ -20,9 +20,9 @@ COPY design-vue/ ./design-vue/
 COPY vue-bridge/package.json ./vue-bridge/
 COPY vue-bridge/ ./vue-bridge/
 
-# 5. admin-frontend 복사
-COPY admin-frontend/package.json ./admin-frontend/
-COPY admin-frontend/ ./admin-frontend/
+# 5. drive-frontend 복사
+COPY drive-frontend/package.json ./drive-frontend/
+COPY drive-frontend/ ./drive-frontend/
 
 # 6. 의존성 설치
 RUN --mount=type=cache,target=/root/.npm npm ci
@@ -39,9 +39,9 @@ RUN npm run build
 WORKDIR /workspace/vue-bridge
 RUN npm run build
 
-# 10. admin-frontend 빌드
+# 10. drive-frontend 빌드
 ARG BUILD_MODE=docker
-WORKDIR /workspace/admin-frontend
+WORKDIR /workspace/drive-frontend
 RUN npm run build:${BUILD_MODE}
 
 # ============================================
@@ -50,7 +50,7 @@ RUN npm run build:${BUILD_MODE}
 FROM nginxinc/nginx-unprivileged:stable-alpine
 WORKDIR /usr/share/nginx/html
 
-COPY --from=build /workspace/admin-frontend/dist ./
-COPY admin-frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /workspace/drive-frontend/dist ./
+COPY drive-frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
