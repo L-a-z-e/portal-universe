@@ -8,7 +8,8 @@ export function parseDate(value: string | number[] | null | undefined): Date | n
   if (!value) return null
 
   if (Array.isArray(value) && value.length >= 3) {
-    return new Date(value[0], value[1] - 1, value[2], value[3] ?? 0, value[4] ?? 0, value[5] ?? 0)
+    const [year, month, day] = value as [number, number, number, ...number[]]
+    return new Date(year, month - 1, day, value[3] ?? 0, value[4] ?? 0, value[5] ?? 0)
   }
 
   if (typeof value === 'string') {

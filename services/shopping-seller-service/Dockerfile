@@ -13,28 +13,28 @@ COPY gradle/ gradle/
 COPY gradlew ./
 COPY services/common-library/build.gradle services/common-library/
 COPY services/event-contracts/build.gradle services/event-contracts/
-COPY services/blog-service/build.gradle services/blog-service/
+COPY services/shopping-seller-service/build.gradle services/shopping-seller-service/
 
 # ---------------------------------------------
 # Layer 2: 의존성 다운로드 (의존성 변경 없으면 캐시)
 # ---------------------------------------------
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    ./gradlew :services:blog-service:dependencies --no-daemon || true
+    ./gradlew :services:shopping-seller-service:dependencies --no-daemon || true
 
 # ---------------------------------------------
 # Layer 3: 소스 코드 복사 (common-library, event-contracts 포함)
 # ---------------------------------------------
 COPY services/common-library/ services/common-library/
 COPY services/event-contracts/ services/event-contracts/
-COPY services/blog-service/ services/blog-service/
+COPY services/shopping-seller-service/ services/shopping-seller-service/
 
 # ---------------------------------------------
 # Layer 4: 빌드 (소스만 변경 시 여기서만 재실행)
 # ---------------------------------------------
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    ./gradlew :services:blog-service:build --no-daemon -x test
+    ./gradlew :services:shopping-seller-service:build --no-daemon -x test
 
 # =================================================================
 # Stage 2: Runtime Stage
@@ -49,11 +49,11 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app/logs && chown appuser:appgroup /app/logs
 
-COPY --from=builder /app/services/blog-service/build/libs/blog-service-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /app/services/shopping-seller-service/build/libs/shopping-seller-service-0.0.1-SNAPSHOT.jar app.jar
 
 USER appuser
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8082/actuator/health || exit 1
+  CMD curl -f http://localhost:8088/actuator/health || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
