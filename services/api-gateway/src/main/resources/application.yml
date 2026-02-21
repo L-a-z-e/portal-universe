@@ -353,11 +353,11 @@ spring:
                 - StripPrefix=1
               order: 49
 
-            # REST API route
-            - id: notification-service-route
+            # REST API route (via /notification/ prefix)
+            - id: notification-service-prefixed
               uri: ${services.notification.url:http://localhost:8084}
               predicates:
-                - Path=/notification/api/v1/notifications/**,/api/v1/notifications/**
+                - Path=/notification/api/v1/notifications/**
               filters:
                 - StripPrefix=1
                 - name: RequestRateLimiter
@@ -365,6 +365,18 @@ spring:
                     rate-limiter: "#{@authenticatedRedisRateLimiter}"
                     key-resolver: "#{@userKeyResolver}"
               order: 50
+
+            # REST API route (direct path)
+            - id: notification-service-route
+              uri: ${services.notification.url:http://localhost:8084}
+              predicates:
+                - Path=/api/v1/notifications/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+              order: 51
 
             # ========== Chatbot Service (RAG Q&A) ==========
             # Chatbot Health - public
