@@ -91,7 +91,7 @@ const handleLogin = () => {
       </button>
 
       <!-- Notification Bell -->
-      <NotificationBell v-if="authStore.isAuthenticated" dropdown-direction="right" />
+      <NotificationBell v-if="authStore.isAuthenticated" dropdown-direction="left" />
 
       <!-- User Avatar / Login -->
       <template v-if="authStore.isAuthenticated">
