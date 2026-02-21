@@ -7,6 +7,8 @@ import MaterialIcon from './MaterialIcon.vue'
 import { Dropdown, Button } from '@portal/design-vue'
 import type { DropdownItem } from '@portal/design-vue'
 
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+
 const emit = defineEmits<{
   (e: 'open-search'): void
 }>()
@@ -86,7 +88,7 @@ const handleLogin = () => {
         <MaterialIcon name="search" :size="16" />
         <span class="hidden sm:inline">Search</span>
         <kbd class="hidden sm:inline-flex items-center gap-0.5 ml-2 px-1.5 py-0.5 text-[10px] bg-bg-card border border-border-default rounded font-mono">
-          <span>&#8984;</span>K
+          {{ isMac ? '⌘' : 'Ctrl+' }}K
         </kbd>
       </button>
 
