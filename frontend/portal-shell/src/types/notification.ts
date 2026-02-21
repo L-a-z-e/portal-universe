@@ -49,6 +49,4 @@ export interface NotificationPage {
   totalPages: number
   size: number
   page: number
-  first: boolean
-  last: boolean
 }
