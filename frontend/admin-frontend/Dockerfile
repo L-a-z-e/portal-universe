@@ -16,7 +16,11 @@ COPY design-core/ ./design-core/
 COPY design-vue/package.json ./design-vue/
 COPY design-vue/ ./design-vue/
 
-# 4. admin-frontend 복사
+# 4. vue-bridge 복사
+COPY vue-bridge/package.json ./vue-bridge/
+COPY vue-bridge/ ./vue-bridge/
+
+# 5. admin-frontend 복사
 COPY admin-frontend/package.json ./admin-frontend/
 COPY admin-frontend/ ./admin-frontend/
 
@@ -31,7 +35,11 @@ RUN npm run build
 WORKDIR /workspace/design-vue
 RUN npm run build
 
-# 9. admin-frontend 빌드
+# 9. vue-bridge 빌드
+WORKDIR /workspace/vue-bridge
+RUN npm run build
+
+# 10. admin-frontend 빌드
 ARG BUILD_MODE=docker
 WORKDIR /workspace/admin-frontend
 RUN npm run build:${BUILD_MODE}

@@ -67,7 +67,7 @@ spec:
           # Startup Probe: 컨테이너가 시작될 때, 애플리케이션이 완전히 구동될 때까지 기다립니다.
           startupProbe:
             httpGet:
-              path: /actuator/health/readiness
+              path: /actuator/health
               port: 8084
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -75,7 +75,7 @@ spec:
           # Liveness Probe: Pod가 응답하지 않으면 재시작합니다.
           livenessProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /actuator/health
               port: 8084
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -83,7 +83,7 @@ spec:
           # Readiness Probe: Pod가 트래픽을 받을 준비가 되었는지 확인합니다.
           readinessProbe:
             httpGet:
-              path: /actuator/health/readiness
+              path: /actuator/health
               port: 8084
             initialDelaySeconds: 5
             periodSeconds: 5

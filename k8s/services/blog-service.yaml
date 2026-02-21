@@ -48,6 +48,15 @@ spec:
             # Config Server의 하드코딩된 mongodb.uri 오버라이드
             - name: SPRING_DATA_MONGODB_URI
               value: "mongodb://laze:$(MONGO_PASSWORD)@mongodb:27017/blog_db?authSource=admin"
+            # LocalStack S3 설정
+            - name: AWS_S3_ACCESS_KEY
+              value: "test"
+            - name: AWS_S3_SECRET_KEY
+              value: "test"
+            - name: AWS_S3_BUCKET_NAME
+              value: "blog-bucket"
+            - name: AWS_S3_ENDPOINT
+              value: "http://localstack:4566"
           # 리소스 제한 설정
           resources:
             requests:

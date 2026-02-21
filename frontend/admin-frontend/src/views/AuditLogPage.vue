@@ -5,7 +5,7 @@ import { fetchAuditLogs } from '@/api/admin';
 import type { AuditLog, PageResponse } from '@/dto/admin';
 
 const { getErrorMessage } = useApiError();
-const { addToast } = useToast();
+const { add: addToast } = useToast();
 
 // === State ===
 const searchQuery = ref('');
