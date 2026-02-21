@@ -2,6 +2,7 @@
 
 import apiClient from '../api/apiClient'
 import type { AuthorStats, OrderStats, ActivityItem, ActivityType } from '../types/dashboard'
+import { parseDate } from '../utils/dateUtils'
 
 // ============================================
 // Blog Service API
@@ -71,7 +72,7 @@ interface NotificationResponse {
   message: string
   link: string | null
   status: string
-  createdAt: string
+  createdAt: string | number[]
 }
 
 /**
@@ -120,12 +121,13 @@ export async function getRecentActivities(limit = 5): Promise<ActivityItem[]> {
 
   return notifications.map((notification): ActivityItem => {
     const type = mapNotificationType(notification.type)
+    const parsed = parseDate(notification.createdAt)
     return {
       id: String(notification.id),
       type,
       title: notification.title,
       description: notification.message,
-      timestamp: notification.createdAt,
+      timestamp: parsed?.toISOString() ?? '',
       icon: getActivityIcon(type),
       link: notification.link ?? undefined
     }

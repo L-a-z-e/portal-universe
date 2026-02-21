@@ -10,8 +10,8 @@ export interface Notification {
   status: NotificationStatus
   referenceId: string | null
   referenceType: string | null
-  createdAt: string
-  readAt: string | null
+  createdAt: string | number[]
+  readAt: string | number[] | null
 }
 
 export type NotificationStatus = 'UNREAD' | 'READ'
