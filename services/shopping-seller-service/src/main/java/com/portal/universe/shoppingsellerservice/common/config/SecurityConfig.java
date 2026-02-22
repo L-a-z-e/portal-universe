@@ -24,7 +24,7 @@ public class SecurityConfig {
         http
                 .securityMatcher("/actuator/**")
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/health/**", "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()
                         .anyRequest().denyAll())
                 .csrf(AbstractHttpConfigurer::disable);

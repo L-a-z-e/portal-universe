@@ -5,7 +5,7 @@ import { fetchPendingSellerApplications, reviewSellerApplication } from '@/api/a
 import type { SellerApplication, PageResponse } from '@/dto/admin';
 
 const { getErrorMessage, handleError } = useApiError();
-const { add: addToast } = useToast();
+const toast = useToast();
 
 // === State ===
 const data = ref<PageResponse<SellerApplication> | null>(null);
@@ -118,7 +118,7 @@ async function handleReview(id: number, approved: boolean) {
     await reviewSellerApplication(id, approved, comment);
     expandedId.value = null;
     reviewComment.value = '';
-    addToast({ variant: 'success', message: approved ? 'Application approved.' : 'Application rejected.' });
+    toast.success(approved ? 'Application approved.' : 'Application rejected.');
     await load();
   } catch (err) {
     handleError(err, 'Failed to process review.');

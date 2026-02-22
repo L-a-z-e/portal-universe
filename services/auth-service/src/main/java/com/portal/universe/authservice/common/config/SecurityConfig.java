@@ -98,7 +98,7 @@ public class SecurityConfig {
                                 "/login/oauth2/**"   // OAuth2 콜백 엔드포인트
                         ).permitAll()
                         // Actuator 보안 설정
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // 공개
+                        .requestMatchers("/actuator/health/**", "/actuator/health", "/actuator/info").permitAll()  // 공개
                         .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()  // 내부망에서만 접근 (Gateway에서 차단)
                         .requestMatchers("/actuator/**").denyAll()  // 나머지는 차단
                         // 내부 API (Gateway에서 직접 호출, 외부 비노출)
