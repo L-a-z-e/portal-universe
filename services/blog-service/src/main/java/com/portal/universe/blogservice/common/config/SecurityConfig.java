@@ -37,7 +37,7 @@ public class SecurityConfig {
         http
                 .securityMatcher("/actuator/**")
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // 공개
+                        .requestMatchers("/actuator/health/**", "/actuator/health", "/actuator/info").permitAll()  // 공개
                         .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()  // 내부망 전용 (Gateway에서 차단)
                         .anyRequest().denyAll())  // 나머지는 차단
                 .csrf(AbstractHttpConfigurer::disable);

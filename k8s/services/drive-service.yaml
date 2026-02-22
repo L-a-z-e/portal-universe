@@ -53,21 +53,21 @@ spec:
               memory: "512Mi"
           startupProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 8087
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 18
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: 8087
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 8087
             initialDelaySeconds: 5
             periodSeconds: 5
