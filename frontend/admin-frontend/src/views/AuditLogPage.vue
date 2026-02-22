@@ -5,7 +5,7 @@ import { fetchAuditLogs } from '@/api/admin';
 import type { AuditLog, PageResponse } from '@/dto/admin';
 
 const { getErrorMessage } = useApiError();
-const { add: addToast } = useToast();
+const toast = useToast();
 
 // === State ===
 const searchQuery = ref('');
@@ -121,7 +121,7 @@ function exportCsv() {
   a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  addToast({ variant: 'success', message: 'CSV exported successfully' });
+  toast.success('CSV exported successfully');
 }
 
 watch(page, load);

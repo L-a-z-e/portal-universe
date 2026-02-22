@@ -26,7 +26,7 @@ import type {
 } from '@/dto/admin';
 
 const { getErrorMessage, handleError } = useApiError();
-const { add: addToast } = useToast();
+const toast = useToast();
 
 // --- Search & List ---
 const query = ref('');
@@ -180,7 +180,7 @@ async function copyUuid() {
   if (!selectedUser.value) return;
   try {
     await navigator.clipboard.writeText(selectedUser.value.uuid);
-    addToast({ variant: 'success', message: 'UUID copied to clipboard' });
+    toast.success('UUID copied to clipboard');
   } catch {
     const el = document.createElement('textarea');
     el.value = selectedUser.value.uuid;
@@ -188,7 +188,7 @@ async function copyUuid() {
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
-    addToast({ variant: 'success', message: 'UUID copied to clipboard' });
+    toast.success('UUID copied to clipboard');
   }
 }
 
@@ -208,7 +208,7 @@ async function handleChangeMembership(group: string, tierKey: string | null) {
   changingMembershipGroup.value = group;
   try {
     await changeUserMembership(selectedUser.value.uuid, group, String(tierKey));
-    addToast({ variant: 'success', message: `Tier changed to ${tierKey} for ${group}` });
+    toast.success(`Tier changed to ${tierKey} for ${group}`);
     userMemberships.value = await fetchUserMemberships(selectedUser.value.uuid);
   } catch (err) {
     handleError(err, 'Failed to change membership tier');

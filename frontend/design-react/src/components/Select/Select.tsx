@@ -4,17 +4,20 @@ import {
   useRef,
   useEffect,
   useId,
+  useCallback,
   type SelectHTMLAttributes,
   type KeyboardEvent,
 } from 'react';
 import type { SelectProps, SelectOption } from '@portal/design-core';
 import { cn, selectSizes } from '@portal/design-core';
 
+type SelectValue = string | number | null | (string | number)[];
+
 export interface SelectComponentProps
   extends Omit<SelectProps, 'value' | 'onChange'>,
     Omit<SelectHTMLAttributes<HTMLButtonElement>, 'size' | 'value' | 'onChange'> {
-  value?: string | number | null;
-  onChange?: (value: string | number | null) => void;
+  value?: SelectValue;
+  onChange?: (value: SelectValue) => void;
 }
 
 export const Select = forwardRef<HTMLButtonElement, SelectComponentProps>(
@@ -29,6 +32,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectComponentProps>(
       label,
       required,
       clearable,
+      multiple,
       size = 'md',
       id: providedId,
       className,
@@ -43,7 +47,33 @@ export const Select = forwardRef<HTMLButtonElement, SelectComponentProps>(
     const generatedId = useId();
     const id = providedId || generatedId;
 
-    const selectedOption = options.find((opt: SelectOption) => opt.value === value);
+    const selectedValues: (string | number)[] = multiple && Array.isArray(value) ? value : [];
+
+    const isSelected = useCallback(
+      (optionValue: string | number) => {
+        if (multiple) {
+          return selectedValues.includes(optionValue);
+        }
+        return value === optionValue;
+      },
+      [multiple, value, selectedValues]
+    );
+
+    const selectedOption = multiple
+      ? undefined
+      : options.find((opt: SelectOption) => opt.value === value);
+
+    const selectedOptions = multiple
+      ? options.filter((opt: SelectOption) => selectedValues.includes(opt.value))
+      : [];
+
+    const displayText = multiple
+      ? selectedOptions.length > 0
+        ? selectedOptions.map((o) => o.label).join(', ')
+        : placeholder
+      : selectedOption?.label || placeholder;
+
+    const hasSelection = multiple ? selectedOptions.length > 0 : selectedOption != null;
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -66,8 +96,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectComponentProps>(
           if (isOpen && focusedIndex >= 0) {
             const option = options[focusedIndex];
             if (option && !option.disabled) {
-              onChange?.(option.value);
-              setIsOpen(false);
+              handleSelect(option);
             }
           } else {
             setIsOpen(!isOpen);
@@ -97,13 +126,21 @@ export const Select = forwardRef<HTMLButtonElement, SelectComponentProps>(
 
     const handleSelect = (option: SelectOption) => {
       if (option.disabled) return;
-      onChange?.(option.value);
-      setIsOpen(false);
+
+      if (multiple) {
+        const newValue = selectedValues.includes(option.value)
+          ? selectedValues.filter((v) => v !== option.value)
+          : [...selectedValues, option.value];
+        onChange?.(newValue);
+      } else {
+        onChange?.(option.value);
+        setIsOpen(false);
+      }
     };
 
     const handleClear = (e: React.MouseEvent) => {
       e.stopPropagation();
-      onChange?.(null);
+      onChange?.(multiple ? [] : null);
     };
 
     return (
@@ -143,11 +180,11 @@ export const Select = forwardRef<HTMLButtonElement, SelectComponentProps>(
           )}
           {...props}
         >
-          <span className={cn(!selectedOption && 'text-text-muted')}>
-            {selectedOption?.label || placeholder}
+          <span className={cn(!hasSelection && 'text-text-muted')}>
+            {displayText}
           </span>
           <div className="flex items-center gap-1">
-            {clearable && value != null && (
+            {clearable && hasSelection && (
               <span
                 role="button"
                 tabIndex={-1}
@@ -176,6 +213,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectComponentProps>(
         {isOpen && (
           <ul
             role="listbox"
+            aria-multiselectable={multiple || undefined}
             className={cn(
               'absolute z-50 w-full mt-1 py-1 rounded-md border border-border-default',
               'bg-bg-card shadow-lg max-h-60 overflow-auto',
@@ -186,19 +224,26 @@ export const Select = forwardRef<HTMLButtonElement, SelectComponentProps>(
               <li
                 key={option.value}
                 role="option"
-                aria-selected={value === option.value}
+                aria-selected={isSelected(option.value)}
                 aria-disabled={option.disabled}
                 onClick={() => handleSelect(option)}
                 onMouseEnter={() => setFocusedIndex(index)}
                 className={cn(
                   'px-3 py-2 cursor-pointer',
                   'transition-colors duration-fast',
-                  value === option.value && 'bg-brand-primary/10 text-brand-primary',
-                  focusedIndex === index && value !== option.value && 'bg-bg-hover',
+                  isSelected(option.value) && 'bg-brand-primary/10 text-brand-primary',
+                  focusedIndex === index && !isSelected(option.value) && 'bg-bg-hover',
                   option.disabled && 'opacity-50 cursor-not-allowed'
                 )}
               >
-                {option.label}
+                <div className="flex items-center justify-between">
+                  <span>{option.label}</span>
+                  {isSelected(option.value) && (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
