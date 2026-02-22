@@ -24,7 +24,8 @@ export function useWebSocket() {
   // ==================== WebSocket URL ====================
   function getWebSocketUrl(): string {
     // Use API Gateway URL from environment variable
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+    // Docker/K8s: VITE_API_BASE_URL is empty → use current origin (same-origin proxy)
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin
     // API Gateway routes to notification-service WebSocket
     return `${apiBaseUrl}/notification/ws/notifications`
   }

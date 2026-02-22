@@ -32,7 +32,7 @@ spec:
                 name: portal-universe-config
           env:
             - name: NODE_ENV
-              value: "production"
+              value: "development"
             - name: PORT
               value: "8085"
             - name: DB_HOST

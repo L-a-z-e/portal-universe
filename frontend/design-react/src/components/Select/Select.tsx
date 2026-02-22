@@ -11,7 +11,7 @@ import {
 import type { SelectProps, SelectOption } from '@portal/design-core';
 import { cn, selectSizes } from '@portal/design-core';
 
-type SelectValue = string | number | null | (string | number)[];
+export type SelectValue = string | number | null | (string | number)[];
 
 export interface SelectComponentProps
   extends Omit<SelectProps, 'value' | 'onChange'>,
