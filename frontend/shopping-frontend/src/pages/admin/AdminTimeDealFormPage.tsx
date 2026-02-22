@@ -214,7 +214,7 @@ export function AdminTimeDealFormPage() {
               required
               value={formData.productId}
               options={productOptions}
-              onChange={(value: string | number | null) => handleProductChange(Number(value))}
+              onChange={(value) => handleProductChange(Number(value))}
               error={!!errors.productId}
               errorMessage={errors.productId}
             />

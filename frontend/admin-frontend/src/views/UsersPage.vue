@@ -521,7 +521,7 @@ onMounted(async () => {
                         size="sm"
                         clearable
                         class="flex-1"
-                        @update:model-value="(val: string | number) => handleChangeMembership(group, String(val))"
+                        @update:model-value="(val) => handleChangeMembership(group, String(val))"
                       />
                       <Spinner v-if="changingMembershipGroup === group" size="sm" />
                     </div>

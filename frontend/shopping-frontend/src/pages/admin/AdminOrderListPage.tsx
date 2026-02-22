@@ -8,6 +8,7 @@ import { useAdminOrders } from '@/hooks/useAdminOrders'
 import { ORDER_STATUS_LABELS } from '@/types'
 import type { OrderStatus, Order } from '@/types'
 import { Button, Spinner, Input, Select, Table } from '@portal/design-react'
+import type { SelectValue } from '@portal/design-react'
 import type { SelectOption, TableColumn } from '@portal/design-core'
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
@@ -64,7 +65,7 @@ const AdminOrderListPage: React.FC = () => {
     setPage(1)
   }
 
-  const handleStatusChange = (value: string | number | null) => {
+  const handleStatusChange = (value: SelectValue) => {
     setStatusFilter(String(value ?? ''))
     setPage(1)
   }
