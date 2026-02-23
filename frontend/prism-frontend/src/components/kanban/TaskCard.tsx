@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button } from '@portal/design-react';
+import { Button, Badge, Tooltip } from '@portal/design-react';
 import { useTaskStore } from '@/stores/taskStore';
 import type { Task, TaskPriority } from '@/types';
 
@@ -11,11 +11,11 @@ interface TaskCardProps {
   onView?: (task: Task) => void;
 }
 
-const priorityColors: Record<TaskPriority, string> = {
-  LOW: 'bg-bg-muted text-text-meta',
-  MEDIUM: 'bg-status-info/20 text-status-info',
-  HIGH: 'bg-status-warning/20 text-status-warning',
-  URGENT: 'bg-status-error/20 text-status-error',
+const priorityBadgeVariant: Record<TaskPriority, 'default' | 'primary' | 'warning' | 'error'> = {
+  LOW: 'default',
+  MEDIUM: 'primary',
+  HIGH: 'warning',
+  URGENT: 'error',
 };
 
 const priorityLabels: Record<TaskPriority, string> = {
@@ -24,6 +24,34 @@ const priorityLabels: Record<TaskPriority, string> = {
   HIGH: 'High',
   URGENT: 'Urgent',
 };
+
+// K1: Priority left border colors
+const priorityBorderColors: Record<TaskPriority, string> = {
+  LOW: '',
+  MEDIUM: '',
+  HIGH: 'border-l-4 border-l-status-warning',
+  URGENT: 'border-l-4 border-l-status-error',
+};
+
+// K1: DueDate helpers
+function getDueDateInfo(dueDate: string): { label: string; className: string } {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  const diffDays = Math.floor((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return { label: `${Math.abs(diffDays)}d overdue`, className: 'text-status-error' };
+  }
+  if (diffDays === 0) {
+    return { label: 'Due today', className: 'text-status-warning' };
+  }
+  if (diffDays === 1) {
+    return { label: 'Due tomorrow', className: 'text-status-warning' };
+  }
+  return { label: `Due in ${diffDays}d`, className: 'text-text-meta' };
+}
 
 export function TaskCard({ task, onEdit, onExecute, onView }: TaskCardProps) {
   const executingTaskIds = useTaskStore((state) => state.executingTaskIds);
@@ -59,11 +87,13 @@ export function TaskCard({ task, onEdit, onExecute, onView }: TaskCardProps) {
     onView?.(task);
   };
 
-  // 상태별 버튼 렌더링 로직
   const canEdit = task.status === 'TODO';
   const canRun = task.status === 'TODO' && task.agentId;
   const canView = ['IN_PROGRESS', 'IN_REVIEW', 'DONE', 'CANCELLED'].includes(task.status);
   const showReviewActions = task.status === 'IN_REVIEW';
+
+  const refCount = task.referencedTaskIds?.length ?? 0;
+  const dueDateInfo = task.dueDate ? getDueDateInfo(task.dueDate) : null;
 
   return (
     <div
@@ -74,100 +104,104 @@ export function TaskCard({ task, onEdit, onExecute, onView }: TaskCardProps) {
       className={`
         bg-bg-card rounded-lg shadow-sm border border-border-default p-3
         hover:shadow-md transition-shadow cursor-grab
+        ${priorityBorderColors[task.priority]}
         ${isDragging ? 'shadow-lg' : ''}
       `}
     >
-      <div className="flex items-start justify-between gap-2 mb-2">
+      {/* Header: title + priority badge */}
+      <div className="flex items-start justify-between gap-2 mb-1">
         <h4 className="font-medium text-text-heading text-sm line-clamp-2">
           {task.title}
         </h4>
-        <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${priorityColors[task.priority]}`}>
+        <Badge variant={priorityBadgeVariant[task.priority]} size="sm">
           {priorityLabels[task.priority]}
-        </span>
+        </Badge>
       </div>
 
+      {/* K3: description 1 line */}
       {task.description && (
-        <p className="text-xs text-text-meta mb-2 line-clamp-2">
+        <p className="text-xs text-text-meta mb-2 line-clamp-1">
           {task.description}
         </p>
       )}
 
-      <div className="flex items-center justify-between mt-3">
+      {/* Meta row: agent + dueDate + referenced */}
+      <div className="flex items-center gap-2 text-xs">
         {task.agentName ? (
-          <span className="text-xs bg-brand-primary/10 text-brand-primary px-2 py-0.5 rounded">
+          <span className="bg-brand-primary/10 text-brand-primary px-2 py-0.5 rounded truncate max-w-[120px]">
             {task.agentName}
           </span>
         ) : (
-          <span className="text-xs text-text-muted">No agent</span>
-        )}
-
-        <div className="flex gap-1 items-center">
-          {isExecuting ? (
-            <span className="flex items-center gap-1 text-xs text-brand-primary">
-              <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Running...
-            </span>
+          // T2: Assign agent prompt
+          task.status === 'TODO' ? (
+            <button
+              onClick={handleEdit}
+              className="text-brand-primary hover:underline cursor-pointer"
+            >
+              + Assign agent
+            </button>
           ) : (
-            <>
-              {/* TODO: Run 버튼 */}
-              {canRun && (
-                <Button
-                  size="xs"
-                  variant="primary"
-                  onClick={handleExecute}
-                >
-                  Run
-                </Button>
-              )}
-
-              {/* IN_REVIEW: View (결과 확인 + Approve/Reject) */}
-              {showReviewActions && (
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  onClick={handleView}
-                  className="bg-status-warning/20 text-status-warning hover:bg-status-warning/30"
-                >
-                  Review
-                </Button>
-              )}
-
-              {/* IN_PROGRESS, DONE, CANCELLED: View 버튼 */}
-              {canView && !showReviewActions && (
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  onClick={handleView}
-                  className="text-text-meta hover:text-text-heading"
-                >
-                  View
-                </Button>
-              )}
-
-              {/* TODO: Edit 버튼 */}
-              {canEdit && (
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  onClick={handleEdit}
-                  className="text-text-meta hover:text-text-heading"
-                >
-                  Edit
-                </Button>
-              )}
-            </>
-          )}
-        </div>
+            <span className="text-text-muted">No agent</span>
+          )
+        )}
+        {dueDateInfo && (
+          <span className={`${dueDateInfo.className} shrink-0`}>
+            {dueDateInfo.label}
+          </span>
+        )}
+        {/* T3: Referenced tasks indicator */}
+        {refCount > 0 && (
+          <Tooltip content={`${refCount} referenced task${refCount > 1 ? 's' : ''}`}>
+            <span className="text-text-muted shrink-0 cursor-default">
+              <svg className="w-3 h-3 inline mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              {refCount}
+            </span>
+          </Tooltip>
+        )}
       </div>
 
-      {task.dueDate && (
-        <div className="mt-2 text-xs text-text-muted">
-          Due: {new Date(task.dueDate).toLocaleDateString()}
-        </div>
-      )}
+      {/* T1: Action buttons - separated area */}
+      <div className="flex gap-1 items-center border-t border-border-default pt-2 mt-2" onPointerDown={(e) => e.stopPropagation()}>
+        {isExecuting ? (
+          <span className="flex items-center gap-1 text-xs text-brand-primary flex-1 justify-center">
+            <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            Running...
+          </span>
+        ) : (
+          <>
+            {canRun && (
+              <Button size="sm" variant="primary" onClick={handleExecute} className="flex-1">
+                Run
+              </Button>
+            )}
+            {showReviewActions && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleView}
+                className="flex-1 bg-status-warning/20 text-status-warning hover:bg-status-warning/30"
+              >
+                Review
+              </Button>
+            )}
+            {canView && !showReviewActions && (
+              <Button size="sm" variant="ghost" onClick={handleView} className="flex-1 text-text-meta hover:text-text-heading">
+                View
+              </Button>
+            )}
+            {canEdit && (
+              <Button size="sm" variant="ghost" onClick={handleEdit} className="flex-1 text-text-meta hover:text-text-heading">
+                Edit
+              </Button>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
