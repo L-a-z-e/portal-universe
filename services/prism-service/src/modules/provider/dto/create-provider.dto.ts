@@ -41,7 +41,7 @@ export class CreateProviderDto {
       ![ProviderType.OLLAMA, ProviderType.LOCAL].includes(o.providerType) ||
       !!o.baseUrl,
   )
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   @MaxLength(255)
   baseUrl?: string;
 }

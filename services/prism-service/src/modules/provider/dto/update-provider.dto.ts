@@ -23,7 +23,7 @@ export class UpdateProviderDto {
 
   @ApiPropertyOptional({ example: 'https://api.openai.com/v1' })
   @IsOptional()
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   @MaxLength(255)
   baseUrl?: string;
 

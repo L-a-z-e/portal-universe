@@ -6,6 +6,8 @@ import type {
   ErrorDetails,
   Provider,
   CreateProviderRequest,
+  UpdateProviderRequest,
+  VerifyProviderResponse,
   Agent,
   CreateAgentRequest,
   Board,
@@ -182,8 +184,32 @@ class ApiService {
     return this.request<Provider>('post', '/api/v1/prism/providers', backendData);
   }
 
+  async updateProvider(id: number, data: UpdateProviderRequest): Promise<Provider> {
+    const backendData: Record<string, unknown> = {};
+    if (data.name !== undefined) backendData.name = data.name;
+    if (data.apiKey !== undefined) backendData.apiKey = data.apiKey;
+    if (data.baseUrl !== undefined) backendData.baseUrl = data.baseUrl;
+    if (data.isActive !== undefined) backendData.isActive = data.isActive;
+    return this.request<Provider>('put', `/api/v1/prism/providers/${id}`, backendData);
+  }
+
   async deleteProvider(id: number): Promise<void> {
     return this.request<void>('delete', `/api/v1/prism/providers/${id}`);
+  }
+
+  async verifyProvider(id: number): Promise<VerifyProviderResponse> {
+    // Verify endpoint returns raw response (not wrapped in ApiResponse)
+    const response = await this.client.post(`/api/v1/prism/providers/${id}/verify`);
+    const body = response.data;
+    // Backend returns { success, message, models } directly (no wrapper)
+    // But handle wrapped format too for safety
+    if (body && typeof body === 'object' && 'success' in body && !('data' in body)) {
+      return body as VerifyProviderResponse;
+    }
+    if (body && typeof body === 'object' && 'data' in body && body.data) {
+      return body.data as VerifyProviderResponse;
+    }
+    throw new ApiError('Unexpected verify response format');
   }
 
   async getProviderModels(id: number): Promise<string[]> {
@@ -249,7 +275,7 @@ class ApiService {
   // Board APIs
   async getBoards(): Promise<Board[]> {
     const result = await this.request<{ items: Board[] }>('get', '/api/v1/prism/boards');
-    return result.items ?? result as unknown as Board[];
+    return result.items ?? [];
   }
 
   async getBoard(id: number): Promise<Board> {

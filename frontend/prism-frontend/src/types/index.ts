@@ -18,6 +18,19 @@ export interface CreateProviderRequest {
   baseUrl?: string;
 }
 
+export interface UpdateProviderRequest {
+  name?: string;
+  apiKey?: string;
+  baseUrl?: string;
+  isActive?: boolean;
+}
+
+export interface VerifyProviderResponse {
+  success: boolean;
+  message?: string;
+  models?: string[];
+}
+
 // Agent Types
 export type AgentRole = 'PM' | 'BACKEND' | 'FRONTEND' | 'DEVOPS' | 'TESTER' | 'CUSTOM';
 

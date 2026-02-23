@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Modal, Button, Input, Select, Textarea, useApiError } from '@portal/design-react';
+import { Modal, Button, Input, Select, Textarea, Alert, Skeleton, useApiError } from '@portal/design-react';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useAgentStore } from '@/stores/agentStore';
 import { useProviderStore } from '@/stores/providerStore';
 import { api } from '@/services/api';
@@ -15,7 +16,7 @@ const AGENT_ROLES: { value: AgentRole; label: string }[] = [
 ];
 
 function AgentsPage() {
-  const { agents, loading, error, fetchAgents, createAgent, updateAgent, deleteAgent } = useAgentStore();
+  const { agents, loading, error, fetchAgents, createAgent, updateAgent, deleteAgent, clearError } = useAgentStore();
   const { providers, fetchProviders } = useProviderStore();
   const { handleError } = useApiError();
 
@@ -25,6 +26,7 @@ function AgentsPage() {
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [useCustomModel, setUseCustomModel] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Agent | null>(null);
   const [formData, setFormData] = useState<CreateAgentRequest>({
     name: '',
     role: 'CUSTOM',
@@ -41,7 +43,6 @@ function AgentsPage() {
     fetchProviders();
   }, [fetchAgents, fetchProviders]);
 
-  // Provider 변경 시 모델 목록 조회
   useEffect(() => {
     if (!formData.providerId) {
       setAvailableModels([]);
@@ -53,11 +54,9 @@ function AgentsPage() {
       try {
         const models = await api.getProviderModels(formData.providerId);
         setAvailableModels(models);
-        // 현재 선택된 모델이 목록에 없으면 custom model로 간주
         if (formData.model && !models.includes(formData.model)) {
           setUseCustomModel(true);
         } else if (models.length > 0 && !formData.model) {
-          // 모델이 없으면 첫 번째 모델로 설정
           setFormData(prev => ({ ...prev, model: models[0] }));
         }
       } catch (err) {
@@ -84,8 +83,7 @@ function AgentsPage() {
         temperature: agent.temperature,
         maxTokens: agent.maxTokens,
       });
-      // Check if agent's model is not in available models (custom model)
-      setUseCustomModel(false); // Will be updated after models are fetched
+      setUseCustomModel(false);
     } else {
       setSelectedAgent(null);
       setFormData({
@@ -122,10 +120,15 @@ function AgentsPage() {
     }
   }, [formData, selectedAgent, createAgent, updateAgent]);
 
-  const handleDelete = useCallback(async (id: number) => {
-    if (!confirm('Are you sure you want to delete this agent?')) return;
-    await deleteAgent(id);
-  }, [deleteAgent]);
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteAgent(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch (err) {
+      handleError(err, 'Failed to delete agent');
+    }
+  }, [deleteTarget, deleteAgent, handleError]);
 
   const providerOptions = providers
     .filter((p) => p.isActive)
@@ -144,12 +147,24 @@ function AgentsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-status-error/10 text-status-error rounded-lg">{error}</div>
+        <Alert variant="error" dismissible onDismiss={clearError} className="mb-4">
+          {error}
+        </Alert>
       )}
 
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
+      {loading && agents.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-bg-card rounded-xl shadow-sm border border-border-default p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <Skeleton variant="text" width="40%" />
+                <Skeleton variant="text" width="20%" />
+              </div>
+              <Skeleton variant="text" width="60%" />
+              <Skeleton variant="rect" height="40px" width="100%" />
+              <Skeleton variant="text" width="40%" />
+            </div>
+          ))}
         </div>
       ) : agents.length === 0 ? (
         <div className="text-center py-12 bg-bg-subtle rounded-xl">
@@ -196,7 +211,7 @@ function AgentsPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDelete(agent.id)}
+                    onClick={() => setDeleteTarget(agent)}
                     className="p-2 text-text-muted hover:text-status-error"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -208,6 +223,16 @@ function AgentsPage() {
               {agent.description && (
                 <p className="mt-3 text-sm text-text-body">{agent.description}</p>
               )}
+
+              {/* A1: System prompt preview */}
+              {agent.systemPrompt && (
+                <div className="mt-3 bg-bg-subtle rounded-lg p-2">
+                  <p className="text-xs font-mono text-text-meta line-clamp-2">
+                    {agent.systemPrompt}
+                  </p>
+                </div>
+              )}
+
               <div className="mt-4 flex gap-4 text-xs text-text-meta">
                 <span>Temp: {agent.temperature}</span>
                 <span>Max Tokens: {agent.maxTokens}</span>
@@ -257,7 +282,8 @@ function AgentsPage() {
             placeholder="What does this agent do? (optional)"
           />
 
-          <div className="grid grid-cols-3 gap-4">
+          {/* A3: Responsive 3-column form */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               {useCustomModel ? (
                 <>
@@ -279,7 +305,7 @@ function AgentsPage() {
                     }}
                     className="mt-1 text-xs text-brand-primary hover:underline px-0"
                   >
-                    ← Select from list
+                    Select from list
                   </Button>
                 </>
               ) : (
@@ -313,7 +339,7 @@ function AgentsPage() {
                       onClick={() => setUseCustomModel(true)}
                       className="mt-1 text-xs text-brand-primary hover:underline px-0"
                     >
-                      Enter custom model name →
+                      Enter custom model name
                     </Button>
                   )}
                 </>
@@ -326,7 +352,7 @@ function AgentsPage() {
               max="2"
               step="0.1"
               value={formData.temperature}
-              onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
+              onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) setFormData({ ...formData, temperature: v }); }}
             />
             <Input
               label="Max Tokens"
@@ -334,7 +360,7 @@ function AgentsPage() {
               min="1"
               max="128000"
               value={formData.maxTokens}
-              onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })}
+              onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) setFormData({ ...formData, maxTokens: v }); }}
             />
           </div>
 
@@ -357,9 +383,19 @@ function AgentsPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirm */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete Agent"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </div>
   );
 }
 
 export default AgentsPage;
-
