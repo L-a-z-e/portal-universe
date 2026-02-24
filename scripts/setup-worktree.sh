@@ -64,6 +64,7 @@ echo "Creating symlinks..."
 # 루트 레벨 파일/폴더
 SYMLINK_TARGETS=(
     ".claude"
+    "CLAUDE.md"
     "certs"
     ".env"
     ".env.local"
