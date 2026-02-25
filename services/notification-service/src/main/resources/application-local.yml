@@ -2,20 +2,30 @@
 # Notification Service - Local Development Profile
 # ===================================================================
 
-server:
-  forward-headers-strategy: framework
-
-app:
-  frontend:
-    base-url: http://localhost:30000
-  websocket:
-    allowed-origins: "*"
-
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/local/notification-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/local/notification-service/
+
+  # Spring Cloud AWS 설정 (LocalStack 연결)
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localhost:4566
+      secretsmanager:
+        endpoint: http://localhost:4566
+      parameterstore:
+        endpoint: http://localhost:4566
+
   datasource:
     url: jdbc:mysql://localhost:3307/notification_db?useSSL=false&allowPublicKeyRetrieval=true
-    username: ${DB_USER:laze}
-    password: ${DB_PASSWORD}
+    username: ${db.username:${DB_USER:laze}}
+    password: ${db.password:${DB_PASSWORD}}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -39,6 +49,15 @@ spring:
       group-id: notification-group
     properties:
       schema.registry.url: http://localhost:18081
+
+server:
+  forward-headers-strategy: framework
+
+app:
+  frontend:
+    base-url: http://localhost:30000
+  websocket:
+    allowed-origins: "*"
 
 # Local Actuator 설정
 management:

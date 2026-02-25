@@ -1,6 +1,8 @@
 package com.portal.universe.commonlibrary.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -56,6 +58,19 @@ public class ErrorResponse {
         this.code = code;
         this.message = message;
         this.timestamp = LocalDateTime.now();
+        this.path = path;
+        this.details = details;
+    }
+
+    @JsonCreator
+    private ErrorResponse(@JsonProperty("code") String code,
+                          @JsonProperty("message") String message,
+                          @JsonProperty("timestamp") LocalDateTime timestamp,
+                          @JsonProperty("path") String path,
+                          @JsonProperty("details") List<FieldError> details) {
+        this.code = code;
+        this.message = message;
+        this.timestamp = timestamp;
         this.path = path;
         this.details = details;
     }

@@ -2,52 +2,33 @@
 # Auth Service - Local Development Profile
 # ===================================================================
 
-server:
-  forward-headers-strategy: framework
-  servlet:
-    session:
-      timeout: 1h
-
-app:
-  frontend:
-    base-url: http://localhost:30000
-  cookie:
-    secure: false       # HTTP localhost 환경
-
-# 서비스 URL 정의 (IntelliJ 개발용 - localhost)
-services:
-  gateway:
-    url: "http://localhost:8080"
-  auth:
-    url: "http://localhost:8081"
-  blog:
-    url: "http://localhost:8082"
-  shopping:
-    url: "http://localhost:8083"
-  notification:
-    url: "http://localhost:8084"
-
-# Feign Client 설정
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 5000
-        readTimeout: 5000
-  auth-service:
-    url: "${services.auth.url}"
-  blog-service:
-    url: "${services.blog.url}"
-  shopping-service:
-    url: "${services.shopping.url}"
-  notification-service:
-    url: "${services.notification.url}"
-
+# AWS Secrets Manager + SSM Parameter Store에서 설정 로드
+# optional: LocalStack 미실행 시에도 기존 환경변수 방식으로 폴백
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/local/auth-service/db-credentials?prefix=db.
+      - optional:aws-secretsmanager:/portal-universe/local/auth-service/jwt-secret?prefix=jwt.
+      - optional:aws-parameterstore:/portal-universe/local/auth-service/
+
+  # Spring Cloud AWS 설정 (LocalStack 연결)
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localhost:4566
+      secretsmanager:
+        endpoint: http://localhost:4566
+      parameterstore:
+        endpoint: http://localhost:4566
+
   datasource:
     url: jdbc:postgresql://localhost:5432/auth_db
-    username: ${DB_USER:laze}
-    password: ${DB_PASSWORD}
+    username: ${db.username:${DB_USER:laze}}
+    password: ${db.password:${DB_PASSWORD}}
 
   flyway:
     enabled: true
@@ -119,6 +100,47 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
+server:
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      timeout: 1h
+
+app:
+  frontend:
+    base-url: http://localhost:30000
+  cookie:
+    secure: false       # HTTP localhost 환경
+
+# 서비스 URL 정의 (IntelliJ 개발용 - localhost)
+services:
+  gateway:
+    url: "http://localhost:8080"
+  auth:
+    url: "http://localhost:8081"
+  blog:
+    url: "http://localhost:8082"
+  shopping:
+    url: "http://localhost:8083"
+  notification:
+    url: "http://localhost:8084"
+
+# Feign Client 설정
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+  auth-service:
+    url: "${services.auth.url}"
+  blog-service:
+    url: "${services.blog.url}"
+  shopping-service:
+    url: "${services.shopping.url}"
+  notification-service:
+    url: "${services.notification.url}"
 
 # Local Actuator 설정
 management:

@@ -46,6 +46,11 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
+    // AWS (Secrets Manager + SSM Parameter Store)
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1')
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+
     // Messaging (Kafka)
     implementation 'org.springframework.kafka:spring-kafka'
 

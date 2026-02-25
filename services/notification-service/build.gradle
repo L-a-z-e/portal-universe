@@ -59,6 +59,15 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
 
     // =======================================
+    // AWS (SQS + Secrets Manager + SSM Parameter Store)
+    // =======================================
+    implementation platform('software.amazon.awssdk:bom:2.29.50')
+    implementation 'software.amazon.awssdk:sqs'
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1')
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+
+    // =======================================
     // Observability (Monitoring & Tracing)
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-actuator' // Health Check, Metrics

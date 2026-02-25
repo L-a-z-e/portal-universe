@@ -4,7 +4,7 @@ title: Blog Service System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-15
+updated: 2026-02-25
 author: Laze
 tags: [architecture, blog-service, system-design, mongodb, kafka, microservices]
 related:
@@ -442,7 +442,36 @@ DELETE /file/delete                           → ROLE_BLOG_ADMIN 또는 ROLE_SU
 
 ## 파일 업로드
 
-### S3 연동 흐름
+Blog Service는 두 가지 파일 업로드 방식을 지원합니다.
+
+### 방식 1: Presigned URL 직접 업로드 (권장)
+
+클라이언트가 서버에서 서명된 URL을 받아 S3에 직접 업로드합니다. 서버를 경유하지 않아 대용량 파일 업로드 시 서버 부하를 줄입니다.
+
+```mermaid
+sequenceDiagram
+    participant F as Blog Frontend
+    participant B as Blog Service
+    participant S as S3 Bucket
+
+    F->>B: 1. POST /upload/presign<br/>{fileName, contentType}
+    activate B
+    B->>B: 2. 파일 확장자/타입 검증
+    B->>S: 3. GeneratePresignedUrl (PUT, 10분 만료)
+    S-->>B: 4. Presigned URL
+    B-->>F: 5. {presignedUrl, fileKey, expiresIn}
+    deactivate B
+    F->>S: 6. PUT (presignedUrl, file binary)
+    activate S
+    S-->>F: 7. 200 OK
+    deactivate S
+    Note over F: 게시글 저장 시 fileKey 포함
+```
+
+**장점**: 서버 메모리/대역폭 부담 없음, 대용량 파일 지원
+**제한**: Presigned URL 10분 만료, 허용 Content-Type만 가능
+
+### 방식 2: 서버 경유 업로드 (레거시)
 
 ```mermaid
 sequenceDiagram

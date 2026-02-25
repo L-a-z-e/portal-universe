@@ -2,7 +2,7 @@
 
 > MSA + MFA Polyglot Project 중앙 문서 저장소
 
-**마지막 업데이트**: 2026-02-18
+**마지막 업데이트**: 2026-02-25
 
 ---
 
@@ -61,7 +61,7 @@ docs/
 | [Security Architecture](architecture/system/security-architecture.md) | 시스템 보안 아키텍처 |
 | [Common Library](architecture/system/common-library.md) | 공유 라이브러리 아키텍처 |
 | [Service Communication](architecture/system/service-communication.md) | 서비스 간 통신 패턴 |
-| [Event-Driven Architecture](architecture/system/event-driven-architecture.md) | Kafka 기반 비동기 통신 (17개 토픽) |
+| [Event-Driven Architecture](architecture/system/event-driven-architecture.md) | 멀티 메시징 시스템 (Kafka 16토픽 + SQS + EventBridge + CloudWatch) |
 | [ERD](architecture/database/) | 서비스별 데이터베이스 스키마 |
 
 ---

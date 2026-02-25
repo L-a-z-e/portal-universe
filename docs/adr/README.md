@@ -53,6 +53,9 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-045 | [역할 기본 멤버십 자동 매핑](./ADR-045-role-default-membership-mapping.md) | Accepted   | 2026-02-18 |
 | ADR-046 | [MySQL → PostgreSQL 마이그레이션](./ADR-046-mysql-to-postgresql-migration.md) | Accepted   | 2026-02-18 |
 | ADR-047 | [Avro 및 Schema Registry 도입을 통한 이벤트 계약 관리 고도화](./ADR-047-avro-schema-registry-adoption.md) | Proposed   | 2026-02-18 |
+| ADR-048 | [Kubernetes HA/Scaling 전략](./ADR-048-k8s-ha-scaling-strategy.md) | Accepted   | 2026-02-21 |
+| ADR-049 | [AWS Secrets Manager + SSM Parameter Store 설정 외부화](./ADR-049-secrets-manager-ssm-integration.md) | Accepted   | 2026-02-25 |
+| ADR-050 | [LocalStack AWS 서비스 확장 및 Terraform IaC 도입](./ADR-050-localstack-aws-services-expansion.md) | Accepted   | 2026-02-25 |
 
 ## 상태 정의
 

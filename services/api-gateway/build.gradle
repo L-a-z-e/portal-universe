@@ -53,6 +53,13 @@ dependencies {
     implementation 'io.opentelemetry:opentelemetry-exporter-zipkin' // Tracing data reporter for Zipkin
 
     // =======================================
+    // AWS (Secrets Manager + SSM Parameter Store)
+    // =======================================
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1')
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+
+    // =======================================
     // Kubernetes Client (K8s profile에서만 사용)
     // =======================================
     implementation platform('io.fabric8:kubernetes-client-bom:6.13.4')

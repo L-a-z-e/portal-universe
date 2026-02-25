@@ -11,7 +11,7 @@
 | 문서 | 설명 | 최종 업데이트 |
 |------|------|:---:|
 | [System Overview](./system-overview.md) | 10개 도메인, ERD, 기술 스택, Kafka topic, 에러 코드 체계 | 2026-02-06 |
-| [Data Flow](./data-flow.md) | 10개 데이터 플로우, 동시성 제어 (Pessimistic Lock, Lua Script, 분산 락) | 2026-02-06 |
+| [Data Flow](./data-flow.md) | 10개 데이터 플로우, 동시성 제어, EventBridge Dual Publish, CloudWatch Metrics | 2026-02-25 |
 
 ### Domain
 
@@ -26,7 +26,7 @@
 
 | 문서 | 설명 | 최종 업데이트 |
 |------|------|:---:|
-| [Saga Pattern](./saga-pattern.md) | 5단계 Forward/Compensation 분산 트랜잭션 | 2026-02-06 |
+| [Saga Pattern](./saga-pattern.md) | 5단계 Forward/Compensation, EventBridge Dual Publish, CloudWatch Alarms | 2026-02-25 |
 
 ---
 
@@ -86,4 +86,4 @@ System Overview (Search) → Search System → Data Flow (상품 검색)
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-25

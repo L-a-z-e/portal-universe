@@ -1,8 +1,27 @@
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/local/shopping-settlement-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/local/shopping-settlement-service/
+
+  # Spring Cloud AWS 설정 (LocalStack 연결)
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localhost:4566
+      secretsmanager:
+        endpoint: http://localhost:4566
+      parameterstore:
+        endpoint: http://localhost:4566
+
   datasource:
     url: jdbc:postgresql://localhost:5432/shopping_settlement_db
-    username: laze
-    password: ${DB_PASSWORD}
+    username: ${db.username:laze}
+    password: ${db.password:${DB_PASSWORD}}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -10,6 +29,7 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -17,10 +37,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+
   kafka:
     bootstrap-servers: localhost:9092
     consumer:

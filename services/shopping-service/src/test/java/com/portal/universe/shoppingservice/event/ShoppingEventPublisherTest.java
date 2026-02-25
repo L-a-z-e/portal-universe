@@ -29,6 +29,9 @@ class ShoppingEventPublisherTest {
     @Mock
     private KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
 
+    @Mock
+    private EventBridgePublisher eventBridgePublisher;
+
     @InjectMocks
     private ShoppingEventPublisher eventPublisher;
 

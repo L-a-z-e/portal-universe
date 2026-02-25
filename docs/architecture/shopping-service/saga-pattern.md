@@ -4,7 +4,7 @@ title: Order Saga Pattern Architecture
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-25
 author: Laze
 tags: [architecture, shopping-service, saga, distributed-transaction, compensation]
 related:
@@ -300,7 +300,66 @@ public void compensate(SagaState sagaState, String errorMessage) { ... }
 
 ---
 
+## 이벤트 발행 (Dual Publish)
+
+Saga 완료/실패 시 **Kafka**와 **EventBridge** 두 채널에 동시 발행합니다.
+
+### Kafka (Primary)
+
+Saga 완료 후 도메인 이벤트를 Kafka에 발행합니다. notification-service 등 기존 Consumer가 구독합니다.
+
+```java
+// Saga 완료 시
+kafkaTemplate.send(ShoppingTopics.ORDER_CREATED, orderNumber, event);
+```
+
+### EventBridge (Secondary, @Async)
+
+Kafka 발행과 독립적으로 EventBridge에 비동기 발행합니다. 규칙 기반 조건부 라우팅이 필요한 시나리오에 활용됩니다.
+
+```java
+@Async
+public void publishSagaEvent(String detailType, SagaState saga) {
+    eventBridgeClient.putEvents(PutEventsRequest.builder()
+        .entries(PutEventsRequestEntry.builder()
+            .eventBusName("portal-universe")
+            .source("com.portal.universe.shopping")
+            .detailType(detailType)  // ORDER_SAGA_COMPLETED or ORDER_SAGA_FAILED
+            .detail(toJson(saga))
+            .build())
+        .build());
+}
+```
+
+**EventBridge 규칙**:
+- `high-value-order-rule`: 총 금액 10만원 초과 → SQS 큐로 라우팅
+- `saga-failure-rule`: Saga 실패 → SQS 큐로 라우팅
+
+> EventBridge 실패가 Saga 트랜잭션에 영향을 주지 않습니다 (`@Async` + fire-and-forget).
+
+---
+
 ## 모니터링 포인트
+
+### CloudWatch Custom Metrics
+
+`OrderSagaOrchestrator`가 Saga 결과를 CloudWatch에 실시간 발행합니다.
+
+| Namespace | Metric | 단위 | 발행 시점 |
+|-----------|--------|------|-----------|
+| `PortalUniverse/Shopping` | `SagaCompleted` | Count | Saga COMPLETED |
+| `PortalUniverse/Shopping` | `SagaFailed` | Count | Saga FAILED |
+| `PortalUniverse/Shopping` | `SagaCompensationFailed` | Count | 보상 3회 실패 |
+| `PortalUniverse/Shopping` | `SagaDuration` | Milliseconds | Saga 종료 시 (completedAt - startedAt) |
+
+### CloudWatch Alarms
+
+| Alarm | 조건 | 기간 | Action |
+|-------|------|------|--------|
+| `saga-failure-alarm` | SagaFailed ≥ 5 | 5분 | SNS → SQS 알림 |
+| `saga-compensation-alarm` | SagaCompensationFailed ≥ 1 | 1분 | SNS → SQS 알림 (즉시) |
+
+### DB 기반 모니터링 (기존)
 
 | 지표 | 의미 | 임계값 |
 |------|------|--------|
@@ -314,9 +373,10 @@ public void compensate(SagaState sagaState, String errorMessage) { ... }
 ## 관련 문서
 
 - [System Overview](./system-overview.md)
-- [Data Flow](./data-flow.md) - 결제 처리 및 Saga 완료 흐름
+- [Data Flow](./data-flow.md) - EventBridge Dual Publish + CloudWatch 상세
+- [Event-Driven Architecture](../system/event-driven-architecture.md) - 멀티 메시징 시스템 전체 구조
 - [Coupon System](./coupon-system.md) - 쿠폰 적용 시 Saga 확장 예정
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-25

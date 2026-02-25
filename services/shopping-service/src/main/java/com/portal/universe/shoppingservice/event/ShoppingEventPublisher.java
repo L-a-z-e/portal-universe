@@ -8,10 +8,13 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 쇼핑 서비스의 이벤트를 Kafka로 발행하는 퍼블리셔입니다.
+ * 쇼핑 서비스의 이벤트를 Kafka + EventBridge로 발행하는 퍼블리셔입니다.
+ * Kafka: 핵심 서비스간 통신 (notification, seller 등)
+ * EventBridge: 조건부 라우팅 (고액 주문 알림, 이메일 확인 등)
  */
 @Slf4j
 @Component
@@ -19,9 +22,26 @@ import java.util.concurrent.CompletableFuture;
 public class ShoppingEventPublisher {
 
     private final KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
+    private final EventBridgePublisher eventBridgePublisher;
 
     public void publishOrderCreated(OrderCreatedEvent event) {
         publishEvent(ShoppingTopics.ORDER_CREATED, event.getOrderNumber(), event);
+
+        // EventBridge로 조건부 라우팅용 이벤트 발행 (비동기, 실패 허용)
+        eventBridgePublisher.publishOrderCreated(
+                event.getOrderNumber().toString(),
+                event.getUserId().toString(),
+                event.getTotalAmount(),
+                event.getItemCount(),
+                event.getItems().stream()
+                        .map(item -> Map.<String, Object>of(
+                                "productId", item.getProductId(),
+                                "productName", item.getProductName().toString(),
+                                "quantity", item.getQuantity(),
+                                "price", item.getPrice().intValue()
+                        ))
+                        .toList()
+        );
     }
 
     public void publishOrderConfirmed(OrderConfirmedEvent event) {
@@ -69,4 +89,5 @@ public class ShoppingEventPublisher {
             }
         });
     }
+
 }

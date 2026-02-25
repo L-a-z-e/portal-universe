@@ -124,3 +124,6 @@ frontend/portal-shell/public/prism/
 !**/src/**/*.png
 !**/public/**/*.png
 !**/assets/**/*.png
+
+# Lambda build artifacts
+lambda/**/package.zip

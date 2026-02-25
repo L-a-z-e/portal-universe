@@ -30,9 +30,55 @@ fi
 # 버킷 생성 (이미 존재하면 무시)
 echo "📦 Creating S3 buckets..."
 awslocal s3 mb s3://blog-bucket 2>/dev/null && echo "✓ Created blog-bucket" || echo "✓ blog-bucket already exists"
+awslocal s3 mb s3://drive-bucket 2>/dev/null && echo "✓ Created drive-bucket" || echo "✓ drive-bucket already exists"
 awslocal s3 mb s3://portal-universe-images 2>/dev/null && echo "✓ Created portal-universe-images" || echo "✓ portal-universe-images already exists"
 awslocal s3 mb s3://portal-universe-documents 2>/dev/null && echo "✓ Created portal-universe-documents" || echo "✓ portal-universe-documents already exists"
 awslocal s3 mb s3://portal-universe-backups 2>/dev/null && echo "✓ Created portal-universe-backups" || echo "✓ portal-universe-backups already exists"
+
+# blog-bucket: 버전 관리 활성화
+echo "🔄 Enabling versioning on blog-bucket..."
+awslocal s3api put-bucket-versioning \
+  --bucket blog-bucket \
+  --versioning-configuration Status=Enabled 2>/dev/null \
+  && echo "✓ Versioning enabled on blog-bucket" \
+  || echo "⚠ Versioning configuration failed"
+
+# blog-bucket: 수명주기 정책 (이전 버전 90일 후 삭제)
+echo "⏰ Setting lifecycle policy on blog-bucket..."
+awslocal s3api put-bucket-lifecycle-configuration \
+  --bucket blog-bucket \
+  --lifecycle-configuration '{
+    "Rules": [
+      {
+        "ID": "cleanup-old-versions",
+        "Status": "Enabled",
+        "Filter": { "Prefix": "" },
+        "NoncurrentVersionExpiration": {
+          "NoncurrentDays": 90
+        }
+      }
+    ]
+  }' 2>/dev/null \
+  && echo "✓ Lifecycle policy applied on blog-bucket" \
+  || echo "⚠ Lifecycle configuration failed"
+
+# blog-bucket: CORS 설정 (Presigned URL 직접 업로드용)
+echo "🌐 Setting CORS on blog-bucket..."
+awslocal s3api put-bucket-cors \
+  --bucket blog-bucket \
+  --cors-configuration '{
+    "CORSRules": [
+      {
+        "AllowedOrigins": ["http://localhost:30000", "https://portal-universe:30000"],
+        "AllowedMethods": ["GET", "PUT"],
+        "AllowedHeaders": ["*"],
+        "ExposeHeaders": ["ETag"],
+        "MaxAgeSeconds": 3600
+      }
+    ]
+  }' 2>/dev/null \
+  && echo "✓ CORS policy applied on blog-bucket" \
+  || echo "⚠ CORS configuration failed"
 
 # Public Read 정책 설정 (이미지 버킷)
 echo "🔓 Setting public read policy on portal-universe-images..."

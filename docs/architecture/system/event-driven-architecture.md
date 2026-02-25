@@ -1,14 +1,23 @@
-# Event-Driven Architecture: Kafka 기반 비동기 통신
+# Event-Driven Architecture: 멀티 메시징 시스템
 
 ## 개요
-Portal Universe의 이벤트 기반 아키텍처는 Apache Kafka를 통해 4개 도메인(Auth, Shopping, Blog, Prism)의 비동기 통신을 처리합니다. 현재 notification-service가 유일한 Consumer로서 모든 도메인 이벤트를 구독하여 사용자 알림을 생성합니다.
+Portal Universe의 이벤트 기반 아키텍처는 **3개의 메시징 시스템**을 목적에 따라 사용합니다. Apache Kafka가 서비스 간 도메인 이벤트의 핵심 채널이며, AWS SQS가 이메일 등 비동기 작업 큐, Amazon EventBridge가 조건부 이벤트 라우팅을 담당합니다.
 
 | 항목 | 내용 |
 |------|------|
 | **범위** | System |
-| **주요 기술** | Apache Kafka (KRaft Mode), Spring Kafka, NestJS Kafka |
-| **배포 환경** | Docker Compose, Kubernetes |
+| **주요 기술** | Apache Kafka (KRaft Mode), AWS SQS/SNS, Amazon EventBridge, CloudWatch |
+| **배포 환경** | Docker Compose (LocalStack), Kubernetes |
 | **관련 서비스** | auth-service, shopping-service, shopping-seller-service, shopping-settlement-service, blog-service, prism-service, drive-service, notification-service |
+
+### 메시징 시스템 역할 분담
+
+| 시스템 | 역할 | 특성 | 사용 서비스 |
+|--------|------|------|-------------|
+| **Kafka** | 도메인 이벤트 스트림 | 고처리량, 순서 보장, 이벤트 리플레이 | 전체 서비스 |
+| **SQS** | 비동기 작업 큐 | 신뢰성 높은 Point-to-Point, DLQ 내장 | notification-service |
+| **EventBridge** | 조건부 이벤트 라우팅 | 규칙 기반 팬아웃, 콘텐츠 필터링 | shopping-service |
+| **CloudWatch** | 메트릭 + 알람 | 커스텀 메트릭, 임계값 알람 → SNS → SQS | shopping-service |
 
 ---
 
@@ -18,6 +27,8 @@ Portal Universe의 이벤트 기반 아키텍처는 Apache Kafka를 통해 4개 
 graph LR
     A[auth-service<br/>Java/Spring] -->|auth.*| K[Kafka<br/>KRaft Mode]
     S[shopping-service<br/>Java/Spring] -->|shopping.*| K
+    S -->|@Async| EB[EventBridge<br/>portal-universe]
+    S -->|PutMetricData| CW[CloudWatch<br/>Custom Metrics]
     SS[shopping-seller-service<br/>Java/Spring] -->|shopping.*| K
     B[blog-service<br/>Java/Spring] -->|blog.*| K
     D[drive-service<br/>Java/Spring] -->|drive.*| K
@@ -26,10 +37,18 @@ graph LR
     K -->|seller-group| SS
     K -->|settlement-group| ST[shopping-settlement-service<br/>Java/Spring]
     K --- SR[Schema Registry<br/>Avro 스키마 관리]
+    N -->|SendMessage| SQS[SQS<br/>email-queue]
+    SQS -->|ReceiveMessage| N
+    EB -->|Rule Matching| SQS2[SQS / Lambda / etc]
+    CW -->|Alarm| SNS[SNS<br/>saga-alerts]
+    SNS --> SQS3[SQS<br/>alert-queue]
 
     style K fill:#ff9900,stroke:#333,stroke-width:2px
     style N fill:#4CAF50,stroke:#333,stroke-width:2px
     style SR fill:#9C27B0,stroke:#333,stroke-width:2px
+    style EB fill:#E91E63,stroke:#333,stroke-width:2px
+    style SQS fill:#2196F3,stroke:#333,stroke-width:2px
+    style CW fill:#FF5722,stroke:#333,stroke-width:2px
 ```
 
 ---
@@ -374,12 +393,193 @@ spring:
 
 ---
 
+## AWS SQS 통합 (notification-service)
+
+Kafka 이벤트를 수신한 notification-service가 이메일 발송과 같은 비동기 작업을 AWS SQS 큐를 통해 처리합니다. Kafka는 도메인 이벤트 전달, SQS는 실제 발송 작업의 안정적 실행을 담당합니다.
+
+### 아키텍처
+
+```
+Kafka → NotificationConsumer → SQS(email-notification-queue) → EmailQueueConsumer → 이메일 발송
+                                                                     ↓ (실패 시)
+                                                           DLQ(email-notification-dlq)
+```
+
+### SQS 큐 구성
+
+| 큐 | ARN | 용도 | 설정 |
+|-----|-----|------|------|
+| `email-notification-queue` | `arn:aws:sqs:ap-northeast-2:000000000000:email-notification-queue` | 이메일 발송 작업 | VisibilityTimeout: 30s, MaxReceiveCount: 3 |
+| `email-notification-dlq` | `arn:aws:sqs:ap-northeast-2:000000000000:email-notification-dlq` | 발송 실패 메시지 | 수동 검토 후 재처리 |
+
+### 처리 흐름
+
+1. `NotificationConsumer`가 Kafka 이벤트 수신 → 알림 생성
+2. 이메일 발송 필요 시 `SqsMessageSender.sendEmailMessage()` 호출
+3. `EmailQueueConsumer`가 `@SqsListener`로 SQS 메시지 수신
+4. 이메일 발송 실패 시 SQS 자동 재시도 (최대 3회)
+5. 3회 실패 시 RedrivePolicy에 의해 DLQ로 이동
+
+### 핵심 코드 패턴
+
+```java
+// SQS 메시지 발송 (Producer)
+@Component
+public class SqsMessageSender {
+    private final SqsClient sqsClient;
+
+    public void sendEmailMessage(EmailNotificationMessage message) {
+        sqsClient.sendMessage(SendMessageRequest.builder()
+            .queueUrl(emailQueueUrl)
+            .messageBody(objectMapper.writeValueAsString(message))
+            .build());
+    }
+}
+
+// SQS 메시지 소비 (Consumer)
+@Component
+public class EmailQueueConsumer {
+    @Scheduled(fixedDelay = 5000)
+    public void pollMessages() {
+        var messages = sqsClient.receiveMessage(request).messages();
+        for (var message : messages) {
+            processAndDelete(message);
+        }
+    }
+}
+```
+
+---
+
+## Amazon EventBridge 통합 (shopping-service)
+
+shopping-service는 **Dual Publish 패턴**으로 Kafka와 EventBridge에 동시 발행합니다. Kafka는 핵심 도메인 이벤트 스트림을 담당하고, EventBridge는 조건부 라우팅이 필요한 보조 채널로 활용됩니다.
+
+### Dual Publish 패턴
+
+```
+OrderSagaOrchestrator
+    ├── Kafka (동기): 핵심 이벤트 스트림 (notification-service 등)
+    └── EventBridge (@Async): 조건부 라우팅 (analytics, 알림 확장 등)
+```
+
+**설계 원칙**:
+- Kafka가 **항상 Primary** — EventBridge 실패가 주문 처리를 중단시키지 않음
+- EventBridge 발행은 `@Async`로 비동기 실행 → 주문 응답 지연 없음
+- EventBridge 실패 시 로그만 기록 (fire-and-forget)
+
+### EventBridge 구성
+
+| 항목 | 값 |
+|------|-----|
+| **Event Bus** | `portal-universe` (커스텀 버스) |
+| **Source** | `com.portal.universe.shopping` |
+| **Detail Type** | `ORDER_SAGA_COMPLETED`, `ORDER_SAGA_FAILED` |
+
+### 이벤트 라우팅 규칙
+
+| Rule | Pattern | Target | 용도 |
+|------|---------|--------|------|
+| `high-value-order-rule` | `totalAmount > 100000` | SQS | 고액 주문 별도 처리 |
+| `saga-failure-rule` | `detailType = ORDER_SAGA_FAILED` | SQS | Saga 실패 알림 |
+
+### 핵심 코드 패턴
+
+```java
+@Async
+public void publishToEventBridge(String detailType, Object detail) {
+    eventBridgeClient.putEvents(PutEventsRequest.builder()
+        .entries(PutEventsRequestEntry.builder()
+            .eventBusName("portal-universe")
+            .source("com.portal.universe.shopping")
+            .detailType(detailType)
+            .detail(objectMapper.writeValueAsString(detail))
+            .build())
+        .build());
+}
+```
+
+---
+
+## CloudWatch Custom Metrics (shopping-service)
+
+`OrderSagaOrchestrator`가 Saga 실행 결과를 CloudWatch Custom Metrics로 발행합니다. 임계값 초과 시 CloudWatch Alarm → SNS → SQS 체인으로 운영 알림을 전달합니다.
+
+### 메트릭 구성
+
+| Namespace | Metric Name | Dimensions | 단위 | 설명 |
+|-----------|-------------|------------|------|------|
+| `PortalUniverse/Shopping` | `SagaCompleted` | `Service=shopping-service` | Count | Saga 정상 완료 수 |
+| `PortalUniverse/Shopping` | `SagaFailed` | `Service=shopping-service` | Count | Saga 실패 수 |
+| `PortalUniverse/Shopping` | `SagaCompensationFailed` | `Service=shopping-service` | Count | 보상 실패 (수동 개입 필요) |
+| `PortalUniverse/Shopping` | `SagaDuration` | `Service=shopping-service` | Milliseconds | Saga 전체 실행 시간 |
+
+### Alarm → SNS → SQS 파이프라인
+
+```
+CloudWatch Alarm (SagaFailed >= 5/5min)
+    → SNS Topic (saga-alerts-topic)
+        → SQS Queue (saga-alert-queue)
+            → 운영팀 폴링/처리
+```
+
+| Alarm | 조건 | 기간 | 대상 |
+|-------|------|------|------|
+| `saga-failure-alarm` | SagaFailed ≥ 5 | 5분 | saga-alerts-topic |
+| `saga-compensation-alarm` | SagaCompensationFailed ≥ 1 | 1분 | saga-alerts-topic |
+
+### 핵심 코드 패턴
+
+```java
+@Component
+public class SagaCloudWatchPublisher {
+    private final CloudWatchClient cloudWatchClient;
+
+    public void publishSagaMetric(String metricName, double value, StandardUnit unit) {
+        cloudWatchClient.putMetricData(PutMetricDataRequest.builder()
+            .namespace("PortalUniverse/Shopping")
+            .metricData(MetricDatum.builder()
+                .metricName(metricName)
+                .value(value)
+                .unit(unit)
+                .dimensions(Dimension.builder()
+                    .name("Service").value("shopping-service")
+                    .build())
+                .timestamp(Instant.now())
+                .build())
+            .build());
+    }
+}
+```
+
+---
+
+## LocalStack 개발 환경
+
+모든 AWS 서비스(SQS, SNS, EventBridge, CloudWatch 등)는 로컬 개발 환경에서 **LocalStack**으로 에뮬레이션됩니다. `docker-compose-local.yml`의 LocalStack 컨테이너가 13개 AWS 서비스를 제공하며, `localstack-init/` 스크립트가 시작 시 리소스를 자동 생성합니다.
+
+| 서비스 | 로컬 Endpoint | Init Script |
+|--------|---------------|-------------|
+| SQS | `http://localhost:4566` | `03-init-sqs.sh` |
+| SNS | `http://localhost:4566` | `03-init-sqs.sh` (SQS와 함께) |
+| EventBridge | `http://localhost:4566` | `05-init-eventbridge.sh` |
+| CloudWatch | `http://localhost:4566` | `07-init-cloudwatch.sh` |
+| Lambda | `http://localhost:4566` | `06-init-lambda.sh` |
+| Secrets Manager | `http://localhost:4566` | `04-init-secrets.sh` |
+
+> 상세 인프라 구성은 [LocalStack Terraform IaC](../../../infra/terraform/localstack/)와 `localstack-init/` 스크립트 참조.
+
+---
+
 ## 관련 문서
 - [service-communication.md](./service-communication.md) - 서비스 간 통신 패턴 (동기 vs 비동기)
 - [notification-service 아키텍처](../notification-service/architecture-overview.md)
 - [ADR-032: Kafka Configuration Standardization](../../adr/ADR-032-kafka-configuration-standardization.md)
 - [ADR-047: Avro 및 Schema Registry 도입](../../adr/ADR-047-avro-schema-registry-adoption.md)
-- [Kafka 운영 가이드](../../runbooks/kafka-operations.md) (작성 예정)
+- [ADR-049: Secrets Manager + SSM 통합](../../adr/ADR-049-secrets-manager-ssm-integration.md)
+- [ADR-050: LocalStack AWS 서비스 확장](../../adr/ADR-050-localstack-aws-services-expansion.md)
+- [shopping-service Data Flow](../shopping-service/data-flow.md) - EventBridge Dual Publish + CloudWatch 상세
+- [notification-service Data Flow](../notification-service/data-flow.md) - SQS 이메일 큐 통합
 
 ---
 
@@ -390,6 +590,7 @@ spring:
 | 2026-02-06 | 실제 코드 기반 신규 작성 (17개 토픽 분석 완료) | Laze |
 | 2026-02-10 | ADR-032 반영: topic 명명 규칙 통일, user-signup → auth.user.signed-up, Topics SSOT 명시 | Laze |
 | 2026-02-21 | ADR-047 반영: JSON → Avro 전환, Schema Registry 추가, event-contracts 통합 모듈, 다이어그램 확장 | Laze |
+| 2026-02-25 | AWS 메시징 통합: SQS(notification), EventBridge Dual Publish(shopping), CloudWatch Custom Metrics, LocalStack 섹션 추가 | Laze |
 
 ---
 
