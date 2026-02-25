@@ -22,6 +22,24 @@ feign:
     url: "http://shopping-seller-service:8088"
 
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/docker/shopping-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/docker/shopping-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   data:
     redis:
       host: redis

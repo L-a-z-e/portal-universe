@@ -12,6 +12,24 @@ app:
     allowed-origins: "https://localhost:30000,https://portal-shell:30000"
 
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/docker/notification-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/docker/notification-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   datasource:
     url: jdbc:mysql://mysql-db:3306/notification_db?useSSL=false&allowPublicKeyRetrieval=true
     username: ${DB_USER}

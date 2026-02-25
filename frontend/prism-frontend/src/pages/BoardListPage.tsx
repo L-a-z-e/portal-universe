@@ -136,7 +136,7 @@ function BoardListPage() {
             <div key={i} className="bg-bg-card rounded-xl shadow-sm border border-border-default p-5">
               <Skeleton variant="text" width="60%" />
               <Skeleton variant="text" width="90%" />
-              <Skeleton variant="rect" height="8px" width="100%" />
+              <Skeleton variant="rectangular" height="8px" width="100%" />
             </div>
           ))}
         </div>

@@ -37,7 +37,7 @@ export function ConfirmDialog({
   }, [onConfirm, onClose]);
 
   return (
-    <Modal open={open} onClose={loading ? undefined : onClose} title={title} size="sm">
+    <Modal open={open} onClose={loading ? () => {} : onClose} title={title} size="sm">
       <p className="text-sm text-text-body mb-6">{message}</p>
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onClose} disabled={loading}>

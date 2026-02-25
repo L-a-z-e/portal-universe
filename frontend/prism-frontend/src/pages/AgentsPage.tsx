@@ -161,7 +161,7 @@ function AgentsPage() {
                 <Skeleton variant="text" width="20%" />
               </div>
               <Skeleton variant="text" width="60%" />
-              <Skeleton variant="rect" height="40px" width="100%" />
+              <Skeleton variant="rectangular" height="40px" width="100%" />
               <Skeleton variant="text" width="40%" />
             </div>
           ))}
