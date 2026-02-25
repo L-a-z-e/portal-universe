@@ -1,6 +1,8 @@
 package com.portal.universe.commonlibrary.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 /**
@@ -16,7 +18,10 @@ public class ApiResponse<T> {
     private final T data;          // 성공 시 반환될 데이터
     private final ErrorResponse error; // 실패 시 반환될 에러 정보
 
-    private ApiResponse(boolean success, T data, ErrorResponse error) {
+    @JsonCreator
+    private ApiResponse(@JsonProperty("success") boolean success,
+                        @JsonProperty("data") T data,
+                        @JsonProperty("error") ErrorResponse error) {
         this.success = success;
         this.data = data;
         this.error = error;
