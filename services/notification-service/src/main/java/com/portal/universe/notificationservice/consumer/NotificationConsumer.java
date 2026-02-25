@@ -21,6 +21,7 @@ import com.portal.universe.notificationservice.domain.Notification;
 import com.portal.universe.notificationservice.domain.NotificationType;
 import com.portal.universe.notificationservice.dto.CreateNotificationCommand;
 import com.portal.universe.notificationservice.dto.NotificationEvent;
+import com.portal.universe.notificationservice.service.EmailQueueService;
 import com.portal.universe.notificationservice.service.NotificationPushService;
 import com.portal.universe.notificationservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class NotificationConsumer {
     private final NotificationService notificationService;
     private final NotificationPushService pushService;
     private final NotificationEventConverter converter;
+    private final EmailQueueService emailQueueService;
 
     @KafkaListener(topics = AuthTopics.USER_SIGNED_UP,
                    groupId = "${spring.kafka.consumer.group-id}",
@@ -289,6 +291,7 @@ public class NotificationConsumer {
     private void createAndPushNotification(CreateNotificationCommand cmd) {
         Notification notification = notificationService.create(cmd);
         pushService.push(notification);
+        emailQueueService.enqueueIfEmailWorthy(cmd);
         log.info("Notification created and pushed: userId={}, type={}, id={}",
                 cmd.userId(), cmd.type(), notification.getId());
     }

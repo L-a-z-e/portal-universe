@@ -204,6 +204,38 @@ services:
       retries: 5
       start_period: 30s
 
+  # Schema Registry (Avro serialization for Kafka events)
+  schema-registry:
+    image: confluentinc/cp-schema-registry:8.1.1
+    hostname: schema-registry
+    container_name: schema-registry
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:18081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: BACKWARD_TRANSITIVE
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/subjects || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   localstack:
     image: localstack/localstack:4.3.0
     container_name: localstack

@@ -59,6 +59,12 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
 
     // =======================================
+    // AWS SQS (Email Queue)
+    // =======================================
+    implementation platform('software.amazon.awssdk:bom:2.29.50')
+    implementation 'software.amazon.awssdk:sqs'
+
+    // =======================================
     // Observability (Monitoring & Tracing)
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-actuator' // Health Check, Metrics
