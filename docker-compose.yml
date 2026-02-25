@@ -1086,9 +1086,12 @@ services:
       - SERVICES=s3,sqs,sns,iam,sts,lambda,events,stepfunctions,logs,cloudwatch,cloudformation,secretsmanager,ssm
       - AWS_DEFAULT_REGION=ap-northeast-2
       - PERSISTENCE=1
+      - LAMBDA_DOCKER_FLAGS=-e AWS_ENDPOINT_URL=http://host.docker.internal:4566
     volumes:
       - ./localstack_data:/var/lib/localstack
       - ./localstack-init:/etc/localstack/init/ready.d
+      - ./lambda:/lambda
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - portal-universe-net
     healthcheck:
