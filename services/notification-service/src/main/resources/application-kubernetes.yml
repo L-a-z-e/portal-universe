@@ -10,6 +10,24 @@ app:
     allowed-origins: "https://portal-universe.com,https://www.portal-universe.com"
 
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/k8s/notification-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/k8s/notification-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   kafka:
     bootstrap-servers: kafka:29092
     consumer:

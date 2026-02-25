@@ -6,6 +6,24 @@ server:
   forward-headers-strategy: framework
 
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/docker/drive-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/docker/drive-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   datasource:
     url: jdbc:postgresql://postgresql:5432/drive_db
     username: ${DB_USER}

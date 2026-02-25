@@ -1,4 +1,22 @@
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/k8s/shopping-seller-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/k8s/shopping-seller-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   datasource:
     url: jdbc:postgresql://postgresql:5432/shopping_seller_db
     username: ${DB_USER}

@@ -35,6 +35,23 @@ services:
     url: "http://shopping-settlement-service:8089"
 
 spring:
+  config:
+    import:
+      - optional:aws-parameterstore:/portal-universe/k8s/api-gateway/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   kafka:
     bootstrap-servers: kafka:29092
 
