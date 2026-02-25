@@ -2,6 +2,36 @@
 # API Gateway - Local Development Profile
 # ===================================================================
 
+spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/local/auth-service/jwt-secret?prefix=jwt.
+      - optional:aws-parameterstore:/portal-universe/local/api-gateway/
+
+  # Spring Cloud AWS 설정 (LocalStack 연결)
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localhost:4566
+      secretsmanager:
+        endpoint: http://localhost:4566
+      parameterstore:
+        endpoint: http://localhost:4566
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+  # Redis - Local Development
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:  # 로컬은 비밀번호 없음
+
 server:
   forward-headers-strategy: framework
 
@@ -37,20 +67,6 @@ services:
     url: "http://localhost:8088"
   shopping-settlement:
     url: "http://localhost:8089"
-
-spring:
-  kafka:
-    bootstrap-servers: localhost:9092
-
-  # Redis - Local Development
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password:  # 로컬은 비밀번호 없음
-
-# JWT secret은 Auth Service와 동일한 값을 환경 변수로 주입
-# 기본값은 application.yml에 정의됨
 
 # 로컬 환경에서는 HSTS 비활성화 (HTTP 사용)
 security:
