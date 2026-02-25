@@ -102,3 +102,4 @@ management:
 logging:
   level:
     root: INFO
+    com.portal.universe.shoppingservice.event.EventBridgePublisher: DEBUG

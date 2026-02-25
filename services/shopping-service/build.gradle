@@ -68,11 +68,12 @@ dependencies {
     implementation 'org.redisson:redisson-spring-boot-starter:3.27.0' // Distributed lock
 
     // =======================================
-    // AWS (Secrets Manager + SSM Parameter Store)
+    // AWS (Secrets Manager + SSM Parameter Store + EventBridge)
     // =======================================
     implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1')
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+    implementation 'software.amazon.awssdk:eventbridge'
 
     // =======================================
     // Elasticsearch (Spring Boot 관리 버전 사용)
