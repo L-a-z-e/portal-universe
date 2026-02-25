@@ -3,6 +3,7 @@ package com.portal.universe.shoppingservice.order.saga;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.delivery.service.DeliveryService;
+import com.portal.universe.shoppingservice.event.CloudWatchMetricsPublisher;
 import com.portal.universe.shoppingservice.feign.SellerInventoryClient;
 import com.portal.universe.shoppingservice.feign.dto.StockReserveRequest;
 import com.portal.universe.shoppingservice.order.domain.Order;
@@ -40,6 +41,7 @@ public class OrderSagaOrchestrator {
     private final OrderRepository orderRepository;
     private final SellerInventoryClient sellerInventoryClient;
     private final DeliveryService deliveryService;
+    private final CloudWatchMetricsPublisher cloudWatchMetricsPublisher;
 
     private static final int MAX_COMPENSATION_ATTEMPTS = 3;
 
@@ -75,6 +77,11 @@ public class OrderSagaOrchestrator {
         } catch (Exception e) {
             log.error("Saga {} - Failed at step {}: {}",
                     sagaState.getSagaId(), sagaState.getCurrentStep(), e.getMessage());
+
+            // CloudWatch Custom Metric: 주문 실패 (재고 예약 단계)
+            cloudWatchMetricsPublisher.publishOrderFailure(order.getOrderNumber(),
+                    sagaState.getCurrentStep().name());
+
             compensate(sagaState, e.getMessage());
             throw new CustomBusinessException(ShoppingErrorCode.SAGA_EXECUTION_FAILED);
         }
@@ -112,11 +119,19 @@ public class OrderSagaOrchestrator {
             sagaState.complete();
             sagaStateRepository.save(sagaState);
 
+            // CloudWatch Custom Metric: 주문 성공
+            cloudWatchMetricsPublisher.publishOrderSuccess(orderNumber, order.getTotalAmount());
+
             log.info("Saga {} completed successfully for order: {}", sagaState.getSagaId(), orderNumber);
 
         } catch (Exception e) {
             log.error("Saga {} - Failed after payment at step {}: {}",
                     sagaState.getSagaId(), sagaState.getCurrentStep(), e.getMessage());
+
+            // CloudWatch Custom Metric: 주문 실패
+            cloudWatchMetricsPublisher.publishOrderFailure(orderNumber,
+                    sagaState.getCurrentStep().name());
+
             compensate(sagaState, e.getMessage());
             throw new CustomBusinessException(ShoppingErrorCode.SAGA_EXECUTION_FAILED);
         }
@@ -131,6 +146,10 @@ public class OrderSagaOrchestrator {
 
         sagaState.startCompensation(errorMessage);
         sagaStateRepository.save(sagaState);
+
+        // CloudWatch Custom Metric: 보상 트랜잭션 발생
+        cloudWatchMetricsPublisher.publishCompensation(
+                sagaState.getOrderNumber(), sagaState.getCompensationAttempts());
 
         Order order = orderRepository.findByOrderNumberWithItems(sagaState.getOrderNumber())
                 .orElse(null);
