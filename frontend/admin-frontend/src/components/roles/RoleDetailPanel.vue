@@ -39,11 +39,11 @@ function onEditDisplayName(val: string | number) {
 function onEditDescription(val: string | number) {
   emit('update:editDescription', String(val));
 }
-function onPermissionKeyChange(val: string | number | null) {
-  emit('update:selectedPermissionKey', val == null ? null : String(val));
+function onPermissionKeyChange(val: string | number | (string | number)[] | null) {
+  emit('update:selectedPermissionKey', val == null || Array.isArray(val) ? null : String(val));
 }
-function onIncludeRoleKeyChange(val: string | number | null) {
-  emit('update:selectedIncludeRoleKey', val == null ? null : String(val));
+function onIncludeRoleKeyChange(val: string | number | (string | number)[] | null) {
+  emit('update:selectedIncludeRoleKey', val == null || Array.isArray(val) ? null : String(val));
 }
 </script>
 

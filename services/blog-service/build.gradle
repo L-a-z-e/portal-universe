@@ -34,7 +34,7 @@ dependencies {
     // Internal Libraries
     // =======================================
     implementation project(':services:common-library') // 공통 예외 처리, 응답 형식 등
-    implementation project(':services:blog-events') // Blog 도메인 이벤트
+    implementation project(':services:event-contracts') // Avro 이벤트 스키마
 
     // =======================================
     // Web & Data
@@ -73,10 +73,13 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
     // =======================================
-    // AWS
+    // AWS (S3 + Secrets Manager + SSM Parameter Store)
     // =======================================
     implementation platform('software.amazon.awssdk:bom:2.29.50')
     implementation 'software.amazon.awssdk:s3'
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1')
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
 
     // =======================================
     // Testing

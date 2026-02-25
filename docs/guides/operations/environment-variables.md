@@ -4,7 +4,7 @@ title: 환경 변수 설정 가이드
 type: guide
 status: current
 created: 2026-01-19
-updated: 2026-02-06
+updated: 2026-02-25
 author: Laze
 tags: [environment, configuration, secrets, guide]
 ---
@@ -15,7 +15,7 @@ tags: [environment, configuration, secrets, guide]
 
 ## 설정 파일 구조
 
-Portal Universe는 각 서비스에 설정 파일을 직접 포함하는 방식으로 설정을 관리합니다. 프로필 기반 설정을 통해 환경별 설정을 분리합니다.
+Portal Universe는 **프로필 기반 설정 파일**과 **AWS Secrets Manager / SSM Parameter Store**를 조합하여 설정을 관리합니다. 기본 설정은 프로필 파일에, 민감 정보는 Secrets Manager에, 공통 파라미터는 SSM에 저장합니다.
 
 ### 애플리케이션 프로필
 
@@ -483,6 +483,90 @@ kubectl get secret portal-universe-secret -n portal-universe -o jsonpath='{.data
 # Pod에서 환경 변수 확인
 kubectl exec -it <pod-name> -n portal-universe -- env | grep MYSQL
 ```
+
+## AWS Secrets Manager / SSM Parameter Store (ADR-049)
+
+Spring Boot 서비스들은 `spring.config.import`를 통해 AWS Secrets Manager와 SSM Parameter Store에서 설정을 로드합니다. 로컬 환경에서는 LocalStack이 이를 에뮬레이션합니다.
+
+### 설정 구조
+
+```yaml
+# application-local.yml (예시)
+spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/{service-name}/
+      - optional:aws-parameterstore:/portal-universe/common/
+      - optional:aws-parameterstore:/portal-universe/{service-name}/
+```
+
+> `optional:` 접두사로 AWS 연결 실패 시에도 서비스가 기동됩니다. 이 경우 로컬 설정 파일의 값이 사용됩니다.
+
+### 저장 계층 구분
+
+| 계층 | 저장소 | 경로 패턴 | 용도 |
+|------|--------|-----------|------|
+| **민감 정보** | Secrets Manager | `/portal-universe/{service}/` | DB 비밀번호, API 키, 암호화 키 |
+| **서비스별 파라미터** | SSM Parameter Store | `/portal-universe/{service}/` | 서비스 고유 설정 |
+| **공통 파라미터** | SSM Parameter Store | `/portal-universe/common/` | Kafka, Redis 등 공유 설정 |
+
+### LocalStack에서의 초기화
+
+`localstack-init/04-init-secrets.sh`가 시작 시 자동으로 Secrets와 Parameters를 생성합니다:
+
+```bash
+# Secrets Manager (민감 정보)
+awslocal secretsmanager create-secret \
+  --name "/portal-universe/auth-service/" \
+  --secret-string '{"spring.datasource.password":"Laze2026!"}'
+
+# SSM Parameter Store (공통 파라미터)
+awslocal ssm put-parameter \
+  --name "/portal-universe/common/spring.kafka.bootstrap-servers" \
+  --value "localhost:9092" \
+  --type String
+```
+
+### 설정 우선순위
+
+Spring Boot의 설정 우선순위에 따라, AWS에서 로드된 값이 로컬 파일의 값을 **덮어씁니다**:
+
+```
+1. AWS Secrets Manager (최우선)
+2. AWS SSM Parameter Store
+3. application-{profile}.yml
+4. application.yml (기본값)
+```
+
+### 서비스별 Secret 경로
+
+| 서비스 | Secret 경로 | 주요 키 |
+|--------|-------------|---------|
+| auth-service | `/portal-universe/auth-service/` | `spring.datasource.password`, `jwt.secret` |
+| shopping-service | `/portal-universe/shopping-service/` | `spring.datasource.password` |
+| shopping-seller-service | `/portal-universe/shopping-seller-service/` | `spring.datasource.password` |
+| shopping-settlement-service | `/portal-universe/shopping-settlement-service/` | `spring.datasource.password` |
+| notification-service | `/portal-universe/notification-service/` | `spring.datasource.password` |
+| blog-service | `/portal-universe/blog-service/` | `spring.data.mongodb.password` |
+| drive-service | `/portal-universe/drive-service/` | `spring.datasource.password` |
+| prism-service | `/portal-universe/prism-service/` | `DB_PASSWORD`, `ENCRYPTION_KEY` |
+
+### 확인 명령어 (LocalStack)
+
+```bash
+# Secret 목록 조회
+aws --endpoint-url=http://localhost:4566 secretsmanager list-secrets
+
+# Secret 값 조회
+aws --endpoint-url=http://localhost:4566 secretsmanager get-secret-value \
+  --secret-id "/portal-universe/auth-service/"
+
+# SSM 파라미터 조회
+aws --endpoint-url=http://localhost:4566 ssm get-parameters-by-path \
+  --path "/portal-universe/common/" --recursive
+```
+
+---
 
 ## Kubernetes ConfigMap
 

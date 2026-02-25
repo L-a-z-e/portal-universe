@@ -1,4 +1,22 @@
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/k8s/shopping-seller-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/k8s/shopping-seller-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   datasource:
     url: jdbc:postgresql://postgresql:5432/shopping_seller_db
     username: ${DB_USER}
@@ -17,13 +35,8 @@ spring:
     consumer:
       group-id: shopping-seller-service
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.portal.universe.event.*"
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      schema.registry.url: http://schema-registry:8081
 
 springdoc:
   swagger-ui:

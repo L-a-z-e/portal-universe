@@ -20,6 +20,13 @@ export const productApi = {
     return response.data
   },
 
+  getCategories: async () => {
+    const response = await getApiClient().get<ApiResponse<string[]>>(
+      `${API_PREFIX}/products/categories`
+    )
+    return response.data
+  },
+
   getProduct: async (id: number) => {
     const response = await getApiClient().get<ApiResponse<Product>>(
       `${API_PREFIX}/products/${id}`

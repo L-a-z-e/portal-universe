@@ -34,24 +34,56 @@ echo -e "${YELLOW}🚪 Step 1: Delete Ingress${NC}"
 kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/ingress.yaml" --ignore-not-found=true --timeout=30s
 echo -e "${GREEN}✅ Ingress deleted${NC}"
 
-# --- 2. Frontend 삭제 ---
+# --- 2. Network Policy 삭제 ---
 echo ""
-echo -e "${YELLOW}🎨 Step 2: Delete Frontend${NC}"
-kubectl delete -f "$PROJECT_ROOT/k8s/services/portal-shell.yaml" --ignore-not-found=true --timeout=30s
-echo -e "${GREEN}✅ Frontend deleted${NC}"
+echo -e "${YELLOW}🔒 Step 2: Delete Network Policy${NC}"
+kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/network-policy.yaml" --ignore-not-found=true --timeout=30s
+echo -e "${GREEN}✅ Network Policy deleted${NC}"
 
-# --- 3. API Gateway 삭제 ---
+# --- 3. Monitoring 삭제 ---
 echo ""
-echo -e "${YELLOW}🌐 Step 3: Delete API Gateway${NC}"
+echo -e "${YELLOW}📈 Step 3: Delete Monitoring${NC}"
+kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/grafana.yaml" --ignore-not-found=true --timeout=30s
+kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/prometheus.yaml" --ignore-not-found=true --timeout=30s
+echo -e "${GREEN}✅ Monitoring deleted${NC}"
+
+# --- 4. Frontend 삭제 ---
+echo ""
+echo -e "${YELLOW}🎨 Step 4: Delete Frontend${NC}"
+
+FRONTEND_SERVICES=(
+    "portal-shell"
+    "shopping-seller-frontend"
+    "drive-frontend"
+    "admin-frontend"
+    "prism-frontend"
+    "shopping-frontend"
+    "blog-frontend"
+)
+
+for SERVICE in "${FRONTEND_SERVICES[@]}"; do
+    echo -e "${BLUE}Deleting ${SERVICE}...${NC}"
+    kubectl delete -f "$PROJECT_ROOT/k8s/services/${SERVICE}.yaml" --ignore-not-found=true --timeout=30s
+    echo -e "${GREEN}✅ ${SERVICE} deleted${NC}"
+done
+
+# --- 5. API Gateway 삭제 ---
+echo ""
+echo -e "${YELLOW}🌐 Step 5: Delete API Gateway${NC}"
 kubectl delete -f "$PROJECT_ROOT/k8s/services/api-gateway.yaml" --ignore-not-found=true --timeout=30s
 echo -e "${GREEN}✅ API Gateway deleted${NC}"
 
-# --- 4. Business Services 삭제 ---
+# --- 6. Business Services 삭제 ---
 echo ""
-echo -e "${YELLOW}💼 Step 4: Delete Business Services${NC}"
+echo -e "${YELLOW}💼 Step 6: Delete Business Services${NC}"
 
 BUSINESS_SERVICES=(
+    "chatbot-service"
+    "prism-service"
+    "drive-service"
     "notification-service"
+    "shopping-settlement-service"
+    "shopping-seller-service"
     "shopping-service"
     "blog-service"
     "auth-service"
@@ -63,13 +95,17 @@ for SERVICE in "${BUSINESS_SERVICES[@]}"; do
     echo -e "${GREEN}✅ ${SERVICE} deleted${NC}"
 done
 
-# --- 5. Infrastructure 삭제 ---
+# --- 7. Infrastructure 삭제 ---
 echo ""
-echo -e "${YELLOW}🗄️  Step 5: Delete Infrastructure${NC}"
+echo -e "${YELLOW}🗄️  Step 7: Delete Infrastructure${NC}"
 
 INFRA_SERVICES=(
-    "kafka"
+    "localstack"
+    "elasticsearch"
+    "redis"
     "zipkin"
+    "kafka"
+    "postgresql"
     "mongodb"
     "mysql-db"
 )
@@ -80,16 +116,21 @@ for SERVICE in "${INFRA_SERVICES[@]}"; do
     echo -e "${GREEN}✅ ${SERVICE} deleted${NC}"
 done
 
-# --- 6. Base 설정 삭제 ---
+# --- 8. Base 설정 삭제 ---
 echo ""
-echo -e "${YELLOW}🔐 Step 6: Delete Base Configuration${NC}"
+echo -e "${YELLOW}🔐 Step 8: Delete Base Configuration${NC}"
 
+kubectl delete -f "$PROJECT_ROOT/k8s/infrastructure/configmap.yaml" --ignore-not-found=true --timeout=10s
+kubectl delete -f "$PROJECT_ROOT/k8s/base/jwt-secrets.yaml" --ignore-not-found=true --timeout=10s
 kubectl delete -f "$PROJECT_ROOT/k8s/base/secret.yaml" --ignore-not-found=true --timeout=10s
-echo -e "${GREEN}✅ Secrets deleted${NC}"
+if [ -f "$PROJECT_ROOT/k8s/base/tls-secret.yaml" ]; then
+    kubectl delete -f "$PROJECT_ROOT/k8s/base/tls-secret.yaml" --ignore-not-found=true --timeout=10s
+fi
+echo -e "${GREEN}✅ Base configuration deleted${NC}"
 
-# --- 7. Namespace 삭제 (선택사항) ---
+# --- 9. Namespace 삭제 (선택사항) ---
 echo ""
-echo -e "${YELLOW}📦 Step 7: Delete Namespace (Optional)${NC}"
+echo -e "${YELLOW}📦 Step 9: Delete Namespace (Optional)${NC}"
 read -p "❓ Delete namespace 'portal-universe'? (y/N): " -n 1 -r
 echo
 
@@ -104,9 +145,9 @@ else
     echo -e "${BLUE}ℹ️  Namespace kept${NC}"
 fi
 
-# --- 8. Ingress Controller 삭제 (선택사항) ---
+# --- 10. Ingress Controller 삭제 (선택사항) ---
 echo ""
-echo -e "${YELLOW}🌐 Step 8: Delete Ingress Controller (Optional)${NC}"
+echo -e "${YELLOW}🌐 Step 10: Delete Ingress Controller (Optional)${NC}"
 read -p "❓ Delete Ingress Controller? (y/N): " -n 1 -r
 echo
 

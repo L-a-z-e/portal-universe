@@ -2,6 +2,44 @@
 # Blog Service - Local Development Profile
 # ===================================================================
 
+spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/local/blog-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/local/blog-service/
+
+  # Spring Cloud AWS 설정 (LocalStack 연결)
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localhost:4566
+      secretsmanager:
+        endpoint: http://localhost:4566
+      parameterstore:
+        endpoint: http://localhost:4566
+
+  data:
+    mongodb:
+      uri: mongodb://${db.username:laze}:${db.password:${MONGO_PASSWORD}}@localhost:27017/blog_db?authSource=admin
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    properties:
+      schema.registry.url: http://localhost:18081
+
+  # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+      location: ${java.io.tmpdir}
+
 server:
   forward-headers-strategy: framework
 
@@ -21,23 +59,6 @@ services:
     url: "http://localhost:8083"
   notification:
     url: "http://localhost:8084"
-
-spring:
-  data:
-    mongodb:
-      uri: mongodb://laze:${MONGO_PASSWORD}@localhost:27017/blog_db?authSource=admin
-
-  kafka:
-    bootstrap-servers: localhost:9092
-
-  # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
-
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 100MB
-      max-request-size: 100MB
-      location: ${java.io.tmpdir}
 
 # Swagger 설정 (Local 환경: 활성화)
 springdoc:

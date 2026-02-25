@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "UserSignedUpEvent",
+  "namespace": "com.portal.universe.event.auth",
+  "doc": "Published by auth-service when a new user signs up. Consumed by notification-service.",
+  "fields": [
+    { "name": "userId", "type": "string", "doc": "User UUID" },
+    { "name": "email", "type": "string", "doc": "User email address" },
+    { "name": "name", "type": "string", "doc": "User display name" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp in epoch milliseconds" }
+  ]
+}

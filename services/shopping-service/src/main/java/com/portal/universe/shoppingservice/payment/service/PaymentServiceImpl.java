@@ -104,15 +104,15 @@ public class PaymentServiceImpl implements PaymentService {
                     payment.getPaymentNumber(), order.getOrderNumber(), payment.getAmount());
 
             // 결제 완료 이벤트 발행
-            eventPublisher.publishPaymentCompleted(new PaymentCompletedEvent(
-                    payment.getPaymentNumber(),
-                    order.getOrderNumber(),
-                    userId,
-                    payment.getAmount(),
-                    payment.getPaymentMethod().name(),
-                    payment.getPgTransactionId(),
-                    LocalDateTime.now()
-            ));
+            eventPublisher.publishPaymentCompleted(PaymentCompletedEvent.newBuilder()
+                    .setPaymentNumber(payment.getPaymentNumber())
+                    .setOrderNumber(order.getOrderNumber())
+                    .setUserId(userId)
+                    .setAmount(payment.getAmount())
+                    .setPaymentMethod(payment.getPaymentMethod().name())
+                    .setPgTransactionId(payment.getPgTransactionId())
+                    .setPaidAt(java.time.Instant.now())
+                    .build());
         } else {
             payment.fail(pgResponse.errorCode() + ": " + pgResponse.message(), pgResponse.rawResponse());
             paymentRepository.save(payment);
@@ -121,15 +121,15 @@ public class PaymentServiceImpl implements PaymentService {
                     payment.getPaymentNumber(), order.getOrderNumber(), pgResponse.errorCode());
 
             // 결제 실패 이벤트 발행
-            eventPublisher.publishPaymentFailed(new PaymentFailedEvent(
-                    payment.getPaymentNumber(),
-                    order.getOrderNumber(),
-                    userId,
-                    payment.getAmount(),
-                    payment.getPaymentMethod().name(),
-                    pgResponse.errorCode() + ": " + pgResponse.message(),
-                    LocalDateTime.now()
-            ));
+            eventPublisher.publishPaymentFailed(PaymentFailedEvent.newBuilder()
+                    .setPaymentNumber(payment.getPaymentNumber())
+                    .setOrderNumber(order.getOrderNumber())
+                    .setUserId(userId)
+                    .setAmount(payment.getAmount())
+                    .setPaymentMethod(payment.getPaymentMethod().name())
+                    .setFailureReason(pgResponse.errorCode() + ": " + pgResponse.message())
+                    .setFailedAt(java.time.Instant.now())
+                    .build());
 
             throw new CustomBusinessException(ShoppingErrorCode.PAYMENT_PROCESSING_FAILED);
         }

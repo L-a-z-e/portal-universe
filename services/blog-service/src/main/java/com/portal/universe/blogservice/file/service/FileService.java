@@ -1,6 +1,8 @@
 package com.portal.universe.blogservice.file.service;
 
 import com.portal.universe.blogservice.common.exception.BlogErrorCode;
+import com.portal.universe.blogservice.file.dto.PresignedUrlRequest;
+import com.portal.universe.blogservice.file.dto.PresignedUrlResponse;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +13,11 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -28,17 +33,27 @@ import java.util.UUID;
 public class FileService {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    // 허용 가능한 이미지 확장자 목록
     private static final List<String> ALLOWED_IMAGE_EXTENSIONS = Arrays.asList(
             "jpg", "jpeg", "png", "gif", "webp", "svg"
     );
 
-    // 최대 파일 크기 (100MB)
+    private static final List<String> ALLOWED_IMAGE_CONTENT_TYPES = Arrays.asList(
+            "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"
+    );
+
+    // 서버 경유 업로드 최대 크기 (100MB — 기존 호환)
     private static final long MAX_FILE_SIZE = 100 * 1024 * 1024;
+
+    // Presigned URL 업로드 최대 크기 (10MB — 블로그 이미지 적정)
+    private static final long PRESIGNED_MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+    // Presigned URL 만료 시간 (5분)
+    private static final Duration PRESIGNED_EXPIRATION = Duration.ofMinutes(5);
 
     /**
      * 애플리케이션 시작 시 S3 버킷 존재 확인 및 자동 생성
@@ -122,6 +137,56 @@ public class FileService {
         } catch (S3Exception e) {
             log.error("S3 file delete failed: {}", e.getMessage());
             throw new CustomBusinessException(BlogErrorCode.FILE_DELETE_FAILED);
+        }
+    }
+
+    /**
+     * Presigned URL 발급 — 클라이언트가 S3에 직접 업로드
+     * 서버는 URL만 생성하고 파일 데이터를 받지 않음
+     */
+    public PresignedUrlResponse generatePresignedUploadUrl(PresignedUrlRequest request, String userId) {
+        validatePresignedRequest(request);
+
+        String key = userId + "/" + UUID.randomUUID() + "_" + request.getFilename();
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .contentType(request.getContentType())
+                .contentLength(request.getContentLength())
+                .build();
+
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(PRESIGNED_EXPIRATION)
+                .putObjectRequest(putObjectRequest)
+                .build();
+
+        String uploadUrl = s3Presigner.presignPutObject(presignRequest).url().toString();
+        String objectUrl = s3Client.utilities()
+                .getUrl(builder -> builder.bucket(bucketName).key(key))
+                .toString();
+
+        log.info("Presigned URL generated - key: {}, userId: {}, expires: {}s",
+                key, userId, PRESIGNED_EXPIRATION.getSeconds());
+
+        return PresignedUrlResponse.builder()
+                .uploadUrl(uploadUrl)
+                .objectUrl(objectUrl)
+                .key(key)
+                .expiresInSeconds((int) PRESIGNED_EXPIRATION.getSeconds())
+                .build();
+    }
+
+    private void validatePresignedRequest(PresignedUrlRequest request) {
+        if (!ALLOWED_IMAGE_CONTENT_TYPES.contains(request.getContentType())) {
+            throw new CustomBusinessException(BlogErrorCode.FILE_TYPE_NOT_ALLOWED);
+        }
+        if (request.getContentLength() > PRESIGNED_MAX_FILE_SIZE) {
+            throw new CustomBusinessException(BlogErrorCode.FILE_SIZE_EXCEEDED);
+        }
+        String extension = getFileExtension(request.getFilename());
+        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
+            throw new CustomBusinessException(BlogErrorCode.FILE_TYPE_NOT_ALLOWED);
         }
     }
 

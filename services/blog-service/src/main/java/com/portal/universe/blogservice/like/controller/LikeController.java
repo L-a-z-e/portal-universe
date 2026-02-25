@@ -39,7 +39,7 @@ public class LikeController {
             @Parameter(description = "포스트 ID") @PathVariable String postId,
             @CurrentUser AuthUser user
     ) {
-        LikeToggleResponse response = likeService.toggleLike(postId, user.uuid(), user.nickname());
+        LikeToggleResponse response = likeService.toggleLike(postId, user.uuid(), user.name(), user.nickname());
         return ApiResponse.success(response);
     }
 

@@ -33,7 +33,7 @@ dependencies {
     // Internal Libraries
     // =======================================
     implementation project(':services:common-library')
-    implementation project(':services:drive-events')
+    implementation project(':services:event-contracts')
 
     // =======================================
     // Web & Data
@@ -53,6 +53,13 @@ dependencies {
     // Messaging (Kafka)
     // =======================================
     implementation 'org.springframework.kafka:spring-kafka'
+
+    // =======================================
+    // AWS (Secrets Manager + SSM Parameter Store)
+    // =======================================
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1')
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
 
     // =======================================
     // Security

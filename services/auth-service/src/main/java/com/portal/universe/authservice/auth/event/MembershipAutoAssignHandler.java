@@ -33,10 +33,10 @@ public class MembershipAutoAssignHandler {
     @EventListener
     @Transactional(propagation = Propagation.MANDATORY)
     public void handle(RoleAssignedEvent event) {
-        List<RoleDefaultMembership> mappings = roleDefaultMembershipRepository.findByRoleKey(event.roleKey());
+        List<RoleDefaultMembership> mappings = roleDefaultMembershipRepository.findByRoleKey(event.getRoleKey());
 
         if (mappings.isEmpty()) {
-            log.debug("No default membership mappings for role: {}", event.roleKey());
+            log.debug("No default membership mappings for role: {}", event.getRoleKey());
             return;
         }
 
@@ -45,8 +45,8 @@ public class MembershipAutoAssignHandler {
             String tierKey = mapping.getDefaultTierKey();
 
             // 이미 해당 그룹의 멤버십이 존재하면 skip
-            if (userMembershipRepository.existsByUserIdAndMembershipGroup(event.userId(), group)) {
-                log.debug("Membership already exists: userId={}, group={}", event.userId(), group);
+            if (userMembershipRepository.existsByUserIdAndMembershipGroup(event.getUserId().toString(), group)) {
+                log.debug("Membership already exists: userId={}, group={}", event.getUserId().toString(), group);
                 continue;
             }
 
@@ -66,13 +66,13 @@ public class MembershipAutoAssignHandler {
             }
 
             userMembershipRepository.save(UserMembership.builder()
-                    .userId(event.userId())
+                    .userId(event.getUserId().toString())
                     .membershipGroup(group)
                     .tier(tier)
                     .build());
 
             log.info("Auto-assigned membership: userId={}, group={}, tier={}",
-                    event.userId(), group, tierKey);
+                    event.getUserId().toString(), group, tierKey);
         }
     }
 }

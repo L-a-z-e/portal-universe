@@ -59,7 +59,7 @@ class LikeControllerTest {
     void should_toggleLike() throws Exception {
         // given
         LikeToggleResponse response = LikeToggleResponse.of(true, 100L);
-        given(likeService.toggleLike(eq("post-1"), eq("user-1"), anyString())).willReturn(response);
+        given(likeService.toggleLike(eq("post-1"), eq("user-1"), anyString(), anyString())).willReturn(response);
 
         // when & then
         mockMvc.perform(post("/posts/post-1/like")
@@ -69,7 +69,7 @@ class LikeControllerTest {
             .andExpect(jsonPath("$.data.liked").value(true))
             .andExpect(jsonPath("$.data.likeCount").value(100));
 
-        verify(likeService).toggleLike(eq("post-1"), eq("user-1"), anyString());
+        verify(likeService).toggleLike(eq("post-1"), eq("user-1"), anyString(), anyString());
     }
 
     @Test
@@ -96,6 +96,7 @@ class LikeControllerTest {
         // given
         LikerResponse likerResponse = new LikerResponse(
             "user-2",
+            "user-2-username",
             "User Two",
             LocalDateTime.now()
         );
@@ -107,7 +108,8 @@ class LikeControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.items[0].userId").value("user-2"))
-            .andExpect(jsonPath("$.data.items[0].userName").value("User Two"));
+            .andExpect(jsonPath("$.data.items[0].userName").value("user-2-username"))
+            .andExpect(jsonPath("$.data.items[0].nickname").value("User Two"));
 
         verify(likeService).getLikers(eq("post-1"), any(Pageable.class));
     }

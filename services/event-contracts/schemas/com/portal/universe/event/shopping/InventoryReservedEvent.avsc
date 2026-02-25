@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "InventoryReservedEvent",
+  "namespace": "com.portal.universe.event.shopping",
+  "doc": "재고 예약 시 발행되는 이벤트",
+  "fields": [
+    {"name": "orderNumber", "type": "string", "doc": "주문번호"},
+    {"name": "userId", "type": "string", "doc": "사용자 ID"},
+    {"name": "reservedQuantities", "type": {"type": "array", "items": "ReservedQuantity"}, "doc": "예약된 상품별 수량"},
+    {"name": "reservedAt", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "예약 시각"}
+  ]
+}

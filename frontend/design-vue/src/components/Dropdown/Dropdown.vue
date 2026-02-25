@@ -30,7 +30,7 @@ const placementClasses = {
 };
 
 const menuClasses = computed(() => [
-  'absolute z-50 py-1 bg-bg-elevated border border-border-default rounded-lg shadow-lg',
+  'absolute z-50 py-1 bg-bg-elevated border border-border-default rounded-lg shadow-lg whitespace-nowrap',
   placementClasses[props.placement],
 ]);
 

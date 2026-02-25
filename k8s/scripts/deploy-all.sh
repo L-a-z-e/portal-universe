@@ -57,6 +57,15 @@ kubectl apply -f "$PROJECT_ROOT/k8s/base/namespace.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/base/secret.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/base/jwt-secrets.yaml"
 kubectl apply -f "$PROJECT_ROOT/k8s/infrastructure/configmap.yaml"
+
+# TLS Secret (mkcert 인증서) 적용 — 파일이 존재할 때만
+if [ -f "$PROJECT_ROOT/k8s/base/tls-secret.yaml" ]; then
+    kubectl apply -f "$PROJECT_ROOT/k8s/base/tls-secret.yaml"
+    echo -e "${GREEN}✅ TLS Secret applied${NC}"
+else
+    echo -e "${YELLOW}⚠️  TLS Secret not found (k8s/base/tls-secret.yaml). HTTPS may use self-signed fallback.${NC}"
+fi
+
 echo -e "${GREEN}✅ Base configuration applied${NC}"
 
 # --- 2. Infrastructure 배포 ---
@@ -115,8 +124,12 @@ BUSINESS_SERVICES=(
     "auth-service"
     "blog-service"
     "shopping-service"
+    "shopping-seller-service"
+    "shopping-settlement-service"
     "notification-service"
+    "drive-service"
     "prism-service"
+    "chatbot-service"
 )
 
 for SERVICE in "${BUSINESS_SERVICES[@]}"; do
@@ -139,6 +152,9 @@ FRONTEND_SERVICES=(
     "blog-frontend"
     "shopping-frontend"
     "prism-frontend"
+    "admin-frontend"
+    "drive-frontend"
+    "shopping-seller-frontend"
     "portal-shell"
 )
 
@@ -186,17 +202,15 @@ echo -e "${GREEN}═════════════════════
 echo -e "${GREEN}🎉 Deployment completed!${NC}"
 echo -e "${GREEN}════════════════════════════════════════${NC}"
 
-# --- 11. 접속 정보 및 Port Forwarding ---
+# --- 10. 접속 정보 ---
 echo ""
-# 기존 port-forward 프로세스를 종료합니다.
-pkill -f "port-forward.*ingress-nginx" 2>/dev/null || true
-# Ingress Controller로 포트 포워딩을 시작하여 로컬에서 portal-universe:8080으로 접근할 수 있도록 합니다.
-kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80 > /dev/null 2>&1 &
-
 echo -e "${YELLOW}📋 Access your application:${NC}"
 echo ""
-echo -e "  ${BLUE}Main Application:${NC}  http://portal-universe:8080"
-echo -e "  ${BLUE}Grafana:${NC}           http://portal-universe:8080/grafana"
-echo -e "  ${BLUE}Prometheus:${NC}        http://portal-universe:8080/prometheus"
-echo -e "  ${BLUE}Zipkin:${NC}            http://portal-universe:8080/zipkin"
+echo -e "  Kind extraPortMappings가 호스트 80/443을 직접 매핑합니다."
+echo -e "  /etc/hosts에 '127.0.0.1 portal-universe'가 설정되어 있어야 합니다."
+echo ""
+echo -e "  ${BLUE}Main Application:${NC}  https://portal-universe"
+echo -e "  ${BLUE}Grafana:${NC}           https://portal-universe/grafana"
+echo -e "  ${BLUE}Prometheus:${NC}        https://portal-universe/prometheus"
+echo -e "  ${BLUE}Zipkin:${NC}            https://portal-universe/zipkin"
 echo ""

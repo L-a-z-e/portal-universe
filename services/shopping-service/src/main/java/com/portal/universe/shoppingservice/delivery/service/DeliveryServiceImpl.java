@@ -88,14 +88,14 @@ public class DeliveryServiceImpl implements DeliveryService {
             Order order = orderRepository.findByOrderNumber(delivery.getOrderNumber())
                     .orElse(null);
             if (order != null) {
-                eventPublisher.publishDeliveryShipped(new DeliveryShippedEvent(
-                        delivery.getTrackingNumber(),
-                        delivery.getOrderNumber(),
-                        order.getUserId(),
-                        delivery.getCarrier(),
-                        LocalDate.now().plusDays(3), // 예상 배송일 (3일 후)
-                        LocalDateTime.now()
-                ));
+                eventPublisher.publishDeliveryShipped(DeliveryShippedEvent.newBuilder()
+                        .setTrackingNumber(delivery.getTrackingNumber())
+                        .setOrderNumber(delivery.getOrderNumber())
+                        .setUserId(order.getUserId())
+                        .setCarrier(delivery.getCarrier())
+                        .setEstimatedDeliveryDate(LocalDate.now().plusDays(3))
+                        .setShippedAt(java.time.Instant.now())
+                        .build());
             }
         }
 

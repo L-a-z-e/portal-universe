@@ -213,7 +213,8 @@ class PostRepositoryCustomImplTest {
             statsDoc.put("totalPosts", 50L);
             statsDoc.put("totalViews", 2500L);
             statsDoc.put("totalLikes", 150L);
-            statsDoc.put("authorName", "Author Name");
+            statsDoc.put("authorUsername", "user1_handle");
+            statsDoc.put("authorNickname", "Author Name");
             statsDoc.put("firstPostDate", java.util.Date.from(
                     LocalDateTime.now().minusDays(30).atZone(java.time.ZoneId.systemDefault()).toInstant()
             ));
@@ -235,7 +236,8 @@ class PostRepositoryCustomImplTest {
 
             // then
             assertThat(result.authorId()).isEqualTo("user1");
-            assertThat(result.authorName()).isEqualTo("Author Name");
+            assertThat(result.authorUsername()).isEqualTo("user1_handle");
+            assertThat(result.authorNickname()).isEqualTo("Author Name");
             assertThat(result.totalPosts()).isEqualTo(50L);
             assertThat(result.publishedPosts()).isEqualTo(45L);
             assertThat(result.totalViews()).isEqualTo(2500L);
@@ -259,7 +261,8 @@ class PostRepositoryCustomImplTest {
 
             // then
             assertThat(result.authorId()).isEqualTo("user1");
-            assertThat(result.authorName()).isNull();
+            assertThat(result.authorUsername()).isNull();
+            assertThat(result.authorNickname()).isNull();
             assertThat(result.totalPosts()).isZero();
             assertThat(result.publishedPosts()).isZero();
             assertThat(result.totalViews()).isZero();

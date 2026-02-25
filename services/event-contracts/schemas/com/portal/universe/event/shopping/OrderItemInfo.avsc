@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "OrderItemInfo",
+  "namespace": "com.portal.universe.event.shopping",
+  "doc": "주문 아이템 상세 정보 (OrderCreatedEvent의 nested record)",
+  "fields": [
+    {"name": "productId", "type": "long", "doc": "상품 ID"},
+    {"name": "productName", "type": "string", "doc": "상품명"},
+    {"name": "quantity", "type": "int", "doc": "수량"},
+    {"name": "price", "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 2}, "doc": "단가"}
+  ]
+}

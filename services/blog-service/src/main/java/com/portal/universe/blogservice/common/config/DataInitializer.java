@@ -209,6 +209,7 @@ public class DataInitializer {
                     .postId(postKeyToId.get(seed.postKey()))
                     .userId(seed.userId())
                     .userName(seed.userName())
+                    .nickname(seed.nickname())
                     .build());
         }
 
@@ -273,5 +274,5 @@ public class DataInitializer {
                        String authorUsername, String authorNickname, String content, int daysAfterBase) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record LikeSeed(String postKey, String userId, String userName) {}
+    record LikeSeed(String postKey, String userId, String userName, String nickname) {}
 }

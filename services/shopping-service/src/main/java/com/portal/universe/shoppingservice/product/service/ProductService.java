@@ -4,6 +4,8 @@ import com.portal.universe.shoppingservice.product.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 /**
  * 상품 관련 비즈니스 로직을 정의하는 인터페이스입니다.
  */
@@ -19,6 +21,8 @@ public interface ProductService {
      * 카테고리별 상품 목록을 조회합니다.
      */
     Page<ProductResponse> getProductsByCategory(String category, Pageable pageable);
+
+    List<String> getAllCategories();
 
     /**
      * 새로운 상품을 생성합니다.

@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "CommentRepliedEvent",
+  "namespace": "com.portal.universe.event.blog",
+  "doc": "블로그 댓글 답글 이벤트",
+  "fields": [
+    {"name": "replyId", "type": "string", "doc": "답글 ID"},
+    {"name": "postId", "type": "string", "doc": "게시글 ID"},
+    {"name": "parentCommentId", "type": "string", "doc": "원댓글 ID"},
+    {"name": "parentCommentAuthorId", "type": "string", "doc": "원댓글 작성자 ID (알림 수신자)"},
+    {"name": "replierId", "type": "string", "doc": "답글 작성자 ID"},
+    {"name": "replierName", "type": "string", "doc": "답글 작성자 이름"},
+    {"name": "content", "type": "string", "doc": "답글 내용"},
+    {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "이벤트 발생 시각"}
+  ]
+}

@@ -4,7 +4,7 @@ title: Monitoring Stack Documentation
 type: guide
 status: current
 created: 2026-01-19
-updated: 2026-02-13
+updated: 2026-02-25
 author: Laze
 tags: [monitoring, prometheus, grafana, zipkin, guide, opentelemetry, polyglot]
 related:
@@ -19,11 +19,12 @@ related:
 
 ## 모니터링 스택 개요
 
-Portal Universe 프로젝트는 다음 3가지 핵심 모니터링 도구를 사용합니다:
+Portal Universe 프로젝트는 다음 4가지 핵심 모니터링 도구를 사용합니다:
 
-- **Prometheus**: 메트릭 수집 및 저장
+- **Prometheus**: 메트릭 수집 및 저장 (애플리케이션 메트릭)
 - **Grafana**: 메트릭 시각화 대시보드
 - **Zipkin**: 분산 추적(Distributed Tracing)
+- **CloudWatch**: AWS 관리 서비스 메트릭 및 커스텀 비즈니스 메트릭
 
 ---
 
@@ -233,6 +234,72 @@ job:http_requests:rate5m
 
 ---
 
+## 4. CloudWatch 설정 (AWS Custom Metrics)
+
+### 개요
+
+CloudWatch는 AWS 관리 서비스의 기본 메트릭과 애플리케이션에서 발행하는 커스텀 비즈니스 메트릭을 수집합니다. Prometheus가 애플리케이션 레벨(JVM, HTTP 요청 등) 메트릭을 담당하는 반면, CloudWatch는 AWS 인프라와 도메인 비즈니스 메트릭을 담당합니다.
+
+### 로컬 환경
+
+- **LocalStack** (`localhost:4566`)이 CloudWatch API를 에뮬레이션
+- AWS CLI 또는 SDK로 메트릭 조회 가능
+
+### 커스텀 메트릭 (shopping-service)
+
+`OrderSagaOrchestrator`가 Saga 실행 결과를 CloudWatch Custom Metrics로 발행합니다.
+
+| Namespace | Metric Name | 단위 | 설명 |
+|-----------|-------------|------|------|
+| `PortalUniverse/Shopping` | `SagaCompleted` | Count | Saga 정상 완료 |
+| `PortalUniverse/Shopping` | `SagaFailed` | Count | Saga 실패 |
+| `PortalUniverse/Shopping` | `SagaCompensationFailed` | Count | 보상 실패 (수동 개입 필요) |
+| `PortalUniverse/Shopping` | `SagaDuration` | Milliseconds | Saga 전체 실행 시간 |
+
+### CloudWatch Alarms
+
+임계값 초과 시 SNS → SQS 체인으로 운영 알림을 전달합니다.
+
+| Alarm | 조건 | 기간 | Action |
+|-------|------|------|--------|
+| `saga-failure-alarm` | SagaFailed ≥ 5 | 5분 | SNS(`saga-alerts-topic`) → SQS(`saga-alert-queue`) |
+| `saga-compensation-alarm` | SagaCompensationFailed ≥ 1 | 1분 | SNS(`saga-alerts-topic`) → SQS(`saga-alert-queue`) |
+
+### 메트릭 조회 (로컬 환경)
+
+```bash
+# 커스텀 메트릭 네임스페이스 목록
+aws --endpoint-url=http://localhost:4566 cloudwatch list-metrics \
+  --namespace "PortalUniverse/Shopping"
+
+# 특정 메트릭 통계 조회 (최근 1시간)
+aws --endpoint-url=http://localhost:4566 cloudwatch get-metric-statistics \
+  --namespace "PortalUniverse/Shopping" \
+  --metric-name "SagaFailed" \
+  --start-time $(date -u -v-1H +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 300 \
+  --statistics Sum
+
+# Alarm 상태 확인
+aws --endpoint-url=http://localhost:4566 cloudwatch describe-alarms
+```
+
+### Prometheus vs CloudWatch 역할 분담
+
+| 영역 | Prometheus | CloudWatch |
+|------|-----------|------------|
+| JVM 메트릭 (Heap, GC, Thread) | ✅ | - |
+| HTTP 요청 메트릭 (Rate, Latency) | ✅ | - |
+| Kafka Consumer Lag | ✅ | - |
+| SQS 큐 깊이/메시지 수 | - | ✅ |
+| EventBridge 이벤트 수 | - | ✅ |
+| Lambda 실행 시간/에러 | - | ✅ |
+| Saga 비즈니스 메트릭 | - | ✅ (Custom) |
+| S3 요청 수/크기 | - | ✅ |
+
+---
+
 ## 트러블슈팅
 
 ### Prometheus가 메트릭을 수집하지 못할 때
@@ -270,3 +337,4 @@ job:http_requests:rate5m
 | 2026-01-19 | 최초 작성 | Laze |
 | 2026-02-06 | Zipkin 설정 업데이트 | Laze |
 | 2026-02-13 | Brave → OpenTelemetry 마이그레이션, Polyglot 서비스 지원 추가 (ADR-033) | Laze |
+| 2026-02-25 | CloudWatch Custom Metrics 섹션 추가, Prometheus vs CloudWatch 역할 분담 | Laze |

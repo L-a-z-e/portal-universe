@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "PrismTaskFailedEvent",
+  "namespace": "com.portal.universe.event.prism",
+  "doc": "Published by prism-service when an AI task fails. Consumed by notification-service.",
+  "fields": [
+    { "name": "taskId", "type": "int", "doc": "Task identifier" },
+    { "name": "boardId", "type": "int", "doc": "Board identifier the task belongs to" },
+    { "name": "userId", "type": "string", "doc": "User who initiated the task" },
+    { "name": "title", "type": "string", "doc": "Task title" },
+    { "name": "status", "type": "com.portal.universe.event.prism.TaskStatus", "doc": "Task status after failure" },
+    { "name": "agentName", "type": ["null", "string"], "default": null, "doc": "AI agent name that attempted the task" },
+    { "name": "executionId", "type": ["null", "int"], "default": null, "doc": "Execution record identifier" },
+    { "name": "errorMessage", "type": "string", "doc": "Error description for the failure" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp in epoch milliseconds" }
+  ]
+}

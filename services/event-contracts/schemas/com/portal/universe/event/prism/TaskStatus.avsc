@@ -1,0 +1,7 @@
+{
+  "type": "enum",
+  "name": "TaskStatus",
+  "namespace": "com.portal.universe.event.prism",
+  "doc": "Prism task status values. Shared by PrismTaskCompletedEvent and PrismTaskFailedEvent.",
+  "symbols": ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED", "FAILED"]
+}

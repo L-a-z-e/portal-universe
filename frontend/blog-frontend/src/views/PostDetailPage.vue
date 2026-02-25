@@ -346,7 +346,7 @@ function handleLikeChanged(liked: boolean, count: number) {
         <RelatedPosts
           :post-id="post.id"
           :tags="post.tags"
-          :limit="4"
+          :limit="3"
           class="my-8"
         />
 

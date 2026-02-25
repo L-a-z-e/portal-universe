@@ -79,11 +79,12 @@ public class UserService {
         rbacInitializationService.initializeNewUser(savedUser.getUuid());
 
         // 9. 이벤트 발행 (트랜잭션 커밋 후 Kafka로 전송됨)
-        UserSignedUpEvent event = new UserSignedUpEvent(
-                savedUser.getUuid(),
-                savedUser.getEmail(),
-                savedUser.getProfile().getNickname()
-        );
+        UserSignedUpEvent event = UserSignedUpEvent.newBuilder()
+                .setUserId(savedUser.getUuid())
+                .setEmail(savedUser.getEmail())
+                .setName(savedUser.getProfile().getNickname())
+                .setTimestamp(java.time.Instant.now())
+                .build();
         eventPublisher.publishEvent(event);
 
         return savedUser.getId();

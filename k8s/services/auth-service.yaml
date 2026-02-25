@@ -43,7 +43,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: portal-universe-secret
-                  key: MYSQL_PASSWORD
+                  key: POSTGRES_PASSWORD
             # JWT Secret Keys (Key Rotation 지원)
             - name: JWT_CURRENT_KEY_ID
               valueFrom:

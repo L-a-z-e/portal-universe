@@ -313,6 +313,20 @@ interface ChatMessage {
 - SSE 스트리밍은 HTTP/1.1에서 브라우저당 동시 연결 수 제한 (6개)
 - SockJS 폴백 모드에서는 실시간성이 저하됨
 
+### 프록시 계층별 WebSocket 설정
+
+Docker/K8s 환경에서 `VITE_API_BASE_URL`이 빈값이면 `window.location.origin`이 사용되므로, 요청이 Nginx를 경유합니다. Nginx에 `/notification/` 프록시와 WebSocket upgrade 헤더가 필수입니다.
+
+| 계층 | 설정 파일 | 핵심 설정 |
+|------|----------|----------|
+| **Docker Nginx** | `frontend/portal-shell/default.conf` | `/notification/ws/` (Upgrade 헤더), `/notification/` (REST) |
+| **K8s Nginx** | `frontend/portal-shell/default.k8s.conf` | 동일 구조 |
+| **K8s Ingress** | `k8s/infrastructure/ingress.yaml` | `/notification` path → api-gateway, timeout annotation |
+| **API Gateway** | `services/api-gateway/application.yml` | `/notification/ws/**` → notification-service (StripPrefix=1) |
+| **notification-service** | `WebSocketConfig.java` | `/ws/notifications` endpoint, CORS `allowed-origins` (환경별 분리) |
+
+Local 환경에서는 `VITE_API_BASE_URL=http://localhost:8080`으로 API Gateway에 직접 요청하므로 Nginx 프록시를 거치지 않습니다.
+
 ---
 
 ## 관련 문서

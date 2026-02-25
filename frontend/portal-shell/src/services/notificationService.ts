@@ -13,7 +13,7 @@ export async function getNotifications(
   size = 20
 ): Promise<NotificationPage> {
   const response = await apiClient.get<{ data: NotificationPage }>(BASE_PATH, {
-    params: { page, size }
+    params: { page: page - 1, size }
   })
   return response.data.data
 }
@@ -27,7 +27,7 @@ export async function getUnreadNotifications(
 ): Promise<NotificationPage> {
   const response = await apiClient.get<{ data: NotificationPage }>(
     `${BASE_PATH}/unread`,
-    { params: { page, size } }
+    { params: { page: page - 1, size } }
   )
   return response.data.data
 }

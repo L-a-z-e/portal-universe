@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { useApiError } from '@portal/design-react';
+import { useCallback, useState, useMemo } from 'react';
+import { Input, Select, useApiError } from '@portal/design-react';
 import {
   DndContext,
   DragEndEvent,
@@ -22,10 +22,22 @@ interface KanbanBoardProps {
   onAddTask?: () => void;
 }
 
+const priorityFilterOptions = [
+  { value: '', label: 'All Priorities' },
+  { value: 'URGENT', label: 'Urgent' },
+  { value: 'HIGH', label: 'High' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'LOW', label: 'Low' },
+];
+
 export function KanbanBoard({ onEditTask, onViewTask, onAddTask }: KanbanBoardProps) {
   const { columns, moveTask, executeTask } = useTaskStore();
   const { handleError } = useApiError();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  // K4: Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -34,6 +46,25 @@ export function KanbanBoard({ onEditTask, onViewTask, onAddTask }: KanbanBoardPr
       },
     })
   );
+
+  // K4: Filtered columns
+  const filteredColumns = useMemo(() => {
+    if (!searchQuery && !priorityFilter) return columns;
+
+    const query = searchQuery.toLowerCase();
+    return columns.map((col) => ({
+      ...col,
+      tasks: col.tasks.filter((task) => {
+        if (priorityFilter && task.priority !== priorityFilter) return false;
+        if (query) {
+          const matchTitle = task.title.toLowerCase().includes(query);
+          const matchDesc = task.description?.toLowerCase().includes(query);
+          if (!matchTitle && !matchDesc) return false;
+        }
+        return true;
+      }),
+    }));
+  }, [columns, searchQuery, priorityFilter]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
@@ -45,8 +76,7 @@ export function KanbanBoard({ onEditTask, onViewTask, onAddTask }: KanbanBoardPr
   }, []);
 
   const handleDragOver = useCallback((_event: DragOverEvent) => {
-    // Handle drag over for visual feedback
-    // Actual state update happens in handleDragEnd
+    // Visual feedback only, actual state update in handleDragEnd
   }, []);
 
   const handleDragEnd = useCallback(
@@ -61,28 +91,27 @@ export function KanbanBoard({ onEditTask, onViewTask, onAddTask }: KanbanBoardPr
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
 
-      // Determine target column
       let targetStatus: TaskStatus;
       let targetPosition: number;
 
-      // Check if dropped on a column
       const columnIds = COLUMN_CONFIG.map((c) => c.id as string);
       if (columnIds.includes(String(over.id))) {
         targetStatus = over.id as TaskStatus;
         const targetColumn = columns.find((c) => c.id === targetStatus);
         targetPosition = targetColumn ? targetColumn.tasks.length : 0;
       } else {
-        // Dropped on another task
         const overTask = tasks.find((t) => t.id === over.id);
         if (!overTask) return;
-
         targetStatus = overTask.status;
         targetPosition = overTask.position;
       }
 
-      // Only move if something changed
       if (task.status !== targetStatus || task.position !== targetPosition) {
-        await moveTask(taskId, targetStatus, targetPosition);
+        try {
+          await moveTask(taskId, targetStatus, targetPosition);
+        } catch (error) {
+          console.error('Failed to move task:', error);
+        }
       }
     },
     [moveTask]
@@ -96,37 +125,59 @@ export function KanbanBoard({ onEditTask, onViewTask, onAddTask }: KanbanBoardPr
         handleError(error, 'Failed to execute task');
       }
     },
-    [executeTask]
+    [executeTask, handleError]
   );
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex gap-4 w-full min-w-0 overflow-x-auto pb-4">
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            column={column}
-            onEditTask={onEditTask}
-            onExecuteTask={handleExecuteTask}
-            onViewTask={onViewTask}
-            onAddTask={column.id === 'TODO' ? onAddTask : undefined}
+    <div className="flex flex-col h-full">
+      {/* K4: Filter bar */}
+      <div className="flex gap-3 mb-4 items-end">
+        <div className="flex-1 max-w-xs">
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search tasks..."
+            size="sm"
           />
-        ))}
+        </div>
+        <div className="w-40">
+          <Select
+            value={priorityFilter}
+            onChange={(value) => setPriorityFilter(String(value ?? ''))}
+            options={priorityFilterOptions}
+            size="sm"
+          />
+        </div>
       </div>
 
-      <DragOverlay>
-        {activeTask ? (
-          <div className="rotate-3 scale-105">
-            <TaskCard task={activeTask} />
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-4 w-full min-w-0 overflow-x-auto pb-4 flex-1">
+          {filteredColumns.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              column={column}
+              onEditTask={onEditTask}
+              onExecuteTask={handleExecuteTask}
+              onViewTask={onViewTask}
+              onAddTask={column.id === 'TODO' ? onAddTask : undefined}
+            />
+          ))}
+        </div>
+
+        <DragOverlay>
+          {activeTask ? (
+            <div className="rotate-3 scale-105">
+              <TaskCard task={activeTask} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }

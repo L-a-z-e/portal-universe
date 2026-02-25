@@ -4,7 +4,7 @@ title: Kafka 이벤트 구현 가이드
 type: guide
 status: current
 created: 2026-02-05
-updated: 2026-02-06
+updated: 2026-02-25
 author: Laze
 tags: [kafka, event-driven, guide, backend]
 ---
@@ -37,9 +37,10 @@ Portal Universe의 서비스 간 비동기 통신은 Kafka 이벤트 기반으�
 
 새로운 이벤트를 설계할 때는 다음 규칙을 따릅니다.
 
-**토픽 네이밍 규칙**:
-- 패턴: `{domain}-{action}`
-- 예시: `order-created`, `user-signup`, `blog-post-liked`
+**토픽 네이밍 규칙** (ADR-032):
+- 패턴: `{domain}.{entity}.{past-participle}`
+- 예시: `shopping.order.created`, `auth.user.signed-up`, `blog.post.liked`
+- Topic 이름의 SSOT: 각 도메인의 `*Topics.java` 상수 클래스 (`event-contracts` 모듈)
 
 **이벤트 키**:
 - Aggregate identifier 사용 (예: orderNumber, userId)
@@ -227,10 +228,12 @@ spring:
 
 | Producer | Topics | Consumer |
 |----------|--------|----------|
-| auth-service | user-signup | notification-service |
-| shopping-service | order-created, order-cancelled, payment-completed, payment-failed, delivery-shipped, coupon-issued, timedeal-started | notification-service |
-| blog-service | blog-post-liked, blog-post-commented, blog-comment-replied, blog-user-followed | notification-service |
-| prism-service | prism-task-completed, prism-task-failed | notification-service |
+| auth-service | `auth.user.signed-up` | notification-service |
+| shopping-service | `shopping.order.created`, `shopping.order.cancelled`, `shopping.payment.completed`, `shopping.payment.failed`, `shopping.delivery.shipped`, `shopping.coupon.issued`, `shopping.timedeal.started` | notification-service |
+| blog-service | `blog.post.liked`, `blog.post.commented`, `blog.comment.replied`, `blog.user.followed` | notification-service |
+| prism-service | `prism.task.completed`, `prism.task.failed` | notification-service |
+
+> **Avro + Schema Registry**: 모든 이벤트는 Avro Schema로 정의되며, Schema Registry가 호환성을 검증합니다. 상세: [ADR-047](../../adr/ADR-047-avro-schema-registry-adoption.md)
 
 ---
 
@@ -342,12 +345,56 @@ docker exec kafka kafka-topics.sh \
 
 ---
 
+## AWS 메시징 보조 패턴
+
+Kafka가 핵심 도메인 이벤트 채널이지만, 특정 사용 사례에서는 AWS 메시징 서비스를 보조 채널로 활용합니다.
+
+### SQS: 비동기 작업 큐 (notification-service)
+
+Kafka 이벤트를 수신한 후, 이메일 발송 같은 지연 가능한 작업을 SQS 큐에 넣어 안정적으로 처리합니다.
+
+```
+Kafka(shopping.order.created) → NotificationConsumer → SQS(email-notification-queue) → EmailQueueConsumer
+```
+
+**언제 SQS를 사용하는가**:
+- 외부 서비스 호출(이메일, SMS)이 포함된 작업
+- 재시도와 DLQ가 필요한 Point-to-Point 작업
+- Kafka Consumer의 처리 부담을 분리하고 싶을 때
+
+### EventBridge: 조건부 이벤트 라우팅 (shopping-service)
+
+Saga 완료/실패 이벤트를 EventBridge에 동시 발행(Dual Publish)하여, 규칙 기반으로 타겟을 라우팅합니다.
+
+```
+OrderSagaOrchestrator
+  ├── Kafka: 핵심 이벤트 (notification-service 등)
+  └── EventBridge (@Async): 고액 주문 필터링, 실패 알림 등
+```
+
+**언제 EventBridge를 사용하는가**:
+- 이벤트 내용 기반 조건부 라우팅이 필요할 때 (예: 금액 > 10만원)
+- 여러 타겟에 팬아웃할 때
+- Kafka 토픽을 추가하지 않고 새로운 구독자를 연결하고 싶을 때
+
+### CloudWatch: 비즈니스 메트릭 + 알람
+
+Saga 실행 결과를 커스텀 메트릭으로 발행하고, 임계값 초과 시 알람을 발생시킵니다.
+
+```
+SagaOrchestrator → CloudWatch(PutMetricData) → Alarm → SNS → SQS
+```
+
+> 각 패턴의 상세 구현은 [Event-Driven Architecture](../../architecture/system/event-driven-architecture.md) 참조.
+
+---
+
 ## 다음 단계
 
 이 가이드를 완료했다면:
-1. Outbox 패턴 학습 - DB 트랜잭션과 이벤트 발행의 원자성 보장
-2. Dead Letter Topic (DLT) 구현 - 재시도 실패한 메시지 처리
-3. Schema Registry 도입 - Avro/Protobuf로 스키마 관리
+1. [Avro + Schema Registry 구현](../../adr/ADR-047-avro-schema-registry-adoption.md) - 이미 도입된 스키마 관리 체계 이해
+2. [SQS/EventBridge 통합 패턴](../../architecture/system/event-driven-architecture.md) - AWS 메시징 보조 채널 이해
+3. Outbox 패턴 학습 - DB 트랜잭션과 이벤트 발행의 원자성 보장
 
 ---
 
@@ -355,8 +402,9 @@ docker exec kafka kafka-topics.sh \
 
 - [Spring Kafka 공식 문서](https://docs.spring.io/spring-kafka/reference/html/)
 - [Kafka 공식 문서](https://kafka.apache.org/documentation/)
-- `.claude/skills/kafka-events.md` - 상세 구현 패턴
-- `docs/architecture/integration/event-driven.md` - 이벤트 기반 아키텍처 개요
+- [Event-Driven Architecture](../../architecture/system/event-driven-architecture.md) - 멀티 메시징 시스템 아키텍처
+- [ADR-032: Kafka Configuration Standardization](../../adr/ADR-032-kafka-configuration-standardization.md)
+- [ADR-047: Avro + Schema Registry 도입](../../adr/ADR-047-avro-schema-registry-adoption.md)
 
 ---
 

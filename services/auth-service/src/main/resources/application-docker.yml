@@ -44,6 +44,25 @@ feign:
     url: "${services.notification.url}"
 
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/docker/auth-service/db-credentials?prefix=db.
+      - optional:aws-secretsmanager:/portal-universe/docker/auth-service/jwt-secret?prefix=jwt.
+      - optional:aws-parameterstore:/portal-universe/docker/auth-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   datasource:
     url: jdbc:postgresql://postgresql:5432/auth_db
     username: ${DB_USER}
@@ -71,6 +90,10 @@ spring:
 
   kafka:
     bootstrap-servers: kafka:29092
+    properties:
+      schema:
+        registry:
+          url: http://schema-registry:8081
 
   security:
     oauth2:

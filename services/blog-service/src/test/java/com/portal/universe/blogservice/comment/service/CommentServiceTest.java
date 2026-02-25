@@ -75,7 +75,8 @@ class CommentServiceTest {
                     .postId(request.postId())
                     .content(request.content())
                     .authorId("user1")
-                    .authorName("User One")
+                    .authorUsername("user1_handle")
+                    .authorNickname("User One")
                     .build();
             ReflectionTestUtils.setField(savedComment, "id", "comment-1");
 
@@ -85,7 +86,7 @@ class CommentServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            CommentResponse result = commentService.createComment(request, "user1", "User One");
+            CommentResponse result = commentService.createComment(request, "user1", "user1_handle", "User One");
 
             // then
             assertThat(result.content()).isEqualTo("Test comment");
@@ -104,8 +105,10 @@ class CommentServiceTest {
                     .postId(request.postId())
                     .content(request.content())
                     .authorId("user1")
-                    .authorName("User One")
+                    .authorUsername("user1_handle")
+                    .authorNickname("User One")
                     .build();
+            ReflectionTestUtils.setField(savedComment, "id", "comment-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
@@ -113,7 +116,7 @@ class CommentServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            commentService.createComment(request, "user1", "User One");
+            commentService.createComment(request, "user1", "user1_handle", "User One");
 
             // then
             verify(mongoTemplate).updateFirst(any(Query.class), any(Update.class), eq(Post.class));
@@ -130,7 +133,8 @@ class CommentServiceTest {
                     .postId(request.postId())
                     .content(request.content())
                     .authorId("user1")
-                    .authorName("User One")
+                    .authorUsername("user1_handle")
+                    .authorNickname("User One")
                     .build();
             ReflectionTestUtils.setField(savedComment, "id", "comment-1");
 
@@ -140,7 +144,7 @@ class CommentServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            commentService.createComment(request, "user1", "User One");
+            commentService.createComment(request, "user1", "user1_handle", "User One");
 
             // then
             verify(eventPublisher).publishCommentCreated(any());
@@ -157,7 +161,8 @@ class CommentServiceTest {
                     .postId(request.postId())
                     .content(request.content())
                     .authorId("user1")
-                    .authorName("User One")
+                    .authorUsername("user1_handle")
+                    .authorNickname("User One")
                     .build();
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
@@ -166,7 +171,7 @@ class CommentServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            commentService.createComment(request, "user1", "User One");
+            commentService.createComment(request, "user1", "user1_handle", "User One");
 
             // then
             verify(eventPublisher, never()).publishCommentCreated(any());
@@ -180,7 +185,7 @@ class CommentServiceTest {
             when(postRepository.findById("post-1")).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> commentService.createComment(request, "user1", "User One"))
+            assertThatThrownBy(() -> commentService.createComment(request, "user1", "user1_handle", "User One"))
                     .isInstanceOf(CustomBusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", BlogErrorCode.POST_NOT_FOUND);
         }
@@ -296,6 +301,8 @@ class CommentServiceTest {
                 .title("Test Post")
                 .content("Content")
                 .authorId(authorId)
+                .authorUsername(authorId + "_handle")
+                .authorNickname("Author Name")
                 .status(PostStatus.PUBLISHED)
                 .build();
         ReflectionTestUtils.setField(post, "id", id);
@@ -307,7 +314,8 @@ class CommentServiceTest {
                 .postId(postId)
                 .content("Test comment")
                 .authorId(authorId)
-                .authorName("Test Author")
+                .authorUsername(authorId + "_handle")
+                .authorNickname("Test Author")
                 .build();
         ReflectionTestUtils.setField(comment, "id", id);
         return comment;

@@ -21,9 +21,7 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgresql-data:/var/lib/postgresql/data
-      - ./infrastructure/postgresql/init-prism.sql:/docker-entrypoint-initdb.d/01-init-prism.sql
-      - ./infrastructure/postgresql/init-drive.sql:/docker-entrypoint-initdb.d/02-init-drive.sql
-      - ./infrastructure/postgresql/init-services.sql:/docker-entrypoint-initdb.d/03-init-services.sql
+      - ./infrastructure/postgresql/init-services.sql:/docker-entrypoint-initdb.d/01-init-services.sql
     env_file:
       - .env.docker
     networks:
@@ -201,6 +199,71 @@ services:
       start_period: 30s
 
   # ========================================
+  # Schema Registry + AKHQ (Avro/Kafka Management)
+  # ========================================
+  schema-registry:
+    image: confluentinc/cp-schema-registry:8.1.1
+    hostname: schema-registry
+    container_name: schema-registry
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:18081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: BACKWARD_TRANSITIVE
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/subjects || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  akhq:
+    image: tchiotludo/akhq:0.26.0
+    container_name: akhq
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:9000:8080"
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            portal:
+              properties:
+                bootstrap.servers: kafka:29092
+              schema-registry:
+                url: http://schema-registry:8081
+    depends_on:
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+
+  # ========================================
   # Application Services
   # ========================================
   api-gateway:
@@ -346,6 +409,113 @@ services:
       redis:
         condition: service_started
       elasticsearch:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+
+  shopping-seller-service:
+    build:
+      context: .
+      dockerfile: ./services/shopping-seller-service/Dockerfile
+    container_name: shopping-seller-service
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:8088:8088"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USER=laze
+      - DB_PASSWORD=Laze2026!
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8088/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_started
+    networks:
+      - portal-universe-net
+
+  shopping-settlement-service:
+    build:
+      context: .
+      dockerfile: ./services/shopping-settlement-service/Dockerfile
+    container_name: shopping-settlement-service
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:8089:8089"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USER=laze
+      - DB_PASSWORD=Laze2026!
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8089/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - portal-universe-net
+
+  drive-service:
+    build:
+      context: .
+      dockerfile: ./services/drive-service/Dockerfile
+    container_name: drive-service
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:8087:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USER=laze
+      - DB_PASSWORD=Laze2026!
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8087/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      localstack:
         condition: service_healthy
     networks:
       - portal-universe-net
@@ -541,6 +711,54 @@ services:
         max-file: "3"
     ports:
       - "127.0.0.1:30004:8080"
+    depends_on:
+      portal-shell:
+        condition: service_started
+    networks:
+      - portal-universe-net
+
+  drive-frontend:
+    build:
+      context: ./frontend
+      dockerfile: drive-frontend/Dockerfile
+      args:
+        BUILD_MODE: docker
+    container_name: drive-frontend
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:30005:8080"
+    depends_on:
+      portal-shell:
+        condition: service_started
+    networks:
+      - portal-universe-net
+
+  shopping-seller-frontend:
+    build:
+      context: ./frontend
+      dockerfile: shopping-seller-frontend/Dockerfile
+      args:
+        BUILD_MODE: docker
+    container_name: shopping-seller-frontend
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:30006:8080"
     depends_on:
       portal-shell:
         condition: service_started
@@ -853,10 +1071,10 @@ services:
   localstack:
     image: localstack/localstack:4.3.0
     container_name: localstack
-    mem_limit: 512m
-    memswap_limit: 512m
-    cpus: 1.0
-    pids_limit: 256
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1.5
+    pids_limit: 512
     logging:
       driver: json-file
       options:
@@ -865,12 +1083,15 @@ services:
     ports:
       - "127.0.0.1:4566:4566"
     environment:
-      - SERVICES=s3
+      - SERVICES=s3,sqs,sns,iam,sts,lambda,events,stepfunctions,logs,cloudwatch,cloudformation,secretsmanager,ssm
       - AWS_DEFAULT_REGION=ap-northeast-2
       - PERSISTENCE=1
+      - LAMBDA_DOCKER_FLAGS=-e AWS_ENDPOINT_URL=http://host.docker.internal:4566
     volumes:
       - ./localstack_data:/var/lib/localstack
       - ./localstack-init:/etc/localstack/init/ready.d
+      - ./lambda:/lambda
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - portal-universe-net
     healthcheck:

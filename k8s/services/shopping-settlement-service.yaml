@@ -1,0 +1,95 @@
+# ===================================================================
+# Shopping Settlement Service: Deployment
+# 역할: 정산 처리(Spring Batch)를 담당합니다.
+# ===================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-settlement-service
+  namespace: portal-universe
+  labels:
+    app: shopping-settlement-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopping-settlement-service
+  template:
+    metadata:
+      labels:
+        app: shopping-settlement-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8089"
+    spec:
+      containers:
+        - name: shopping-settlement-service
+          image: portal-universe-shopping-settlement-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8089
+              name: http
+          envFrom:
+            - configMapRef:
+                name: portal-universe-config
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: portal-universe-secret
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "update"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8089
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 18
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8089
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8089
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+
+# ===================================================================
+# Shopping Settlement Service: Service
+# ===================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopping-settlement-service
+  namespace: portal-universe
+  labels:
+    app: shopping-settlement-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8089
+      targetPort: 8089
+      protocol: TCP
+      name: http
+  selector:
+    app: shopping-settlement-service

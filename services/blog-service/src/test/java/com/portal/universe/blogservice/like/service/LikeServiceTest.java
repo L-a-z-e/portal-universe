@@ -75,7 +75,8 @@ class LikeServiceTest {
             Like newLike = Like.builder()
                     .postId("post-1")
                     .userId("user1")
-                    .userName("User One")
+                    .userName("user1_handle")
+                    .nickname("User One")
                     .build();
             ReflectionTestUtils.setField(newLike, "id", "like-1");
 
@@ -86,7 +87,7 @@ class LikeServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            LikeToggleResponse result = likeService.toggleLike("post-1", "user1", "User One");
+            LikeToggleResponse result = likeService.toggleLike("post-1", "user1", "user1_handle", "User One");
 
             // then
             assertThat(result.liked()).isTrue();
@@ -102,7 +103,8 @@ class LikeServiceTest {
             Like existingLike = Like.builder()
                     .postId("post-1")
                     .userId("user1")
-                    .userName("User One")
+                    .userName("user1_handle")
+                    .nickname("User One")
                     .build();
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
@@ -111,7 +113,7 @@ class LikeServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            LikeToggleResponse result = likeService.toggleLike("post-1", "user1", "User One");
+            LikeToggleResponse result = likeService.toggleLike("post-1", "user1", "user1_handle", "User One");
 
             // then
             assertThat(result.liked()).isFalse();
@@ -127,8 +129,10 @@ class LikeServiceTest {
             Like newLike = Like.builder()
                     .postId("post-1")
                     .userId("user1")
-                    .userName("User One")
+                    .userName("user1_handle")
+                    .nickname("User One")
                     .build();
+            ReflectionTestUtils.setField(newLike, "id", "like-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(likeRepository.findByPostIdAndUserId("post-1", "user1")).thenReturn(Optional.empty());
@@ -137,7 +141,7 @@ class LikeServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            likeService.toggleLike("post-1", "user1", "User One");
+            likeService.toggleLike("post-1", "user1", "user1_handle", "User One");
 
             // then
             verify(mongoTemplate).updateFirst(any(Query.class), any(Update.class), eq(Post.class));
@@ -151,7 +155,8 @@ class LikeServiceTest {
             Like existingLike = Like.builder()
                     .postId("post-1")
                     .userId("user1")
-                    .userName("User One")
+                    .userName("user1_handle")
+                    .nickname("User One")
                     .build();
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
@@ -160,7 +165,7 @@ class LikeServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            likeService.toggleLike("post-1", "user1", "User One");
+            likeService.toggleLike("post-1", "user1", "user1_handle", "User One");
 
             // then
             verify(mongoTemplate).updateFirst(any(Query.class), any(Update.class), eq(Post.class));
@@ -185,7 +190,7 @@ class LikeServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            likeService.toggleLike("post-1", "user1", "User One");
+            likeService.toggleLike("post-1", "user1", "user1_handle", "User One");
 
             // then
             verify(eventPublisher).publishPostLiked(any(PostLikedEvent.class));
@@ -199,7 +204,8 @@ class LikeServiceTest {
             Like newLike = Like.builder()
                     .postId("post-1")
                     .userId("user1")
-                    .userName("User One")
+                    .userName("user1_handle")
+                    .nickname("User One")
                     .build();
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
@@ -209,7 +215,7 @@ class LikeServiceTest {
                     .thenReturn(UpdateResult.acknowledged(1, 1L, null));
 
             // when
-            likeService.toggleLike("post-1", "user1", "User One");
+            likeService.toggleLike("post-1", "user1", "user1_handle", "User One");
 
             // then
             verify(eventPublisher, never()).publishPostLiked(any(PostLikedEvent.class));
@@ -250,8 +256,8 @@ class LikeServiceTest {
             // given
             Pageable pageable = PageRequest.of(0, 10);
             List<Like> likes = List.of(
-                    createTestLike("like-1", "post-1", "user1", "User One"),
-                    createTestLike("like-2", "post-1", "user2", "User Two")
+                    createTestLike("like-1", "post-1", "user1", "user1_handle", "User One"),
+                    createTestLike("like-2", "post-1", "user2", "user2_handle", "User Two")
             );
             Page<Like> likePage = new PageImpl<>(likes, pageable, 2);
 
@@ -273,17 +279,20 @@ class LikeServiceTest {
                 .title("Test Post")
                 .content("Content")
                 .authorId(authorId)
+                .authorUsername(authorId + "_handle")
+                .authorNickname("Test Author")
                 .status(PostStatus.PUBLISHED)
                 .build();
         ReflectionTestUtils.setField(post, "id", id);
         return post;
     }
 
-    private Like createTestLike(String id, String postId, String userId, String userName) {
+    private Like createTestLike(String id, String postId, String userId, String userName, String nickname) {
         Like like = Like.builder()
                 .postId(postId)
                 .userId(userId)
                 .userName(userName)
+                .nickname(nickname)
                 .build();
         ReflectionTestUtils.setField(like, "id", id);
         return like;

@@ -2,6 +2,8 @@ package com.portal.universe.blogservice.file.controller;
 
 import com.portal.universe.blogservice.file.dto.FileDeleteRequest;
 import com.portal.universe.blogservice.file.dto.FileUploadResponse;
+import com.portal.universe.blogservice.file.dto.PresignedUrlRequest;
+import com.portal.universe.blogservice.file.dto.PresignedUrlResponse;
 import com.portal.universe.blogservice.file.service.FileService;
 import com.portal.universe.commonlibrary.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,6 +56,24 @@ public class FileController {
                 .contentType(file.getContentType())
                 .build();
 
+        return ApiResponse.success(response);
+    }
+
+    @Operation(
+            summary = "Presigned URL 발급",
+            description = "S3 직접 업로드용 Presigned URL을 발급합니다. 서버를 경유하지 않고 클라이언트가 S3에 직접 업로드합니다."
+    )
+    @PostMapping("/presign")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<PresignedUrlResponse> getPresignedUrl(
+            @Valid @RequestBody PresignedUrlRequest request,
+            Authentication authentication
+    ) {
+        String userId = authentication.getName();
+        log.info("Presigned URL request - filename: {}, contentType: {}, size: {}bytes, userId: {}",
+                request.getFilename(), request.getContentType(), request.getContentLength(), userId);
+
+        PresignedUrlResponse response = fileService.generatePresignedUploadUrl(request, userId);
         return ApiResponse.success(response);
     }
 

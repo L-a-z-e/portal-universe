@@ -35,9 +35,14 @@ public class Like {
     private String userId;
 
     /**
-     * 사용자 이름 (표시용)
+     * 사용자 Username (핸들, URL용)
      */
     private String userName;
+
+    /**
+     * 사용자 닉네임 (표시용)
+     */
+    private String nickname;
 
     @CreatedDate
     private LocalDateTime createdAt;

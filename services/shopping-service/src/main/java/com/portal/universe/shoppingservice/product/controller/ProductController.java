@@ -10,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 상품(Product) 조회 API를 제공하는 컨트롤러입니다. (Buyer 전용)
  *
@@ -39,6 +41,11 @@ public class ProductController {
             return ApiResponse.success(PageResponse.from(productService.getProductsByCategory(category, pageable)));
         }
         return ApiResponse.success(PageResponse.from(productService.getAllProducts(pageable)));
+    }
+
+    @GetMapping("/categories")
+    public ApiResponse<List<String>> getCategories() {
+        return ApiResponse.success(productService.getAllCategories());
     }
 
     /**

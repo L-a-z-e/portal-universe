@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "PostLikedEvent",
+  "namespace": "com.portal.universe.event.blog",
+  "doc": "블로그 게시글 좋아요 이벤트",
+  "fields": [
+    {"name": "likeId", "type": "string", "doc": "좋아요 ID"},
+    {"name": "postId", "type": "string", "doc": "게시글 ID"},
+    {"name": "postTitle", "type": "string", "doc": "게시글 제목"},
+    {"name": "authorId", "type": "string", "doc": "글 작성자 ID (알림 수신자)"},
+    {"name": "likerId", "type": "string", "doc": "좋아요 누른 사용자 ID"},
+    {"name": "likerName", "type": "string", "doc": "좋아요 누른 사용자 이름"},
+    {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "이벤트 발생 시각"}
+  ]
+}

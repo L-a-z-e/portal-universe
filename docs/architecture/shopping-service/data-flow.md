@@ -505,6 +505,39 @@ graph LR
     T1 & T2 & T3 & T4 & T5 & T8 & T9 --> AS
 ```
 
+### AWS EventBridge (Dual Publish)
+
+Kafka와 병행하여 EventBridge에 주문 이벤트를 비동기(@Async) 발행한다.
+룰 기반 조건 라우팅으로 코드 수정 없이 새 라우팅 룰을 추가할 수 있다.
+
+```
+OrderSagaOrchestrator → EventBridgePublisher (@Async)
+                          ↓
+                    portal-universe (Event Bus)
+                          ↓
+              ┌───────────┴───────────┐
+    high-value-order-rule       all-order-rule
+    (totalAmount >= 100000)     (모든 OrderCreated)
+              ↓                       ↓
+    high-value-order-queue    order-confirmation-queue
+```
+
+### CloudWatch Custom Metrics
+
+OrderSagaOrchestrator가 Saga 완료 시점에 CloudWatch 커스텀 메트릭을 발행한다.
+@Async + try-catch로 비차단 — 메트릭 실패가 주문 플로우에 영향 없음.
+
+| 메트릭 | 발행 시점 | Namespace |
+|--------|----------|-----------|
+| OrderSagaSuccess | Saga 성공 | PortalUniverse/Shopping |
+| OrderSagaFailure | Saga 실패 | PortalUniverse/Shopping |
+| OrderTotalAmount | Saga 성공 (주문 금액) | PortalUniverse/Shopping |
+| OrderSagaCompensation | 보상 트랜잭션 실행 | PortalUniverse/Shopping |
+
+CloudWatch Alarm 4개가 이상 상태를 감지하여 SNS(`cloudwatch-alarms`)로 알림:
+- email-dlq / image-thumbnail-dlq 메시지 감지 (즉시)
+- Lambda 에러율 (5분 3회), Saga 실패율 (5분 5회)
+
 ### 이벤트 목록
 
 | 이벤트 | Topic | 발행자 | Payload |
@@ -661,4 +694,4 @@ graph TD
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-25

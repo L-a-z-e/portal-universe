@@ -15,6 +15,9 @@ export default () => ({
   kafka: {
     brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
     clientId: 'prism-service',
+    schemaRegistry: {
+      url: process.env.SCHEMA_REGISTRY_URL || 'http://localhost:18081',
+    },
   },
   cors: {
     enabled: process.env.ENABLE_CORS === 'true',

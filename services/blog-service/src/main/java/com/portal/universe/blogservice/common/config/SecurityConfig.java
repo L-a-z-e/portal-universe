@@ -37,7 +37,7 @@ public class SecurityConfig {
         http
                 .securityMatcher("/actuator/**")
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // 공개
+                        .requestMatchers("/actuator/health/**", "/actuator/health", "/actuator/info").permitAll()  // 공개
                         .requestMatchers("/actuator/prometheus", "/actuator/metrics/**").permitAll()  // 내부망 전용 (Gateway에서 차단)
                         .anyRequest().denyAll())  // 나머지는 차단
                 .csrf(AbstractHttpConfigurer::disable);
@@ -94,6 +94,7 @@ public class SecurityConfig {
                         // ========================================
                         // 파일 업로드
                         .requestMatchers(HttpMethod.POST, "/file/upload").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/file/presign").authenticated()
                         // 게시글 작성 (일반 사용자도 가능)
                         .requestMatchers(HttpMethod.POST, "/posts").authenticated()
                         // 게시글 수정/삭제 (본인 게시글)

@@ -13,9 +13,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NotificationTypeTest {
 
     @Test
-    @DisplayName("21개의 enum 값이 존재한다")
-    void should_have21Values() {
-        assertThat(NotificationType.values()).hasSize(21);
+    @DisplayName("24개의 enum 값이 존재한다")
+    void should_have24Values() {
+        assertThat(NotificationType.values()).hasSize(24);
     }
 
     @Test

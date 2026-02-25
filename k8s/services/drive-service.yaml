@@ -1,0 +1,95 @@
+# ===================================================================
+# Drive Service: Deployment
+# 역할: 파일 관리(업로드/다운로드)를 담당하는 Drive Service를 배포합니다.
+# ===================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drive-service
+  namespace: portal-universe
+  labels:
+    app: drive-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drive-service
+  template:
+    metadata:
+      labels:
+        app: drive-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8087"
+    spec:
+      containers:
+        - name: drive-service
+          image: portal-universe-drive-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8087
+              name: http
+          envFrom:
+            - configMapRef:
+                name: portal-universe-config
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: portal-universe-secret
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "update"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8087
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 18
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8087
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8087
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+
+# ===================================================================
+# Drive Service: Service
+# ===================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: drive-service
+  namespace: portal-universe
+  labels:
+    app: drive-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8087
+      targetPort: 8087
+      protocol: TCP
+      name: http
+  selector:
+    app: drive-service

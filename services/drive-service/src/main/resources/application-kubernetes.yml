@@ -6,8 +6,26 @@ server:
   forward-headers-strategy: framework
 
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/k8s/drive-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/k8s/drive-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   datasource:
-    url: jdbc:postgresql://postgresql:5432/drive_db?sslmode=require
+    url: jdbc:postgresql://postgresql:5432/drive_db
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -17,6 +35,10 @@ spring:
 
   kafka:
     bootstrap-servers: kafka:29092
+    properties:
+      schema:
+        registry:
+          url: http://schema-registry:8081
 
 # Swagger (Kubernetes: disabled)
 springdoc:

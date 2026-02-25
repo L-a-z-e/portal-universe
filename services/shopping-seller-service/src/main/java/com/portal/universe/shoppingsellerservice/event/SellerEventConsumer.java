@@ -14,18 +14,21 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class SellerEventConsumer {
 
-    @KafkaListener(topics = ShoppingTopics.ORDER_CREATED, groupId = "shopping-seller-service")
+    @KafkaListener(topics = ShoppingTopics.ORDER_CREATED, groupId = "shopping-seller-service",
+            containerFactory = "avroKafkaListenerContainerFactory")
     public void onOrderCreated(OrderCreatedEvent event) {
-        log.info("Received OrderCreatedEvent: {}", event.orderNumber());
+        log.info("Received OrderCreatedEvent: {}", event.getOrderNumber());
     }
 
-    @KafkaListener(topics = ShoppingTopics.ORDER_CANCELLED, groupId = "shopping-seller-service")
+    @KafkaListener(topics = ShoppingTopics.ORDER_CANCELLED, groupId = "shopping-seller-service",
+            containerFactory = "avroKafkaListenerContainerFactory")
     public void onOrderCancelled(OrderCancelledEvent event) {
-        log.info("Received OrderCancelledEvent: {}", event.orderNumber());
+        log.info("Received OrderCancelledEvent: {}", event.getOrderNumber());
     }
 
-    @KafkaListener(topics = ShoppingTopics.PAYMENT_COMPLETED, groupId = "shopping-seller-service")
+    @KafkaListener(topics = ShoppingTopics.PAYMENT_COMPLETED, groupId = "shopping-seller-service",
+            containerFactory = "avroKafkaListenerContainerFactory")
     public void onPaymentCompleted(PaymentCompletedEvent event) {
-        log.info("Received PaymentCompletedEvent: {}", event.paymentNumber());
+        log.info("Received PaymentCompletedEvent: {}", event.getPaymentNumber());
     }
 }

@@ -31,7 +31,7 @@ ext {
 dependencies {
     // Internal Libraries
     implementation project(':services:common-library')
-    implementation project(':services:shopping-events')
+    implementation project(':services:event-contracts')
 
     // Spring Cloud
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
@@ -48,6 +48,11 @@ dependencies {
 
     // Messaging (Kafka)
     implementation 'org.springframework.kafka:spring-kafka'
+
+    // AWS (Secrets Manager + SSM Parameter Store)
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1')
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
 
     // Redis & Distributed Lock
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'

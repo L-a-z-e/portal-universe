@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -17,28 +20,30 @@ public class SettlementEventConsumer {
 
     private final SettlementLedgerRepository ledgerRepository;
 
-    @KafkaListener(topics = ShoppingTopics.PAYMENT_COMPLETED, groupId = "shopping-settlement-service")
+    @KafkaListener(topics = ShoppingTopics.PAYMENT_COMPLETED, groupId = "shopping-settlement-service",
+            containerFactory = "avroKafkaListenerContainerFactory")
     public void onPaymentCompleted(PaymentCompletedEvent event) {
-        log.info("Recording payment to ledger: order={}, amount={}", event.orderNumber(), event.amount());
+        log.info("Recording payment to ledger: order={}, amount={}", event.getOrderNumber(), event.getAmount());
         SettlementLedger ledger = SettlementLedger.builder()
-                .orderNumber(event.orderNumber())
+                .orderNumber(event.getOrderNumber())
                 .sellerId(1L) // TODO: resolve seller from order items
                 .eventType("PAYMENT_COMPLETED")
-                .amount(event.amount())
-                .eventAt(event.paidAt())
+                .amount(event.getAmount())
+                .eventAt(LocalDateTime.ofInstant(event.getPaidAt(), ZoneId.systemDefault()))
                 .build();
         ledgerRepository.save(ledger);
     }
 
-    @KafkaListener(topics = ShoppingTopics.ORDER_CANCELLED, groupId = "shopping-settlement-service")
+    @KafkaListener(topics = ShoppingTopics.ORDER_CANCELLED, groupId = "shopping-settlement-service",
+            containerFactory = "avroKafkaListenerContainerFactory")
     public void onOrderCancelled(OrderCancelledEvent event) {
-        log.info("Recording cancellation to ledger: order={}, amount={}", event.orderNumber(), event.totalAmount());
+        log.info("Recording cancellation to ledger: order={}, amount={}", event.getOrderNumber(), event.getTotalAmount());
         SettlementLedger ledger = SettlementLedger.builder()
-                .orderNumber(event.orderNumber())
+                .orderNumber(event.getOrderNumber())
                 .sellerId(1L) // TODO: resolve seller from order items
                 .eventType("ORDER_CANCELLED")
-                .amount(event.totalAmount())
-                .eventAt(event.cancelledAt())
+                .amount(event.getTotalAmount())
+                .eventAt(LocalDateTime.ofInstant(event.getCancelledAt(), ZoneId.systemDefault()))
                 .build();
         ledgerRepository.save(ledger);
     }

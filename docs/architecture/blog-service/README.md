@@ -8,7 +8,7 @@
 
 | ID | 제목 | 상태 | 생성일 | 최종 수정일 |
 |----|------|------|--------|------------|
-| `arch-blog-system-overview` | [System Overview](./system-overview.md) | Current | 2026-01-18 | 2026-02-06 |
+| `arch-blog-system-overview` | [System Overview](./system-overview.md) | Current | 2026-01-18 | 2026-02-25 |
 
 ---
 
@@ -41,4 +41,4 @@ architecture/blog-service/
 
 ---
 
-**마지막 업데이트**: 2026-02-06
+**마지막 업데이트**: 2026-02-25

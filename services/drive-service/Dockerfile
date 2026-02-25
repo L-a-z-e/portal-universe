@@ -10,7 +10,7 @@ COPY build.gradle settings.gradle ./
 COPY gradle/ gradle/
 COPY gradlew ./
 COPY services/common-library/build.gradle services/common-library/
-COPY services/drive-events/build.gradle services/drive-events/
+COPY services/event-contracts/build.gradle services/event-contracts/
 COPY services/drive-service/build.gradle services/drive-service/
 
 # Layer 2: download dependencies (cached if unchanged)
@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
 
 # Layer 3: source code
 COPY services/common-library/ services/common-library/
-COPY services/drive-events/ services/drive-events/
+COPY services/event-contracts/ services/event-contracts/
 COPY services/drive-service/ services/drive-service/
 
 # Layer 4: build

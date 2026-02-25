@@ -40,6 +40,11 @@ public enum NotificationType {
     PRISM_TASK_COMPLETED("AI 작업이 완료되었습니다"),
     PRISM_TASK_FAILED("AI 작업이 실패했습니다"),
 
+    // Drive
+    DRIVE_FILE_UPLOADED("파일이 업로드되었습니다"),
+    DRIVE_FILE_DELETED("파일이 삭제되었습니다"),
+    DRIVE_FOLDER_CREATED("폴더가 생성되었습니다"),
+
     // System
     SYSTEM("시스템 알림");
 

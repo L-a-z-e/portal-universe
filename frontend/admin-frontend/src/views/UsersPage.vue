@@ -26,7 +26,7 @@ import type {
 } from '@/dto/admin';
 
 const { getErrorMessage, handleError } = useApiError();
-const { addToast } = useToast();
+const toast = useToast();
 
 // --- Search & List ---
 const query = ref('');
@@ -176,20 +176,11 @@ function timeAgo(dateStr: string | null): string {
   return `${days}d ago`;
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-}
-
 async function copyUuid() {
   if (!selectedUser.value) return;
   try {
     await navigator.clipboard.writeText(selectedUser.value.uuid);
-    addToast({ variant: 'success', message: 'UUID copied to clipboard' });
+    toast.success('UUID copied to clipboard');
   } catch {
     const el = document.createElement('textarea');
     el.value = selectedUser.value.uuid;
@@ -197,7 +188,7 @@ async function copyUuid() {
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
-    addToast({ variant: 'success', message: 'UUID copied to clipboard' });
+    toast.success('UUID copied to clipboard');
   }
 }
 
@@ -217,7 +208,7 @@ async function handleChangeMembership(group: string, tierKey: string | null) {
   changingMembershipGroup.value = group;
   try {
     await changeUserMembership(selectedUser.value.uuid, group, String(tierKey));
-    addToast({ variant: 'success', message: `Tier changed to ${tierKey} for ${group}` });
+    toast.success(`Tier changed to ${tierKey} for ${group}`);
     userMemberships.value = await fetchUserMemberships(selectedUser.value.uuid);
   } catch (err) {
     handleError(err, 'Failed to change membership tier');
@@ -530,7 +521,7 @@ onMounted(async () => {
                         size="sm"
                         clearable
                         class="flex-1"
-                        @update:model-value="(val: string | number) => handleChangeMembership(group, String(val))"
+                        @update:model-value="(val) => handleChangeMembership(group, String(val))"
                       />
                       <Spinner v-if="changingMembershipGroup === group" size="sm" />
                     </div>

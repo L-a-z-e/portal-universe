@@ -27,7 +27,8 @@ class PostMapperTest {
                     .content("Test Content " + "A".repeat(200))
                     .summary("Test Summary")
                     .authorId("author1")
-                    .authorName("Author Name")
+                    .authorUsername("author1_handle")
+                    .authorNickname("Author Name")
                     .status(PostStatus.PUBLISHED)
                     .tags(Set.of("tag1", "tag2"))
                     .category("Tech")
@@ -45,7 +46,8 @@ class PostMapperTest {
             assertThat(response.title()).isEqualTo("Test Title");
             assertThat(response.summary()).isEqualTo("Test Summary");
             assertThat(response.authorId()).isEqualTo("author1");
-            assertThat(response.authorName()).isEqualTo("Author Name");
+            assertThat(response.authorUsername()).isEqualTo("author1_handle");
+            assertThat(response.authorNickname()).isEqualTo("Author Name");
             assertThat(response.tags()).containsExactlyInAnyOrder("tag1", "tag2");
             assertThat(response.category()).isEqualTo("Tech");
             assertThat(response.thumbnailUrl()).isEqualTo("thumb.jpg");

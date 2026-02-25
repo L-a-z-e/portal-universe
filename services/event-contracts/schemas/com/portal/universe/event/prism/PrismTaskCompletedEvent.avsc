@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "PrismTaskCompletedEvent",
+  "namespace": "com.portal.universe.event.prism",
+  "doc": "Published by prism-service when an AI task completes. Consumed by notification-service.",
+  "fields": [
+    { "name": "taskId", "type": "int", "doc": "Task identifier" },
+    { "name": "boardId", "type": "int", "doc": "Board identifier the task belongs to" },
+    { "name": "userId", "type": "string", "doc": "User who initiated the task" },
+    { "name": "title", "type": "string", "doc": "Task title" },
+    { "name": "status", "type": "com.portal.universe.event.prism.TaskStatus", "doc": "Task status after completion" },
+    { "name": "agentName", "type": ["null", "string"], "default": null, "doc": "AI agent name that executed the task" },
+    { "name": "executionId", "type": ["null", "int"], "default": null, "doc": "Execution record identifier" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp in epoch milliseconds" }
+  ]
+}

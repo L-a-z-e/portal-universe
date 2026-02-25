@@ -12,7 +12,7 @@ COPY build.gradle settings.gradle ./
 COPY gradle/ gradle/
 COPY gradlew ./
 COPY services/common-library/build.gradle services/common-library/
-COPY services/blog-events/build.gradle services/blog-events/
+COPY services/event-contracts/build.gradle services/event-contracts/
 COPY services/blog-service/build.gradle services/blog-service/
 
 # ---------------------------------------------
@@ -23,10 +23,10 @@ RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     ./gradlew :services:blog-service:dependencies --no-daemon || true
 
 # ---------------------------------------------
-# Layer 3: 소스 코드 복사 (common-library, blog-events 포함)
+# Layer 3: 소스 코드 복사 (common-library, event-contracts 포함)
 # ---------------------------------------------
 COPY services/common-library/ services/common-library/
-COPY services/blog-events/ services/blog-events/
+COPY services/event-contracts/ services/event-contracts/
 COPY services/blog-service/ services/blog-service/
 
 # ---------------------------------------------

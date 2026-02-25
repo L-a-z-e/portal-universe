@@ -28,18 +28,18 @@ spec:
               name: edge
           env:
             - name: SERVICES
-              value: "s3"
+              value: "s3,sqs,sns,iam,sts,lambda,events,stepfunctions,logs,cloudwatch,cloudformation,secretsmanager,ssm"
             - name: AWS_DEFAULT_REGION
               value: "ap-northeast-2"
             - name: EAGER_SERVICE_LOADING
               value: "1"
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
               memory: "512Mi"
-              cpu: "500m"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1500m"
           livenessProbe:
             httpGet:
               path: /_localstack/health

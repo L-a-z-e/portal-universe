@@ -33,7 +33,7 @@ public class DataInitializer {
 
     @Bean
     @Order(2)
-    @Profile({"local", "docker"})
+    @Profile({"local", "docker", "kubernetes"})
     public CommandLineRunner initData() {
         return args -> {
             // 일반 테스트 유저 생성 (ROLE_USER + FREE 멤버십)

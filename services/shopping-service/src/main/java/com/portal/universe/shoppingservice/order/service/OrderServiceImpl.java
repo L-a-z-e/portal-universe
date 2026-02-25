@@ -20,6 +20,7 @@ import com.portal.universe.shoppingservice.order.saga.SagaState;
 import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
 import com.portal.universe.event.shopping.OrderCreatedEvent;
 import com.portal.universe.event.shopping.OrderCancelledEvent;
+import com.portal.universe.event.shopping.OrderItemInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -115,20 +116,21 @@ public class OrderServiceImpl implements OrderService {
                 savedOrder.getTotalAmount(), savedOrder.getDiscountAmount(), savedOrder.getFinalAmount());
 
         // 주문 생성 이벤트 발행
-        eventPublisher.publishOrderCreated(new OrderCreatedEvent(
-                savedOrder.getOrderNumber(),
-                userId,
-                savedOrder.getFinalAmount(),
-                savedOrder.getItems().size(),
-                savedOrder.getItems().stream()
-                        .map(item -> new OrderCreatedEvent.OrderItemInfo(
-                                item.getProductId(),
-                                item.getProductName(),
-                                item.getQuantity(),
-                                item.getPrice()))
-                        .toList(),
-                LocalDateTime.now()
-        ));
+        eventPublisher.publishOrderCreated(OrderCreatedEvent.newBuilder()
+                .setOrderNumber(savedOrder.getOrderNumber())
+                .setUserId(userId)
+                .setTotalAmount(savedOrder.getFinalAmount())
+                .setItemCount(savedOrder.getItems().size())
+                .setItems(savedOrder.getItems().stream()
+                        .map(item -> OrderItemInfo.newBuilder()
+                                .setProductId(item.getProductId())
+                                .setProductName(item.getProductName())
+                                .setQuantity(item.getQuantity())
+                                .setPrice(item.getPrice())
+                                .build())
+                        .toList())
+                .setCreatedAt(java.time.Instant.now())
+                .build());
 
         return OrderResponse.from(savedOrder);
     }
@@ -205,13 +207,13 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order cancelled: {} (user: {}, reason: {})", orderNumber, userId, request.reason());
 
         // 주문 취소 이벤트 발행
-        eventPublisher.publishOrderCancelled(new OrderCancelledEvent(
-                orderNumber,
-                userId,
-                savedOrder.getFinalAmount(),
-                request.reason(),
-                LocalDateTime.now()
-        ));
+        eventPublisher.publishOrderCancelled(OrderCancelledEvent.newBuilder()
+                .setOrderNumber(orderNumber)
+                .setUserId(userId)
+                .setTotalAmount(savedOrder.getFinalAmount())
+                .setCancelReason(request.reason())
+                .setCancelledAt(java.time.Instant.now())
+                .build());
 
         return OrderResponse.from(savedOrder);
     }

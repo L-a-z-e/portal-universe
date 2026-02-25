@@ -65,6 +65,7 @@ class PostControllerTest {
             "Test Content",
             "Test Summary",
             "user-1",
+            "user-1-username",
             "UserNick",
             PostStatus.PUBLISHED,
             Set.of("tag1", "tag2"),
@@ -85,6 +86,7 @@ class PostControllerTest {
             "Test Title",
             "Test Summary",
             "user-1",
+            "user-1-username",
             "UserNick",
             Set.of("tag1", "tag2"),
             "Technology",
@@ -118,7 +120,7 @@ class PostControllerTest {
             List.of("image1.jpg"),
             null
         );
-        given(postService.createPost(any(PostCreateRequest.class), eq("user-1"), anyString()))
+        given(postService.createPost(any(PostCreateRequest.class), eq("user-1"), anyString(), anyString()))
             .willReturn(postResponse);
 
         // when & then
@@ -131,7 +133,7 @@ class PostControllerTest {
             .andExpect(jsonPath("$.data.id").value("post-1"))
             .andExpect(jsonPath("$.data.title").value("Test Title"));
 
-        verify(postService).createPost(any(PostCreateRequest.class), eq("user-1"), anyString());
+        verify(postService).createPost(any(PostCreateRequest.class), eq("user-1"), anyString(), anyString());
     }
 
     @Test

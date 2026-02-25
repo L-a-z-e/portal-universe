@@ -44,6 +44,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<String> getAllCategories() {
+        return productRepository.findDistinctCategories();
+    }
+
+    @Override
     @Transactional
     public ProductResponse createProduct(ProductCreateRequest request) {
         Product newProduct = Product.builder()

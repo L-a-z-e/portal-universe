@@ -23,12 +23,32 @@ services:
     url: "http://notification-service:8084"
 
 spring:
+  config:
+    import:
+      - optional:aws-secretsmanager:/portal-universe/docker/blog-service/db-credentials?prefix=db.
+      - optional:aws-parameterstore:/portal-universe/docker/blog-service/
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localstack:4566
+      secretsmanager:
+        endpoint: http://localstack:4566
+      parameterstore:
+        endpoint: http://localstack:4566
+
   data:
     mongodb:
       uri: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/blog_db?authSource=admin
 
   kafka:
     bootstrap-servers: kafka:29092
+    properties:
+      schema.registry.url: http://schema-registry:8081
 
   # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
 

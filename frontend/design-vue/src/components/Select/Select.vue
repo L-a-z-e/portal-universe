@@ -43,8 +43,28 @@ const sizeClasses = {
   },
 };
 
+const isMultiple = computed(() => props.multiple === true);
+
+const selectedValues = computed<(string | number)[]>(() => {
+  if (isMultiple.value) {
+    return Array.isArray(props.modelValue) ? props.modelValue : [];
+  }
+  return [];
+});
+
+const isSelected = (value: string | number) => {
+  if (isMultiple.value) {
+    return selectedValues.value.includes(value);
+  }
+  return props.modelValue === value;
+};
+
 const selectedOption = computed(() =>
-  props.options.find(opt => opt.value === props.modelValue)
+  isMultiple.value ? undefined : props.options.find(opt => opt.value === props.modelValue)
+);
+
+const selectedOptions = computed(() =>
+  isMultiple.value ? props.options.filter(opt => selectedValues.value.includes(opt.value)) : []
 );
 
 const filteredOptions = computed(() => {
@@ -73,7 +93,7 @@ const triggerClasses = computed(() => [
 const open = () => {
   if (props.disabled) return;
   isOpen.value = true;
-  highlightedIndex.value = props.modelValue
+  highlightedIndex.value = !isMultiple.value && props.modelValue != null
     ? filteredOptions.value.findIndex(opt => opt.value === props.modelValue)
     : 0;
   emit('open');
@@ -100,15 +120,31 @@ const toggle = () => {
 
 const selectOption = (option: SelectProps['options'][0]) => {
   if (option.disabled) return;
-  emit('update:modelValue', option.value);
-  emit('change', option.value);
-  close();
+
+  if (isMultiple.value) {
+    const current = selectedValues.value;
+    const newValue = current.includes(option.value)
+      ? current.filter(v => v !== option.value)
+      : [...current, option.value];
+    emit('update:modelValue', newValue);
+    emit('change', newValue);
+    // multiple일 때는 닫지 않음
+  } else {
+    emit('update:modelValue', option.value);
+    emit('change', option.value);
+    close();
+  }
 };
 
 const clear = (event: Event) => {
   event.stopPropagation();
-  emit('update:modelValue', null);
-  emit('change', null);
+  if (isMultiple.value) {
+    emit('update:modelValue', []);
+    emit('change', []);
+  } else {
+    emit('update:modelValue', null);
+    emit('change', null);
+  }
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -218,13 +254,18 @@ onUnmounted(() => {
       @click="toggle"
       @keydown="handleKeydown"
     >
-      <span :class="[!selectedOption && 'text-text-muted']">
-        {{ selectedOption?.label || placeholder }}
+      <span :class="[!selectedOption && !selectedOptions.length && 'text-text-muted']">
+        <template v-if="isMultiple">
+          {{ selectedOptions.length > 0 ? selectedOptions.map(o => o.label).join(', ') : placeholder }}
+        </template>
+        <template v-else>
+          {{ selectedOption?.label || placeholder }}
+        </template>
       </span>
       <div class="flex items-center gap-1">
         <!-- Clear button -->
         <span
-          v-if="clearable && selectedOption && !disabled"
+          v-if="clearable && (selectedOption || selectedOptions.length) && !disabled"
           class="p-1 hover:bg-gray-100 rounded dark:hover:bg-gray-700"
           @click="clear"
         >
@@ -284,7 +325,7 @@ onUnmounted(() => {
             v-for="(option, index) in filteredOptions"
             :key="String(option.value)"
             role="option"
-            :aria-selected="modelValue === option.value"
+            :aria-selected="isSelected(option.value)"
             :aria-disabled="option.disabled"
             :class="[
               'cursor-pointer transition-colors duration-100',
@@ -293,7 +334,7 @@ onUnmounted(() => {
                 ? 'text-text-muted cursor-not-allowed'
                 : highlightedIndex === index
                   ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                  : modelValue === option.value
+                  : isSelected(option.value)
                     ? 'bg-gray-100 dark:bg-gray-700'
                     : 'hover:bg-gray-50 dark:hover:bg-gray-700',
             ]"
@@ -303,7 +344,7 @@ onUnmounted(() => {
             <div class="flex items-center justify-between">
               <span>{{ option.label }}</span>
               <svg
-                v-if="modelValue === option.value"
+                v-if="isSelected(option.value)"
                 class="w-5 h-5 text-brand-600 dark:text-brand-400"
                 fill="none"
                 viewBox="0 0 24 24"

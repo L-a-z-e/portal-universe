@@ -68,6 +68,7 @@ coverage/
 
 # Kubernetes Secrets (민감 정보 포함)
 k8s/base/secret.yaml
+k8s/base/tls-secret.yaml
 
 # Local Development Data (Docker Compose)
 localstack_data/
@@ -123,3 +124,6 @@ frontend/portal-shell/public/prism/
 !**/src/**/*.png
 !**/public/**/*.png
 !**/assets/**/*.png
+
+# Lambda build artifacts
+lambda/**/package.zip

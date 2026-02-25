@@ -11,7 +11,6 @@ import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.event.blog.PostLikedEvent;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -43,11 +42,12 @@ public class LikeService {
      * 이미 좋아요가 있으면 취소, 없으면 추가
      * @param postId 포스트 ID
      * @param userId 사용자 ID
-     * @param userName 사용자 이름
+     * @param userName 사용자 Username (핸들)
+     * @param nickname 사용자 닉네임 (표시용)
      * @return 좋아요 토글 결과 (liked 상태, 총 좋아요 수)
      */
     @Transactional
-    public LikeToggleResponse toggleLike(String postId, String userId, String userName) {
+    public LikeToggleResponse toggleLike(String postId, String userId, String userName, String nickname) {
         // 1. Post 존재 여부 확인
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
@@ -69,6 +69,7 @@ public class LikeService {
                     .postId(postId)
                     .userId(userId)
                     .userName(userName)
+                    .nickname(nickname)
                     .build();
             Like savedLike = likeRepository.save(newLike);
             increment = 1;
@@ -77,15 +78,15 @@ public class LikeService {
 
             // 자기 글에 좋아요한 경우 알림 발행하지 않음
             if (!userId.equals(post.getAuthorId())) {
-                eventPublisher.publishPostLiked(new PostLikedEvent(
-                        savedLike.getId(),
-                        postId,
-                        post.getTitle(),
-                        post.getAuthorId(),
-                        userId,
-                        userName,
-                        LocalDateTime.now()
-                ));
+                eventPublisher.publishPostLiked(PostLikedEvent.newBuilder()
+                        .setLikeId(savedLike.getId())
+                        .setPostId(postId)
+                        .setPostTitle(post.getTitle())
+                        .setAuthorId(post.getAuthorId())
+                        .setLikerId(userId)
+                        .setLikerName(nickname)
+                        .setTimestamp(java.time.Instant.now())
+                        .build());
             }
         }
 

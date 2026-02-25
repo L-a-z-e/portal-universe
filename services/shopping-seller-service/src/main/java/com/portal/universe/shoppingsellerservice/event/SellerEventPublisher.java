@@ -4,6 +4,7 @@ import com.portal.universe.event.shopping.InventoryReservedEvent;
 import com.portal.universe.event.shopping.ShoppingTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -12,15 +13,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class SellerEventPublisher {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
 
     public void publishInventoryReserved(InventoryReservedEvent event) {
-        kafkaTemplate.send(ShoppingTopics.INVENTORY_RESERVED, event.orderNumber(), event)
+        avroKafkaTemplate.send(ShoppingTopics.INVENTORY_RESERVED, event.getOrderNumber(), event)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
-                        log.error("Failed to publish InventoryReservedEvent: {}", event.orderNumber(), ex);
+                        log.error("Failed to publish InventoryReservedEvent: {}", event.getOrderNumber(), ex);
                     } else {
-                        log.info("Published InventoryReservedEvent: {}", event.orderNumber());
+                        log.info("Published InventoryReservedEvent: {}", event.getOrderNumber());
                     }
                 });
     }

@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "UserFollowedEvent",
+  "namespace": "com.portal.universe.event.blog",
+  "doc": "블로그 사용자 팔로우 이벤트",
+  "fields": [
+    {"name": "followId", "type": "string", "doc": "팔로우 ID"},
+    {"name": "followeeId", "type": "string", "doc": "팔로우 받은 사용자 ID (알림 수신자)"},
+    {"name": "followerId", "type": "string", "doc": "팔로우 한 사용자 ID"},
+    {"name": "followerName", "type": "string", "doc": "팔로우 한 사용자 이름"},
+    {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "이벤트 발생 시각"}
+  ]
+}

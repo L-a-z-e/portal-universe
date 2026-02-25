@@ -117,7 +117,7 @@ export interface SelectOption {
 }
 
 export interface SelectProps {
-  value?: string | number | null;
+  value?: string | number | null | (string | number)[];
   options: SelectOption[];
   placeholder?: string;
   disabled?: boolean;
@@ -127,6 +127,7 @@ export interface SelectProps {
   required?: boolean;
   clearable?: boolean;
   searchable?: boolean;
+  multiple?: boolean;
   size?: FormSize;
   name?: string;
   id?: string;

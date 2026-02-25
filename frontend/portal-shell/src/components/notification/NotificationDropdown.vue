@@ -55,7 +55,7 @@ function handleScroll(event: Event) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-  store.fetchNotifications(0, true)
+  store.fetchNotifications(1, true)
 })
 
 onUnmounted(() => {

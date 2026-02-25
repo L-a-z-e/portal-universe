@@ -2,6 +2,7 @@
 
 import apiClient from '../api/apiClient'
 import type { AuthorStats, OrderStats, ActivityItem, ActivityType } from '../types/dashboard'
+import { parseDate } from '../utils/dateUtils'
 
 // ============================================
 // Blog Service API
@@ -27,11 +28,11 @@ export async function getBlogStats(authorId: string): Promise<AuthorStats> {
 const SHOPPING_BASE = '/api/v1/shopping'
 
 interface PageResponse<T> {
-  content: T[]
+  items: T[]
   totalElements: number
   totalPages: number
   size: number
-  number: number
+  page: number
 }
 
 interface OrderResponse {
@@ -68,10 +69,10 @@ interface NotificationResponse {
   id: number
   type: string
   title: string
-  content: string
-  createdAt: string
-  read: boolean
-  metadata?: Record<string, unknown>
+  message: string
+  link: string | null
+  status: string
+  createdAt: string | number[]
 }
 
 /**
@@ -79,9 +80,11 @@ interface NotificationResponse {
  */
 function mapNotificationType(type: string): ActivityType {
   const typeMap: Record<string, ActivityType> = {
-    'COMMENT': 'COMMENT_CREATED',
-    'COMMENT_REPLY': 'COMMENT_CREATED',
-    'LIKE': 'POST_LIKED',
+    'BLOG_COMMENT': 'COMMENT_CREATED',
+    'BLOG_REPLY': 'COMMENT_CREATED',
+    'BLOG_LIKE': 'POST_LIKED',
+    'BLOG_FOLLOW': 'POST_CREATED',
+    'BLOG_NEW_POST': 'POST_CREATED',
     'ORDER_CREATED': 'ORDER_CREATED',
     'ORDER_CONFIRMED': 'ORDER_COMPLETED',
     'PAYMENT_COMPLETED': 'PAYMENT_COMPLETED'
@@ -109,22 +112,24 @@ function getActivityIcon(type: ActivityType): string {
  * @param limit 조회할 활동 수
  */
 export async function getRecentActivities(limit = 5): Promise<ActivityItem[]> {
-  const response = await apiClient.get<{ data: { content: NotificationResponse[] } }>(
+  const response = await apiClient.get<{ data: { items: NotificationResponse[] } }>(
     NOTIFICATION_BASE,
     { params: { page: 0, size: limit } }
   )
 
-  const notifications = response.data.data.content
+  const notifications = response.data.data.items
 
   return notifications.map((notification): ActivityItem => {
     const type = mapNotificationType(notification.type)
+    const parsed = parseDate(notification.createdAt)
     return {
       id: String(notification.id),
       type,
       title: notification.title,
-      description: notification.content,
-      timestamp: notification.createdAt,
-      icon: getActivityIcon(type)
+      description: notification.message,
+      timestamp: parsed?.toISOString() ?? '',
+      icon: getActivityIcon(type),
+      link: notification.link ?? undefined
     }
   })
 }

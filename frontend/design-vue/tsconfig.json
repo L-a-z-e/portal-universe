@@ -11,8 +11,7 @@
     "types": ["vite/client"],
     "declaration": true,
     "declarationDir": "./dist",
-    "emitDeclarationOnly": false,
-    "outDir": "./dist",
+    "emitDeclarationOnly": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],

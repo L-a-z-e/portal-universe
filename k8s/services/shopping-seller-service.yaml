@@ -1,0 +1,95 @@
+# ===================================================================
+# Shopping Seller Service: Deployment
+# 역할: 판매자 관련 비즈니스 로직(상품/재고/쿠폰/타임딜)을 처리합니다.
+# ===================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-seller-service
+  namespace: portal-universe
+  labels:
+    app: shopping-seller-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopping-seller-service
+  template:
+    metadata:
+      labels:
+        app: shopping-seller-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8088"
+    spec:
+      containers:
+        - name: shopping-seller-service
+          image: portal-universe-shopping-seller-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8088
+              name: http
+          envFrom:
+            - configMapRef:
+                name: portal-universe-config
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: portal-universe-secret
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "update"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8088
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 18
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8088
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8088
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+
+# ===================================================================
+# Shopping Seller Service: Service
+# ===================================================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopping-seller-service
+  namespace: portal-universe
+  labels:
+    app: shopping-seller-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8088
+      targetPort: 8088
+      protocol: TCP
+      name: http
+  selector:
+    app: shopping-seller-service

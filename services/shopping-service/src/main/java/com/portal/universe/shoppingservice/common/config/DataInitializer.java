@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.shoppingservice.coupon.domain.*;
 import com.portal.universe.shoppingservice.coupon.repository.CouponRepository;
 import com.portal.universe.shoppingservice.coupon.repository.UserCouponRepository;
+import com.portal.universe.shoppingservice.inventory.domain.Inventory;
+import com.portal.universe.shoppingservice.inventory.repository.InventoryRepository;
 import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.product.domain.ProductImage;
 import com.portal.universe.shoppingservice.product.repository.ProductRepository;
@@ -34,6 +36,7 @@ import java.util.List;
 public class DataInitializer {
 
     private final ProductRepository productRepository;
+    private final InventoryRepository inventoryRepository;
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
     private final ObjectMapper objectMapper;
@@ -44,7 +47,12 @@ public class DataInitializer {
     public CommandLineRunner initShoppingData() {
         return args -> {
             if (productRepository.count() > 0) {
-                log.info("Shopping seed data already exists, skipping");
+                if (inventoryRepository.count() == 0) {
+                    log.info("Products exist but inventory missing, creating inventory...");
+                    createInventory();
+                } else {
+                    log.info("Shopping seed data already exists, skipping");
+                }
                 return;
             }
 
@@ -57,6 +65,7 @@ public class DataInitializer {
     @Transactional
     public void initializeData() throws IOException {
         createProducts();
+        createInventory();
         createCouponsAndAssignToTestUser();
     }
 
@@ -88,6 +97,20 @@ public class DataInitializer {
             productRepository.save(product);
         }
         log.info("Created {} products", seeds.size());
+    }
+
+    private void createInventory() {
+        List<Product> products = productRepository.findAll();
+        for (Product product : products) {
+            if (!inventoryRepository.existsByProductId(product.getId())) {
+                Inventory inventory = Inventory.builder()
+                        .productId(product.getId())
+                        .initialQuantity(product.getStock() != null ? product.getStock() : 100)
+                        .build();
+                inventoryRepository.save(inventory);
+            }
+        }
+        log.info("Created inventory for {} products", products.size());
     }
 
     private void createCouponsAndAssignToTestUser() throws IOException {

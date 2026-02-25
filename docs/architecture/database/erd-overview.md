@@ -222,10 +222,11 @@ Order 생성 Saga:
 
 ### 3. 비정규화 (캐싱)
 ```javascript
-// Post에 authorName 캐싱
+// Post에 authorUsername, authorNickname 캐싱
 {
   authorId: "user-uuid-123",
-  authorName: "홍길동"  // Auth Service에서 가져와 저장
+  authorUsername: "gildong",
+  authorNickname: "홍길동"  // Auth Service에서 가져와 저장
 }
 
 // 장점: 매번 Auth Service 호출 불필요

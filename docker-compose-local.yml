@@ -204,13 +204,45 @@ services:
       retries: 5
       start_period: 30s
 
+  # Schema Registry (Avro serialization for Kafka events)
+  schema-registry:
+    image: confluentinc/cp-schema-registry:8.1.1
+    hostname: schema-registry
+    container_name: schema-registry
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:18081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: BACKWARD_TRANSITIVE
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/subjects || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   localstack:
     image: localstack/localstack:4.3.0
     container_name: localstack
-    mem_limit: 512m
-    memswap_limit: 512m
-    cpus: 1.0
-    pids_limit: 256
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1.5
+    pids_limit: 512
     logging:
       driver: json-file
       options:
@@ -219,12 +251,15 @@ services:
     ports:
       - "127.0.0.1:4566:4566"
     environment:
-      - SERVICES=s3
+      - SERVICES=s3,sqs,sns,iam,sts,lambda,events,stepfunctions,logs,cloudwatch,cloudformation,secretsmanager,ssm
       - AWS_DEFAULT_REGION=ap-northeast-2
       - PERSISTENCE=1
+      - LAMBDA_DOCKER_FLAGS=-e AWS_ENDPOINT_URL=http://host.docker.internal:4566
     volumes:
       - ./localstack_data:/var/lib/localstack
       - ./localstack-init:/etc/localstack/init/ready.d
+      - ./lambda:/lambda
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - portal-universe-net
     healthcheck:

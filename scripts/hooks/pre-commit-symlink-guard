@@ -9,6 +9,7 @@ set -e
 # 보호 대상 패턴 (정확한 경로 또는 접두사)
 PROTECTED_PATTERNS=(
     ".claude"
+    "CLAUDE.md"
     "certs"
     ".env"
     ".env.local"
