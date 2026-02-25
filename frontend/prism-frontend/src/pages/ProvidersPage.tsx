@@ -172,7 +172,7 @@ function ProvidersPage() {
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-bg-card rounded-xl shadow-sm border border-border-default p-5">
               <div className="flex items-center gap-3 mb-3">
-                <Skeleton variant="circular" width={40} height={40} />
+                <Skeleton variant="circular" width="40px" height="40px" />
                 <div className="flex-1">
                   <Skeleton variant="text" width="60%" />
                   <Skeleton variant="text" width="30%" />

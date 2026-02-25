@@ -14,7 +14,7 @@ import {
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 import { useTaskStore, COLUMN_CONFIG } from '@/stores/taskStore';
-import type { Task, TaskStatus, TaskPriority } from '@/types';
+import type { Task, TaskStatus } from '@/types';
 
 interface KanbanBoardProps {
   onEditTask?: (task: Task) => void;
