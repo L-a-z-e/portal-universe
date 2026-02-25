@@ -4,7 +4,7 @@ title: Notification Service Data Flow
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-25
 author: Laze
 tags: [notification-service, data-flow, kafka, websocket, redis, event-driven]
 related:
@@ -25,6 +25,8 @@ Notification Service는 Kafka 이벤트 소비부터 실시간 WebSocket 전달�
 - **NotificationServiceImpl**: 알림 CRUD + 중복 방지
 - **NotificationPushService**: WebSocket + Redis Pub/Sub 실시간 전달
 - **NotificationRedisSubscriber**: Cross-instance 알림 수신
+- **SqsMessageSender**: SQS 이메일 큐 발송
+- **EmailQueueConsumer**: SQS 이메일 큐 소비 + 이메일 발송
 
 ### 전체 흐름 개요
 
@@ -35,11 +37,17 @@ graph LR
     C -->|command| D[Service]
     D -->|save| E[(MySQL)]
     D -->|push| F[PushService]
+    D -->|email| SQS_S[SqsMessageSender]
+    SQS_S -->|SendMessage| SQS[(SQS<br/>email-queue)]
+    SQS -->|ReceiveMessage| SQS_C[EmailQueueConsumer]
+    SQS_C -->|send| EMAIL[Email Service]
     F -->|STOMP| G[WebSocket]
     F -->|publish| H[(Redis)]
     H -->|subscribe| I[RedisSubscriber]
     I -->|STOMP| G
     G --> J[Frontend]
+
+    style SQS fill:#2196F3,color:#fff
 ```
 
 ---
@@ -282,6 +290,59 @@ flowchart TD
 
 ---
 
+### 7. SQS 이메일 큐 플로우
+
+Kafka 이벤트 처리 후 이메일 발송이 필요한 경우, SQS 큐를 통해 비동기 발송합니다. Kafka Consumer의 처리 부담을 분리하고, SQS의 자동 재시도/DLQ로 이메일 발송 안정성을 확보합니다.
+
+```mermaid
+sequenceDiagram
+    participant NC as NotificationConsumer
+    participant SVC as NotificationService
+    participant SMS as SqsMessageSender
+    participant SQS as SQS<br/>email-notification-queue
+    participant EQC as EmailQueueConsumer
+    participant DLQ as SQS<br/>email-notification-dlq
+
+    NC->>SVC: create(cmd) → 알림 생성
+    SVC->>SVC: 이메일 발송 필요 판단
+    SVC->>SMS: sendEmailMessage(message)
+    SMS->>SQS: SendMessage<br/>(JSON: to, subject, body, type)
+    Note over NC: Kafka Offset 커밋<br/>(이메일 발송과 독립)
+
+    loop 5초 간격 폴링
+        EQC->>SQS: ReceiveMessage (maxMessages=10)
+        SQS-->>EQC: Messages
+        EQC->>EQC: 이메일 발송 처리
+        alt 발송 성공
+            EQC->>SQS: DeleteMessage
+        else 발송 실패
+            Note over SQS: VisibilityTimeout 후 재시도<br/>(최대 3회)
+            SQS->>DLQ: RedrivePolicy 초과 시 DLQ 이동
+        end
+    end
+```
+
+#### SQS 큐 구성
+
+| 큐 | 용도 | VisibilityTimeout | MaxReceiveCount |
+|-----|------|-------------------|-----------------|
+| `email-notification-queue` | 이메일 발송 작업 | 30s | 3 |
+| `email-notification-dlq` | 발송 실패 메시지 | - | - (수동 처리) |
+
+#### 이메일 메시지 형식
+
+```json
+{
+  "to": "user@example.com",
+  "subject": "주문이 접수되었습니다",
+  "body": "주문번호 ORD-2026... 총 3개 상품, 45,000원",
+  "notificationType": "ORDER_CREATED",
+  "userId": "user-123"
+}
+```
+
+---
+
 ## 📨 이벤트 스키마 상세
 
 ### Auth Domain
@@ -518,3 +579,4 @@ graph TB
 | 날짜 | 작성자 | 변경 내용 |
 |------|--------|-----------|
 | 2026-02-06 | Laze | 초기 문서 작성 (코드베이스 기반) |
+| 2026-02-25 | Laze | SQS 이메일 큐 플로우 추가, 컴포넌트 목록에 SqsMessageSender/EmailQueueConsumer 추가 |

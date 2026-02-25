@@ -7,7 +7,7 @@
 | 가이드 | 설명 |
 |--------|------|
 | [environment-variables.md](./environment-variables.md) | 서비스별 환경변수, 설정 파일 구조 및 관리 |
-| [monitoring.md](./monitoring.md) | Prometheus, Grafana, Zipkin 모니터링 구성 |
+| [monitoring.md](./monitoring.md) | Prometheus, Grafana, Zipkin, CloudWatch 모니터링 구성 |
 | [loki-query-guide.md](./loki-query-guide.md) | Loki 로그 쿼리 작성 가이드 |
 | [network-policy.md](./network-policy.md) | Kubernetes 네트워크 정책 설정 |
 

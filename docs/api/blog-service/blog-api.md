@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-17
+updated: 2026-02-25
 author: Laze
 tags: [api, blog, mongodb, post, comment, series, tag, file, like]
 related:
@@ -121,14 +121,50 @@ Gateway: /api/v1/blog/{path} → StripPrefix=3 → blog-service:8082/{path}
 | DELETE | `/tags/unused` | 사용되지 않는 태그 일괄 삭제 | ✅ ADMIN | `Void` |
 | DELETE | `/tags/{tagName}` | 태그 강제 삭제 | ✅ ADMIN | `Void` |
 
-### File API (`/file`)
+### File API (`/file`, `/upload`)
 
 | Method | Endpoint | 설명 | 인증 | 반환 타입 |
 |--------|----------|------|------|-----------|
-| POST | `/file/upload` | 파일 업로드 (S3) | ✅ | `FileUploadResponse` |
+| POST | `/upload/presign` | Presigned URL 발급 (클라이언트 직접 업로드) | ✅ | `PresignedUrlResponse` |
+| POST | `/file/upload` | 서버 경유 파일 업로드 (S3) | ✅ | `FileUploadResponse` |
 | DELETE | `/file/delete` | 파일 삭제 (S3) | ✅ ADMIN | `Void (204)` |
 
 > **참고**: File API는 `ApiResponse` wrapper를 사용하지 않고 직접 `ResponseEntity`를 반환합니다.
+
+#### POST `/upload/presign` — Presigned URL 발급
+
+클라이언트가 S3에 직접 업로드할 수 있는 서명된 URL을 발급합니다. 서버 경유 없이 대용량 파일을 직접 업로드할 수 있어 서버 부하를 줄입니다.
+
+**Request**:
+```json
+{
+  "fileName": "photo.jpg",
+  "contentType": "image/jpeg"
+}
+```
+
+**Response** (`PresignedUrlResponse`):
+```json
+{
+  "presignedUrl": "https://s3.ap-northeast-2.amazonaws.com/blog-files/...",
+  "fileKey": "uploads/2026/02/uuid-photo.jpg",
+  "expiresIn": 600
+}
+```
+
+**업로드 흐름**:
+```
+1. Client → Blog Service: POST /upload/presign (fileName, contentType)
+2. Blog Service → S3: GeneratePresignedUrl (PUT, 10분 만료)
+3. Blog Service → Client: presignedUrl + fileKey
+4. Client → S3: PUT (presignedUrl, file binary, Content-Type)
+5. Client → Blog Service: 게시글 저장 시 fileKey 포함
+```
+
+**제약사항**:
+- Presigned URL 유효 시간: 10분 (600초)
+- 허용 Content-Type: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`
+- 파일 크기 제한: 100MB (S3 정책으로 제한)
 
 ---
 

@@ -6,7 +6,7 @@ Blog Service의 API 명세 문서입니다.
 
 | 문서 ID                     | 제목 | 버전 | 상태 | 최종 업데이트 |
 |---------------------------|------|------|------|---------------|
-| [blog-api](./blog-api.md) | Blog Service API | v1 | current | 2026-02-06 |
+| [blog-api](./blog-api.md) | Blog Service API | v1 | current | 2026-02-25 |
 
 ## API 개요
 
@@ -82,14 +82,15 @@ Authorization: Bearer {token}
 
 **문서**: [Blog API - Tag API](./blog-api.md#tag-api)
 
-### File API (파일 관리) - 2개 endpoint
+### File API (파일 관리) - 3개 endpoint
 
-- S3 파일 업로드
+- Presigned URL 발급 (클라이언트 직접 업로드)
+- S3 서버 경유 파일 업로드
 - S3 파일 삭제 (관리자)
 
 > File API는 `ApiResponse` wrapper를 사용하지 않고 직접 `ResponseEntity`를 반환합니다.
 
-**문서**: [Blog API - File API](./blog-api.md#file-api)
+**문서**: [Blog API - File API](./blog-api.md#file-api-file-upload)
 
 ## 주요 DTO 구분
 
@@ -106,4 +107,4 @@ Authorization: Bearer {token}
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-25

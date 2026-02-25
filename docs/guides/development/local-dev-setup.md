@@ -4,7 +4,7 @@ title: 로컬 개발 환경 구성 가이드
 type: guide
 status: current
 created: 2026-02-05
-updated: 2026-02-06
+updated: 2026-02-25
 author: Laze
 tags: [local-development, setup, docker, guide]
 ---
@@ -47,12 +47,15 @@ docker compose -f docker-compose-local.yml up -d
 ```
 
 **실행되는 인프라 서비스**:
-- MySQL: 3307
-- PostgreSQL: 5432
-- MongoDB: 27017
+- MySQL: 3307 (notification-service 전용)
+- PostgreSQL: 5432 (auth, shopping, seller, settlement, prism, drive)
+- MongoDB: 27017 (blog-service)
 - Redis: 6379
-- Kafka: 9092
-- Elasticsearch: 9200
+- Kafka: 9092 (KRaft Mode, ZooKeeper 불필요)
+- Schema Registry: 18081 (Avro 스키마 관리, Kafka 이벤트 필수)
+- AKHQ: 9000 (Kafka + Schema Registry 관리 UI)
+- Elasticsearch: 9200 (Nori 플러그인 포함)
+- LocalStack: 4566 (S3, SQS, SNS, IAM, Lambda, EventBridge, CloudWatch, Secrets Manager, SSM 등 13개 AWS 서비스)
 
 **확인**:
 ```bash
@@ -62,16 +65,21 @@ docker compose -f docker-compose-local.yml ps
 **예상 출력**:
 ```
 NAME                STATUS              PORTS
-mysql               Up                  0.0.0.0:3307->3306/tcp
-postgres            Up                  0.0.0.0:5432->5432/tcp
-mongodb             Up                  0.0.0.0:27017->27017/tcp
-redis               Up                  0.0.0.0:6379->6379/tcp
-kafka               Up                  0.0.0.0:9092->9092/tcp
-elasticsearch       Up                  0.0.0.0:9200->9200/tcp
+mysql               Up (healthy)        127.0.0.1:3307->3306/tcp
+postgres            Up (healthy)        127.0.0.1:5432->5432/tcp
+mongodb             Up (healthy)        127.0.0.1:27017->27017/tcp
+redis               Up (healthy)        127.0.0.1:6379->6379/tcp
+kafka               Up (healthy)        127.0.0.1:9092->9092/tcp
+schema-registry     Up (healthy)        127.0.0.1:18081->8081/tcp
+akhq                Up                  127.0.0.1:9000->8080/tcp
+elasticsearch       Up (healthy)        127.0.0.1:9200->9200/tcp
+localstack          Up (healthy)        127.0.0.1:4566->4566/tcp
 ```
 
 **주의사항**:
 - ⚠️ Kafka는 완전히 시작되는 데 10-20초가 소요됩니다. 백엔드 서비스 실행 전 충분히 대기하세요.
+- ⚠️ Schema Registry가 없으면 Kafka Avro 이벤트 발행이 `Connection refused`로 실패합니다.
+- ⚠️ LocalStack은 시작 시 `localstack-init/` 디렉토리의 init 스크립트(01~07)를 자동 실행합니다. Lambda 함수를 사용하려면 사전에 `lambda/image-thumbnail/build.sh`를 실행하여 `package.zip`을 생성해야 합니다.
 
 ---
 
@@ -226,7 +234,7 @@ auth-service의 블로거 UUID와 매칭되는 블로그 데이터가 자동 생
 ## 검증
 
 ### 최종 확인 체크리스트
-- [ ] 인프라 컨테이너 6개가 모두 Up 상태
+- [ ] 인프라 컨테이너 9개가 모두 Up 상태 (DB 3 + Redis + Kafka + Schema Registry + AKHQ + ES + LocalStack)
 - [ ] API Gateway (8080) health check 응답
 - [ ] Auth Service (8081) health check 응답
 - [ ] 기타 백엔드 서비스 health check 응답

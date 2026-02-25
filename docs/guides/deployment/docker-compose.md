@@ -4,7 +4,7 @@ title: Docker Compose 배포 가이드
 type: guide
 status: current
 created: 2026-01-19
-updated: 2026-02-06
+updated: 2026-02-25
 author: Laze
 tags: [docker, docker-compose, deployment, guide]
 ---
@@ -42,7 +42,7 @@ docker compose ps
 ### 인프라만 시작
 
 ```bash
-docker compose up -d mysql-db mongodb redis kafka elasticsearch
+docker compose up -d mysql-db postgresql mongodb redis kafka schema-registry akhq elasticsearch localstack
 ```
 
 ### 모니터링 스택만 시작
@@ -54,7 +54,7 @@ docker compose up -d prometheus grafana zipkin loki promtail alertmanager
 ### 백엔드 서비스만 시작
 
 ```bash
-docker compose up -d api-gateway auth-service blog-service shopping-service notification-service
+docker compose up -d api-gateway auth-service blog-service shopping-service shopping-seller-service shopping-settlement-service notification-service prism-service drive-service chatbot-service
 ```
 
 ## 서비스 포트 매핑
@@ -68,6 +68,11 @@ docker compose up -d api-gateway auth-service blog-service shopping-service noti
 | Blog Service | 8082 | http://localhost:8082 |
 | Shopping Service | 8083 | http://localhost:8083 |
 | Notification Service | 8084 | http://localhost:8084 |
+| Prism Service | 8085 | http://localhost:8085 |
+| Chatbot Service | 8086 | http://localhost:8086 |
+| Drive Service | 8087 | http://localhost:8087 |
+| Shopping Seller Service | 8088 | http://localhost:8088 |
+| Shopping Settlement Service | 8089 | http://localhost:8089 |
 
 ### 프론트엔드
 
@@ -75,16 +80,25 @@ docker compose up -d api-gateway auth-service blog-service shopping-service noti
 |--------|------|-----|
 | Portal Shell | 30000 | http://localhost:30000 |
 | Blog Frontend | 30001 | http://localhost:30001 |
+| Shopping Frontend | 30002 | http://localhost:30002 |
+| Prism Frontend | 30003 | http://localhost:30003 |
+| Admin Frontend | 30004 | http://localhost:30004 |
+| Drive Frontend | 30005 | http://localhost:30005 |
+| Shopping Seller Frontend | 30006 | http://localhost:30006 |
 
 ### 데이터 저장소
 
 | 서비스 | 포트 | 설명 |
 |--------|------|------|
-| MySQL | 3307 | auth_db, shopping_db |
+| PostgreSQL | 5432 | auth_db, shopping_db, shopping_seller_db, shopping_settlement_db, prism_db, drive_db |
+| MySQL | 3307 | notification_db |
 | MongoDB | 27017 | blog_db |
 | Redis | 6379 | 캐싱, 세션 |
-| Kafka | 9092 | 메시지 브로커 |
-| Elasticsearch | 9200 | 검색 엔진 |
+| Kafka | 9092 | 메시지 브로커 (KRaft Mode) |
+| Schema Registry | 18081 | Avro 스키마 관리 |
+| AKHQ | 9000 | Kafka + Schema Registry 관리 UI |
+| Elasticsearch | 9200 | 검색 엔진 (Nori 플러그인) |
+| LocalStack | 4566 | AWS 서비스 에뮬레이션 (S3, SQS, SNS, IAM, Lambda, EventBridge, CloudWatch 등 13개) |
 
 ### 모니터링
 
