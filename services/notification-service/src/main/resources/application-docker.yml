@@ -9,7 +9,7 @@ app:
   frontend:
     base-url: https://portal-shell:30000
   websocket:
-    allowed-origins: "https://localhost:30000,https://portal-shell:30000"
+    allowed-origins: "https://portal-universe:30000,https://localhost:30000,https://portal-shell:30000"
 
 spring:
   config:

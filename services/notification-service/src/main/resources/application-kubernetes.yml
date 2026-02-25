@@ -7,7 +7,7 @@ server:
 
 app:
   websocket:
-    allowed-origins: "https://portal-universe.com,https://www.portal-universe.com"
+    allowed-origins: "https://portal-universe"
 
 spring:
   config:
