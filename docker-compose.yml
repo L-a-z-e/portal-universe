@@ -1071,10 +1071,10 @@ services:
   localstack:
     image: localstack/localstack:4.3.0
     container_name: localstack
-    mem_limit: 512m
-    memswap_limit: 512m
-    cpus: 1.0
-    pids_limit: 256
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1.5
+    pids_limit: 512
     logging:
       driver: json-file
       options:
@@ -1083,7 +1083,7 @@ services:
     ports:
       - "127.0.0.1:4566:4566"
     environment:
-      - SERVICES=s3
+      - SERVICES=s3,sqs,sns,iam,sts,lambda,events,stepfunctions,logs,cloudwatch,cloudformation,secretsmanager,ssm
       - AWS_DEFAULT_REGION=ap-northeast-2
       - PERSISTENCE=1
     volumes:

@@ -30,6 +30,7 @@ fi
 # 버킷 생성 (이미 존재하면 무시)
 echo "📦 Creating S3 buckets..."
 awslocal s3 mb s3://blog-bucket 2>/dev/null && echo "✓ Created blog-bucket" || echo "✓ blog-bucket already exists"
+awslocal s3 mb s3://drive-bucket 2>/dev/null && echo "✓ Created drive-bucket" || echo "✓ drive-bucket already exists"
 awslocal s3 mb s3://portal-universe-images 2>/dev/null && echo "✓ Created portal-universe-images" || echo "✓ portal-universe-images already exists"
 awslocal s3 mb s3://portal-universe-documents 2>/dev/null && echo "✓ Created portal-universe-documents" || echo "✓ portal-universe-documents already exists"
 awslocal s3 mb s3://portal-universe-backups 2>/dev/null && echo "✓ Created portal-universe-backups" || echo "✓ portal-universe-backups already exists"
