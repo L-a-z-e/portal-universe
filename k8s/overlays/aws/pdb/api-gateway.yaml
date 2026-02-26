@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-gateway-pdb
+  namespace: portal-universe
+  labels:
+    app: api-gateway
+    tier: critical
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: api-gateway

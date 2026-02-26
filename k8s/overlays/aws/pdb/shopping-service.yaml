@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: shopping-service-pdb
+  namespace: portal-universe
+  labels:
+    app: shopping-service
+    tier: high
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: shopping-service

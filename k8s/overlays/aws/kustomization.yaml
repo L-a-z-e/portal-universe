@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Base (namespace, secrets, tls)
+  - ../../base
+
+  # App Services (17개)
+  - ../../services
+
+  # AWS 환경 ConfigMap (RDS/MSK/ElastiCache 엔드포인트)
+  - configmap.yaml
+
+  # HPA (Critical + High Tier)
+  - hpa/api-gateway.yaml
+  - hpa/auth-service.yaml
+  - hpa/shopping-service.yaml
+  - hpa/shopping-seller-service.yaml
+  - hpa/portal-shell.yaml
+
+  # PDB (Critical + High Tier)
+  - pdb/api-gateway.yaml
+  - pdb/auth-service.yaml
+  - pdb/shopping-service.yaml
+  - pdb/portal-shell.yaml
+
+  # ALB Ingress
+  - ingress-alb.yaml
+
+patches:
+  - path: patches/replicas.yaml
+  - path: patches/affinity.yaml
+  - path: patches/resources.yaml

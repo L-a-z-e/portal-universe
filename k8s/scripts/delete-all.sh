@@ -8,7 +8,9 @@
 #   삭제 순서는 의존성의 역순(Ingress -> Frontend -> Backend -> Infra)으로 진행됩니다.
 #
 # 사용법:
-#   ./k8s/scripts/delete-all.sh
+#   ./k8s/scripts/delete-all.sh                    # 레거시 모드 (개별 삭제)
+#   ./k8s/scripts/delete-all.sh --overlay kind     # Kustomize Kind 리소스 삭제
+#   ./k8s/scripts/delete-all.sh --overlay aws      # Kustomize AWS 리소스 삭제
 #
 # 주의:
 #   이 스크립트는 되돌릴 수 없는 삭제 작업을 수행합니다. 신중하게 사용하세요.
@@ -24,6 +26,103 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
+
+# --- 인자 파싱 ---
+OVERLAY=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --overlay)
+            OVERLAY="$2"
+            shift 2
+            ;;
+        -h|--help)
+            echo "Usage: $0 [--overlay kind|aws]"
+            echo ""
+            echo "Options:"
+            echo "  --overlay kind    Delete Kind overlay resources (Kustomize)"
+            echo "  --overlay aws     Delete AWS overlay resources (Kustomize)"
+            echo "  (no args)         Legacy mode (individual kubectl delete -f)"
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            echo "Usage: $0 [--overlay kind|aws]"
+            exit 1
+            ;;
+    esac
+done
+
+if [[ -n "$OVERLAY" && "$OVERLAY" != "kind" && "$OVERLAY" != "aws" ]]; then
+    echo -e "${RED}Invalid overlay: $OVERLAY (must be 'kind' or 'aws')${NC}"
+    exit 1
+fi
+
+# =============================================================================
+# Kustomize 삭제 모드
+# =============================================================================
+if [[ -n "$OVERLAY" ]]; then
+    OVERLAY_DIR="$PROJECT_ROOT/k8s/overlays/$OVERLAY"
+
+    if [[ ! -d "$OVERLAY_DIR" ]]; then
+        echo -e "${RED}Overlay directory not found: $OVERLAY_DIR${NC}"
+        exit 1
+    fi
+
+    echo -e "${RED}🛑 Deleting Portal Universe (Kustomize: $OVERLAY)${NC}"
+    echo -e "📂 Overlay: $OVERLAY_DIR"
+    echo ""
+
+    # Kustomize 리소스 일괄 삭제
+    echo -e "${YELLOW}🗑️  Deleting all Kustomize resources...${NC}"
+    kubectl delete -k "$OVERLAY_DIR" --ignore-not-found=true --timeout=60s 2>/dev/null || true
+    echo -e "${GREEN}✅ Kustomize resources deleted${NC}"
+
+    # Metrics Server 삭제 (Kind overlay — kube-system 네임스페이스)
+    if [[ "$OVERLAY" == "kind" ]]; then
+        echo ""
+        echo -e "${YELLOW}📊 Deleting Metrics Server...${NC}"
+        kubectl delete deployment metrics-server -n kube-system --ignore-not-found=true --timeout=30s 2>/dev/null || true
+        kubectl delete service metrics-server -n kube-system --ignore-not-found=true --timeout=10s 2>/dev/null || true
+        kubectl delete apiservice v1beta1.metrics.k8s.io --ignore-not-found=true --timeout=10s 2>/dev/null || true
+        echo -e "${GREEN}✅ Metrics Server deleted${NC}"
+    fi
+
+    # Namespace 삭제 (선택)
+    echo ""
+    echo -e "${YELLOW}📦 Delete Namespace (Optional)${NC}"
+    read -p "❓ Delete namespace 'portal-universe'? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        kubectl delete namespace portal-universe --timeout=60s 2>/dev/null || true
+        echo -e "${GREEN}✅ Namespace deleted${NC}"
+    else
+        echo -e "${BLUE}ℹ️  Namespace kept${NC}"
+    fi
+
+    # Ingress Controller 삭제 (Kind만, 선택)
+    if [[ "$OVERLAY" == "kind" ]]; then
+        echo ""
+        echo -e "${YELLOW}🌐 Delete Ingress Controller (Optional)${NC}"
+        read -p "❓ Delete Ingress Controller? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            kubectl delete namespace ingress-nginx --timeout=60s 2>/dev/null || true
+            echo -e "${GREEN}✅ Ingress Controller deleted${NC}"
+        else
+            echo -e "${BLUE}ℹ️  Ingress Controller kept${NC}"
+        fi
+    fi
+
+    echo ""
+    echo -e "${GREEN}════════════════════════════════════════${NC}"
+    echo -e "${GREEN}✅ Portal Universe deleted! (overlay: $OVERLAY)${NC}"
+    echo -e "${GREEN}════════════════════════════════════════${NC}"
+    exit 0
+fi
+
+# =============================================================================
+# 레거시 삭제 모드 (인자 없이 실행 시 기존 동작 유지)
+# =============================================================================
 
 echo -e "${RED}🛑 Deleting Portal Universe Kubernetes Deployment${NC}"
 echo -e "📂 Project root: $PROJECT_ROOT"

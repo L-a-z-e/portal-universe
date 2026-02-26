@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Base (namespace, secrets, tls)
+  - ../../base
+
+  # App Services (17개)
+  - ../../services
+
+  # Infrastructure (DB, Kafka, monitoring 등 — Kind 로컬 전용)
+  - ../../infrastructure
+
+  # Metrics Server (Kind용 — kubelet-insecure-tls)
+  - metrics-server.yaml
+
+patches:
+  - path: patches/replicas.yaml
+  - path: patches/affinity.yaml

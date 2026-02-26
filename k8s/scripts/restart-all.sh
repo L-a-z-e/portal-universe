@@ -15,14 +15,23 @@ echo -e "${BLUE}🔄 Portal Universe - Restart All Deployments${NC}"
 echo ""
 
 DEPLOYMENTS=(
-    "discovery-service"
-    "config-service"
     "auth-service"
     "blog-service"
     "shopping-service"
+    "shopping-seller-service"
+    "shopping-settlement-service"
     "notification-service"
+    "drive-service"
+    "prism-service"
+    "chatbot-service"
     "api-gateway"
     "portal-shell"
+    "blog-frontend"
+    "shopping-frontend"
+    "shopping-seller-frontend"
+    "prism-frontend"
+    "admin-frontend"
+    "drive-frontend"
 )
 
 for DEPLOYMENT in "${DEPLOYMENTS[@]}"; do
