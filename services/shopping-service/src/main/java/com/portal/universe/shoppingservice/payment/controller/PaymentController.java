@@ -9,6 +9,7 @@ import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -71,6 +72,7 @@ public class PaymentController {
      * @param user 인증된 관리자 정보
      * @return 환불된 결제 정보
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{paymentNumber}/refund")
     public ApiResponse<PaymentResponse> refundPayment(
             @PathVariable String paymentNumber,

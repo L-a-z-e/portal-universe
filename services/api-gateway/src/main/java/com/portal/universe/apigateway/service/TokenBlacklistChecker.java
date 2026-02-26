@@ -6,10 +6,15 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+
 /**
  * Gateway에서 로그아웃된 토큰(블랙리스트)을 확인하는 서비스입니다.
  * Auth-service의 TokenBlacklistService와 동일한 Redis 키 패턴을 사용합니다.
- * Redis 키 패턴: blacklist:{accessToken}
+ * Redis 키 패턴: blacklist:{SHA-256(accessToken)}
  */
 @Slf4j
 @Service
@@ -26,7 +31,7 @@ public class TokenBlacklistChecker {
      * @return 블랙리스트에 있으면 true
      */
     public Mono<Boolean> isBlacklisted(String token) {
-        String key = BLACKLIST_PREFIX + token;
+        String key = BLACKLIST_PREFIX + hashToken(token);
         return reactiveRedisTemplate.hasKey(key)
                 .doOnNext(blacklisted -> {
                     if (Boolean.TRUE.equals(blacklisted)) {
@@ -38,5 +43,15 @@ public class TokenBlacklistChecker {
                     // Redis 장애 시 토큰을 허용 (가용성 우선)
                     return Mono.just(false);
                 });
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
     }
 }
