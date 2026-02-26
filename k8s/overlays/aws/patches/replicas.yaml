@@ -1,0 +1,96 @@
+# AWS 환경 replica 설정
+# Critical Tier: 3 replicas
+# High Tier: 2 replicas
+# Frontend Tier: 2 replicas
+# Standard Tier: base 기본값 유지 (1)
+
+# --- Critical Tier ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: portal-universe
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: portal-universe
+spec:
+  replicas: 3
+---
+# --- High Tier ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-service
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-seller-service
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-shell
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+# --- Frontend Tier ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-frontend
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-frontend
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-seller-frontend
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prism-frontend
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-frontend
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drive-frontend
+  namespace: portal-universe
+spec:
+  replicas: 2

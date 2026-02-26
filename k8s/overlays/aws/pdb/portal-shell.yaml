@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: portal-shell-pdb
+  namespace: portal-universe
+  labels:
+    app: portal-shell
+    tier: high
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: portal-shell

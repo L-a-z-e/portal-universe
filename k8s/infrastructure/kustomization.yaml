@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Common Config
+  - configmap.yaml
+
+  # Databases
+  - postgresql.yaml
+  - mysql-db.yaml
+  - mongodb.yaml
+
+  # Message Queue & Cache
+  - kafka.yaml
+  - redis.yaml
+  - elasticsearch.yaml
+
+  # AWS Local Emulation
+  - localstack.yaml
+
+  # Monitoring
+  - zipkin.yaml
+  - prometheus.yaml
+  - grafana.yaml
+
+  # Network & Ingress
+  - network-policy.yaml
+  - ingress.yaml
