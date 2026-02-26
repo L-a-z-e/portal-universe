@@ -30,8 +30,9 @@ def require_admin(
     if not x_user_id:
         raise BusinessException.auth_required()
     roles_header = x_user_effective_roles or x_user_roles
-    if roles_header:
-        roles = [r.strip() for r in roles_header.split(",")]
-        if not any(role in ADMIN_ROLES for role in roles):
-            raise BusinessException.admin_required()
+    if not roles_header:
+        raise BusinessException.admin_required()
+    roles = [r.strip() for r in roles_header.split(",")]
+    if not any(role in ADMIN_ROLES for role in roles):
+        raise BusinessException.admin_required()
     return x_user_id

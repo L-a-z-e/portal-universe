@@ -57,6 +57,11 @@ public enum AuthErrorCode implements ErrorCode {
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "A009", "Password is incorrect"),
 
     /**
+     * 계정이 활성 상태가 아닙니다 (정지, 휴면, 탈퇴 대기).
+     */
+    ACCOUNT_NOT_ACTIVE(HttpStatus.FORBIDDEN, "A010", "Account is not active"),
+
+    /**
      * Username이 이미 존재합니다.
      */
     USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "A011", "Username already exists"),

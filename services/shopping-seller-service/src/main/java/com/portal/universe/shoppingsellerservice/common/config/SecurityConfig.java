@@ -56,8 +56,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
 
-                        // Internal API (서비스 간 통신)
-                        .requestMatchers("/internal/**").permitAll()
+                        // Internal API (서비스 간 통신 — Feign이 X-User-* 헤더 전파)
+                        .requestMatchers("/internal/**").authenticated()
 
                         // 상품 조회 (공개)
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()

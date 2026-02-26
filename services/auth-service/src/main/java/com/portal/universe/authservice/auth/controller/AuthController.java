@@ -9,6 +9,7 @@ import com.portal.universe.authservice.auth.dto.RefreshResponse;
 import com.portal.universe.authservice.common.config.JwtProperties;
 import com.portal.universe.authservice.password.config.PasswordPolicyProperties;
 import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.authservice.user.domain.UserStatus;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.authservice.common.util.RefreshTokenCookieHelper;
@@ -97,7 +98,12 @@ public class AuthController {
             throw new CustomBusinessException(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
-        // 4. 로그인 성공 - 실패 기록 초기화
+        // 4. 계정 상태 검사 (BANNED, DORMANT, WITHDRAWAL_PENDING 차단)
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new CustomBusinessException(AuthErrorCode.ACCOUNT_NOT_ACTIVE);
+        }
+
+        // 5. 로그인 성공 - 실패 기록 초기화
         loginAttemptService.recordSuccess(loginKey);
 
         // 5. Access Token 발급
