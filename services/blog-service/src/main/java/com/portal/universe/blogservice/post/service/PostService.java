@@ -13,7 +13,7 @@ public interface PostService {
 
     PostResponse createPost(PostCreateRequest request, String authorId, String authorUsername, String authorNickname);
     Page<PostResponse> getAllPosts(int page, int size);
-    PostResponse getPostById(String postId);
+    PostResponse getPostById(String postId, String userId);
     PostResponse updatePost(String postId, PostUpdateRequest request, String userId);
     void deletePost(String postId, String userId);
     List<PostResponse> getPostsByProductId(String productId);

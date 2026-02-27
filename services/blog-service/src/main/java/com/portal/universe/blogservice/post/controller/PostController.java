@@ -14,6 +14,7 @@ import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,7 +45,7 @@ public class PostController {
 
     @Operation(summary = "전체 게시물 조회(관리자용)")
     @GetMapping("/all")
-    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_BLOG_ADMIN')")
     public ApiResponse<PageResponse<PostResponse>> getAllPosts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size
@@ -56,9 +57,12 @@ public class PostController {
     @Operation(summary = "게시물 상세 조회")
     @GetMapping("/{postId}")
     public ApiResponse<PostResponse> getPostById(
-            @Parameter(description = "게시물 ID") @PathVariable String postId
+            @Parameter(description = "게시물 ID") @PathVariable String postId,
+            HttpServletRequest request
     ) {
-        PostResponse response = postService.getPostById(postId);
+        AuthUser user = (AuthUser) request.getAttribute("authUser");
+        String userId = user != null ? user.uuid() : null;
+        PostResponse response = postService.getPostById(postId, userId);
         return ApiResponse.success(response);
     }
 

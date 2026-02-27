@@ -87,7 +87,7 @@ public class FileController {
             description = "S3에서 파일을 삭제합니다. ADMIN 권한이 필요합니다."
     )
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_BLOG_ADMIN')")
     public ApiResponse<Void> deleteFile(@Valid @RequestBody FileDeleteRequest request) {
         log.info("File delete request - url: {}", request.getUrl());
 

@@ -60,10 +60,8 @@ public class SeriesService {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
-        if (!series.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.SERIES_UPDATE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                series.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.SERIES_UPDATE_FORBIDDEN);
 
         series.update(request.name(), request.description(), request.thumbnailUrl());
         try {
@@ -82,10 +80,8 @@ public class SeriesService {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
-        if (!series.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.SERIES_DELETE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                series.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.SERIES_DELETE_FORBIDDEN);
 
         seriesRepository.delete(series);
     }
@@ -129,10 +125,8 @@ public class SeriesService {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
-        if (!series.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.SERIES_ADD_POST_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                series.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.SERIES_ADD_POST_FORBIDDEN);
 
         series.addPost(postId);
         try {
@@ -151,10 +145,8 @@ public class SeriesService {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
-        if (!series.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.SERIES_REMOVE_POST_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                series.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.SERIES_REMOVE_POST_FORBIDDEN);
 
         series.removePost(postId);
         try {
@@ -173,10 +165,8 @@ public class SeriesService {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
 
-        if (!series.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.SERIES_REORDER_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                series.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.SERIES_REORDER_FORBIDDEN);
 
         series.reorderPosts(request.postIds());
         try {

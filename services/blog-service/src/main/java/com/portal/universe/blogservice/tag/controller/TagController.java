@@ -84,7 +84,7 @@ public class TagController {
 
     @Operation(summary = "사용되지 않는 태그 일괄 삭제 (관리자)")
     @DeleteMapping("/unused")
-    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_BLOG_ADMIN')")
     public ApiResponse<Void> deleteUnusedTags() {
         tagService.deleteUnusedTags();
         return ApiResponse.success(null);
@@ -92,7 +92,7 @@ public class TagController {
 
     @Operation(summary = "태그 강제 삭제 (관리자)")
     @DeleteMapping("/{tagName}")
-    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_BLOG_ADMIN')")
     public ApiResponse<Void> deleteTag(
             @Parameter(description = "태그 이름") @PathVariable String tagName
     ) {
