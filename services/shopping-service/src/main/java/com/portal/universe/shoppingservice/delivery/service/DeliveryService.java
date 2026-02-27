@@ -23,15 +23,16 @@ public interface DeliveryService {
      * @param trackingNumber 운송장 번호
      * @return 배송 정보
      */
-    DeliveryResponse getDeliveryByTrackingNumber(String trackingNumber);
+    DeliveryResponse getDeliveryByTrackingNumber(String trackingNumber, String userId);
 
     /**
      * 주문 번호로 배송을 조회합니다.
      *
      * @param orderNumber 주문 번호
+     * @param userId 현재 사용자 ID (소유권 검증)
      * @return 배송 정보
      */
-    DeliveryResponse getDeliveryByOrderNumber(String orderNumber);
+    DeliveryResponse getDeliveryByOrderNumber(String orderNumber, String userId);
 
     /**
      * 배송 상태를 변경합니다 (관리자 전용).

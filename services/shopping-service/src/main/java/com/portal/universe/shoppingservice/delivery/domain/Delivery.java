@@ -25,7 +25,8 @@ import java.util.UUID;
 @Table(name = "deliveries", indexes = {
         @Index(name = "idx_delivery_tracking_number", columnList = "tracking_number", unique = true),
         @Index(name = "idx_delivery_order_id", columnList = "order_id"),
-        @Index(name = "idx_delivery_status", columnList = "status")
+        @Index(name = "idx_delivery_status", columnList = "status"),
+        @Index(name = "idx_delivery_user_id", columnList = "user_id")
 })
 @EntityListeners(AuditingEntityListener.class)
 @Getter
@@ -53,6 +54,12 @@ public class Delivery {
      */
     @Column(name = "order_number", nullable = false, length = 30)
     private String orderNumber;
+
+    /**
+     * 주문자 ID (소유권 검증용 denormalization)
+     */
+    @Column(name = "user_id", nullable = false, length = 50)
+    private String userId;
 
     /**
      * 배송 상태
@@ -101,10 +108,11 @@ public class Delivery {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Delivery(Long orderId, String orderNumber, Address shippingAddress, String carrier) {
+    public Delivery(Long orderId, String orderNumber, String userId, Address shippingAddress, String carrier) {
         this.trackingNumber = generateTrackingNumber();
         this.orderId = orderId;
         this.orderNumber = orderNumber;
+        this.userId = userId;
         this.status = DeliveryStatus.PREPARING;
         this.shippingAddress = shippingAddress;
         this.carrier = carrier != null ? carrier : "기본택배";
