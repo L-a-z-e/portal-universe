@@ -95,4 +95,16 @@ public class Inventory {
         this.availableQuantity += quantity;
         this.totalQuantity += quantity;
     }
+
+    /**
+     * 차감된 재고를 복원합니다 (Saga 보상용).
+     * deduct의 역연산: available +N, total +N
+     */
+    public void restore(int quantity) {
+        if (quantity <= 0) {
+            throw new CustomBusinessException(SellerErrorCode.INVALID_STOCK_QUANTITY);
+        }
+        this.availableQuantity += quantity;
+        this.totalQuantity += quantity;
+    }
 }

@@ -39,6 +39,12 @@ public class CartItem {
     private Cart cart;
 
     /**
+     * 판매자 ID (스냅샷)
+     */
+    @Column(name = "seller_id", nullable = false)
+    private Long sellerId;
+
+    /**
      * 상품 ID
      */
     @Column(name = "product_id", nullable = false)
@@ -70,9 +76,10 @@ public class CartItem {
     private LocalDateTime addedAt;
 
     @Builder
-    public CartItem(Cart cart, Long productId, String productName, BigDecimal price, Integer quantity) {
+    public CartItem(Cart cart, Long sellerId, Long productId, String productName, BigDecimal price, Integer quantity) {
         validateQuantity(quantity);
         this.cart = cart;
+        this.sellerId = sellerId;
         this.productId = productId;
         this.productName = productName;
         this.price = price;

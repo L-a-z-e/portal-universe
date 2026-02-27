@@ -159,6 +159,31 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
+    @Override
+    @Transactional
+    public void restoreStock(StockReserveRequest request) {
+        List<Long> productIds = new ArrayList<>(request.items().keySet());
+        productIds.sort(Long::compareTo);
+
+        List<Inventory> inventories = inventoryRepository.findByProductIdsForUpdate(productIds);
+        Map<Long, Inventory> inventoryMap = inventories.stream()
+                .collect(Collectors.toMap(Inventory::getProductId, Function.identity()));
+
+        for (Map.Entry<Long, Integer> entry : request.items().entrySet()) {
+            Inventory inventory = Optional.ofNullable(inventoryMap.get(entry.getKey()))
+                    .orElseThrow(() -> new CustomBusinessException(SellerErrorCode.INVENTORY_NOT_FOUND));
+
+            int prevAvailable = inventory.getAvailableQuantity();
+            int prevReserved = inventory.getReservedQuantity();
+            inventory.restore(entry.getValue());
+
+            recordMovement(inventory, MovementType.RESTORE, entry.getValue(),
+                    prevAvailable, inventory.getAvailableQuantity(),
+                    prevReserved, inventory.getReservedQuantity(),
+                    "ORDER_COMPENSATION", request.orderNumber(), "Stock restored due to saga compensation", "SYSTEM");
+        }
+    }
+
     private void recordMovement(Inventory inventory, MovementType type, int quantity,
                                 int prevAvail, int afterAvail, int prevReserved, int afterReserved,
                                 String refType, String refId, String reason, String performedBy) {

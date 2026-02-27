@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface SettlementLedgerRepository extends JpaRepository<SettlementLedger, Long> {
     List<SettlementLedger> findByProcessedFalseAndEventAtBetween(LocalDateTime start, LocalDateTime end);
+
+    List<SettlementLedger> findByOrderNumberAndEventType(String orderNumber, String eventType);
 }

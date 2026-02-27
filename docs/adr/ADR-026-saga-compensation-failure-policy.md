@@ -1,6 +1,6 @@
 # ADR-026: Shopping Service Saga 보상 액션 실패 처리 정책
 
-**Status**: Proposed
+**Status**: Accepted (구현 방식 변경됨 — ADR-053 참조)
 **Date**: 2026-02-07
 **Author**: Laze
 
@@ -78,8 +78,29 @@ CREATE TABLE compensation_failures (
 
 ---
 
+## 실제 구현 (2026-02-27, ADR-053)
+
+제안된 `compensation_failures` 테이블 + 스케줄러 대신, 다음과 같이 구현됨:
+
+1. **`DeadSagaRecoveryScheduler`**: 기존 `saga_states` 테이블을 활용하여 STARTED/COMPENSATING 상태로 30분 이상 멈춘 Saga를 5분마다 자동 복구. 별도 테이블 추가 없이 기존 인프라를 재활용.
+2. **`PESSIMISTIC_WRITE + SKIP_LOCKED`**: 다중 인스턴스 경합 방지 (제안된 `@SchedulerLock` 대신 DB 네이티브 락 사용)
+3. **`compensateSagaSteps()`**: 실제 보상 로직 구현 — `restoreStock()` (Feign), `refundPaymentForCompensation()` (로컬). 제안된 "즉시 3회 재시도" 대신 Saga 상태 기반 보상.
+4. **`COMPENSATION_FAILED` 상태**: 보상 3회 실패 시 수동 개입 필요 (제안과 동일)
+
+**변경 근거**: saga_states 테이블에 이미 상태/타임스탬프 정보가 있으므로, 별도 compensation_failures 테이블은 불필요. SagaState 자체가 보상 추적의 Single Source of Truth.
+
+## References
+
+- [ADR-016: Shopping Saga Pattern과 분산 트랜잭션](./ADR-016-shopping-feature-implementation.md)
+- [ADR-053: Saga Cross-Service Compensation](./ADR-053-saga-cross-service-compensation.md)
+- `OrderServiceImpl.java:176-193` (재고 해제 실패 무시)
+- `PaymentServiceImpl.java:94-101` (환불 실패 미처리)
+
+---
+
 ## 변경 이력
 
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-07 | 초안 작성 | Laze |
+| 2026-02-27 | Accepted로 변경, 실제 구현 방식 기록 (ADR-053) | Laze |

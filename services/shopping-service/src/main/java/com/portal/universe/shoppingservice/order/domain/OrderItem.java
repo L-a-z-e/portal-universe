@@ -33,6 +33,12 @@ public class OrderItem {
     private Order order;
 
     /**
+     * 판매자 ID (스냅샷)
+     */
+    @Column(name = "seller_id", nullable = false)
+    private Long sellerId;
+
+    /**
      * 상품 ID
      */
     @Column(name = "product_id", nullable = false)
@@ -63,8 +69,9 @@ public class OrderItem {
     private BigDecimal subtotal;
 
     @Builder
-    public OrderItem(Order order, Long productId, String productName, BigDecimal price, Integer quantity) {
+    public OrderItem(Order order, Long sellerId, Long productId, String productName, BigDecimal price, Integer quantity) {
         this.order = order;
+        this.sellerId = sellerId;
         this.productId = productId;
         this.productName = productName;
         this.price = price;

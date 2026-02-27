@@ -90,4 +90,9 @@ resilience4j:
       default:
         timeout-duration: 5s
 
+# 서비스 간 내부 API 인증 토큰
+app:
+  internal:
+    token: ${INTERNAL_SERVICE_TOKEN:portal-internal-token-2026}
+
 # 로깅 설정은 logback-spring.xml에서 관리

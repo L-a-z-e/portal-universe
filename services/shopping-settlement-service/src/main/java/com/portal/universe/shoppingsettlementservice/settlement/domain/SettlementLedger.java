@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "settlement_ledger", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_ledger_order_event", columnNames = {"order_number", "event_type"})
+        @UniqueConstraint(name = "uq_ledger_order_seller_event", columnNames = {"order_number", "seller_id", "event_type"})
 })
 @EntityListeners(AuditingEntityListener.class)
 @Getter

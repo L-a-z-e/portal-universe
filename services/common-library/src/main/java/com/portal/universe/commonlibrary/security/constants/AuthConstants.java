@@ -20,6 +20,7 @@ public final class AuthConstants {
         public static final String USER_NICKNAME = "X-User-Nickname";
         public static final String USER_NAME = "X-User-Name";
         public static final String AUTH_ERROR = "X-Auth-Error";
+        public static final String INTERNAL_TOKEN = "X-Internal-Token";
 
         private Headers() {}
     }

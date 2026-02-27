@@ -56,6 +56,10 @@ public class ShoppingEventPublisher {
         publishEvent(ShoppingTopics.PAYMENT_COMPLETED, event.getPaymentNumber(), event);
     }
 
+    public void publishPaymentCancelled(PaymentCancelledEvent event) {
+        publishEvent(ShoppingTopics.PAYMENT_CANCELLED, event.getPaymentNumber(), event);
+    }
+
     public void publishPaymentFailed(PaymentFailedEvent event) {
         publishEvent(ShoppingTopics.PAYMENT_FAILED, event.getPaymentNumber(), event);
     }

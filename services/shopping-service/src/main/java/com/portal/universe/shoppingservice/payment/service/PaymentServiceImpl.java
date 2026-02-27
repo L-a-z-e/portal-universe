@@ -5,7 +5,6 @@ import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderStatus;
 import com.portal.universe.shoppingservice.order.repository.OrderRepository;
-import com.portal.universe.shoppingservice.order.service.OrderService;
 import com.portal.universe.shoppingservice.payment.domain.Payment;
 import com.portal.universe.shoppingservice.payment.dto.PaymentResponse;
 import com.portal.universe.shoppingservice.payment.dto.ProcessPaymentRequest;
@@ -13,14 +12,14 @@ import com.portal.universe.shoppingservice.payment.pg.MockPGClient;
 import com.portal.universe.shoppingservice.payment.pg.PgResponse;
 import com.portal.universe.shoppingservice.payment.repository.PaymentRepository;
 import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
+import com.portal.universe.event.shopping.OrderItemInfo;
+import com.portal.universe.event.shopping.PaymentCancelledEvent;
 import com.portal.universe.event.shopping.PaymentCompletedEvent;
 import com.portal.universe.event.shopping.PaymentFailedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 /**
  * 결제 관리 서비스 구현체입니다.
@@ -33,7 +32,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
-    private final OrderService orderService;
     private final MockPGClient mockPGClient;
     private final ShoppingEventPublisher eventPublisher;
 
@@ -90,20 +88,11 @@ public class PaymentServiceImpl implements PaymentService {
             payment.complete(pgResponse.transactionId(), pgResponse.rawResponse());
             paymentRepository.save(payment);
 
-            // 6. 주문 완료 처리 (Saga 나머지 단계)
-            try {
-                orderService.completeOrderAfterPayment(order.getOrderNumber());
-            } catch (Exception e) {
-                // 주문 완료 실패 시 결제 환불
-                log.error("Failed to complete order after payment, initiating refund: {}", e.getMessage());
-                refundPaymentInternal(payment);
-                throw new CustomBusinessException(ShoppingErrorCode.ORDER_CREATION_FAILED);
-            }
-
             log.info("Payment completed successfully: {} (order: {}, amount: {})",
                     payment.getPaymentNumber(), order.getOrderNumber(), payment.getAmount());
 
-            // 결제 완료 이벤트 발행
+            // 결제 완료 이벤트 발행 → Consumer가 Saga 후속 단계(재고 차감, 배송 생성, 주문 확정) 처리
+            // TODO Phase 4.5: move items to OrderSettlementCreatedEvent
             eventPublisher.publishPaymentCompleted(PaymentCompletedEvent.newBuilder()
                     .setPaymentNumber(payment.getPaymentNumber())
                     .setOrderNumber(order.getOrderNumber())
@@ -112,6 +101,15 @@ public class PaymentServiceImpl implements PaymentService {
                     .setPaymentMethod(payment.getPaymentMethod().name())
                     .setPgTransactionId(payment.getPgTransactionId())
                     .setPaidAt(java.time.Instant.now())
+                    .setItems(order.getItems().stream()
+                            .map(item -> OrderItemInfo.newBuilder()
+                                    .setSellerId(item.getSellerId())
+                                    .setProductId(item.getProductId())
+                                    .setProductName(item.getProductName())
+                                    .setQuantity(item.getQuantity())
+                                    .setPrice(item.getPrice())
+                                    .build())
+                            .toList())
                     .build());
         } else {
             payment.fail(pgResponse.errorCode() + ": " + pgResponse.message(), pgResponse.rawResponse());
@@ -170,6 +168,16 @@ public class PaymentServiceImpl implements PaymentService {
         Payment savedPayment = paymentRepository.save(payment);
 
         log.info("Payment cancelled: {} (user: {})", paymentNumber, userId);
+
+        eventPublisher.publishPaymentCancelled(PaymentCancelledEvent.newBuilder()
+                .setPaymentNumber(paymentNumber)
+                .setOrderNumber(savedPayment.getOrderNumber())
+                .setUserId(userId)
+                .setAmount(savedPayment.getAmount())
+                .setCancelReason("Cancelled by user")
+                .setCancelledAt(java.time.Instant.now())
+                .build());
+
         return PaymentResponse.from(savedPayment);
     }
 
@@ -182,8 +190,37 @@ public class PaymentServiceImpl implements PaymentService {
         return PaymentResponse.from(refundPaymentInternal(payment));
     }
 
+    @Override
+    @Transactional
+    public void refundPaymentForCompensation(String orderNumber) {
+        Payment payment = paymentRepository.findByOrderNumber(orderNumber).orElse(null);
+        if (payment == null) {
+            log.warn("No payment found for compensation: order={}", orderNumber);
+            return;
+        }
+        if (!payment.getStatus().isRefundable()) {
+            log.warn("Payment not refundable for compensation: order={}, status={}", orderNumber, payment.getStatus());
+            return;
+        }
+
+        PgResponse pgResponse = mockPGClient.refundPayment(
+                payment.getPgTransactionId(),
+                payment.getAmount()
+        );
+
+        if (pgResponse.success()) {
+            payment.refund(pgResponse.transactionId());
+            paymentRepository.save(payment);
+            log.info("Payment refunded for compensation: {} (order: {})", payment.getPaymentNumber(), orderNumber);
+        } else {
+            log.error("Failed to refund payment for compensation: {} (error: {})",
+                    payment.getPaymentNumber(), pgResponse.errorCode());
+            throw new CustomBusinessException(ShoppingErrorCode.PAYMENT_REFUND_FAILED);
+        }
+    }
+
     /**
-     * 결제 환불을 수행합니다.
+     * 결제 환불을 수행합니다 (관리자용 — 주문 상태도 REFUNDED로 변경).
      */
     private Payment refundPaymentInternal(Payment payment) {
         if (!payment.getStatus().isRefundable()) {
