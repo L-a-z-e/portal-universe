@@ -9,6 +9,11 @@ spring:
   application:
     name: shopping-service
 
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
   # JPA 공통 설정
   jpa:
     open-in-view: false
@@ -67,5 +72,22 @@ management:
       enabled: true
   server:
     port: 8083  # 메인 애플리케이션과 동일 포트 사용
+
+# Resilience4j Circuit Breaker (Feign 연동)
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: count_based
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
 
 # 로깅 설정은 logback-spring.xml에서 관리

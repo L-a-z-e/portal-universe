@@ -4,7 +4,7 @@ title: TimeDeal System Architecture
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-27
 author: Laze
 tags: [architecture, shopping-service, timedeal, redis, lua-script, scheduler]
 related:
@@ -235,8 +235,21 @@ ARGV[2] = maxPerUser
 1. ACTIVE 상태 타임딜 조회 (with products)
 2. 각 product의 남은 재고 계산: `dealQuantity - soldQuantity`
 3. Redis에 재고 복원: `timedeal:stock:{dealId}:{productId}`
+4. TTL 설정: `endsAt - now + 1일` (SETEX로 원자적 설정)
 
 서비스 재시작 시 MySQL -> Redis 동기화 보장.
+
+### Redis TTL 전략
+
+> **주의**: `RedissonConnectionFactory` 사용 시 `expire()`/`pExpire()` 호출은 StackOverflowError를 유발합니다.
+> TTL 설정은 반드시 아래 방식을 사용해야 합니다. ([ADR-052](../../adr/ADR-052-redis-expire-bug-workaround.md))
+
+| 키 타입 | TTL 설정 방식 | 적용 시점 |
+|---------|-------------|-----------|
+| `timedeal:stock:{d}:{p}` (String) | **SETEX** — `set(key, value, ttl, TimeUnit)` | 초기화/복원 시 |
+| `timedeal:purchased:{d}:{p}:{u}` (String) | **Lua Script** — `redis.call('EXPIRE', KEYS[1], ARGV[1])` | 구매 후 |
+
+TTL 계산: `endsAt - now + 1일` (+1일 버퍼로 만료 직전 구매 처리 보호)
 
 ---
 
@@ -291,7 +304,8 @@ ARGV[2] = maxPerUser
 - [Data Flow](./data-flow.md) - 전체 데이터 흐름
 - [Coupon System](./coupon-system.md) - 유사한 Redis Lua 패턴
 - [Queue System](./queue-system.md) - 대기열 연동 예정
+- [ADR-052: Redis EXPIRE 버그 우회 전략](../../adr/ADR-052-redis-expire-bug-workaround.md)
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-27

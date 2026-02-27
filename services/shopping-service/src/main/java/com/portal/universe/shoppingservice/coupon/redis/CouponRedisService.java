@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -17,16 +18,38 @@ public class CouponRedisService {
     private static final String COUPON_STOCK_KEY = "coupon:stock:";
     private static final String COUPON_ISSUED_KEY = "coupon:issued:";
 
+    /**
+     * Lua Script로 EXPIRE 명령을 직접 실행합니다.
+     * RedissonConnection이 expire/pExpire default 메서드를 제대로 override하지 않아
+     * DefaultedRedisConnection에서 무한 재귀(StackOverflow)가 발생하는 버그를 우회합니다.
+     */
+    private static final String EXPIRE_LUA = "return redis.call('EXPIRE', KEYS[1], ARGV[1])";
+    private static final DefaultRedisScript<Long> EXPIRE_SCRIPT;
+
+    static {
+        EXPIRE_SCRIPT = new DefaultRedisScript<>(EXPIRE_LUA, Long.class);
+    }
+
     private final StringRedisTemplate stringRedisTemplate;
     private final DefaultRedisScript<Long> couponIssueScript;
 
     /**
-     * 쿠폰 재고를 Redis에 초기화합니다.
+     * 쿠폰 재고를 Redis에 초기화합니다. (TTL 없음)
      */
     public void initializeCouponStock(Long couponId, int quantity) {
         String stockKey = COUPON_STOCK_KEY + couponId;
         stringRedisTemplate.opsForValue().set(stockKey, String.valueOf(quantity));
         log.info("Initialized coupon stock: couponId={}, quantity={}", couponId, quantity);
+    }
+
+    /**
+     * 쿠폰 재고를 Redis에 초기화합니다. (TTL 포함, SETEX 사용)
+     * RedissonConnection의 expire 버그를 우회하기 위해 SET with EX 옵션으로 값과 TTL을 원자적 설정.
+     */
+    public void initializeCouponStock(Long couponId, int quantity, long ttlSeconds) {
+        String stockKey = COUPON_STOCK_KEY + couponId;
+        stringRedisTemplate.opsForValue().set(stockKey, String.valueOf(quantity), ttlSeconds, TimeUnit.SECONDS);
+        log.info("Initialized coupon stock with TTL: couponId={}, quantity={}, ttl={}s", couponId, quantity, ttlSeconds);
     }
 
     /**
@@ -114,12 +137,19 @@ public class CouponRedisService {
     }
 
     /**
-     * 쿠폰 캐시 만료 시간을 설정합니다.
+     * Issued Set 키에 TTL을 설정합니다.
+     * Lua Script로 EXPIRE 명령을 직접 실행하여 RedissonConnection 버그를 우회합니다.
      */
-    public void setCouponExpiration(Long couponId, long timeout, TimeUnit unit) {
-        String stockKey = COUPON_STOCK_KEY + couponId;
+    public void setIssuedKeyExpiration(Long couponId, long ttlSeconds) {
         String issuedKey = COUPON_ISSUED_KEY + couponId;
-        stringRedisTemplate.expire(stockKey, timeout, unit);
-        stringRedisTemplate.expire(issuedKey, timeout, unit);
+        expireViaLua(issuedKey, ttlSeconds);
+    }
+
+    /**
+     * Lua Script를 통해 Redis EXPIRE 명령을 안전하게 실행합니다.
+     * RedissonConnection의 expire/pExpire 무한 재귀 버그를 우회합니다.
+     */
+    private void expireViaLua(String key, long ttlSeconds) {
+        stringRedisTemplate.execute(EXPIRE_SCRIPT, Collections.singletonList(key), String.valueOf(ttlSeconds));
     }
 }

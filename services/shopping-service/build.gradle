@@ -41,6 +41,8 @@ dependencies {
     // =======================================
     // 다른 마이크로서비스의 API를 호출하기 위한 선언적 REST 클라이언트
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    // Feign Circuit Breaker 연동 (seller-service 장애 시 즉시 실패)
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
 
     // =======================================
     // Web & Data

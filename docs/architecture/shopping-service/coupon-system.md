@@ -4,7 +4,7 @@ title: Coupon System Architecture
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-27
 author: Laze
 tags: [architecture, shopping-service, coupon, redis, lua-script]
 related:
@@ -107,19 +107,23 @@ Redis를 통한 선착순 발급 동시성 제어:
 
 | 메서드 | 설명 |
 |--------|------|
-| `initializeCouponStock(couponId, qty)` | 재고 초기화 |
+| `initializeCouponStock(couponId, qty)` | 재고 초기화 (TTL 없음) |
+| `initializeCouponStock(couponId, qty, ttlSeconds)` | 재고 초기화 + SETEX TTL |
 | `issueCoupon(couponId, userId, maxQty)` | Lua Script 원자적 발급 |
 | `isAlreadyIssued(couponId, userId)` | 발급 여부 확인 |
 | `getStock(couponId)` | 잔여 재고 조회 |
 | `incrementStock(couponId)` | 발급 취소 시 재고 복원 |
 | `removeIssuedUser(couponId, userId)` | 발급 취소 시 사용자 제거 |
+| `setIssuedKeyExpiration(couponId, ttlSeconds)` | Issued Set 키에 Lua Script로 TTL 설정 |
+| `addIssuedUser(couponId, userId)` | Issued Set에 사용자 추가 (Bootstrap용) |
 
 ### CouponRedisBootstrap
 
 `ApplicationRunner` 구현체. 서비스 시작 시:
 1. ACTIVE 상태 쿠폰 전체 조회
-2. 각 쿠폰의 남은 재고(totalQuantity - issuedQuantity)를 Redis에 복원
+2. 각 쿠폰의 남은 재고(totalQuantity - issuedQuantity)를 Redis에 복원 (SETEX로 TTL 포함)
 3. 이미 발급된 사용자 목록을 Redis Set에 복원
+4. Issued Set 키에 Lua Script로 TTL 설정
 
 ---
 
@@ -181,13 +185,25 @@ ARGV[2] = maxQuantity
 ### Redis-MySQL 이중 관리
 
 ```
-[Redis] coupon:stock:{id} = remainingQuantity  ← 동시성 제어 (빠름)
+[Redis] coupon:stock:{id} = remainingQuantity  ← 동시성 제어 (빠름), TTL: expiresAt+1일
 [MySQL] coupons.issued_quantity                ← 영속성 보장 (정확)
-[Redis] coupon:issued:{id} = {userId Set}      ← 중복 발급 방지
+[Redis] coupon:issued:{id} = {userId Set}      ← 중복 발급 방지, TTL: expiresAt+1일
 [MySQL] user_coupons (UNIQUE user_id, coupon_id) ← 영속성 보장
 ```
 
 서비스 재시작 시 `CouponRedisBootstrap`이 MySQL -> Redis 동기화 수행.
+
+### Redis TTL 전략
+
+> **주의**: `RedissonConnectionFactory` 사용 시 `expire()`/`pExpire()` 호출은 StackOverflowError를 유발합니다.
+> TTL 설정은 반드시 아래 방식을 사용해야 합니다. ([ADR-052](../../adr/ADR-052-redis-expire-bug-workaround.md))
+
+| 키 타입 | TTL 설정 방식 | 적용 시점 |
+|---------|-------------|-----------|
+| `coupon:stock:{id}` (String) | **SETEX** — `set(key, value, ttl, TimeUnit)` | 쿠폰 생성, Bootstrap |
+| `coupon:issued:{id}` (Set) | **Lua Script** — `redis.call('EXPIRE', KEYS[1], ARGV[1])` | Bootstrap, 발급 후 |
+
+TTL 계산: `expiresAt - now + 1일` (+1일 버퍼로 만료 직전 발급 처리 보호)
 
 ---
 
@@ -252,7 +268,8 @@ PERCENTAGE:  discount = min(orderAmount * discountValue / 100, maximumDiscountAm
 - [System Overview](./system-overview.md)
 - [Data Flow](./data-flow.md) - 전체 데이터 흐름
 - [TimeDeal System](./timedeal-system.md) - 유사한 Redis Lua 패턴
+- [ADR-052: Redis EXPIRE 버그 우회 전략](../../adr/ADR-052-redis-expire-bug-workaround.md)
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-02-27

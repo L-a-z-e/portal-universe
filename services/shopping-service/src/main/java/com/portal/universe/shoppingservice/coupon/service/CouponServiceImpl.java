@@ -22,8 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -64,8 +66,14 @@ public class CouponServiceImpl implements CouponService {
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
-        // Redis에 쿠폰 재고 초기화
-        couponRedisService.initializeCouponStock(savedCoupon.getId(), savedCoupon.getTotalQuantity());
+        // Redis에 쿠폰 재고 초기화 + TTL (SETEX로 값과 TTL 원자적 설정)
+        long ttlSeconds = Duration.between(LocalDateTime.now(), savedCoupon.getExpiresAt()).getSeconds()
+                + TimeUnit.DAYS.toSeconds(1);
+        if (ttlSeconds > 0) {
+            couponRedisService.initializeCouponStock(savedCoupon.getId(), savedCoupon.getTotalQuantity(), ttlSeconds);
+        } else {
+            couponRedisService.initializeCouponStock(savedCoupon.getId(), savedCoupon.getTotalQuantity());
+        }
 
         log.info("Created coupon: id={}, code={}, quantity={}",
                 savedCoupon.getId(), savedCoupon.getCode(), savedCoupon.getTotalQuantity());
@@ -116,9 +124,8 @@ public class CouponServiceImpl implements CouponService {
 
         UserCoupon savedUserCoupon = userCouponRepository.save(userCoupon);
 
-        // 쿠폰 발급 수량 증가
-        coupon.incrementIssuedQuantity();
-        couponRepository.save(coupon);
+        // 쿠폰 발급 수량 원자적 증가 (Lost Update 방지, EXHAUSTED 자동 전환 포함)
+        couponRepository.incrementIssuedQuantity(couponId);
 
         log.info("Issued coupon: couponId={}, userId={}, userCouponId={}",
                 couponId, userId, savedUserCoupon.getId());

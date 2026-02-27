@@ -21,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -88,11 +91,11 @@ public class InventoryServiceImpl implements InventoryService {
         productIds.sort(Long::compareTo);
 
         List<Inventory> inventories = inventoryRepository.findByProductIdsForUpdate(productIds);
+        Map<Long, Inventory> inventoryMap = inventories.stream()
+                .collect(Collectors.toMap(Inventory::getProductId, Function.identity()));
 
         for (Map.Entry<Long, Integer> entry : request.items().entrySet()) {
-            Inventory inventory = inventories.stream()
-                    .filter(i -> i.getProductId().equals(entry.getKey()))
-                    .findFirst()
+            Inventory inventory = Optional.ofNullable(inventoryMap.get(entry.getKey()))
                     .orElseThrow(() -> new CustomBusinessException(SellerErrorCode.INVENTORY_NOT_FOUND));
 
             int prevAvailable = inventory.getAvailableQuantity();
@@ -113,11 +116,11 @@ public class InventoryServiceImpl implements InventoryService {
         productIds.sort(Long::compareTo);
 
         List<Inventory> inventories = inventoryRepository.findByProductIdsForUpdate(productIds);
+        Map<Long, Inventory> inventoryMap = inventories.stream()
+                .collect(Collectors.toMap(Inventory::getProductId, Function.identity()));
 
         for (Map.Entry<Long, Integer> entry : request.items().entrySet()) {
-            Inventory inventory = inventories.stream()
-                    .filter(i -> i.getProductId().equals(entry.getKey()))
-                    .findFirst()
+            Inventory inventory = Optional.ofNullable(inventoryMap.get(entry.getKey()))
                     .orElseThrow(() -> new CustomBusinessException(SellerErrorCode.INVENTORY_NOT_FOUND));
 
             int prevAvailable = inventory.getAvailableQuantity();
@@ -138,11 +141,11 @@ public class InventoryServiceImpl implements InventoryService {
         productIds.sort(Long::compareTo);
 
         List<Inventory> inventories = inventoryRepository.findByProductIdsForUpdate(productIds);
+        Map<Long, Inventory> inventoryMap = inventories.stream()
+                .collect(Collectors.toMap(Inventory::getProductId, Function.identity()));
 
         for (Map.Entry<Long, Integer> entry : request.items().entrySet()) {
-            Inventory inventory = inventories.stream()
-                    .filter(i -> i.getProductId().equals(entry.getKey()))
-                    .findFirst()
+            Inventory inventory = Optional.ofNullable(inventoryMap.get(entry.getKey()))
                     .orElseThrow(() -> new CustomBusinessException(SellerErrorCode.INVENTORY_NOT_FOUND));
 
             int prevAvailable = inventory.getAvailableQuantity();
