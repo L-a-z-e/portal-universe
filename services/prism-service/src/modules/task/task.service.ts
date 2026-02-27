@@ -246,9 +246,13 @@ export class TaskService {
     const referencedTasks: TaskContextResponseDto['referencedTasks'] = [];
 
     if (task.referencedTaskIds && task.referencedTaskIds.length > 0) {
-      const refTasks = await this.taskRepository.find({
-        where: { id: In(task.referencedTaskIds) },
-      });
+      // Verify ownership: only return referenced tasks from boards owned by the user
+      const refTasks = await this.taskRepository
+        .createQueryBuilder('task')
+        .leftJoin('task.board', 'board')
+        .where('task.id IN (:...ids)', { ids: task.referencedTaskIds })
+        .andWhere('board.userId = :userId', { userId })
+        .getMany();
 
       for (const refTask of refTasks) {
         const lastExecution = await this.executionRepository.findOne({
