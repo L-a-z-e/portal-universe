@@ -75,8 +75,6 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
-
                         // 상품 조회 (공개)
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
 

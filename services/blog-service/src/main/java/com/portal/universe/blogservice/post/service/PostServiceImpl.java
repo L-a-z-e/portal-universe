@@ -98,10 +98,19 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostResponse getPostById(String postId) {
+    public PostResponse getPostById(String postId, String userId) {
         log.info("Fetching post by id: {}", postId);
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
+
+        // DRAFT 게시물은 작성자 또는 블로그 관리자만 조회 가능
+        if (post.getStatus() == PostStatus.DRAFT && userId != null) {
+            SecurityUtils.assertOwnerOrHasAuthority(
+                    post.getAuthorId(), userId, "ROLE_BLOG_ADMIN", BlogErrorCode.POST_NOT_FOUND);
+        } else if (post.getStatus() == PostStatus.DRAFT) {
+            throw new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND);
+        }
+
         return convertToPostResponse(post);
     }
 
@@ -113,11 +122,8 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증: 작성자 또는 블로그 관리자만 수정 가능
-        if (!post.getAuthorId().equals(userId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                post.getAuthorId(), userId, "ROLE_BLOG_ADMIN", BlogErrorCode.POST_UPDATE_FORBIDDEN);
 
         // Tag diff 계산 (update 전에 기존 태그 보존)
         Set<String> oldTags = post.getTags() != null ? new HashSet<>(post.getTags()) : new HashSet<>();
@@ -164,11 +170,8 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증: 작성자 또는 블로그 관리자만 삭제 가능
-        if (!post.getAuthorId().equals(userId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.POST_DELETE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                post.getAuthorId(), userId, "ROLE_BLOG_ADMIN", BlogErrorCode.POST_DELETE_FORBIDDEN);
 
         // Tag postCount 동기화: 삭제 전 태그 감소
         if (post.getTags() != null && !post.getTags().isEmpty()) {
@@ -309,11 +312,8 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증: 작성자 또는 블로그 관리자만 상태 변경 가능
-        if (!post.getAuthorId().equals(userId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                post.getAuthorId(), userId, "ROLE_BLOG_ADMIN", BlogErrorCode.POST_UPDATE_FORBIDDEN);
 
         // 상태 변경
         if (newStatus == PostStatus.PUBLISHED) {

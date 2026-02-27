@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-30
-updated: 2026-02-08
+updated: 2026-02-28
 author: Laze
 tags: [api, notification-service, notification, rest]
 related:
@@ -26,7 +26,7 @@ related:
 | **Base URL** | `http://localhost:8084` (로컬) / `http://notification-service:8084` (Docker/K8s) |
 | **API Prefix** | `/api/v1/notifications` |
 | **인증 방식** | API Gateway에서 JWT 검증 후 `X-User-Id` 헤더 전달 |
-| **총 Endpoints** | 6개 |
+| **총 Endpoints** | 7개 |
 | **페이지네이션** | Spring Data `Pageable` (page, size, sort) |
 | **응답 형식** | `ApiResponse<T>` wrapper |
 
@@ -42,6 +42,7 @@ related:
 | `PUT` | `/api/v1/notifications/{id}/read` | 알림 읽음 처리 | ✅ |
 | `PUT` | `/api/v1/notifications/read-all` | 전체 읽음 처리 | ✅ |
 | `DELETE` | `/api/v1/notifications/{id}` | 알림 삭제 | ✅ |
+| `POST` | `/api/v1/notifications/ws/ticket` | WebSocket 인증 티켓 발급 | ✅ |
 
 ---
 
@@ -487,6 +488,34 @@ async function markAllAsRead(userId: string): Promise<number> {
   return response.data.data; // 읽음 처리된 알림 수
 }
 ```
+
+---
+
+## 7. WebSocket 티켓 발급
+
+WebSocket 연결을 위한 일회용 인증 티켓을 발급합니다. Redis에 30초 TTL로 저장됩니다.
+
+**`POST /api/v1/notifications/ws/ticket`**
+
+### Request
+
+```http
+POST /api/v1/notifications/ws/ticket
+X-User-Id: user-123
+```
+
+### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "ticket": "uuid-one-time-ticket"
+  }
+}
+```
+
+> 발급받은 티켓은 STOMP CONNECT 시 `connectHeaders`에 포함하여 전송합니다. 일회용이며 30초 내 사용해야 합니다.
 
 ---
 

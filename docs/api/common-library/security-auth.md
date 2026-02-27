@@ -341,6 +341,37 @@ if (!post.getAuthorId().equals(userId)
 public static boolean isSuperAdmin()
 ```
 
+##### assertOwner(String ownerId, String currentUserId, String errorMessage)
+
+리소스 소유자와 현재 사용자를 비교하여 불일치 시 FORBIDDEN 예외를 발생시킵니다.
+
+```java
+public static void assertOwner(String ownerId, String currentUserId, String errorMessage)
+```
+
+**사용 예시:**
+
+```java
+SecurityUtils.assertOwner(post.getAuthorId(), user.uuid(), "게시글 수정 권한이 없습니다");
+```
+
+##### assertOwnerOrAdmin(String ownerId, String currentUserId, String... adminRoles)
+
+리소스 소유자이거나 지정된 관리자 역할 보유 시 통과합니다. 두 조건 모두 불충족 시 FORBIDDEN 예외를 발생시킵니다.
+
+```java
+public static void assertOwnerOrAdmin(String ownerId, String currentUserId, String... adminRoles)
+```
+
+**사용 예시:**
+
+```java
+SecurityUtils.assertOwnerOrAdmin(
+    delivery.getUserId(), user.uuid(),
+    "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN"
+);
+```
+
 ##### isServiceAdmin(String service)
 
 현재 사용자가 특정 서비스의 관리자인지 확인합니다.
@@ -500,6 +531,6 @@ public ResponseEntity<ApiResponse<Content>> getPremiumContent(
 
 ---
 
-**최종 수정:** 2026-02-15
+**최종 수정:** 2026-02-28
 **API 버전:** v1
 **문서 버전:** 1.0

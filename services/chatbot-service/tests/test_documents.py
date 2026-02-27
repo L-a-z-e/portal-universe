@@ -2,6 +2,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+ADMIN_HEADERS = {"X-User-Id": "admin-1", "X-User-Effective-Roles": "ROLE_SUPER_ADMIN"}
+
 # ============================================================
 # 기존 테스트 (8개)
 # ============================================================
@@ -34,7 +36,7 @@ async def test_upload_unsupported_file(client):
     response = await client.post(
         "/api/v1/chat/documents/upload",
         files={"file": ("test.exe", b"binary", "application/octet-stream")},
-        headers={"X-User-Id": "user-123"},
+        headers=ADMIN_HEADERS,
     )
     assert response.status_code == 400
 
@@ -44,6 +46,8 @@ async def test_upload_document(client, tmp_path):
     """정상적인 문서 업로드 및 인덱싱."""
     with patch("app.api.routes.documents.settings") as mock_settings:
         mock_settings.documents_dir = str(tmp_path)
+        mock_settings.allowed_file_extensions = {".md", ".txt", ".pdf"}
+        mock_settings.max_file_size_bytes = 10 * 1024 * 1024
 
         with patch("app.api.routes.documents.rag_engine") as mock_engine:
             mock_engine.load_and_index_file.return_value = ("doc-uuid", 5)
@@ -51,7 +55,7 @@ async def test_upload_document(client, tmp_path):
             response = await client.post(
                 "/api/v1/chat/documents/upload",
                 files={"file": ("test.md", b"# Hello World\n\nContent here", "text/markdown")},
-                headers={"X-User-Id": "user-123"},
+                headers=ADMIN_HEADERS,
             )
 
             assert response.status_code == 200
@@ -87,7 +91,7 @@ async def test_delete_nonexistent_document(client):
 
         response = await client.delete(
             "/api/v1/chat/documents/doc-uuid-nonexistent",
-            headers={"X-User-Id": "user-123"},
+            headers=ADMIN_HEADERS,
         )
 
         assert response.status_code == 404
@@ -109,7 +113,7 @@ async def test_delete_document_by_id(client, tmp_path):
 
         response = await client.delete(
             "/api/v1/chat/documents/test.md",
-            headers={"X-User-Id": "user-123"},
+            headers=ADMIN_HEADERS,
         )
 
         assert response.status_code == 200
@@ -134,7 +138,7 @@ async def test_reindex_documents(client, tmp_path):
 
         response = await client.post(
             "/api/v1/chat/documents/reindex",
-            headers={"X-User-Id": "user-123"},
+            headers=ADMIN_HEADERS,
         )
 
         assert response.status_code == 200
@@ -154,7 +158,7 @@ async def test_upload_no_filename(client):
     response = await client.post(
         "/api/v1/chat/documents/upload",
         files={"file": ("", b"# Test content", "text/markdown")},
-        headers={"X-User-Id": "user-123"},
+        headers=ADMIN_HEADERS,
     )
     # 빈 파일명은 httpx/starlette 레벨에서 UploadFile로 파싱되지 않아 422 반환
     assert response.status_code == 422
@@ -171,7 +175,7 @@ async def test_upload_file_too_large(client, tmp_path):
         response = await client.post(
             "/api/v1/chat/documents/upload",
             files={"file": ("large.txt", large_content, "text/plain")},
-            headers={"X-User-Id": "user-123"},
+            headers=ADMIN_HEADERS,
         )
 
         assert response.status_code == 400
@@ -187,10 +191,11 @@ async def test_list_documents_with_files(client, tmp_path):
 
     with patch("app.api.routes.documents.settings") as mock_settings:
         mock_settings.documents_dir = str(tmp_path)
+        mock_settings.allowed_file_extensions = {".md", ".txt", ".pdf"}
 
         response = await client.get(
             "/api/v1/chat/documents",
-            headers={"X-User-Id": "user-123"},
+            headers=ADMIN_HEADERS,
         )
 
         assert response.status_code == 200
@@ -216,7 +221,7 @@ async def test_reindex_empty_directory(client, tmp_path):
 
         response = await client.post(
             "/api/v1/chat/documents/reindex",
-            headers={"X-User-Id": "user-123"},
+            headers=ADMIN_HEADERS,
         )
 
         assert response.status_code == 200
@@ -243,7 +248,7 @@ async def test_delete_document_removes_from_vectorstore(client, tmp_path):
 
         response = await client.delete(
             "/api/v1/chat/documents/target.md",
-            headers={"X-User-Id": "user-123"},
+            headers=ADMIN_HEADERS,
         )
 
         assert response.status_code == 200

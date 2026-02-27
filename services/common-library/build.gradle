@@ -27,6 +27,11 @@ repositories {
 
 dependencies {
     // =======================================
+    // XSS Sanitization (OWASP HTML Sanitizer)
+    // =======================================
+    implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260102.1'
+
+    // =======================================
     // Logging
     // =======================================
     implementation 'net.logstash.logback:logstash-logback-encoder:8.0'

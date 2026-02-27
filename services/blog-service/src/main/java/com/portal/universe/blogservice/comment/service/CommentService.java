@@ -87,10 +87,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.COMMENT_UPDATE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                comment.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.COMMENT_UPDATE_FORBIDDEN);
 
         comment.update(request.content());
         commentRepository.save(comment);
@@ -105,10 +103,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.COMMENT_DELETE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                comment.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.COMMENT_DELETE_FORBIDDEN);
 
         comment.delete();
         commentRepository.save(comment);

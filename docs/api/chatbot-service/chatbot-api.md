@@ -131,13 +131,13 @@ X-User-Id: user-123
 
 | 필드 | 타입 | 필수 | Validation | 설명 |
 |------|------|------|-----------|------|
-| `message` | string | ✅ | XSS 패턴 검증, 1-10000자 | 사용자 질문 |
+| `message` | string | ✅ | XSS 패턴 검증, 1-2000자 | 사용자 질문 |
 | `conversation_id` | string | - | - | 대화 ID (없으면 서버에서 UUID 생성) |
 
 ### Validation 규칙
 
 **message 필드**:
-- **길이**: 1-10000자
+- **길이**: 1-2000자 (프롬프트 인젝션 공격 표면 축소)
 - **XSS 방어**: `<script>`, `onclick=`, `javascript:`, `<iframe>` 패턴 차단
 - **검증 실패 시**: 422 Unprocessable Entity
 
@@ -770,6 +770,11 @@ async function uploadDocument(userId: string, file: File) {
 
 ## 변경 이력
 
+### v1.2.0 (2026-02-28)
+- 메시지 max_length 10000→2000 축소 (프롬프트 인젝션 공격 표면 감소)
+- XML tag 기반 프롬프트 구조화 (context/question 분리)
+- 프롬프트 인젝션 패턴 탐지 경고 로깅
+
 ### v1.0.0 (2026-02-06)
 - 코드베이스 기반 초기 버전 작성
 - Chat, Conversation, Document, Health 4개 도메인 10개 엔드포인트 문서화
@@ -783,4 +788,4 @@ async function uploadDocument(userId: string, file: File) {
 
 ---
 
-**최종 업데이트**: 2026-02-13
+**최종 업데이트**: 2026-02-28

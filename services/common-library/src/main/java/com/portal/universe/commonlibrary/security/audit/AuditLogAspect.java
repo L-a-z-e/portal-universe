@@ -1,5 +1,6 @@
 package com.portal.universe.commonlibrary.security.audit;
 
+import com.portal.universe.commonlibrary.util.IpUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class AuditLogAspect {
 
         // 요청 정보 추출
         HttpServletRequest request = getHttpServletRequest();
-        String ipAddress = getClientIp(request);
+        String ipAddress = IpUtils.getClientIp(request);
         String userAgent = request != null ? request.getHeader("User-Agent") : null;
         String requestUri = request != null ? request.getRequestURI() : null;
         String requestMethod = request != null ? request.getMethod() : null;
@@ -103,39 +104,5 @@ public class AuditLogAspect {
             log.debug("Failed to get HttpServletRequest: {}", e.getMessage());
             return null;
         }
-    }
-
-    /**
-     * 클라이언트 IP 주소를 추출합니다.
-     * X-Forwarded-For 헤더를 우선 확인하며, 없으면 RemoteAddr을 사용합니다.
-     */
-    private String getClientIp(HttpServletRequest request) {
-        if (request == null) {
-            return "unknown";
-        }
-
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_CLIENT_IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-
-        // X-Forwarded-For는 쉼표로 구분된 여러 IP를 포함할 수 있음 (첫 번째 IP가 원본 클라이언트)
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-
-        return ip != null ? ip : "unknown";
     }
 }

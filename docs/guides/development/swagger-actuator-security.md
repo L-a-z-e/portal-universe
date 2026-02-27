@@ -155,8 +155,10 @@ curl http://localhost:8081/actuator/prometheus
 
 ### Actuator 보안 필터 체인 (Order=0)
 - `/actuator/health`, `/actuator/info`: **permitAll()** - 공개
-- `/actuator/prometheus`, `/actuator/metrics/**`: **permitAll()** - 서비스 레벨에서는 허용하되, Gateway에서 차단
+- `/actuator/prometheus`, `/actuator/metrics/**`: **denyAll()** (docker/k8s) - 별도 management port(9090)로 분리
 - `/actuator/**`: **denyAll()** - 나머지 모두 차단
+
+> **2026-02-28**: `management.server.port=9090` (docker/k8s 프로필) 적용. prometheus/metrics 엔드포인트를 비즈니스 포트에서 완전 분리하여 Prometheus만 management 포트로 스크래핑합니다. local 프로필은 개발 편의를 위해 기존과 동일하게 permitAll() 유지.
 
 ### Swagger 보안 필터 체인 (Order=1)
 - `/swagger-ui.html`, `/swagger-ui/**`, `/api-docs/**`: **permitAll()** - 서비스 레벨에서는 허용하되, Gateway에서 차단
@@ -315,3 +317,4 @@ env:
 | 날짜 | 변경 내용 |
 |------|----------|
 | 2026-01-23 | 초기 문서 작성 - Swagger/Actuator 보안 정책 수립 |
+| 2026-02-28 | Actuator metrics/prometheus를 management port(9090)로 분리, SecurityConfig denyAll() 적용 |

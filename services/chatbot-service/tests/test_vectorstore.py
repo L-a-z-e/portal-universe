@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from langchain_core.documents import Document
 
-from app.rag.vectorstore import COLLECTION_NAME, VectorStoreManager
+from app.rag.vectorstore import VectorStoreManager
 
 
 class TestVectorStoreManagerInit:
@@ -17,10 +17,11 @@ class TestVectorStoreManagerInit:
 
         with patch("app.rag.vectorstore.settings") as mock_settings:
             mock_settings.chroma_persist_dir = "/tmp/chroma"
+            mock_settings.vector_collection_name = "chatbot_documents"
             VectorStoreManager(mock_embeddings)
 
         mock_chroma_cls.assert_called_once_with(
-            collection_name=COLLECTION_NAME,
+            collection_name="chatbot_documents",
             embedding_function=mock_embeddings,
             persist_directory="/tmp/chroma",
         )
@@ -115,31 +116,30 @@ class TestVectorStoreManagerOperations:
         assert results == []
 
     def test_delete_by_source(self):
-        """delete_by_source가 _collection.delete를 올바르게 호출한다."""
+        """delete_by_source가 _store.get + _store.delete를 호출한다."""
         manager = self._make_manager()
-        mock_collection = MagicMock()
-        manager._store._collection = mock_collection
+        manager._store.get.return_value = {"ids": ["id-1", "id-2"]}
 
         manager.delete_by_source("test.md")
 
-        mock_collection.delete.assert_called_once_with(where={"source": "test.md"})
+        manager._store.get.assert_called_once_with(where={"source": "test.md"})
+        manager._store.delete.assert_called_once_with(ids=["id-1", "id-2"])
+
+    def test_delete_by_source_no_matches(self):
+        """삭제 대상이 없으면 delete를 호출하지 않는다."""
+        manager = self._make_manager()
+        manager._store.get.return_value = {"ids": []}
+
+        manager.delete_by_source("nonexistent.md")
+
+        manager._store.get.assert_called_once_with(where={"source": "nonexistent.md"})
+        manager._store.delete.assert_not_called()
 
     def test_get_document_count(self):
-        """get_document_count가 _collection.count()를 반환한다."""
+        """get_document_count가 _store.get()['ids'] 길이를 반환한다."""
         manager = self._make_manager()
-        mock_collection = MagicMock()
-        mock_collection.count.return_value = 42
-        manager._store._collection = mock_collection
+        manager._store.get.return_value = {"ids": ["a", "b", "c"]}
 
         count = manager.get_document_count()
 
-        assert count == 42
-        mock_collection.count.assert_called_once()
-
-
-class TestCollectionName:
-    """COLLECTION_NAME 상수 테스트."""
-
-    def test_collection_name_constant(self):
-        """COLLECTION_NAME이 'chatbot_documents'이다."""
-        assert COLLECTION_NAME == "chatbot_documents"
+        assert count == 3
