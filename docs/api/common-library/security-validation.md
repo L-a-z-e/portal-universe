@@ -125,6 +125,10 @@ public @interface SafeHtml {
 1. `null` / 빈 문자열: 통과
 2. XSS 위험 패턴(script, iframe, event handler 등) 감지 시: **실패**
 3. `allowedTags`에 없는 HTML 태그 감지 시: **실패**
+4. **위험 속성 검증** (2026-02-28 추가):
+   - `href="javascript:"`, `href="vbscript:"` → **실패**
+   - `on*` 이벤트 핸들러 속성 (`onclick`, `onerror` 등) → **실패**
+   - `style="expression()"` CSS expression → **실패**
 
 #### 사용 예시
 
@@ -203,7 +207,7 @@ String safe = XssUtils.escape("<script>alert('xss')</script>");
 
 ##### stripTags(String input)
 
-모든 HTML 태그를 제거하고 순수 텍스트만 반환합니다.
+모든 HTML 태그를 제거하고 순수 텍스트만 반환합니다. HTML entity decoding은 수행하지 않습니다 (이중 디코딩 XSS 우회 방지).
 
 ```java
 public static String stripTags(String input)
@@ -419,12 +423,11 @@ public static String getClientIp(HttpServletRequest request)
 |------|------|------|
 | 1 | `X-Forwarded-For` | 표준 프록시 헤더 |
 | 2 | `Proxy-Client-IP` | Apache 프록시 |
-| 3 | `WL-Proxy-Client-IP` | WebLogic 프록시 |
-| 4 | `HTTP_CLIENT_IP` | HTTP 클라이언트 IP |
-| 5 | `HTTP_X_FORWARDED_FOR` | HTTP 포워딩 |
-| 6 | `getRemoteAddr()` | 직접 연결 IP |
+| 3 | `getRemoteAddr()` | 직접 연결 IP |
 
 `X-Forwarded-For`에 여러 IP가 포함된 경우(쉼표 구분) 첫 번째 IP(원본 클라이언트)를 반환합니다.
+
+> **2026-02-28**: 비표준 헤더 4개(`WL-Proxy-Client-IP`, `HTTP_CLIENT_IP`, `HTTP_X_FORWARDED_FOR`, `X-Real-IP`) 제거. 스푸핑 벡터를 줄여 IP 해석의 신뢰성을 강화합니다.
 
 **사용 예시:**
 
@@ -449,6 +452,6 @@ public ResponseEntity<ApiResponse<TokenResponse>> login(
 
 ---
 
-**최종 수정:** 2026-02-06
+**최종 수정:** 2026-02-28
 **API 버전:** v1
 **문서 버전:** 1.0
