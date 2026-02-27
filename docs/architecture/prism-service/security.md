@@ -4,7 +4,7 @@ title: Prism Service 보안 아키텍처
 type: architecture
 status: current
 created: 2026-02-13
-updated: 2026-02-13
+updated: 2026-02-28
 author: Laze
 tags: [prism-service, nestjs, security, validation, audit, xss, sql-injection]
 related:
@@ -316,8 +316,23 @@ this.logger.log({
 
 ---
 
+## SSE 인증 및 Board 소유권 검증
+
+### 문제
+`@Public()` 데코레이터로 SSE 엔드포인트가 JwtAuthGuard를 우회하여 미인증 사용자가 Board 이벤트를 구독할 수 있었습니다.
+
+### 해결
+- `@Public()` 제거: Gateway가 JWT 검증 후 `X-User-Id`를 주입하므로, Guard를 그대로 적용
+- Board 소유권 검증: `boardService.findByIdAndUser()`로 구독 요청 시 Board 소유자인지 확인 → 비소유자에게 404 반환
+
+### Task 소유권 검증
+`referencedTaskIds` 조회 시 해당 Task가 속한 Board의 userId를 검증합니다. 다른 사용자의 Board에 속한 Task는 접근 거부됩니다.
+
+---
+
 ## 변경 이력
 
 | 날짜 | 변경 내용 | 작성자 |
 |------|----------|--------|
 | 2026-02-13 | 초안 작성 (NoXss, NoSqlInjection, AuditInterceptor) | Laze |
+| 2026-02-28 | SSE 인증, Board 소유권 검증, Task 소유권 검증 추가 | Laze |
