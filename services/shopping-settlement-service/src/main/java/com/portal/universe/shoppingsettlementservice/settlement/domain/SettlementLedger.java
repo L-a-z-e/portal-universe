@@ -12,7 +12,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "settlement_ledger")
+@Table(name = "settlement_ledger", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_ledger_order_event", columnNames = {"order_number", "event_type"})
+})
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -11,7 +11,10 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 서비스 시작 시 ACTIVE 타임딜의 Redis 재고를 복원합니다.
@@ -33,14 +36,27 @@ public class TimeDealRedisInitializer {
             TimeDeal dealWithProducts = timeDealRepository.findByIdWithProducts(deal.getId());
             if (dealWithProducts == null || dealWithProducts.getProducts() == null) continue;
 
+            long ttlSeconds = Duration.between(LocalDateTime.now(), deal.getEndsAt()).getSeconds()
+                    + TimeUnit.DAYS.toSeconds(1);
+
             dealWithProducts.getProducts().forEach(product -> {
                 int remainingQuantity = product.getDealQuantity() - product.getSoldQuantity();
                 if (remainingQuantity > 0) {
-                    timeDealRedisService.initializeStock(
-                            deal.getId(),
-                            product.getProduct().getId(),
-                            remainingQuantity
-                    );
+                    // Stock 키: SETEX로 값 + TTL 원자적 설정
+                    if (ttlSeconds > 0) {
+                        timeDealRedisService.initializeStock(
+                                deal.getId(),
+                                product.getProduct().getId(),
+                                remainingQuantity,
+                                ttlSeconds
+                        );
+                    } else {
+                        timeDealRedisService.initializeStock(
+                                deal.getId(),
+                                product.getProduct().getId(),
+                                remainingQuantity
+                        );
+                    }
                 }
             });
 

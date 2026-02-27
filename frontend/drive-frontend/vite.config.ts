@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
       cors: true,
     },
     build: {
-      minify: false,
+      minify: 'esbuild',
       target: 'esnext',
     },
     esbuild: mode === 'production' ? {

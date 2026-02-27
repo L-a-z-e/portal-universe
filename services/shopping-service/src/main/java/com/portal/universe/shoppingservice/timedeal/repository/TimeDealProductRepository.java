@@ -2,6 +2,7 @@ package com.portal.universe.shoppingservice.timedeal.repository;
 
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealProduct;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -22,4 +23,8 @@ public interface TimeDealProductRepository extends JpaRepository<TimeDealProduct
     Optional<TimeDealProduct> findByIdWithProductAndDeal(@Param("id") Long id);
 
     boolean existsByTimeDealIdAndProductId(Long timeDealId, Long productId);
+
+    @Modifying
+    @Query("UPDATE TimeDealProduct tdp SET tdp.soldQuantity = tdp.soldQuantity + :quantity WHERE tdp.id = :id")
+    void incrementSoldQuantity(@Param("id") Long id, @Param("quantity") int quantity);
 }

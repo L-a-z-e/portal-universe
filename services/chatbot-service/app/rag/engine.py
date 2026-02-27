@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import uuid
 from pathlib import Path
@@ -124,7 +125,7 @@ class RAGEngine:
     async def query(self, question: str) -> tuple[str, list[SourceInfo]]:
         """질문에 대한 RAG 기반 답변 생성."""
         processed_question = self._preprocess_query(question)
-        results = self.vectorstore.search(processed_question)
+        results = await asyncio.to_thread(self.vectorstore.search, processed_question)
 
         if not results:
             return self._NO_RESULTS_MESSAGE, []
@@ -138,7 +139,7 @@ class RAGEngine:
     async def query_stream(self, question: str):
         """질문에 대한 RAG 기반 스트리밍 답변 생성."""
         processed_question = self._preprocess_query(question)
-        results = self.vectorstore.search(processed_question)
+        results = await asyncio.to_thread(self.vectorstore.search, processed_question)
 
         if not results:
             yield {"type": "token", "content": self._NO_RESULTS_MESSAGE}

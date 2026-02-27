@@ -50,7 +50,7 @@ graph TB
         DS[DeliveryService]
     end
 
-    subgraph "MySQL"
+    subgraph "PostgreSQL"
         SST[(saga_states)]
     end
 
@@ -151,7 +151,7 @@ sequenceDiagram
     participant IS as InventoryService
     participant PS as PaymentService
     participant DS as DeliveryService
-    participant DB as MySQL
+    participant DB as PostgreSQL
 
     Note over OS,DB: Phase 1: 주문 생성 시 (startSaga)
     OS->>SAGA: startSaga(order)
@@ -199,7 +199,7 @@ sequenceDiagram
     participant SAGA as OrderSagaOrchestrator
     participant IS as InventoryService
     participant DS as DeliveryService
-    participant DB as MySQL
+    participant DB as PostgreSQL
 
     Note over SAGA: 실패 발생 → compensate()
     Note over SAGA: @Transactional(REQUIRES_NEW)
@@ -379,4 +379,4 @@ public void publishSagaEvent(String detailType, SagaState saga) {
 
 ---
 
-**최종 업데이트**: 2026-02-25
+**최종 업데이트**: 2026-02-27

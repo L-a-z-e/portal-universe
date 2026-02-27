@@ -49,8 +49,10 @@ async def upload_document(
         raise BusinessException(ChatbotErrorCode.INVALID_FILENAME, "Invalid filename")
     await asyncio.to_thread(file_path.write_bytes, content)
 
-    # 인덱싱
-    doc_id, chunk_count = rag_engine.load_and_index_file(file_path)
+    # 인덱싱 (blocking I/O → 별도 스레드)
+    doc_id, chunk_count = await asyncio.to_thread(
+        rag_engine.load_and_index_file, file_path
+    )
 
     logger.info(
         "Document uploaded: user=%s, file=%s, chunks=%d",
@@ -68,8 +70,8 @@ async def upload_document(
     return ApiResponse.ok(doc_info.model_dump())
 
 
-async def _list_files(doc_dir: Path) -> list[Path]:
-    """파일 목록을 비동기로 가져오는 헬퍼 함수."""
+def _list_files(doc_dir: Path) -> list[Path]:
+    """파일 목록을 가져오는 헬퍼 함수. asyncio.to_thread()로 호출."""
     if not doc_dir.exists():
         return []
     return list(doc_dir.iterdir())
@@ -124,8 +126,8 @@ async def delete_document(
 
     filename = target_file.name
 
-    # 벡터 스토어에서 삭제
-    rag_engine.vectorstore.delete_by_source(filename)
+    # 벡터 스토어에서 삭제 (blocking I/O → 별도 스레드)
+    await asyncio.to_thread(rag_engine.vectorstore.delete_by_source, filename)
 
     # 파일 삭제
     await asyncio.to_thread(target_file.unlink)
@@ -148,7 +150,9 @@ async def reindex_all(user_id: str = Depends(require_admin)):
     files = await asyncio.to_thread(_list_files, doc_dir)
     for f in files:
         if f.suffix.lower() in settings.allowed_file_extensions:
-            doc_id, chunk_count = rag_engine.load_and_index_file(f)
+            doc_id, chunk_count = await asyncio.to_thread(
+                rag_engine.load_and_index_file, f
+            )
             indexed.append({"filename": f.name, "document_id": doc_id, "chunks": chunk_count})
 
     logger.info("Reindexed %d documents", len(indexed))

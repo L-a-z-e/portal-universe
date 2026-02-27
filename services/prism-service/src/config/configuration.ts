@@ -6,7 +6,8 @@ export default () => ({
     username: process.env.DB_USER || 'laze',
     password: process.env.DB_PASSWORD || 'laze',
     database: process.env.DB_DATABASE || 'prism_db',
-    synchronize: process.env.NODE_ENV !== 'production',
+    synchronize: false,
+    migrationsRun: true,
     logging: process.env.NODE_ENV !== 'production',
   },
   encryption: {

@@ -22,6 +22,13 @@ spring:
     username: ${DB_USER:laze}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 10000
   jpa:
     hibernate:
       ddl-auto: validate

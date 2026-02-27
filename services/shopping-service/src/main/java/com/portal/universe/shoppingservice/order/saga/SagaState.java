@@ -43,7 +43,7 @@ public class SagaState {
     /**
      * 주문 번호
      */
-    @Column(name = "order_number", nullable = false, length = 30)
+    @Column(name = "order_number", nullable = false, unique = true, length = 30)
     private String orderNumber;
 
     /**

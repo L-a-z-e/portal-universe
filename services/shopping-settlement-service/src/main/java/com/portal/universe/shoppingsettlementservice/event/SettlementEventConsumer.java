@@ -7,9 +7,11 @@ import com.portal.universe.shoppingsettlementservice.settlement.domain.Settlemen
 import com.portal.universe.shoppingsettlementservice.settlement.repository.SettlementLedgerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -24,27 +26,39 @@ public class SettlementEventConsumer {
             containerFactory = "avroKafkaListenerContainerFactory")
     public void onPaymentCompleted(PaymentCompletedEvent event) {
         log.info("Recording payment to ledger: order={}, amount={}", event.getOrderNumber(), event.getAmount());
-        SettlementLedger ledger = SettlementLedger.builder()
-                .orderNumber(event.getOrderNumber())
-                .sellerId(1L) // TODO: resolve seller from order items
-                .eventType("PAYMENT_COMPLETED")
-                .amount(event.getAmount())
-                .eventAt(LocalDateTime.ofInstant(event.getPaidAt(), ZoneId.systemDefault()))
-                .build();
-        ledgerRepository.save(ledger);
+        saveLedgerIdempotent(
+                event.getOrderNumber(),
+                "PAYMENT_COMPLETED",
+                event.getAmount(),
+                LocalDateTime.ofInstant(event.getPaidAt(), ZoneId.systemDefault())
+        );
     }
 
     @KafkaListener(topics = ShoppingTopics.ORDER_CANCELLED, groupId = "shopping-settlement-service",
             containerFactory = "avroKafkaListenerContainerFactory")
     public void onOrderCancelled(OrderCancelledEvent event) {
         log.info("Recording cancellation to ledger: order={}, amount={}", event.getOrderNumber(), event.getTotalAmount());
-        SettlementLedger ledger = SettlementLedger.builder()
-                .orderNumber(event.getOrderNumber())
-                .sellerId(1L) // TODO: resolve seller from order items
-                .eventType("ORDER_CANCELLED")
-                .amount(event.getTotalAmount())
-                .eventAt(LocalDateTime.ofInstant(event.getCancelledAt(), ZoneId.systemDefault()))
-                .build();
-        ledgerRepository.save(ledger);
+        saveLedgerIdempotent(
+                event.getOrderNumber(),
+                "ORDER_CANCELLED",
+                event.getTotalAmount(),
+                LocalDateTime.ofInstant(event.getCancelledAt(), ZoneId.systemDefault())
+        );
+    }
+
+    private void saveLedgerIdempotent(String orderNumber, String eventType,
+                                       BigDecimal amount, LocalDateTime eventAt) {
+        try {
+            SettlementLedger ledger = SettlementLedger.builder()
+                    .orderNumber(orderNumber)
+                    .sellerId(1L) // TODO: resolve seller from order items
+                    .eventType(eventType)
+                    .amount(amount)
+                    .eventAt(eventAt)
+                    .build();
+            ledgerRepository.save(ledger);
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Duplicate event ignored: order={}, type={}", orderNumber, eventType);
+        }
     }
 }

@@ -139,9 +139,8 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDealPurchase savedPurchase = timeDealPurchaseRepository.save(purchase);
 
-        // 판매 수량 업데이트
-        timeDealProduct.incrementSoldQuantity(request.quantity());
-        timeDealProductRepository.save(timeDealProduct);
+        // 판매 수량 원자적 업데이트 (Lost Update 방지)
+        timeDealProductRepository.incrementSoldQuantity(timeDealProduct.getId(), request.quantity());
 
         log.info("TimeDeal purchase completed: userId={}, dealId={}, productId={}, quantity={}",
                 userId, timeDeal.getId(), timeDealProduct.getProduct().getId(), request.quantity());
