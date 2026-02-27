@@ -71,7 +71,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
-      minify: false,
+      minify: 'esbuild',
       target: 'esnext',
     },
     esbuild: mode === 'production' ? {

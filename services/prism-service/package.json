@@ -17,7 +17,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/config/data-source.ts",
+    "migration:generate": "npm run typeorm -- migration:generate src/migrations/$npm_config_name",
+    "migration:run": "npm run typeorm -- migration:run",
+    "migration:revert": "npm run typeorm -- migration:revert"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
@@ -40,6 +44,7 @@
     "@opentelemetry/semantic-conventions": "^1.28.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
+    "dotenv": "^17.3.1",
     "kafkajs": "^2.2.4",
     "nest-winston": "^1.10.2",
     "openai": "^6.16.0",
