@@ -121,9 +121,8 @@ public class RateLimiterConfig {
      * 로그인 API용 엄격한 Rate Limiter
      * Brute Force 공격 방어
      *
-     * replenishRate: 5 req/min (초당 0.083)
-     * burstCapacity: 5
-     * Docker: 20 req/sec, burst 50
+     * replenishRate: 1 req/sec (지속 속도)
+     * burstCapacity: 5 (최대 5회 버스트 후 초당 1회로 제한)
      */
     @Bean
     public RedisRateLimiter strictRedisRateLimiter() {
@@ -135,9 +134,8 @@ public class RateLimiterConfig {
     /**
      * 회원가입 API용 Rate Limiter
      *
-     * replenishRate: 3 req/min (초당 0.05)
-     * burstCapacity: 3
-     * Docker: 20 req/sec, burst 50
+     * replenishRate: 1 req/sec (지속 속도)
+     * burstCapacity: 3 (최대 3회 버스트 후 초당 1회로 제한)
      */
     @Bean
     public RedisRateLimiter signupRedisRateLimiter() {
@@ -149,9 +147,8 @@ public class RateLimiterConfig {
     /**
      * 인증된 사용자용 관대한 Rate Limiter
      *
-     * replenishRate: 100 req/min (초당 1.67)
-     * burstCapacity: 100
-     * Docker: 50 req/sec, burst 500
+     * replenishRate: 2 req/sec (지속 속도)
+     * burstCapacity: 100 (버스트 허용, 지속적으로는 초당 2회)
      */
     @Bean
     public RedisRateLimiter authenticatedRedisRateLimiter() {
@@ -163,9 +160,8 @@ public class RateLimiterConfig {
     /**
      * 비인증 사용자용 제한적인 Rate Limiter
      *
-     * replenishRate: 30 req/min (초당 0.5)
-     * burstCapacity: 30
-     * Docker: 50 req/sec, burst 200
+     * replenishRate: 1 req/sec (지속 속도)
+     * burstCapacity: 30 (버스트 허용, 지속적으로는 초당 1회)
      */
     @Bean
     public RedisRateLimiter unauthenticatedRedisRateLimiter() {

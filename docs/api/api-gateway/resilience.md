@@ -4,7 +4,7 @@ title: API Gateway 장애 복원력
 type: api
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-27
 author: Laze
 tags: [api-gateway, circuit-breaker, resilience4j, fallback, timeout]
 related:
@@ -35,7 +35,10 @@ resilience4j:
       default:
         sliding-window-type: count_based
         sliding-window-size: 20
+        minimum-number-of-calls: 10
         failure-rate-threshold: 50
+        slow-call-duration-threshold: 3s
+        slow-call-rate-threshold: 80
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
@@ -45,7 +48,10 @@ resilience4j:
 |------|-----|------|
 | `sliding-window-type` | `count_based` | 요청 횟수 기반 윈도우 |
 | `sliding-window-size` | `20` | 최근 20개 요청으로 실패율 계산 |
+| `minimum-number-of-calls` | `10` | 최소 10개 요청 후 실패율 평가 시작 (서비스 시작 직후 오탐 방지) |
 | `failure-rate-threshold` | `50%` | 실패율 50% 이상 시 회로 Open |
+| `slow-call-duration-threshold` | `3s` | 3초 이상 응답을 slow call로 판정 |
+| `slow-call-rate-threshold` | `80%` | slow call 비율 80% 이상 시 회로 Open |
 | `wait-duration-in-open-state` | `10s` | Open 상태 유지 시간 |
 | `permitted-number-of-calls-in-half-open-state` | `5` | Half-Open 상태에서 허용 요청 수 |
 | `automatic-transition-from-open-to-half-open-enabled` | `true` | 자동 Open → Half-Open 전환 |
@@ -59,6 +65,10 @@ resilience4j:
 | `authCircuitBreaker` | auth-service | 기본값 사용 |
 | `blogCircuitBreaker` | blog-service | 기본값 사용 |
 | `shoppingCircuitBreaker` | shopping-service | 기본값 사용 |
+| `shoppingSellerCircuitBreaker` | shopping-seller-service | 기본값 사용 |
+| `shoppingSettlementCircuitBreaker` | shopping-settlement-service | 기본값 사용 |
+| `driveCircuitBreaker` | drive-service | 기본값 사용 |
+| `notificationCircuitBreaker` | notification-service | 기본값 사용 |
 | `prismCircuitBreaker` | prism-service | 기본값 사용 |
 | `chatbotCircuitBreaker` | chatbot-service | 기본값 사용 |
 
@@ -67,7 +77,7 @@ resilience4j:
 ```mermaid
 stateDiagram-v2
     [*] --> CLOSED
-    CLOSED --> OPEN : 실패율 >= 50%\n(최근 20요청 기준)
+    CLOSED --> OPEN : 실패율 >= 50% 또는\nslow call 비율 >= 80%\n(최소 10요청 후 평가)
     OPEN --> HALF_OPEN : 10초 경과\n(자동 전환)
     HALF_OPEN --> CLOSED : 5개 요청 중\n실패율 < 50%
     HALF_OPEN --> OPEN : 5개 요청 중\n실패율 >= 50%
@@ -92,6 +102,8 @@ resilience4j:
       default:
         timeout-duration: 5s
     instances:
+      driveCircuitBreaker:
+        timeout-duration: 30s    # 파일 업로드 대기
       prismCircuitBreaker:
         timeout-duration: 60s    # AI 응답 대기
       chatbotCircuitBreaker:
@@ -103,6 +115,10 @@ resilience4j:
 | `authCircuitBreaker` | 5s | 인증은 빠른 응답 필요 |
 | `blogCircuitBreaker` | 5s | 일반 CRUD |
 | `shoppingCircuitBreaker` | 5s | 일반 CRUD |
+| `shoppingSellerCircuitBreaker` | 5s | 일반 CRUD |
+| `shoppingSettlementCircuitBreaker` | 5s | 일반 CRUD |
+| `notificationCircuitBreaker` | 5s | 알림 전송 |
+| `driveCircuitBreaker` | **30s** | 파일 업로드 대기 (대용량 파일 처리) |
 | `prismCircuitBreaker` | **60s** | AI Orchestration 응답 대기 |
 | `chatbotCircuitBreaker` | **120s** | RAG 문서 검색 + AI 응답 생성 |
 
@@ -124,6 +140,8 @@ Circuit Breaker가 Open 상태이거나 타임아웃 발생 시 호출되는 Fal
 | `/fallback/blog` | `GW002` | 블로그 서비스를 일시적으로 사용할 수 없습니다 | blog-service |
 | `/fallback/shopping` | `GW003` | 쇼핑 서비스를 일시적으로 사용할 수 없습니다 | shopping-service |
 | `/fallback/notification` | `GW004` | 알림 서비스를 일시적으로 사용할 수 없습니다 | notification-service |
+| `/fallback/shopping-settlement` | `GW008` | 정산 서비스를 일시적으로 사용할 수 없습니다 | shopping-settlement-service |
+| `/fallback/drive` | `GW009` | 드라이브 서비스를 일시적으로 사용할 수 없습니다 | drive-service |
 
 ### Fallback 응답 형식
 
@@ -141,12 +159,13 @@ Circuit Breaker가 Open 상태이거나 타임아웃 발생 시 호출되는 Fal
 
 ### 주의: 미구현 Fallback
 
-다음 서비스는 라우트에서 `fallbackUri`를 참조하지만 FallbackController에 대응하는 엔드포인트가 없습니다.
+다음 서비스는 라우트에서 `fallbackUri`를 참조하지만 FallbackController에 대응하는 엔드포인트가 아직 없습니다.
 
 | 라우트의 fallbackUri | 상태 |
 |---------------------|------|
 | `forward:/fallback/chatbot` | **미구현** - chatbot-service 라우트에서 참조 |
 | `forward:/fallback/prism` | **미구현** - prism-service 라우트에서 참조 |
+| `forward:/fallback/shopping-seller` | **미구현** - shopping-seller-service 라우트에서 참조 |
 
 > Circuit Breaker가 Open되면 Spring Cloud Gateway가 fallback URI로 포워딩을 시도하지만, 해당 엔드포인트가 없어 404가 반환될 수 있습니다.
 
@@ -159,6 +178,10 @@ Circuit Breaker가 Open 상태이거나 타임아웃 발생 시 호출되는 Fal
 | `authCircuitBreaker` | auth-service-login, signup, api-prefixed, profile, users, api, admin, memberships, seller, permissions |
 | `blogCircuitBreaker` | blog-service-file-route, blog-service-route |
 | `shoppingCircuitBreaker` | shopping-service-route |
+| `shoppingSellerCircuitBreaker` | shopping-seller-service-route |
+| `shoppingSettlementCircuitBreaker` | shopping-settlement-service-route |
+| `driveCircuitBreaker` | drive-service-route |
+| `notificationCircuitBreaker` | notification-service-route, notification-service-ws |
 | `chatbotCircuitBreaker` | chatbot-service-stream, documents, route |
 | `prismCircuitBreaker` | prism-service-route |
 
@@ -168,7 +191,6 @@ Circuit Breaker가 Open 상태이거나 타임아웃 발생 시 호출되는 Fal
 |----------|------|
 | `*-actuator-health` | 모니터링 전용 |
 | `auth-service-oauth2-*` | OAuth2 프로토콜 |
-| `notification-service-*` | notification-service는 CB 미적용 |
 | `chatbot-service-health` | 헬스체크 |
 | `prism-service-health` | 헬스체크 |
 | `prism-service-sse` | SSE long-lived 연결 |
@@ -188,7 +210,22 @@ server:
 | 파일 | 역할 |
 |------|------|
 | `application.yml` (resilience4j) | Circuit Breaker, Time Limiter 설정 |
-| `controller/FallbackController.java` | 4개 Fallback 엔드포인트 |
+| `controller/FallbackController.java` | 6개 Fallback 엔드포인트 |
+
+### Feign Client Circuit Breaker
+
+`shopping-service`에서 `shopping-seller-service`를 호출하는 Feign Client에도 Resilience4j CB가 적용되어 있습니다.
+
+```yaml
+# shopping-service application.yml
+spring:
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+```
+
+Feign CB는 Gateway CB와 동일한 `resilience4j.circuitbreaker.configs.default` 설정을 상속합니다.
 
 ## 관련 문서
 

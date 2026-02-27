@@ -364,6 +364,10 @@ spring:
                   args:
                     rate-limiter: "#{@authenticatedRedisRateLimiter}"
                     key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: notificationCircuitBreaker
+                    fallbackUri: forward:/fallback/notification
               order: 50
 
             # REST API route (direct path)
@@ -376,6 +380,10 @@ spring:
                   args:
                     rate-limiter: "#{@authenticatedRedisRateLimiter}"
                     key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: notificationCircuitBreaker
+                    fallbackUri: forward:/fallback/notification
               order: 51
 
             # ========== Chatbot Service (RAG Q&A) ==========
@@ -503,7 +511,10 @@ resilience4j:
       default:
         sliding-window-type: count_based
         sliding-window-size: 20
+        minimum-number-of-calls: 10
         failure-rate-threshold: 50
+        slow-call-duration-threshold: 3s
+        slow-call-rate-threshold: 80
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
@@ -525,6 +536,8 @@ resilience4j:
         base-config: default
       chatbotCircuitBreaker:
         base-config: default
+      notificationCircuitBreaker:
+        base-config: default
 
   timelimiter:
     configs:
@@ -542,6 +555,9 @@ resilience4j:
       shoppingSettlementCircuitBreaker:
         base-config: default
       driveCircuitBreaker:
+        base-config: default
+        timeout-duration: 30s  # 파일 업로드 대기
+      notificationCircuitBreaker:
         base-config: default
       prismCircuitBreaker:
         base-config: default
