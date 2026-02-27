@@ -33,7 +33,7 @@ async def test_health_endpoint(client):
 async def test_health_not_initialized(client):
     """RAG engine 미초기화 시 documents_count=0."""
     with patch("app.api.routes.health.rag_engine") as mock_engine:
-        mock_engine._initialized = False
+        mock_engine.is_initialized = False
 
         response = await client.get("/api/v1/chat/health")
         assert response.status_code == 200

@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 from sse_starlette.sse import EventSourceResponse
 
 from app.core.security import get_current_user_id
+from app.core.validators import check_prompt_injection
 from app.rag.engine import rag_engine
 from app.schemas.chat import ChatRequest, ChatResponse, SourceInfo
 from app.schemas.common import ApiResponse
@@ -26,6 +27,8 @@ async def send_message(
     """질문에 대한 동기 답변."""
     conversation_id = request.conversation_id or str(uuid.uuid4())
     message_id = str(uuid.uuid4())
+
+    check_prompt_injection(request.message)
 
     logger.info(
         "Chat message: user=%s, conversation=%s, message=%s",
@@ -70,6 +73,8 @@ async def stream_message(
     """질문에 대한 SSE 스트리밍 답변."""
     conversation_id = request.conversation_id or str(uuid.uuid4())
     message_id = str(uuid.uuid4())
+
+    check_prompt_injection(request.message)
 
     logger.info(
         "Chat stream: user=%s, conversation=%s",
