@@ -56,7 +56,6 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/hello").permitAll()
                         .requestMatchers(HttpMethod.GET, "/files", "/files/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/files/**").hasAnyRole("USER", "ADMIN")

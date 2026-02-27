@@ -81,7 +81,6 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // [공개] 누구나 접근 가능
-                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/search/**").permitAll()
