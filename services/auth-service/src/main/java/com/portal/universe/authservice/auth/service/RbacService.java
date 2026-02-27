@@ -121,6 +121,7 @@ public class RbacService {
                         .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
                 includes.add(roleIncludeRepository.save(new RoleInclude(saved, includedRole)));
             }
+            roleHierarchyService.evictHierarchyCache();
         }
 
         logAudit(AuditEventType.ROLE_ASSIGNED, createdBy, null, "Role created: " + request.roleKey());
@@ -228,6 +229,7 @@ public class RbacService {
         }
 
         roleIncludeRepository.save(new RoleInclude(role, includedRole));
+        roleHierarchyService.evictHierarchyCache();
         logAudit(AuditEventType.ROLE_ASSIGNED, adminId, null,
                 "Role include added: " + roleKey + " → " + includedRoleKey);
         log.info("Role include added: {} → {}, by={}", roleKey, includedRoleKey, adminId);
@@ -248,6 +250,7 @@ public class RbacService {
         }
 
         roleIncludeRepository.deleteByRoleAndIncludedRole(role, includedRole);
+        roleHierarchyService.evictHierarchyCache();
         logAudit(AuditEventType.ROLE_REVOKED, adminId, null,
                 "Role include removed: " + roleKey + " → " + includedRoleKey);
         log.info("Role include removed: {} → {}, by={}", roleKey, includedRoleKey, adminId);
