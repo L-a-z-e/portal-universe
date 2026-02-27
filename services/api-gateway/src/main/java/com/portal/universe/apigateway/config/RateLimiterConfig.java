@@ -1,15 +1,16 @@
 package com.portal.universe.apigateway.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import reactor.core.publisher.Mono;
 
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 /**
@@ -43,24 +44,18 @@ public class RateLimiterConfig {
 
     /**
      * IP 주소 기반 KeyResolver (기본값)
-     * X-Forwarded-For 헤더를 우선 사용하고, 없으면 RemoteAddress 사용
+     * GlobalLoggingFilter와 동일한 maxTrustedIndex(1)을 사용하여
+     * X-Forwarded-For 스푸핑을 방지합니다.
      */
     @Bean
     @Primary
     public KeyResolver ipKeyResolver() {
+        XForwardedRemoteAddressResolver resolver = XForwardedRemoteAddressResolver.maxTrustedIndex(1);
         return exchange -> {
-            String forwardedFor = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
-            String clientIp;
-
-            if (forwardedFor != null && !forwardedFor.isEmpty()) {
-                // X-Forwarded-For: client, proxy1, proxy2
-                clientIp = forwardedFor.split(",")[0].trim();
-            } else {
-                var remoteAddress = exchange.getRequest().getRemoteAddress();
-                clientIp = (remoteAddress != null)
+            InetSocketAddress remoteAddress = resolver.resolve(exchange);
+            String clientIp = (remoteAddress != null && remoteAddress.getAddress() != null)
                     ? remoteAddress.getAddress().getHostAddress()
                     : "unknown";
-            }
 
             log.debug("Rate Limit Key (IP): {}", clientIp);
             return Mono.just(clientIp);
