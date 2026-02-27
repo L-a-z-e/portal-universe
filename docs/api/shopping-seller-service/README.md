@@ -12,7 +12,7 @@
 | **인증** | Bearer Token (JWT) |
 | **포트** | 8088 |
 | **응답 형식** | JSON |
-| **DB** | shopping_seller_db (MySQL) |
+| **DB** | shopping_seller_db (PostgreSQL) |
 
 ---
 
@@ -204,36 +204,48 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 
 ### 내부 API (Internal)
 
+**인증**: `X-Internal-Token` 헤더 기반 서비스 토큰 인증 (`InternalTokenAuthFilter`). SecurityConfig에서 `/internal/**` 전용 `@Order(2)` 필터 체인으로 분리. (ADR-053)
+
 #### 4. InternalProductController (`/internal/products`)
 
-| 메서드 | 엔드포인트 | 설명 | 권한 |
+| 메서드 | 엔드포인트 | 설명 | 인증 |
 |--------|-----------|------|------|
-| GET | `/internal/products/{productId}` | 상품 조회 | 내부 호출 |
-| GET | `/internal/products` | 상품 목록 | 내부 호출 |
+| GET | `/internal/products/{productId}` | 상품 조회 | X-Internal-Token |
+| GET | `/internal/products` | 상품 목록 | X-Internal-Token |
 
 **용도**: shopping-service, chatbot-service 등 다른 서비스에서 Feign Client로 호출
 
-**인증**: Internal API는 Service Mesh 또는 API Gateway에서 인증 처리
-
 #### 5. InternalInventoryController (`/internal/inventory`)
 
-| 메서드 | 엔드포인트 | 설명 | 권한 |
+| 메서드 | 엔드포인트 | 설명 | 인증 |
 |--------|-----------|------|------|
-| POST | `/internal/inventory/reserve` | 재고 예약 (Saga) | 내부 호출 |
-| POST | `/internal/inventory/deduct` | 재고 차감 (Saga) | 내부 호출 |
-| POST | `/internal/inventory/release` | 재고 해제 (Saga) | 내부 호출 |
+| POST | `/internal/inventory/reserve` | 재고 예약 (Saga Step 1) | X-Internal-Token |
+| POST | `/internal/inventory/deduct` | 재고 차감 (Saga Step 3) | X-Internal-Token |
+| POST | `/internal/inventory/release` | 재고 해제 (보상: RESERVE 완료 & DEDUCT 미완료) | X-Internal-Token |
+| POST | `/internal/inventory/restore` | 재고 복원 (보상: DEDUCT 완료 후 취소) | X-Internal-Token |
 
 **Request DTO**:
-- `StockReserveRequest`: productId, quantity, referenceType, referenceId
+- `StockReserveRequest`: orderNumber, quantities (Map\<Long, Integer\> — productId → quantity)
 
 **용도**: shopping-service의 OrderSagaOrchestrator가 분산 트랜잭션 수행 시 호출
 
 **Saga 단계**:
-1. `reserve`: 주문 생성 시 재고 예약 (available → reserved)
-2. `deduct`: 결제 완료 시 재고 차감 (reserved → 삭제)
-3. `release`: 주문 취소 시 재고 해제 (reserved → available)
+1. `reserve`: 주문 생성 시 재고 예약 (available -= qty, reserved += qty)
+2. `deduct`: 결제 완료 시 재고 차감 (reserved -= qty, total -= qty)
+3. `release`: 보상 — 예약 해제 (reserved -= qty, available += qty)
+4. `restore`: 보상 — 차감 복원 (available += qty, total += qty) **(Phase 2 추가)**
 
 **동시성 제어**: `@Version` 낙관적 락 + Pessimistic Write Lock
+
+**재고 상태 모델**:
+```
+┌─────────────┐     reserve      ┌─────────────┐     deduct      ┌─────────────┐
+│  available   │ ──────────────→ │  reserved    │ ──────────────→ │  (차감됨)    │
+│  (판매 가능)  │ ←────────────── │  (예약 중)    │                 │             │
+└─────────────┘     release      └─────────────┘                 └──────┬──────┘
+       ↑                                                                │
+       └──────────────────── restore (Phase 2) ────────────────────────┘
+```
 
 ---
 
@@ -293,4 +305,4 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 
 ---
 
-**최종 업데이트**: 2026-02-14
+**최종 업데이트**: 2026-02-27

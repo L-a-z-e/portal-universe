@@ -2,7 +2,7 @@
   "type": "record",
   "name": "PaymentCompletedEvent",
   "namespace": "com.portal.universe.event.shopping",
-  "doc": "결제 완료 시 발행되는 이벤트",
+  "doc": "결제 완료 시 발행되는 이벤트. items는 Phase 4.5에서 OrderSettlementCreatedEvent로 이전 예정 (임시)",
   "fields": [
     {"name": "paymentNumber", "type": "string", "doc": "결제번호"},
     {"name": "orderNumber", "type": "string", "doc": "주문번호"},
@@ -10,6 +10,7 @@
     {"name": "amount", "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 2}, "doc": "결제 금액"},
     {"name": "paymentMethod", "type": "string", "doc": "결제 수단"},
     {"name": "pgTransactionId", "type": "string", "doc": "PG사 거래 ID"},
-    {"name": "paidAt", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "결제 시각"}
+    {"name": "paidAt", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "결제 시각"},
+    {"name": "items", "type": {"type": "array", "items": "OrderItemInfo"}, "default": [], "doc": "주문 아이템 목록 (정산용, Phase 4.5에서 OrderSettlementCreatedEvent로 이전 예정)"}
   ]
 }

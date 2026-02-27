@@ -127,9 +127,10 @@ public class Order {
     /**
      * 주문에 항목을 추가합니다.
      */
-    public OrderItem addItem(Long productId, String productName, BigDecimal price, int quantity) {
+    public OrderItem addItem(Long sellerId, Long productId, String productName, BigDecimal price, int quantity) {
         OrderItem orderItem = OrderItem.builder()
                 .order(this)
+                .sellerId(sellerId)
                 .productId(productId)
                 .productName(productName)
                 .price(price)

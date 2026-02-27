@@ -7,9 +7,7 @@ import com.portal.universe.shoppingservice.cart.domain.CartStatus;
 import com.portal.universe.shoppingservice.cart.repository.CartRepository;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.coupon.service.CouponService;
-import com.portal.universe.shoppingservice.inventory.service.InventoryService;
 import com.portal.universe.shoppingservice.order.domain.Order;
-import com.portal.universe.shoppingservice.order.domain.OrderItem;
 import com.portal.universe.shoppingservice.order.dto.CancelOrderRequest;
 import com.portal.universe.shoppingservice.order.dto.CreateOrderRequest;
 import com.portal.universe.shoppingservice.order.dto.OrderResponse;
@@ -29,9 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 주문 관리 서비스 구현체입니다.
@@ -46,7 +41,6 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final SagaStateRepository sagaStateRepository;
     private final OrderSagaOrchestrator orderSagaOrchestrator;
-    private final InventoryService inventoryService;
     private final CouponService couponService;
     private final ShoppingEventPublisher eventPublisher;
 
@@ -73,6 +67,7 @@ public class OrderServiceImpl implements OrderService {
         // 장바구니 항목을 주문 항목으로 변환
         for (CartItem cartItem : cart.getItems()) {
             order.addItem(
+                    cartItem.getSellerId(),
                     cartItem.getProductId(),
                     cartItem.getProductName(),
                     cartItem.getPrice(),
@@ -123,6 +118,7 @@ public class OrderServiceImpl implements OrderService {
                 .setItemCount(savedOrder.getItems().size())
                 .setItems(savedOrder.getItems().stream()
                         .map(item -> OrderItemInfo.newBuilder()
+                                .setSellerId(item.getSellerId())
                                 .setProductId(item.getProductId())
                                 .setProductName(item.getProductName())
                                 .setQuantity(item.getQuantity())
@@ -160,53 +156,34 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findByOrderNumberWithItems(orderNumber)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.ORDER_NOT_FOUND));
 
-        // 본인 주문인지 확인
         if (!order.getUserId().equals(userId)) {
             throw new CustomBusinessException(ShoppingErrorCode.ORDER_USER_MISMATCH);
         }
 
-        // 취소 가능 여부 확인
         if (!order.getStatus().isCancellable()) {
             throw new CustomBusinessException(ShoppingErrorCode.ORDER_CANNOT_BE_CANCELLED);
         }
 
-        // Saga 상태 조회
+        // Saga 완료 단계에 따라 보상 (재고 release/restore, 결제 환불)
         SagaState sagaState = sagaStateRepository.findByOrderNumber(orderNumber)
                 .orElse(null);
 
-        // 예약된 재고 해제
-        try {
-            Map<Long, Integer> quantities = order.getItems().stream()
-                    .collect(Collectors.toMap(
-                            OrderItem::getProductId,
-                            OrderItem::getQuantity,
-                            Integer::sum
-                    ));
-
-            inventoryService.releaseStockBatch(
-                    quantities,
-                    "ORDER_CANCEL",
-                    orderNumber,
-                    userId
-            );
-        } catch (Exception e) {
-            log.error("Failed to release stock for order {}: {}", orderNumber, e.getMessage());
-            // 재고 해제 실패해도 주문 취소는 진행
-        }
-
-        // 주문 취소
-        order.cancel(request.reason());
-        Order savedOrder = orderRepository.save(order);
-
-        // Saga 상태 업데이트
         if (sagaState != null) {
+            try {
+                orderSagaOrchestrator.compensateSagaSteps(order, sagaState);
+            } catch (Exception e) {
+                log.error("Failed to compensate saga steps for order {}: {}", orderNumber, e.getMessage());
+            }
+
             sagaState.markAsFailed("Order cancelled by user: " + request.reason());
             sagaStateRepository.save(sagaState);
         }
 
+        order.cancel(request.reason());
+        Order savedOrder = orderRepository.save(order);
+
         log.info("Order cancelled: {} (user: {}, reason: {})", orderNumber, userId, request.reason());
 
-        // 주문 취소 이벤트 발행
         eventPublisher.publishOrderCancelled(OrderCancelledEvent.newBuilder()
                 .setOrderNumber(orderNumber)
                 .setUserId(userId)

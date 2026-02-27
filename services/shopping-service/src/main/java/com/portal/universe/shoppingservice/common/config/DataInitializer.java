@@ -73,6 +73,7 @@ public class DataInitializer {
         List<ProductSeed> seeds = readSeed("products.json", ProductSeed.class);
         for (ProductSeed seed : seeds) {
             Product product = Product.builder()
+                    .sellerId(seed.sellerId() != null ? seed.sellerId() : 1L)
                     .name(seed.name())
                     .description(seed.description())
                     .price(seed.price())
@@ -158,7 +159,7 @@ public class DataInitializer {
     // ========== Seed DTOs ==========
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record ProductSeed(String name, String description, BigDecimal price, BigDecimal discountPrice,
+    record ProductSeed(Long sellerId, String name, String description, BigDecimal price, BigDecimal discountPrice,
                        Integer stock, String imageUrl, String category, Boolean featured,
                        List<ImageSeed> additionalImages) {}
 

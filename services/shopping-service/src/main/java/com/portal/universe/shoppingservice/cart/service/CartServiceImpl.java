@@ -56,6 +56,7 @@ public class CartServiceImpl implements CartService {
                         () -> {
                             validateStockAvailability(request.productId(), request.quantity());
                             cart.addItem(
+                                    product.getSellerId(),
                                     request.productId(),
                                     product.getName(),
                                     product.getPrice(),

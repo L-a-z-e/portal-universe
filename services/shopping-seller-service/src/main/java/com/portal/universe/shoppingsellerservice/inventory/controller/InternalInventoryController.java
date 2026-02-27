@@ -34,4 +34,10 @@ public class InternalInventoryController {
         inventoryService.releaseStock(request);
         return ApiResponse.success(null);
     }
+
+    @PostMapping("/restore")
+    public ApiResponse<Void> restoreStock(@Valid @RequestBody StockReserveRequest request) {
+        inventoryService.restoreStock(request);
+        return ApiResponse.success(null);
+    }
 }

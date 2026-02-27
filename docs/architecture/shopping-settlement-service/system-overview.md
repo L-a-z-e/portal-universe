@@ -26,11 +26,11 @@ Shopping Settlement Service는 판매자 정산을 담당하는 Spring Batch 기
 | 항목 | 내용 |
 |------|------|
 | **범위** | Service |
-| **주요 기술** | Spring Boot 3.5.5, Spring Batch, MySQL, Kafka |
+| **주요 기술** | Spring Boot 3.5.5, Spring Batch, PostgreSQL, Kafka |
 | **배포 환경** | Kubernetes, Docker Compose |
 | **관련 서비스** | shopping-service (주문/결제), shopping-seller-service (판매자 정보) |
 | **포트** | 8089 |
-| **DB** | shopping_settlement_db (MySQL) |
+| **DB** | shopping_settlement_db (PostgreSQL) |
 
 ---
 

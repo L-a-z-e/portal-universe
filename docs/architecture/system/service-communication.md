@@ -1,14 +1,14 @@
 # 서비스 간 통신 아키텍처
 
 ## 개요
-Portal Universe의 7개 마이크로서비스 간 동기/비동기 통신 패턴과 메커니즘을 설명합니다. API Gateway를 중앙 진입점으로 사용하며, Feign Client를 통한 동기 통신과 Kafka를 통한 이벤트 기반 비동기 통신을 혼용합니다.
+Portal Universe의 9개 마이크로서비스 간 동기/비동기 통신 패턴과 메커니즘을 설명합니다. API Gateway를 중앙 진입점으로 사용하며, Feign Client를 통한 동기 통신과 Kafka를 통한 이벤트 기반 비동기 통신을 혼용합니다.
 
 | 항목 | 내용 |
 |------|------|
 | **범위** | System |
 | **주요 기술** | Spring Cloud Gateway, Feign Client, Kafka, Resilience4j, WebSocket |
 | **배포 환경** | Local, Docker Compose, Kubernetes |
-| **관련 서비스** | api-gateway, auth-service, blog-service, shopping-service, notification-service, prism-service, chatbot-service |
+| **관련 서비스** | api-gateway, auth-service, blog-service, shopping-service, shopping-seller-service, shopping-settlement-service, notification-service, prism-service, chatbot-service |
 
 ---
 
@@ -22,6 +22,8 @@ graph TB
     Gateway -->|JWT 검증<br/>X-User-* 헤더 추가<br/>Circuit Breaker| Auth[auth-service :8081]
     Gateway --> Blog[blog-service :8082]
     Gateway --> Shopping[shopping-service :8083]
+    Gateway --> ShoppingSeller[shopping-seller-service :8088]
+    Gateway --> ShoppingSettlement[shopping-settlement-service :8089]
     Gateway --> Notification[notification-service :8084]
     Gateway --> Prism[prism-service :8085]
     Gateway --> Chatbot[chatbot-service :8086]
@@ -32,8 +34,10 @@ graph TB
     Prism -->|prism.*| Kafka
 
     Shopping -.->|Feign Client<br/>동기 호출| Blog
+    Shopping -.->|Feign Client<br/>X-Internal-Token| ShoppingSeller
 
     Kafka --> Notification
+    Kafka --> ShoppingSettlement
     Notification -->|WebSocket<br/>SSE| Client
 
     style Gateway fill:#4A90E2
@@ -108,7 +112,9 @@ graph TB
 |--------|-----------|------|------|
 | auth-service | `/api/v1/auth/**`, `/api/v1/users/**`, `/auth-service/**` | 8081 | JWT 발급, 사용자 관리 |
 | blog-service | `/api/v1/blog/**` | 8082 | 블로그 게시글 |
-| shopping-service | `/api/v1/shopping/**` | 8083 | 쇼핑몰 |
+| shopping-service | `/api/v1/shopping/**` | 8083 | 쇼핑몰 (Buyer) |
+| shopping-seller-service | `/api/v1/seller/**` | 8088 | 판매자 관리 |
+| shopping-settlement-service | `/api/v1/settlement/**` | 8089 | 정산 배치 |
 | notification-service | `/notification/ws/**`, `/api/v1/notifications/**` | 8084 | WebSocket, 알림 API |
 | prism-service | `/api/v1/prism/**` | 8085 | NestJS 서비스 |
 | chatbot-service | `/api/v1/chat/**` | 8086 | Python 챗봇 |
@@ -143,6 +149,21 @@ public ResponseEntity<UserInfo> getMyInfo(@CurrentUser AuthUser user) {
 
 ### Feign Client 사용 사례
 
+#### shopping-service → shopping-seller-service (Internal API)
+```java
+@FeignClient(name = "shopping-seller-inventory",
+             url = "${feign.shopping-seller-service.url}",
+             path = "/internal/inventory")
+public interface SellerInventoryClient {
+    @PostMapping("/reserve")  ApiResponse<Void> reserveStock(StockReserveRequest request);
+    @PostMapping("/deduct")   ApiResponse<Void> deductStock(StockReserveRequest request);
+    @PostMapping("/release")  ApiResponse<Void> releaseStock(StockReserveRequest request);
+    @PostMapping("/restore")  ApiResponse<Void> restoreStock(StockReserveRequest request);
+}
+```
+
+**인증**: `X-Internal-Token` 헤더 (FeignClientConfig에서 항상 추가 — HTTP/Kafka/Scheduler 컨텍스트 무관)
+
 #### shopping-service → blog-service
 ```java
 @FeignClient(
@@ -156,13 +177,9 @@ public interface BlogServiceClient {
 }
 ```
 
-**환경별 URL**:
-- Local: `http://localhost:8082`
-- Docker: `http://blog-service:8082`
-- K8s: `http://blog-service:8082`
-
 **FeignClientConfig**:
-- Authorization 헤더 자동 전파 (RequestInterceptor)
+- `X-Internal-Token`: 서비스 간 인증 토큰 (항상 추가)
+- `X-User-*` 헤더: HTTP 요청 컨텍스트가 있을 때만 전파 (감사 추적용)
 - 타임아웃: connect 5s, read 10s
 - 에러 핸들링: FeignException → CustomBusinessException 변환
 
@@ -177,10 +194,15 @@ public interface BlogServiceClient {
 - `user-signup` (auth-service → notification-service)
 - `blog.created`, `blog.updated` (blog-service → notification-service)
 - `shopping.order.created` (shopping-service → notification-service)
+- `shopping.payment.completed` (shopping-service → shopping-service Saga, shopping-settlement-service)
+- `shopping.payment.cancelled` (shopping-service → shopping-service 주문 취소)
+- `shopping.order.cancelled` (shopping-service → shopping-settlement-service 역분개)
 - `prism.card.created` (prism-service → notification-service)
 
 **Consumer 그룹**:
-- notification-service: 모든 도메인 이벤트 구독 (알림 생성)
+- notification-service: 도메인 이벤트 구독 (알림 생성)
+- shopping-service: 결제 완료/취소 이벤트 자체 소비 (Saga 후속 단계, 주문 취소 연쇄)
+- shopping-settlement-service: 결제 완료/주문 취소 이벤트 구독 (정산 ledger 생성/역분개)
 
 ---
 
@@ -249,14 +271,18 @@ resilience4j:
 
 ## 데이터 플로우
 
-### 유스케이스 1: 상품 주문
+### 유스케이스 1: 상품 주문 (Saga Cross-Service)
 ```
 1. Client → Gateway (POST /api/v1/shopping/orders)
 2. Gateway → JWT 검증 → X-User-Id 추가
 3. Gateway → shopping-service (Circuit Breaker 통과)
-4. shopping-service → MySQL (주문 저장)
-5. shopping-service → Kafka (shopping.order.created 발행)
-6. notification-service (Kafka Consumer) → 알림 생성 → WebSocket Push
+4. shopping-service → OrderSagaOrchestrator.startSaga()
+5. shopping-service → Feign (X-Internal-Token) → shopping-seller-service (재고 예약)
+6. shopping-service → PostgreSQL (주문/SagaState 저장)
+7. Client → 결제 API 호출 → PaymentCompletedEvent (Kafka)
+8. shopping-service (Kafka Consumer) → Saga 후속 단계 (재고 차감, 배송, 주문 확정)
+9. shopping-settlement-service (Kafka Consumer) → 정산 ledger 생성 (판매자별)
+10. notification-service (Kafka Consumer) → 알림 생성 → WebSocket Push
 ```
 
 ### 유스케이스 2: 상품 리뷰 조회 (동기 통신)
@@ -357,6 +383,7 @@ resilience4j:
 |------|-----------|--------|
 | 2026-02-06 | 코드 기반 신규 작성 (7개 서비스 통신 패턴 문서화) | Laze |
 | 2026-02-08 | GatewayUser → AuthUser 리네이밍 반영 (ADR-024) | Laze |
+| 2026-02-27 | shopping-seller/settlement 서비스 추가, Internal Token Auth, Saga Cross-Service Feign 반영 (ADR-053) | Laze |
 
 ---
 

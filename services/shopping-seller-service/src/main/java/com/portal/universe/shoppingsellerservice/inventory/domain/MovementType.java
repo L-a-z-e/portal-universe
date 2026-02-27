@@ -4,6 +4,7 @@ public enum MovementType {
     RESERVE,
     DEDUCT,
     RELEASE,
+    RESTORE,
     ADD,
     ADJUST,
     RETURN

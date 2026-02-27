@@ -24,6 +24,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "seller_id", nullable = false)
+    private Long sellerId;
+
     @Column(nullable = false)
     private String name;
 
@@ -58,8 +61,9 @@ public class Product {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Product(String name, String description, BigDecimal price, BigDecimal discountPrice,
+    public Product(Long sellerId, String name, String description, BigDecimal price, BigDecimal discountPrice,
                    Integer stock, String imageUrl, String category, Boolean featured) {
+        this.sellerId = sellerId;
         this.name = name;
         this.description = description;
         this.price = price;

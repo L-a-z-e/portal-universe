@@ -76,7 +76,7 @@ public class Cart {
      * @param quantity 수량
      * @return 추가된 장바구니 항목
      */
-    public CartItem addItem(Long productId, String productName, BigDecimal price, int quantity) {
+    public CartItem addItem(Long sellerId, Long productId, String productName, BigDecimal price, int quantity) {
         validateActive();
 
         // 이미 같은 상품이 있는지 확인
@@ -87,6 +87,7 @@ public class Cart {
 
         CartItem cartItem = CartItem.builder()
                 .cart(this)
+                .sellerId(sellerId)
                 .productId(productId)
                 .productName(productName)
                 .price(price)

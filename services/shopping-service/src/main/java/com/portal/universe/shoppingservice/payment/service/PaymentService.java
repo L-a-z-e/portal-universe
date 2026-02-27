@@ -42,4 +42,12 @@ public interface PaymentService {
      * @return 환불된 결제 정보
      */
     PaymentResponse refundPayment(String paymentNumber);
+
+    /**
+     * Saga 보상용 결제 환불. PG 환불 + 결제 상태만 변경하고 주문 상태는 건드리지 않습니다.
+     * cancelOrder()/compensate()가 주문 상태를 별도로 관리합니다.
+     *
+     * @param orderNumber 주문 번호
+     */
+    void refundPaymentForCompensation(String orderNumber);
 }
