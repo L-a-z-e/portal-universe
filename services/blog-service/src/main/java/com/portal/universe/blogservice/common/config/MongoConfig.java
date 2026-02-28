@@ -2,8 +2,11 @@ package com.portal.universe.blogservice.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.index.IndexOperations;
@@ -14,6 +17,11 @@ import org.springframework.data.mongodb.core.index.TextIndexDefinition;
 public class MongoConfig implements InitializingBean {
 
     private final MongoTemplate mongoTemplate;
+
+    @Bean
+    MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
+        return new MongoTransactionManager(dbFactory);
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
