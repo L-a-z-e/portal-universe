@@ -60,32 +60,6 @@ class ShoppingEventPublisherTest {
     }
 
     @Nested
-    @DisplayName("publishPaymentCompleted")
-    class PublishPaymentCompleted {
-
-        @Test
-        @DisplayName("should_saveOutboxEvent_when_called")
-        void should_saveOutboxEvent_when_called() {
-            // given
-            PaymentCompletedEvent event = new PaymentCompletedEvent(
-                    "PAY-001", "ORD-001", "user1", BigDecimal.valueOf(10000),
-                    "CARD", "PG-TX123", Instant.now(), List.of());
-
-            // when
-            eventPublisher.publishPaymentCompleted(event);
-
-            // then
-            ArgumentCaptor<OutboxEvent> captor = ArgumentCaptor.forClass(OutboxEvent.class);
-            verify(outboxEventRepository).save(captor.capture());
-
-            OutboxEvent saved = captor.getValue();
-            assertThat(saved.getTopic()).isEqualTo(ShoppingTopics.PAYMENT_COMPLETED);
-            assertThat(saved.getEventKey()).isEqualTo("PAY-001");
-            assertThat(saved.getStatus()).isEqualTo(OutboxStatus.PENDING);
-        }
-    }
-
-    @Nested
     @DisplayName("publishOrderCancelled")
     class PublishOrderCancelled {
 

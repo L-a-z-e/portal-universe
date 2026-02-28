@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
  * - S0XX: Product (S001-S010)
  * - S1XX: Cart (S101-S110)
  * - S2XX: Order (S201-S220)
- * - S3XX: Payment (S301-S315)
+ * - S3XX: (Reserved — migrated to payment-service)
  * - S4XX: Inventory (S401-S410)
  * - S5XX: Delivery (S501-S510)
  * - S9XX: Saga/System (S901-S910)
@@ -60,23 +60,6 @@ public enum ShoppingErrorCode implements ErrorCode {
     ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "S210", "Order amount does not match"),
     INVALID_SHIPPING_ADDRESS(HttpStatus.BAD_REQUEST, "S211", "Invalid shipping address"),
     ORDER_USER_MISMATCH(HttpStatus.FORBIDDEN, "S212", "Order does not belong to current user"),
-
-    // ========================================
-    // Payment Errors (S3XX)
-    // ========================================
-    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "S301", "Payment not found"),
-    PAYMENT_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "S302", "Payment has already been completed"),
-    PAYMENT_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "S303", "Payment has already been cancelled"),
-    PAYMENT_PROCESSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S304", "Payment processing failed"),
-    PAYMENT_REFUND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S305", "Payment refund failed"),
-    INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "S306", "Invalid payment amount"),
-    PAYMENT_METHOD_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "S307", "Payment method not supported"),
-    PAYMENT_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "S308", "Payment request timed out"),
-    PAYMENT_CANCELLED_BY_USER(HttpStatus.BAD_REQUEST, "S309", "Payment cancelled by user"),
-    INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "S310", "Insufficient balance for payment"),
-    PG_CONNECTION_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "S311", "Payment gateway connection error"),
-    PAYMENT_CANNOT_BE_CANCELLED(HttpStatus.BAD_REQUEST, "S312", "Payment cannot be cancelled in current status"),
-    PAYMENT_USER_MISMATCH(HttpStatus.FORBIDDEN, "S313", "Payment does not belong to current user"),
 
     // ========================================
     // Inventory Errors (S4XX)

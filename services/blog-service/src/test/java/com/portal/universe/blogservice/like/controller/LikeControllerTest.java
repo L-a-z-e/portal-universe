@@ -20,7 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -98,7 +98,7 @@ class LikeControllerTest {
             "user-2",
             "user-2-username",
             "User Two",
-            LocalDateTime.now()
+            Instant.now()
         );
         Page<LikerResponse> page = new PageImpl<>(List.of(likerResponse));
         given(likeService.getLikers(eq("post-1"), any(Pageable.class))).willReturn(page);

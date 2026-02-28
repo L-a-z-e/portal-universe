@@ -2,7 +2,7 @@ package com.portal.universe.shoppingservice.inventory.dto;
 
 import com.portal.universe.shoppingservice.inventory.domain.Inventory;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 재고 조회 응답 DTO입니다.
@@ -13,8 +13,8 @@ public record InventoryResponse(
         Integer availableQuantity,
         Integer reservedQuantity,
         Integer totalQuantity,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
     public static InventoryResponse from(Inventory inventory) {
         return new InventoryResponse(

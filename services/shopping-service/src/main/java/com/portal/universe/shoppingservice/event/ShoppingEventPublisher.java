@@ -27,18 +27,6 @@ public class ShoppingEventPublisher {
         saveOutbox(ShoppingTopics.ORDER_CANCELLED, event.getOrderNumber().toString(), event);
     }
 
-    public void publishPaymentCompleted(PaymentCompletedEvent event) {
-        saveOutbox(ShoppingTopics.PAYMENT_COMPLETED, event.getPaymentNumber().toString(), event);
-    }
-
-    public void publishPaymentCancelled(PaymentCancelledEvent event) {
-        saveOutbox(ShoppingTopics.PAYMENT_CANCELLED, event.getPaymentNumber().toString(), event);
-    }
-
-    public void publishPaymentFailed(PaymentFailedEvent event) {
-        saveOutbox(ShoppingTopics.PAYMENT_FAILED, event.getPaymentNumber().toString(), event);
-    }
-
     public void publishInventoryReserved(InventoryReservedEvent event) {
         saveOutbox(ShoppingTopics.INVENTORY_RESERVED, event.getOrderNumber().toString(), event);
     }
@@ -53,6 +41,10 @@ public class ShoppingEventPublisher {
 
     public void publishTimeDealStarted(TimeDealStartedEvent event) {
         saveOutbox(ShoppingTopics.TIMEDEAL_STARTED, String.valueOf(event.getTimeDealId()), event);
+    }
+
+    public void publishOrderSettlementCreated(OrderSettlementCreatedEvent event) {
+        saveOutbox(ShoppingTopics.ORDER_SETTLEMENT_CREATED, event.getOrderNumber().toString(), event);
     }
 
     private void saveOutbox(String topic, String key, SpecificRecord event) {

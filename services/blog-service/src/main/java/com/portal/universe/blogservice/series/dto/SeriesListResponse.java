@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.series.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 시리즈 목록 응답 DTO (요약)
@@ -14,6 +14,6 @@ public record SeriesListResponse(
         String authorNickname,
         String thumbnailUrl,
         Integer postCount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {}

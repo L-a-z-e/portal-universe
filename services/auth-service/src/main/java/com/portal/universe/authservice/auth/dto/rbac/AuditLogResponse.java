@@ -2,8 +2,6 @@ package com.portal.universe.authservice.auth.dto.rbac;
 
 import com.portal.universe.authservice.auth.domain.AuthAuditLog;
 
-import java.time.format.DateTimeFormatter;
-
 public record AuditLogResponse(
         Long id,
         String eventType,
@@ -13,8 +11,6 @@ public record AuditLogResponse(
         String ipAddress,
         String createdAt
 ) {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-
     public static AuditLogResponse from(AuthAuditLog log) {
         return new AuditLogResponse(
                 log.getId(),
@@ -23,7 +19,7 @@ public record AuditLogResponse(
                 log.getActorUserId(),
                 log.getDetails(),
                 log.getIpAddress(),
-                log.getCreatedAt() != null ? log.getCreatedAt().format(FORMATTER) : null
+                log.getCreatedAt() != null ? log.getCreatedAt().toString() : null
         );
     }
 }

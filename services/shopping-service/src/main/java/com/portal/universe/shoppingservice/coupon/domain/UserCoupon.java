@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "user_coupons",
@@ -33,26 +33,26 @@ public class UserCoupon {
     private Long usedOrderId;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime issuedAt = LocalDateTime.now();
+    private Instant issuedAt = Instant.now();
 
-    private LocalDateTime usedAt;
+    private Instant usedAt;
 
     @Column(nullable = false)
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 
     @Builder
-    public UserCoupon(String userId, Coupon coupon, LocalDateTime expiresAt) {
+    public UserCoupon(String userId, Coupon coupon, Instant expiresAt) {
         this.userId = userId;
         this.coupon = coupon;
         this.status = UserCouponStatus.AVAILABLE;
-        this.issuedAt = LocalDateTime.now();
+        this.issuedAt = Instant.now();
         this.expiresAt = expiresAt;
     }
 
     public void use(Long orderId) {
         this.status = UserCouponStatus.USED;
         this.usedOrderId = orderId;
-        this.usedAt = LocalDateTime.now();
+        this.usedAt = Instant.now();
     }
 
     public void markAsExpired() {
@@ -61,6 +61,6 @@ public class UserCoupon {
 
     public boolean isUsable() {
         return this.status == UserCouponStatus.AVAILABLE
-                && LocalDateTime.now().isBefore(this.expiresAt);
+                && Instant.now().isBefore(this.expiresAt);
     }
 }

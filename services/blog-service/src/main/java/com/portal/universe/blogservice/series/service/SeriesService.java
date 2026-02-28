@@ -16,7 +16,6 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -45,8 +44,6 @@ public class SeriesService {
                 .authorUsername(authorUsername)
                 .authorNickname(authorNickname)
                 .thumbnailUrl(request.thumbnailUrl())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         seriesRepository.save(series);

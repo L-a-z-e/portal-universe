@@ -26,7 +26,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,7 +69,7 @@ class TimeDealServiceImplTest {
     }
 
     private TimeDeal createTimeDeal(Long id, String name, TimeDealStatus status,
-                                     LocalDateTime startsAt, LocalDateTime endsAt) {
+                                     Instant startsAt, Instant endsAt) {
         TimeDeal timeDeal = TimeDeal.builder()
                 .name(name)
                 .description("desc")
@@ -115,7 +116,7 @@ class TimeDealServiceImplTest {
             // given
             Pageable pageable = PageRequest.of(0, 10);
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             Page<TimeDeal> page = new PageImpl<>(List.of(timeDeal), pageable, 1);
             when(timeDealRepository.findAll(pageable)).thenReturn(page);
 
@@ -139,7 +140,7 @@ class TimeDealServiceImplTest {
             when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
             TimeDeal savedTimeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.SCHEDULED,
-                    LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().plus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             TimeDealProduct tdp = createTimeDealProduct(1L, savedTimeDeal, product,
                     BigDecimal.valueOf(5000), 50, 0, 2);
             savedTimeDeal.getProducts().add(tdp);
@@ -148,8 +149,8 @@ class TimeDealServiceImplTest {
             TimeDealCreateRequest request = TimeDealCreateRequest.builder()
                     .name("Flash Sale")
                     .description("desc")
-                    .startsAt(LocalDateTime.now().plusHours(1))
-                    .endsAt(LocalDateTime.now().plusHours(5))
+                    .startsAt(Instant.now().plus(1, ChronoUnit.HOURS))
+                    .endsAt(Instant.now().plus(5, ChronoUnit.HOURS))
                     .products(List.of(
                             TimeDealCreateRequest.TimeDealProductRequest.builder()
                                     .productId(1L)
@@ -176,8 +177,8 @@ class TimeDealServiceImplTest {
 
             TimeDealCreateRequest request = TimeDealCreateRequest.builder()
                     .name("Flash Sale")
-                    .startsAt(LocalDateTime.now().plusHours(1))
-                    .endsAt(LocalDateTime.now().plusHours(5))
+                    .startsAt(Instant.now().plus(1, ChronoUnit.HOURS))
+                    .endsAt(Instant.now().plus(5, ChronoUnit.HOURS))
                     .products(List.of(
                             TimeDealCreateRequest.TimeDealProductRequest.builder()
                                     .productId(999L)
@@ -199,8 +200,8 @@ class TimeDealServiceImplTest {
             // given
             TimeDealCreateRequest request = TimeDealCreateRequest.builder()
                     .name("Flash Sale")
-                    .startsAt(LocalDateTime.now().plusHours(5))
-                    .endsAt(LocalDateTime.now().plusHours(1))
+                    .startsAt(Instant.now().plus(5, ChronoUnit.HOURS))
+                    .endsAt(Instant.now().plus(1, ChronoUnit.HOURS))
                     .products(List.of(
                             TimeDealCreateRequest.TimeDealProductRequest.builder()
                                     .productId(1L)
@@ -226,7 +227,7 @@ class TimeDealServiceImplTest {
         void should_returnTimeDeal_when_found() {
             // given
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             when(timeDealRepository.findByIdWithProducts(1L)).thenReturn(timeDeal);
 
             // when
@@ -257,8 +258,8 @@ class TimeDealServiceImplTest {
         void should_returnActiveTimeDeals_when_called() {
             // given
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
-            when(timeDealRepository.findActiveDeals(eq(TimeDealStatus.ACTIVE), any(LocalDateTime.class)))
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
+            when(timeDealRepository.findActiveDeals(eq(TimeDealStatus.ACTIVE), any(Instant.class)))
                     .thenReturn(List.of(timeDeal));
 
             // when
@@ -279,7 +280,7 @@ class TimeDealServiceImplTest {
             // given
             Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
@@ -289,7 +290,6 @@ class TimeDealServiceImplTest {
 
             TimeDealPurchase purchase = createTimeDealPurchase(1L, "user1", tdp, 1);
             when(timeDealPurchaseRepository.save(any(TimeDealPurchase.class))).thenReturn(purchase);
-            when(timeDealProductRepository.save(any(TimeDealProduct.class))).thenReturn(tdp);
 
             TimeDealPurchaseRequest request = TimeDealPurchaseRequest.builder()
                     .timeDealProductId(10L)
@@ -310,7 +310,7 @@ class TimeDealServiceImplTest {
             // given
             Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.SCHEDULED,
-                    LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().plus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
@@ -333,7 +333,7 @@ class TimeDealServiceImplTest {
             // given
             Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
@@ -357,7 +357,7 @@ class TimeDealServiceImplTest {
             // given
             Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
@@ -381,7 +381,7 @@ class TimeDealServiceImplTest {
             // given
             Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(5), LocalDateTime.now().minusHours(1));
+                    Instant.now().minus(5, ChronoUnit.HOURS), Instant.now().minus(1, ChronoUnit.HOURS));
             TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
@@ -409,7 +409,7 @@ class TimeDealServiceImplTest {
             // given
             Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
                     BigDecimal.valueOf(5000), 50, 1, 2);
             TimeDealPurchase purchase = createTimeDealPurchase(1L, "user1", tdp, 1);
@@ -435,7 +435,7 @@ class TimeDealServiceImplTest {
             // given
             Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
                     BigDecimal.valueOf(5000), 50, 0, 2);
             timeDeal.getProducts().add(tdp);

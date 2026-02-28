@@ -27,10 +27,10 @@ export class Board {
   @Column({ name: 'is_archived', default: false })
   isArchived!: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
   @OneToMany(() => Task, (task) => task.board)

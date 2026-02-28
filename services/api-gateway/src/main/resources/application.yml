@@ -311,6 +311,31 @@ spring:
                     name: shoppingCircuitBreaker
                     fallbackUri: forward:/fallback/shopping
 
+            # ========== Payment Service ==========
+            - id: payment-service-route
+              uri: ${services.payment.url:http://localhost:8090}
+              predicates:
+                - Path=/api/v1/payment/**
+              filters:
+                - StripPrefix=3
+                - name: RequestRateLimiter
+                  args:
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
+                - name: CircuitBreaker
+                  args:
+                    name: paymentCircuitBreaker
+                    fallbackUri: forward:/fallback/payment
+
+            # Payment Service Actuator - health, info
+            - id: payment-service-actuator-health
+              uri: ${services.payment.url:http://localhost:8090}
+              predicates:
+                - Path=/api/v1/payment/actuator/health,/api/v1/payment/actuator/info
+              filters:
+                - RewritePath=/api/v1/payment/actuator/(?<segment>.*), /actuator/${segment}
+              order: 0
+
             # ========== Shopping Seller Service ==========
             - id: shopping-seller-service-route
               uri: ${services.shopping-seller.url:http://localhost:8088}
@@ -526,6 +551,8 @@ resilience4j:
         base-config: default
       shoppingCircuitBreaker:
         base-config: default
+      paymentCircuitBreaker:
+        base-config: default
       shoppingSellerCircuitBreaker:
         base-config: default
       shoppingSettlementCircuitBreaker:
@@ -549,6 +576,8 @@ resilience4j:
       blogCircuitBreaker:
         base-config: default
       shoppingCircuitBreaker:
+        base-config: default
+      paymentCircuitBreaker:
         base-config: default
       shoppingSellerCircuitBreaker:
         base-config: default
@@ -622,11 +651,11 @@ jwt:
     key-default:
       # SM 우선(jwt.secret-key), 없으면 환경변수, 없으면 개발용 기본값
       secret-key: ${jwt.secret-key:${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}}
-      activated-at: 2026-01-01T00:00:00
+      activated-at: 2026-01-01T00:00:00Z
       # expires-at은 null이면 만료되지 않음
     key-2026-01:
       secret-key: ${jwt.secret-key:${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}}
-      activated-at: 2026-01-01T00:00:00
+      activated-at: 2026-01-01T00:00:00Z
 
 # 보안 헤더 설정
 security:
@@ -684,6 +713,11 @@ health-check:
       url: ${services.shopping.url:http://localhost:8083}
       health-path: /actuator/health
       k8s-deployment-name: shopping-service
+    - name: payment-service
+      display-name: Payment Service
+      url: ${services.payment.url:http://localhost:8090}
+      health-path: /actuator/health
+      k8s-deployment-name: payment-service
     - name: shopping-seller-service
       display-name: Shopping Seller Service
       url: ${services.shopping-seller.url:http://localhost:8088}

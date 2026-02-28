@@ -2,7 +2,7 @@ package com.portal.universe.shoppingsellerservice.inventory.dto;
 
 import com.portal.universe.shoppingsellerservice.inventory.domain.Inventory;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record InventoryResponse(
         Long id,
@@ -10,7 +10,7 @@ public record InventoryResponse(
         Integer availableQuantity,
         Integer reservedQuantity,
         Integer totalQuantity,
-        LocalDateTime updatedAt
+        Instant updatedAt
 ) {
     public static InventoryResponse from(Inventory inventory) {
         return new InventoryResponse(

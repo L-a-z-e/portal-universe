@@ -18,7 +18,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
@@ -55,9 +56,9 @@ class CouponControllerTest {
                 .issuedQuantity(10)
                 .remainingQuantity(90)
                 .status(CouponStatus.ACTIVE)
-                .startsAt(LocalDateTime.now().minusDays(1))
-                .expiresAt(LocalDateTime.now().plusDays(30))
-                .createdAt(LocalDateTime.now())
+                .startsAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
+                .createdAt(Instant.now())
                 .build();
     }
 
@@ -72,8 +73,8 @@ class CouponControllerTest {
                 .minimumOrderAmount(BigDecimal.valueOf(10000))
                 .maximumDiscountAmount(BigDecimal.valueOf(5000))
                 .status(UserCouponStatus.AVAILABLE)
-                .issuedAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
     }
 

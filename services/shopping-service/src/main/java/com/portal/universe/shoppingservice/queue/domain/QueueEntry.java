@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -41,13 +41,13 @@ public class QueueEntry {
     private QueueStatus status = QueueStatus.WAITING;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime joinedAt;
+    private Instant joinedAt;
 
-    private LocalDateTime enteredAt;   // 입장 시간
+    private Instant enteredAt;   // 입장 시간
 
-    private LocalDateTime expiredAt;   // 만료 시간
+    private Instant expiredAt;   // 만료 시간
 
-    private LocalDateTime leftAt;      // 이탈 시간
+    private Instant leftAt;      // 이탈 시간
 
     @Builder
     public QueueEntry(WaitingQueue queue, String userId) {
@@ -55,22 +55,22 @@ public class QueueEntry {
         this.userId = userId;
         this.entryToken = UUID.randomUUID().toString();
         this.status = QueueStatus.WAITING;
-        this.joinedAt = LocalDateTime.now();
+        this.joinedAt = Instant.now();
     }
 
     public void enter() {
         this.status = QueueStatus.ENTERED;
-        this.enteredAt = LocalDateTime.now();
+        this.enteredAt = Instant.now();
     }
 
     public void expire() {
         this.status = QueueStatus.EXPIRED;
-        this.expiredAt = LocalDateTime.now();
+        this.expiredAt = Instant.now();
     }
 
     public void leave() {
         this.status = QueueStatus.LEFT;
-        this.leftAt = LocalDateTime.now();
+        this.leftAt = Instant.now();
     }
 
     public boolean isWaiting() {

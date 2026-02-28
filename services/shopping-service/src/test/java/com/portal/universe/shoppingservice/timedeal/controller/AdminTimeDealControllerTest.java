@@ -22,7 +22,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -64,10 +65,10 @@ class AdminTimeDealControllerTest {
                 .name("Flash Sale")
                 .description("Limited time offer")
                 .status(TimeDealStatus.ACTIVE)
-                .startsAt(LocalDateTime.now().minusHours(1))
-                .endsAt(LocalDateTime.now().plusHours(2))
+                .startsAt(Instant.now().minus(1, ChronoUnit.HOURS))
+                .endsAt(Instant.now().plus(2, ChronoUnit.HOURS))
                 .products(List.of())
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
     }
 
@@ -99,8 +100,8 @@ class AdminTimeDealControllerTest {
         TimeDealCreateRequest request = TimeDealCreateRequest.builder()
                 .name("New Flash Sale")
                 .description("Limited offer")
-                .startsAt(LocalDateTime.now())
-                .endsAt(LocalDateTime.now().plusDays(1))
+                .startsAt(Instant.now())
+                .endsAt(Instant.now().plus(1, ChronoUnit.DAYS))
                 .products(List.of(productReq))
                 .build();
         when(timeDealService.createTimeDeal(any(TimeDealCreateRequest.class))).thenReturn(createTimeDealResponse());

@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.post.dto.stats;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record AuthorStats(
         String authorId,
@@ -10,6 +10,6 @@ public record AuthorStats(
         Long publishedPosts,
         Long totalViews,
         Long totalLikes,
-        LocalDateTime firstPostDate,
-        LocalDateTime lastPostDate
+        Instant firstPostDate,
+        Instant lastPostDate
 ) {}

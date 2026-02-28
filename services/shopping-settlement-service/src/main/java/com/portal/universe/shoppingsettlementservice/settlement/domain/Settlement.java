@@ -1,23 +1,20 @@
 package com.portal.universe.shoppingsettlementservice.settlement.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "settlements")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Settlement {
+public class Settlement extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,15 +46,7 @@ public class Settlement {
     private SettlementStatus status;
 
     @Column(name = "paid_at")
-    private LocalDateTime paidAt;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant paidAt;
 
     @Builder
     public Settlement(Long periodId, Long sellerId, BigDecimal totalSales, Integer totalOrders,
@@ -78,7 +67,7 @@ public class Settlement {
 
     public void markPaid() {
         this.status = SettlementStatus.PAID;
-        this.paidAt = LocalDateTime.now();
+        this.paidAt = Instant.now();
     }
 
     public void dispute() {

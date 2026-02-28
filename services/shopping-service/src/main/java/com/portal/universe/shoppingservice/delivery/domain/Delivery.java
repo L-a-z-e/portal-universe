@@ -1,5 +1,6 @@
 package com.portal.universe.shoppingservice.delivery.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.domain.Address;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
@@ -8,12 +9,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,10 +25,9 @@ import java.util.UUID;
         @Index(name = "idx_delivery_status", columnList = "status"),
         @Index(name = "idx_delivery_user_id", columnList = "user_id")
 })
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Delivery {
+public class Delivery extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -98,14 +94,6 @@ public class Delivery {
     @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt DESC")
     private List<DeliveryHistory> histories = new ArrayList<>();
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @Builder
     public Delivery(Long orderId, String orderNumber, String userId, Address shippingAddress, String carrier) {

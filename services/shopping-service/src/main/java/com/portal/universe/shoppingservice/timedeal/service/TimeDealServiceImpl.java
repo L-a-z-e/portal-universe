@@ -23,7 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -78,7 +78,7 @@ public class TimeDealServiceImpl implements TimeDealService {
         return TimeDealResponse.from(savedTimeDeal);
     }
 
-    private void validateTimeDealPeriod(LocalDateTime startsAt, LocalDateTime endsAt) {
+    private void validateTimeDealPeriod(Instant startsAt, Instant endsAt) {
         if (startsAt.isAfter(endsAt)) {
             throw new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_INVALID_PERIOD);
         }
@@ -95,7 +95,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     @Override
     public List<TimeDealResponse> getActiveTimeDeals() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return timeDealRepository.findActiveDeals(TimeDealStatus.ACTIVE, now)
                 .stream()
                 .map(TimeDealResponse::from)
@@ -153,7 +153,7 @@ public class TimeDealServiceImpl implements TimeDealService {
             throw new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_NOT_ACTIVE);
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         if (now.isBefore(timeDeal.getStartsAt()) || now.isAfter(timeDeal.getEndsAt())) {
             throw new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_EXPIRED);
         }

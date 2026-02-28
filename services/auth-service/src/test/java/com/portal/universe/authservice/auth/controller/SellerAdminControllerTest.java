@@ -26,7 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -81,7 +81,7 @@ class SellerAdminControllerTest {
             Long id, String userId, SellerApplicationStatus status) {
         return new SellerApplicationResponse(
                 id, userId, "Business " + id, "123-45-" + id,
-                "Want to sell", status, null, null, null, LocalDateTime.now()
+                "Want to sell", status, null, null, null, Instant.now()
         );
     }
 
@@ -191,7 +191,7 @@ class SellerAdminControllerTest {
             SellerApplicationResponse response = new SellerApplicationResponse(
                     1L, "user-1", "Test Business", "123-45-67890",
                     "Want to sell", SellerApplicationStatus.APPROVED,
-                    ADMIN_UUID, "Approved", LocalDateTime.now(), LocalDateTime.now()
+                    ADMIN_UUID, "Approved", Instant.now(), Instant.now()
             );
 
             when(sellerApplicationService.review(eq(1L), any(SellerApplicationReviewRequest.class), eq(ADMIN_UUID)))
@@ -216,7 +216,7 @@ class SellerAdminControllerTest {
             SellerApplicationResponse response = new SellerApplicationResponse(
                     1L, "user-1", "Test Business", "123-45-67890",
                     "Want to sell", SellerApplicationStatus.REJECTED,
-                    ADMIN_UUID, "Incomplete documents", LocalDateTime.now(), LocalDateTime.now()
+                    ADMIN_UUID, "Incomplete documents", Instant.now(), Instant.now()
             );
 
             when(sellerApplicationService.review(eq(1L), any(SellerApplicationReviewRequest.class), eq(ADMIN_UUID)))

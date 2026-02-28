@@ -1,9 +1,7 @@
 package com.portal.universe.shoppingservice.product.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.universe.shoppingservice.product.dto.ProductCreateRequest;
 import com.portal.universe.shoppingservice.product.dto.ProductResponse;
-import com.portal.universe.shoppingservice.product.dto.ProductUpdateRequest;
 import com.portal.universe.shoppingservice.product.dto.ProductWithReviewsResponse;
 import com.portal.universe.shoppingservice.product.service.ProductService;
 import com.portal.universe.shoppingservice.support.WebMvcTestConfig;
@@ -22,7 +20,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -60,7 +59,7 @@ class ProductControllerTest {
     private ProductResponse createProductResponse(Long id) {
         return new ProductResponse(id, "Test Product", "Description",
                 BigDecimal.valueOf(10000), null, 100, "http://img.com/1.jpg", "Electronics",
-                false, List.of(), null, 0, LocalDateTime.now(), LocalDateTime.now());
+                false, List.of(), null, 0, Instant.now(), Instant.now());
     }
 
     @Test
@@ -91,53 +90,6 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.name").value("Test Product"));
-    }
-
-    @Test
-    @DisplayName("should_createProduct_when_validRequest")
-    void should_createProduct_when_validRequest() throws Exception {
-        // given
-        ProductCreateRequest request = new ProductCreateRequest("New Product", "Desc",
-                BigDecimal.valueOf(15000), 50);
-        ProductResponse response = createProductResponse(2L);
-        when(productService.createProduct(any(ProductCreateRequest.class))).thenReturn(response);
-
-        // when/then
-        mockMvc.perform(post("/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-
-    @Test
-    @DisplayName("should_updateProduct_when_validRequest")
-    void should_updateProduct_when_validRequest() throws Exception {
-        // given
-        ProductUpdateRequest request = new ProductUpdateRequest("Updated Product", "Updated Desc",
-                BigDecimal.valueOf(20000), 30);
-        ProductResponse response = createProductResponse(1L);
-        when(productService.updateProduct(eq(1L), any(ProductUpdateRequest.class))).thenReturn(response);
-
-        // when/then
-        mockMvc.perform(put("/products/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-
-    @Test
-    @DisplayName("should_deleteProduct_when_called")
-    void should_deleteProduct_when_called() throws Exception {
-        // given
-        doNothing().when(productService).deleteProduct(1L);
-
-        // when/then
-        mockMvc.perform(delete("/products/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-        verify(productService).deleteProduct(1L);
     }
 
     @Test

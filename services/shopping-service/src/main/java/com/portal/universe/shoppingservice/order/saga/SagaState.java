@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.UUID;
@@ -83,13 +83,13 @@ public class SagaState {
 
     @CreatedDate
     @Column(name = "started_at", nullable = false, updatable = false)
-    private LocalDateTime startedAt;
+    private Instant startedAt;
 
     /**
      * 완료 일시
      */
     @Column(name = "completed_at")
-    private LocalDateTime completedAt;
+    private Instant completedAt;
 
     @Builder
     public SagaState(Long orderId, String orderNumber) {
@@ -119,7 +119,7 @@ public class SagaState {
      */
     public void complete() {
         this.status = SagaStatus.COMPLETED;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = Instant.now();
         this.completedSteps.add(this.currentStep);
     }
 
@@ -147,7 +147,7 @@ public class SagaState {
     public void markAsFailed(String errorMessage) {
         this.status = SagaStatus.FAILED;
         this.lastErrorMessage = errorMessage;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = Instant.now();
     }
 
     /**
@@ -156,7 +156,7 @@ public class SagaState {
     public void markAsCompensationFailed(String errorMessage) {
         this.status = SagaStatus.COMPENSATION_FAILED;
         this.lastErrorMessage = errorMessage;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = Instant.now();
     }
 
     /**

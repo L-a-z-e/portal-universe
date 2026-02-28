@@ -29,7 +29,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -133,7 +133,7 @@ class PostServiceImplTest {
                     .tags(request.tags())
                     .build();
             ReflectionTestUtils.setField(savedPost, "id", "post-1");
-            ReflectionTestUtils.setField(savedPost, "publishedAt", LocalDateTime.now());
+            ReflectionTestUtils.setField(savedPost, "publishedAt", Instant.now());
 
             when(postRepository.save(any(Post.class))).thenReturn(savedPost);
 
@@ -159,7 +159,7 @@ class PostServiceImplTest {
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
 
             // when
-            PostResponse result = postService.getPostById("post-1");
+            PostResponse result = postService.getPostById("post-1", null);
 
             // then
             assertThat(result).isNotNull();
@@ -174,7 +174,7 @@ class PostServiceImplTest {
             when(postRepository.findById("post-1")).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> postService.getPostById("post-1"))
+            assertThatThrownBy(() -> postService.getPostById("post-1", null))
                     .isInstanceOf(CustomBusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", BlogErrorCode.POST_NOT_FOUND);
             verify(postRepository).findById("post-1");
@@ -566,7 +566,7 @@ class PostServiceImplTest {
             Page<Post> page = new PageImpl<>(posts, pageable, 1);
 
             when(postRepository.aggregateTrendingPosts(
-                    eq(PostStatus.PUBLISHED), any(LocalDateTime.class), eq(48.0), eq(0), eq(10)))
+                    eq(PostStatus.PUBLISHED), any(Instant.class), eq(48.0), eq(0), eq(10)))
                     .thenReturn(page);
 
             // when
@@ -575,7 +575,7 @@ class PostServiceImplTest {
             // then
             assertThat(result.getContent()).hasSize(1);
             verify(postRepository).aggregateTrendingPosts(
-                    eq(PostStatus.PUBLISHED), any(LocalDateTime.class), eq(48.0), eq(0), eq(10));
+                    eq(PostStatus.PUBLISHED), any(Instant.class), eq(48.0), eq(0), eq(10));
         }
     }
 
@@ -588,17 +588,17 @@ class PostServiceImplTest {
         void should_returnPrevAndNext() {
             // given
             Post currentPost = createTestPost("post-2", "user1", PostStatus.PUBLISHED);
-            ReflectionTestUtils.setField(currentPost, "publishedAt", LocalDateTime.now());
+            ReflectionTestUtils.setField(currentPost, "publishedAt", Instant.now());
 
             Post prevPost = createTestPost("post-1", "user1", PostStatus.PUBLISHED);
             Post nextPost = createTestPost("post-3", "user1", PostStatus.PUBLISHED);
 
             when(postRepository.findById("post-2")).thenReturn(Optional.of(currentPost));
             when(postRepository.findFirstByStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
-                    eq(PostStatus.PUBLISHED), any(LocalDateTime.class)))
+                    eq(PostStatus.PUBLISHED), any(Instant.class)))
                     .thenReturn(Optional.of(prevPost));
             when(postRepository.findFirstByStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(
-                    eq(PostStatus.PUBLISHED), any(LocalDateTime.class)))
+                    eq(PostStatus.PUBLISHED), any(Instant.class)))
                     .thenReturn(Optional.of(nextPost));
 
             // when
@@ -705,10 +705,10 @@ class PostServiceImplTest {
                 .category("tech")
                 .build();
         ReflectionTestUtils.setField(post, "id", id);
-        ReflectionTestUtils.setField(post, "createdAt", LocalDateTime.now());
-        ReflectionTestUtils.setField(post, "updatedAt", LocalDateTime.now());
+        ReflectionTestUtils.setField(post, "createdAt", Instant.now());
+        ReflectionTestUtils.setField(post, "updatedAt", Instant.now());
         if (status == PostStatus.PUBLISHED) {
-            ReflectionTestUtils.setField(post, "publishedAt", LocalDateTime.now());
+            ReflectionTestUtils.setField(post, "publishedAt", Instant.now());
         }
         return post;
     }

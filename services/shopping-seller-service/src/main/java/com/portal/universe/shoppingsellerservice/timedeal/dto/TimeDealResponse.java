@@ -5,7 +5,7 @@ import com.portal.universe.shoppingsellerservice.timedeal.domain.TimeDealProduct
 import com.portal.universe.shoppingsellerservice.timedeal.domain.TimeDealStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public record TimeDealResponse(
@@ -14,11 +14,11 @@ public record TimeDealResponse(
         String name,
         String description,
         TimeDealStatus status,
-        LocalDateTime startsAt,
-        LocalDateTime endsAt,
+        Instant startsAt,
+        Instant endsAt,
         List<TimeDealProductResponse> products,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
     public static TimeDealResponse from(TimeDeal timeDeal) {
         return new TimeDealResponse(

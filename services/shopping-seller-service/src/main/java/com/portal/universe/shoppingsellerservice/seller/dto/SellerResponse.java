@@ -3,7 +3,7 @@ package com.portal.universe.shoppingsellerservice.seller.dto;
 import com.portal.universe.shoppingsellerservice.seller.domain.Seller;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record SellerResponse(
         Long id,
@@ -17,7 +17,7 @@ public record SellerResponse(
         String bankAccount,
         BigDecimal commissionRate,
         String status,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {
     public static SellerResponse from(Seller seller) {
         return new SellerResponse(

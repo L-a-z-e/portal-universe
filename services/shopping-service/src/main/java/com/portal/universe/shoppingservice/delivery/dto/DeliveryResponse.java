@@ -4,8 +4,8 @@ import com.portal.universe.shoppingservice.delivery.domain.Delivery;
 import com.portal.universe.shoppingservice.delivery.domain.DeliveryStatus;
 import com.portal.universe.shoppingservice.order.dto.AddressResponse;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -22,8 +22,8 @@ public record DeliveryResponse(
         LocalDate estimatedDeliveryDate,
         LocalDate actualDeliveryDate,
         List<DeliveryHistoryResponse> histories,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
     public static DeliveryResponse from(Delivery delivery) {
         List<DeliveryHistoryResponse> historyResponses = delivery.getHistories().stream()

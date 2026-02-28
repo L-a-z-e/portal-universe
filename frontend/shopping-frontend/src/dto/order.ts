@@ -27,6 +27,7 @@ export interface Order {
   discountAmount?: number
   finalAmount?: number
   appliedUserCouponId?: number
+  paymentIntentId?: string
   shippingAddress: Address
   items: OrderItem[]
   cancelReason?: string

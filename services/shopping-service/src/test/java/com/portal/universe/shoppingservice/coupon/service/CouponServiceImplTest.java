@@ -23,7 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,8 +63,8 @@ class CouponServiceImplTest {
                 .minimumOrderAmount(BigDecimal.valueOf(5000))
                 .maximumDiscountAmount(BigDecimal.valueOf(3000))
                 .totalQuantity(totalQty)
-                .startsAt(LocalDateTime.now().minusDays(1))
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .startsAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
         ReflectionTestUtils.setField(coupon, "id", id);
         ReflectionTestUtils.setField(coupon, "status", status);
@@ -118,8 +119,8 @@ class CouponServiceImplTest {
                     .discountType(DiscountType.FIXED)
                     .discountValue(BigDecimal.valueOf(1000))
                     .totalQuantity(100)
-                    .startsAt(LocalDateTime.now())
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .startsAt(Instant.now())
+                    .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                     .build();
 
             when(couponRepository.existsByCode("NEW10")).thenReturn(false);
@@ -131,7 +132,7 @@ class CouponServiceImplTest {
 
             // then
             assertThat(result).isNotNull();
-            verify(couponRedisService).initializeCouponStock(1L, 100);
+            verify(couponRedisService).initializeCouponStock(eq(1L), eq(100), anyLong());
         }
 
         @Test
@@ -144,8 +145,8 @@ class CouponServiceImplTest {
                     .discountType(DiscountType.FIXED)
                     .discountValue(BigDecimal.valueOf(1000))
                     .totalQuantity(100)
-                    .startsAt(LocalDateTime.now())
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .startsAt(Instant.now())
+                    .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                     .build();
 
             when(couponRepository.existsByCode("EXISTING")).thenReturn(true);
@@ -195,7 +196,7 @@ class CouponServiceImplTest {
         void should_returnAvailableCoupons_when_called() {
             // given
             Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
-            when(couponRepository.findAvailableCoupons(eq(CouponStatus.ACTIVE), any(LocalDateTime.class)))
+            when(couponRepository.findAvailableCoupons(eq(CouponStatus.ACTIVE), any(Instant.class)))
                     .thenReturn(List.of(coupon));
 
             // when
@@ -220,7 +221,6 @@ class CouponServiceImplTest {
 
             UserCoupon userCoupon = createUserCoupon(1L, "1", coupon, UserCouponStatus.AVAILABLE);
             when(userCouponRepository.save(any(UserCoupon.class))).thenReturn(userCoupon);
-            when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
 
             // when
             UserCouponResponse result = couponService.issueCoupon(1L, "1");
@@ -273,7 +273,7 @@ class CouponServiceImplTest {
         void should_throwException_when_notStarted() {
             // given
             Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
-            ReflectionTestUtils.setField(coupon, "startsAt", LocalDateTime.now().plusDays(10));
+            ReflectionTestUtils.setField(coupon, "startsAt", Instant.now().plus(10, ChronoUnit.DAYS));
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
             // when & then
@@ -286,7 +286,7 @@ class CouponServiceImplTest {
         void should_throwException_when_expired() {
             // given
             Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
-            ReflectionTestUtils.setField(coupon, "expiresAt", LocalDateTime.now().minusDays(1));
+            ReflectionTestUtils.setField(coupon, "expiresAt", Instant.now().minus(1, ChronoUnit.DAYS));
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
             // when & then
@@ -325,7 +325,7 @@ class CouponServiceImplTest {
             // given
             Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 1);
             UserCoupon userCoupon = createUserCoupon(1L, "user1", coupon, UserCouponStatus.AVAILABLE);
-            when(userCouponRepository.findAvailableByUserId(eq("user1"), any(LocalDateTime.class)))
+            when(userCouponRepository.findAvailableByUserId(eq("user1"), any(Instant.class)))
                     .thenReturn(List.of(userCoupon));
 
             // when

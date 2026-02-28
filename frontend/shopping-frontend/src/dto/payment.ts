@@ -28,12 +28,21 @@ export interface Payment {
   updatedAt?: string
 }
 
-export interface ProcessPaymentRequest {
-  orderNumber: string
+export interface ConfirmPaymentRequest {
   paymentMethod: PaymentMethod
   cardNumber?: string
   cardExpiry?: string
   cardCvv?: string
+}
+
+export interface PaymentIntent {
+  intentId: string
+  orderNumber: string
+  userId: string
+  amount: number
+  status: string
+  expiresAt: string
+  createdAt: string
 }
 
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {

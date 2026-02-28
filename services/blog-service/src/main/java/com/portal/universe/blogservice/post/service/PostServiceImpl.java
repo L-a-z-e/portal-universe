@@ -29,7 +29,8 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -352,7 +353,7 @@ public class PostServiceImpl implements PostService {
     public Page<PostSummaryResponse> getTrendingPosts(String period, int page, int size) {
         log.info("Fetching trending posts using aggregation, period: {}, page: {}, size: {}", period, page, size);
 
-        LocalDateTime startDate = calculateStartDateByPeriod(period);
+        Instant startDate = calculateStartDateByPeriod(period);
         double halfLifeHours = getHalfLifeByPeriod(period);
 
         // MongoDB Aggregation으로 점수 계산 및 정렬
@@ -382,14 +383,14 @@ public class PostServiceImpl implements PostService {
     /**
      * 기간 문자열을 기준으로 시작 날짜 계산
      */
-    private LocalDateTime calculateStartDateByPeriod(String period) {
-        LocalDateTime now = LocalDateTime.now();
+    private Instant calculateStartDateByPeriod(String period) {
+        Instant now = Instant.now();
         return switch (period) {
-            case "today" -> now.toLocalDate().atStartOfDay();
-            case "week" -> now.minusDays(7);
-            case "month" -> now.minusDays(30);
-            case "year" -> now.minusYears(1);
-            default -> now.minusDays(7); // 기본값: 1주일
+            case "today" -> now.truncatedTo(ChronoUnit.DAYS);
+            case "week" -> now.minus(7, ChronoUnit.DAYS);
+            case "month" -> now.minus(30, ChronoUnit.DAYS);
+            case "year" -> now.minus(365, ChronoUnit.DAYS);
+            default -> now.minus(7, ChronoUnit.DAYS); // 기본값: 1주일
         };
     }
 
@@ -416,7 +417,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostSummaryResponse> getRecentPosts(int limit) {
         log.info("Fetching recent posts, limit: {}", limit);
-        LocalDateTime since = LocalDateTime.now().minusDays(30); // 최근 30일
+        Instant since = Instant.now().minus(30, ChronoUnit.DAYS); // 최근 30일
         Pageable pageable = PageRequest.of(0, limit);
         Page<Post> posts = postRepository.findByStatusAndPublishedAtAfterOrderByPublishedAtDesc(
                 PostStatus.PUBLISHED, since, pageable);
@@ -488,7 +489,7 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
 
         // 최신 게시물 날짜
-        LocalDateTime lastPostDate = postRepository.findByStatusOrderByPublishedAtDesc(
+        Instant lastPostDate = postRepository.findByStatusOrderByPublishedAtDesc(
                         PostStatus.PUBLISHED, PageRequest.of(0, 1))
                 .stream()
                 .findFirst()

@@ -18,7 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -62,8 +62,8 @@ class SeriesControllerTest {
             "thumbnail.jpg",
             List.of("post-1", "post-2"),
             2,
-            LocalDateTime.now(),
-            LocalDateTime.now()
+            Instant.now(),
+            Instant.now()
         );
 
         postSummaryResponse = new PostSummaryResponse(
@@ -80,7 +80,7 @@ class SeriesControllerTest {
             100L,
             50L,
             10L,
-            LocalDateTime.now(),
+            Instant.now(),
             5
         );
     }
@@ -198,8 +198,8 @@ class SeriesControllerTest {
             "UserNick",
             "thumbnail.jpg",
             2,
-            LocalDateTime.now(),
-            LocalDateTime.now()
+            Instant.now(),
+            Instant.now()
         );
         given(seriesService.getSeriesByAuthor("user-1")).willReturn(List.of(listResponse));
 

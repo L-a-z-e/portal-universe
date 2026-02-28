@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.Builder;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Builder
@@ -17,11 +17,11 @@ public record TimeDealCreateRequest(
         String description,
 
         @NotNull(message = "Start time is required")
-        LocalDateTime startsAt,
+        Instant startsAt,
 
         @NotNull(message = "End time is required")
         @Future(message = "End time must be in the future")
-        LocalDateTime endsAt,
+        Instant endsAt,
 
         @NotEmpty(message = "At least one product is required")
         @Valid

@@ -55,8 +55,8 @@ class OrderTest {
             Order order = createOrder();
 
             // when
-            order.addItem(1L, "Product 1", new BigDecimal("10000"), 2); // 20000
-            order.addItem(2L, "Product 2", new BigDecimal("5000"), 3);  // 15000
+            order.addItem(1L, 1L, "Product 1", new BigDecimal("10000"), 2); // 20000
+            order.addItem(1L, 2L, "Product 2", new BigDecimal("5000"), 3);  // 15000
 
             // then
             assertThat(order.getItems()).hasSize(2);
@@ -299,7 +299,7 @@ class OrderTest {
 
     private Order createOrderWithItems() {
         Order order = createOrder();
-        order.addItem(1L, "Product", new BigDecimal("10000"), 1);
+        order.addItem(1L, 1L, "Product", new BigDecimal("10000"), 1);
         return order;
     }
 

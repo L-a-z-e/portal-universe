@@ -11,7 +11,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 장바구니 항목을 나타내는 JPA 엔티티입니다.
@@ -73,7 +73,7 @@ public class CartItem {
      */
     @CreatedDate
     @Column(name = "added_at", nullable = false, updatable = false)
-    private LocalDateTime addedAt;
+    private Instant addedAt;
 
     @Builder
     public CartItem(Cart cart, Long sellerId, Long productId, String productName, BigDecimal price, Integer quantity) {

@@ -4,7 +4,7 @@ import com.portal.universe.blogservice.post.domain.PostSortType;
 import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.common.domain.SortDirection;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public record PostSearchRequest(
@@ -24,8 +24,8 @@ public record PostSearchRequest(
         String authorId,
 
         // 기간 필터
-        LocalDateTime startDate,
-        LocalDateTime endDate,
+        Instant startDate,
+        Instant endDate,
 
         // 정렬 기준
         PostSortType sortBy,

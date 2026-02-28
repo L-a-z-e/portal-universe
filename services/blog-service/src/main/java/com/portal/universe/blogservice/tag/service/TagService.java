@@ -16,7 +16,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -45,8 +45,7 @@ public class TagService {
         Tag tag = Tag.builder()
                 .name(normalizedName)
                 .description(request.description())
-                .createdAt(LocalDateTime.now())
-                .lastUsedAt(LocalDateTime.now())
+                .lastUsedAt(Instant.now())
                 .build();
 
         tagRepository.save(tag);
@@ -65,8 +64,7 @@ public class TagService {
                 .orElseGet(() -> {
                     Tag newTag = Tag.builder()
                             .name(normalizedName)
-                            .createdAt(LocalDateTime.now())
-                            .lastUsedAt(LocalDateTime.now())
+                            .lastUsedAt(Instant.now())
                             .build();
                     tagRepository.save(newTag);
                     log.info("Auto-created tag: {}", normalizedName);
@@ -110,7 +108,7 @@ public class TagService {
                 .toList();
         mongoTemplate.updateMulti(
                 Query.query(Criteria.where("name").in(normalized)),
-                new Update().inc("postCount", 1).set("lastUsedAt", LocalDateTime.now()),
+                new Update().inc("postCount", 1).set("lastUsedAt", Instant.now()),
                 Tag.class
         );
     }

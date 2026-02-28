@@ -48,7 +48,7 @@ class CommentTest {
 
             // then
             assertThat(comment.getContent()).isEqualTo("New Content");
-            assertThat(comment.getUpdatedAt()).isNotNull();
+            // updatedAt is managed by @LastModifiedDate (set on persistence, not in-memory)
         }
     }
 

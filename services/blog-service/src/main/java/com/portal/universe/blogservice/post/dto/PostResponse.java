@@ -2,7 +2,7 @@ package com.portal.universe.blogservice.post.dto;
 
 import com.portal.universe.blogservice.post.domain.PostStatus;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -22,9 +22,9 @@ public record PostResponse(
         List<String> images,
         Long viewCount,
         Long likeCount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
-        LocalDateTime publishedAt,
+        Instant createdAt,
+        Instant updatedAt,
+        Instant publishedAt,
 
         // 기존 호환성 유지
         String productId

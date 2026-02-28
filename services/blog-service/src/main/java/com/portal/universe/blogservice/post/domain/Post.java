@@ -1,19 +1,18 @@
 package com.portal.universe.blogservice.post.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseDocument;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +25,7 @@ import java.util.HashSet;
 @Document(collection = "posts")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Post {
+public class Post extends BaseDocument {
 
     @Id
     private String id;
@@ -106,7 +105,7 @@ public class Post {
      * 발행일시 (공개 게시물)
      */
     @Indexed
-    private LocalDateTime publishedAt;
+    private Instant publishedAt;
 
     /**
      * SEO 메타 정보 - PRD Phase 1: SEO 최적화
@@ -132,12 +131,6 @@ public class Post {
      * PRD Phase 3: 수익화 기능에서 활용 가능
      */
     private String productId;
-
-    @CreatedDate
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
 
     @Builder
     public Post(String title, String content, String summary, String authorId,
@@ -178,7 +171,7 @@ public class Post {
      */
     public void publish() {
         this.status = PostStatus.PUBLISHED;
-        this.publishedAt = LocalDateTime.now();
+        this.publishedAt = Instant.now();
     }
 
     /**

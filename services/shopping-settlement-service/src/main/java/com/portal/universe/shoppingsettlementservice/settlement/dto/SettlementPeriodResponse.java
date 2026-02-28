@@ -3,7 +3,7 @@ package com.portal.universe.shoppingsettlementservice.settlement.dto;
 import com.portal.universe.shoppingsettlementservice.settlement.domain.SettlementPeriod;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record SettlementPeriodResponse(
         Long id,
@@ -11,7 +11,7 @@ public record SettlementPeriodResponse(
         LocalDate startDate,
         LocalDate endDate,
         String status,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {
     public static SettlementPeriodResponse from(SettlementPeriod period) {
         return new SettlementPeriodResponse(

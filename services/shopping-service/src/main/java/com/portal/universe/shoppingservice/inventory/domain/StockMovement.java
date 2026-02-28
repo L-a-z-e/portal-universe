@@ -1,14 +1,11 @@
 package com.portal.universe.shoppingservice.inventory.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 /**
  * 재고 이동 이력을 기록하는 JPA 엔티티입니다.
@@ -21,10 +18,9 @@ import java.time.LocalDateTime;
         @Index(name = "idx_stock_movement_reference", columnList = "reference_type, reference_id"),
         @Index(name = "idx_stock_movement_created_at", columnList = "created_at")
 })
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StockMovement {
+public class StockMovement extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -102,10 +98,6 @@ public class StockMovement {
      */
     @Column(name = "performed_by", length = 100)
     private String performedBy;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     @Builder
     public StockMovement(Long inventoryId, Long productId, MovementType movementType,

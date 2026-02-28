@@ -24,7 +24,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -58,7 +58,7 @@ class PostControllerTest {
     void setUp() {
         authUser = new AuthUser("user-1", "User Name", "UserNick", null);
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         postResponse = new PostResponse(
             "post-1",
             "Test Title",
@@ -165,7 +165,7 @@ class PostControllerTest {
     @DisplayName("GET /posts/{postId} - should_returnPost_when_found")
     void should_returnPost_when_found() throws Exception {
         // given
-        given(postService.getPostById("post-1")).willReturn(postResponse);
+        given(postService.getPostById(eq("post-1"), any())).willReturn(postResponse);
 
         // when & then
         mockMvc.perform(get("/posts/post-1"))
@@ -174,7 +174,7 @@ class PostControllerTest {
             .andExpect(jsonPath("$.data.id").value("post-1"))
             .andExpect(jsonPath("$.data.title").value("Test Title"));
 
-        verify(postService).getPostById("post-1");
+        verify(postService).getPostById(eq("post-1"), any());
     }
 
     @Test
@@ -458,7 +458,7 @@ class PostControllerTest {
     @DisplayName("GET /posts/stats/categories - should_returnCategoryStats")
     void should_returnCategoryStats() throws Exception {
         // given
-        CategoryStats stats = new CategoryStats("Technology", 10L, LocalDateTime.now());
+        CategoryStats stats = new CategoryStats("Technology", 10L, Instant.now());
         given(postService.getCategoryStats()).willReturn(List.of(stats));
 
         // when & then

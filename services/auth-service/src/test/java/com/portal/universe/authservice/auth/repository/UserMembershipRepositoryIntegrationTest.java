@@ -12,7 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -68,7 +69,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
                     .userId(testUserId)
                     .membershipGroup(svc)
                     .tier(activeTier)
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .expiresAt(Instant.now().plus(Duration.ofDays(30)))
                     .autoRenew(true)
                     .build();
             userMembershipRepository.save(membership);
@@ -106,7 +107,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
                     .userId(testUserId)
                     .membershipGroup(svc)
                     .tier(inactiveTier)
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .expiresAt(Instant.now().plus(Duration.ofDays(30)))
                     .autoRenew(false)
                     .build();
             userMembershipRepository.save(membership);
@@ -138,7 +139,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
                     .userId(testUserId)
                     .membershipGroup(svc)
                     .tier(activeTier)
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .expiresAt(Instant.now().plus(Duration.ofDays(30)))
                     .autoRenew(false)
                     .build();
             membership = userMembershipRepository.save(membership);
@@ -188,7 +189,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
                     .userId(testUserId)
                     .membershipGroup(svcActive)
                     .tier(activeTier)
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .expiresAt(Instant.now().plus(Duration.ofDays(30)))
                     .autoRenew(true)
                     .build();
             userMembershipRepository.save(activeMembership);
@@ -197,7 +198,7 @@ class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
                     .userId(testUserId)
                     .membershipGroup(svcInactive)
                     .tier(inactiveTier)
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .expiresAt(Instant.now().plus(Duration.ofDays(30)))
                     .autoRenew(false)
                     .build();
             userMembershipRepository.save(inactiveTierMembership);

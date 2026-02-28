@@ -19,7 +19,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -59,7 +60,7 @@ class AdminProductControllerTest {
     private ProductResponse createProductResponse(Long id) {
         return new ProductResponse(id, "Test Product", "Description",
                 BigDecimal.valueOf(10000), null, 100, "http://img.com/1.jpg", "Electronics",
-                false, List.of(), null, 0, LocalDateTime.now(), LocalDateTime.now());
+                false, List.of(), null, 0, Instant.now(), Instant.now());
     }
 
     @Test

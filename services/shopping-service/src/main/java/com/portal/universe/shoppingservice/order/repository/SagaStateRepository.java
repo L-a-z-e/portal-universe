@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,5 +68,5 @@ public interface SagaStateRepository extends JpaRepository<SagaState, Long> {
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2"))
     @Query("SELECT s FROM SagaState s WHERE s.status IN :statuses AND s.startedAt < :cutoff ORDER BY s.startedAt ASC")
     List<SagaState> findDeadSagas(@Param("statuses") List<SagaStatus> statuses,
-                                  @Param("cutoff") LocalDateTime cutoff);
+                                  @Param("cutoff") Instant cutoff);
 }

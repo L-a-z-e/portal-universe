@@ -2,15 +2,15 @@ package com.portal.universe.authservice.auth.dto.rbac;
 
 import com.portal.universe.authservice.auth.domain.UserRole;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record UserRoleResponse(
         Long id,
         String roleKey,
         String displayName,
         String assignedBy,
-        LocalDateTime assignedAt,
-        LocalDateTime expiresAt
+        Instant assignedAt,
+        Instant expiresAt
 ) {
     public static UserRoleResponse from(UserRole userRole) {
         return new UserRoleResponse(

@@ -2,7 +2,7 @@ package com.portal.universe.authservice.user.dto;
 
 import com.portal.universe.authservice.user.domain.User;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 사용자 프로필 응답 DTO
@@ -18,7 +18,7 @@ public record UserProfileResponse(
         String website,
         int followerCount,
         int followingCount,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {
     /**
      * User 엔티티를 응답 DTO로 변환 (팔로워/팔로잉 카운트 없이)

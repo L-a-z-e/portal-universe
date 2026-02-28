@@ -34,6 +34,8 @@ services:
     url: "http://chatbot-service:8086"
   drive:
     url: "http://drive-service:8087"
+  payment:
+    url: "http://payment-service:8090"
   shopping-seller:
     url: "http://shopping-seller-service:8088"
   shopping-settlement:

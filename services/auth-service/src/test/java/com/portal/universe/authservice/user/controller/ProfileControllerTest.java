@@ -25,7 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,7 +84,7 @@ class ProfileControllerTest {
         return new ProfileResponse(
                 USER_UUID, "user@test.com", "TestNick", "Real Name",
                 "010-1234-5678", "https://img.test.com/pic.jpg",
-                true, false, List.of(), LocalDateTime.now()
+                true, false, List.of(), Instant.now()
         );
     }
 
@@ -137,7 +137,7 @@ class ProfileControllerTest {
             when(mockUser.getUuid()).thenReturn(USER_UUID);
             when(mockUser.getEmail()).thenReturn("user@test.com");
             when(mockUser.getProfile()).thenReturn(mockProfile);
-            when(mockUser.getCreatedAt()).thenReturn(LocalDateTime.now());
+            when(mockUser.getCreatedAt()).thenReturn(Instant.now());
             when(mockUser.getSocialAccounts()).thenReturn(Collections.emptyList());
             when(mockProfile.getNickname()).thenReturn("UpdatedNick");
             when(mockProfile.getRealName()).thenReturn("Updated Real");

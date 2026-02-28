@@ -3,7 +3,7 @@ package com.portal.universe.shoppingservice.cart.dto;
 import com.portal.universe.shoppingservice.cart.domain.CartItem;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 장바구니 항목 조회 응답 DTO입니다.
@@ -15,7 +15,7 @@ public record CartItemResponse(
         BigDecimal price,
         Integer quantity,
         BigDecimal subtotal,
-        LocalDateTime addedAt
+        Instant addedAt
 ) {
     public static CartItemResponse from(CartItem item) {
         return new CartItemResponse(

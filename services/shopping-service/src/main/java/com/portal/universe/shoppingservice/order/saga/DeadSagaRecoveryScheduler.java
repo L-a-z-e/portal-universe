@@ -10,7 +10,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -38,7 +39,7 @@ public class DeadSagaRecoveryScheduler {
     @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
     @Transactional
     public void recoverDeadSagas() {
-        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(DEAD_SAGA_TIMEOUT_MINUTES);
+        Instant cutoff = Instant.now().minus(DEAD_SAGA_TIMEOUT_MINUTES, ChronoUnit.MINUTES);
         List<SagaStatus> targetStatuses = List.of(SagaStatus.STARTED, SagaStatus.COMPENSATING);
 
         List<SagaState> deadSagas = sagaStateRepository.findDeadSagas(targetStatuses, cutoff);

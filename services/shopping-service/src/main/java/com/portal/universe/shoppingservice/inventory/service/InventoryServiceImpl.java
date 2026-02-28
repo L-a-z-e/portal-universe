@@ -20,7 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -332,7 +332,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .productId(inventory.getProductId())
                 .available(inventory.getAvailableQuantity())
                 .reserved(inventory.getReservedQuantity())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         String channel = "inventory:" + inventory.getProductId();

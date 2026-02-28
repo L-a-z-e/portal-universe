@@ -17,8 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -493,7 +491,7 @@ public class RbacService {
                         l.getActorUserId(),
                         l.getDetails(),
                         l.getCreatedAt() != null
-                                ? l.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null
+                                ? l.getCreatedAt().toString() : null
                 ))
                 .toList();
 

@@ -3,7 +3,7 @@ package com.portal.universe.shoppingservice.inventory.dto;
 import com.portal.universe.shoppingservice.inventory.domain.MovementType;
 import com.portal.universe.shoppingservice.inventory.domain.StockMovement;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 재고 이동 이력 응답 DTO입니다.
@@ -22,7 +22,7 @@ public record StockMovementResponse(
         String referenceId,
         String reason,
         String performedBy,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {
     public static StockMovementResponse from(StockMovement movement) {
         return new StockMovementResponse(

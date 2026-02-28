@@ -1,7 +1,7 @@
 # Auth Service Database Schema
 
 **Database**: PostgreSQL (auth_db)
-**Last Updated**: 2026-02-18
+**Last Updated**: 2026-02-28
 
 ## ERD
 
@@ -350,3 +350,11 @@ erDiagram
 | `ROLE_USER → ROLE_GUEST` | include 관계 추가 |
 | `ROLE_SUPER_ADMIN → ROLE_SHOPPING_ADMIN` | include 관계 추가 (다중 포함) |
 | `ROLE_SUPER_ADMIN → ROLE_BLOG_ADMIN` | include 관계 추가 (다중 포함) |
+
+### V2: Instant 시간 표준화 (ADR-056)
+
+| 변경 | 내용 |
+|------|------|
+| 모든 `TIMESTAMP(6)` 컬럼 | `TIMESTAMPTZ(6)`으로 타입 변환 (`AT TIME ZONE 'Asia/Seoul'`) |
+| Java 타입 | `LocalDateTime` → `Instant` 전환 |
+| 대상 테이블 | users, social_accounts, follows, password_history, roles, role_includes, permissions, user_roles, role_permissions, membership_tiers, user_memberships, auth_audit_log, seller_applications |

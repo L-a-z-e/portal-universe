@@ -7,13 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TimeDealTest {
 
-    private TimeDeal createScheduledTimeDeal(LocalDateTime startsAt, LocalDateTime endsAt) {
+    private TimeDeal createScheduledTimeDeal(Instant startsAt, Instant endsAt) {
         return TimeDeal.builder()
                 .name("타임딜 테스트")
                 .description("테스트 설명")
@@ -29,8 +30,8 @@ class TimeDealTest {
         @Test
         @DisplayName("should create time deal with SCHEDULED status")
         void should_create_with_scheduled_status() {
-            LocalDateTime startsAt = LocalDateTime.now().plusHours(1);
-            LocalDateTime endsAt = LocalDateTime.now().plusHours(3);
+            Instant startsAt = Instant.now().plus(1, ChronoUnit.HOURS);
+            Instant endsAt = Instant.now().plus(3, ChronoUnit.HOURS);
 
             TimeDeal timeDeal = createScheduledTimeDeal(startsAt, endsAt);
 
@@ -52,8 +53,8 @@ class TimeDealTest {
         @DisplayName("should change status to ACTIVE")
         void should_change_status_to_active() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().plusHours(1),
-                    LocalDateTime.now().plusHours(3));
+                    Instant.now().plus(1, ChronoUnit.HOURS),
+                    Instant.now().plus(3, ChronoUnit.HOURS));
 
             timeDeal.activate();
 
@@ -70,8 +71,8 @@ class TimeDealTest {
         @DisplayName("should change status to ENDED")
         void should_change_status_to_ended() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().plusHours(1),
-                    LocalDateTime.now().plusHours(3));
+                    Instant.now().plus(1, ChronoUnit.HOURS),
+                    Instant.now().plus(3, ChronoUnit.HOURS));
 
             timeDeal.end();
 
@@ -88,8 +89,8 @@ class TimeDealTest {
         @DisplayName("should change status to CANCELLED")
         void should_change_status_to_cancelled() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().plusHours(1),
-                    LocalDateTime.now().plusHours(3));
+                    Instant.now().plus(1, ChronoUnit.HOURS),
+                    Instant.now().plus(3, ChronoUnit.HOURS));
 
             timeDeal.cancel();
 
@@ -106,8 +107,8 @@ class TimeDealTest {
         @DisplayName("should add product and set bidirectional relationship")
         void should_add_product() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().plusHours(1),
-                    LocalDateTime.now().plusHours(3));
+                    Instant.now().plus(1, ChronoUnit.HOURS),
+                    Instant.now().plus(3, ChronoUnit.HOURS));
 
             Product product = Product.builder()
                     .name("테스트 상품")
@@ -137,8 +138,8 @@ class TimeDealTest {
         @DisplayName("should return true when status is ACTIVE and within time range")
         void should_return_true_when_active_and_in_range() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().minusHours(1),
-                    LocalDateTime.now().plusHours(3));
+                    Instant.now().minus(1, ChronoUnit.HOURS),
+                    Instant.now().plus(3, ChronoUnit.HOURS));
             timeDeal.activate();
 
             assertThat(timeDeal.isActive()).isTrue();
@@ -148,8 +149,8 @@ class TimeDealTest {
         @DisplayName("should return false when status is SCHEDULED")
         void should_return_false_when_scheduled() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().minusHours(1),
-                    LocalDateTime.now().plusHours(3));
+                    Instant.now().minus(1, ChronoUnit.HOURS),
+                    Instant.now().plus(3, ChronoUnit.HOURS));
 
             assertThat(timeDeal.isActive()).isFalse();
         }
@@ -163,8 +164,8 @@ class TimeDealTest {
         @DisplayName("should return true when scheduled and start time has passed")
         void should_return_true_when_should_start() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().minusMinutes(1),
-                    LocalDateTime.now().plusHours(3));
+                    Instant.now().minus(1, ChronoUnit.MINUTES),
+                    Instant.now().plus(3, ChronoUnit.HOURS));
 
             assertThat(timeDeal.shouldStart()).isTrue();
         }
@@ -173,8 +174,8 @@ class TimeDealTest {
         @DisplayName("should return false when start time has not passed")
         void should_return_false_when_not_yet() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().plusHours(1),
-                    LocalDateTime.now().plusHours(3));
+                    Instant.now().plus(1, ChronoUnit.HOURS),
+                    Instant.now().plus(3, ChronoUnit.HOURS));
 
             assertThat(timeDeal.shouldStart()).isFalse();
         }
@@ -188,8 +189,8 @@ class TimeDealTest {
         @DisplayName("should return true when active and end time has passed")
         void should_return_true_when_should_end() {
             TimeDeal timeDeal = createScheduledTimeDeal(
-                    LocalDateTime.now().minusHours(3),
-                    LocalDateTime.now().minusMinutes(1));
+                    Instant.now().minus(3, ChronoUnit.HOURS),
+                    Instant.now().minus(1, ChronoUnit.MINUTES));
             timeDeal.activate();
 
             assertThat(timeDeal.shouldEnd()).isTrue();

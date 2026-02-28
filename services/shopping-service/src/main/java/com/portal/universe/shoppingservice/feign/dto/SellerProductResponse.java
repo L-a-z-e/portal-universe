@@ -1,7 +1,7 @@
 package com.portal.universe.shoppingservice.feign.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record SellerProductResponse(
         Long id,
@@ -12,6 +12,6 @@ public record SellerProductResponse(
         Integer stock,
         String imageUrl,
         String category,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {}

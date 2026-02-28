@@ -3,7 +3,7 @@ package com.portal.universe.shoppingsettlementservice.settlement.dto;
 import com.portal.universe.shoppingsettlementservice.settlement.domain.Settlement;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record SettlementResponse(
         Long id,
@@ -15,8 +15,8 @@ public record SettlementResponse(
         BigDecimal commissionAmount,
         BigDecimal netAmount,
         String status,
-        LocalDateTime paidAt,
-        LocalDateTime createdAt
+        Instant paidAt,
+        Instant createdAt
 ) {
     public static SettlementResponse from(Settlement settlement) {
         return new SettlementResponse(

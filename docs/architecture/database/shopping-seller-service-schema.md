@@ -2,7 +2,7 @@
 
 **Database**: PostgreSQL (shopping_seller_db)
 **Entity Count**: 11
-**Last Updated**: 2026-02-18
+**Last Updated**: 2026-02-28
 
 > Shopping 서비스 분해 (2026-02-14, ADR-041)로 Seller 도메인이 독립 서비스로 분리되었습니다.
 
@@ -211,6 +211,7 @@ erDiagram
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-28 | TIMESTAMP → TIMESTAMPTZ 마이그레이션, LocalDateTime → Instant (ADR-056) | Laze |
 | 2026-02-18 | MySQL → PostgreSQL 전환 (ADR-046) | Laze |
 | 2026-02-17 | Product 확장: discountPrice, featured, ProductImage 테이블 | Laze |
 | 2026-02-14 | shopping-service에서 Seller 도메인 분리 (ADR-041) | Laze |
