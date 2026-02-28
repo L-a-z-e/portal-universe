@@ -1,5 +1,6 @@
 package com.portal.universe.shoppingservice.cart.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import jakarta.persistence.*;
@@ -7,12 +8,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,10 +22,9 @@ import java.util.Optional;
 @Table(name = "carts", indexes = {
         @Index(name = "idx_cart_user_status", columnList = "user_id, status")
 })
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Cart {
+public class Cart extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,14 +49,6 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
     @Builder
     public Cart(String userId) {
         this.userId = userId;
@@ -76,7 +64,7 @@ public class Cart {
      * @param quantity 수량
      * @return 추가된 장바구니 항목
      */
-    public CartItem addItem(Long productId, String productName, BigDecimal price, int quantity) {
+    public CartItem addItem(Long sellerId, Long productId, String productName, BigDecimal price, int quantity) {
         validateActive();
 
         // 이미 같은 상품이 있는지 확인
@@ -87,6 +75,7 @@ public class Cart {
 
         CartItem cartItem = CartItem.builder()
                 .cart(this)
+                .sellerId(sellerId)
                 .productId(productId)
                 .productName(productName)
                 .price(price)

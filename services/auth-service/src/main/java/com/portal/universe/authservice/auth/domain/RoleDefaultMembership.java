@@ -1,14 +1,11 @@
 package com.portal.universe.authservice.auth.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "role_default_memberships", uniqueConstraints = {
@@ -16,8 +13,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class RoleDefaultMembership {
+public class RoleDefaultMembership extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,10 +27,6 @@ public class RoleDefaultMembership {
 
     @Column(name = "default_tier_key", nullable = false, length = 50)
     private String defaultTierKey;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
 
     @Builder
     public RoleDefaultMembership(String roleKey, String membershipGroup, String defaultTierKey) {

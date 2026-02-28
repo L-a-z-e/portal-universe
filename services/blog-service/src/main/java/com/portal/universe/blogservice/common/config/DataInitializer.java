@@ -28,7 +28,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -77,14 +78,12 @@ public class DataInitializer {
 
     private void createTags() throws IOException {
         List<TagSeed> seeds = readSeed("tags.json", TagSeed.class);
-        LocalDateTime now = LocalDateTime.now();
 
         for (TagSeed seed : seeds) {
             tagRepository.save(Tag.builder()
                     .name(seed.name())
                     .description(seed.description())
                     .postCount(0L)
-                    .createdAt(now)
                     .build());
         }
 
@@ -138,7 +137,7 @@ public class DataInitializer {
             mongoTemplate.updateFirst(
                     Query.query(Criteria.where("name").is(entry.getKey())),
                     new Update().set("postCount", entry.getValue())
-                            .set("lastUsedAt", LocalDateTime.now()),
+                            .set("lastUsedAt", Instant.now()),
                     Tag.class);
         }
     }
@@ -147,7 +146,6 @@ public class DataInitializer {
 
     private void createSeries(Map<String, String> postKeyToId) throws IOException {
         List<SeriesSeed> seeds = readSeed("series.json", SeriesSeed.class);
-        LocalDateTime now = LocalDateTime.now();
 
         for (SeriesSeed seed : seeds) {
             List<String> postIds = seed.postKeys().stream()
@@ -161,8 +159,6 @@ public class DataInitializer {
                     .authorUsername(seed.authorUsername())
                     .authorNickname(seed.authorNickname())
                     .postIds(new ArrayList<>(postIds))
-                    .createdAt(now)
-                    .updatedAt(now)
                     .build());
         }
 
@@ -174,7 +170,7 @@ public class DataInitializer {
     private List<Comment> createComments(Map<String, String> postKeyToId) throws IOException {
         List<CommentSeed> seeds = readSeed("comments.json", CommentSeed.class);
         List<Comment> saved = new ArrayList<>();
-        LocalDateTime base = LocalDateTime.of(2025, 10, 6, 10, 0);
+        Instant base = Instant.parse("2025-10-06T10:00:00Z");
 
         for (CommentSeed seed : seeds) {
             String parentId = null;
@@ -189,8 +185,14 @@ public class DataInitializer {
                     .authorNickname(seed.authorNickname())
                     .content(seed.content())
                     .parentCommentId(parentId)
-                    .createdAt(base.plusDays(seed.daysAfterBase()))
                     .build());
+
+            // Set createdAt to seed-specific date via mongoTemplate
+            mongoTemplate.updateFirst(
+                    org.springframework.data.mongodb.core.query.Query.query(
+                            Criteria.where("id").is(comment.getId())),
+                    new Update().set("createdAt", base.plus(seed.daysAfterBase(), ChronoUnit.DAYS)),
+                    Comment.class);
 
             saved.add(comment);
         }
@@ -263,7 +265,7 @@ public class DataInitializer {
     @JsonIgnoreProperties(ignoreUnknown = true)
     record PostSeed(String key, String title, String content, String authorId,
                     String authorUsername, String authorNickname, String category, List<String> tags,
-                    String status, LocalDateTime publishedAt) {}
+                    String status, Instant publishedAt) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record SeriesSeed(String name, String description, String authorId,

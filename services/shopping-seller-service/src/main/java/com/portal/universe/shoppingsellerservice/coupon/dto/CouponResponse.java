@@ -5,7 +5,7 @@ import com.portal.universe.shoppingsellerservice.coupon.domain.CouponStatus;
 import com.portal.universe.shoppingsellerservice.coupon.domain.DiscountType;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record CouponResponse(
         Long id,
@@ -20,10 +20,10 @@ public record CouponResponse(
         Integer totalQuantity,
         Integer issuedQuantity,
         CouponStatus status,
-        LocalDateTime startsAt,
-        LocalDateTime expiresAt,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant startsAt,
+        Instant expiresAt,
+        Instant createdAt,
+        Instant updatedAt
 ) {
     public static CouponResponse from(Coupon coupon) {
         return new CouponResponse(

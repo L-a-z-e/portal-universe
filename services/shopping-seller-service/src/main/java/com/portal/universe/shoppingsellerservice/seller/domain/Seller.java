@@ -1,23 +1,20 @@
 package com.portal.universe.shoppingsellerservice.seller.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "sellers")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Seller {
+public class Seller extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,18 +51,23 @@ public class Seller {
     @Column(nullable = false, length = 20)
     private SellerStatus status;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(columnDefinition = "TEXT")
+    private String reason;
 
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "reviewed_by")
+    private String reviewedBy;
+
+    @Column(name = "review_comment", columnDefinition = "TEXT")
+    private String reviewComment;
+
+    @Column(name = "reviewed_at")
+    private Instant reviewedAt;
 
     @Builder
     public Seller(String userId, String businessName, String businessNumber,
                   String representativeName, String phone, String email,
-                  String bankName, String bankAccount, BigDecimal commissionRate) {
+                  String bankName, String bankAccount, BigDecimal commissionRate,
+                  String reason) {
         this.userId = userId;
         this.businessName = businessName;
         this.businessNumber = businessNumber;
@@ -75,15 +77,26 @@ public class Seller {
         this.bankName = bankName;
         this.bankAccount = bankAccount;
         this.commissionRate = commissionRate != null ? commissionRate : new BigDecimal("10.00");
+        this.reason = reason;
         this.status = SellerStatus.PENDING;
     }
 
-    public void approve() {
+    public void approve(String reviewedBy, String comment) {
         this.status = SellerStatus.ACTIVE;
+        this.reviewedBy = reviewedBy;
+        this.reviewComment = comment;
+        this.reviewedAt = Instant.now();
     }
 
     public void suspend() {
         this.status = SellerStatus.SUSPENDED;
+    }
+
+    public void reject(String reviewedBy, String comment) {
+        this.status = SellerStatus.REJECTED;
+        this.reviewedBy = reviewedBy;
+        this.reviewComment = comment;
+        this.reviewedAt = Instant.now();
     }
 
     public void withdraw() {
@@ -101,5 +114,9 @@ public class Seller {
 
     public boolean isActive() {
         return this.status == SellerStatus.ACTIVE;
+    }
+
+    public boolean isPending() {
+        return this.status == SellerStatus.PENDING;
     }
 }

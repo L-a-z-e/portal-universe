@@ -163,6 +163,11 @@ management:
       application: ${spring.application.name}
       environment: kubernetes
 
+app:
+  kafka:
+    topic:
+      replicas: 3
+
 # 운영 환경 로그 레벨 (INFO)
 logging:
   level:

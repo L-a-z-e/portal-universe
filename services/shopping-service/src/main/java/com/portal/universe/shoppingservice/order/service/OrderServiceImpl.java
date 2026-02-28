@@ -7,9 +7,7 @@ import com.portal.universe.shoppingservice.cart.domain.CartStatus;
 import com.portal.universe.shoppingservice.cart.repository.CartRepository;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.coupon.service.CouponService;
-import com.portal.universe.shoppingservice.inventory.service.InventoryService;
 import com.portal.universe.shoppingservice.order.domain.Order;
-import com.portal.universe.shoppingservice.order.domain.OrderItem;
 import com.portal.universe.shoppingservice.order.dto.CancelOrderRequest;
 import com.portal.universe.shoppingservice.order.dto.CreateOrderRequest;
 import com.portal.universe.shoppingservice.order.dto.OrderResponse;
@@ -18,9 +16,14 @@ import com.portal.universe.shoppingservice.order.repository.SagaStateRepository;
 import com.portal.universe.shoppingservice.order.saga.OrderSagaOrchestrator;
 import com.portal.universe.shoppingservice.order.saga.SagaState;
 import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
+import com.portal.universe.shoppingservice.feign.PaymentIntentFeignClient;
+import com.portal.universe.shoppingservice.feign.dto.CreatePaymentIntentRequest;
+import com.portal.universe.shoppingservice.feign.dto.PaymentIntentResponse;
 import com.portal.universe.event.shopping.OrderCreatedEvent;
 import com.portal.universe.event.shopping.OrderCancelledEvent;
 import com.portal.universe.event.shopping.OrderItemInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -29,9 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 주문 관리 서비스 구현체입니다.
@@ -46,9 +46,10 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final SagaStateRepository sagaStateRepository;
     private final OrderSagaOrchestrator orderSagaOrchestrator;
-    private final InventoryService inventoryService;
     private final CouponService couponService;
     private final ShoppingEventPublisher eventPublisher;
+    private final PaymentIntentFeignClient paymentIntentFeignClient;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -73,6 +74,7 @@ public class OrderServiceImpl implements OrderService {
         // 장바구니 항목을 주문 항목으로 변환
         for (CartItem cartItem : cart.getItems()) {
             order.addItem(
+                    cartItem.getSellerId(),
                     cartItem.getProductId(),
                     cartItem.getProductName(),
                     cartItem.getPrice(),
@@ -111,6 +113,25 @@ public class OrderServiceImpl implements OrderService {
             throw e;
         }
 
+        // 6. Payment Intent 생성 (payment-service)
+        try {
+            String metadata = buildIntentMetadata(savedOrder);
+            var intentRequest = new CreatePaymentIntentRequest(
+                    savedOrder.getOrderNumber(),
+                    userId,
+                    savedOrder.getFinalAmount(),
+                    metadata
+            );
+            var intentResponse = paymentIntentFeignClient.createIntent(intentRequest);
+            PaymentIntentResponse intent = intentResponse.getData();
+            savedOrder.assignPaymentIntentId(intent.intentId());
+            orderRepository.save(savedOrder);
+            log.info("Payment intent created: {} for order {}", intent.intentId(), savedOrder.getOrderNumber());
+        } catch (Exception e) {
+            log.error("Failed to create payment intent for order {}: {}", savedOrder.getOrderNumber(), e.getMessage());
+            throw new CustomBusinessException(ShoppingErrorCode.ORDER_CREATION_FAILED);
+        }
+
         log.info("Order created successfully: {} (user: {}, items: {}, total: {}, discount: {}, final: {})",
                 savedOrder.getOrderNumber(), userId, savedOrder.getItems().size(),
                 savedOrder.getTotalAmount(), savedOrder.getDiscountAmount(), savedOrder.getFinalAmount());
@@ -123,6 +144,7 @@ public class OrderServiceImpl implements OrderService {
                 .setItemCount(savedOrder.getItems().size())
                 .setItems(savedOrder.getItems().stream()
                         .map(item -> OrderItemInfo.newBuilder()
+                                .setSellerId(item.getSellerId())
                                 .setProductId(item.getProductId())
                                 .setProductName(item.getProductName())
                                 .setQuantity(item.getQuantity())
@@ -160,53 +182,34 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findByOrderNumberWithItems(orderNumber)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.ORDER_NOT_FOUND));
 
-        // 본인 주문인지 확인
         if (!order.getUserId().equals(userId)) {
             throw new CustomBusinessException(ShoppingErrorCode.ORDER_USER_MISMATCH);
         }
 
-        // 취소 가능 여부 확인
         if (!order.getStatus().isCancellable()) {
             throw new CustomBusinessException(ShoppingErrorCode.ORDER_CANNOT_BE_CANCELLED);
         }
 
-        // Saga 상태 조회
+        // Saga 완료 단계에 따라 보상 (재고 release/restore, 결제 환불)
         SagaState sagaState = sagaStateRepository.findByOrderNumber(orderNumber)
                 .orElse(null);
 
-        // 예약된 재고 해제
-        try {
-            Map<Long, Integer> quantities = order.getItems().stream()
-                    .collect(Collectors.toMap(
-                            OrderItem::getProductId,
-                            OrderItem::getQuantity,
-                            Integer::sum
-                    ));
-
-            inventoryService.releaseStockBatch(
-                    quantities,
-                    "ORDER_CANCEL",
-                    orderNumber,
-                    userId
-            );
-        } catch (Exception e) {
-            log.error("Failed to release stock for order {}: {}", orderNumber, e.getMessage());
-            // 재고 해제 실패해도 주문 취소는 진행
-        }
-
-        // 주문 취소
-        order.cancel(request.reason());
-        Order savedOrder = orderRepository.save(order);
-
-        // Saga 상태 업데이트
         if (sagaState != null) {
+            try {
+                orderSagaOrchestrator.compensateSagaSteps(order, sagaState);
+            } catch (Exception e) {
+                log.error("Failed to compensate saga steps for order {}: {}", orderNumber, e.getMessage());
+            }
+
             sagaState.markAsFailed("Order cancelled by user: " + request.reason());
             sagaStateRepository.save(sagaState);
         }
 
+        order.cancel(request.reason());
+        Order savedOrder = orderRepository.save(order);
+
         log.info("Order cancelled: {} (user: {}, reason: {})", orderNumber, userId, request.reason());
 
-        // 주문 취소 이벤트 발행
         eventPublisher.publishOrderCancelled(OrderCancelledEvent.newBuilder()
                 .setOrderNumber(orderNumber)
                 .setUserId(userId)
@@ -233,5 +236,23 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("Order completed after payment: {}", orderNumber);
         return OrderResponse.from(order);
+    }
+
+    private String buildIntentMetadata(Order order) {
+        try {
+            var items = order.getItems().stream()
+                    .map(item -> java.util.Map.of(
+                            "sellerId", item.getSellerId(),
+                            "productId", item.getProductId(),
+                            "productName", item.getProductName(),
+                            "price", item.getPrice(),
+                            "quantity", item.getQuantity()
+                    ))
+                    .toList();
+            return objectMapper.writeValueAsString(java.util.Map.of("items", items));
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize intent metadata for order {}", order.getOrderNumber(), e);
+            return "{}";
+        }
     }
 }

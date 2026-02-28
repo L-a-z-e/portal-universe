@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "TimeDealUpdatedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a time deal is updated. Contains full snapshot.",
+  "fields": [
+    { "name": "timeDealId", "type": "long", "doc": "TimeDeal entity ID in seller-service" },
+    { "name": "sellerId", "type": "long", "doc": "Seller entity ID" },
+    { "name": "name", "type": "string", "doc": "Time deal name" },
+    { "name": "description", "type": ["null", "string"], "default": null, "doc": "Time deal description" },
+    { "name": "startsAt", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Deal start time" },
+    { "name": "endsAt", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Deal end time" },
+    { "name": "status", "type": "string", "doc": "Current deal status" },
+    { "name": "products", "type": { "type": "array", "items": "TimeDealProductInfo" }, "doc": "Products in this deal" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

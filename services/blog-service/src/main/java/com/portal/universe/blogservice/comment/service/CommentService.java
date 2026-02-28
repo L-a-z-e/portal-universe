@@ -19,7 +19,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -53,8 +52,6 @@ public class CommentService {
                 .authorUsername(authorUsername)
                 .authorNickname(decodedAuthorNickname)
                 .content(request.content())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
@@ -87,10 +84,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.COMMENT_UPDATE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                comment.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.COMMENT_UPDATE_FORBIDDEN);
 
         comment.update(request.content());
         commentRepository.save(comment);
@@ -105,10 +100,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getAuthorId().equals(authorId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.COMMENT_DELETE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                comment.getAuthorId(), authorId, "ROLE_BLOG_ADMIN", BlogErrorCode.COMMENT_DELETE_FORBIDDEN);
 
         comment.delete();
         commentRepository.save(comment);

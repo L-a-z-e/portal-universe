@@ -79,8 +79,9 @@ class ShoppingErrorCodeTest {
                 })
                 .collect(Collectors.toSet());
 
-        // S0: Product, S1: Cart, S2: Order, S3: Payment, S4: Inventory,
+        // S0: Product, S1: Cart, S2: Order, S4: Inventory,
         // S5: Delivery, S6: Coupon, S7: TimeDeal, S8: Queue, S9: Saga, S10: Search
-        assertThat(prefixes).contains("S0", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10");
+        // Note: S3 (Payment) was migrated to payment-service
+        assertThat(prefixes).contains("S0", "S1", "S2", "S4", "S5", "S6", "S7", "S8", "S9", "S10");
     }
 }

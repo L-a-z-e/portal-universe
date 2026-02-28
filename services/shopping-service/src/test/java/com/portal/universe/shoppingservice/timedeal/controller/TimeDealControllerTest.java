@@ -18,7 +18,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -49,10 +50,10 @@ class TimeDealControllerTest {
                 .name("Flash Sale")
                 .description("Limited time offer")
                 .status(TimeDealStatus.ACTIVE)
-                .startsAt(LocalDateTime.now().minusHours(1))
-                .endsAt(LocalDateTime.now().plusHours(2))
+                .startsAt(Instant.now().minus(1, ChronoUnit.HOURS))
+                .endsAt(Instant.now().plus(2, ChronoUnit.HOURS))
                 .products(List.of())
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
     }
 
@@ -60,11 +61,11 @@ class TimeDealControllerTest {
         return TimeDealPurchaseResponse.builder()
                 .id(1L)
                 .timeDealProductId(1L)
-                .productName("Special Item")
+                .productId(1L)
                 .quantity(1)
                 .purchasePrice(BigDecimal.valueOf(5000))
                 .totalPrice(BigDecimal.valueOf(5000))
-                .purchasedAt(LocalDateTime.now())
+                .purchasedAt(Instant.now())
                 .build();
     }
 
@@ -111,7 +112,7 @@ class TimeDealControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.productName").value("Special Item"));
+                .andExpect(jsonPath("$.data.productId").value(1));
     }
 
     @Test

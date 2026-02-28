@@ -35,6 +35,11 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
+# 서비스 간 내부 API 인증 토큰
+app:
+  internal:
+    token: ${INTERNAL_SERVICE_TOKEN:portal-internal-token-2026}
+
 management:
   endpoints:
     web:

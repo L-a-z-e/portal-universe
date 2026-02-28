@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.tag.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 태그 응답 DTO
@@ -10,6 +10,6 @@ public record TagResponse(
         String name,
         Long postCount,
         String description,
-        LocalDateTime createdAt,
-        LocalDateTime lastUsedAt
+        Instant createdAt,
+        Instant lastUsedAt
 ) {}

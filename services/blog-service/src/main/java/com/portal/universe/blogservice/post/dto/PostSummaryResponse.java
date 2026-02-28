@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.post.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -18,6 +18,6 @@ public record PostSummaryResponse(
         Long viewCount,
         Long likeCount,
         Long commentCount,
-        LocalDateTime publishedAt,
+        Instant publishedAt,
         int estimatedReadTime
 ) {}

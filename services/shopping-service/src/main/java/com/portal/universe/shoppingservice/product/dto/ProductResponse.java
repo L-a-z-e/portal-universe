@@ -1,7 +1,7 @@
 package com.portal.universe.shoppingservice.product.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public record ProductResponse(
@@ -17,6 +17,6 @@ public record ProductResponse(
         List<String> images,
         Double averageRating,
         Integer reviewCount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {}

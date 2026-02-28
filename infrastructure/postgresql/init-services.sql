@@ -19,3 +19,6 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'prism_db')\gexec
 
 SELECT 'CREATE DATABASE drive_db'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'drive_db')\gexec
+
+SELECT 'CREATE DATABASE payment_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'payment_db')\gexec

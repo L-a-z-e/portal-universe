@@ -34,7 +34,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Validate Avro schemas (generate Java classes)
-        run: ./gradlew :event-contracts:generateAvroJava --no-daemon
+        run: ./gradlew :services:event-contracts:generateAvroJava --no-daemon
 
       - name: Build event-contracts
-        run: ./gradlew :event-contracts:build --no-daemon
+        run: ./gradlew :services:event-contracts:build --no-daemon

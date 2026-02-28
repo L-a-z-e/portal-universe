@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.comment.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 댓글 응답 DTO
@@ -15,6 +15,6 @@ public record CommentResponse(
         String parentCommentId,
         Long likeCount,
         Boolean isDeleted,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {}

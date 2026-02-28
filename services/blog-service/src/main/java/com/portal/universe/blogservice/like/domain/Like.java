@@ -1,14 +1,13 @@
 package com.portal.universe.blogservice.like.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseDocument;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
 
 /**
  * 좋아요 Entity
@@ -21,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Like {
+public class Like extends BaseDocument {
 
     @Id
     private String id;
@@ -44,6 +43,4 @@ public class Like {
      */
     private String nickname;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
 }

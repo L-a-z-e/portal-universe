@@ -4,7 +4,7 @@ title: Notification Service 시스템 아키텍처
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-28
 author: Laze
 tags: [notification-service, kafka, consumer, event-driven, websocket, redis, in-app-notification]
 related:
@@ -449,6 +449,28 @@ CREATE TABLE notifications (
 - `findByIdAndUserId()`로 다른 사용자의 알림에 접근할 수 없습니다.
 - `deleteByUserIdAndId()`로 본인 알림만 삭제 가능
 
+### WebSocket 인증 (2-Layer Defense)
+
+WebSocket 연결에 대해 2-Layer 인증을 적용합니다.
+
+**Layer 1 — HTTP Upgrade (GatewayAuthFilter)**:
+- WS SecurityFilterChain에 `GatewayAuthenticationFilter` 추가
+- `authenticated()` 설정으로 미인증 WS 연결 시도 거부 (401)
+
+**Layer 2 — STOMP ChannelInterceptor (StompAuthChannelInterceptor)**:
+- `CONNECT`: Principal이 존재하는지 확인
+- `SUBSCRIBE`: destination의 userId가 연결된 사용자와 일치하는지 검증 → 타인 알림 도청 차단
+
+| 파일 | 역할 |
+|------|------|
+| `StompAuthChannelInterceptor.java` | CONNECT/SUBSCRIBE 검증 |
+| `StompPrincipal.java` | STOMP Principal 구현 |
+| `WsTicketController.java` | WS 티켓 발급 엔드포인트 |
+| `WsTicketService.java` | Redis 기반 일회용 WS 티켓 관리 |
+
+**Frontend (portal-shell)**:
+- `useWebSocket.ts`에서 STOMP `connectHeaders`에 인증 정보 포함
+
 ### WebSocket CORS
 
 - 환경별 `app.websocket.allowed-origins` 설정으로 허용 도메인 제한
@@ -471,3 +493,4 @@ CREATE TABLE notifications (
 |------|------|----------|--------|
 | 2026-01-18 | 1.0 | 초기 문서 작성 | Laze |
 | 2026-02-06 | 2.0 | 코드베이스 기반 전체 재작성 | Laze |
+| 2026-02-28 | 2.1 | WebSocket 2-Layer 인증 추가 (StompAuthChannelInterceptor, WS 티켓) | Laze |

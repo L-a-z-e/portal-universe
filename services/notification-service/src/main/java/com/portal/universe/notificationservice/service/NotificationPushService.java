@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NotificationPushService {
 
-    private final SimpMessagingTemplate messagingTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
     @Qualifier("redisObjectMapper")
     private final ObjectMapper redisObjectMapper;
@@ -25,14 +23,8 @@ public class NotificationPushService {
     public void push(Notification notification) {
         NotificationResponse response = NotificationResponse.from(notification);
 
-        // 1. Send directly via WebSocket
-        messagingTemplate.convertAndSendToUser(
-                notification.getUserId().toString(),
-                NotificationConstants.WS_QUEUE_NOTIFICATIONS,
-                response
-        );
-
-        // 2. Also publish to Redis Pub/Sub for multi-instance support
+        // Redis Pub/Sub로 발행 → NotificationRedisSubscriber가 WebSocket 전달
+        // 직접 WebSocket 전송 + Pub/Sub 동시 사용 시 동일 인스턴스에서 이중 전달됨
         String channel = NotificationConstants.REDIS_CHANNEL_PREFIX + notification.getUserId();
         try {
             String jsonPayload = redisObjectMapper.writeValueAsString(response);

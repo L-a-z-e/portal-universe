@@ -4,8 +4,6 @@ import com.portal.universe.event.blog.BlogTopics;
 import com.portal.universe.event.blog.CommentCreatedEvent;
 import com.portal.universe.event.blog.CommentRepliedEvent;
 import com.portal.universe.event.blog.PostLikedEvent;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecord;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,23 +12,19 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
-@Slf4j
 @ExtendWith(MockitoExtension.class)
 @DisplayName("BlogEventPublisher 테스트")
 class BlogEventPublisherTest {
 
     @Mock
-    private KafkaTemplate<String, SpecificRecord> avroKafkaTemplate;
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @InjectMocks
     private BlogEventPublisher eventPublisher;
@@ -40,8 +34,8 @@ class BlogEventPublisherTest {
     class PublishPostLikedTests {
 
         @Test
-        @DisplayName("should_sendToCorrectTopic")
-        void should_sendToCorrectTopic() {
+        @DisplayName("should_publishKafkaPublishEvent_when_called")
+        void should_publishKafkaPublishEvent_when_called() {
             // given
             PostLikedEvent event = PostLikedEvent.newBuilder()
                     .setLikeId("like-1").setPostId("post-1").setPostTitle("Post Title")
@@ -49,22 +43,14 @@ class BlogEventPublisherTest {
                     .setTimestamp(Instant.now())
                     .build();
 
-            @SuppressWarnings("unchecked")
-            CompletableFuture<SendResult<String, SpecificRecord>> future = CompletableFuture.completedFuture(
-                    mock(SendResult.class)
-            );
-            when(avroKafkaTemplate.send(anyString(), anyString(), any())).thenReturn(future);
-
-            ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-
             // when
             eventPublisher.publishPostLiked(event);
 
             // then
-            verify(avroKafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
-            assertThat(topicCaptor.getValue()).isEqualTo(BlogTopics.POST_LIKED);
-            assertThat(keyCaptor.getValue()).isEqualTo("post-1");
+            ArgumentCaptor<KafkaPublishEvent> captor = ArgumentCaptor.forClass(KafkaPublishEvent.class);
+            verify(applicationEventPublisher).publishEvent(captor.capture());
+            assertThat(captor.getValue().topic()).isEqualTo(BlogTopics.POST_LIKED);
+            assertThat(captor.getValue().key()).isEqualTo("post-1");
         }
     }
 
@@ -73,8 +59,8 @@ class BlogEventPublisherTest {
     class PublishCommentCreatedTests {
 
         @Test
-        @DisplayName("should_sendToCorrectTopic")
-        void should_sendToCorrectTopic() {
+        @DisplayName("should_publishKafkaPublishEvent_when_called")
+        void should_publishKafkaPublishEvent_when_called() {
             // given
             CommentCreatedEvent event = CommentCreatedEvent.newBuilder()
                     .setCommentId("comment-1").setPostId("post-1").setPostTitle("Post Title")
@@ -82,22 +68,14 @@ class BlogEventPublisherTest {
                     .setContent("Comment content").setTimestamp(Instant.now())
                     .build();
 
-            @SuppressWarnings("unchecked")
-            CompletableFuture<SendResult<String, SpecificRecord>> future = CompletableFuture.completedFuture(
-                    mock(SendResult.class)
-            );
-            when(avroKafkaTemplate.send(anyString(), anyString(), any())).thenReturn(future);
-
-            ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-
             // when
             eventPublisher.publishCommentCreated(event);
 
             // then
-            verify(avroKafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
-            assertThat(topicCaptor.getValue()).isEqualTo(BlogTopics.POST_COMMENTED);
-            assertThat(keyCaptor.getValue()).isEqualTo("post-1");
+            ArgumentCaptor<KafkaPublishEvent> captor = ArgumentCaptor.forClass(KafkaPublishEvent.class);
+            verify(applicationEventPublisher).publishEvent(captor.capture());
+            assertThat(captor.getValue().topic()).isEqualTo(BlogTopics.POST_COMMENTED);
+            assertThat(captor.getValue().key()).isEqualTo("post-1");
         }
     }
 
@@ -106,8 +84,8 @@ class BlogEventPublisherTest {
     class PublishCommentRepliedTests {
 
         @Test
-        @DisplayName("should_sendToCorrectTopic")
-        void should_sendToCorrectTopic() {
+        @DisplayName("should_publishKafkaPublishEvent_when_called")
+        void should_publishKafkaPublishEvent_when_called() {
             // given
             CommentRepliedEvent event = CommentRepliedEvent.newBuilder()
                     .setReplyId("comment-2").setPostId("post-1").setParentCommentId("parent-cmt-1")
@@ -115,22 +93,14 @@ class BlogEventPublisherTest {
                     .setContent("Reply content").setTimestamp(Instant.now())
                     .build();
 
-            @SuppressWarnings("unchecked")
-            CompletableFuture<SendResult<String, SpecificRecord>> future = CompletableFuture.completedFuture(
-                    mock(SendResult.class)
-            );
-            when(avroKafkaTemplate.send(anyString(), anyString(), any())).thenReturn(future);
-
-            ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-
             // when
             eventPublisher.publishCommentReplied(event);
 
             // then
-            verify(avroKafkaTemplate).send(topicCaptor.capture(), keyCaptor.capture(), any());
-            assertThat(topicCaptor.getValue()).isEqualTo(BlogTopics.COMMENT_REPLIED);
-            assertThat(keyCaptor.getValue()).isEqualTo("post-1");
+            ArgumentCaptor<KafkaPublishEvent> captor = ArgumentCaptor.forClass(KafkaPublishEvent.class);
+            verify(applicationEventPublisher).publishEvent(captor.capture());
+            assertThat(captor.getValue().topic()).isEqualTo(BlogTopics.COMMENT_REPLIED);
+            assertThat(captor.getValue().key()).isEqualTo("post-1");
         }
     }
 }

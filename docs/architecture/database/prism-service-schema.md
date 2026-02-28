@@ -2,9 +2,9 @@
 
 **Database**: PostgreSQL
 **DB Name**: `prism`
-**ORM**: TypeORM (`synchronize: true`, migration 미사용)
+**ORM**: TypeORM (migration 사용)
 **Entity Count**: 5
-**Last Updated**: 2026-02-06
+**Last Updated**: 2026-02-28
 
 ## ERD
 
@@ -19,8 +19,8 @@ erDiagram
         varchar baseUrl "nullable"
         boolean isActive "default: true"
         jsonb models "nullable"
-        timestamp createdAt
-        timestamp updatedAt
+        timestamptz createdAt
+        timestamptz updatedAt
     }
 
     Agent {
@@ -34,8 +34,8 @@ erDiagram
         varchar model
         decimal temperature "default: 0.7"
         int maxTokens "default: 4096"
-        timestamp createdAt
-        timestamp updatedAt
+        timestamptz createdAt
+        timestamptz updatedAt
     }
 
     Board {
@@ -44,8 +44,8 @@ erDiagram
         varchar name
         text description "nullable"
         boolean isArchived "default: false"
-        timestamp createdAt
-        timestamp updatedAt
+        timestamptz createdAt
+        timestamptz updatedAt
     }
 
     Task {
@@ -59,8 +59,8 @@ erDiagram
         int position "default: 0"
         date dueDate "nullable"
         simple-array referencedTaskIds "nullable"
-        timestamp createdAt
-        timestamp updatedAt
+        timestamptz createdAt
+        timestamptz updatedAt
     }
 
     Execution {
@@ -76,8 +76,8 @@ erDiagram
         int outputTokens "nullable"
         int durationMs "nullable"
         text errorMessage "nullable"
-        timestamp startedAt "nullable"
-        timestamp completedAt "nullable"
+        timestamptz startedAt "nullable"
+        timestamptz completedAt "nullable"
         timestamp createdAt
     }
 
@@ -138,9 +138,9 @@ erDiagram
 - Execution: `inputTokens`, `outputTokens`, `durationMs`로 비용/성능 모니터링
 - `userFeedback`으로 실행 결과에 대한 피드백 수집
 
-### 5. Auto-synchronize
-- TypeORM `synchronize: true` 설정으로 엔티티 변경 시 스키마 자동 반영
-- Migration 파일 미사용 (개발 단계)
+### 5. Migrations
+- TypeORM migration으로 스키마 변경 관리
+- `1772155180000-TimestampToTimestamptz`: `timestamp` → `timestamptz` 전환 (ADR-056)
 
 ## Indexes
 

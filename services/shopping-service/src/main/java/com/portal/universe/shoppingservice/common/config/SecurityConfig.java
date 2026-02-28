@@ -81,7 +81,6 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // [공개] 누구나 접근 가능
-                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/search/**").permitAll()
@@ -110,11 +109,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/orders").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/orders", "/orders/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/orders/*/cancel").hasAnyRole("USER", "ADMIN")
-
-                        // 결제
-                        .requestMatchers(HttpMethod.POST, "/payments").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/payments/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/payments/*/cancel").hasAnyRole("USER", "ADMIN")
 
                         // 배송 조회
                         .requestMatchers(HttpMethod.GET, "/deliveries/**").hasAnyRole("USER", "ADMIN")

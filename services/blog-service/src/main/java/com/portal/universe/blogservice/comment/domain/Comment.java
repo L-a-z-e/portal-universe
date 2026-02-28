@@ -1,11 +1,11 @@
 package com.portal.universe.blogservice.comment.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseDocument;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
 
 /**
  * 댓글 Entity
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor  // Lombok이 빌더를 위해 필요
 @Builder
-public class Comment {
+public class Comment extends BaseDocument {
 
     @Id
     private String id;
@@ -48,9 +48,6 @@ public class Comment {
     @Builder.Default
     private Boolean isDeleted = false;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
     // ========== 비즈니스 메서드 ==========
 
     /**
@@ -58,7 +55,7 @@ public class Comment {
      */
     public void update(String content) {
         this.content = content;
-        this.updatedAt = LocalDateTime.now();
+        // updatedAt is managed by BaseDocument @LastModifiedDate
     }
 
     /**

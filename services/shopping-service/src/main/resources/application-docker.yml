@@ -20,6 +20,8 @@ feign:
     url: "http://blog-service:8082"
   shopping-seller-service:
     url: "http://shopping-seller-service:8088"
+  payment-service:
+    url: "http://payment-service:8090"
 
 spring:
   config:
@@ -53,6 +55,13 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 10000
 
   flyway:
     baseline-on-migrate: true

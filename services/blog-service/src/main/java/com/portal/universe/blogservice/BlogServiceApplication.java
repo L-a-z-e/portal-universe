@@ -2,6 +2,7 @@ package com.portal.universe.blogservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * 블로그(Blog) 서비스의 메인 애플리케이션 클래스입니다.
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *
  * @EnableMongoAuditing 은 MongoAuditingConfig 로 분리되어 있습니다.
  */
+@EnableFeignClients
 @SpringBootApplication(scanBasePackages = {
         "com.portal.universe.blogservice",
         "com.portal.universe.commonlibrary"

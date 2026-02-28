@@ -52,6 +52,12 @@ class NotificationConsumerTest {
     @Mock
     private NotificationEventConverter converter;
 
+    @Mock
+    private com.portal.universe.notificationservice.repository.NotificationRepository notificationRepository;
+
+    @Mock
+    private com.portal.universe.notificationservice.service.EmailQueueService emailQueueService;
+
     @InjectMocks
     private NotificationConsumer notificationConsumer;
 
@@ -266,10 +272,11 @@ class NotificationConsumerTest {
         @DisplayName("should_createNotification_when_paymentCompleted")
         void should_createNotification_when_paymentCompleted() {
             // given
-            PaymentCompletedEvent event = new PaymentCompletedEvent(
-                    "PAY-001", "ORD-001", TEST_USER_ID,
-                    new BigDecimal("50000"), "CARD", "PG-TX-001", Instant.now()
-            );
+            PaymentCompletedEvent event = PaymentCompletedEvent.newBuilder()
+                    .setPaymentNumber("PAY-001").setOrderNumber("ORD-001").setUserId(TEST_USER_ID)
+                    .setAmount(new BigDecimal("50000")).setPaymentMethod("CARD")
+                    .setPgTransactionId("PG-TX-001").setPaidAt(Instant.now()).setItems(List.of())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     TEST_USER_ID, NotificationType.PAYMENT_COMPLETED,
@@ -443,10 +450,11 @@ class NotificationConsumerTest {
         @DisplayName("should_propagateException_when_paymentCompletedFails")
         void should_propagateException_when_paymentCompletedFails() {
             // given
-            PaymentCompletedEvent event = new PaymentCompletedEvent(
-                    "PAY-003", "ORD-003", TEST_USER_ID,
-                    new BigDecimal("20000"), "CARD", "PG-TX-003", Instant.now()
-            );
+            PaymentCompletedEvent event = PaymentCompletedEvent.newBuilder()
+                    .setPaymentNumber("PAY-003").setOrderNumber("ORD-003").setUserId(TEST_USER_ID)
+                    .setAmount(new BigDecimal("20000")).setPaymentMethod("CARD")
+                    .setPgTransactionId("PG-TX-003").setPaidAt(Instant.now()).setItems(List.of())
+                    .build();
 
             CreateNotificationCommand cmd = new CreateNotificationCommand(
                     TEST_USER_ID, NotificationType.PAYMENT_COMPLETED,

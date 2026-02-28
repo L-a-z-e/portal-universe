@@ -1,19 +1,18 @@
 package com.portal.universe.blogservice.post.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseDocument;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +25,7 @@ import java.util.HashSet;
 @Document(collection = "posts")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Post {
+public class Post extends BaseDocument {
 
     @Id
     private String id;
@@ -106,7 +105,7 @@ public class Post {
      * 발행일시 (공개 게시물)
      */
     @Indexed
-    private LocalDateTime publishedAt;
+    private Instant publishedAt;
 
     /**
      * SEO 메타 정보 - PRD Phase 1: SEO 최적화
@@ -128,16 +127,16 @@ public class Post {
     private List<String> images = new ArrayList<>();
 
     /**
+     * 소프트 삭제 플래그 (회원 탈퇴 시 사용)
+     */
+    @Indexed
+    private Boolean isDeleted = false;
+
+    /**
      * 연관 상품 ID (선택적 기능으로 유지)
      * PRD Phase 3: 수익화 기능에서 활용 가능
      */
     private String productId;
-
-    @CreatedDate
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
 
     @Builder
     public Post(String title, String content, String summary, String authorId,
@@ -178,7 +177,7 @@ public class Post {
      */
     public void publish() {
         this.status = PostStatus.PUBLISHED;
-        this.publishedAt = LocalDateTime.now();
+        this.publishedAt = Instant.now();
     }
 
     /**
@@ -286,9 +285,18 @@ public class Post {
     }
 
     /**
-     * 조회 가능 여부 (발행된 글 또는 작성자 본인)
+     * 조회 가능 여부 (발행된 글 또는 작성자 본인, 삭제되지 않은 글)
      */
     public boolean isViewableBy(String userId) {
+        if (Boolean.TRUE.equals(this.isDeleted)) return false;
         return isPublished() || this.authorId.equals(userId);
+    }
+
+    /**
+     * 소프트 삭제 처리 (회원 탈퇴 시)
+     */
+    public void markDeleted() {
+        this.isDeleted = true;
+        this.status = PostStatus.DRAFT;
     }
 }

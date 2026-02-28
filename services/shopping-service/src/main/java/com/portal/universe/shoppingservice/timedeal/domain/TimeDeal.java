@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +19,12 @@ public class TimeDeal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "source_time_deal_id", unique = true)
+    private Long sourceTimeDealId;
+
+    @Column(name = "seller_id")
+    private Long sellerId;
+
     @Column(nullable = false, length = 100)
     private String name;
 
@@ -29,42 +35,55 @@ public class TimeDeal {
     private TimeDealStatus status = TimeDealStatus.SCHEDULED;
 
     @Column(nullable = false)
-    private LocalDateTime startsAt;
+    private Instant startsAt;
 
     @Column(nullable = false)
-    private LocalDateTime endsAt;
+    private Instant endsAt;
 
     @OneToMany(mappedBy = "timeDeal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimeDealProduct> products = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
 
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Builder
-    public TimeDeal(String name, String description, LocalDateTime startsAt, LocalDateTime endsAt) {
+    public TimeDeal(Long sourceTimeDealId, Long sellerId, String name, String description,
+                    Instant startsAt, Instant endsAt) {
+        this.sourceTimeDealId = sourceTimeDealId;
+        this.sellerId = sellerId;
         this.name = name;
         this.description = description;
         this.startsAt = startsAt;
         this.endsAt = endsAt;
         this.status = TimeDealStatus.SCHEDULED;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public void activate() {
         this.status = TimeDealStatus.ACTIVE;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = Instant.now();
     }
 
     public void end() {
         this.status = TimeDealStatus.ENDED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = Instant.now();
     }
 
     public void cancel() {
         this.status = TimeDealStatus.CANCELLED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateFromSource(String name, String description, Instant startsAt,
+                                  Instant endsAt, TimeDealStatus status) {
+        this.name = name;
+        this.description = description;
+        this.startsAt = startsAt;
+        this.endsAt = endsAt;
+        this.status = status;
+        this.updatedAt = Instant.now();
     }
 
     public void addProduct(TimeDealProduct product) {
@@ -73,7 +92,7 @@ public class TimeDeal {
     }
 
     public boolean isActive() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return this.status == TimeDealStatus.ACTIVE
                 && now.isAfter(this.startsAt)
                 && now.isBefore(this.endsAt);
@@ -81,11 +100,11 @@ public class TimeDeal {
 
     public boolean shouldStart() {
         return this.status == TimeDealStatus.SCHEDULED
-                && LocalDateTime.now().isAfter(this.startsAt);
+                && Instant.now().isAfter(this.startsAt);
     }
 
     public boolean shouldEnd() {
         return this.status == TimeDealStatus.ACTIVE
-                && LocalDateTime.now().isAfter(this.endsAt);
+                && Instant.now().isAfter(this.endsAt);
     }
 }

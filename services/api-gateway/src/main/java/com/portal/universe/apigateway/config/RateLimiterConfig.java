@@ -1,15 +1,16 @@
 package com.portal.universe.apigateway.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import reactor.core.publisher.Mono;
 
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 /**
@@ -43,24 +44,18 @@ public class RateLimiterConfig {
 
     /**
      * IP 주소 기반 KeyResolver (기본값)
-     * X-Forwarded-For 헤더를 우선 사용하고, 없으면 RemoteAddress 사용
+     * GlobalLoggingFilter와 동일한 maxTrustedIndex(1)을 사용하여
+     * X-Forwarded-For 스푸핑을 방지합니다.
      */
     @Bean
     @Primary
     public KeyResolver ipKeyResolver() {
+        XForwardedRemoteAddressResolver resolver = XForwardedRemoteAddressResolver.maxTrustedIndex(1);
         return exchange -> {
-            String forwardedFor = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
-            String clientIp;
-
-            if (forwardedFor != null && !forwardedFor.isEmpty()) {
-                // X-Forwarded-For: client, proxy1, proxy2
-                clientIp = forwardedFor.split(",")[0].trim();
-            } else {
-                var remoteAddress = exchange.getRequest().getRemoteAddress();
-                clientIp = (remoteAddress != null)
+            InetSocketAddress remoteAddress = resolver.resolve(exchange);
+            String clientIp = (remoteAddress != null && remoteAddress.getAddress() != null)
                     ? remoteAddress.getAddress().getHostAddress()
                     : "unknown";
-            }
 
             log.debug("Rate Limit Key (IP): {}", clientIp);
             return Mono.just(clientIp);
@@ -121,9 +116,8 @@ public class RateLimiterConfig {
      * 로그인 API용 엄격한 Rate Limiter
      * Brute Force 공격 방어
      *
-     * replenishRate: 5 req/min (초당 0.083)
-     * burstCapacity: 5
-     * Docker: 20 req/sec, burst 50
+     * replenishRate: 1 req/sec (지속 속도)
+     * burstCapacity: 5 (최대 5회 버스트 후 초당 1회로 제한)
      */
     @Bean
     public RedisRateLimiter strictRedisRateLimiter() {
@@ -135,9 +129,8 @@ public class RateLimiterConfig {
     /**
      * 회원가입 API용 Rate Limiter
      *
-     * replenishRate: 3 req/min (초당 0.05)
-     * burstCapacity: 3
-     * Docker: 20 req/sec, burst 50
+     * replenishRate: 1 req/sec (지속 속도)
+     * burstCapacity: 3 (최대 3회 버스트 후 초당 1회로 제한)
      */
     @Bean
     public RedisRateLimiter signupRedisRateLimiter() {
@@ -149,9 +142,8 @@ public class RateLimiterConfig {
     /**
      * 인증된 사용자용 관대한 Rate Limiter
      *
-     * replenishRate: 100 req/min (초당 1.67)
-     * burstCapacity: 100
-     * Docker: 50 req/sec, burst 500
+     * replenishRate: 2 req/sec (지속 속도)
+     * burstCapacity: 100 (버스트 허용, 지속적으로는 초당 2회)
      */
     @Bean
     public RedisRateLimiter authenticatedRedisRateLimiter() {
@@ -163,9 +155,8 @@ public class RateLimiterConfig {
     /**
      * 비인증 사용자용 제한적인 Rate Limiter
      *
-     * replenishRate: 30 req/min (초당 0.5)
-     * burstCapacity: 30
-     * Docker: 50 req/sec, burst 200
+     * replenishRate: 1 req/sec (지속 속도)
+     * burstCapacity: 30 (버스트 허용, 지속적으로는 초당 1회)
      */
     @Bean
     public RedisRateLimiter unauthenticatedRedisRateLimiter() {

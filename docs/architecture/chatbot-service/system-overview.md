@@ -4,9 +4,9 @@ title: Chatbot Service 시스템 아키텍처
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-28
 author: Laze
-tags: [chatbot-service, fastapi, rag, langchain, chromadb, redis, ai]
+tags: [chatbot-service, fastapi, rag, langchain, chromadb, redis, ai, prompt-injection]
 related:
   - api-chatbot
   - chatbot-service-schema
@@ -501,3 +501,4 @@ JWT 검증은 API Gateway가 담당하고, chatbot-service는 Gateway가 전달�
 |------|------|----------|--------|
 | 2026-02-06 | 1.0 | 코드베이스 기반 초기 문서 작성 | Laze |
 | 2026-02-13 | 1.1 | XSS 검증, Path Traversal 방어, Audit Middleware 추가 | Laze |
+| 2026-02-28 | 1.2 | 프롬프트 인젝션 다중 레이어 방어 (XML tag 분리, 패턴 탐지, max_length 축소) | Laze |

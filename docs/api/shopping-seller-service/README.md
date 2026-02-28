@@ -12,7 +12,7 @@
 | **인증** | Bearer Token (JWT) |
 | **포트** | 8088 |
 | **응답 형식** | JSON |
-| **DB** | shopping_seller_db (MySQL) |
+| **DB** | shopping_seller_db (PostgreSQL) |
 
 ---
 
@@ -72,22 +72,52 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 
 | 메서드 | 엔드포인트 | 설명 | 권한 |
 |--------|-----------|------|------|
-| POST | `/sellers/register` | 판매자 등록 | USER |
+| POST | `/sellers/apply` | 판매자 신청 | 인증된 사용자 (ROLE 불필요) |
+| GET | `/sellers/my-application` | 내 신청 상태 조회 | 인증된 사용자 (ROLE 불필요) |
+| POST | `/sellers/register` | 판매자 등록 (레거시) | USER |
 | GET | `/sellers/me` | 내 정보 조회 | SELLER |
 | PUT | `/sellers/me` | 정보 수정 | SELLER |
 
 **Request DTO**:
-- `SellerRegisterRequest`: businessName, businessNumber, representativeName, phone, email, bankName, bankAccount
+- `SellerApplyRequest`: businessName, businessNumber, representativeName, phone, email, bankName, bankAccount, reason
+- `SellerRegisterRequest`: businessName, businessNumber, representativeName, phone, email, bankName, bankAccount (레거시)
 - `SellerUpdateRequest`: businessName, phone, email, bankName, bankAccount
 
 **Response DTO**:
-- `SellerResponse`: id, userId, businessName, businessNumber, representativeName, phone, email, bankName, bankAccount, commissionRate, status, createdAt, updatedAt
+- `SellerResponse`: id, userId, businessName, businessNumber, representativeName, phone, email, bankName, bankAccount, commissionRate, status, reason, reviewedBy, reviewComment, reviewedAt, createdAt
 
 **판매자 상태**:
 - `PENDING`: 승인 대기 (기본값)
 - `ACTIVE`: 활성화
 - `SUSPENDED`: 정지
 - `WITHDRAWN`: 탈퇴
+- `REJECTED`: 거절
+
+**신청 플로우** (ADR-057):
+```
+1. 회원가입 (ROLE_USER)
+2. POST /sellers/apply → Seller PENDING 생성, sellerId 발급
+3. 관리자 승인 → SellerApprovedEvent 발행 (Kafka)
+4. auth-service가 이벤트 수신 → ROLE_SHOPPING_SELLER 부여
+5. 판매자 대시보드 접근 가능
+```
+
+#### 1-1. SellerAdminController (`/admin/sellers`)
+
+| 메서드 | 엔드포인트 | 설명 | 권한 |
+|--------|-----------|------|------|
+| GET | `/admin/sellers?status={status}` | 판매자 목록 (상태별 필터) | SHOPPING_ADMIN, SUPER_ADMIN |
+| GET | `/admin/sellers` | 전체 판매자 목록 | SHOPPING_ADMIN, SUPER_ADMIN |
+| POST | `/admin/sellers/{sellerId}/review` | 판매자 승인/거절 | SHOPPING_ADMIN, SUPER_ADMIN |
+
+**Request DTO**:
+- `SellerReviewRequest`: approved (Boolean, 필수), reviewComment (String, 선택)
+
+**Response DTO**:
+- `SellerResponse` (동일)
+- 목록: `PageResponse<SellerResponse>`
+
+**승인 시 동작**: `SellerApprovedEvent` Kafka 발행 → auth-service에서 `ROLE_SHOPPING_SELLER` 자동 부여
 
 #### 2. ProductController (`/products`)
 
@@ -109,6 +139,13 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 - `ProductResponse`: id, sellerId, name, description, price, stock, imageUrl, category, createdAt, updatedAt
 
 **권한 확인**: Controller는 JWT userId에서 sellerId를 조회하여 본인 상품만 수정/삭제 가능
+
+**CQRS 이벤트 발행**: 상품 생성/수정/삭제 시 Kafka 이벤트 발행 → shopping-service(Query Side)에서 소비하여 구매자용 상품 데이터 + ES 인덱스 동기화
+- `ProductCreatedEvent` → `seller.product.created`
+- `ProductUpdatedEvent` → `seller.product.updated`
+- `ProductDeletedEvent` → `seller.product.deleted`
+
+**이벤트 필드**: productId, sellerId, name, description, price, discountPrice, imageUrl, category, featured, timestamp (stock 제외 — Saga Feign으로 처리)
 
 #### 3. InventoryController (`/inventory`)
 
@@ -155,6 +192,13 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 **할인 타입**: FIXED (정액), PERCENTAGE (정률)
 **비즈니스 규칙**: code 중복 불가, DELETE는 soft delete (status=INACTIVE), 본인 쿠폰만 관리 가능
 
+**CQRS 이벤트 발행**: 쿠폰 생성/비활성화/만료 시 Kafka 이벤트 발행 → shopping-service(Query Side)에서 소비하여 구매자용 데이터 동기화
+- `CouponCreatedEvent` → `seller.coupon.created`
+- `CouponUpdatedEvent` → `seller.coupon.updated` (스케줄러 만료 전환 시)
+- `CouponDeletedEvent` → `seller.coupon.deleted`
+
+**자동 만료 스케줄러**: 1분마다 `expiresAt`이 지난 ACTIVE 쿠폰을 EXPIRED로 전환하고 `CouponUpdatedEvent` 발행
+
 #### 5. TimeDealController (`/time-deals`)
 
 | 메서드 | 엔드포인트 | 설명 | 권한 |
@@ -174,6 +218,16 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 
 **타임딜 상태**: SCHEDULED, ACTIVE, ENDED, CANCELLED
 **비즈니스 규칙**: startsAt < endsAt, 상품은 본인 소유여야 함, 취소는 SCHEDULED/ACTIVE 상태에서만 가능
+
+**CQRS 이벤트 발행**: 타임딜 생성/취소/상태전환 시 Kafka 이벤트 발행 → shopping-service(Query Side)에서 소비하여 구매자용 데이터 동기화
+- `TimeDealCreatedEvent` → `seller.timedeal.created`
+- `TimeDealUpdatedEvent` → `seller.timedeal.updated` (스케줄러 상태 전환 시)
+- `TimeDealCancelledEvent` → `seller.timedeal.cancelled`
+
+**자동 상태 전환 스케줄러**: 1분마다 실행
+- `SCHEDULED → ACTIVE`: startsAt 도달 시 활성화
+- `ACTIVE → ENDED`: endsAt 도달 시 종료
+- 전환 시 `TimeDealUpdatedEvent` 발행
 
 #### 6. QueueController (`/queue`)
 
@@ -204,36 +258,48 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 
 ### 내부 API (Internal)
 
+**인증**: `X-Internal-Token` 헤더 기반 서비스 토큰 인증 (`InternalTokenAuthFilter`). SecurityConfig에서 `/internal/**` 전용 `@Order(2)` 필터 체인으로 분리. (ADR-053)
+
 #### 4. InternalProductController (`/internal/products`)
 
-| 메서드 | 엔드포인트 | 설명 | 권한 |
+| 메서드 | 엔드포인트 | 설명 | 인증 |
 |--------|-----------|------|------|
-| GET | `/internal/products/{productId}` | 상품 조회 | 내부 호출 |
-| GET | `/internal/products` | 상품 목록 | 내부 호출 |
+| GET | `/internal/products/{productId}` | 상품 조회 | X-Internal-Token |
+| GET | `/internal/products` | 상품 목록 | X-Internal-Token |
 
 **용도**: shopping-service, chatbot-service 등 다른 서비스에서 Feign Client로 호출
 
-**인증**: Internal API는 Service Mesh 또는 API Gateway에서 인증 처리
-
 #### 5. InternalInventoryController (`/internal/inventory`)
 
-| 메서드 | 엔드포인트 | 설명 | 권한 |
+| 메서드 | 엔드포인트 | 설명 | 인증 |
 |--------|-----------|------|------|
-| POST | `/internal/inventory/reserve` | 재고 예약 (Saga) | 내부 호출 |
-| POST | `/internal/inventory/deduct` | 재고 차감 (Saga) | 내부 호출 |
-| POST | `/internal/inventory/release` | 재고 해제 (Saga) | 내부 호출 |
+| POST | `/internal/inventory/reserve` | 재고 예약 (Saga Step 1) | X-Internal-Token |
+| POST | `/internal/inventory/deduct` | 재고 차감 (Saga Step 3) | X-Internal-Token |
+| POST | `/internal/inventory/release` | 재고 해제 (보상: RESERVE 완료 & DEDUCT 미완료) | X-Internal-Token |
+| POST | `/internal/inventory/restore` | 재고 복원 (보상: DEDUCT 완료 후 취소) | X-Internal-Token |
 
 **Request DTO**:
-- `StockReserveRequest`: productId, quantity, referenceType, referenceId
+- `StockReserveRequest`: orderNumber, quantities (Map\<Long, Integer\> — productId → quantity)
 
 **용도**: shopping-service의 OrderSagaOrchestrator가 분산 트랜잭션 수행 시 호출
 
 **Saga 단계**:
-1. `reserve`: 주문 생성 시 재고 예약 (available → reserved)
-2. `deduct`: 결제 완료 시 재고 차감 (reserved → 삭제)
-3. `release`: 주문 취소 시 재고 해제 (reserved → available)
+1. `reserve`: 주문 생성 시 재고 예약 (available -= qty, reserved += qty)
+2. `deduct`: 결제 완료 시 재고 차감 (reserved -= qty, total -= qty)
+3. `release`: 보상 — 예약 해제 (reserved -= qty, available += qty)
+4. `restore`: 보상 — 차감 복원 (available += qty, total += qty) **(Phase 2 추가)**
 
 **동시성 제어**: `@Version` 낙관적 락 + Pessimistic Write Lock
+
+**재고 상태 모델**:
+```
+┌─────────────┐     reserve      ┌─────────────┐     deduct      ┌─────────────┐
+│  available   │ ──────────────→ │  reserved    │ ──────────────→ │  (차감됨)    │
+│  (판매 가능)  │ ←────────────── │  (예약 중)    │                 │             │
+└─────────────┘     release      └─────────────┘                 └──────┬──────┘
+       ↑                                                                │
+       └──────────────────── restore (Phase 2) ────────────────────────┘
+```
 
 ---
 
@@ -246,6 +312,8 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 | SL002 | SELLER_ALREADY_EXISTS | 409 |
 | SL003 | SELLER_SUSPENDED | 403 |
 | SL004 | SELLER_PENDING | 403 |
+| SL005 | SELLER_APPLICATION_NOT_FOUND | 404 |
+| SL006 | SELLER_APPLICATION_NOT_PENDING | 400 |
 | **SL1XX** | **Product** | |
 | SL101 | PRODUCT_NOT_FOUND | 404 |
 | SL102 | PRODUCT_NOT_OWNED | 403 |
@@ -293,4 +361,4 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 
 ---
 
-**최종 업데이트**: 2026-02-14
+**최종 업데이트**: 2026-03-01

@@ -116,7 +116,7 @@ sequenceDiagram
 
 | 정보 | 출처 | 설명 |
 |------|------|------|
-| IP 주소 | `X-Forwarded-For` 헤더 체인 | 프록시 환경 대응 |
+| IP 주소 | `IpUtils.getClientIp()` | 표준 헤더 기반 IP 추출 (중복 코드 제거) |
 | User-Agent | `User-Agent` 헤더 | 브라우저 정보 |
 | 요청 URI | `HttpServletRequest` | 요청 경로 |
 | HTTP 메서드 | `HttpServletRequest` | GET, POST 등 |
@@ -335,6 +335,6 @@ public class ElasticsearchAuditService implements SecurityAuditService {
 
 ---
 
-**최종 수정:** 2026-02-06
+**최종 수정:** 2026-02-28
 **API 버전:** v1
 **문서 버전:** 1.0

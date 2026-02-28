@@ -49,9 +49,9 @@
 - 서비스별 다중 티어 (FREE, PREMIUM, PRO 등)
 - 멤버십 변경/취소
 
-### 셀러 (Seller)
-- 셀러 신청 워크플로우 (PENDING → APPROVED/REJECTED)
-- 관리자 심사
+### 셀러 (Seller) — ⚠️ seller-service로 이관됨 (ADR-057)
+- 셀러 신청/심사 API가 shopping-seller-service로 이관
+- auth-service는 Kafka `SellerApprovedEvent` 수신 → ROLE_SHOPPING_SELLER 자동 부여만 담당
 
 ### 보안
 - 비밀번호 정책 (대소문자, 숫자, 특수문자, 이력 관리, 만료)
@@ -81,7 +81,7 @@
 | 소셜 | FollowController | 팔로우/언팔로우, 팔로워/팔로잉 목록 |
 | RBAC 관리 | RbacAdminController, PermissionController | 역할/권한 CRUD, Dashboard, 감사 로그 |
 | 멤버십 | MembershipController, MembershipAdminController | 서비스별 티어, 조회/변경/취소 |
-| 셀러 | SellerController, SellerAdminController | 셀러 신청, 심사 워크플로우 |
+| ~~셀러~~ | ~~SellerController, SellerAdminController~~ | seller-service로 이관 (ADR-057) |
 | 내부 | RoleHierarchyController | Gateway 역할 계층 해석 |
 
 ---

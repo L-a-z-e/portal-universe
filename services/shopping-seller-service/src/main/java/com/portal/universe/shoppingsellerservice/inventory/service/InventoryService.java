@@ -15,4 +15,5 @@ public interface InventoryService {
     void reserveStock(StockReserveRequest request);
     void deductStock(StockReserveRequest request);
     void releaseStock(StockReserveRequest request);
+    void restoreStock(StockReserveRequest request);
 }

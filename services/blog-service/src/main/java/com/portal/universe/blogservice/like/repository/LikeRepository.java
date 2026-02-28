@@ -43,4 +43,9 @@ public interface LikeRepository extends MongoRepository<Like, String> {
      * @return 좋아요 개수
      */
     long countByPostId(String postId);
+
+    /**
+     * 특정 사용자의 모든 좋아요 삭제 (회원 탈퇴 시)
+     */
+    void deleteByUserId(String userId);
 }

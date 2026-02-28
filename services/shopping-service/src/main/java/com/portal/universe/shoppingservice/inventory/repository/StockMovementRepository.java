@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -57,8 +57,8 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
            "AND sm.createdAt BETWEEN :startDate AND :endDate ORDER BY sm.createdAt DESC")
     List<StockMovement> findByProductIdAndPeriod(
             @Param("productId") Long productId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate
+            @Param("startDate") Instant startDate,
+            @Param("endDate") Instant endDate
     );
 
     /**

@@ -1,19 +1,30 @@
 ---
 id: api-payment
-title: Payment API
+title: Payment API (Deprecated - payment-service로 이전)
 type: api
-status: current
+status: deprecated
 version: v1
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-28
 author: Laze
-tags: [api, shopping-service, payment]
+tags: [api, shopping-service, payment, deprecated]
 related:
   - PRD-001
   - api-order
+  - api-payment-service
+superseded_by: docs/api/payment-service/payment-api.md
 ---
 
-# Payment API
+# Payment API (Deprecated)
+
+> **[Deprecated]** 이 API는 2026-02-28 payment-service 독립 분리로 폐기되었습니다.
+> 최신 Payment API는 [payment-service/payment-api.md](../payment-service/payment-api.md)를 참조하세요.
+
+---
+
+> (이하 내용은 shopping-service 내장 Payment 모듈 당시 명세 - 역사적 참고용)
+
+# Payment API (Legacy)
 
 > 결제 관리 API (처리, 조회, 취소, 환불)
 
@@ -336,4 +347,4 @@ sequenceDiagram
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-02-28 (Deprecated — payment-service로 이전)

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -26,7 +26,7 @@ import java.util.List;
 public class ErrorResponse {
     private final String code;
     private final String message;
-    private final LocalDateTime timestamp;
+    private final Instant timestamp;
     private final String path;
     private final List<FieldError> details;
 
@@ -40,7 +40,7 @@ public class ErrorResponse {
     public ErrorResponse(String code, String message) {
         this.code = code;
         this.message = message;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = Instant.now();
         this.path = null;
         this.details = null;
     }
@@ -57,7 +57,7 @@ public class ErrorResponse {
     public ErrorResponse(String code, String message, String path, List<FieldError> details) {
         this.code = code;
         this.message = message;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = Instant.now();
         this.path = path;
         this.details = details;
     }
@@ -65,7 +65,7 @@ public class ErrorResponse {
     @JsonCreator
     private ErrorResponse(@JsonProperty("code") String code,
                           @JsonProperty("message") String message,
-                          @JsonProperty("timestamp") LocalDateTime timestamp,
+                          @JsonProperty("timestamp") Instant timestamp,
                           @JsonProperty("path") String path,
                           @JsonProperty("details") List<FieldError> details) {
         this.code = code;

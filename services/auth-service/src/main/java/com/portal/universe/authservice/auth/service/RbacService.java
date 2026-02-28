@@ -17,8 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -44,7 +42,6 @@ public class RbacService {
     private final UserMembershipRepository userMembershipRepository;
     private final AuthAuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
-    private final SellerApplicationRepository sellerApplicationRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     private static final Pattern UUID_PATTERN =
@@ -121,6 +118,7 @@ public class RbacService {
                         .orElseThrow(() -> new CustomBusinessException(AuthErrorCode.ROLE_NOT_FOUND));
                 includes.add(roleIncludeRepository.save(new RoleInclude(saved, includedRole)));
             }
+            roleHierarchyService.evictHierarchyCache();
         }
 
         logAudit(AuditEventType.ROLE_ASSIGNED, createdBy, null, "Role created: " + request.roleKey());
@@ -228,6 +226,7 @@ public class RbacService {
         }
 
         roleIncludeRepository.save(new RoleInclude(role, includedRole));
+        roleHierarchyService.evictHierarchyCache();
         logAudit(AuditEventType.ROLE_ASSIGNED, adminId, null,
                 "Role include added: " + roleKey + " → " + includedRoleKey);
         log.info("Role include added: {} → {}, by={}", roleKey, includedRoleKey, adminId);
@@ -248,6 +247,7 @@ public class RbacService {
         }
 
         roleIncludeRepository.deleteByRoleAndIncludedRole(role, includedRole);
+        roleHierarchyService.evictHierarchyCache();
         logAudit(AuditEventType.ROLE_REVOKED, adminId, null,
                 "Role include removed: " + roleKey + " → " + includedRoleKey);
         log.info("Role include removed: {} → {}, by={}", roleKey, includedRoleKey, adminId);
@@ -475,13 +475,7 @@ public class RbacService {
 
         var membershipStats = new DashboardStatsResponse.MembershipStats(groupStatsList);
 
-        // 4. Seller stats
-        long pending = sellerApplicationRepository.countByStatus(SellerApplicationStatus.PENDING);
-        long approved = sellerApplicationRepository.countByStatus(SellerApplicationStatus.APPROVED);
-        long rejected = sellerApplicationRepository.countByStatus(SellerApplicationStatus.REJECTED);
-        var sellerStats = new DashboardStatsResponse.SellerStats(pending, approved, rejected);
-
-        // 5. Recent activity (최근 5건)
+        // 4. Recent activity (최근 5건)
         List<AuthAuditLog> recentLogs = auditLogRepository.findTop5ByOrderByCreatedAtDesc();
         List<DashboardStatsResponse.RecentActivityItem> recentActivity = recentLogs.stream()
                 .map(l -> new DashboardStatsResponse.RecentActivityItem(
@@ -490,11 +484,11 @@ public class RbacService {
                         l.getActorUserId(),
                         l.getDetails(),
                         l.getCreatedAt() != null
-                                ? l.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null
+                                ? l.getCreatedAt().toString() : null
                 ))
                 .toList();
 
-        return new DashboardStatsResponse(userStats, roleStats, membershipStats, sellerStats, recentActivity);
+        return new DashboardStatsResponse(userStats, roleStats, membershipStats, recentActivity);
     }
 
     /**

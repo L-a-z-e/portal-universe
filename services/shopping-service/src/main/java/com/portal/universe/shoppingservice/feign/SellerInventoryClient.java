@@ -17,4 +17,7 @@ public interface SellerInventoryClient {
 
     @PostMapping("/release")
     ApiResponse<Void> releaseStock(@RequestBody StockReserveRequest request);
+
+    @PostMapping("/restore")
+    ApiResponse<Void> restoreStock(@RequestBody StockReserveRequest request);
 }

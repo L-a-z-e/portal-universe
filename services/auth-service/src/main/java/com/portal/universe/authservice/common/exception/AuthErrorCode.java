@@ -57,6 +57,11 @@ public enum AuthErrorCode implements ErrorCode {
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "A009", "Password is incorrect"),
 
     /**
+     * 계정이 활성 상태가 아닙니다 (정지, 휴면, 탈퇴 대기).
+     */
+    ACCOUNT_NOT_ACTIVE(HttpStatus.FORBIDDEN, "A010", "Account is not active"),
+
+    /**
      * Username이 이미 존재합니다.
      */
     USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "A011", "Username already exists"),
@@ -136,6 +141,10 @@ public enum AuthErrorCode implements ErrorCode {
      */
     PASSWORD_CONTAINS_SEQUENTIAL(HttpStatus.BAD_REQUEST, "A026", "Password cannot contain sequential characters"),
 
+    // Password Reset
+    INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "A027", "Invalid or expired password reset token"),
+    PASSWORD_RESET_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "A028", "Too many password reset requests. Please try again later"),
+
     // RBAC
     ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "A030", "Role not found"),
     ROLE_ALREADY_ASSIGNED(HttpStatus.CONFLICT, "A031", "Role already assigned to user"),
@@ -160,12 +169,7 @@ public enum AuthErrorCode implements ErrorCode {
     ROLE_DEFAULT_MAPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "A047", "Role default membership mapping not found"),
     ROLE_DEFAULT_MAPPING_ALREADY_EXISTS(HttpStatus.CONFLICT, "A048", "Role default membership mapping already exists"),
     MEMBERSHIP_TIER_IN_USE(HttpStatus.CONFLICT, "A049", "Membership tier is in use and cannot be deleted"),
-    MEMBERSHIP_TIER_ALREADY_EXISTS(HttpStatus.CONFLICT, "A050", "Membership tier already exists"),
-
-    // Seller
-    SELLER_APPLICATION_ALREADY_PENDING(HttpStatus.CONFLICT, "A040", "Seller application already pending"),
-    SELLER_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "A041", "Seller application not found"),
-    SELLER_APPLICATION_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "A042", "Seller application has already been processed");
+    MEMBERSHIP_TIER_ALREADY_EXISTS(HttpStatus.CONFLICT, "A050", "Membership tier already exists");
 
     private final HttpStatus status;
     private final String code;

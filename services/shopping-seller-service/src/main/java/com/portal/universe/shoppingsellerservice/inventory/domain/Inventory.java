@@ -1,5 +1,6 @@
 package com.portal.universe.shoppingsellerservice.inventory.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingsellerservice.common.exception.SellerErrorCode;
 import jakarta.persistence.*;
@@ -7,18 +8,12 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "inventory")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Inventory {
+public class Inventory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,14 +33,6 @@ public class Inventory {
 
     @Version
     private Long version;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @Builder
     public Inventory(Long productId, Integer initialQuantity) {
@@ -89,6 +76,18 @@ public class Inventory {
     }
 
     public void addStock(int quantity) {
+        if (quantity <= 0) {
+            throw new CustomBusinessException(SellerErrorCode.INVALID_STOCK_QUANTITY);
+        }
+        this.availableQuantity += quantity;
+        this.totalQuantity += quantity;
+    }
+
+    /**
+     * 차감된 재고를 복원합니다 (Saga 보상용).
+     * deduct의 역연산: available +N, total +N
+     */
+    public void restore(int quantity) {
         if (quantity <= 0) {
             throw new CustomBusinessException(SellerErrorCode.INVALID_STOCK_QUANTITY);
         }

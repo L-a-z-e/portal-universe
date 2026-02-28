@@ -1,0 +1,19 @@
+package com.portal.universe.paymentservice.event.outbox;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> {
+
+    @Query(value = """
+            SELECT * FROM outbox_events
+            WHERE status = 'PENDING'
+            ORDER BY created_at
+            LIMIT :batchSize
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    List<OutboxEvent> findPendingForUpdate(@Param("batchSize") int batchSize);
+}

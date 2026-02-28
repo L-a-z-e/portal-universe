@@ -1,13 +1,10 @@
 package com.portal.universe.authservice.password.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 /**
  * 사용자의 비밀번호 변경 이력을 저장하는 엔티티입니다.
@@ -20,8 +17,7 @@ import java.time.LocalDateTime;
         })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class PasswordHistory {
+public class PasswordHistory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,10 +29,6 @@ public class PasswordHistory {
 
     @Column(nullable = false, length = 255)
     private String passwordHash;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     public PasswordHistory(Long userId, String passwordHash) {
         this.userId = userId;

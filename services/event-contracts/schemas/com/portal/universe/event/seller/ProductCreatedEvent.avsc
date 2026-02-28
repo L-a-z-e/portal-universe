@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "ProductCreatedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a seller creates a new product.",
+  "fields": [
+    { "name": "productId", "type": "long", "doc": "Product entity ID in seller-service" },
+    { "name": "sellerId", "type": "long", "doc": "Seller entity ID" },
+    { "name": "name", "type": "string", "doc": "Product display name" },
+    { "name": "description", "type": ["null", "string"], "default": null, "doc": "Product description" },
+    { "name": "price", "type": { "type": "bytes", "logicalType": "decimal", "precision": 19, "scale": 2 }, "doc": "Product price" },
+    { "name": "discountPrice", "type": ["null", { "type": "bytes", "logicalType": "decimal", "precision": 19, "scale": 2 }], "default": null, "doc": "Discounted price" },
+    { "name": "imageUrl", "type": ["null", "string"], "default": null, "doc": "Product image URL" },
+    { "name": "category", "type": ["null", "string"], "default": null, "doc": "Product category" },
+    { "name": "stock", "type": "int", "default": 0, "doc": "Product stock quantity" },
+    { "name": "featured", "type": "boolean", "default": false, "doc": "Featured product flag" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

@@ -27,7 +27,7 @@ public interface QueueEntryRepository extends JpaRepository<QueueEntry, Long> {
     Long countByQueueAndStatus(@Param("queue") WaitingQueue queue, @Param("status") QueueStatus status);
 
     @Query("SELECT COUNT(e) FROM QueueEntry e WHERE e.queue = :queue AND e.status = 'WAITING' AND e.joinedAt < :joinedAt")
-    Long countWaitingBefore(@Param("queue") WaitingQueue queue, @Param("joinedAt") java.time.LocalDateTime joinedAt);
+    Long countWaitingBefore(@Param("queue") WaitingQueue queue, @Param("joinedAt") java.time.Instant joinedAt);
 
     @Query("SELECT e FROM QueueEntry e WHERE e.queue = :queue AND e.status = 'WAITING' ORDER BY e.joinedAt ASC LIMIT :limit")
     List<QueueEntry> findTopWaiting(@Param("queue") WaitingQueue queue, @Param("limit") int limit);

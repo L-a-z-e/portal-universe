@@ -53,8 +53,8 @@ related:
 | **PermissionController** | `/api/v1/permissions` | 내 권한 조회 | ✅ | ❌ |
 | **MembershipController** | `/api/v1/memberships` | 멤버십 조회/변경 | 일부 | ❌ |
 | **MembershipAdminController** | `/api/v1/admin/memberships` | 멤버십 관리 (Admin) | ✅ | SUPER_ADMIN |
-| **SellerController** | `/api/v1/seller` | 셀러 신청 | ✅ | ❌ |
-| **SellerAdminController** | `/api/v1/admin/seller` | 셀러 승인 (Admin) | ✅ | SHOPPING_ADMIN, SUPER_ADMIN |
+| ~~SellerController~~ | ~~`/api/v1/seller`~~ | ~~셀러 신청~~ | - | - | ⚠️ **seller-service로 이관됨** (ADR-057) |
+| ~~SellerAdminController~~ | ~~`/api/v1/admin/seller`~~ | ~~셀러 승인~~ | - | - | ⚠️ **seller-service로 이관됨** (ADR-057) |
 | **RoleHierarchyController** | `/api/v1/internal/role-hierarchy` | 역할 계층 해석 (Internal) | ❌ | Gateway 전용 |
 
 ---
@@ -80,14 +80,14 @@ GET /api/v1/memberships/tiers/**     # 멤버십 티어 목록
 |------|------|
 | `/api/v1/admin/rbac/**` | ROLE_SUPER_ADMIN |
 | `/api/v1/admin/memberships/**` | ROLE_SUPER_ADMIN |
-| `/api/v1/admin/seller/**` | ROLE_SHOPPING_ADMIN or ROLE_SUPER_ADMIN |
+| ~~`/api/v1/admin/seller/**`~~ | ~~ROLE_SHOPPING_ADMIN or ROLE_SUPER_ADMIN~~ (seller-service로 이관, ADR-057) |
 | `/api/v1/admin/**` | ROLE_SUPER_ADMIN (catch-all) |
 
 ### 인증 필수 경로
 
 ```
 /api/v1/profile/**
-/api/v1/seller/**
+
 /api/v1/memberships/**  (tiers/** 제외)
 /api/v1/permissions/**
 anyRequest().authenticated()          # 위에 없는 모든 경로
@@ -871,6 +871,12 @@ Content-Type: application/json
 }
 ```
 
+**탈퇴 시 처리 내역:**
+- auth-service: Soft Delete (WITHDRAWAL_PENDING) + Follow 삭제 + PasswordHistory 삭제 + 토큰 무효화
+- `UserWithdrawnEvent` → `auth.user.withdrawn` Kafka 이벤트 발행
+- blog-service: Post/Comment soft delete, Like 삭제
+- notification-service: 해당 유저 알림 전체 삭제
+
 **Error Response (401 Unauthorized) - 비밀번호 불일치**
 ```json
 {
@@ -1066,6 +1072,40 @@ Authorization: Bearer {accessToken}
   "timestamp": "2026-02-06T10:30:00Z"
 }
 ```
+
+---
+
+### 4.6. [Internal] 팔로잉 ID 목록 (GET `/api/v1/internal/follow/{userUuid}/following-ids`)
+
+**인증 필요**: ❌ (서비스 간 내부 호출용)
+
+다른 서비스(blog-service 등)에서 특정 사용자의 팔로잉 목록을 서버사이드에서 조회할 때 사용합니다.
+
+**Request**
+```http
+GET /api/v1/internal/follow/{userUuid}/following-ids
+```
+
+**Response (200 OK)** (`FollowingIdsResponse`)
+```json
+{
+  "success": true,
+  "data": {
+    "followingIds": [
+      "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "b2c3d4e5-f6a7-8901-bcde-f1234567890a"
+    ]
+  }
+}
+```
+
+### 4.7. 이벤트 발행
+
+팔로우 시 `UserFollowedEvent`가 Kafka(`blog.user.followed`)로 발행됩니다. notification-service가 이 이벤트를 수신하여 팔로우 알림을 생성합니다.
+
+| 이벤트 | 토픽 | 발행 시점 |
+|--------|------|----------|
+| `UserFollowedEvent` | `blog.user.followed` | 팔로우 토글 시 (팔로우일 때만) |
 
 ---
 
@@ -1328,7 +1368,6 @@ Authorization: Bearer {accessToken}
         }
       ]
     },
-    "sellers": { "pending": 0, "approved": 0, "rejected": 0 },
     "recentActivity": [
       {
         "eventType": "ROLE_ASSIGNED",
@@ -2477,271 +2516,21 @@ Authorization: Bearer {accessToken}
 
 ---
 
-## 🛒 9. SellerController (`/api/v1/seller`)
+## ~~🛒 9. SellerController~~ (Removed — ADR-057)
 
-셀러(판매자) 신청 API.
-
-### 9.1. 셀러 신청 (POST `/api/v1/seller/apply`)
-
-**인증 필요**: ✅
-
-판매자 자격을 신청합니다.
-
-**Request**
-```http
-POST /api/v1/seller/apply
-Authorization: Bearer {accessToken}
-Content-Type: application/json
-
-{
-  "businessName": "My Shop",
-  "businessNumber": "123-45-67890",
-  "reason": "I want to sell handmade goods"
-}
-```
-
-**Request Body** (`SellerApplicationRequest`)
-
-| 필드 | 타입 | 필수 | 제약조건 | 설명 |
-|------|------|------|----------|------|
-| `businessName` | string | ✅ | @NotBlank @Size(max=200) | 사업자명 (또는 상호) |
-| `businessNumber` | string | ❌ | @Size(max=50) | 사업자 등록번호 |
-| `reason` | string | ❌ | - | 신청 사유 |
-
-**Response (201 Created)** (`SellerApplicationResponse`)
-```json
-{
-  "success": true,
-  "data": {
-    "id": 456,
-    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "businessName": "My Shop",
-    "businessNumber": "123-45-67890",
-    "reason": "I want to sell handmade goods",
-    "status": "PENDING",
-    "reviewedBy": null,
-    "reviewComment": null,
-    "reviewedAt": null,
-    "createdAt": "2026-02-06T10:30:00Z"
-  },
-  "error": null,
-  "timestamp": "2026-02-06T10:30:00Z"
-}
-```
-
-**SellerApplicationStatus 값**: `PENDING`, `APPROVED`, `REJECTED`
-
-**Error Response (409 Conflict) - 이미 신청 존재**
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "A040",
-    "message": "Seller application already pending"
-  },
-  "timestamp": "2026-02-06T10:30:00Z"
-}
-```
+> ⚠️ **seller-service로 이관됨**: 판매자 신청/조회 API가 `shopping-seller-service`로 이관되었습니다.
+> - 신규 엔드포인트: `POST /api/v1/seller/sellers/apply`, `GET /api/v1/seller/sellers/my-application`
+> - 상세: [Shopping Seller Service API](../shopping-seller-service/README.md)
 
 ---
 
-### 9.2. 내 신청 상태 조회 (GET `/api/v1/seller/application`)
+## ~~🛒 10. SellerAdminController~~ (Removed — ADR-057)
 
-**인증 필요**: ✅
-
-현재 로그인한 사용자의 셀러 신청 상태를 조회합니다.
-
-**Request**
-```http
-GET /api/v1/seller/application
-Authorization: Bearer {accessToken}
-```
-
-**Response (200 OK)** (`SellerApplicationResponse`)
-```json
-{
-  "success": true,
-  "data": {
-    "id": 456,
-    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "businessName": "My Shop",
-    "businessNumber": "123-45-67890",
-    "reason": "I want to sell handmade goods",
-    "status": "PENDING",
-    "reviewedBy": null,
-    "reviewComment": null,
-    "reviewedAt": null,
-    "createdAt": "2026-02-06T10:30:00Z"
-  },
-  "error": null,
-  "timestamp": "2026-02-06T10:30:00Z"
-}
-```
-
-**Error Response (404 Not Found)**
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "A041",
-    "message": "Seller application not found"
-  },
-  "timestamp": "2026-02-06T10:30:00Z"
-}
-```
-
----
-
-## 🛒 10. SellerAdminController (`/api/v1/admin/seller`)
-
-**인증 필요**: ✅
-**권한 필요**: `ROLE_SHOPPING_ADMIN` 또는 `ROLE_SUPER_ADMIN`
-
-셀러 신청 승인/거부 관리 API.
-
-### 10.1. 대기 중인 신청 조회 (GET `/api/v1/admin/seller/applications/pending`)
-
-승인 대기 중인 셀러 신청 목록을 조회합니다. (페이지네이션)
-
-**Request**
-```http
-GET /api/v1/admin/seller/applications/pending?page=1&size=20
-Authorization: Bearer {accessToken}
-```
-
-**Query Parameters**
-
-| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
-|----------|------|------|--------|------|
-| `page` | number | ❌ | 0 | 페이지 번호 |
-| `size` | number | ❌ | 20 | 페이지당 항목 수 |
-
-**Response (200 OK)** (Spring Page)
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "id": 456,
-        "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        "businessName": "My Shop",
-        "businessNumber": "123-45-67890",
-        "reason": "I want to sell handmade goods",
-        "status": "PENDING",
-        "reviewedBy": null,
-        "reviewComment": null,
-        "reviewedAt": null,
-        "createdAt": "2026-02-06T10:30:00Z"
-      }
-    ],
-    "page": 1,
-    "size": 20,
-    "totalElements": 45,
-    "totalPages": 3
-  },
-  "error": null,
-  "timestamp": "2026-02-06T10:30:00Z"
-}
-```
-
----
-
-### 10.2. 전체 신청 조회 (GET `/api/v1/admin/seller/applications`)
-
-모든 셀러 신청 목록을 조회합니다. (페이지네이션)
-
-**Request**
-```http
-GET /api/v1/admin/seller/applications?page=1&size=20
-Authorization: Bearer {accessToken}
-```
-
-**Query Parameters**: 대기 중인 신청 조회와 동일
-
-**Response**: 대기 중인 신청 조회와 동일한 구조 (단, status가 PENDING/APPROVED/REJECTED 모두 포함)
-
----
-
-### 10.3. 신청 심사 (POST `/api/v1/admin/seller/applications/{applicationId}/review`)
-
-셀러 신청을 승인하거나 거부합니다.
-
-**Request**
-```http
-POST /api/v1/admin/seller/applications/456/review
-Authorization: Bearer {accessToken}
-Content-Type: application/json
-
-{
-  "approved": true,
-  "reviewComment": "Approved - Valid business"
-}
-```
-
-**Request Body** (`SellerApplicationReviewRequest`)
-
-| 필드 | 타입 | 필수 | 설명 |
-|------|------|------|------|
-| `approved` | boolean | ✅ | true: 승인, false: 거부 |
-| `reviewComment` | string | ❌ | 심사 코멘트 (거부 시 권장) |
-
-**Response (200 OK) - 승인** (`SellerApplicationResponse`)
-```json
-{
-  "success": true,
-  "data": {
-    "id": 456,
-    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "businessName": "My Shop",
-    "businessNumber": "123-45-67890",
-    "reason": "I want to sell handmade goods",
-    "status": "APPROVED",
-    "reviewedBy": "admin@example.com",
-    "reviewComment": "Approved - Valid business",
-    "reviewedAt": "2026-02-06T11:00:00Z",
-    "createdAt": "2026-02-06T10:30:00Z"
-  },
-  "error": null,
-  "timestamp": "2026-02-06T11:00:00Z"
-}
-```
-
-**Response (200 OK) - 거부**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 456,
-    "userId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "businessName": "My Shop",
-    "businessNumber": "123-45-67890",
-    "reason": "I want to sell handmade goods",
-    "status": "REJECTED",
-    "reviewedBy": "admin@example.com",
-    "reviewComment": "Invalid business number",
-    "reviewedAt": "2026-02-06T11:00:00Z",
-    "createdAt": "2026-02-06T10:30:00Z"
-  },
-  "error": null,
-  "timestamp": "2026-02-06T11:00:00Z"
-}
-```
-
-**Error Response (400 Bad Request) - 이미 처리됨**
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "A042",
-    "message": "Seller application already processed"
-  },
-  "timestamp": "2026-02-06T11:00:00Z"
-}
-```
+> ⚠️ **seller-service로 이관됨**: 판매자 승인/관리 API가 `shopping-seller-service`로 이관되었습니다.
+> - 신규 엔드포인트: `GET /api/v1/seller/admin/sellers`, `POST /api/v1/seller/admin/sellers/{id}/review`
+> - 상세: [Shopping Seller Service API](../shopping-seller-service/README.md)
+>
+> **Kafka 이벤트**: 승인 시 `SellerApprovedEvent` 발행 → auth-service `SellerApprovedEventConsumer`가 수신하여 `ROLE_SHOPPING_SELLER` 자동 부여
 
 ---
 
@@ -2780,7 +2569,139 @@ GET /api/v1/internal/role-hierarchy/effective-roles?roles=ROLE_SHOPPING_SELLER,R
 
 ---
 
-## 🔐 12. OAuth2 소셜 로그인
+## 🔑 12. PasswordResetController (`/api/v1/auth/password-reset`)
+
+이메일 기반 비밀번호 재설정 API. 인증 불필요 (공개 엔드포인트).
+
+### 12.1. 비밀번호 재설정 요청 (POST `/api/v1/auth/password-reset/request`)
+
+**인증 필요**: ❌
+
+이메일 주소로 비밀번호 재설정 링크를 전송합니다. 이메일 존재 여부와 관계없이 동일한 성공 응답을 반환합니다 (user enumeration 방지).
+
+**Request**
+```http
+POST /api/v1/auth/password-reset/request
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+```
+
+**Request Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `email` | string | ✅ | 가입된 이메일 주소 |
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "If the email exists, a password reset link has been sent"
+  },
+  "error": null
+}
+```
+
+**Error Cases**
+
+| 상황 | 코드 | HTTP Status |
+|------|------|-------------|
+| Rate limit 초과 | `A028` | 429 Too Many Requests |
+| 이메일 미존재 | - | 200 (동일 응답) |
+| 소셜 전용 사용자 | - | 200 (동일 응답) |
+
+**Rate Limit**: IP당 5분 내 3회
+
+---
+
+### 12.2. 토큰 유효성 확인 (GET `/api/v1/auth/password-reset/validate`)
+
+**인증 필요**: ❌
+
+비밀번호 재설정 토큰의 유효성을 확인합니다. 프론트엔드 페이지 진입 시 사용.
+
+**Request**
+```http
+GET /api/v1/auth/password-reset/validate?token=550e8400-e29b-41d4-a716-446655440000
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `token` | string | ✅ | 비밀번호 재설정 토큰 (UUID) |
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": { "valid": true },
+  "error": null
+}
+```
+
+**Error Cases**
+
+| 상황 | 코드 | HTTP Status |
+|------|------|-------------|
+| 토큰 만료/무효 | `A027` | 400 Bad Request |
+
+---
+
+### 12.3. 비밀번호 재설정 (POST `/api/v1/auth/password-reset/reset`)
+
+**인증 필요**: ❌
+
+토큰을 검증하고 새 비밀번호로 변경합니다. 토큰은 일회용이며 사용 즉시 소멸합니다.
+
+**Request**
+```http
+POST /api/v1/auth/password-reset/reset
+Content-Type: application/json
+
+{
+  "token": "550e8400-e29b-41d4-a716-446655440000",
+  "newPassword": "NewSecureP@ss1",
+  "confirmPassword": "NewSecureP@ss1"
+}
+```
+
+**Request Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `token` | string | ✅ | 비밀번호 재설정 토큰 |
+| `newPassword` | string | ✅ | 새 비밀번호 (비밀번호 정책 적용) |
+| `confirmPassword` | string | ✅ | 비밀번호 확인 |
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Password has been reset successfully"
+  },
+  "error": null
+}
+```
+
+**Error Cases**
+
+| 상황 | 코드 | HTTP Status |
+|------|------|-------------|
+| 토큰 만료/무효 | `A027` | 400 Bad Request |
+| 비밀번호 확인 불일치 | `A008` | 400 Bad Request |
+| 비밀번호 정책 위반 | `A021` | 400 Bad Request |
+| 최근 비밀번호 재사용 | `A022` | 400 Bad Request |
+| 사용자 미존재 | `A004` | 404 Not Found |
+
+---
+
+## 🔐 13. OAuth2 소셜 로그인
 
 Spring OAuth2 Client를 사용한 소셜 로그인 지원.
 
@@ -2893,6 +2814,8 @@ GET /login/oauth2/code/google?code=AUTHORIZATION_CODE&state=RANDOM_STATE
 | `A024` | 401 Unauthorized | PASSWORD_EXPIRED |
 | `A025` | 400 Bad Request | PASSWORD_TOO_LONG |
 | `A026` | 400 Bad Request | PASSWORD_CONTAINS_SEQUENTIAL |
+| `A027` | 400 Bad Request | INVALID_RESET_TOKEN |
+| `A028` | 429 Too Many Requests | PASSWORD_RESET_RATE_LIMITED |
 | `A030` | 404 Not Found | ROLE_NOT_FOUND |
 | `A031` | 409 Conflict | ROLE_ALREADY_ASSIGNED |
 | `A032` | 404 Not Found | ROLE_NOT_ASSIGNED |
@@ -3098,6 +3021,14 @@ await fetch('http://localhost:8081/api/v1/admin/rbac/roles/assign', {
 ---
 
 ## 📝 변경 이력
+
+### v3.2.0 (2026-02-28)
+- 비밀번호 재설정 API 추가 (Section 12: PasswordResetController)
+  - `POST /api/v1/auth/password-reset/request` — 재설정 링크 이메일 발송
+  - `GET /api/v1/auth/password-reset/validate` — 토큰 유효성 확인
+  - `POST /api/v1/auth/password-reset/reset` — 새 비밀번호 설정
+- 에러 코드 추가: `A027` INVALID_RESET_TOKEN, `A028` PASSWORD_RESET_RATE_LIMITED
+- Kafka 이벤트: `PasswordResetRequestedEvent` → notification-service 이메일 발송
 
 ### v2.4.2 (2026-02-08)
 - 페이지네이션 응답 구조 변경 (ADR-031): content → items, number → page (1-based), Spring 내부 필드 제거

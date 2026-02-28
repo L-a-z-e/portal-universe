@@ -48,6 +48,9 @@ public class AvroConsumerConfig {
     @Value("${app.kafka.retry.max-attempts:3}")
     private long maxRetryAttempts;
 
+    @Value("${spring.kafka.listener.concurrency:3}")
+    private int listenerConcurrency;
+
     @Bean
     public ConsumerFactory<String, SpecificRecord> avroConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -119,8 +122,10 @@ public class AvroConsumerConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(avroConsumerFactory);
         factory.setCommonErrorHandler(avroErrorHandler);
+        factory.setConcurrency(listenerConcurrency);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
 
+        log.info("Kafka listener concurrency set to {}", listenerConcurrency);
         return factory;
     }
 }

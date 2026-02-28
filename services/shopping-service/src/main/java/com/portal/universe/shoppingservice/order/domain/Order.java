@@ -1,5 +1,6 @@
 package com.portal.universe.shoppingservice.order.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.domain.Address;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
@@ -8,13 +9,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +28,9 @@ import java.util.UUID;
         @Index(name = "idx_order_status", columnList = "status"),
         @Index(name = "idx_order_created_at", columnList = "created_at")
 })
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Order {
+public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -96,6 +93,12 @@ public class Order {
     private List<OrderItem> items = new ArrayList<>();
 
     /**
+     * Payment Intent ID (payment-service 참조)
+     */
+    @Column(name = "payment_intent_id", length = 36)
+    private String paymentIntentId;
+
+    /**
      * 취소 사유
      */
     @Column(name = "cancel_reason", length = 500)
@@ -105,15 +108,7 @@ public class Order {
      * 취소 일시
      */
     @Column(name = "cancelled_at")
-    private LocalDateTime cancelledAt;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant cancelledAt;
 
     @Builder
     public Order(String userId, Address shippingAddress) {
@@ -127,9 +122,10 @@ public class Order {
     /**
      * 주문에 항목을 추가합니다.
      */
-    public OrderItem addItem(Long productId, String productName, BigDecimal price, int quantity) {
+    public OrderItem addItem(Long sellerId, Long productId, String productName, BigDecimal price, int quantity) {
         OrderItem orderItem = OrderItem.builder()
                 .order(this)
+                .sellerId(sellerId)
                 .productId(productId)
                 .productName(productName)
                 .price(price)
@@ -190,7 +186,14 @@ public class Order {
         }
         this.status = OrderStatus.CANCELLED;
         this.cancelReason = reason;
-        this.cancelledAt = LocalDateTime.now();
+        this.cancelledAt = Instant.now();
+    }
+
+    /**
+     * Payment Intent ID를 설정합니다.
+     */
+    public void assignPaymentIntentId(String paymentIntentId) {
+        this.paymentIntentId = paymentIntentId;
     }
 
     /**

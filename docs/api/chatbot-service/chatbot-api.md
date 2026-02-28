@@ -3,7 +3,7 @@ id: api-chatbot
 title: Chatbot REST API
 type: api
 status: current
-version: v1.1
+version: v1.3
 created: 2026-02-06
 updated: 2026-02-13
 author: Laze
@@ -131,13 +131,13 @@ X-User-Id: user-123
 
 | 필드 | 타입 | 필수 | Validation | 설명 |
 |------|------|------|-----------|------|
-| `message` | string | ✅ | XSS 패턴 검증, 1-10000자 | 사용자 질문 |
+| `message` | string | ✅ | XSS 패턴 검증, 1-2000자 | 사용자 질문 |
 | `conversation_id` | string | - | - | 대화 ID (없으면 서버에서 UUID 생성) |
 
 ### Validation 규칙
 
 **message 필드**:
-- **길이**: 1-10000자
+- **길이**: 1-2000자 (프롬프트 인젝션 공격 표면 축소)
 - **XSS 방어**: `<script>`, `onclick=`, `javascript:`, `<iframe>` 패턴 차단
 - **검증 실패 시**: 422 Unprocessable Entity
 
@@ -624,6 +624,10 @@ RAG 검색 결과의 소스 정보를 나타내는 공통 DTO입니다.
 
 - **새 대화 시작**: `conversation_id` 없이 요청 시 서버에서 UUID 자동 생성
 - **기존 대화 계속**: `conversation_id` 포함 요청 시 해당 대화에 메시지 추가
+- **멀티턴 대화 이력**: `conversation_id`가 있으면 최근 5턴(10메시지)을 Redis에서 조회하여 LLM에 맥락으로 주입. "이전 답변에서 2번 항목 설명해줘" 같은 후속 질문 지원
+  - 이력 메시지는 500자로 truncate (context window 절약)
+  - RAG 검색은 현재 질문만 사용 (이력 포함 시 검색 노이즈 방지)
+  - `conversation_id` 없는 새 대화는 기존과 동일하게 동작 (backward compatible)
 - **대화 제목**: 첫 번째 사용자 메시지의 앞 50자로 자동 설정
 - **대화 만료**: 7일간 활동 없으면 Redis TTL에 의해 자동 삭제
 
@@ -770,6 +774,16 @@ async function uploadDocument(userId: string, file: File) {
 
 ## 변경 이력
 
+### v1.3.0 (2026-02-28)
+- 멀티턴 대화 이력 지원: conversation_id가 있으면 최근 5턴을 LLM 맥락으로 주입
+- 이력 메시지 500자 truncate, user/assistant role만 허용 (SystemMessage 에스컬레이션 방지)
+- RAG 검색은 현재 질문만 사용 (이력 미포함)
+
+### v1.2.0 (2026-02-28)
+- 메시지 max_length 10000→2000 축소 (프롬프트 인젝션 공격 표면 감소)
+- XML tag 기반 프롬프트 구조화 (context/question 분리)
+- 프롬프트 인젝션 패턴 탐지 경고 로깅
+
 ### v1.0.0 (2026-02-06)
 - 코드베이스 기반 초기 버전 작성
 - Chat, Conversation, Document, Health 4개 도메인 10개 엔드포인트 문서화
@@ -783,4 +797,4 @@ async function uploadDocument(userId: string, file: File) {
 
 ---
 
-**최종 업데이트**: 2026-02-13
+**최종 업데이트**: 2026-02-28

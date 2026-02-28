@@ -14,7 +14,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,7 +60,7 @@ class InventoryStreamServiceTest {
                 .productId(1L)
                 .available(50)
                 .reserved(10)
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         inventoryStreamService.publishInventoryUpdate(update);

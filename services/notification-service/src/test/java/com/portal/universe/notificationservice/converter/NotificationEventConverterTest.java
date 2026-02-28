@@ -89,15 +89,16 @@ class NotificationEventConverterTest {
         @Test
         @DisplayName("PaymentCompletedEvent를 PAYMENT_COMPLETED 타입 커맨드로 변환한다")
         void should_convertPaymentCompleted_toCommand() {
-            PaymentCompletedEvent event = new PaymentCompletedEvent(
-                    "PAY-001",
-                    "ORD-001",
-                    "user-123",
-                    new BigDecimal("150000"),
-                    "CARD",
-                    "PG-TX-001",
-                    Instant.now()
-            );
+            PaymentCompletedEvent event = PaymentCompletedEvent.newBuilder()
+                    .setPaymentNumber("PAY-001")
+                    .setOrderNumber("ORD-001")
+                    .setUserId("user-123")
+                    .setAmount(new BigDecimal("150000"))
+                    .setPaymentMethod("CARD")
+                    .setPgTransactionId("PG-TX-001")
+                    .setPaidAt(Instant.now())
+                    .setItems(List.of())
+                    .build();
 
             CreateNotificationCommand command = converter.convert(event);
 

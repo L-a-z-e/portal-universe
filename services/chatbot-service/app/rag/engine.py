@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import uuid
 from pathlib import Path
@@ -121,24 +122,32 @@ class RAGEngine:
 
     _NO_RESULTS_MESSAGE = "해당 정보를 찾을 수 없습니다. 제공된 문서에 관련 내용이 없습니다."
 
-    async def query(self, question: str) -> tuple[str, list[SourceInfo]]:
+    async def query(
+        self,
+        question: str,
+        conversation_history: list[dict] | None = None,
+    ) -> tuple[str, list[SourceInfo]]:
         """질문에 대한 RAG 기반 답변 생성."""
         processed_question = self._preprocess_query(question)
-        results = self.vectorstore.search(processed_question)
+        results = await asyncio.to_thread(self.vectorstore.search, processed_question)
 
         if not results:
             return self._NO_RESULTS_MESSAGE, []
 
         context = self._build_context(results)
-        answer = await self.llm.generate(question, context)
+        answer = await self.llm.generate(question, context, conversation_history)
         sources = self._build_sources(results)
 
         return answer, sources
 
-    async def query_stream(self, question: str):
+    async def query_stream(
+        self,
+        question: str,
+        conversation_history: list[dict] | None = None,
+    ):
         """질문에 대한 RAG 기반 스트리밍 답변 생성."""
         processed_question = self._preprocess_query(question)
-        results = self.vectorstore.search(processed_question)
+        results = await asyncio.to_thread(self.vectorstore.search, processed_question)
 
         if not results:
             yield {"type": "token", "content": self._NO_RESULTS_MESSAGE}
@@ -147,7 +156,7 @@ class RAGEngine:
 
         context = self._build_context(results)
 
-        async for token in self.llm.stream(question, context):
+        async for token in self.llm.stream(question, context, conversation_history):
             yield {"type": "token", "content": token}
 
         sources = [s.model_dump() for s in self._build_sources(results)]

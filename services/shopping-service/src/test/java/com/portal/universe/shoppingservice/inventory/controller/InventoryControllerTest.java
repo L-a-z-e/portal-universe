@@ -1,30 +1,22 @@
 package com.portal.universe.shoppingservice.inventory.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryBatchRequest;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryResponse;
-import com.portal.universe.shoppingservice.inventory.dto.InventoryUpdateRequest;
-import com.portal.universe.shoppingservice.inventory.dto.StockMovementResponse;
 import com.portal.universe.shoppingservice.inventory.service.InventoryService;
 import com.portal.universe.shoppingservice.support.WebMvcTestConfig;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -43,11 +35,9 @@ class InventoryControllerTest {
     @MockitoBean
     private InventoryService inventoryService;
 
-    private static final AuthUser authUser = new AuthUser("user-1", "Test User", "tester", null);
-
     private InventoryResponse createInventoryResponse(Long productId) {
         return new InventoryResponse(1L, productId, 100, 10, 110,
-                LocalDateTime.now(), LocalDateTime.now());
+                Instant.now(), Instant.now());
     }
 
     @Test
@@ -81,53 +71,6 @@ class InventoryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.productId").value(1));
-    }
-
-    @Test
-    @DisplayName("should_initializeInventory_when_validRequest")
-    void should_initializeInventory_when_validRequest() throws Exception {
-        // given
-        InventoryUpdateRequest request = new InventoryUpdateRequest(100, "Initial stock");
-        InventoryResponse response = createInventoryResponse(1L);
-        when(inventoryService.initializeInventory(eq(1L), eq(100), eq("user-1")))
-                .thenReturn(response);
-
-        // when/then
-        mockMvc.perform(post("/inventory/1").requestAttr("authUser", authUser)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-
-    @Test
-    @DisplayName("should_addStock_when_validRequest")
-    void should_addStock_when_validRequest() throws Exception {
-        // given
-        InventoryUpdateRequest request = new InventoryUpdateRequest(50, "Restock");
-        InventoryResponse response = createInventoryResponse(1L);
-        when(inventoryService.addStock(eq(1L), eq(50), eq("Restock"), eq("user-1")))
-                .thenReturn(response);
-
-        // when/then
-        mockMvc.perform(put("/inventory/1/add").requestAttr("authUser", authUser)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-
-    @Test
-    @DisplayName("should_returnStockMovements_when_called")
-    void should_returnStockMovements_when_called() throws Exception {
-        // given
-        Page<StockMovementResponse> page = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
-        when(inventoryService.getStockMovements(eq(1L), any())).thenReturn(page);
-
-        // when/then
-        mockMvc.perform(get("/inventory/1/movements"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test

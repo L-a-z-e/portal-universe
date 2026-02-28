@@ -4,7 +4,7 @@ title: Shopping Settlement Service 아키텍처
 type: architecture
 status: current
 created: 2026-02-14
-updated: 2026-02-14
+updated: 2026-02-28
 author: Laze
 tags:
   - shopping
@@ -26,11 +26,11 @@ Shopping Settlement Service는 판매자 정산을 담당하는 Spring Batch 기
 | 항목 | 내용 |
 |------|------|
 | **범위** | Service |
-| **주요 기술** | Spring Boot 3.5.5, Spring Batch, MySQL, Kafka |
+| **주요 기술** | Spring Boot 3.5.5, Spring Batch, PostgreSQL, Kafka |
 | **배포 환경** | Kubernetes, Docker Compose |
-| **관련 서비스** | shopping-service (주문/결제), shopping-seller-service (판매자 정보) |
+| **관련 서비스** | shopping-service (주문), payment-service (결제 완료 이벤트), shopping-seller-service (판매자 정보) |
 | **포트** | 8089 |
-| **DB** | shopping_settlement_db (MySQL) |
+| **DB** | shopping_settlement_db (PostgreSQL) |
 
 ---
 
@@ -143,8 +143,9 @@ graph TB
 **역할**: Kafka 이벤트 구독 및 정산 원장 기록
 
 **주요 책임**:
-- `shopping.payment.completed` 이벤트 수신 → 매출 기록
-- `shopping.order.cancelled` 이벤트 수신 → 환불 기록
+- `shopping.payment.completed` 이벤트 수신 → 매출 기록 (payment-service 발행)
+- `shopping.order.settlement.created` 이벤트 수신 → 정산 이벤트 처리 (shopping-service 발행)
+- `shopping.order.cancelled` 이벤트 수신 → 환불 기록 (shopping-service 발행)
 
 **기술 스택**:
 - Spring Kafka
@@ -168,9 +169,11 @@ graph TB
 ### 실시간 이벤트 수집
 
 ```
-1. Shopping Service → Kafka (PaymentCompletedEvent)
-2. SettlementEventConsumer → Kafka 구독
-3. SettlementEventConsumer → settlement_ledger 테이블에 기록
+[2026-02-28 이후 이벤트 체이닝]
+1. payment-service → Kafka (PaymentCompletedEvent)
+2. shopping-service → Kafka 구독 후 OrderSettlementCreatedEvent 발행
+3. SettlementEventConsumer → shopping.order.settlement.created 구독
+4. SettlementEventConsumer → settlement_ledger 테이블에 기록
    - orderNumber, sellerId, amount, eventType, eventAt
 ```
 
@@ -364,10 +367,14 @@ resources:
 
 ### Consumed Topics
 
-| Topic | Event | Description |
-|-------|-------|-------------|
-| `shopping.payment.completed` | `PaymentCompletedEvent` | 결제 완료 시 매출 기록 |
-| `shopping.order.cancelled` | `OrderCancelledEvent` | 주문 취소 시 환불 기록 |
+| Topic | Event | Description | 발행 서비스 |
+|-------|-------|-------------|------------|
+| `shopping.payment.completed` | `PaymentCompletedEvent` | 결제 완료 시 매출 기록 | payment-service (2026-02-28~) |
+| `shopping.order.settlement.created` | `OrderSettlementCreatedEvent` | 주문 정산 생성 이벤트 | shopping-service (2026-02-28~) |
+| `shopping.order.cancelled` | `OrderCancelledEvent` | 주문 취소 시 환불 기록 | shopping-service |
+
+> **[2026-02-28 변경]**: `PaymentCompletedEvent` 발행 주체가 shopping-service에서 **payment-service**로 변경되었습니다.
+> `OrderSettlementCreatedEvent`가 추가되어 shopping-service가 결제 완료 이벤트 소비 후 정산 이벤트를 발행합니다.
 
 **Consumer Group**: `shopping-settlement-service`
 
@@ -447,4 +454,13 @@ resources:
 
 ---
 
-**마지막 업데이트**: 2026-02-14
+## 변경 이력
+
+| 날짜 | 변경 내용 | 작성자 |
+|------|----------|--------|
+| 2026-02-28 | 이벤트 발행 주체 변경 반영: PaymentCompletedEvent→payment-service, OrderSettlementCreatedEvent 추가 | Laze |
+| 2026-02-14 | 초기 문서 작성 | Laze |
+
+---
+
+**마지막 업데이트**: 2026-02-28

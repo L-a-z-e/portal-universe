@@ -1,37 +1,44 @@
 import { getApiClient } from './client'
 import type { ApiResponse } from '@/types'
-import type { Payment, ProcessPaymentRequest } from '@/dto/payment'
+import type { Payment, PaymentIntent, ConfirmPaymentRequest } from '@/dto/payment'
 
-const API_PREFIX = '/api/v1/shopping'
+const PAYMENT_API_PREFIX = '/api/v1/payment'
 
 export const paymentApi = {
-  getPayment: async (orderNumber: string) => {
-    const response = await getApiClient().get<ApiResponse<Payment>>(
-      `${API_PREFIX}/payments/${orderNumber}`
+  getIntent: async (intentId: string) => {
+    const response = await getApiClient().get<ApiResponse<PaymentIntent>>(
+      `${PAYMENT_API_PREFIX}/intents/${intentId}`
     )
     return response.data
   },
 
-  processPayment: async (data: ProcessPaymentRequest) => {
+  confirmPayment: async (intentId: string, data: ConfirmPaymentRequest) => {
     const response = await getApiClient().post<ApiResponse<Payment>>(
-      `${API_PREFIX}/payments`,
+      `${PAYMENT_API_PREFIX}/intents/${intentId}/confirm`,
       data
     )
     return response.data
   },
 
-  cancelPayment: async (orderNumber: string) => {
-    const response = await getApiClient().post<ApiResponse<Payment>>(
-      `${API_PREFIX}/payments/${orderNumber}/cancel`
+  getPayment: async (paymentNumber: string) => {
+    const response = await getApiClient().get<ApiResponse<Payment>>(
+      `${PAYMENT_API_PREFIX}/payments/${paymentNumber}`
     )
     return response.data
-  }
+  },
+
+  cancelPayment: async (paymentNumber: string) => {
+    const response = await getApiClient().post<ApiResponse<Payment>>(
+      `${PAYMENT_API_PREFIX}/payments/${paymentNumber}/cancel`
+    )
+    return response.data
+  },
 }
 
 export const adminPaymentApi = {
   refundPayment: async (paymentNumber: string) => {
     const response = await getApiClient().post<ApiResponse<Payment>>(
-      `${API_PREFIX}/payments/${paymentNumber}/refund`
+      `${PAYMENT_API_PREFIX}/payments/${paymentNumber}/refund`
     )
     return response.data
   }

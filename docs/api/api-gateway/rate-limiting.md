@@ -4,7 +4,7 @@ title: API Gateway Rate Limiting
 type: api
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-28
 author: Laze
 tags: [api-gateway, rate-limiting, redis, token-bucket]
 related:
@@ -77,11 +77,12 @@ graph LR
 ### IP 추출 순서
 
 ```
-1. X-Forwarded-For 헤더 (프록시 환경)
-   → 첫 번째 IP 사용 (client, proxy1, proxy2)
+1. X-Forwarded-For 헤더 (maxTrustedIndex(1) — 가장 마지막 프록시가 추가한 IP만 신뢰)
 2. RemoteAddress (직접 연결)
 3. "unknown" (둘 다 없는 경우)
 ```
+
+> **2026-02-28**: `XForwardedRemoteAddressResolver.maxTrustedIndex(1)` 적용. 클라이언트가 X-Forwarded-For 헤더를 조작해도 마지막 프록시(Gateway 앞단)가 추가한 IP만 사용하여 IP 스푸핑 방지.
 
 ### User Key Resolver 폴백
 

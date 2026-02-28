@@ -6,7 +6,9 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from sse_starlette.sse import EventSourceResponse
 
+from app.core.config import settings
 from app.core.security import get_current_user_id
+from app.core.validators import check_prompt_injection
 from app.rag.engine import rag_engine
 from app.schemas.chat import ChatRequest, ChatResponse, SourceInfo
 from app.schemas.common import ApiResponse
@@ -27,6 +29,8 @@ async def send_message(
     conversation_id = request.conversation_id or str(uuid.uuid4())
     message_id = str(uuid.uuid4())
 
+    check_prompt_injection(request.message)
+
     logger.info(
         "Chat message: user=%s, conversation=%s, message=%s",
         user_id,
@@ -34,7 +38,19 @@ async def send_message(
         request.message[:50],
     )
 
-    answer, sources = await rag_engine.query(request.message)
+    # 대화 이력 조회 (save 전에 실행하여 현재 메시지가 포함되지 않도록)
+    conversation_history = None
+    if request.conversation_id:
+        history = await conversation_service.get_recent_turns(
+            user_id,
+            conversation_id,
+            settings.conversation_max_history_turns,
+            settings.conversation_max_message_chars,
+        )
+        if history:
+            conversation_history = history
+
+    answer, sources = await rag_engine.query(request.message, conversation_history)
 
     # 대화 이력 저장
     await conversation_service.save_message(
@@ -71,11 +87,25 @@ async def stream_message(
     conversation_id = request.conversation_id or str(uuid.uuid4())
     message_id = str(uuid.uuid4())
 
+    check_prompt_injection(request.message)
+
     logger.info(
         "Chat stream: user=%s, conversation=%s",
         user_id,
         conversation_id,
     )
+
+    # 대화 이력 조회 (save 전에 실행하여 현재 메시지가 포함되지 않도록)
+    conversation_history = None
+    if request.conversation_id:
+        history = await conversation_service.get_recent_turns(
+            user_id,
+            conversation_id,
+            settings.conversation_max_history_turns,
+            settings.conversation_max_message_chars,
+        )
+        if history:
+            conversation_history = history
 
     # 사용자 메시지 저장
     await conversation_service.save_message(
@@ -98,7 +128,7 @@ async def stream_message(
         full_answer = []
         sources: list[dict] = []
 
-        async for event in rag_engine.query_stream(request.message):
+        async for event in rag_engine.query_stream(request.message, conversation_history):
             if event["type"] == "token":
                 full_answer.append(event["content"])
                 yield _wrap_envelope("token", event)

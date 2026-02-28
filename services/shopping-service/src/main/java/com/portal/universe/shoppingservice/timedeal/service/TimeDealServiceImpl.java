@@ -2,13 +2,10 @@ package com.portal.universe.shoppingservice.timedeal.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
-import com.portal.universe.shoppingservice.product.domain.Product;
-import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDeal;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealProduct;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealPurchase;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealStatus;
-import com.portal.universe.shoppingservice.timedeal.dto.TimeDealCreateRequest;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealPurchaseRequest;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealPurchaseResponse;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealResponse;
@@ -18,12 +15,10 @@ import com.portal.universe.shoppingservice.timedeal.repository.TimeDealPurchaseR
 import com.portal.universe.shoppingservice.timedeal.repository.TimeDealRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -35,54 +30,7 @@ public class TimeDealServiceImpl implements TimeDealService {
     private final TimeDealRepository timeDealRepository;
     private final TimeDealProductRepository timeDealProductRepository;
     private final TimeDealPurchaseRepository timeDealPurchaseRepository;
-    private final ProductRepository productRepository;
     private final TimeDealRedisService timeDealRedisService;
-
-    @Override
-    public Page<TimeDealResponse> getAllTimeDeals(Pageable pageable) {
-        return timeDealRepository.findAll(pageable)
-                .map(TimeDealResponse::from);
-    }
-
-    @Override
-    @Transactional
-    public TimeDealResponse createTimeDeal(TimeDealCreateRequest request) {
-        validateTimeDealPeriod(request.startsAt(), request.endsAt());
-
-        TimeDeal timeDeal = TimeDeal.builder()
-                .name(request.name())
-                .description(request.description())
-                .startsAt(request.startsAt())
-                .endsAt(request.endsAt())
-                .build();
-
-        for (TimeDealCreateRequest.TimeDealProductRequest productRequest : request.products()) {
-            Product product = productRepository.findById(productRequest.productId())
-                    .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
-
-            TimeDealProduct timeDealProduct = TimeDealProduct.builder()
-                    .product(product)
-                    .dealPrice(productRequest.dealPrice())
-                    .dealQuantity(productRequest.dealQuantity())
-                    .maxPerUser(productRequest.maxPerUser())
-                    .build();
-
-            timeDeal.addProduct(timeDealProduct);
-        }
-
-        TimeDeal savedTimeDeal = timeDealRepository.save(timeDeal);
-
-        log.info("Created time deal: id={}, name={}, products={}",
-                savedTimeDeal.getId(), savedTimeDeal.getName(), savedTimeDeal.getProducts().size());
-
-        return TimeDealResponse.from(savedTimeDeal);
-    }
-
-    private void validateTimeDealPeriod(LocalDateTime startsAt, LocalDateTime endsAt) {
-        if (startsAt.isAfter(endsAt)) {
-            throw new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_INVALID_PERIOD);
-        }
-    }
 
     @Override
     public TimeDealResponse getTimeDeal(Long timeDealId) {
@@ -95,7 +43,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     @Override
     public List<TimeDealResponse> getActiveTimeDeals() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return timeDealRepository.findActiveDeals(TimeDealStatus.ACTIVE, now)
                 .stream()
                 .map(TimeDealResponse::from)
@@ -106,7 +54,7 @@ public class TimeDealServiceImpl implements TimeDealService {
     @Transactional
     public TimeDealPurchaseResponse purchaseTimeDeal(String userId, TimeDealPurchaseRequest request) {
         TimeDealProduct timeDealProduct = timeDealProductRepository
-                .findByIdWithProductAndDeal(request.timeDealProductId())
+                .findByIdWithDeal(request.timeDealProductId())
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_PRODUCT_NOT_FOUND));
 
         TimeDeal timeDeal = timeDealProduct.getTimeDeal();
@@ -116,7 +64,7 @@ public class TimeDealServiceImpl implements TimeDealService {
         // Lua Script를 통한 원자적 구매 처리
         Long result = timeDealRedisService.purchaseProduct(
                 timeDeal.getId(),
-                timeDealProduct.getProduct().getId(),
+                timeDealProduct.getProductId(),
                 userId,
                 request.quantity(),
                 timeDealProduct.getMaxPerUser()
@@ -139,12 +87,11 @@ public class TimeDealServiceImpl implements TimeDealService {
 
         TimeDealPurchase savedPurchase = timeDealPurchaseRepository.save(purchase);
 
-        // 판매 수량 업데이트
-        timeDealProduct.incrementSoldQuantity(request.quantity());
-        timeDealProductRepository.save(timeDealProduct);
+        // 판매 수량 원자적 업데이트 (Lost Update 방지)
+        timeDealProductRepository.incrementSoldQuantity(timeDealProduct.getId(), request.quantity());
 
         log.info("TimeDeal purchase completed: userId={}, dealId={}, productId={}, quantity={}",
-                userId, timeDeal.getId(), timeDealProduct.getProduct().getId(), request.quantity());
+                userId, timeDeal.getId(), timeDealProduct.getProductId(), request.quantity());
 
         return TimeDealPurchaseResponse.from(savedPurchase);
     }
@@ -154,7 +101,7 @@ public class TimeDealServiceImpl implements TimeDealService {
             throw new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_NOT_ACTIVE);
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         if (now.isBefore(timeDeal.getStartsAt()) || now.isAfter(timeDeal.getEndsAt())) {
             throw new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_EXPIRED);
         }
@@ -166,25 +113,5 @@ public class TimeDealServiceImpl implements TimeDealService {
                 .stream()
                 .map(TimeDealPurchaseResponse::from)
                 .toList();
-    }
-
-    @Override
-    @Transactional
-    public void cancelTimeDeal(Long timeDealId) {
-        TimeDeal timeDeal = timeDealRepository.findById(timeDealId)
-                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.TIMEDEAL_NOT_FOUND));
-
-        timeDeal.cancel();
-        timeDealRepository.save(timeDeal);
-
-        // Redis 캐시 정리
-        timeDeal.getProducts().forEach(product ->
-                timeDealRedisService.deleteTimeDealCache(
-                        timeDeal.getId(),
-                        product.getProduct().getId()
-                )
-        );
-
-        log.info("Cancelled time deal: id={}", timeDealId);
     }
 }

@@ -21,7 +21,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -69,7 +70,7 @@ class MembershipControllerTest {
         return new MembershipResponse(
                 1L, USER_UUID, serviceName, tierKey, tierKey.toUpperCase(),
                 MembershipStatus.ACTIVE, true,
-                LocalDateTime.now(), LocalDateTime.now().plusMonths(1), LocalDateTime.now()
+                Instant.now(), Instant.now().plus(Duration.ofDays(30)), Instant.now()
         );
     }
 

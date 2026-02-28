@@ -1,13 +1,16 @@
 package com.portal.universe.shoppingservice.order.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.commonlibrary.response.ApiResponse;
 import com.portal.universe.shoppingservice.cart.domain.Cart;
 import com.portal.universe.shoppingservice.cart.domain.CartItem;
 import com.portal.universe.shoppingservice.cart.domain.CartStatus;
 import com.portal.universe.shoppingservice.cart.repository.CartRepository;
 import com.portal.universe.shoppingservice.coupon.service.CouponService;
 import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
-import com.portal.universe.shoppingservice.inventory.service.InventoryService;
+import com.portal.universe.shoppingservice.feign.PaymentIntentFeignClient;
+import com.portal.universe.shoppingservice.feign.dto.PaymentIntentResponse;
 import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderItem;
 import com.portal.universe.shoppingservice.order.domain.OrderStatus;
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -59,13 +63,16 @@ class OrderServiceImplTest {
     private OrderSagaOrchestrator orderSagaOrchestrator;
 
     @Mock
-    private InventoryService inventoryService;
-
-    @Mock
     private CouponService couponService;
 
     @Mock
     private ShoppingEventPublisher eventPublisher;
+
+    @Mock
+    private PaymentIntentFeignClient paymentIntentFeignClient;
+
+    @Spy
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -91,6 +98,7 @@ class OrderServiceImplTest {
 
         CartItem item = CartItem.builder()
                 .cart(cart)
+                .sellerId(1L)
                 .productId(1L)
                 .productName("Test Product")
                 .price(BigDecimal.valueOf(5000))
@@ -99,6 +107,16 @@ class OrderServiceImplTest {
         ReflectionTestUtils.setField(item, "id", 1L);
         cart.getItems().add(item);
         return cart;
+    }
+
+    private void mockPaymentIntentSuccess() {
+        PaymentIntentResponse intentResponse = new PaymentIntentResponse(
+                "pi_test123", "ORD-TEST", "user1",
+                BigDecimal.valueOf(10000), "PENDING", null, null);
+        @SuppressWarnings("unchecked")
+        ApiResponse<PaymentIntentResponse> apiResponse = mock(ApiResponse.class);
+        when(apiResponse.getData()).thenReturn(intentResponse);
+        when(paymentIntentFeignClient.createIntent(any())).thenReturn(apiResponse);
     }
 
     @Nested
@@ -120,6 +138,7 @@ class OrderServiceImplTest {
             Order savedOrder = createOrder(userId, "ORD-20260205-TEST0001", OrderStatus.CONFIRMED);
             OrderItem orderItem = OrderItem.builder()
                     .order(savedOrder)
+                    .sellerId(1L)
                     .productId(1L)
                     .productName("Test Product")
                     .price(BigDecimal.valueOf(5000))
@@ -129,13 +148,14 @@ class OrderServiceImplTest {
 
             when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
             when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(mock(SagaState.class));
+            mockPaymentIntentSuccess();
 
             // when
             OrderResponse result = orderService.createOrder(userId, request);
 
             // then
             assertThat(result).isNotNull();
-            verify(orderRepository).save(any(Order.class));
+            verify(orderRepository, atLeastOnce()).save(any(Order.class));
             verify(orderSagaOrchestrator).startSaga(any(Order.class));
             verify(eventPublisher).publishOrderCreated(any());
         }
@@ -195,6 +215,7 @@ class OrderServiceImplTest {
             Order savedOrder = createOrder(userId, "ORD-20260205-TEST0002", OrderStatus.CONFIRMED);
             OrderItem orderItem = OrderItem.builder()
                     .order(savedOrder)
+                    .sellerId(1L)
                     .productId(1L)
                     .productName("Test Product")
                     .price(BigDecimal.valueOf(5000))
@@ -204,6 +225,7 @@ class OrderServiceImplTest {
 
             when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
             when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(mock(SagaState.class));
+            mockPaymentIntentSuccess();
 
             // when
             OrderResponse result = orderService.createOrder(userId, request);
@@ -230,6 +252,7 @@ class OrderServiceImplTest {
             Order savedOrder = createOrder(userId, "ORD-20260205-TEST0003", OrderStatus.CONFIRMED);
             OrderItem orderItem = OrderItem.builder()
                     .order(savedOrder)
+                    .sellerId(1L)
                     .productId(1L)
                     .productName("Test Product")
                     .price(BigDecimal.valueOf(5000))
@@ -239,6 +262,7 @@ class OrderServiceImplTest {
 
             when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
             when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(mock(SagaState.class));
+            mockPaymentIntentSuccess();
 
             // when
             orderService.createOrder(userId, request);

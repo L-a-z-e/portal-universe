@@ -1,10 +1,7 @@
 package com.portal.universe.shoppingservice.timedeal.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
-import com.portal.universe.shoppingservice.product.domain.Product;
-import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingservice.timedeal.domain.*;
-import com.portal.universe.shoppingservice.timedeal.dto.TimeDealCreateRequest;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealPurchaseRequest;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealPurchaseResponse;
 import com.portal.universe.shoppingservice.timedeal.dto.TimeDealResponse;
@@ -19,14 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,27 +42,13 @@ class TimeDealServiceImplTest {
     private TimeDealPurchaseRepository timeDealPurchaseRepository;
 
     @Mock
-    private ProductRepository productRepository;
-
-    @Mock
     private TimeDealRedisService timeDealRedisService;
 
     @InjectMocks
     private TimeDealServiceImpl timeDealService;
 
-    private Product createProduct(Long id, String name, BigDecimal price) {
-        Product product = Product.builder()
-                .name(name)
-                .description("desc")
-                .price(price)
-                .stock(100)
-                .build();
-        ReflectionTestUtils.setField(product, "id", id);
-        return product;
-    }
-
     private TimeDeal createTimeDeal(Long id, String name, TimeDealStatus status,
-                                     LocalDateTime startsAt, LocalDateTime endsAt) {
+                                     Instant startsAt, Instant endsAt) {
         TimeDeal timeDeal = TimeDeal.builder()
                 .name(name)
                 .description("desc")
@@ -80,10 +60,10 @@ class TimeDealServiceImplTest {
         return timeDeal;
     }
 
-    private TimeDealProduct createTimeDealProduct(Long id, TimeDeal timeDeal, Product product,
+    private TimeDealProduct createTimeDealProduct(Long id, TimeDeal timeDeal, Long productId,
                                                    BigDecimal dealPrice, int dealQty, int soldQty, int maxPerUser) {
         TimeDealProduct tdp = TimeDealProduct.builder()
-                .product(product)
+                .productId(productId)
                 .dealPrice(dealPrice)
                 .dealQuantity(dealQty)
                 .maxPerUser(maxPerUser)
@@ -106,118 +86,6 @@ class TimeDealServiceImplTest {
     }
 
     @Nested
-    @DisplayName("getAllTimeDeals")
-    class GetAllTimeDeals {
-
-        @Test
-        @DisplayName("should_returnTimeDeals_when_called")
-        void should_returnTimeDeals_when_called() {
-            // given
-            Pageable pageable = PageRequest.of(0, 10);
-            TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
-            Page<TimeDeal> page = new PageImpl<>(List.of(timeDeal), pageable, 1);
-            when(timeDealRepository.findAll(pageable)).thenReturn(page);
-
-            // when
-            Page<TimeDealResponse> result = timeDealService.getAllTimeDeals(pageable);
-
-            // then
-            assertThat(result.getContent()).hasSize(1);
-        }
-    }
-
-    @Nested
-    @DisplayName("createTimeDeal")
-    class CreateTimeDeal {
-
-        @Test
-        @DisplayName("should_createTimeDeal_when_valid")
-        void should_createTimeDeal_when_valid() {
-            // given
-            Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
-            when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-
-            TimeDeal savedTimeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.SCHEDULED,
-                    LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5));
-            TimeDealProduct tdp = createTimeDealProduct(1L, savedTimeDeal, product,
-                    BigDecimal.valueOf(5000), 50, 0, 2);
-            savedTimeDeal.getProducts().add(tdp);
-            when(timeDealRepository.save(any(TimeDeal.class))).thenReturn(savedTimeDeal);
-
-            TimeDealCreateRequest request = TimeDealCreateRequest.builder()
-                    .name("Flash Sale")
-                    .description("desc")
-                    .startsAt(LocalDateTime.now().plusHours(1))
-                    .endsAt(LocalDateTime.now().plusHours(5))
-                    .products(List.of(
-                            TimeDealCreateRequest.TimeDealProductRequest.builder()
-                                    .productId(1L)
-                                    .dealPrice(BigDecimal.valueOf(5000))
-                                    .dealQuantity(50)
-                                    .maxPerUser(2)
-                                    .build()
-                    ))
-                    .build();
-
-            // when
-            TimeDealResponse result = timeDealService.createTimeDeal(request);
-
-            // then
-            assertThat(result).isNotNull();
-            verify(timeDealRepository).save(any(TimeDeal.class));
-        }
-
-        @Test
-        @DisplayName("should_throwException_when_productNotFound")
-        void should_throwException_when_productNotFound() {
-            // given
-            when(productRepository.findById(999L)).thenReturn(Optional.empty());
-
-            TimeDealCreateRequest request = TimeDealCreateRequest.builder()
-                    .name("Flash Sale")
-                    .startsAt(LocalDateTime.now().plusHours(1))
-                    .endsAt(LocalDateTime.now().plusHours(5))
-                    .products(List.of(
-                            TimeDealCreateRequest.TimeDealProductRequest.builder()
-                                    .productId(999L)
-                                    .dealPrice(BigDecimal.valueOf(5000))
-                                    .dealQuantity(50)
-                                    .maxPerUser(2)
-                                    .build()
-                    ))
-                    .build();
-
-            // when & then
-            assertThatThrownBy(() -> timeDealService.createTimeDeal(request))
-                    .isInstanceOf(CustomBusinessException.class);
-        }
-
-        @Test
-        @DisplayName("should_throwException_when_invalidPeriod")
-        void should_throwException_when_invalidPeriod() {
-            // given
-            TimeDealCreateRequest request = TimeDealCreateRequest.builder()
-                    .name("Flash Sale")
-                    .startsAt(LocalDateTime.now().plusHours(5))
-                    .endsAt(LocalDateTime.now().plusHours(1))
-                    .products(List.of(
-                            TimeDealCreateRequest.TimeDealProductRequest.builder()
-                                    .productId(1L)
-                                    .dealPrice(BigDecimal.valueOf(5000))
-                                    .dealQuantity(50)
-                                    .maxPerUser(2)
-                                    .build()
-                    ))
-                    .build();
-
-            // when & then
-            assertThatThrownBy(() -> timeDealService.createTimeDeal(request))
-                    .isInstanceOf(CustomBusinessException.class);
-        }
-    }
-
-    @Nested
     @DisplayName("getTimeDeal")
     class GetTimeDeal {
 
@@ -226,7 +94,7 @@ class TimeDealServiceImplTest {
         void should_returnTimeDeal_when_found() {
             // given
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
             when(timeDealRepository.findByIdWithProducts(1L)).thenReturn(timeDeal);
 
             // when
@@ -257,8 +125,8 @@ class TimeDealServiceImplTest {
         void should_returnActiveTimeDeals_when_called() {
             // given
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
-            when(timeDealRepository.findActiveDeals(eq(TimeDealStatus.ACTIVE), any(LocalDateTime.class)))
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
+            when(timeDealRepository.findActiveDeals(eq(TimeDealStatus.ACTIVE), any(Instant.class)))
                     .thenReturn(List.of(timeDeal));
 
             // when
@@ -277,19 +145,17 @@ class TimeDealServiceImplTest {
         @DisplayName("should_purchaseTimeDeal_when_valid")
         void should_purchaseTimeDeal_when_valid() {
             // given
-            Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
-            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
+            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, 1L,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
-            when(timeDealProductRepository.findByIdWithProductAndDeal(10L))
+            when(timeDealProductRepository.findByIdWithDeal(10L))
                     .thenReturn(Optional.of(tdp));
             when(timeDealRedisService.purchaseProduct(1L, 1L, "user1", 1, 2)).thenReturn(49L);
 
             TimeDealPurchase purchase = createTimeDealPurchase(1L, "user1", tdp, 1);
             when(timeDealPurchaseRepository.save(any(TimeDealPurchase.class))).thenReturn(purchase);
-            when(timeDealProductRepository.save(any(TimeDealProduct.class))).thenReturn(tdp);
 
             TimeDealPurchaseRequest request = TimeDealPurchaseRequest.builder()
                     .timeDealProductId(10L)
@@ -308,13 +174,12 @@ class TimeDealServiceImplTest {
         @DisplayName("should_throwException_when_notActive")
         void should_throwException_when_notActive() {
             // given
-            Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.SCHEDULED,
-                    LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5));
-            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
+                    Instant.now().plus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
+            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, 1L,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
-            when(timeDealProductRepository.findByIdWithProductAndDeal(10L))
+            when(timeDealProductRepository.findByIdWithDeal(10L))
                     .thenReturn(Optional.of(tdp));
 
             TimeDealPurchaseRequest request = TimeDealPurchaseRequest.builder()
@@ -331,13 +196,12 @@ class TimeDealServiceImplTest {
         @DisplayName("should_throwException_when_soldOut")
         void should_throwException_when_soldOut() {
             // given
-            Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
-            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
+            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, 1L,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
-            when(timeDealProductRepository.findByIdWithProductAndDeal(10L))
+            when(timeDealProductRepository.findByIdWithDeal(10L))
                     .thenReturn(Optional.of(tdp));
             when(timeDealRedisService.purchaseProduct(1L, 1L, "user1", 1, 2)).thenReturn(0L);
 
@@ -355,13 +219,12 @@ class TimeDealServiceImplTest {
         @DisplayName("should_throwException_when_limitExceeded")
         void should_throwException_when_limitExceeded() {
             // given
-            Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
-            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
+            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, 1L,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
-            when(timeDealProductRepository.findByIdWithProductAndDeal(10L))
+            when(timeDealProductRepository.findByIdWithDeal(10L))
                     .thenReturn(Optional.of(tdp));
             when(timeDealRedisService.purchaseProduct(1L, 1L, "user1", 1, 2)).thenReturn(-1L);
 
@@ -379,13 +242,12 @@ class TimeDealServiceImplTest {
         @DisplayName("should_throwException_when_timeDealExpired")
         void should_throwException_when_timeDealExpired() {
             // given
-            Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(5), LocalDateTime.now().minusHours(1));
-            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
+                    Instant.now().minus(5, ChronoUnit.HOURS), Instant.now().minus(1, ChronoUnit.HOURS));
+            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, 1L,
                     BigDecimal.valueOf(5000), 50, 0, 2);
 
-            when(timeDealProductRepository.findByIdWithProductAndDeal(10L))
+            when(timeDealProductRepository.findByIdWithDeal(10L))
                     .thenReturn(Optional.of(tdp));
 
             TimeDealPurchaseRequest request = TimeDealPurchaseRequest.builder()
@@ -407,10 +269,9 @@ class TimeDealServiceImplTest {
         @DisplayName("should_returnUserPurchases_when_called")
         void should_returnUserPurchases_when_called() {
             // given
-            Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
             TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
-            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
+                    Instant.now().minus(1, ChronoUnit.HOURS), Instant.now().plus(5, ChronoUnit.HOURS));
+            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, 1L,
                     BigDecimal.valueOf(5000), 50, 1, 2);
             TimeDealPurchase purchase = createTimeDealPurchase(1L, "user1", tdp, 1);
 
@@ -422,44 +283,6 @@ class TimeDealServiceImplTest {
 
             // then
             assertThat(result).hasSize(1);
-        }
-    }
-
-    @Nested
-    @DisplayName("cancelTimeDeal")
-    class CancelTimeDeal {
-
-        @Test
-        @DisplayName("should_cancelTimeDeal_when_valid")
-        void should_cancelTimeDeal_when_valid() {
-            // given
-            Product product = createProduct(1L, "Product A", BigDecimal.valueOf(10000));
-            TimeDeal timeDeal = createTimeDeal(1L, "Flash Sale", TimeDealStatus.ACTIVE,
-                    LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(5));
-            TimeDealProduct tdp = createTimeDealProduct(10L, timeDeal, product,
-                    BigDecimal.valueOf(5000), 50, 0, 2);
-            timeDeal.getProducts().add(tdp);
-
-            when(timeDealRepository.findById(1L)).thenReturn(Optional.of(timeDeal));
-            when(timeDealRepository.save(any(TimeDeal.class))).thenReturn(timeDeal);
-
-            // when
-            timeDealService.cancelTimeDeal(1L);
-
-            // then
-            verify(timeDealRepository).save(any(TimeDeal.class));
-            verify(timeDealRedisService).deleteTimeDealCache(1L, 1L);
-        }
-
-        @Test
-        @DisplayName("should_throwException_when_timeDealNotFound")
-        void should_throwException_when_timeDealNotFound() {
-            // given
-            when(timeDealRepository.findById(999L)).thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> timeDealService.cancelTimeDeal(999L))
-                    .isInstanceOf(CustomBusinessException.class);
         }
     }
 }

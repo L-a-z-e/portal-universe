@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,8 +19,8 @@ class UserCouponTest {
                 .discountType(DiscountType.FIXED)
                 .discountValue(new BigDecimal("1000"))
                 .totalQuantity(100)
-                .startsAt(LocalDateTime.now().minusDays(1))
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .startsAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
     }
 
@@ -27,7 +28,7 @@ class UserCouponTest {
         return UserCoupon.builder()
                 .userId("user-001")
                 .coupon(createTestCoupon())
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
     }
 
@@ -109,7 +110,7 @@ class UserCouponTest {
             UserCoupon userCoupon = UserCoupon.builder()
                     .userId("user-001")
                     .coupon(createTestCoupon())
-                    .expiresAt(LocalDateTime.now().minusDays(1))
+                    .expiresAt(Instant.now().minus(1, ChronoUnit.DAYS))
                     .build();
 
             assertThat(userCoupon.isUsable()).isFalse();

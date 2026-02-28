@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "time_deal_purchases",
@@ -38,7 +38,7 @@ public class TimeDealPurchase {
     private Long orderId;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime purchasedAt = LocalDateTime.now();
+    private Instant purchasedAt = Instant.now();
 
     @Builder
     public TimeDealPurchase(String userId, TimeDealProduct timeDealProduct, Integer quantity,
@@ -48,6 +48,6 @@ public class TimeDealPurchase {
         this.quantity = quantity;
         this.purchasePrice = purchasePrice;
         this.orderId = orderId;
-        this.purchasedAt = LocalDateTime.now();
+        this.purchasedAt = Instant.now();
     }
 }

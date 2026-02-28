@@ -39,9 +39,10 @@ spring:
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
-      connection-timeout: 20000
+      connection-timeout: 5000
       idle-timeout: 600000
       max-lifetime: 1800000
+      leak-detection-threshold: 10000
 
   # OAuth2 Client 설정은 각 프로필별로 정의
   # local 프로필에서 필요시 활성화
@@ -55,11 +56,11 @@ jwt:
     key-default:
       # SM 우선(jwt.secret-key), 없으면 환경변수, 없으면 개발용 기본값
       secret-key: ${jwt.secret-key:${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}}
-      activated-at: 2026-01-01T00:00:00
+      activated-at: 2026-01-01T00:00:00Z
       # expires-at은 null이면 만료되지 않음
     key-2026-01:
       secret-key: ${jwt.secret-key:${JWT_SECRET_KEY:your-256-bit-secret-key-for-jwt-signing-minimum-32-characters-required}}
-      activated-at: 2026-01-01T00:00:00
+      activated-at: 2026-01-01T00:00:00Z
   access-token-expiration: 900000  # 15분 (ms)
   refresh-token-expiration: 604800000  # 7일 (ms)
 
@@ -77,6 +78,11 @@ security:
     max-age: 90  # 비밀번호 만료 기간 (일)
     prevent-sequential: true  # 연속 문자/숫자 금지
     prevent-user-info: true  # 사용자 정보 포함 금지
+    reset:
+      token-ttl-minutes: 30
+      rate-limit-max-attempts: 3
+      rate-limit-window-seconds: 300
+      frontend-base-url: ${PASSWORD_RESET_FRONTEND_URL:http://localhost:30000}
 
 # Cookie 설정
 app:

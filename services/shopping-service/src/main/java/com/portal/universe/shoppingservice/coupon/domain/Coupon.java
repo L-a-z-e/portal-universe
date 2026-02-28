@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "coupons")
@@ -17,6 +17,12 @@ public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "source_coupon_id", unique = true)
+    private Long sourceCouponId;
+
+    @Column(name = "seller_id")
+    private Long sellerId;
 
     @Column(nullable = false, unique = true, length = 50)
     private String code;
@@ -50,20 +56,22 @@ public class Coupon {
     private CouponStatus status = CouponStatus.ACTIVE;
 
     @Column(nullable = false)
-    private LocalDateTime startsAt;
+    private Instant startsAt;
 
     @Column(nullable = false)
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
 
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Builder
-    public Coupon(String code, String name, String description, DiscountType discountType,
-                  BigDecimal discountValue, BigDecimal minimumOrderAmount, BigDecimal maximumDiscountAmount,
-                  Integer totalQuantity, LocalDateTime startsAt, LocalDateTime expiresAt) {
+    public Coupon(Long sourceCouponId, Long sellerId, String code, String name, String description,
+                  DiscountType discountType, BigDecimal discountValue, BigDecimal minimumOrderAmount,
+                  BigDecimal maximumDiscountAmount, Integer totalQuantity, Instant startsAt, Instant expiresAt) {
+        this.sourceCouponId = sourceCouponId;
+        this.sellerId = sellerId;
         this.code = code;
         this.name = name;
         this.description = description;
@@ -76,12 +84,12 @@ public class Coupon {
         this.status = CouponStatus.ACTIVE;
         this.startsAt = startsAt;
         this.expiresAt = expiresAt;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public void incrementIssuedQuantity() {
         this.issuedQuantity++;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = Instant.now();
         if (this.issuedQuantity >= this.totalQuantity) {
             this.status = CouponStatus.EXHAUSTED;
         }
@@ -89,24 +97,41 @@ public class Coupon {
 
     public void markAsExhausted() {
         this.status = CouponStatus.EXHAUSTED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = Instant.now();
     }
 
     public void markAsExpired() {
         this.status = CouponStatus.EXPIRED;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = Instant.now();
     }
 
     public void deactivate() {
         this.status = CouponStatus.INACTIVE;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateFromSource(String name, String description, DiscountType discountType,
+                                  BigDecimal discountValue, BigDecimal minimumOrderAmount,
+                                  BigDecimal maximumDiscountAmount, Integer totalQuantity,
+                                  Instant startsAt, Instant expiresAt, CouponStatus status) {
+        this.name = name;
+        this.description = description;
+        this.discountType = discountType;
+        this.discountValue = discountValue;
+        this.minimumOrderAmount = minimumOrderAmount;
+        this.maximumDiscountAmount = maximumDiscountAmount;
+        this.totalQuantity = totalQuantity;
+        this.startsAt = startsAt;
+        this.expiresAt = expiresAt;
+        this.status = status;
+        this.updatedAt = Instant.now();
     }
 
     public boolean isAvailable() {
         return this.status == CouponStatus.ACTIVE
                 && this.issuedQuantity < this.totalQuantity
-                && LocalDateTime.now().isAfter(this.startsAt)
-                && LocalDateTime.now().isBefore(this.expiresAt);
+                && Instant.now().isAfter(this.startsAt)
+                && Instant.now().isBefore(this.expiresAt);
     }
 
     public int getRemainingQuantity() {

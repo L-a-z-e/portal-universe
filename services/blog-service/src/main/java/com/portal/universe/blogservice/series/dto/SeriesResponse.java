@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.series.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -16,6 +16,6 @@ public record SeriesResponse(
         String thumbnailUrl,
         List<String> postIds,
         Integer postCount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {}

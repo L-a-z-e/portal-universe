@@ -10,6 +10,8 @@ const getClient = (): AxiosInstance => {
 
 // Seller API
 export const sellerApi = {
+  apply: (data: any) => getClient().post('/api/v1/seller/sellers/apply', data),
+  getMyApplication: () => getClient().get('/api/v1/seller/sellers/my-application'),
   getProfile: () => getClient().get('/api/v1/seller/sellers/me'),
   register: (data: any) => getClient().post('/api/v1/seller/sellers/register', data),
   updateProfile: (data: any) => getClient().put('/api/v1/seller/sellers/me', data),

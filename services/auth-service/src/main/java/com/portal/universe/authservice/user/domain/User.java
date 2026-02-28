@@ -1,15 +1,13 @@
 package com.portal.universe.authservice.user.domain;
 
 import com.portal.universe.authservice.oauth2.domain.SocialAccount;
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,8 +19,7 @@ import java.util.List;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class User {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,16 +40,9 @@ public class User {
     @Column(nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
 
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
-    private LocalDateTime passwordChangedAt;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Instant passwordChangedAt;
 
     // 1:1 관계 - UserProfile
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
@@ -89,7 +79,7 @@ public class User {
      */
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
-        this.passwordChangedAt = LocalDateTime.now();
+        this.passwordChangedAt = Instant.now();
     }
 
     /**

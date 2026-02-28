@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * WaitingQueue
@@ -40,11 +40,11 @@ public class WaitingQueue {
     private Boolean isActive = false;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
 
-    private LocalDateTime activatedAt;
+    private Instant activatedAt;
 
-    private LocalDateTime deactivatedAt;
+    private Instant deactivatedAt;
 
     @Builder
     public WaitingQueue(String eventType, Long eventId, Integer maxCapacity,
@@ -55,16 +55,16 @@ public class WaitingQueue {
         this.entryBatchSize = entryBatchSize;
         this.entryIntervalSeconds = entryIntervalSeconds;
         this.isActive = false;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public void activate() {
         this.isActive = true;
-        this.activatedAt = LocalDateTime.now();
+        this.activatedAt = Instant.now();
     }
 
     public void deactivate() {
         this.isActive = false;
-        this.deactivatedAt = LocalDateTime.now();
+        this.deactivatedAt = Instant.now();
     }
 }

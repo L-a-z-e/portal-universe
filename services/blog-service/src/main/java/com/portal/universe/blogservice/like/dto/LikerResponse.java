@@ -3,7 +3,7 @@ package com.portal.universe.blogservice.like.dto;
 import com.portal.universe.blogservice.like.domain.Like;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 좋아요한 사용자 정보 응답 DTO
@@ -17,7 +17,7 @@ public record LikerResponse(
         String userId,
         String userName,
         String nickname,
-        LocalDateTime likedAt
+        Instant likedAt
 ) {
     public static LikerResponse from(Like like) {
         return LikerResponse.builder()

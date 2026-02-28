@@ -1,6 +1,8 @@
 package com.portal.universe.shoppingsellerservice.common.config;
 
 import com.portal.universe.commonlibrary.security.filter.GatewayAuthenticationFilter;
+import com.portal.universe.commonlibrary.security.filter.InternalTokenAuthFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -49,18 +51,40 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * 서비스 간 내부 API 전용 filter chain.
+     * X-Internal-Token 헤더의 공유 시크릿으로 인증합니다.
+     * HTTP/Kafka/Scheduler 등 호출 컨텍스트와 무관하게 동작합니다.
+     */
     @Bean
     @Order(2)
+    public SecurityFilterChain internalApiSecurityFilterChain(
+            HttpSecurity http,
+            @Value("${app.internal.token}") String internalToken) throws Exception {
+        http
+                .securityMatcher("/internal/**")
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .addFilterBefore(new InternalTokenAuthFilter(internalToken), UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+
+    @Bean
+    @Order(3)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
-
-                        // Internal API (서비스 간 통신)
-                        .requestMatchers("/internal/**").permitAll()
-
                         // 상품 조회 (공개)
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
+
+                        // 관리자 API (SHOPPING_ADMIN, SUPER_ADMIN)
+                        .requestMatchers("/admin/sellers/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+
+                        // 판매자 신청 (인증된 사용자면 누구나)
+                        .requestMatchers(HttpMethod.POST, "/sellers/apply").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/sellers/my-application").authenticated()
 
                         // 판매자 관리 (SELLER, SHOPPING_ADMIN, SUPER_ADMIN)
                         .requestMatchers("/sellers/**")

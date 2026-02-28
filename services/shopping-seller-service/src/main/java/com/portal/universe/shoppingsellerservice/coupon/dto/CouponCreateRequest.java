@@ -5,7 +5,7 @@ import com.portal.universe.shoppingsellerservice.coupon.domain.DiscountType;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record CouponCreateRequest(
         @NotBlank @Size(max = 50) String code,
@@ -16,8 +16,8 @@ public record CouponCreateRequest(
         @DecimalMin("0") BigDecimal minimumOrderAmount,
         @DecimalMin("0") BigDecimal maximumDiscountAmount,
         @NotNull @Min(1) Integer totalQuantity,
-        @NotNull LocalDateTime startsAt,
-        @NotNull LocalDateTime expiresAt
+        @NotNull Instant startsAt,
+        @NotNull Instant expiresAt
 ) {
     public Coupon toEntity(Long sellerId) {
         return Coupon.builder()

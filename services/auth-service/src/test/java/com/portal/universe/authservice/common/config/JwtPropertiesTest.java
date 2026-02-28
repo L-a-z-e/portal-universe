@@ -2,7 +2,7 @@ package com.portal.universe.authservice.common.config;
 
 import org.junit.jupiter.api.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +25,7 @@ class JwtPropertiesTest {
         @DisplayName("expiresAt이 과거이면 isExpired() = true")
         void should_returnTrue_when_keyIsExpired() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setExpiresAt(LocalDateTime.now().minusDays(1));
+            keyConfig.setExpiresAt(Instant.now().minus(java.time.Duration.ofDays(1)));
 
             assertThat(keyConfig.isExpired()).isTrue();
         }
@@ -34,7 +34,7 @@ class JwtPropertiesTest {
         @DisplayName("expiresAt이 미래이면 isExpired() = false")
         void should_returnFalse_when_keyIsNotExpired() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setExpiresAt(LocalDateTime.now().plusDays(1));
+            keyConfig.setExpiresAt(Instant.now().plus(java.time.Duration.ofDays(1)));
 
             assertThat(keyConfig.isExpired()).isFalse();
         }
@@ -52,8 +52,8 @@ class JwtPropertiesTest {
         @DisplayName("activatedAt이 과거이고 만료되지 않으면 isActive() = true")
         void should_returnTrue_when_keyIsActive() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setActivatedAt(LocalDateTime.now().minusDays(1));
-            keyConfig.setExpiresAt(LocalDateTime.now().plusDays(30));
+            keyConfig.setActivatedAt(Instant.now().minus(java.time.Duration.ofDays(1)));
+            keyConfig.setExpiresAt(Instant.now().plus(java.time.Duration.ofDays(30)));
 
             assertThat(keyConfig.isActive()).isTrue();
         }
@@ -62,8 +62,8 @@ class JwtPropertiesTest {
         @DisplayName("activatedAt이 미래이면 isActive() = false")
         void should_returnFalse_when_keyIsNotYetActive() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setActivatedAt(LocalDateTime.now().plusDays(1));
-            keyConfig.setExpiresAt(LocalDateTime.now().plusDays(30));
+            keyConfig.setActivatedAt(Instant.now().plus(java.time.Duration.ofDays(1)));
+            keyConfig.setExpiresAt(Instant.now().plus(java.time.Duration.ofDays(30)));
 
             assertThat(keyConfig.isActive()).isFalse();
         }

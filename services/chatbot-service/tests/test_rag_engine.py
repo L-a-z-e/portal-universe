@@ -58,16 +58,24 @@ class TestRAGEngineProperties:
     """RAGEngine property 접근 테스트."""
 
     def test_llm_property_before_init(self):
-        """초기화 전 llm 접근 시 AssertionError가 발생한다."""
+        """초기화 전 llm 접근 시 BusinessException(CH001)이 발생한다."""
+        from app.core.error_codes import ChatbotErrorCode
+        from app.core.exceptions import BusinessException
+
         engine = RAGEngine()
-        with pytest.raises(AssertionError, match="RAG engine not initialized"):
+        with pytest.raises(BusinessException) as exc_info:
             _ = engine.llm
+        assert exc_info.value.code == ChatbotErrorCode.ENGINE_NOT_INITIALIZED.code
 
     def test_vectorstore_property_before_init(self):
-        """초기화 전 vectorstore 접근 시 AssertionError가 발생한다."""
+        """초기화 전 vectorstore 접근 시 BusinessException(CH001)이 발생한다."""
+        from app.core.error_codes import ChatbotErrorCode
+        from app.core.exceptions import BusinessException
+
         engine = RAGEngine()
-        with pytest.raises(AssertionError, match="RAG engine not initialized"):
+        with pytest.raises(BusinessException) as exc_info:
             _ = engine.vectorstore
+        assert exc_info.value.code == ChatbotErrorCode.ENGINE_NOT_INITIALIZED.code
 
     def test_llm_property_after_init(self):
         """초기화 후 llm property가 provider를 반환한다."""
@@ -185,11 +193,15 @@ class TestRAGEngineLoadAndIndex:
         assert count == 3
 
     def test_load_unsupported_file_type(self):
-        """지원하지 않는 파일 확장자는 ValueError가 발생한다."""
+        """지원하지 않는 파일 확장자는 BusinessException(CH010)이 발생한다."""
+        from app.core.error_codes import ChatbotErrorCode
+        from app.core.exceptions import BusinessException
+
         engine = self._make_engine_with_vectorstore()
 
-        with pytest.raises(ValueError, match="Unsupported file type"):
+        with pytest.raises(BusinessException) as exc_info:
             engine.load_and_index_file(Path("malware.exe"))
+        assert exc_info.value.code == ChatbotErrorCode.UNSUPPORTED_FILE_TYPE.code
 
 
 class TestRAGEngineQuery:
@@ -251,7 +263,7 @@ class TestRAGEngineQueryStream:
         doc = Document(page_content="test content", metadata={"source": "test.md"})
         engine._vectorstore.search.return_value = [(doc, 0.9)]
 
-        async def mock_stream(prompt, context):
+        async def mock_stream(prompt, context, conversation_history=None):
             yield "Hello"
             yield " World"
 

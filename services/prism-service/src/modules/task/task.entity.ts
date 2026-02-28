@@ -77,10 +77,10 @@ export class Task {
   @Column({ name: 'referenced_task_ids', type: 'simple-array', nullable: true })
   referencedTaskIds!: number[] | null;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
   @OneToMany(() => Execution, (execution) => execution.task)

@@ -24,7 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -127,8 +127,8 @@ class RbacAdminControllerTest {
         void should_returnUserRoles_when_validUserId() throws Exception {
             // given
             List<UserRoleResponse> userRoles = List.of(
-                    new UserRoleResponse(1L, "ROLE_USER", "User", ADMIN_UUID, LocalDateTime.now(), null),
-                    new UserRoleResponse(2L, "ROLE_BLOG_ADMIN", "Blog Admin", ADMIN_UUID, LocalDateTime.now(), null)
+                    new UserRoleResponse(1L, "ROLE_USER", "User", ADMIN_UUID, Instant.now(), null),
+                    new UserRoleResponse(2L, "ROLE_BLOG_ADMIN", "Blog Admin", ADMIN_UUID, Instant.now(), null)
             );
             when(rbacService.getUserRoles(TARGET_USER_UUID)).thenReturn(userRoles);
 
@@ -179,7 +179,7 @@ class RbacAdminControllerTest {
             // given
             AssignRoleRequest request = new AssignRoleRequest(TARGET_USER_UUID, "ROLE_BLOG_ADMIN", null);
             UserRoleResponse response = new UserRoleResponse(
-                    1L, "ROLE_BLOG_ADMIN", "Blog Admin", ADMIN_UUID, LocalDateTime.now(), null
+                    1L, "ROLE_BLOG_ADMIN", "Blog Admin", ADMIN_UUID, Instant.now(), null
             );
 
             when(rbacService.assignRole(any(AssignRoleRequest.class), eq(ADMIN_UUID))).thenReturn(response);

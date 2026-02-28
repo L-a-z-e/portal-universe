@@ -28,7 +28,7 @@ import type {
 
 const ADMIN_RBAC_BASE = '/api/v1/admin/rbac';
 const ADMIN_MEMBERSHIP_BASE = '/api/v1/admin/memberships';
-const ADMIN_SELLER_BASE = '/api/v1/admin/seller';
+const ADMIN_SELLER_BASE = '/api/v1/seller/admin/sellers';
 
 // === RBAC ===
 
@@ -208,12 +208,12 @@ export async function removeRoleDefault(roleKey: string, membershipGroup: string
 // === Seller ===
 
 export async function fetchPendingSellerApplications(size = 50): Promise<PageResponse<SellerApplication>> {
-  const res = await apiClient.get<ApiResponse<PageResponse<SellerApplication>>>(`${ADMIN_SELLER_BASE}/applications/pending?size=${size}`);
+  const res = await apiClient.get<ApiResponse<PageResponse<SellerApplication>>>(`${ADMIN_SELLER_BASE}?status=PENDING&size=${size}`);
   return res.data.data;
 }
 
 export async function reviewSellerApplication(id: number, approved: boolean, reviewComment: string): Promise<void> {
-  await apiClient.post(`${ADMIN_SELLER_BASE}/applications/${id}/review`, { approved, reviewComment });
+  await apiClient.post(`${ADMIN_SELLER_BASE}/${id}/review`, { approved, reviewComment });
 }
 
 // === Dashboard ===

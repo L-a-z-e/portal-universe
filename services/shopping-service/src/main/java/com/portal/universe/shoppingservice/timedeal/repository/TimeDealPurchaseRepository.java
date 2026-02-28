@@ -17,8 +17,7 @@ public interface TimeDealPurchaseRepository extends JpaRepository<TimeDealPurcha
     List<TimeDealPurchase> findByUserId(String userId);
 
     @Query("SELECT p FROM TimeDealPurchase p " +
-           "JOIN FETCH p.timeDealProduct tdp " +
-           "JOIN FETCH tdp.product " +
+           "JOIN FETCH p.timeDealProduct " +
            "WHERE p.userId = :userId")
     List<TimeDealPurchase> findByUserIdWithProduct(@Param("userId") String userId);
 }

@@ -193,11 +193,18 @@ export class TaskService {
     id: number,
     feedback?: string,
   ): Promise<TaskResponseDto> {
-    const task = await this.findByIdAndUser(userId, id);
+    await this.findByIdAndUser(userId, id);
 
-    // Store feedback if provided (will be used in execution)
+    // Store feedback on the last execution (used in next execution's prompt)
     if (feedback) {
-      task.description = `${task.description || ''}\n\n---\nFeedback: ${feedback}`;
+      const lastExecution = await this.executionRepository.findOne({
+        where: { taskId: id },
+        order: { executionNumber: 'DESC' },
+      });
+      if (lastExecution) {
+        lastExecution.userFeedback = feedback;
+        await this.executionRepository.save(lastExecution);
+      }
     }
 
     return this.performAction(userId, id, 'retry');
@@ -239,9 +246,13 @@ export class TaskService {
     const referencedTasks: TaskContextResponseDto['referencedTasks'] = [];
 
     if (task.referencedTaskIds && task.referencedTaskIds.length > 0) {
-      const refTasks = await this.taskRepository.find({
-        where: { id: In(task.referencedTaskIds) },
-      });
+      // Verify ownership: only return referenced tasks from boards owned by the user
+      const refTasks = await this.taskRepository
+        .createQueryBuilder('task')
+        .leftJoin('task.board', 'board')
+        .where('task.id IN (:...ids)', { ids: task.referencedTaskIds })
+        .andWhere('board.userId = :userId', { userId })
+        .getMany();
 
       for (const refTask of refTasks) {
         const lastExecution = await this.executionRepository.findOne({

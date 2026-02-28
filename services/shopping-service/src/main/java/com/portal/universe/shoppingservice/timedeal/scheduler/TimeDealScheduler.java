@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -29,14 +29,14 @@ public class TimeDealScheduler {
     @DistributedLock(key = "'scheduler:timedeal:status'", waitTime = 0, leaseTime = 55)
     @Transactional
     public void updateTimeDealStatus() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         log.debug("Running TimeDeal status update scheduler at {}", now);
 
         activateScheduledDeals(now);
         endActiveDeals(now);
     }
 
-    private void activateScheduledDeals(LocalDateTime now) {
+    private void activateScheduledDeals(Instant now) {
         List<TimeDeal> dealsToStart = timeDealRepository.findDealsToStart(now);
         if (dealsToStart.isEmpty()) return;
 
@@ -49,7 +49,7 @@ public class TimeDealScheduler {
             deal.getProducts().forEach(product ->
                     timeDealRedisService.initializeStock(
                             deal.getId(),
-                            product.getProduct().getId(),
+                            product.getProductId(),
                             product.getDealQuantity()
                     )
             );
@@ -57,7 +57,7 @@ public class TimeDealScheduler {
         }
     }
 
-    private void endActiveDeals(LocalDateTime now) {
+    private void endActiveDeals(Instant now) {
         List<TimeDeal> dealsToEnd = timeDealRepository.findDealsToEnd(now);
         if (dealsToEnd.isEmpty()) return;
 
@@ -70,7 +70,7 @@ public class TimeDealScheduler {
             deal.getProducts().forEach(product ->
                     timeDealRedisService.deleteTimeDealCache(
                             deal.getId(),
-                            product.getProduct().getId()
+                            product.getProductId()
                     )
             );
             log.info("Ended time deal: id={}, name={}", deal.getId(), deal.getName());

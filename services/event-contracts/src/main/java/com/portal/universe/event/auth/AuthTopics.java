@@ -9,6 +9,8 @@ public final class AuthTopics {
 
     public static final String USER_SIGNED_UP = "auth.user.signed-up";
     public static final String ROLE_ASSIGNED = "auth.role.assigned";
+    public static final String PASSWORD_RESET_REQUESTED = "auth.password.reset-requested";
+    public static final String USER_WITHDRAWN = "auth.user.withdrawn";
 
     private AuthTopics() {}
 }

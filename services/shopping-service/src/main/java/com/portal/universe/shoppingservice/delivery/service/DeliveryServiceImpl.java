@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.delivery.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.commonlibrary.security.context.SecurityUtils;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.delivery.domain.Delivery;
 import com.portal.universe.shoppingservice.delivery.dto.DeliveryResponse;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * 배송 관리 서비스 구현체입니다.
@@ -44,6 +44,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         Delivery delivery = Delivery.builder()
                 .orderId(order.getId())
                 .orderNumber(order.getOrderNumber())
+                .userId(order.getUserId())
                 .shippingAddress(order.getShippingAddress())
                 .carrier("기본택배")
                 .build();
@@ -55,17 +56,23 @@ public class DeliveryServiceImpl implements DeliveryService {
     }
 
     @Override
-    public DeliveryResponse getDeliveryByTrackingNumber(String trackingNumber) {
+    public DeliveryResponse getDeliveryByTrackingNumber(String trackingNumber, String userId) {
         Delivery delivery = deliveryRepository.findByTrackingNumberWithHistories(trackingNumber)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.DELIVERY_NOT_FOUND));
+
+        SecurityUtils.assertOwnerOrHasAuthority(
+                delivery.getUserId(), userId, "ROLE_SHOPPING_ADMIN", ShoppingErrorCode.DELIVERY_NOT_FOUND);
 
         return DeliveryResponse.from(delivery);
     }
 
     @Override
-    public DeliveryResponse getDeliveryByOrderNumber(String orderNumber) {
+    public DeliveryResponse getDeliveryByOrderNumber(String orderNumber, String userId) {
         Delivery delivery = deliveryRepository.findByOrderNumberWithHistories(orderNumber)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.DELIVERY_NOT_FOUND));
+
+        SecurityUtils.assertOwnerOrHasAuthority(
+                delivery.getUserId(), userId, "ROLE_SHOPPING_ADMIN", ShoppingErrorCode.DELIVERY_NOT_FOUND);
 
         return DeliveryResponse.from(delivery);
     }

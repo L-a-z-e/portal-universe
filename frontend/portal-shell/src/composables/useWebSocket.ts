@@ -8,6 +8,7 @@ import SockJS from 'sockjs-client'
 import { useAuthStore } from '../store/auth'
 import { useNotificationStore } from '../store/notification'
 import type { Notification } from '../types/notification'
+import apiClient from '../api/apiClient'
 
 // Singleton instance for WebSocket client
 let clientInstance: Client | null = null
@@ -30,8 +31,14 @@ export function useWebSocket() {
     return `${apiBaseUrl}/notification/ws/notifications`
   }
 
+  // ==================== WS Ticket ====================
+  async function fetchWsTicket(): Promise<string> {
+    const response = await apiClient.post('/api/v1/notifications/ws-ticket')
+    return response.data.data.ticket
+  }
+
   // ==================== Connect ====================
-  function connect() {
+  async function connect() {
     // Skip if already connected
     if (clientInstance?.active) {
       console.log('[WebSocket] Already connected')
@@ -51,6 +58,17 @@ export function useWebSocket() {
     clientInstance = new Client({
       // Use SockJS as WebSocket factory
       webSocketFactory: () => new SockJS(getWebSocketUrl()) as WebSocket,
+
+      // Fetch a fresh one-time ticket before each (re)connect
+      beforeConnect: async () => {
+        try {
+          const ticket = await fetchWsTicket()
+          clientInstance!.connectHeaders = { 'X-WS-Ticket': ticket }
+        } catch (error) {
+          console.error('[WebSocket] Failed to fetch WS ticket:', error)
+          throw error
+        }
+      },
 
       // Debug logging (dev only)
       debug: (str) => {
@@ -145,7 +163,7 @@ export function useWebSocket() {
     (newIsAuthenticated, oldIsAuthenticated) => {
       if (newIsAuthenticated && !oldIsAuthenticated) {
         // Logged in - connect
-        connect()
+        void connect()
       } else if (!newIsAuthenticated && oldIsAuthenticated) {
         // Logged out - disconnect
         disconnect()
@@ -156,7 +174,7 @@ export function useWebSocket() {
   // ==================== Lifecycle ====================
   // Auto-connect if already authenticated
   if (authStore.isAuthenticated) {
-    connect()
+    void connect()
   }
 
   onUnmounted(() => {

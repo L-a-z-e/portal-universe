@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-01-18
+updated: 2026-02-28
 author: Laze
 tags: [api, shopping-service, delivery]
 related:
@@ -119,6 +119,18 @@ GET /api/shopping/deliveries/{trackingNumber}
   "timestamp": "2026-01-18T17:00:00Z"
 }
 ```
+
+---
+
+### 소유권 검증 (IDOR 방어)
+
+배송 조회 시 `userId` 컬럼으로 소유권을 검증합니다. 본인 주문의 배송 정보만 조회 가능합니다.
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `userId` | String | 배송 소유자 (주문 생성 시 자동 설정) |
+
+> DB 마이그레이션 `V4__add_delivery_user_id.sql`로 `userId` 컬럼 추가.
 
 ---
 
@@ -338,4 +350,4 @@ stateDiagram-v2
 
 ---
 
-**최종 업데이트**: 2026-01-18
+**최종 업데이트**: 2026-02-28

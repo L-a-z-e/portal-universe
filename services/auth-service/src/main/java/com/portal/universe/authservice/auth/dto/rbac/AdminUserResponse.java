@@ -2,8 +2,6 @@ package com.portal.universe.authservice.auth.dto.rbac;
 
 import com.portal.universe.authservice.user.domain.User;
 
-import java.time.format.DateTimeFormatter;
-
 public record AdminUserResponse(
         String uuid,
         String email,
@@ -14,8 +12,6 @@ public record AdminUserResponse(
         String createdAt,
         String lastLoginAt
 ) {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-
     public static AdminUserResponse from(User user) {
         var profile = user.getProfile();
         return new AdminUserResponse(
@@ -25,8 +21,8 @@ public record AdminUserResponse(
                 profile != null ? profile.getNickname() : null,
                 profile != null ? profile.getProfileImageUrl() : null,
                 user.getStatus().name(),
-                user.getCreatedAt() != null ? user.getCreatedAt().format(FORMATTER) : null,
-                user.getLastLoginAt() != null ? user.getLastLoginAt().format(FORMATTER) : null
+                user.getCreatedAt() != null ? user.getCreatedAt().toString() : null,
+                user.getLastLoginAt() != null ? user.getLastLoginAt().toString() : null
         );
     }
 }

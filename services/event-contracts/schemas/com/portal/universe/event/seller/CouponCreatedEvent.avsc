@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "CouponCreatedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a seller creates a new coupon.",
+  "fields": [
+    { "name": "couponId", "type": "long", "doc": "Coupon entity ID in seller-service" },
+    { "name": "sellerId", "type": "long", "doc": "Seller entity ID" },
+    { "name": "code", "type": "string", "doc": "Unique coupon code" },
+    { "name": "name", "type": "string", "doc": "Coupon display name" },
+    { "name": "description", "type": ["null", "string"], "default": null, "doc": "Coupon description" },
+    { "name": "discountType", "type": "string", "doc": "FIXED or PERCENTAGE" },
+    { "name": "discountValue", "type": { "type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2 }, "doc": "Discount amount or percentage" },
+    { "name": "minimumOrderAmount", "type": ["null", { "type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2 }], "default": null, "doc": "Minimum order amount for coupon" },
+    { "name": "maximumDiscountAmount", "type": ["null", { "type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2 }], "default": null, "doc": "Maximum discount cap" },
+    { "name": "totalQuantity", "type": "int", "doc": "Total coupon quantity" },
+    { "name": "startsAt", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Coupon validity start" },
+    { "name": "expiresAt", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Coupon expiry" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

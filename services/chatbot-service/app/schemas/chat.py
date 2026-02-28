@@ -4,7 +4,7 @@ from app.core.validators import check_no_xss
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=10000)
+    message: str = Field(..., min_length=1, max_length=2000)
     conversation_id: str | None = None
 
     @field_validator("message")

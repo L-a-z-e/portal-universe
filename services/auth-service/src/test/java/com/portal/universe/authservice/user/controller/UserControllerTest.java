@@ -21,7 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -67,7 +67,7 @@ class UserControllerTest {
         return new UserProfileResponse(
                 1L, USER_UUID, "user@test.com", "TestNick", "testuser",
                 "Hello", "https://img.test.com/pic.jpg", "https://test.com",
-                10, 5, LocalDateTime.now()
+                10, 5, Instant.now()
         );
     }
 
@@ -149,7 +149,7 @@ class UserControllerTest {
             UserProfileResponse response = new UserProfileResponse(
                     1L, USER_UUID, "user@test.com", "UpdatedNick", "testuser",
                     "Updated bio", "https://img.test.com/new.jpg", "https://example.com",
-                    10, 5, LocalDateTime.now()
+                    10, 5, Instant.now()
             );
             when(userService.updateProfileByUuid(
                     eq(USER_UUID), eq("UpdatedNick"), eq("Updated bio"),

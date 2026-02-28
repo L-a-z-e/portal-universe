@@ -12,6 +12,10 @@ spring:
         jwt:
           issuer-uri: http://dummy-issuer-for-test
 
+feign:
+  auth-service:
+    url: http://localhost:8081
+
 aws:
   s3:
     access-key: test-access-key

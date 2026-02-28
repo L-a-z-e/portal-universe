@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "UserWithdrawnEvent",
+  "namespace": "com.portal.universe.event.auth",
+  "doc": "Published by auth-service when a user withdraws their account. Consumed by blog-service, notification-service.",
+  "fields": [
+    { "name": "userId", "type": "string", "doc": "User UUID" },
+    { "name": "reason", "type": ["null", "string"], "default": null, "doc": "Withdrawal reason provided by user" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

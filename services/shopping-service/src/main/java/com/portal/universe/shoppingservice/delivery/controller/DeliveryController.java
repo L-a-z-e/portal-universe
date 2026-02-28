@@ -33,7 +33,7 @@ public class DeliveryController {
     public ApiResponse<DeliveryResponse> getDelivery(
             @PathVariable String trackingNumber,
             @CurrentUser AuthUser user) {
-        return ApiResponse.success(deliveryService.getDeliveryByTrackingNumber(trackingNumber));
+        return ApiResponse.success(deliveryService.getDeliveryByTrackingNumber(trackingNumber, user.uuid()));
     }
 
     /**
@@ -47,7 +47,7 @@ public class DeliveryController {
     public ApiResponse<DeliveryResponse> getDeliveryByOrder(
             @PathVariable String orderNumber,
             @CurrentUser AuthUser user) {
-        return ApiResponse.success(deliveryService.getDeliveryByOrderNumber(orderNumber));
+        return ApiResponse.success(deliveryService.getDeliveryByOrderNumber(orderNumber, user.uuid()));
     }
 
     /**

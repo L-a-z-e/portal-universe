@@ -195,9 +195,9 @@ class TestDocumentSchemas:
     def test_document_list_fields(self):
         """DocumentList에 documents 리스트와 total이 설정된다."""
         doc1 = DocumentInfo(document_id="d1", filename="a.md", chunks=5, status="indexed")
-        doc2 = DocumentInfo(document_id="d2", filename="b.pdf", chunks=12, status="processing")
+        doc2 = DocumentInfo(document_id="d2", filename="b.pdf", chunks=12, status="pending")
         doc_list = DocumentList(documents=[doc1, doc2], total=2)
         assert len(doc_list.documents) == 2
         assert doc_list.total == 2
         assert doc_list.documents[0].filename == "a.md"
-        assert doc_list.documents[1].status == "processing"
+        assert doc_list.documents[1].status == "pending"

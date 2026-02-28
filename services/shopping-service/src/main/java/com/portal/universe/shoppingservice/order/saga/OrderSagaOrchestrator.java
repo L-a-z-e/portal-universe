@@ -4,6 +4,7 @@ import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.delivery.service.DeliveryService;
 import com.portal.universe.shoppingservice.event.CloudWatchMetricsPublisher;
+import com.portal.universe.shoppingservice.feign.PaymentIntentFeignClient;
 import com.portal.universe.shoppingservice.feign.SellerInventoryClient;
 import com.portal.universe.shoppingservice.feign.dto.StockReserveRequest;
 import com.portal.universe.shoppingservice.order.domain.Order;
@@ -41,6 +42,7 @@ public class OrderSagaOrchestrator {
     private final OrderRepository orderRepository;
     private final SellerInventoryClient sellerInventoryClient;
     private final DeliveryService deliveryService;
+    private final PaymentIntentFeignClient paymentIntentFeignClient;
     private final CloudWatchMetricsPublisher cloudWatchMetricsPublisher;
 
     private static final int MAX_COMPENSATION_ATTEMPTS = 3;
@@ -48,9 +50,6 @@ public class OrderSagaOrchestrator {
     /**
      * Saga를 시작합니다 (주문 생성 시 호출).
      * 재고 예약 단계까지만 실행합니다.
-     *
-     * @param order 생성된 주문
-     * @return Saga 상태
      */
     @Transactional
     public SagaState startSaga(Order order) {
@@ -64,7 +63,6 @@ public class OrderSagaOrchestrator {
         sagaState = sagaStateRepository.save(sagaState);
 
         try {
-            // Step 1: Reserve Inventory
             executeReserveInventory(order, sagaState);
             sagaState.proceedToNextStep();
             sagaStateRepository.save(sagaState);
@@ -78,7 +76,6 @@ public class OrderSagaOrchestrator {
             log.error("Saga {} - Failed at step {}: {}",
                     sagaState.getSagaId(), sagaState.getCurrentStep(), e.getMessage());
 
-            // CloudWatch Custom Metric: 주문 실패 (재고 예약 단계)
             cloudWatchMetricsPublisher.publishOrderFailure(order.getOrderNumber(),
                     sagaState.getCurrentStep().name());
 
@@ -89,8 +86,6 @@ public class OrderSagaOrchestrator {
 
     /**
      * 결제 완료 후 나머지 Saga 단계를 실행합니다.
-     *
-     * @param orderNumber 주문 번호
      */
     @Transactional
     public void completeSagaAfterPayment(String orderNumber) {
@@ -103,23 +98,18 @@ public class OrderSagaOrchestrator {
         log.info("Continuing saga {} after payment for order: {}", sagaState.getSagaId(), orderNumber);
 
         try {
-            // Step 3: Deduct Inventory (결제 완료 후)
             executeDeductInventory(order, sagaState);
             sagaState.proceedToNextStep();
 
-            // Step 4: Create Delivery
             executeCreateDelivery(order, sagaState);
             sagaState.proceedToNextStep();
 
-            // Step 5: Confirm Order
             order.markAsPaid();
             orderRepository.save(order);
 
-            // Saga 완료
             sagaState.complete();
             sagaStateRepository.save(sagaState);
 
-            // CloudWatch Custom Metric: 주문 성공
             cloudWatchMetricsPublisher.publishOrderSuccess(orderNumber, order.getTotalAmount());
 
             log.info("Saga {} completed successfully for order: {}", sagaState.getSagaId(), orderNumber);
@@ -128,7 +118,6 @@ public class OrderSagaOrchestrator {
             log.error("Saga {} - Failed after payment at step {}: {}",
                     sagaState.getSagaId(), sagaState.getCurrentStep(), e.getMessage());
 
-            // CloudWatch Custom Metric: 주문 실패
             cloudWatchMetricsPublisher.publishOrderFailure(orderNumber,
                     sagaState.getCurrentStep().name());
 
@@ -138,7 +127,45 @@ public class OrderSagaOrchestrator {
     }
 
     /**
-     * Saga 보상(롤백)을 수행합니다.
+     * 완료된 Saga 단계들을 역순으로 보상합니다.
+     * 순수 보상 로직만 포함 — 주문/Saga 상태 변경은 호출자가 관리합니다.
+     *
+     * cancelOrder()와 compensate() 양쪽에서 재사용됩니다.
+     */
+    public void compensateSagaSteps(Order order, SagaState sagaState) {
+        String sagaId = sagaState.getSagaId();
+        String orderNumber = order.getOrderNumber();
+
+        boolean deductCompleted = sagaState.isStepCompleted(SagaStep.DEDUCT_INVENTORY);
+        Map<Long, Integer> quantities = buildQuantityMap(order);
+        StockReserveRequest stockRequest = new StockReserveRequest(orderNumber, quantities);
+
+        // 역순 보상: DELIVERY → DEDUCT → PAYMENT → RESERVE
+        if (sagaState.isStepCompleted(SagaStep.CREATE_DELIVERY)) {
+            deliveryService.cancelDelivery(order.getId());
+            log.info("Saga {} - Delivery cancelled for order {}", sagaId, orderNumber);
+        }
+
+        if (deductCompleted) {
+            sellerInventoryClient.restoreStock(stockRequest);
+            log.info("Saga {} - Deducted inventory restored for order {}", sagaId, orderNumber);
+        }
+
+        if (sagaState.isStepCompleted(SagaStep.PROCESS_PAYMENT)) {
+            paymentIntentFeignClient.refundForCompensation(orderNumber);
+            log.info("Saga {} - Payment refunded via payment-service for order {}", sagaId, orderNumber);
+        }
+
+        // RESERVE 보상은 DEDUCT가 미완료일 때만 (DEDUCT 완료 시 reserved는 이미 0)
+        if (!deductCompleted && sagaState.isStepCompleted(SagaStep.RESERVE_INVENTORY)) {
+            sellerInventoryClient.releaseStock(stockRequest);
+            log.info("Saga {} - Reserved inventory released for order {}", sagaId, orderNumber);
+        }
+    }
+
+    /**
+     * Saga 내부 실패 시 보상을 수행합니다.
+     * compensateSagaSteps()로 단계 보상 + 주문 취소 + Saga 상태 관리
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void compensate(SagaState sagaState, String errorMessage) {
@@ -147,7 +174,6 @@ public class OrderSagaOrchestrator {
         sagaState.startCompensation(errorMessage);
         sagaStateRepository.save(sagaState);
 
-        // CloudWatch Custom Metric: 보상 트랜잭션 발생
         cloudWatchMetricsPublisher.publishCompensation(
                 sagaState.getOrderNumber(), sagaState.getCompensationAttempts());
 
@@ -161,23 +187,8 @@ public class OrderSagaOrchestrator {
         }
 
         try {
-            // 완료된 단계들을 역순으로 보상
-            if (sagaState.isStepCompleted(SagaStep.CREATE_DELIVERY)) {
-                deliveryService.cancelDelivery(order.getId());
-                log.info("Saga {} - Delivery cancelled for order {}", sagaState.getSagaId(), order.getOrderNumber());
-            }
+            compensateSagaSteps(order, sagaState);
 
-            if (sagaState.isStepCompleted(SagaStep.DEDUCT_INVENTORY)) {
-                // 재고 차감 보상: 이미 차감된 재고는 복원 불가 (반품 처리 필요)
-                log.warn("Saga {} - Deducted inventory cannot be auto-restored, requires manual intervention",
-                        sagaState.getSagaId());
-            }
-
-            if (sagaState.isStepCompleted(SagaStep.RESERVE_INVENTORY)) {
-                compensateReserveInventory(order, sagaState);
-            }
-
-            // 주문 취소
             if (order.getStatus().isCancellable()) {
                 order.cancel("Saga compensation: " + errorMessage);
                 orderRepository.save(order);
@@ -202,59 +213,27 @@ public class OrderSagaOrchestrator {
         }
     }
 
-    /**
-     * Step 1: 재고 예약 실행 (Feign -> seller-service)
-     */
     private void executeReserveInventory(Order order, SagaState sagaState) {
         log.debug("Saga {} - Executing step: RESERVE_INVENTORY via Feign", sagaState.getSagaId());
-
-        Map<Long, Integer> quantities = order.getItems().stream()
-                .collect(Collectors.toMap(
-                        OrderItem::getProductId,
-                        OrderItem::getQuantity,
-                        Integer::sum
-                ));
-
-        sellerInventoryClient.reserveStock(new StockReserveRequest(order.getOrderNumber(), quantities));
+        sellerInventoryClient.reserveStock(new StockReserveRequest(order.getOrderNumber(), buildQuantityMap(order)));
     }
 
-    /**
-     * Step 3: 재고 차감 실행 (Feign -> seller-service)
-     */
     private void executeDeductInventory(Order order, SagaState sagaState) {
         log.debug("Saga {} - Executing step: DEDUCT_INVENTORY via Feign", sagaState.getSagaId());
-
-        Map<Long, Integer> quantities = order.getItems().stream()
-                .collect(Collectors.toMap(
-                        OrderItem::getProductId,
-                        OrderItem::getQuantity,
-                        Integer::sum
-                ));
-
-        sellerInventoryClient.deductStock(new StockReserveRequest(order.getOrderNumber(), quantities));
+        sellerInventoryClient.deductStock(new StockReserveRequest(order.getOrderNumber(), buildQuantityMap(order)));
     }
 
-    /**
-     * Step 4: 배송 생성 실행
-     */
     private void executeCreateDelivery(Order order, SagaState sagaState) {
         log.debug("Saga {} - Executing step: CREATE_DELIVERY", sagaState.getSagaId());
         deliveryService.createDelivery(order);
     }
 
-    /**
-     * Step 1 보상: 재고 예약 해제 (Feign -> seller-service)
-     */
-    private void compensateReserveInventory(Order order, SagaState sagaState) {
-        log.debug("Saga {} - Compensating step: RESERVE_INVENTORY via Feign", sagaState.getSagaId());
-
-        Map<Long, Integer> quantities = order.getItems().stream()
+    private Map<Long, Integer> buildQuantityMap(Order order) {
+        return order.getItems().stream()
                 .collect(Collectors.toMap(
                         OrderItem::getProductId,
                         OrderItem::getQuantity,
                         Integer::sum
                 ));
-
-        sellerInventoryClient.releaseStock(new StockReserveRequest(order.getOrderNumber(), quantities));
     }
 }

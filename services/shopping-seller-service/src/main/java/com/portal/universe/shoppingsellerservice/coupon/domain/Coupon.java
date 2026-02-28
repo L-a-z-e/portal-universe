@@ -1,22 +1,19 @@
 package com.portal.universe.shoppingsellerservice.coupon.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "coupons")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
-public class Coupon {
+public class Coupon extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,24 +54,16 @@ public class Coupon {
     private CouponStatus status;
 
     @Column(name = "starts_at", nullable = false)
-    private LocalDateTime startsAt;
+    private Instant startsAt;
 
     @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;
-
-    @CreatedDate
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant expiresAt;
 
     @Builder
     public Coupon(Long sellerId, String code, String name, String description,
                   DiscountType discountType, BigDecimal discountValue,
                   BigDecimal minimumOrderAmount, BigDecimal maximumDiscountAmount,
-                  Integer totalQuantity, LocalDateTime startsAt, LocalDateTime expiresAt) {
+                  Integer totalQuantity, Instant startsAt, Instant expiresAt) {
         this.sellerId = sellerId;
         this.code = code;
         this.name = name;
@@ -92,5 +81,9 @@ public class Coupon {
 
     public void deactivate() {
         this.status = CouponStatus.INACTIVE;
+    }
+
+    public void expire() {
+        this.status = CouponStatus.EXPIRED;
     }
 }

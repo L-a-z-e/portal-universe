@@ -18,7 +18,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -45,7 +46,7 @@ class CartControllerTest {
 
     private CartResponse createCartResponse() {
         return new CartResponse(1L, "user-1", CartStatus.ACTIVE, List.of(), 0, 0,
-                BigDecimal.ZERO, LocalDateTime.now(), LocalDateTime.now());
+                BigDecimal.ZERO, Instant.now(), Instant.now());
     }
 
     @Test

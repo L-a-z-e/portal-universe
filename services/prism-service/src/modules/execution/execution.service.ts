@@ -57,6 +57,18 @@ export class ExecutionService {
       );
     }
 
+    // Get previous execution's feedback (for retry after reject)
+    let previousFeedback: string | undefined;
+    if (executionCount > 0) {
+      const lastExecution = await this.executionRepository.findOne({
+        where: { taskId },
+        order: { executionNumber: 'DESC' },
+      });
+      if (lastExecution?.userFeedback) {
+        previousFeedback = lastExecution.userFeedback;
+      }
+    }
+
     // Create execution record
     const execution = this.executionRepository.create({
       taskId,
@@ -67,6 +79,7 @@ export class ExecutionService {
         task.title,
         task.description,
         referencedResults,
+        previousFeedback,
       ),
     });
 
@@ -180,16 +193,23 @@ export class ExecutionService {
       await this.taskService.completeTask(execution.taskId);
 
       // Send Kafka event
-      await this.kafkaProducer.sendTaskCompleted({
-        taskId: taskInfo.taskId,
-        boardId: taskInfo.boardId,
-        userId,
-        title: taskInfo.title,
-        status: 'IN_REVIEW',
-        agentName: taskInfo.agentName,
-        executionId,
-        timestamp: new Date().toISOString(),
-      });
+      try {
+        await this.kafkaProducer.sendTaskCompleted({
+          taskId: taskInfo.taskId,
+          boardId: taskInfo.boardId,
+          userId,
+          title: taskInfo.title,
+          status: 'IN_REVIEW',
+          agentName: taskInfo.agentName,
+          executionId,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (kafkaError) {
+        this.logger.error(
+          `Failed to publish task completed event: executionId=${executionId}`,
+          kafkaError,
+        );
+      }
 
       // Emit SSE event for execution completed
       this.sseService.emitExecutionCompleted(
@@ -215,17 +235,24 @@ export class ExecutionService {
       await this.executionRepository.save(execution);
 
       // Send Kafka event
-      await this.kafkaProducer.sendTaskFailed({
-        taskId: taskInfo.taskId,
-        boardId: taskInfo.boardId,
-        userId,
-        title: taskInfo.title,
-        status: 'FAILED',
-        agentName: taskInfo.agentName,
-        executionId,
-        errorMessage,
-        timestamp: new Date().toISOString(),
-      });
+      try {
+        await this.kafkaProducer.sendTaskFailed({
+          taskId: taskInfo.taskId,
+          boardId: taskInfo.boardId,
+          userId,
+          title: taskInfo.title,
+          status: 'FAILED',
+          agentName: taskInfo.agentName,
+          executionId,
+          errorMessage,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (kafkaError) {
+        this.logger.error(
+          `Failed to publish task failed event: executionId=${executionId}`,
+          kafkaError,
+        );
+      }
 
       // Emit SSE event for execution failed
       this.sseService.emitExecutionFailed(
@@ -244,6 +271,7 @@ export class ExecutionService {
     title: string,
     description: string | null,
     referencedResults?: Array<{ taskTitle: string; outputResult: string }>,
+    previousFeedback?: string,
   ): string {
     let prompt = `Task: ${title}`;
     if (description) {
@@ -256,6 +284,11 @@ export class ExecutionService {
       for (const ref of referencedResults) {
         prompt += `\n[${ref.taskTitle}]\n${ref.outputResult}\n`;
       }
+    }
+
+    // 이전 실행에 대한 사용자 피드백 추가 (reject 후 재실행 시)
+    if (previousFeedback) {
+      prompt += `\n\n---\nPrevious Feedback (please address this):\n${previousFeedback}`;
     }
 
     return prompt;

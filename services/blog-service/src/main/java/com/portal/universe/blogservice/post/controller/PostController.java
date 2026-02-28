@@ -14,6 +14,7 @@ import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +30,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final com.portal.universe.blogservice.common.feign.AuthFollowClient authFollowClient;
 
     @Operation(summary = "게시물 생성", description = "새 블로그 게시물을 작성한다.")
     @PostMapping
@@ -44,7 +46,7 @@ public class PostController {
 
     @Operation(summary = "전체 게시물 조회(관리자용)")
     @GetMapping("/all")
-    @PreAuthorize("hasAnyAuthority('ROLE_BLOG_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_BLOG_ADMIN')")
     public ApiResponse<PageResponse<PostResponse>> getAllPosts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size
@@ -56,9 +58,12 @@ public class PostController {
     @Operation(summary = "게시물 상세 조회")
     @GetMapping("/{postId}")
     public ApiResponse<PostResponse> getPostById(
-            @Parameter(description = "게시물 ID") @PathVariable String postId
+            @Parameter(description = "게시물 ID") @PathVariable String postId,
+            HttpServletRequest request
     ) {
-        PostResponse response = postService.getPostById(postId);
+        AuthUser user = (AuthUser) request.getAttribute("authUser");
+        String userId = user != null ? user.uuid() : null;
+        PostResponse response = postService.getPostById(postId, userId);
         return ApiResponse.success(response);
     }
 
@@ -298,11 +303,12 @@ public class PostController {
     @Operation(summary = "피드 조회", description = "팔로잉 사용자들의 게시물을 최신순으로 조회합니다.")
     @GetMapping("/feed")
     public ApiResponse<PageResponse<PostSummaryResponse>> getFeed(
-            @Parameter(description = "팔로잉 사용자 UUID 목록 (쉼표로 구분)")
-            @RequestParam List<String> followingIds,
+            @CurrentUser AuthUser user,
             @Parameter(description = "페이지 번호 (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
+        var followingIdsResponse = authFollowClient.getFollowingIds(user.uuid());
+        List<String> followingIds = followingIdsResponse.getData().followingIds();
         Page<PostSummaryResponse> posts = postService.getFeed(followingIds, page - 1, size);
         return ApiResponse.success(PageResponse.from(posts));
     }

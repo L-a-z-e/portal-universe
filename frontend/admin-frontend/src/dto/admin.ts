@@ -136,8 +136,14 @@ export interface SellerApplication {
   userId: string;
   businessName: string;
   businessNumber: string;
-  reason: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  representativeName: string | null;
+  phone: string | null;
+  email: string | null;
+  bankName: string | null;
+  bankAccount: string | null;
+  commissionRate: number | null;
+  status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'WITHDRAWN' | 'REJECTED';
+  reason: string | null;
   reviewedBy: string | null;
   reviewComment: string | null;
   reviewedAt: string | null;
@@ -177,7 +183,6 @@ export interface DashboardStats {
   users: UserStats;
   roles: RoleStats;
   memberships: MembershipStats;
-  sellers: SellerStats;
   recentActivity: RecentActivityItem[];
 }
 
@@ -212,12 +217,6 @@ export interface TierCount {
   tierKey: string;
   displayName: string;
   count: number;
-}
-
-export interface SellerStats {
-  pending: number;
-  approved: number;
-  rejected: number;
 }
 
 export interface RecentActivityItem {

@@ -27,6 +27,8 @@ const StockMovementPage = lazy(() => import('@/pages/StockMovementPage'))
 const QueuePage = lazy(() => import('@/pages/QueuePage'))
 const SettlementPage = lazy(() => import('@/pages/SettlementPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
+const SellerApplyPage = lazy(() => import('@/pages/SellerApplyPage'))
+const SellerPendingPage = lazy(() => import('@/pages/SellerPendingPage'))
 const ForbiddenPage = lazy(() => import('@/pages/error/ForbiddenPage'))
 
 import { RequireAuth } from '@portal/react-bridge'
@@ -89,11 +91,27 @@ const SellerWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   </Suspense>
 )
 
+const AuthOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>
+    <RequireAuth>{children}</RequireAuth>
+  </Suspense>
+)
+
 const routes = [
   {
     path: '/',
     element: <Layout />,
     children: [
+      // 신청/대기 페이지 — 인증만 필요 (ROLE 불필요)
+      {
+        path: 'apply',
+        element: <AuthOnly><Suspense fallback={<PageLoader />}><SellerApplyPage /></Suspense></AuthOnly>
+      },
+      {
+        path: 'pending',
+        element: <AuthOnly><Suspense fallback={<PageLoader />}><SellerPendingPage /></Suspense></AuthOnly>
+      },
+      // 판매자 대시보드/관리 — ROLE 필요
       {
         path: '/',
         element: (

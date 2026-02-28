@@ -6,7 +6,6 @@ import com.portal.universe.shoppingservice.coupon.domain.Coupon;
 import com.portal.universe.shoppingservice.coupon.domain.CouponStatus;
 import com.portal.universe.shoppingservice.coupon.domain.UserCoupon;
 import com.portal.universe.shoppingservice.coupon.domain.UserCouponStatus;
-import com.portal.universe.shoppingservice.coupon.dto.CouponCreateRequest;
 import com.portal.universe.shoppingservice.coupon.dto.CouponResponse;
 import com.portal.universe.shoppingservice.coupon.dto.UserCouponResponse;
 import com.portal.universe.shoppingservice.coupon.redis.CouponRedisService;
@@ -16,13 +15,10 @@ import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
 import com.portal.universe.event.shopping.CouponIssuedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -37,43 +33,6 @@ public class CouponServiceImpl implements CouponService {
     private final ShoppingEventPublisher eventPublisher;
 
     @Override
-    public Page<CouponResponse> getAllCoupons(Pageable pageable) {
-        return couponRepository.findAll(pageable)
-                .map(CouponResponse::from);
-    }
-
-    @Override
-    @Transactional
-    public CouponResponse createCoupon(CouponCreateRequest request) {
-        if (couponRepository.existsByCode(request.code())) {
-            throw new CustomBusinessException(ShoppingErrorCode.COUPON_CODE_ALREADY_EXISTS);
-        }
-
-        Coupon coupon = Coupon.builder()
-                .code(request.code())
-                .name(request.name())
-                .description(request.description())
-                .discountType(request.discountType())
-                .discountValue(request.discountValue())
-                .minimumOrderAmount(request.minimumOrderAmount())
-                .maximumDiscountAmount(request.maximumDiscountAmount())
-                .totalQuantity(request.totalQuantity())
-                .startsAt(request.startsAt())
-                .expiresAt(request.expiresAt())
-                .build();
-
-        Coupon savedCoupon = couponRepository.save(coupon);
-
-        // Redis에 쿠폰 재고 초기화
-        couponRedisService.initializeCouponStock(savedCoupon.getId(), savedCoupon.getTotalQuantity());
-
-        log.info("Created coupon: id={}, code={}, quantity={}",
-                savedCoupon.getId(), savedCoupon.getCode(), savedCoupon.getTotalQuantity());
-
-        return CouponResponse.from(savedCoupon);
-    }
-
-    @Override
     public CouponResponse getCoupon(Long couponId) {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.COUPON_NOT_FOUND));
@@ -82,7 +41,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public List<CouponResponse> getAvailableCoupons() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return couponRepository.findAvailableCoupons(CouponStatus.ACTIVE, now)
                 .stream()
                 .map(CouponResponse::from)
@@ -116,9 +75,8 @@ public class CouponServiceImpl implements CouponService {
 
         UserCoupon savedUserCoupon = userCouponRepository.save(userCoupon);
 
-        // 쿠폰 발급 수량 증가
-        coupon.incrementIssuedQuantity();
-        couponRepository.save(coupon);
+        // 쿠폰 발급 수량 원자적 증가 (Lost Update 방지, EXHAUSTED 자동 전환 포함)
+        couponRepository.incrementIssuedQuantity(couponId);
 
         log.info("Issued coupon: couponId={}, userId={}, userCouponId={}",
                 couponId, userId, savedUserCoupon.getId());
@@ -130,14 +88,14 @@ public class CouponServiceImpl implements CouponService {
                 .setCouponName(coupon.getName())
                 .setDiscountType(coupon.getDiscountType().name())
                 .setDiscountValue(coupon.getDiscountValue().intValue())
-                .setExpiresAt(coupon.getExpiresAt().atZone(java.time.ZoneId.systemDefault()).toInstant())
+                .setExpiresAt(coupon.getExpiresAt())
                 .build());
 
         return UserCouponResponse.from(savedUserCoupon);
     }
 
     private void validateCouponForIssue(Coupon coupon) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         if (coupon.getStatus() != CouponStatus.ACTIVE) {
             throw new CustomBusinessException(ShoppingErrorCode.COUPON_INACTIVE);
@@ -163,7 +121,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public List<UserCouponResponse> getAvailableUserCoupons(String userId) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return userCouponRepository.findAvailableByUserId(userId, now)
                 .stream()
                 .map(UserCouponResponse::from)
@@ -180,7 +138,7 @@ public class CouponServiceImpl implements CouponService {
             throw new CustomBusinessException(ShoppingErrorCode.USER_COUPON_ALREADY_USED);
         }
         if (userCoupon.getStatus() == UserCouponStatus.EXPIRED ||
-                LocalDateTime.now().isAfter(userCoupon.getExpiresAt())) {
+                Instant.now().isAfter(userCoupon.getExpiresAt())) {
             throw new CustomBusinessException(ShoppingErrorCode.USER_COUPON_EXPIRED);
         }
 
@@ -188,21 +146,6 @@ public class CouponServiceImpl implements CouponService {
         userCouponRepository.save(userCoupon);
 
         log.info("Used coupon: userCouponId={}, orderId={}", userCouponId, orderId);
-    }
-
-    @Override
-    @Transactional
-    public void deactivateCoupon(Long couponId) {
-        Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.COUPON_NOT_FOUND));
-
-        coupon.deactivate();
-        couponRepository.save(coupon);
-
-        // Redis 캐시 삭제
-        couponRedisService.deleteCouponCache(couponId);
-
-        log.info("Deactivated coupon: id={}", couponId);
     }
 
     @Override

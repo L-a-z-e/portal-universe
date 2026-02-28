@@ -52,10 +52,16 @@ Portal Universe 프로젝트의 아키텍처 결정을 기록합니다.
 | ADR-044 | [Role Multi-Include DAG + JWT Effective Roles](./ADR-044-role-multi-include-dag.md) | Accepted   | 2026-02-18 |
 | ADR-045 | [역할 기본 멤버십 자동 매핑](./ADR-045-role-default-membership-mapping.md) | Accepted   | 2026-02-18 |
 | ADR-046 | [MySQL → PostgreSQL 마이그레이션](./ADR-046-mysql-to-postgresql-migration.md) | Accepted   | 2026-02-18 |
-| ADR-047 | [Avro 및 Schema Registry 도입을 통한 이벤트 계약 관리 고도화](./ADR-047-avro-schema-registry-adoption.md) | Proposed   | 2026-02-18 |
-| ADR-048 | [Kubernetes HA/Scaling 전략](./ADR-048-k8s-ha-scaling-strategy.md) | Accepted   | 2026-02-21 |
+| ADR-047 | [Avro 및 Schema Registry 도입을 통한 이벤트 계약 관리 고도화](./ADR-047-avro-schema-registry-adoption.md) | Accepted   | 2026-02-18 |
+| ADR-048 | [Kubernetes HA/Scaling 전략](./ADR-048-k8s-ha-scaling-strategy.md) | Accepted   | 2026-02-22 |
 | ADR-049 | [AWS Secrets Manager + SSM Parameter Store 설정 외부화](./ADR-049-secrets-manager-ssm-integration.md) | Accepted   | 2026-02-25 |
 | ADR-050 | [LocalStack AWS 서비스 확장 및 Terraform IaC 도입](./ADR-050-localstack-aws-services-expansion.md) | Accepted   | 2026-02-25 |
+| ADR-051 | [RBAC 캐시 컴포넌트 분리](./ADR-051-rbac-cache-component-separation.md) | Accepted   | 2026-02-25 |
+| ADR-052 | [Redis Expire 버그 우회 전략](./ADR-052-redis-expire-bug-workaround.md) | Accepted   | 2026-02-25 |
+| ADR-053 | [Saga 크로스 서비스 보상 트랜잭션](./ADR-053-saga-cross-service-compensation.md) | Accepted   | 2026-02-25 |
+| ADR-054 | [이벤트 안정성 패턴](./ADR-054-event-stability-patterns.md) | Accepted   | 2026-02-28 |
+| ADR-055 | [Payment 서비스 독립 추출](./ADR-055-payment-service-extraction.md) | Accepted   | 2026-02-28 |
+| ADR-056 | [Instant 시간 표준화](./ADR-056-instant-time-standardization.md) | Accepted   | 2026-02-28 |
 
 ## 상태 정의
 

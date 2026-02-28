@@ -1,28 +1,41 @@
 package com.portal.universe.shoppingservice.product.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.domain.Persistable;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "products")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
-public class Product {
+public class Product extends BaseEntity implements Persistable<Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Transient
+    private boolean isNew = true;
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @PostLoad
+    @PostPersist
+    void markNotNew() {
+        isNew = false;
+    }
+
+    @Column(name = "seller_id", nullable = false)
+    private Long sellerId;
 
     @Column(nullable = false)
     private String name;
@@ -49,17 +62,11 @@ public class Product {
     @OrderBy("sortOrder ASC")
     private List<ProductImage> images = new ArrayList<>();
 
-    @CreatedDate
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
     @Builder
-    public Product(String name, String description, BigDecimal price, BigDecimal discountPrice,
+    public Product(Long id, Long sellerId, String name, String description, BigDecimal price, BigDecimal discountPrice,
                    Integer stock, String imageUrl, String category, Boolean featured) {
+        this.id = id;
+        this.sellerId = sellerId;
         this.name = name;
         this.description = description;
         this.price = price;
@@ -85,5 +92,17 @@ public class Product {
 
     public void updateFeatured(Boolean featured) {
         this.featured = featured;
+    }
+
+    public void updateFromSource(String name, String description, BigDecimal price,
+                                  BigDecimal discountPrice, String imageUrl, String category,
+                                  Boolean featured) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.discountPrice = discountPrice;
+        this.imageUrl = imageUrl;
+        this.category = category;
+        this.featured = featured != null ? featured : false;
     }
 }

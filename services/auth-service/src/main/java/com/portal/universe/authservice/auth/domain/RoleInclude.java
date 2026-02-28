@@ -1,13 +1,10 @@
 package com.portal.universe.authservice.auth.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "role_includes", uniqueConstraints = {
@@ -15,8 +12,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class RoleInclude {
+public class RoleInclude extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,10 +25,6 @@ public class RoleInclude {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "included_role_id", nullable = false)
     private RoleEntity includedRole;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
 
     public RoleInclude(RoleEntity role, RoleEntity includedRole) {
         this.role = role;

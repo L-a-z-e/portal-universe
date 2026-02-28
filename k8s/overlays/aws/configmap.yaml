@@ -1,0 +1,38 @@
+# AWS 환경용 ConfigMap (관리형 서비스 엔드포인트)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: portal-universe-config
+  namespace: portal-universe
+data:
+  SPRING_PROFILES_ACTIVE: "kubernetes"
+
+  # RDS PostgreSQL
+  POSTGRES_HOST: "portal-universe-db.cluster-xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com"
+  DB_HOST: "portal-universe-db.cluster-xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com"
+  DB_PORT: "5432"
+  DB_USER: "laze"
+
+  # RDS MySQL
+  MYSQL_HOST: "portal-universe-mysql.cluster-xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com"
+
+  # Amazon MSK (Kafka)
+  KAFKA_BOOTSTRAP_SERVERS: "b-1.portal-universe.xxxxxxxxxxxx.kafka.ap-northeast-2.amazonaws.com:9092,b-2.portal-universe.xxxxxxxxxxxx.kafka.ap-northeast-2.amazonaws.com:9092"
+
+  # Amazon ElastiCache (Redis)
+  REDIS_HOST: "portal-universe-redis.xxxxxxxxxxxx.apne2.cache.amazonaws.com"
+  REDIS_PORT: "6379"
+
+  # Amazon OpenSearch
+  ELASTICSEARCH_URIS: "https://search-portal-universe.ap-northeast-2.es.amazonaws.com"
+
+  # DocumentDB (MongoDB)
+  MONGODB_HOST: "portal-universe-docdb.cluster-xxxxxxxxxxxx.ap-northeast-2.docdb.amazonaws.com"
+
+  # AWS X-Ray (Zipkin 대체)
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "https://xray.ap-northeast-2.amazonaws.com"
+  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "0.1"
+
+  # 공통
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus,metrics"
+  TZ: "Asia/Seoul"

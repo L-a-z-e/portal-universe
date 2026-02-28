@@ -16,7 +16,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -45,7 +46,7 @@ class DeliveryControllerTest {
         return new DeliveryResponse(1L, "TRK-001", "ORD-001",
                 DeliveryStatus.PREPARING, "배송 준비중", "CJ대한통운",
                 null, null, null, List.of(),
-                LocalDateTime.now(), LocalDateTime.now());
+                Instant.now(), Instant.now());
     }
 
     @Test
@@ -53,10 +54,10 @@ class DeliveryControllerTest {
     void should_returnDelivery_when_getByTrackingNumber() throws Exception {
         // given
         DeliveryResponse response = createDeliveryResponse();
-        when(deliveryService.getDeliveryByTrackingNumber("TRK-001")).thenReturn(response);
+        when(deliveryService.getDeliveryByTrackingNumber("TRK-001", "user-1")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(get("/deliveries/TRK-001"))
+        mockMvc.perform(get("/deliveries/TRK-001").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.trackingNumber").value("TRK-001"));
@@ -67,10 +68,10 @@ class DeliveryControllerTest {
     void should_returnDelivery_when_getByOrderNumber() throws Exception {
         // given
         DeliveryResponse response = createDeliveryResponse();
-        when(deliveryService.getDeliveryByOrderNumber("ORD-001")).thenReturn(response);
+        when(deliveryService.getDeliveryByOrderNumber("ORD-001", "user-1")).thenReturn(response);
 
         // when/then
-        mockMvc.perform(get("/deliveries/order/ORD-001"))
+        mockMvc.perform(get("/deliveries/order/ORD-001").requestAttr("authUser", authUser))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.orderNumber").value("ORD-001"));

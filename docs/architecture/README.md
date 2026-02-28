@@ -11,7 +11,8 @@
 | API Gateway | [api-gateway/](./api-gateway/) | 라우팅, 필터 체인, Rate Limiting | 3 |
 | Auth Service | [auth-service/](./auth-service/) | OAuth2/JWT 인증, RBAC | 4 |
 | Blog Service | [blog-service/](./blog-service/) | 게시물, 댓글, 시리즈, 태그 | 1 |
-| Shopping Service | [shopping-service/](./shopping-service/) | 장바구니, 주문, 결제, 배송 (Buyer) | 8 |
+| Payment Service | [payment-service/](./payment-service/) | 결제 Intent, 결제 처리, Outbox | 1 |
+| Shopping Service | [shopping-service/](./shopping-service/) | 장바구니, 주문, 배송 (Buyer) | 8 |
 | Shopping Seller Service | [shopping-seller-service/](./shopping-seller-service/) | 판매자, 상품, 재고 (Seller) | 1 |
 | Shopping Settlement Service | [shopping-settlement-service/](./shopping-settlement-service/) | 정산 배치, Spring Batch | 1 |
 | Notification Service | [notification-service/](./notification-service/) | 알림, WebSocket, Kafka Events | 3 |
@@ -39,7 +40,7 @@
 
 | 서비스 | 디렉토리 | 설명 | 문서 수 |
 |--------|----------|------|---------|
-| Database | [database/](./database/) | ERD, Migration 전략 | 8 |
+| Database | [database/](./database/) | ERD, Migration 전략 | 9 |
 | System | [system/](./system/) | 통합 시스템 아키텍처, 보안, 모니터링 | 7 |
 
 ---
@@ -51,4 +52,4 @@
 
 ---
 
-**최종 업데이트**: 2026-02-18
+**최종 업데이트**: 2026-02-28

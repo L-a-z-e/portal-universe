@@ -49,18 +49,15 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
-                        // 정산 조회 (판매자 본인, 관리자)
-                        .requestMatchers("/periods/**")
-                            .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
-                        .requestMatchers("/sellers/**")
-                            .hasAnyAuthority("ROLE_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                        // 정산 조회/관리 (관리자 전용 — SUPER_ADMIN은 effectiveRoles에 포함)
+                        .requestMatchers("/periods/**", "/sellers/**")
+                            .hasAuthority("ROLE_SHOPPING_ADMIN")
                         // 배치 실행 (관리자 전용)
                         .requestMatchers("/batch/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                            .hasAuthority("ROLE_SHOPPING_ADMIN")
                         // 시드 데이터 (관리자 전용)
                         .requestMatchers("/seed/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+                            .hasAuthority("ROLE_SHOPPING_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new GatewayAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

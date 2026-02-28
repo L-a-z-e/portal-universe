@@ -315,19 +315,18 @@ export async function getPostNavigation(
 
 /**
  * 피드 조회 (팔로잉 사용자들의 게시물)
- * @param followingIds 팔로잉 사용자 UUID 목록
+ * 서버에서 인증된 사용자의 팔로잉 목록을 자동으로 조회합니다.
  * @param page 페이지 번호
  * @param size 페이지 크기
  */
 export async function getFeed(
-  followingIds: string[],
   page: number = 1,
   size: number = 10
 ): Promise<PageResponse<PostSummaryResponse>> {
   const response = await apiClient.get<ApiResponse<PageResponse<PostSummaryResponse>>>(
     `${BASE_PATH}/feed`,
     {
-      params: { followingIds: followingIds.join(','), page, size },
+      params: { page, size },
     }
   );
   return response.data.data;

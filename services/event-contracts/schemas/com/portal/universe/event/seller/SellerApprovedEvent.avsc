@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "SellerApprovedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a seller application is approved. Consumed by auth-service to assign ROLE_SHOPPING_SELLER.",
+  "fields": [
+    { "name": "userId", "type": "string", "doc": "User UUID who applied as seller" },
+    { "name": "sellerId", "type": "long", "doc": "Seller entity ID in seller-service" },
+    { "name": "approvedBy", "type": "string", "doc": "Admin user who approved the application" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp in epoch milliseconds" }
+  ]
+}

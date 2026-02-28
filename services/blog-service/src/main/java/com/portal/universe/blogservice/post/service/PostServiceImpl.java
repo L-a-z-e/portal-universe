@@ -29,7 +29,8 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -98,10 +99,19 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostResponse getPostById(String postId) {
+    public PostResponse getPostById(String postId, String userId) {
         log.info("Fetching post by id: {}", postId);
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
+
+        // DRAFT 게시물은 작성자 또는 블로그 관리자만 조회 가능
+        if (post.getStatus() == PostStatus.DRAFT && userId != null) {
+            SecurityUtils.assertOwnerOrHasAuthority(
+                    post.getAuthorId(), userId, "ROLE_BLOG_ADMIN", BlogErrorCode.POST_NOT_FOUND);
+        } else if (post.getStatus() == PostStatus.DRAFT) {
+            throw new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND);
+        }
+
         return convertToPostResponse(post);
     }
 
@@ -113,11 +123,8 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증: 작성자 또는 블로그 관리자만 수정 가능
-        if (!post.getAuthorId().equals(userId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                post.getAuthorId(), userId, "ROLE_BLOG_ADMIN", BlogErrorCode.POST_UPDATE_FORBIDDEN);
 
         // Tag diff 계산 (update 전에 기존 태그 보존)
         Set<String> oldTags = post.getTags() != null ? new HashSet<>(post.getTags()) : new HashSet<>();
@@ -164,11 +171,8 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증: 작성자 또는 블로그 관리자만 삭제 가능
-        if (!post.getAuthorId().equals(userId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.POST_DELETE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                post.getAuthorId(), userId, "ROLE_BLOG_ADMIN", BlogErrorCode.POST_DELETE_FORBIDDEN);
 
         // Tag postCount 동기화: 삭제 전 태그 감소
         if (post.getTags() != null && !post.getTags().isEmpty()) {
@@ -309,11 +313,8 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 권한 검증: 작성자 또는 블로그 관리자만 상태 변경 가능
-        if (!post.getAuthorId().equals(userId)
-                && !SecurityUtils.isServiceAdmin("BLOG")) {
-            throw new CustomBusinessException(BlogErrorCode.POST_UPDATE_FORBIDDEN);
-        }
+        SecurityUtils.assertOwnerOrHasAuthority(
+                post.getAuthorId(), userId, "ROLE_BLOG_ADMIN", BlogErrorCode.POST_UPDATE_FORBIDDEN);
 
         // 상태 변경
         if (newStatus == PostStatus.PUBLISHED) {
@@ -352,7 +353,7 @@ public class PostServiceImpl implements PostService {
     public Page<PostSummaryResponse> getTrendingPosts(String period, int page, int size) {
         log.info("Fetching trending posts using aggregation, period: {}, page: {}, size: {}", period, page, size);
 
-        LocalDateTime startDate = calculateStartDateByPeriod(period);
+        Instant startDate = calculateStartDateByPeriod(period);
         double halfLifeHours = getHalfLifeByPeriod(period);
 
         // MongoDB Aggregation으로 점수 계산 및 정렬
@@ -382,14 +383,14 @@ public class PostServiceImpl implements PostService {
     /**
      * 기간 문자열을 기준으로 시작 날짜 계산
      */
-    private LocalDateTime calculateStartDateByPeriod(String period) {
-        LocalDateTime now = LocalDateTime.now();
+    private Instant calculateStartDateByPeriod(String period) {
+        Instant now = Instant.now();
         return switch (period) {
-            case "today" -> now.toLocalDate().atStartOfDay();
-            case "week" -> now.minusDays(7);
-            case "month" -> now.minusDays(30);
-            case "year" -> now.minusYears(1);
-            default -> now.minusDays(7); // 기본값: 1주일
+            case "today" -> now.truncatedTo(ChronoUnit.DAYS);
+            case "week" -> now.minus(7, ChronoUnit.DAYS);
+            case "month" -> now.minus(30, ChronoUnit.DAYS);
+            case "year" -> now.minus(365, ChronoUnit.DAYS);
+            default -> now.minus(7, ChronoUnit.DAYS); // 기본값: 1주일
         };
     }
 
@@ -416,7 +417,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostSummaryResponse> getRecentPosts(int limit) {
         log.info("Fetching recent posts, limit: {}", limit);
-        LocalDateTime since = LocalDateTime.now().minusDays(30); // 최근 30일
+        Instant since = Instant.now().minus(30, ChronoUnit.DAYS); // 최근 30일
         Pageable pageable = PageRequest.of(0, limit);
         Page<Post> posts = postRepository.findByStatusAndPublishedAtAfterOrderByPublishedAtDesc(
                 PostStatus.PUBLISHED, since, pageable);
@@ -488,7 +489,7 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
 
         // 최신 게시물 날짜
-        LocalDateTime lastPostDate = postRepository.findByStatusOrderByPublishedAtDesc(
+        Instant lastPostDate = postRepository.findByStatusOrderByPublishedAtDesc(
                         PostStatus.PUBLISHED, PageRequest.of(0, 1))
                 .stream()
                 .findFirst()

@@ -54,7 +54,7 @@ class CartTest {
             int quantity = 2;
 
             // when
-            CartItem item = cart.addItem(productId, productName, price, quantity);
+            CartItem item = cart.addItem(1L, productId, productName, price, quantity);
 
             // then
             assertThat(cart.getItemCount()).isEqualTo(1);
@@ -69,8 +69,8 @@ class CartTest {
         void addMultipleItemsCalculatesTotalAmount() {
             // given
             Cart cart = createActiveCart();
-            cart.addItem(1L, "Product 1", new BigDecimal("10000"), 2); // 20000
-            cart.addItem(2L, "Product 2", new BigDecimal("5000"), 3);  // 15000
+            cart.addItem(1L, 1L, "Product 1", new BigDecimal("10000"), 2); // 20000
+            cart.addItem(1L, 2L, "Product 2", new BigDecimal("5000"), 3);  // 15000
 
             // when
             BigDecimal totalAmount = cart.getTotalAmount();
@@ -85,10 +85,10 @@ class CartTest {
         void addDuplicateItemThrowsException() {
             // given
             Cart cart = createActiveCart();
-            cart.addItem(1L, "Product", new BigDecimal("10000"), 1);
+            cart.addItem(1L, 1L, "Product", new BigDecimal("10000"), 1);
 
             // when & then
-            assertThatThrownBy(() -> cart.addItem(1L, "Same Product", new BigDecimal("10000"), 1))
+            assertThatThrownBy(() -> cart.addItem(1L, 1L, "Same Product", new BigDecimal("10000"), 1))
                     .isInstanceOf(CustomBusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ShoppingErrorCode.CART_ITEM_ALREADY_EXISTS);
@@ -99,11 +99,11 @@ class CartTest {
         void addItemToCheckedOutCartThrowsException() {
             // given
             Cart cart = createActiveCart();
-            cart.addItem(1L, "Product", new BigDecimal("10000"), 1);
+            cart.addItem(1L, 1L, "Product", new BigDecimal("10000"), 1);
             cart.checkout();
 
             // when & then
-            assertThatThrownBy(() -> cart.addItem(2L, "Another Product", new BigDecimal("5000"), 1))
+            assertThatThrownBy(() -> cart.addItem(1L, 2L, "Another Product", new BigDecimal("5000"), 1))
                     .isInstanceOf(CustomBusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ShoppingErrorCode.CART_ALREADY_CHECKED_OUT);
@@ -119,7 +119,7 @@ class CartTest {
         void checkoutChangesStatus() {
             // given
             Cart cart = createActiveCart();
-            cart.addItem(1L, "Product", new BigDecimal("10000"), 1);
+            cart.addItem(1L, 1L, "Product", new BigDecimal("10000"), 1);
 
             // when
             cart.checkout();
@@ -151,8 +151,8 @@ class CartTest {
         void clearRemovesAllItems() {
             // given
             Cart cart = createActiveCart();
-            cart.addItem(1L, "Product 1", new BigDecimal("10000"), 1);
-            cart.addItem(2L, "Product 2", new BigDecimal("5000"), 2);
+            cart.addItem(1L, 1L, "Product 1", new BigDecimal("10000"), 1);
+            cart.addItem(1L, 2L, "Product 2", new BigDecimal("5000"), 2);
 
             // when
             cart.clear();
@@ -172,8 +172,8 @@ class CartTest {
         void findItemByProductId() {
             // given
             Cart cart = createActiveCart();
-            cart.addItem(1L, "Product 1", new BigDecimal("10000"), 1);
-            cart.addItem(2L, "Product 2", new BigDecimal("5000"), 2);
+            cart.addItem(1L, 1L, "Product 1", new BigDecimal("10000"), 1);
+            cart.addItem(1L, 2L, "Product 2", new BigDecimal("5000"), 2);
 
             // when
             var foundItem = cart.findItemByProductId(2L);
@@ -188,7 +188,7 @@ class CartTest {
         void findNonExistentItemReturnsEmpty() {
             // given
             Cart cart = createActiveCart();
-            cart.addItem(1L, "Product 1", new BigDecimal("10000"), 1);
+            cart.addItem(1L, 1L, "Product 1", new BigDecimal("10000"), 1);
 
             // when
             var foundItem = cart.findItemByProductId(999L);

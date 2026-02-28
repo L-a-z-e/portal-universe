@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -43,7 +45,7 @@ public class SagaState {
     /**
      * 주문 번호
      */
-    @Column(name = "order_number", nullable = false, length = 30)
+    @Column(name = "order_number", nullable = false, unique = true, length = 30)
     private String orderNumber;
 
     /**
@@ -61,10 +63,11 @@ public class SagaState {
     private SagaStatus status;
 
     /**
-     * 완료된 단계들 (JSON 형태로 저장)
+     * 완료된 단계들 (DB에는 CSV 문자열로 저장)
      */
+    @Convert(converter = SagaStepSetConverter.class)
     @Column(name = "completed_steps", length = 500)
-    private String completedSteps;
+    private Set<SagaStep> completedSteps;
 
     /**
      * 마지막 에러 메시지
@@ -80,13 +83,13 @@ public class SagaState {
 
     @CreatedDate
     @Column(name = "started_at", nullable = false, updatable = false)
-    private LocalDateTime startedAt;
+    private Instant startedAt;
 
     /**
      * 완료 일시
      */
     @Column(name = "completed_at")
-    private LocalDateTime completedAt;
+    private Instant completedAt;
 
     @Builder
     public SagaState(Long orderId, String orderNumber) {
@@ -95,7 +98,7 @@ public class SagaState {
         this.orderNumber = orderNumber;
         this.currentStep = SagaStep.RESERVE_INVENTORY;
         this.status = SagaStatus.STARTED;
-        this.completedSteps = "";
+        this.completedSteps = EnumSet.noneOf(SagaStep.class);
         this.compensationAttempts = 0;
     }
 
@@ -103,12 +106,7 @@ public class SagaState {
      * 다음 단계로 진행합니다.
      */
     public void proceedToNextStep() {
-        // 현재 단계를 완료된 단계 목록에 추가
-        if (this.completedSteps.isEmpty()) {
-            this.completedSteps = this.currentStep.name();
-        } else {
-            this.completedSteps += "," + this.currentStep.name();
-        }
+        this.completedSteps.add(this.currentStep);
 
         SagaStep nextStep = this.currentStep.next();
         if (nextStep != null) {
@@ -121,15 +119,8 @@ public class SagaState {
      */
     public void complete() {
         this.status = SagaStatus.COMPLETED;
-        this.completedAt = LocalDateTime.now();
-        // 마지막 단계도 완료된 단계에 추가
-        if (!this.completedSteps.contains(this.currentStep.name())) {
-            if (this.completedSteps.isEmpty()) {
-                this.completedSteps = this.currentStep.name();
-            } else {
-                this.completedSteps += "," + this.currentStep.name();
-            }
-        }
+        this.completedAt = Instant.now();
+        this.completedSteps.add(this.currentStep);
     }
 
     /**
@@ -156,7 +147,7 @@ public class SagaState {
     public void markAsFailed(String errorMessage) {
         this.status = SagaStatus.FAILED;
         this.lastErrorMessage = errorMessage;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = Instant.now();
     }
 
     /**
@@ -165,7 +156,7 @@ public class SagaState {
     public void markAsCompensationFailed(String errorMessage) {
         this.status = SagaStatus.COMPENSATION_FAILED;
         this.lastErrorMessage = errorMessage;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = Instant.now();
     }
 
     /**
@@ -179,7 +170,7 @@ public class SagaState {
      * 특정 단계가 완료되었는지 확인합니다.
      */
     public boolean isStepCompleted(SagaStep step) {
-        return this.completedSteps.contains(step.name());
+        return this.completedSteps.contains(step);
     }
 
     /**
