@@ -3,7 +3,7 @@ id: api-chatbot
 title: Chatbot REST API
 type: api
 status: current
-version: v1.1
+version: v1.3
 created: 2026-02-06
 updated: 2026-02-13
 author: Laze
@@ -624,6 +624,10 @@ RAG 검색 결과의 소스 정보를 나타내는 공통 DTO입니다.
 
 - **새 대화 시작**: `conversation_id` 없이 요청 시 서버에서 UUID 자동 생성
 - **기존 대화 계속**: `conversation_id` 포함 요청 시 해당 대화에 메시지 추가
+- **멀티턴 대화 이력**: `conversation_id`가 있으면 최근 5턴(10메시지)을 Redis에서 조회하여 LLM에 맥락으로 주입. "이전 답변에서 2번 항목 설명해줘" 같은 후속 질문 지원
+  - 이력 메시지는 500자로 truncate (context window 절약)
+  - RAG 검색은 현재 질문만 사용 (이력 포함 시 검색 노이즈 방지)
+  - `conversation_id` 없는 새 대화는 기존과 동일하게 동작 (backward compatible)
 - **대화 제목**: 첫 번째 사용자 메시지의 앞 50자로 자동 설정
 - **대화 만료**: 7일간 활동 없으면 Redis TTL에 의해 자동 삭제
 
@@ -769,6 +773,11 @@ async function uploadDocument(userId: string, file: File) {
 ---
 
 ## 변경 이력
+
+### v1.3.0 (2026-02-28)
+- 멀티턴 대화 이력 지원: conversation_id가 있으면 최근 5턴을 LLM 맥락으로 주입
+- 이력 메시지 500자 truncate, user/assistant role만 허용 (SystemMessage 에스컬레이션 방지)
+- RAG 검색은 현재 질문만 사용 (이력 미포함)
 
 ### v1.2.0 (2026-02-28)
 - 메시지 max_length 10000→2000 축소 (프롬프트 인젝션 공격 표면 감소)

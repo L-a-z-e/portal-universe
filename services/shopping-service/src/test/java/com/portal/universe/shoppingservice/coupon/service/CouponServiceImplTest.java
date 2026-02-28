@@ -2,7 +2,6 @@ package com.portal.universe.shoppingservice.coupon.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.coupon.domain.*;
-import com.portal.universe.shoppingservice.coupon.dto.CouponCreateRequest;
 import com.portal.universe.shoppingservice.coupon.dto.CouponResponse;
 import com.portal.universe.shoppingservice.coupon.dto.UserCouponResponse;
 import com.portal.universe.shoppingservice.coupon.redis.CouponRedisService;
@@ -16,10 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -31,8 +26,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,80 +74,6 @@ class CouponServiceImplTest {
         ReflectionTestUtils.setField(userCoupon, "id", id);
         ReflectionTestUtils.setField(userCoupon, "status", status);
         return userCoupon;
-    }
-
-    @Nested
-    @DisplayName("getAllCoupons")
-    class GetAllCoupons {
-
-        @Test
-        @DisplayName("should_returnCoupons_when_called")
-        void should_returnCoupons_when_called() {
-            // given
-            Pageable pageable = PageRequest.of(0, 10);
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
-            Page<Coupon> couponPage = new PageImpl<>(List.of(coupon), pageable, 1);
-            when(couponRepository.findAll(pageable)).thenReturn(couponPage);
-
-            // when
-            Page<CouponResponse> result = couponService.getAllCoupons(pageable);
-
-            // then
-            assertThat(result.getContent()).hasSize(1);
-        }
-    }
-
-    @Nested
-    @DisplayName("createCoupon")
-    class CreateCoupon {
-
-        @Test
-        @DisplayName("should_createCoupon_when_valid")
-        void should_createCoupon_when_valid() {
-            // given
-            CouponCreateRequest request = CouponCreateRequest.builder()
-                    .code("NEW10")
-                    .name("New Coupon")
-                    .description("desc")
-                    .discountType(DiscountType.FIXED)
-                    .discountValue(BigDecimal.valueOf(1000))
-                    .totalQuantity(100)
-                    .startsAt(Instant.now())
-                    .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
-                    .build();
-
-            when(couponRepository.existsByCode("NEW10")).thenReturn(false);
-            Coupon savedCoupon = createCoupon(1L, "NEW10", CouponStatus.ACTIVE, 100, 0);
-            when(couponRepository.save(any(Coupon.class))).thenReturn(savedCoupon);
-
-            // when
-            CouponResponse result = couponService.createCoupon(request);
-
-            // then
-            assertThat(result).isNotNull();
-            verify(couponRedisService).initializeCouponStock(eq(1L), eq(100), anyLong());
-        }
-
-        @Test
-        @DisplayName("should_throwException_when_codeExists")
-        void should_throwException_when_codeExists() {
-            // given
-            CouponCreateRequest request = CouponCreateRequest.builder()
-                    .code("EXISTING")
-                    .name("Dup")
-                    .discountType(DiscountType.FIXED)
-                    .discountValue(BigDecimal.valueOf(1000))
-                    .totalQuantity(100)
-                    .startsAt(Instant.now())
-                    .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
-                    .build();
-
-            when(couponRepository.existsByCode("EXISTING")).thenReturn(true);
-
-            // when & then
-            assertThatThrownBy(() -> couponService.createCoupon(request))
-                    .isInstanceOf(CustomBusinessException.class);
-        }
     }
 
     @Nested
@@ -367,27 +286,6 @@ class CouponServiceImplTest {
             // when & then
             assertThatThrownBy(() -> couponService.useCoupon(1L, 100L))
                     .isInstanceOf(CustomBusinessException.class);
-        }
-    }
-
-    @Nested
-    @DisplayName("deactivateCoupon")
-    class DeactivateCoupon {
-
-        @Test
-        @DisplayName("should_deactivateCoupon_when_valid")
-        void should_deactivateCoupon_when_valid() {
-            // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
-            when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
-            when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
-
-            // when
-            couponService.deactivateCoupon(1L);
-
-            // then
-            verify(couponRepository).save(any(Coupon.class));
-            verify(couponRedisService).deleteCouponCache(1L);
         }
     }
 

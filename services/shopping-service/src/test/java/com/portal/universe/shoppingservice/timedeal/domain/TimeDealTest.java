@@ -1,10 +1,8 @@
 package com.portal.universe.shoppingservice.timedeal.domain;
 
-import com.portal.universe.shoppingservice.product.domain.Product;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -110,14 +108,8 @@ class TimeDealTest {
                     Instant.now().plus(1, ChronoUnit.HOURS),
                     Instant.now().plus(3, ChronoUnit.HOURS));
 
-            Product product = Product.builder()
-                    .name("테스트 상품")
-                    .price(new BigDecimal("10000"))
-                    .stock(100)
-                    .build();
-
             TimeDealProduct timeDealProduct = TimeDealProduct.builder()
-                    .product(product)
+                    .productId(1L)
                     .dealPrice(new BigDecimal("5000"))
                     .dealQuantity(50)
                     .maxPerUser(3)

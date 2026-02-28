@@ -37,6 +37,15 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
+settlement:
+  batch:
+    chunk-size: 100
+    grid-size: 4
+    retry-limit: 3
+    skip-limit: 10
+    core-pool-size: 4
+    scheduled-enabled: false
+
 management:
   endpoints:
     web:

@@ -36,4 +36,8 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
            "c.updatedAt = CURRENT_TIMESTAMP " +
            "WHERE c.id = :id")
     void incrementIssuedQuantity(@Param("id") Long id);
+
+    Optional<Coupon> findBySourceCouponId(Long sourceCouponId);
+
+    boolean existsBySourceCouponId(Long sourceCouponId);
 }

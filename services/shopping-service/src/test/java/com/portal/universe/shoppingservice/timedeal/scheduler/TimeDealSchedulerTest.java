@@ -1,6 +1,5 @@
 package com.portal.universe.shoppingservice.timedeal.scheduler;
 
-import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDeal;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealProduct;
 import com.portal.universe.shoppingservice.timedeal.redis.TimeDealRedisService;
@@ -43,15 +42,8 @@ class TimeDealSchedulerTest {
                 .build();
         ReflectionTestUtils.setField(deal, "id", 1L);
 
-        Product product = Product.builder()
-                .name("테스트 상품")
-                .price(new BigDecimal("10000"))
-                .stock(100)
-                .build();
-        ReflectionTestUtils.setField(product, "id", 10L);
-
         TimeDealProduct tdp = TimeDealProduct.builder()
-                .product(product)
+                .productId(10L)
                 .dealPrice(new BigDecimal("5000"))
                 .dealQuantity(50)
                 .maxPerUser(3)
@@ -118,19 +110,11 @@ class TimeDealSchedulerTest {
                 .build();
         ReflectionTestUtils.setField(deal, "id", 2L);
 
-        Product product1 = Product.builder()
-                .name("상품1").price(new BigDecimal("10000")).stock(100).build();
-        ReflectionTestUtils.setField(product1, "id", 20L);
-
-        Product product2 = Product.builder()
-                .name("상품2").price(new BigDecimal("20000")).stock(200).build();
-        ReflectionTestUtils.setField(product2, "id", 21L);
-
         deal.addProduct(TimeDealProduct.builder()
-                .product(product1).dealPrice(new BigDecimal("5000"))
+                .productId(20L).dealPrice(new BigDecimal("5000"))
                 .dealQuantity(30).maxPerUser(2).build());
         deal.addProduct(TimeDealProduct.builder()
-                .product(product2).dealPrice(new BigDecimal("15000"))
+                .productId(21L).dealPrice(new BigDecimal("15000"))
                 .dealQuantity(40).maxPerUser(1).build());
 
         when(timeDealRepository.findDealsToStart(any(Instant.class)))

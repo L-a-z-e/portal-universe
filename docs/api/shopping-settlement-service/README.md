@@ -135,6 +135,8 @@ curl -X POST "http://localhost:8089/api/settlement/periods/456/pay" \
 | `ST003` | 400 | 이미 확정된 정산 주기 |
 | `ST004` | 400 | 확정되지 않은 정산 주기 (지급 불가) |
 | `ST005` | 403 | 타인의 정산 내역 접근 금지 |
+| `ST008` | 400 | 정산 금액 오류 (음수 등) |
+| `ST009` | 409 | 동일 기간 정산 주기 중복 |
 
 ---
 
@@ -382,22 +384,26 @@ curl -X POST "http://localhost:8089/api/settlement/periods/456/pay" \
 
 ```mermaid
 sequenceDiagram
-    participant Batch as Spring Batch Job
-    participant Service as Settlement Service
-    participant DB as MySQL (settlement_db)
-    participant Kafka as Kafka (shopping events)
+    participant Scheduler as Scheduler / API
+    participant Job as Daily Settlement Job
+    participant DB as PostgreSQL (settlement_db)
 
-    Note over Batch: 매일 01:00 - Daily Job
-    Batch->>DB: 전일 완료 주문 집계
-    Batch->>Service: 판매자별 정산 계산
-    Service->>DB: settlements 생성 (CALCULATED)
-    Service->>DB: settlement_periods 상태 COMPLETED
+    Scheduler->>Job: trigger (targetDate)
 
-    Note over Kafka: 실시간 이벤트
-    Kafka->>Service: PaymentCompletedEvent
-    Service->>DB: settlement_ledger 기록
-    Kafka->>Service: OrderCancelledEvent
-    Service->>DB: settlement_ledger 기록 (환불)
+    Note over Job: Step 1: createPeriodStep
+    Job->>DB: SettlementPeriod 생성 (PROCESSING)
+    Job->>DB: 멱등성 검증 (동일 기간 존재 시 실패)
+
+    Note over Job: Step 2: partitionedSettlementStep
+    Job->>DB: SELECT DISTINCT seller_id (Partitioner)
+    loop 각 파티션 (병렬)
+        Job->>DB: GROUP BY seller_id 집계 (Reader)
+        Job->>Job: 수수료 계산 (Processor)
+        Job->>DB: Settlement INSERT + Ledger UPDATE (Writer)
+    end
+
+    Note over Job: Step 3: completePeriodStep
+    Job->>DB: SettlementPeriod → COMPLETED
 ```
 
 ### 관리자 정산 확정 워크플로우
@@ -425,21 +431,78 @@ sequenceDiagram
 
 ## 🕐 Spring Batch Jobs
 
-### Daily Settlement Job
+### Daily Settlement Job — Enterprise Chunk Architecture
+
+3-Step Partitioned Job으로 대용량 정산 처리를 지원합니다.
+
+```
+Job: dailySettlementJob
+├── Step 1: createPeriodStep (Tasklet)
+│   └── SettlementPeriod 생성 (PROCESSING), 멱등성 검증
+│
+├── Step 2: partitionedSettlementStep (Master-Worker)
+│   ├── Partitioner: SellerIdRangePartitioner (seller_id 범위 분할)
+│   ├── TaskExecutorPartitionHandler (gridSize=4, 병렬 실행)
+│   └── workerStep (Chunk<SellerAggregation, Settlement>)
+│       ├── Reader: JdbcCursorItemReader (DB GROUP BY 집계)
+│       ├── Processor: SettlementCalculationProcessor (수수료 10%)
+│       └── Writer: CompositeItemWriter
+│           ├── Settlement INSERT (JpaItemWriter)
+│           └── Ledger processed=true UPDATE (JDBC batch)
+│
+└── Step 3: completePeriodStep (Tasklet)
+    └── SettlementPeriod.status → COMPLETED
+```
 
 | 항목 | 내용 |
 |------|------|
-| **실행 주기** | 매일 01:00 (KST) |
-| **역할** | 전일 완료된 주문 기준 판매자별 매출 집계 |
-| **처리 범위** | 전일 00:00:00 ~ 23:59:59 |
-| **출력** | settlements (판매자별), settlement_details (주문별) |
+| **스케줄** | 매일 02:00 KST (설정: `settlement.batch.scheduled-enabled=true`) |
+| **수동 실행** | `POST /batch/daily?targetDate=2026-02-27` |
+| **처리 범위** | 대상일 00:00:00 ~ 23:59:59 (KST) |
+| **Partitioning** | seller_id 범위 기반 병렬 분할 (기본 gridSize=4) |
+| **Chunk Size** | 기본 100 (설정 가능) |
+| **멱등성** | 동일 날짜 재실행 시 DUPLICATE_PERIOD(ST009) 에러 |
 
-**처리 흐름**:
-1. settlement_periods 생성 (periodType=DAILY, status=PENDING)
-2. settlement_ledger에서 전일 이벤트 읽기
-3. 판매자별 집계 (totalSales, totalOrders, totalRefunds, commission 계산)
-4. settlements 생성 (status=CALCULATED)
-5. settlement_periods 상태 COMPLETED로 변경
+**Fault Tolerance**:
+- **Retry**: `DeadlockLoserDataAccessException` (기본 3회)
+- **Skip**: `DataIntegrityViolationException` (기본 10건)
+- **NoSkip**: `InvalidAmountException` (금액 음수 — 비즈니스 결함)
+
+**배치 설정** (`application.yml`):
+```yaml
+settlement:
+  batch:
+    chunk-size: 100
+    grid-size: 4
+    retry-limit: 3
+    skip-limit: 10
+    core-pool-size: 4
+    scheduled-enabled: false  # local/docker: false, k8s: true
+```
+
+### Batch Controller API
+
+**POST /batch/daily**
+
+배치 Job을 수동 실행합니다.
+
+| 파라미터 | 타입 | 필수 | 설명 | 기본값 |
+|---------|------|------|------|--------|
+| `targetDate` | string | N | 정산 대상일 (yyyy-MM-dd) | 어제 |
+
+**Response (200)**:
+```json
+{
+  "success": true,
+  "data": {
+    "executionId": 1,
+    "status": "COMPLETED",
+    "startTime": "2026-02-28T02:00:00Z",
+    "endTime": "2026-02-28T02:00:15Z",
+    "exitDescription": ""
+  }
+}
+```
 
 ### Weekly Settlement Job
 
@@ -501,7 +564,7 @@ sequenceDiagram
 
 ## 🗄️ Database
 
-### shopping_settlement_db (MySQL)
+### shopping_settlement_db (PostgreSQL)
 
 **주요 테이블**:
 
@@ -570,7 +633,8 @@ curl -X GET "$API_BASE_URL/api/settlement/sellers/5?page=1" \
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|-----------|--------|
 | v1.0 | 2026-02-14 | Shopping Service에서 분리, Settlement 전용 서비스 초기 버전 | Laze |
+| v1.1 | 2026-02-28 | Enterprise Chunk 전환: Partitioned Step, Fault Tolerance, Scheduler | Laze |
 
 ---
 
-**마지막 업데이트**: 2026-02-14
+**마지막 업데이트**: 2026-02-28

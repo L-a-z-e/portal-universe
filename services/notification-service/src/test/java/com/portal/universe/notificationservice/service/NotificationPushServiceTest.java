@@ -15,7 +15,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
 
@@ -24,15 +23,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationPushServiceTest {
-
-    @Mock
-    private SimpMessagingTemplate messagingTemplate;
 
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
@@ -46,7 +41,7 @@ class NotificationPushServiceTest {
 
     @BeforeEach
     void setUp() {
-        pushService = new NotificationPushService(messagingTemplate, redisTemplate, redisObjectMapper);
+        pushService = new NotificationPushService(redisTemplate, redisObjectMapper);
     }
 
     private Notification createTestNotification() {
@@ -62,68 +57,6 @@ class NotificationPushServiceTest {
                 .referenceType("order")
                 .createdAt(LocalDateTime.now())
                 .build();
-    }
-
-    @Test
-    @DisplayName("should_pushViaWebSocket_when_pushCalled")
-    void should_pushViaWebSocket_when_pushCalled() throws JsonProcessingException {
-        // given
-        Notification notification = createTestNotification();
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willReturn("{}");
-
-        // when
-        pushService.push(notification);
-
-        // then
-        verify(messagingTemplate).convertAndSendToUser(
-                eq(TEST_USER_ID),
-                eq(NotificationConstants.WS_QUEUE_NOTIFICATIONS),
-                any(NotificationResponse.class)
-        );
-    }
-
-    @Test
-    @DisplayName("should_sendToCorrectDestination_when_push")
-    void should_sendToCorrectDestination_when_push() throws JsonProcessingException {
-        // given
-        Notification notification = createTestNotification();
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willReturn("{}");
-
-        // when
-        pushService.push(notification);
-
-        // then
-        ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
-        verify(messagingTemplate).convertAndSendToUser(
-                anyString(), destinationCaptor.capture(), any(NotificationResponse.class));
-
-        assertThat(destinationCaptor.getValue()).isEqualTo("/queue/notifications");
-    }
-
-    @Test
-    @DisplayName("should_sendNotificationResponsePayload_when_push")
-    void should_sendNotificationResponsePayload_when_push() throws JsonProcessingException {
-        // given
-        Notification notification = createTestNotification();
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willReturn("{}");
-
-        // when
-        pushService.push(notification);
-
-        // then
-        ArgumentCaptor<NotificationResponse> payloadCaptor =
-                ArgumentCaptor.forClass(NotificationResponse.class);
-        verify(messagingTemplate).convertAndSendToUser(
-                anyString(), anyString(), payloadCaptor.capture());
-
-        NotificationResponse payload = payloadCaptor.getValue();
-        assertThat(payload.getId()).isEqualTo(1L);
-        assertThat(payload.getUserId()).isEqualTo(TEST_USER_ID);
-        assertThat(payload.getType()).isEqualTo(NotificationType.ORDER_CREATED);
-        assertThat(payload.getTitle()).isEqualTo("주문 접수");
     }
 
     @Test
@@ -188,37 +121,13 @@ class NotificationPushServiceTest {
         // when - should not throw
         pushService.push(notification);
 
-        // then - WebSocket should still be called, Redis convertAndSend should not be called
-        verify(messagingTemplate).convertAndSendToUser(
-                eq(TEST_USER_ID),
-                eq(NotificationConstants.WS_QUEUE_NOTIFICATIONS),
-                any(NotificationResponse.class)
-        );
+        // then - Redis convertAndSend should not be called
         verify(redisTemplate, never()).convertAndSend(anyString(), anyString());
     }
 
     @Test
-    @DisplayName("should_pushWebSocketEvenIfRedisFails_when_push")
-    void should_pushWebSocketEvenIfRedisFails_when_push() throws JsonProcessingException {
-        // given
-        Notification notification = createTestNotification();
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willThrow(new JsonProcessingException("Redis error") {});
-
-        // when
-        pushService.push(notification);
-
-        // then - WebSocket push happened before Redis attempt
-        verify(messagingTemplate).convertAndSendToUser(
-                eq(TEST_USER_ID),
-                eq(NotificationConstants.WS_QUEUE_NOTIFICATIONS),
-                any(NotificationResponse.class)
-        );
-    }
-
-    @Test
-    @DisplayName("should_passUserIdToConvertAndSendToUser_when_push")
-    void should_passUserIdToConvertAndSendToUser_when_push() throws JsonProcessingException {
+    @DisplayName("should_passCorrectUserId_when_push")
+    void should_passCorrectUserId_when_push() throws JsonProcessingException {
         // given
         String differentUserId = "user-abc-123";
         Notification notification = Notification.builder()
@@ -238,25 +147,10 @@ class NotificationPushServiceTest {
         pushService.push(notification);
 
         // then
-        ArgumentCaptor<String> userCaptor = ArgumentCaptor.forClass(String.class);
-        verify(messagingTemplate).convertAndSendToUser(
-                userCaptor.capture(), anyString(), any(NotificationResponse.class));
+        String expectedChannel = NotificationConstants.REDIS_CHANNEL_PREFIX + differentUserId;
+        ArgumentCaptor<String> channelCaptor = ArgumentCaptor.forClass(String.class);
+        verify(redisTemplate).convertAndSend(channelCaptor.capture(), anyString());
 
-        assertThat(userCaptor.getValue()).isEqualTo(differentUserId);
-    }
-
-    @Test
-    @DisplayName("should_useRedisObjectMapper_when_serializing")
-    void should_useRedisObjectMapper_when_serializing() throws JsonProcessingException {
-        // given
-        Notification notification = createTestNotification();
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willReturn("{\"test\":true}");
-
-        // when
-        pushService.push(notification);
-
-        // then - verify that specifically the redisObjectMapper mock was called
-        verify(redisObjectMapper).writeValueAsString(any(NotificationResponse.class));
+        assertThat(channelCaptor.getValue()).isEqualTo(expectedChannel);
     }
 }

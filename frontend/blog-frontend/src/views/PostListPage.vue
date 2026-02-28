@@ -100,23 +100,7 @@ async function loadPosts(page: number = 1, append: boolean = false) {
     let response: PageResponse<PostSummaryResponse>;
 
     if (currentTab.value === 'feed') {
-      // 팔로잉 목록이 로드되지 않았으면 먼저 로드
-      if (!followStore.followingIdsLoaded) {
-        await followStore.loadFollowingIds();
-      }
-
-      // 팔로잉이 없으면 빈 응답 반환
-      if (followStore.followingIds.length === 0) {
-        response = {
-          items: [],
-          page: 1,
-          size: pageSize.value,
-          totalElements: 0,
-          totalPages: 0,
-        };
-      } else {
-        response = await getFeed(followStore.followingIds, page, pageSize.value);
-      }
+      response = await getFeed(page, pageSize.value);
     } else if (currentTab.value === 'trending') {
       response = await getTrendingPosts(currentPeriod.value, page, pageSize.value);
     } else {
@@ -365,16 +349,12 @@ onBeforeUnmount(() => {
       <div v-else-if="isEmpty" class="text-center py-20" data-testid="empty-feed">
         <h3 class="text-lg font-semibold text-text-heading mb-2">
           <template v-if="isSearchMode">검색 결과가 없습니다</template>
-          <template v-else-if="currentTab === 'feed'">
-            {{ followStore.followingIds.length === 0 ? '팔로우하는 사용자가 없습니다' : '피드가 비어있습니다' }}
-          </template>
+          <template v-else-if="currentTab === 'feed'">피드가 비어있습니다</template>
           <template v-else>아직 게시글이 없습니다</template>
         </h3>
         <p class="text-text-meta text-sm mb-6">
           <template v-if="isSearchMode">다른 검색어를 시도해보세요.</template>
-          <template v-else-if="currentTab === 'feed'">
-            {{ followStore.followingIds.length === 0 ? '관심 있는 사용자를 팔로우해보세요!' : '팔로우한 사용자들이 아직 게시글을 작성하지 않았습니다.' }}
-          </template>
+          <template v-else-if="currentTab === 'feed'">관심 있는 사용자를 팔로우해보세요!</template>
           <template v-else>첫 게시글을 작성해보세요!</template>
         </p>
         <Button
@@ -386,7 +366,7 @@ onBeforeUnmount(() => {
           첫 글 작성하기
         </Button>
         <Button
-          v-if="currentTab === 'feed' && followStore.followingIds.length === 0"
+          v-if="currentTab === 'feed'"
           variant="primary"
           size="sm"
           @click="changeTab('trending')"

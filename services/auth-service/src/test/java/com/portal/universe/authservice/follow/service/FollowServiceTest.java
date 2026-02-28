@@ -36,6 +36,9 @@ class FollowServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private FollowService followService;
 
@@ -73,7 +76,15 @@ class FollowServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
             when(userRepository.findByUsername("user2")).thenReturn(Optional.of(targetUser));
             when(followRepository.existsByFollowerAndFollowing(currentUser, targetUser)).thenReturn(false);
-            when(followRepository.save(any(Follow.class))).thenReturn(new Follow(currentUser, targetUser));
+            Follow savedFollow = new Follow(currentUser, targetUser);
+            try {
+                var idField = Follow.class.getDeclaredField("id");
+                idField.setAccessible(true);
+                idField.set(savedFollow, 100L);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            when(followRepository.save(any(Follow.class))).thenReturn(savedFollow);
             when(followRepository.countByFollowing(targetUser)).thenReturn(1L);
             when(followRepository.countByFollower(targetUser)).thenReturn(0L);
 
@@ -83,6 +94,7 @@ class FollowServiceTest {
             // then
             assertThat(result.following()).isTrue();
             verify(followRepository).save(any(Follow.class));
+            verify(eventPublisher).publishEvent(any(com.portal.universe.event.blog.UserFollowedEvent.class));
         }
 
         @Test
@@ -159,7 +171,15 @@ class FollowServiceTest {
             when(userRepository.findByUuid("uuid-1")).thenReturn(Optional.of(currentUser));
             when(userRepository.findByUsername("user2")).thenReturn(Optional.of(targetUser));
             when(followRepository.existsByFollowerAndFollowing(currentUser, targetUser)).thenReturn(false);
-            when(followRepository.save(any(Follow.class))).thenReturn(new Follow(currentUser, targetUser));
+            Follow savedFollow = new Follow(currentUser, targetUser);
+            try {
+                var idField = Follow.class.getDeclaredField("id");
+                idField.setAccessible(true);
+                idField.set(savedFollow, 101L);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            when(followRepository.save(any(Follow.class))).thenReturn(savedFollow);
             when(followRepository.countByFollowing(targetUser)).thenReturn(1L);
             when(followRepository.countByFollower(targetUser)).thenReturn(0L);
 
@@ -168,6 +188,7 @@ class FollowServiceTest {
 
             // then
             assertThat(result.following()).isTrue();
+            verify(eventPublisher).publishEvent(any(com.portal.universe.event.blog.UserFollowedEvent.class));
         }
     }
 

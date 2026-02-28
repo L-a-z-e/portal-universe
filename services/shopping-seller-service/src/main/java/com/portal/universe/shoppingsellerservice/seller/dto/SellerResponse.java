@@ -17,6 +17,10 @@ public record SellerResponse(
         String bankAccount,
         BigDecimal commissionRate,
         String status,
+        String reason,
+        String reviewedBy,
+        String reviewComment,
+        Instant reviewedAt,
         Instant createdAt
 ) {
     public static SellerResponse from(Seller seller) {
@@ -32,6 +36,10 @@ public record SellerResponse(
                 seller.getBankAccount(),
                 seller.getCommissionRate(),
                 seller.getStatus().name(),
+                seller.getReason(),
+                seller.getReviewedBy(),
+                seller.getReviewComment(),
+                seller.getReviewedAt(),
                 seller.getCreatedAt()
         );
     }

@@ -1,9 +1,10 @@
 package com.portal.universe.shoppingsettlementservice.common.config;
 
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import com.portal.universe.shoppingsettlementservice.batch.SettlementBatchProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableBatchProcessing
+@EnableConfigurationProperties(SettlementBatchProperties.class)
 public class BatchConfig {
 }

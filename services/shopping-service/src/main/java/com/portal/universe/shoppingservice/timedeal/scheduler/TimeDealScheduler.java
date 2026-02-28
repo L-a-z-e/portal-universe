@@ -49,7 +49,7 @@ public class TimeDealScheduler {
             deal.getProducts().forEach(product ->
                     timeDealRedisService.initializeStock(
                             deal.getId(),
-                            product.getProduct().getId(),
+                            product.getProductId(),
                             product.getDealQuantity()
                     )
             );
@@ -70,7 +70,7 @@ public class TimeDealScheduler {
             deal.getProducts().forEach(product ->
                     timeDealRedisService.deleteTimeDealCache(
                             deal.getId(),
-                            product.getProduct().getId()
+                            product.getProductId()
                     )
             );
             log.info("Ended time deal: id={}, name={}", deal.getId(), deal.getName());

@@ -6,7 +6,7 @@ Blog Service의 API 명세 문서입니다.
 
 | 문서 ID                     | 제목 | 버전 | 상태 | 최종 업데이트 |
 |---------------------------|------|------|------|---------------|
-| [blog-api](./blog-api.md) | Blog Service API | v1 | current | 2026-02-25 |
+| [blog-api](./blog-api.md) | Blog Service API | v1 | current | 2026-03-01 |
 
 ## API 개요
 
@@ -107,4 +107,4 @@ Authorization: Bearer {token}
 
 ---
 
-**최종 업데이트**: 2026-02-25
+**최종 업데이트**: 2026-03-01

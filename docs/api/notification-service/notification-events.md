@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-03-01
 author: Laze
 tags: [api, notification-service, kafka, websocket, redis, event-driven, real-time]
 related:
@@ -83,6 +83,57 @@ sequenceDiagram
 | title | 환영합니다! |
 | message | {name}님, Portal Universe에 가입해주셔서 감사합니다. |
 | type | `SYSTEM` |
+
+---
+
+#### auth.password-reset.requested
+
+| 항목 | 내용 |
+|------|------|
+| **Topic** | `auth.password-reset.requested` |
+| **Event Class** | `PasswordResetRequestedEvent` |
+| **알림 유형** | `PASSWORD_RESET_REQUESTED` |
+| **대상** | 비밀번호 재설정 요청 사용자 |
+
+| 이벤트 필드 | 타입 | 설명 |
+|-------------|------|------|
+| `userId` | String | 사용자 ID |
+| `email` | String | 이메일 주소 |
+| `resetLink` | String | 비밀번호 재설정 링크 |
+| `timestamp` | long (timestamp-millis) | 이벤트 발생 시각 |
+
+**생성되는 알림:**
+
+| 필드 | 값 |
+|------|-----|
+| title | 비밀번호 재설정 |
+| message | 비밀번호 재설정 링크입니다. |
+| link | `{resetLink}` |
+
+> 이메일 발송: `EmailQueueService.enqueueIfEmailWorthy()`를 통해 이메일 큐에 추가됩니다 (현재 stub).
+
+---
+
+#### auth.user.withdrawn
+
+| 항목 | 내용 |
+|------|------|
+| **Topic** | `auth.user.withdrawn` |
+| **Event Class** | `UserWithdrawnEvent` |
+| **처리** | 알림 생성이 아닌 **데이터 삭제** |
+| **대상** | 탈퇴한 사용자 |
+
+| 이벤트 필드 | 타입 | 설명 |
+|-------------|------|------|
+| `userId` | String | 탈퇴 사용자 ID |
+| `reason` | String (nullable) | 탈퇴 사유 |
+| `timestamp` | long (timestamp-millis) | 이벤트 발생 시각 |
+
+**처리 동작:**
+
+탈퇴한 사용자의 모든 알림을 hard delete합니다 (`notificationRepository.deleteByUserId()`).
+
+> 알림을 생성하지 않으며, 기존 알림을 삭제하는 정리 작업입니다.
 
 ---
 
@@ -461,6 +512,8 @@ sequenceDiagram
 | Topic | Event Class | 알림 유형 | 대상 |
 |-------|------------|-----------|------|
 | `user-signup` | `UserSignedUpEvent` | `SYSTEM` | 가입 사용자 |
+| `auth.password-reset.requested` | `PasswordResetRequestedEvent` | `PASSWORD_RESET_REQUESTED` | 재설정 요청 사용자 |
+| `auth.user.withdrawn` | `UserWithdrawnEvent` | — (데이터 삭제) | 탈퇴 사용자 |
 | `shopping.order.created` | `OrderCreatedEvent` | `ORDER_CREATED` | 주문 사용자 |
 | `shopping.order.cancelled` | `OrderCancelledEvent` | `ORDER_CANCELLED` | 주문 사용자 |
 | `shopping.payment.completed` | `PaymentCompletedEvent` | `PAYMENT_COMPLETED` | 결제 사용자 |
@@ -678,6 +731,10 @@ app:
 
 ## 변경 이력
 
+### v1.1.0 (2026-03-01)
+- PasswordResetRequestedEvent 추가 (비밀번호 재설정 알림 + 이메일 큐)
+- UserWithdrawnEvent 추가 (회원 탈퇴 시 알림 데이터 hard delete)
+
 ### v1.0.0 (2026-02-06)
 - 초기 버전: Kafka Events 14개 토픽 문서화
 - WebSocket (STOMP over SockJS) 연결 명세
@@ -687,4 +744,4 @@ app:
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-03-01

@@ -78,6 +78,14 @@ public class SecurityConfig {
                         // 상품 조회 (공개)
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
 
+                        // 관리자 API (SHOPPING_ADMIN, SUPER_ADMIN)
+                        .requestMatchers("/admin/sellers/**")
+                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
+
+                        // 판매자 신청 (인증된 사용자면 누구나)
+                        .requestMatchers(HttpMethod.POST, "/sellers/apply").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/sellers/my-application").authenticated()
+
                         // 판매자 관리 (SELLER, SHOPPING_ADMIN, SUPER_ADMIN)
                         .requestMatchers("/sellers/**")
                             .hasAnyAuthority("ROLE_SHOPPING_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")

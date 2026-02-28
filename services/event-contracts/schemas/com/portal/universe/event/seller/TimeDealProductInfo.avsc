@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "TimeDealProductInfo",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Nested record for time deal product information.",
+  "fields": [
+    { "name": "productId", "type": "long", "doc": "Product entity ID in seller-service" },
+    { "name": "dealPrice", "type": { "type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2 }, "doc": "Discounted price during deal" },
+    { "name": "dealQuantity", "type": "int", "doc": "Available quantity for deal" },
+    { "name": "maxPerUser", "type": "int", "doc": "Maximum purchase per user" }
+  ]
+}

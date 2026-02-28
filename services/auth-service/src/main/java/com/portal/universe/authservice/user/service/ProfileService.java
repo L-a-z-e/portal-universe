@@ -7,17 +7,22 @@ import com.portal.universe.authservice.user.dto.profile.UpdateProfileRequest;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.common.exception.AuthErrorCode;
+import com.portal.universe.authservice.follow.repository.FollowRepository;
 import com.portal.universe.authservice.password.PasswordValidator;
 import com.portal.universe.authservice.password.ValidationResult;
 import com.portal.universe.authservice.password.domain.PasswordHistory;
 import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.auth.UserWithdrawnEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 @Slf4j
 @Service
@@ -29,6 +34,8 @@ public class ProfileService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
     private final PasswordHistoryRepository passwordHistoryRepository;
+    private final FollowRepository followRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 사용자 프로필을 조회합니다.
@@ -138,6 +145,17 @@ public class ProfileService {
 
         // Soft Delete - 상태를 WITHDRAWAL_PENDING으로 변경
         user.markForWithdrawal();
+
+        // 내부 연관 데이터 정리
+        followRepository.deleteByFollowerOrFollowing(user, user);
+        passwordHistoryRepository.deleteByUserId(user.getId());
+
+        // 타 서비스 통지 이벤트 발행
+        eventPublisher.publishEvent(UserWithdrawnEvent.newBuilder()
+                .setUserId(uuid)
+                .setReason(request.reason())
+                .setTimestamp(Instant.now())
+                .build());
 
         log.info("Account marked for withdrawal: uuid={}, reason={}", uuid, request.reason());
     }

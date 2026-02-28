@@ -12,6 +12,8 @@ import SettingsPage from "../views/SettingsPage.vue";
 import ServiceStatusPage from "../views/ServiceStatusPage.vue";
 import MyProfilePage from "../views/MyProfilePage.vue";
 import ForbiddenPage from "../views/ForbiddenPage.vue";
+import ForgotPasswordPage from "../views/ForgotPasswordPage.vue";
+import ResetPasswordPage from "../views/ResetPasswordPage.vue";
 import { getRemoteConfigs } from '../config/remoteRegistry';
 import { useAuthStore } from '../store/auth';
 
@@ -93,6 +95,19 @@ const routes = [
     name: 'MyProfile',
     component: MyProfilePage,
     meta: { title: '내 프로필', requiresAuth: true }
+  },
+
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPasswordPage,
+    meta: { title: '비밀번호 찾기' }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPasswordPage,
+    meta: { title: '비밀번호 재설정' }
   },
 
   // 403 권한 부족 페이지

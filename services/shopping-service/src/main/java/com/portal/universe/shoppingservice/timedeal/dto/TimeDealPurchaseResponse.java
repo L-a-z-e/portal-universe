@@ -10,7 +10,7 @@ import java.time.Instant;
 public record TimeDealPurchaseResponse(
         Long id,
         Long timeDealProductId,
-        String productName,
+        Long productId,
         Integer quantity,
         BigDecimal purchasePrice,
         BigDecimal totalPrice,
@@ -20,7 +20,7 @@ public record TimeDealPurchaseResponse(
         return TimeDealPurchaseResponse.builder()
                 .id(purchase.getId())
                 .timeDealProductId(purchase.getTimeDealProduct().getId())
-                .productName(purchase.getTimeDealProduct().getProduct().getName())
+                .productId(purchase.getTimeDealProduct().getProductId())
                 .quantity(purchase.getQuantity())
                 .purchasePrice(purchase.getPurchasePrice())
                 .totalPrice(purchase.getPurchasePrice().multiply(BigDecimal.valueOf(purchase.getQuantity())))

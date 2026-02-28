@@ -1,16 +1,21 @@
 package com.portal.universe.shoppingsellerservice.coupon.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.seller.CouponCreatedEvent;
+import com.portal.universe.event.seller.CouponDeletedEvent;
 import com.portal.universe.shoppingsellerservice.common.exception.SellerErrorCode;
 import com.portal.universe.shoppingsellerservice.coupon.domain.Coupon;
 import com.portal.universe.shoppingsellerservice.coupon.dto.CouponCreateRequest;
 import com.portal.universe.shoppingsellerservice.coupon.dto.CouponResponse;
 import com.portal.universe.shoppingsellerservice.coupon.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -26,7 +32,25 @@ public class CouponServiceImpl implements CouponService {
             throw new CustomBusinessException(SellerErrorCode.COUPON_CODE_ALREADY_EXISTS);
         }
         Coupon coupon = request.toEntity(sellerId);
-        return CouponResponse.from(couponRepository.save(coupon));
+        Coupon saved = couponRepository.save(coupon);
+
+        eventPublisher.publishEvent(CouponCreatedEvent.newBuilder()
+                .setCouponId(saved.getId())
+                .setSellerId(sellerId)
+                .setCode(saved.getCode())
+                .setName(saved.getName())
+                .setDescription(saved.getDescription())
+                .setDiscountType(saved.getDiscountType().name())
+                .setDiscountValue(saved.getDiscountValue())
+                .setMinimumOrderAmount(saved.getMinimumOrderAmount())
+                .setMaximumDiscountAmount(saved.getMaximumDiscountAmount())
+                .setTotalQuantity(saved.getTotalQuantity())
+                .setStartsAt(saved.getStartsAt())
+                .setExpiresAt(saved.getExpiresAt())
+                .setTimestamp(Instant.now())
+                .build());
+
+        return CouponResponse.from(saved);
     }
 
     @Override
@@ -54,5 +78,11 @@ public class CouponServiceImpl implements CouponService {
             throw new CustomBusinessException(SellerErrorCode.COUPON_NOT_OWNED);
         }
         coupon.deactivate();
+
+        eventPublisher.publishEvent(CouponDeletedEvent.newBuilder()
+                .setCouponId(couponId)
+                .setSellerId(sellerId)
+                .setTimestamp(Instant.now())
+                .build());
     }
 }

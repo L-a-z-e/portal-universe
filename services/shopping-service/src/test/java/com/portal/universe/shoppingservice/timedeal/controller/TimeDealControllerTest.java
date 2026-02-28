@@ -61,7 +61,7 @@ class TimeDealControllerTest {
         return TimeDealPurchaseResponse.builder()
                 .id(1L)
                 .timeDealProductId(1L)
-                .productName("Special Item")
+                .productId(1L)
                 .quantity(1)
                 .purchasePrice(BigDecimal.valueOf(5000))
                 .totalPrice(BigDecimal.valueOf(5000))
@@ -112,7 +112,7 @@ class TimeDealControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.productName").value("Special Item"));
+                .andExpect(jsonPath("$.data.productId").value(1));
     }
 
     @Test

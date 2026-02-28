@@ -110,17 +110,14 @@ function rolePercentage(userCount: number, total: number): number {
             <span class="text-text-meta">{{ stats.memberships.groups.length }} groups</span>
           </div>
         </div>
-        <div class="stat-card" :class="{ 'stat-card--warning': stats.sellers.pending > 0 }">
+        <div class="stat-card">
           <div class="stat-icon">
             <span class="material-symbols-outlined" style="font-size: 22px;">approval</span>
           </div>
-          <div class="stat-label">Pending Approvals</div>
-          <div class="stat-value" :class="stats.sellers.pending > 0 ? 'text-status-warning' : ''">
-            {{ stats.sellers.pending }}
-          </div>
-          <div v-if="stats.sellers.pending > 0" class="stat-trend">
-            <Button variant="ghost" size="xs" @click="router.push({ name: 'SellerApprovals' })">
-              Review now
+          <div class="stat-label">Seller Approvals</div>
+          <div class="stat-value">
+            <Button variant="ghost" size="sm" @click="router.push({ name: 'SellerApprovals' })">
+              Manage
             </Button>
           </div>
         </div>

@@ -1,25 +1,12 @@
 package com.portal.universe.shoppingservice.coupon.service;
 
-import com.portal.universe.shoppingservice.coupon.dto.CouponCreateRequest;
 import com.portal.universe.shoppingservice.coupon.dto.CouponResponse;
 import com.portal.universe.shoppingservice.coupon.dto.UserCouponResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public interface CouponService {
-
-    /**
-     * 모든 쿠폰을 페이징 조회합니다. (관리자)
-     */
-    Page<CouponResponse> getAllCoupons(Pageable pageable);
-
-    /**
-     * 새로운 쿠폰을 생성합니다. (관리자)
-     */
-    CouponResponse createCoupon(CouponCreateRequest request);
 
     /**
      * 쿠폰 ID로 쿠폰을 조회합니다.
@@ -50,11 +37,6 @@ public interface CouponService {
      * 쿠폰을 사용합니다.
      */
     void useCoupon(Long userCouponId, Long orderId);
-
-    /**
-     * 쿠폰을 비활성화합니다. (관리자)
-     */
-    void deactivateCoupon(Long couponId);
 
     /**
      * 사용자 쿠폰의 할인 금액을 계산합니다.

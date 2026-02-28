@@ -1,7 +1,9 @@
 package com.portal.universe.notificationservice.consumer;
 
 import com.portal.universe.event.auth.AuthTopics;
+import com.portal.universe.event.auth.PasswordResetRequestedEvent;
 import com.portal.universe.event.auth.UserSignedUpEvent;
+import com.portal.universe.event.auth.UserWithdrawnEvent;
 import com.portal.universe.event.blog.BlogTopics;
 import com.portal.universe.event.blog.CommentCreatedEvent;
 import com.portal.universe.event.blog.CommentRepliedEvent;
@@ -21,6 +23,7 @@ import com.portal.universe.notificationservice.domain.Notification;
 import com.portal.universe.notificationservice.domain.NotificationType;
 import com.portal.universe.notificationservice.dto.CreateNotificationCommand;
 import com.portal.universe.notificationservice.dto.NotificationEvent;
+import com.portal.universe.notificationservice.repository.NotificationRepository;
 import com.portal.universe.notificationservice.service.EmailQueueService;
 import com.portal.universe.notificationservice.service.NotificationPushService;
 import com.portal.universe.notificationservice.service.NotificationService;
@@ -37,6 +40,7 @@ public class NotificationConsumer {
     private final NotificationService notificationService;
     private final NotificationPushService pushService;
     private final NotificationEventConverter converter;
+    private final NotificationRepository notificationRepository;
     private final EmailQueueService emailQueueService;
 
     @KafkaListener(topics = AuthTopics.USER_SIGNED_UP,
@@ -51,6 +55,28 @@ public class NotificationConsumer {
                 .message(event.getName() + "님, Portal Universe에 가입해주셔서 감사합니다.")
                 .build();
         handleNotificationEvent(notifEvent);
+    }
+
+    @KafkaListener(topics = AuthTopics.PASSWORD_RESET_REQUESTED,
+                   groupId = "${spring.kafka.consumer.group-id}",
+                   containerFactory = "avroKafkaListenerContainerFactory")
+    public void handlePasswordResetRequested(PasswordResetRequestedEvent event) {
+        log.info("Received password reset requested event: userId={}", event.getUserId());
+        try {
+            CreateNotificationCommand cmd = new CreateNotificationCommand(
+                    event.getUserId(),
+                    NotificationType.PASSWORD_RESET_REQUESTED,
+                    "비밀번호 재설정",
+                    "비밀번호 재설정 링크입니다.",
+                    event.getResetLink(),
+                    null,
+                    null
+            );
+            createAndPushNotification(cmd);
+        } catch (Exception e) {
+            log.error("Failed to process password reset requested event: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     // ===== Shopping Domain Events =====
@@ -279,6 +305,23 @@ public class NotificationConsumer {
             createAndPushNotification(cmd);
         } catch (Exception e) {
             log.error("Failed to process prism task failed event: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    // ===== Auth Domain Events - User Lifecycle =====
+
+    @KafkaListener(topics = AuthTopics.USER_WITHDRAWN,
+                   groupId = "${spring.kafka.consumer.group-id}",
+                   containerFactory = "avroKafkaListenerContainerFactory")
+    public void handleUserWithdrawn(UserWithdrawnEvent event) {
+        String userId = event.getUserId().toString();
+        log.info("Received user withdrawn event: userId={}", userId);
+        try {
+            notificationRepository.deleteByUserId(userId);
+            log.info("Deleted all notifications for withdrawn user: userId={}", userId);
+        } catch (Exception e) {
+            log.error("Failed to process user withdrawn event: {}", e.getMessage(), e);
             throw e;
         }
     }

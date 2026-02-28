@@ -47,6 +47,8 @@ spring:
 
   kafka:
     bootstrap-servers: kafka:29092
+    consumer:
+      group-id: blog-group
     properties:
       schema.registry.url: http://schema-registry:8081
 
@@ -58,6 +60,10 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
       location: ${java.io.tmpdir}
+
+feign:
+  auth-service:
+    url: http://auth-service:8081
 
 # Swagger 설정 (Docker 환경: 활성화, 개발 환경)
 springdoc:

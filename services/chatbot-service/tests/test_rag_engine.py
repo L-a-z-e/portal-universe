@@ -263,7 +263,7 @@ class TestRAGEngineQueryStream:
         doc = Document(page_content="test content", metadata={"source": "test.md"})
         engine._vectorstore.search.return_value = [(doc, 0.9)]
 
-        async def mock_stream(prompt, context):
+        async def mock_stream(prompt, context, conversation_history=None):
             yield "Hello"
             yield " World"
 

@@ -1,6 +1,5 @@
 package com.portal.universe.shoppingservice.timedeal.domain;
 
-import com.portal.universe.shoppingservice.product.domain.Product;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,9 +23,8 @@ public class TimeDealProduct {
     @JoinColumn(name = "time_deal_id", nullable = false)
     private TimeDeal timeDeal;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal dealPrice;
@@ -41,8 +39,8 @@ public class TimeDealProduct {
     private Integer maxPerUser;
 
     @Builder
-    public TimeDealProduct(Product product, BigDecimal dealPrice, Integer dealQuantity, Integer maxPerUser) {
-        this.product = product;
+    public TimeDealProduct(Long productId, BigDecimal dealPrice, Integer dealQuantity, Integer maxPerUser) {
+        this.productId = productId;
         this.dealPrice = dealPrice;
         this.dealQuantity = dealQuantity;
         this.soldQuantity = 0;
@@ -59,15 +57,5 @@ public class TimeDealProduct {
 
     public boolean isAvailable() {
         return this.soldQuantity < this.dealQuantity;
-    }
-
-    public BigDecimal getDiscountRate() {
-        BigDecimal originalPrice = product.getPrice();
-        if (originalPrice.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.ZERO;
-        }
-        return originalPrice.subtract(dealPrice)
-                .divide(originalPrice, 2, java.math.RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100));
     }
 }

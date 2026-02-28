@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "TimeDealCancelledEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a time deal is cancelled.",
+  "fields": [
+    { "name": "timeDealId", "type": "long", "doc": "TimeDeal entity ID in seller-service" },
+    { "name": "sellerId", "type": "long", "doc": "Seller entity ID" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

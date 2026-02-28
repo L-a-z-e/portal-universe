@@ -7,13 +7,16 @@ import com.portal.universe.authservice.follow.dto.*;
 import com.portal.universe.authservice.follow.repository.FollowRepository;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.blog.UserFollowedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -26,6 +29,7 @@ public class FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 팔로우 토글 (팔로우/언팔로우)
@@ -62,9 +66,16 @@ public class FollowService {
             followRepository.delete(follow);
             isFollowing = false;
         } else {
-            Follow follow = new Follow(currentUser, targetUser);
-            followRepository.save(follow);
+            Follow follow = followRepository.save(new Follow(currentUser, targetUser));
             isFollowing = true;
+
+            eventPublisher.publishEvent(UserFollowedEvent.newBuilder()
+                    .setFollowId(String.valueOf(follow.getId()))
+                    .setFolloweeId(targetUser.getUuid())
+                    .setFollowerId(currentUser.getUuid())
+                    .setFollowerName(currentUser.getProfile().getNickname())
+                    .setTimestamp(Instant.now())
+                    .build());
         }
 
         return new FollowResponse(

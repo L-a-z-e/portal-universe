@@ -40,6 +40,7 @@ dependencies {
     // Web & Data
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web (MVC)
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign' // Feign Client (auth-service 호출)
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb' // Spring Data for MongoDB
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation
 

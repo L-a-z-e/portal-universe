@@ -18,6 +18,12 @@ public class Coupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "source_coupon_id", unique = true)
+    private Long sourceCouponId;
+
+    @Column(name = "seller_id")
+    private Long sellerId;
+
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
@@ -61,9 +67,11 @@ public class Coupon {
     private Instant updatedAt;
 
     @Builder
-    public Coupon(String code, String name, String description, DiscountType discountType,
-                  BigDecimal discountValue, BigDecimal minimumOrderAmount, BigDecimal maximumDiscountAmount,
-                  Integer totalQuantity, Instant startsAt, Instant expiresAt) {
+    public Coupon(Long sourceCouponId, Long sellerId, String code, String name, String description,
+                  DiscountType discountType, BigDecimal discountValue, BigDecimal minimumOrderAmount,
+                  BigDecimal maximumDiscountAmount, Integer totalQuantity, Instant startsAt, Instant expiresAt) {
+        this.sourceCouponId = sourceCouponId;
+        this.sellerId = sellerId;
         this.code = code;
         this.name = name;
         this.description = description;
@@ -99,6 +107,23 @@ public class Coupon {
 
     public void deactivate() {
         this.status = CouponStatus.INACTIVE;
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateFromSource(String name, String description, DiscountType discountType,
+                                  BigDecimal discountValue, BigDecimal minimumOrderAmount,
+                                  BigDecimal maximumDiscountAmount, Integer totalQuantity,
+                                  Instant startsAt, Instant expiresAt, CouponStatus status) {
+        this.name = name;
+        this.description = description;
+        this.discountType = discountType;
+        this.discountValue = discountValue;
+        this.minimumOrderAmount = minimumOrderAmount;
+        this.maximumDiscountAmount = maximumDiscountAmount;
+        this.totalQuantity = totalQuantity;
+        this.startsAt = startsAt;
+        this.expiresAt = expiresAt;
+        this.status = status;
         this.updatedAt = Instant.now();
     }
 

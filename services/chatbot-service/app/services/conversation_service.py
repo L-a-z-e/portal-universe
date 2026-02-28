@@ -71,6 +71,47 @@ class ConversationService:
         await r.expire(self._conv_key(user_id), 7 * 24 * 3600)
         await r.expire(self._msg_key(user_id, conversation_id), 7 * 24 * 3600)
 
+    async def get_recent_turns(
+        self,
+        user_id: str,
+        conversation_id: str,
+        max_turns: int,
+        max_message_chars: int,
+    ) -> list[dict]:
+        """최근 N턴의 대화 이력을 조회한다.
+
+        Args:
+            user_id: 사용자 ID
+            conversation_id: 대화 ID
+            max_turns: 최대 턴 수 (1턴 = user + assistant)
+            max_message_chars: 메시지 최대 문자 수 (초과 시 truncate)
+
+        Returns:
+            [{"role": "user"|"assistant", "content": "..."}] 형태의 리스트
+        """
+        r = await self._get_redis()
+        # 최근 max_turns*2개 메시지만 조회 (효율적 range)
+        raw = await r.lrange(
+            self._msg_key(user_id, conversation_id),
+            -(max_turns * 2),
+            -1,
+        )
+        if not raw:
+            return []
+
+        history: list[dict] = []
+        for item in raw:
+            msg = json.loads(item)
+            role = msg.get("role")
+            # user/assistant만 포함 (system 권한 에스컬레이션 방지)
+            if role not in (MessageRole.USER, MessageRole.ASSISTANT):
+                continue
+            content = msg.get("content", "")
+            if len(content) > max_message_chars:
+                content = content[:max_message_chars] + "..."
+            history.append({"role": role, "content": content})
+        return history
+
     async def list_conversations(self, user_id: str) -> list[dict]:
         r = await self._get_redis()
         raw = await r.hgetall(self._conv_key(user_id))

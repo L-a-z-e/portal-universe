@@ -30,6 +30,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final com.portal.universe.blogservice.common.feign.AuthFollowClient authFollowClient;
 
     @Operation(summary = "게시물 생성", description = "새 블로그 게시물을 작성한다.")
     @PostMapping
@@ -302,11 +303,12 @@ public class PostController {
     @Operation(summary = "피드 조회", description = "팔로잉 사용자들의 게시물을 최신순으로 조회합니다.")
     @GetMapping("/feed")
     public ApiResponse<PageResponse<PostSummaryResponse>> getFeed(
-            @Parameter(description = "팔로잉 사용자 UUID 목록 (쉼표로 구분)")
-            @RequestParam List<String> followingIds,
+            @CurrentUser AuthUser user,
             @Parameter(description = "페이지 번호 (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
+        var followingIdsResponse = authFollowClient.getFollowingIds(user.uuid());
+        List<String> followingIds = followingIdsResponse.getData().followingIds();
         Page<PostSummaryResponse> posts = postService.getFeed(followingIds, page - 1, size);
         return ApiResponse.success(PageResponse.from(posts));
     }
