@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-18
-updated: 2026-02-25
+updated: 2026-03-01
 author: Laze
 tags: [api, blog, mongodb, post, comment, series, tag, file, like]
 related:
@@ -70,7 +70,7 @@ Gateway: /api/v1/blog/{path} → StripPrefix=3 → blog-service:8082/{path}
 | GET | `/posts/stats/author/{authorId}/tags` | 작성자별 태그 통계 | ❌ | `List<TagStatsResponse>` |
 | GET | `/posts/stats/blog` | 전체 블로그 통계 조회 | ❌ | `BlogStats` |
 | GET | `/posts/product/{productId}` | 상품별 게시물 조회 | ❌ | `List<PostResponse>` |
-| GET | `/posts/feed` | 피드 게시물 조회 | ❌ | `Page<PostSummaryResponse>` |
+| GET | `/posts/feed` | 피드 게시물 조회 | ✅ | `Page<PostSummaryResponse>` |
 | GET | `/posts/{postId}/navigation` | 이전/다음 게시물 네비게이션 | ❌ | `PostNavigationResponse` |
 
 ### Like API (`/posts/{postId}`)
@@ -916,20 +916,20 @@ GET /api/v1/blog/posts/product/{productId}
 ### 24. 피드 게시물 조회
 
 팔로잉 중인 사용자의 게시물을 최신순으로 조회합니다.
+서버에서 auth-service를 통해 팔로잉 목록을 자동 조회합니다.
 
 ```http
-GET /api/v1/blog/posts/feed?followingIds=user-1,user-2,user-3&page=1&size=10
+GET /api/v1/blog/posts/feed?page=1&size=10
 ```
 
 #### Query Parameters
 
 | 파라미터 | 타입 | 필수 | 설명 | 기본값 |
 |----------|------|------|------|--------|
-| `followingIds` | string[] | ✅ | 팔로잉 사용자 UUID 목록 (쉼표 구분) | - |
 | `page` | int | ❌ | 페이지 번호 | 1 |
 | `size` | int | ❌ | 페이지 크기 | 10 |
 
-> **참고**: 인증 어노테이션이 없으므로 Gateway의 GET permit-all 정책에 따라 인증 없이 호출 가능합니다. 클라이언트에서 팔로잉 목록을 직접 전달해야 합니다.
+> **인증 필수**: Gateway의 `X-User-Id` 헤더에서 사용자 UUID를 추출하여 auth-service Internal API(`/api/v1/internal/follow/{userUuid}/following-ids`)로 팔로잉 목록을 서버사이드 조회합니다.
 
 #### Response (200 OK) - `Page<PostSummaryResponse>`
 
@@ -1799,6 +1799,37 @@ Authorization: Bearer {admin-token}
 
 ---
 
+## 서비스 간 통신
+
+### Feign Client
+
+| 대상 서비스 | Client | 용도 |
+|------------|--------|------|
+| auth-service | `AuthFollowClient` | 사용자의 팔로잉 목록 조회 (Feed API) |
+
+#### AuthFollowClient
+
+```
+GET /api/v1/internal/follow/{userUuid}/following-ids → ApiResponse<FollowingIdsDto>
+```
+
+Feed API에서 인증된 사용자의 팔로잉 UUID 목록을 서버사이드에서 조회합니다.
+
+### Kafka Event Consumer
+
+| 이벤트 | 토픽 | 처리 |
+|--------|------|------|
+| `UserWithdrawnEvent` | `auth.user-withdrawn` | Post/Comment soft delete, Like hard delete |
+
+#### UserWithdrawnEvent 처리
+
+회원 탈퇴 시 해당 사용자의 데이터를 정리합니다:
+- **Post**: `isDeleted = true` (soft delete) — 콘텐츠 보존, 조회 시 필터링
+- **Comment**: `isDeleted = true` (soft delete) — 대댓글 구조 유지
+- **Like**: 물리 삭제 (hard delete) — 참조 가치 없음
+
+---
+
 ## 인증 방법
 
 ### JWT Bearer Token
@@ -1837,4 +1868,4 @@ grant_type=password&username=user@example.com&password=password123
 
 ---
 
-**최종 업데이트**: 2026-02-17
+**최종 업데이트**: 2026-03-01

@@ -42,7 +42,6 @@ public class RbacService {
     private final UserMembershipRepository userMembershipRepository;
     private final AuthAuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
-    private final SellerApplicationRepository sellerApplicationRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     private static final Pattern UUID_PATTERN =
@@ -476,13 +475,7 @@ public class RbacService {
 
         var membershipStats = new DashboardStatsResponse.MembershipStats(groupStatsList);
 
-        // 4. Seller stats
-        long pending = sellerApplicationRepository.countByStatus(SellerApplicationStatus.PENDING);
-        long approved = sellerApplicationRepository.countByStatus(SellerApplicationStatus.APPROVED);
-        long rejected = sellerApplicationRepository.countByStatus(SellerApplicationStatus.REJECTED);
-        var sellerStats = new DashboardStatsResponse.SellerStats(pending, approved, rejected);
-
-        // 5. Recent activity (최근 5건)
+        // 4. Recent activity (최근 5건)
         List<AuthAuditLog> recentLogs = auditLogRepository.findTop5ByOrderByCreatedAtDesc();
         List<DashboardStatsResponse.RecentActivityItem> recentActivity = recentLogs.stream()
                 .map(l -> new DashboardStatsResponse.RecentActivityItem(
@@ -495,7 +488,7 @@ public class RbacService {
                 ))
                 .toList();
 
-        return new DashboardStatsResponse(userStats, roleStats, membershipStats, sellerStats, recentActivity);
+        return new DashboardStatsResponse(userStats, roleStats, membershipStats, recentActivity);
     }
 
     /**

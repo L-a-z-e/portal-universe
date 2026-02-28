@@ -11,16 +11,12 @@ import java.util.Optional;
 
 public interface TimeDealProductRepository extends JpaRepository<TimeDealProduct, Long> {
 
-    @Query("SELECT tdp FROM TimeDealProduct tdp " +
-           "JOIN FETCH tdp.product " +
-           "WHERE tdp.timeDeal.id = :timeDealId")
-    List<TimeDealProduct> findByTimeDealId(@Param("timeDealId") Long timeDealId);
+    List<TimeDealProduct> findByTimeDealId(Long timeDealId);
 
     @Query("SELECT tdp FROM TimeDealProduct tdp " +
-           "JOIN FETCH tdp.product " +
            "JOIN FETCH tdp.timeDeal " +
            "WHERE tdp.id = :id")
-    Optional<TimeDealProduct> findByIdWithProductAndDeal(@Param("id") Long id);
+    Optional<TimeDealProduct> findByIdWithDeal(@Param("id") Long id);
 
     boolean existsByTimeDealIdAndProductId(Long timeDealId, Long productId);
 

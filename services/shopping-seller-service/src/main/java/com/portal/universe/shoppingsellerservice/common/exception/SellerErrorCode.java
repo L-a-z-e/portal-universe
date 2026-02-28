@@ -12,6 +12,8 @@ public enum SellerErrorCode implements ErrorCode {
     SELLER_ALREADY_EXISTS(HttpStatus.CONFLICT, "SL002", "Seller already registered"),
     SELLER_SUSPENDED(HttpStatus.FORBIDDEN, "SL003", "Seller account is suspended"),
     SELLER_PENDING(HttpStatus.FORBIDDEN, "SL004", "Seller account is pending approval"),
+    SELLER_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "SL005", "Seller application not found"),
+    SELLER_APPLICATION_NOT_PENDING(HttpStatus.BAD_REQUEST, "SL006", "Seller application is not in pending status"),
 
     // Product Errors (SL1XX) - reuse S0XX codes for compatibility
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "SL101", "Product not found"),

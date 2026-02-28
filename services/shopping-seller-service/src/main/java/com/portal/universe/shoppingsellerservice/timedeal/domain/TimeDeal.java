@@ -56,6 +56,14 @@ public class TimeDeal extends BaseEntity {
         this.products.add(product);
     }
 
+    public void activate() {
+        this.status = TimeDealStatus.ACTIVE;
+    }
+
+    public void end() {
+        this.status = TimeDealStatus.ENDED;
+    }
+
     public void cancel() {
         this.status = TimeDealStatus.CANCELLED;
     }

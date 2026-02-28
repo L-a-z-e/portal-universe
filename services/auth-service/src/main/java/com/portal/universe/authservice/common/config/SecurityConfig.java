@@ -108,13 +108,10 @@ public class SecurityConfig {
                         // 관리자 경로: RBAC 기반 접근 제어
                         .requestMatchers("/api/admin/rbac/**", "/api/v1/admin/rbac/**").hasAuthority("ROLE_SUPER_ADMIN")
                         .requestMatchers("/api/admin/memberships/**", "/api/v1/admin/memberships/**").hasAuthority("ROLE_SUPER_ADMIN")
-                        .requestMatchers("/api/admin/seller/**", "/api/v1/admin/seller/**")
-                            .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
                         .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
                         // /api/profile 경로는 인증된 사용자만 접근 가능합니다.
                         .requestMatchers("/api/profile/**", "/api/v1/profile/**").authenticated()
-                        // 셀러/멤버십/권한 셀프서비스는 인증 필요
-                        .requestMatchers("/api/seller/**", "/api/v1/seller/**").authenticated()
+                        // 멤버십/권한 셀프서비스는 인증 필요
                         .requestMatchers("/api/memberships/**", "/api/v1/memberships/**").authenticated()
                         .requestMatchers("/api/permissions/**", "/api/v1/permissions/**").authenticated()
                         // 위에서 지정한 경로 외의 모든 요청은 인증이 필요합니다.

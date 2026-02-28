@@ -8,8 +8,13 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public interface TimeDealRepository extends JpaRepository<TimeDeal, Long> {
+
+    Optional<TimeDeal> findBySourceTimeDealId(Long sourceTimeDealId);
+
+    boolean existsBySourceTimeDealId(Long sourceTimeDealId);
 
     List<TimeDeal> findByStatus(TimeDealStatus status);
 

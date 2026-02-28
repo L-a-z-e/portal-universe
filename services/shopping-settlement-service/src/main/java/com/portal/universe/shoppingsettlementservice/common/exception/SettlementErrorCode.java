@@ -13,7 +13,9 @@ public enum SettlementErrorCode implements ErrorCode {
     PERIOD_NOT_CALCULATED(HttpStatus.BAD_REQUEST, "ST004", "Settlement period has not been calculated yet"),
     BATCH_EXECUTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ST005", "Batch job execution failed"),
     INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "ST006", "Invalid date range"),
-    SETTLEMENT_ALREADY_PAID(HttpStatus.BAD_REQUEST, "ST007", "Settlement has already been paid");
+    SETTLEMENT_ALREADY_PAID(HttpStatus.BAD_REQUEST, "ST007", "Settlement has already been paid"),
+    INVALID_SETTLEMENT_AMOUNT(HttpStatus.BAD_REQUEST, "ST008", "Invalid settlement amount"),
+    DUPLICATE_PERIOD(HttpStatus.CONFLICT, "ST009", "Settlement period already exists");
 
     private final HttpStatus status;
     private final String code;

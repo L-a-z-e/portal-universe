@@ -93,6 +93,21 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 
 자세한 내용: [Shopping Seller Service API](../shopping-seller-service/README.md)
 
+### CQRS 동기화 (Kafka Consumer)
+
+쿠폰/타임딜 데이터는 seller-service(Command Side)에서 생성되고, Kafka 이벤트를 통해 shopping-service(Query Side)로 단방향 동기화됩니다.
+
+| 이벤트 | 토픽 | 동작 |
+|--------|------|------|
+| `CouponCreatedEvent` | `seller.coupon.created` | Coupon 생성 + Redis 재고 초기화 |
+| `CouponUpdatedEvent` | `seller.coupon.updated` | Coupon 갱신 (upsert) |
+| `CouponDeletedEvent` | `seller.coupon.deleted` | Coupon 비활성화 + Redis 캐시 삭제 |
+| `TimeDealCreatedEvent` | `seller.timedeal.created` | TimeDeal + TimeDealProduct 생성 + Redis 재고 초기화 |
+| `TimeDealUpdatedEvent` | `seller.timedeal.updated` | TimeDeal 갱신 (upsert) |
+| `TimeDealCancelledEvent` | `seller.timedeal.cancelled` | TimeDeal 취소 + Redis 캐시 삭제 |
+
+**멱등성**: `source_coupon_id`, `source_time_deal_id` UNIQUE constraint로 중복 생성 방지
+
 ---
 
 ## 🔌 Feign Client

@@ -108,6 +108,11 @@ public interface PostRepository extends MongoRepository<Post, String>, PostRepos
     @Query(value = "{ status: ?0 }", fields = "{ category: 1 }")
     List<String> findDistinctCategoriesByStatus(PostStatus status);
 
+    /**
+     * 작성자의 모든 게시물 조회 (회원 탈퇴 시 soft delete 처리용)
+     */
+    List<Post> findByAuthorId(String authorId);
+
     // ===== 피드 기능 =====
 
     /**

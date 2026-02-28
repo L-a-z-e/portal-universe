@@ -42,6 +42,7 @@ public class EmailQueueService {
             NotificationType.PAYMENT_COMPLETED,
             NotificationType.PAYMENT_FAILED,
             NotificationType.DELIVERY_STARTED,
+            NotificationType.PASSWORD_RESET_REQUESTED,
             NotificationType.SYSTEM
     );
 

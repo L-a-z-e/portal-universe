@@ -127,6 +127,12 @@ public class Post extends BaseDocument {
     private List<String> images = new ArrayList<>();
 
     /**
+     * 소프트 삭제 플래그 (회원 탈퇴 시 사용)
+     */
+    @Indexed
+    private Boolean isDeleted = false;
+
+    /**
      * 연관 상품 ID (선택적 기능으로 유지)
      * PRD Phase 3: 수익화 기능에서 활용 가능
      */
@@ -279,9 +285,18 @@ public class Post extends BaseDocument {
     }
 
     /**
-     * 조회 가능 여부 (발행된 글 또는 작성자 본인)
+     * 조회 가능 여부 (발행된 글 또는 작성자 본인, 삭제되지 않은 글)
      */
     public boolean isViewableBy(String userId) {
+        if (Boolean.TRUE.equals(this.isDeleted)) return false;
         return isPublished() || this.authorId.equals(userId);
+    }
+
+    /**
+     * 소프트 삭제 처리 (회원 탈퇴 시)
+     */
+    public void markDeleted() {
+        this.isDeleted = true;
+        this.status = PostStatus.DRAFT;
     }
 }

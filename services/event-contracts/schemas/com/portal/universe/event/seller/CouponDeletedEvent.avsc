@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "CouponDeletedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a coupon is deactivated.",
+  "fields": [
+    { "name": "couponId", "type": "long", "doc": "Coupon entity ID in seller-service" },
+    { "name": "sellerId", "type": "long", "doc": "Seller entity ID" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "ProductDeletedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a seller deletes a product.",
+  "fields": [
+    { "name": "productId", "type": "long", "doc": "Product entity ID in seller-service" },
+    { "name": "sellerId", "type": "long", "doc": "Seller entity ID" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

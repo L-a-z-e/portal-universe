@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { Modal, Input, Button, Alert } from '@portal/design-vue';
 import { useAuthStore } from '../store/auth';
 import { socialLogin } from '../services/authService';
+
+const router = useRouter();
 
 defineProps<{
   modelValue: boolean;
@@ -146,6 +149,7 @@ function handleClose() {
             variant="ghost"
             size="sm"
             :disabled="isLoading"
+            @click="handleClose(); router.push('/forgot-password')"
         >
           비밀번호를 잊으셨나요?
         </Button>

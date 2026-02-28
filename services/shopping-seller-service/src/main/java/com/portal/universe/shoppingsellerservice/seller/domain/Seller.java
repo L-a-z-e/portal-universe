@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "sellers")
@@ -50,10 +51,23 @@ public class Seller extends BaseEntity {
     @Column(nullable = false, length = 20)
     private SellerStatus status;
 
+    @Column(columnDefinition = "TEXT")
+    private String reason;
+
+    @Column(name = "reviewed_by")
+    private String reviewedBy;
+
+    @Column(name = "review_comment", columnDefinition = "TEXT")
+    private String reviewComment;
+
+    @Column(name = "reviewed_at")
+    private Instant reviewedAt;
+
     @Builder
     public Seller(String userId, String businessName, String businessNumber,
                   String representativeName, String phone, String email,
-                  String bankName, String bankAccount, BigDecimal commissionRate) {
+                  String bankName, String bankAccount, BigDecimal commissionRate,
+                  String reason) {
         this.userId = userId;
         this.businessName = businessName;
         this.businessNumber = businessNumber;
@@ -63,15 +77,26 @@ public class Seller extends BaseEntity {
         this.bankName = bankName;
         this.bankAccount = bankAccount;
         this.commissionRate = commissionRate != null ? commissionRate : new BigDecimal("10.00");
+        this.reason = reason;
         this.status = SellerStatus.PENDING;
     }
 
-    public void approve() {
+    public void approve(String reviewedBy, String comment) {
         this.status = SellerStatus.ACTIVE;
+        this.reviewedBy = reviewedBy;
+        this.reviewComment = comment;
+        this.reviewedAt = Instant.now();
     }
 
     public void suspend() {
         this.status = SellerStatus.SUSPENDED;
+    }
+
+    public void reject(String reviewedBy, String comment) {
+        this.status = SellerStatus.REJECTED;
+        this.reviewedBy = reviewedBy;
+        this.reviewComment = comment;
+        this.reviewedAt = Instant.now();
     }
 
     public void withdraw() {
@@ -89,5 +114,9 @@ public class Seller extends BaseEntity {
 
     public boolean isActive() {
         return this.status == SellerStatus.ACTIVE;
+    }
+
+    public boolean isPending() {
+        return this.status == SellerStatus.PENDING;
     }
 }

@@ -125,13 +125,14 @@ async def test_stream_endpoint_exists(client):
         patch("app.api.routes.chat.conversation_service") as mock_conv,
     ):
 
-        async def mock_stream(question):
+        async def mock_stream(question, conversation_history=None):
             yield {"type": "token", "content": "Test"}
             yield {"type": "sources", "sources": []}
             yield {"type": "done"}
 
         mock_engine.query_stream = mock_stream
         mock_conv.save_message = AsyncMock()
+        mock_conv.get_recent_turns = AsyncMock(return_value=[])
 
         response = await client.post(
             "/api/v1/chat/stream",
@@ -187,6 +188,7 @@ async def test_chat_message_uses_existing_conversation_id(client):
     ):
         mock_engine.query = AsyncMock(return_value=("answer", mock_sources))
         mock_conv.save_message = AsyncMock()
+        mock_conv.get_recent_turns = AsyncMock(return_value=[])
 
         response = await client.post(
             "/api/v1/chat/message",
@@ -268,7 +270,7 @@ async def test_stream_event_order(client):
         patch("app.api.routes.chat.conversation_service") as mock_conv,
     ):
 
-        async def mock_stream(question):
+        async def mock_stream(question, conversation_history=None):
             yield {"type": "token", "content": "Hello"}
             yield {"type": "token", "content": " World"}
             yield {
@@ -279,6 +281,7 @@ async def test_stream_event_order(client):
 
         mock_engine.query_stream = mock_stream
         mock_conv.save_message = AsyncMock()
+        mock_conv.get_recent_turns = AsyncMock(return_value=[])
 
         response = await client.post(
             "/api/v1/chat/stream",
@@ -312,7 +315,7 @@ async def test_stream_collects_full_answer(client):
         patch("app.api.routes.chat.conversation_service") as mock_conv,
     ):
 
-        async def mock_stream(question):
+        async def mock_stream(question, conversation_history=None):
             yield {"type": "token", "content": "Hello"}
             yield {"type": "token", "content": " World"}
             yield {"type": "sources", "sources": []}
@@ -320,6 +323,7 @@ async def test_stream_collects_full_answer(client):
 
         mock_engine.query_stream = mock_stream
         mock_conv.save_message = AsyncMock()
+        mock_conv.get_recent_turns = AsyncMock(return_value=[])
 
         await client.post(
             "/api/v1/chat/stream",

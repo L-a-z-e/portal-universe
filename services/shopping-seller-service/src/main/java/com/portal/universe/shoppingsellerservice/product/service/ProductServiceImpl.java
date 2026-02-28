@@ -1,6 +1,9 @@
 package com.portal.universe.shoppingsellerservice.product.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.seller.ProductCreatedEvent;
+import com.portal.universe.event.seller.ProductDeletedEvent;
+import com.portal.universe.event.seller.ProductUpdatedEvent;
 import com.portal.universe.shoppingsellerservice.common.exception.SellerErrorCode;
 import com.portal.universe.shoppingsellerservice.product.domain.Product;
 import com.portal.universe.shoppingsellerservice.product.dto.ProductCreateRequest;
@@ -8,10 +11,13 @@ import com.portal.universe.shoppingsellerservice.product.dto.ProductResponse;
 import com.portal.universe.shoppingsellerservice.product.dto.ProductUpdateRequest;
 import com.portal.universe.shoppingsellerservice.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -19,12 +25,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
     public ProductResponse createProduct(Long sellerId, ProductCreateRequest request) {
         Product product = request.toEntity(sellerId);
-        return ProductResponse.from(productRepository.save(product));
+        Product saved = productRepository.save(product);
+
+        eventPublisher.publishEvent(buildCreatedEvent(saved));
+
+        return ProductResponse.from(saved);
     }
 
     @Override
@@ -60,6 +71,9 @@ public class ProductServiceImpl implements ProductService {
         if (request.featured() != null) {
             product.updateFeatured(request.featured());
         }
+
+        eventPublisher.publishEvent(buildUpdatedEvent(product));
+
         return ProductResponse.from(product);
     }
 
@@ -72,5 +86,42 @@ public class ProductServiceImpl implements ProductService {
             throw new CustomBusinessException(SellerErrorCode.PRODUCT_NOT_OWNED);
         }
         productRepository.delete(product);
+
+        eventPublisher.publishEvent(ProductDeletedEvent.newBuilder()
+                .setProductId(product.getId())
+                .setSellerId(product.getSellerId())
+                .setTimestamp(Instant.now())
+                .build());
+    }
+
+    private ProductCreatedEvent buildCreatedEvent(Product product) {
+        return ProductCreatedEvent.newBuilder()
+                .setProductId(product.getId())
+                .setSellerId(product.getSellerId())
+                .setName(product.getName())
+                .setDescription(product.getDescription())
+                .setPrice(product.getPrice())
+                .setDiscountPrice(product.getDiscountPrice())
+                .setStock(product.getStock() != null ? product.getStock() : 0)
+                .setImageUrl(product.getImageUrl())
+                .setCategory(product.getCategory())
+                .setFeatured(product.getFeatured())
+                .setTimestamp(Instant.now())
+                .build();
+    }
+
+    private ProductUpdatedEvent buildUpdatedEvent(Product product) {
+        return ProductUpdatedEvent.newBuilder()
+                .setProductId(product.getId())
+                .setSellerId(product.getSellerId())
+                .setName(product.getName())
+                .setDescription(product.getDescription())
+                .setPrice(product.getPrice())
+                .setDiscountPrice(product.getDiscountPrice())
+                .setImageUrl(product.getImageUrl())
+                .setCategory(product.getCategory())
+                .setFeatured(product.getFeatured())
+                .setTimestamp(Instant.now())
+                .build();
     }
 }

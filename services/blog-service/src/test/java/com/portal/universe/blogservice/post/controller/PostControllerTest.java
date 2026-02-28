@@ -50,6 +50,9 @@ class PostControllerTest {
     @MockitoBean
     private PostService postService;
 
+    @MockitoBean
+    private com.portal.universe.blogservice.common.feign.AuthFollowClient authFollowClient;
+
     private AuthUser authUser;
     private PostResponse postResponse;
     private PostSummaryResponse summaryResponse;
@@ -514,19 +517,24 @@ class PostControllerTest {
     @DisplayName("GET /posts/feed - should_returnFeed")
     void should_returnFeed() throws Exception {
         // given
+        var followingIdsDto = new com.portal.universe.blogservice.common.feign.AuthFollowClient.FollowingIdsDto(
+                List.of("user-2", "user-3"));
+        given(authFollowClient.getFollowingIds("user-1"))
+                .willReturn(com.portal.universe.commonlibrary.response.ApiResponse.success(followingIdsDto));
+
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.getFeed(List.of("user-1", "user-2"), 0, 10)).willReturn(page);
+        given(postService.getFeed(List.of("user-2", "user-3"), 0, 10)).willReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/feed")
-                .param("followingIds", "user-1", "user-2")
+                .requestAttr("authUser", authUser)
                 .param("page", "1")
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.items[0].id").value("post-1"));
 
-        verify(postService).getFeed(List.of("user-1", "user-2"), 0, 10);
+        verify(postService).getFeed(List.of("user-2", "user-3"), 0, 10);
     }
 
     @Test

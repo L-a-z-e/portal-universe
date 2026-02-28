@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     allowed_file_extensions: set[str] = {".md", ".txt", ".pdf"}
     max_file_size_bytes: int = 10 * 1024 * 1024  # 10MB
 
+    # Conversation History
+    conversation_max_history_turns: int = 5    # 최대 대화 턴 수 (1턴 = user+assistant)
+    conversation_max_message_chars: int = 500  # 이력 메시지 최대 문자 수
+
     # RAG
     rag_chunk_size: int = 1000
     rag_chunk_overlap: int = 200

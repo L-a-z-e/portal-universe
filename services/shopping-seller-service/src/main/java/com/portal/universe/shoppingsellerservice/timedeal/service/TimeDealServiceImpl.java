@@ -1,6 +1,9 @@
 package com.portal.universe.shoppingsellerservice.timedeal.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.seller.TimeDealCancelledEvent;
+import com.portal.universe.event.seller.TimeDealCreatedEvent;
+import com.portal.universe.event.seller.TimeDealProductInfo;
 import com.portal.universe.shoppingsellerservice.common.exception.SellerErrorCode;
 import com.portal.universe.shoppingsellerservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingsellerservice.timedeal.domain.TimeDeal;
@@ -9,10 +12,14 @@ import com.portal.universe.shoppingsellerservice.timedeal.dto.TimeDealCreateRequ
 import com.portal.universe.shoppingsellerservice.timedeal.dto.TimeDealResponse;
 import com.portal.universe.shoppingsellerservice.timedeal.repository.TimeDealRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +28,7 @@ public class TimeDealServiceImpl implements TimeDealService {
 
     private final TimeDealRepository timeDealRepository;
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -50,7 +58,29 @@ public class TimeDealServiceImpl implements TimeDealService {
             timeDeal.addProduct(tdp);
         }
 
-        return TimeDealResponse.from(timeDealRepository.save(timeDeal));
+        TimeDeal saved = timeDealRepository.save(timeDeal);
+
+        List<TimeDealProductInfo> productInfos = saved.getProducts().stream()
+                .map(tdp -> TimeDealProductInfo.newBuilder()
+                        .setProductId(tdp.getProductId())
+                        .setDealPrice(tdp.getDealPrice())
+                        .setDealQuantity(tdp.getDealQuantity())
+                        .setMaxPerUser(tdp.getMaxPerUser())
+                        .build())
+                .toList();
+
+        eventPublisher.publishEvent(TimeDealCreatedEvent.newBuilder()
+                .setTimeDealId(saved.getId())
+                .setSellerId(sellerId)
+                .setName(saved.getName())
+                .setDescription(saved.getDescription())
+                .setStartsAt(saved.getStartsAt())
+                .setEndsAt(saved.getEndsAt())
+                .setProducts(productInfos)
+                .setTimestamp(Instant.now())
+                .build());
+
+        return TimeDealResponse.from(saved);
     }
 
     @Override
@@ -81,5 +111,11 @@ public class TimeDealServiceImpl implements TimeDealService {
             throw new CustomBusinessException(SellerErrorCode.TIMEDEAL_CANNOT_CANCEL);
         }
         timeDeal.cancel();
+
+        eventPublisher.publishEvent(TimeDealCancelledEvent.newBuilder()
+                .setTimeDealId(timeDealId)
+                .setSellerId(sellerId)
+                .setTimestamp(Instant.now())
+                .build());
     }
 }

@@ -19,6 +19,12 @@ public class TimeDeal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "source_time_deal_id", unique = true)
+    private Long sourceTimeDealId;
+
+    @Column(name = "seller_id")
+    private Long sellerId;
+
     @Column(nullable = false, length = 100)
     private String name;
 
@@ -43,7 +49,10 @@ public class TimeDeal {
     private Instant updatedAt;
 
     @Builder
-    public TimeDeal(String name, String description, Instant startsAt, Instant endsAt) {
+    public TimeDeal(Long sourceTimeDealId, Long sellerId, String name, String description,
+                    Instant startsAt, Instant endsAt) {
+        this.sourceTimeDealId = sourceTimeDealId;
+        this.sellerId = sellerId;
         this.name = name;
         this.description = description;
         this.startsAt = startsAt;
@@ -64,6 +73,16 @@ public class TimeDeal {
 
     public void cancel() {
         this.status = TimeDealStatus.CANCELLED;
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateFromSource(String name, String description, Instant startsAt,
+                                  Instant endsAt, TimeDealStatus status) {
+        this.name = name;
+        this.description = description;
+        this.startsAt = startsAt;
+        this.endsAt = endsAt;
+        this.status = status;
         this.updatedAt = Instant.now();
     }
 

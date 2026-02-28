@@ -82,4 +82,8 @@ public class Coupon extends BaseEntity {
     public void deactivate() {
         this.status = CouponStatus.INACTIVE;
     }
+
+    public void expire() {
+        this.status = CouponStatus.EXPIRED;
+    }
 }

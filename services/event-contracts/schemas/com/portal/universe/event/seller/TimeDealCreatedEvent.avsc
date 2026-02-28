@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "TimeDealCreatedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a seller creates a new time deal.",
+  "fields": [
+    { "name": "timeDealId", "type": "long", "doc": "TimeDeal entity ID in seller-service" },
+    { "name": "sellerId", "type": "long", "doc": "Seller entity ID" },
+    { "name": "name", "type": "string", "doc": "Time deal name" },
+    { "name": "description", "type": ["null", "string"], "default": null, "doc": "Time deal description" },
+    { "name": "startsAt", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Deal start time" },
+    { "name": "endsAt", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Deal end time" },
+    { "name": "products", "type": { "type": "array", "items": "TimeDealProductInfo" }, "doc": "Products in this deal" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

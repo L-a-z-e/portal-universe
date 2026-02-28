@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Persistable;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -14,11 +15,24 @@ import java.util.List;
 @Table(name = "products")
 @Getter
 @NoArgsConstructor
-public class Product extends BaseEntity {
+public class Product extends BaseEntity implements Persistable<Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Transient
+    private boolean isNew = true;
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @PostLoad
+    @PostPersist
+    void markNotNew() {
+        isNew = false;
+    }
 
     @Column(name = "seller_id", nullable = false)
     private Long sellerId;
@@ -49,8 +63,9 @@ public class Product extends BaseEntity {
     private List<ProductImage> images = new ArrayList<>();
 
     @Builder
-    public Product(Long sellerId, String name, String description, BigDecimal price, BigDecimal discountPrice,
+    public Product(Long id, Long sellerId, String name, String description, BigDecimal price, BigDecimal discountPrice,
                    Integer stock, String imageUrl, String category, Boolean featured) {
+        this.id = id;
         this.sellerId = sellerId;
         this.name = name;
         this.description = description;
@@ -77,5 +92,17 @@ public class Product extends BaseEntity {
 
     public void updateFeatured(Boolean featured) {
         this.featured = featured;
+    }
+
+    public void updateFromSource(String name, String description, BigDecimal price,
+                                  BigDecimal discountPrice, String imageUrl, String category,
+                                  Boolean featured) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.discountPrice = discountPrice;
+        this.imageUrl = imageUrl;
+        this.category = category;
+        this.featured = featured != null ? featured : false;
     }
 }

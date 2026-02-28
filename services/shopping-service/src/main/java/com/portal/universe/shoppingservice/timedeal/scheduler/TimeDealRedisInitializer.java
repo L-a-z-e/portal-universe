@@ -46,14 +46,14 @@ public class TimeDealRedisInitializer {
                     if (ttlSeconds > 0) {
                         timeDealRedisService.initializeStock(
                                 deal.getId(),
-                                product.getProduct().getId(),
+                                product.getProductId(),
                                 remainingQuantity,
                                 ttlSeconds
                         );
                     } else {
                         timeDealRedisService.initializeStock(
                                 deal.getId(),
-                                product.getProduct().getId(),
+                                product.getProductId(),
                                 remainingQuantity
                         );
                     }

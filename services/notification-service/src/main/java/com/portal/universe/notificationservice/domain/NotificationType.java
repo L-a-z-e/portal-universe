@@ -45,6 +45,9 @@ public enum NotificationType {
     DRIVE_FILE_DELETED("파일이 삭제되었습니다"),
     DRIVE_FOLDER_CREATED("폴더가 생성되었습니다"),
 
+    // Auth
+    PASSWORD_RESET_REQUESTED("비밀번호 재설정이 요청되었습니다"),
+
     // System
     SYSTEM("시스템 알림");
 
