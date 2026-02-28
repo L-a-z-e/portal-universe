@@ -22,7 +22,8 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Query;
 
 import java.lang.reflect.Constructor;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,7 +50,7 @@ class PostRepositoryCustomImplTest {
         @DisplayName("should_returnCategoryStats")
         void should_returnCategoryStats() throws Exception {
             // given
-            LocalDateTime now = LocalDateTime.now();
+            Instant now = Instant.now();
             Object categoryResult = createCategoryStatsResult("tech", 10L, now);
 
             @SuppressWarnings("unchecked")
@@ -139,7 +140,7 @@ class PostRepositoryCustomImplTest {
             // when
             Page<Post> result = postRepositoryCustom.aggregateTrendingPosts(
                     PostStatus.PUBLISHED,
-                    LocalDateTime.now().minusDays(7),
+                    Instant.now().minus(7, ChronoUnit.DAYS),
                     24.0,
                     0,
                     10
@@ -162,7 +163,7 @@ class PostRepositoryCustomImplTest {
         @DisplayName("should_returnBlogStats")
         void should_returnBlogStats() {
             // given
-            LocalDateTime lastPostDate = LocalDateTime.now();
+            Instant lastPostDate = Instant.now();
             List<String> topCategories = List.of("tech", "java");
             List<String> topTags = List.of("spring", "boot");
 
@@ -216,10 +217,10 @@ class PostRepositoryCustomImplTest {
             statsDoc.put("authorUsername", "user1_handle");
             statsDoc.put("authorNickname", "Author Name");
             statsDoc.put("firstPostDate", java.util.Date.from(
-                    LocalDateTime.now().minusDays(30).atZone(java.time.ZoneId.systemDefault()).toInstant()
+                    Instant.now().minus(30, ChronoUnit.DAYS)
             ));
             statsDoc.put("lastPostDate", java.util.Date.from(
-                    LocalDateTime.now().atZone(java.time.ZoneId.systemDefault()).toInstant()
+                    Instant.now()
             ));
 
             AggregationResults<Document> aggregationResults = new AggregationResults<>(
@@ -272,7 +273,7 @@ class PostRepositoryCustomImplTest {
     }
 
     // Helper methods for creating private record instances via reflection
-    private Object createCategoryStatsResult(String id, Long postCount, LocalDateTime latestPostDate) throws Exception {
+    private Object createCategoryStatsResult(String id, Long postCount, Instant latestPostDate) throws Exception {
         Class<?> clazz = Class.forName("com.portal.universe.blogservice.post.repository.PostRepositoryCustomImpl$CategoryStatsResult");
         Constructor<?> ctor = clazz.getDeclaredConstructors()[0];
         ctor.setAccessible(true);

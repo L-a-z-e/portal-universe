@@ -2,10 +2,12 @@
 
 **Database**: PostgreSQL (shopping_db) + Elasticsearch + Redis
 **Entity Count**: 11 (10 JPA + 1 Elasticsearch Document)
-**Last Updated**: 2026-02-18
+**Last Updated**: 2026-02-28
 
 > **서비스 분해 (2026-02-14)**: Product, Inventory, StockMovement, Seller는 `shopping_seller_db`로 이전되었습니다.
 > Coupon, TimeDeal, WaitingQueue도 `shopping_seller_db`로 이전되었으며, 이 서비스에는 UserCoupon, TimeDealPurchase, QueueEntry만 유지됩니다.
+>
+> **Payment 분리 (2026-02-28)**: Payment 도메인은 `payment_db`(payment-service)로 독립 분리되었습니다. `V7__drop_payments_table.sql`로 payments 테이블이 제거되고, `V6__add_payment_intent_id.sql`로 orders 테이블에 `payment_intent_id` 컬럼이 추가되었습니다.
 
 ## ERD
 
@@ -92,6 +94,7 @@ erDiagram
         BigDecimal discountAmount
         BigDecimal finalAmount
         Long appliedUserCouponId FK
+        String paymentIntentId "payment-service Intent ID (V6)"
         Address shippingAddress
         String cancelReason
         LocalDateTime cancelledAt
@@ -109,23 +112,7 @@ erDiagram
         BigDecimal subtotal
     }
 
-    Payment {
-        Long id PK
-        String paymentNumber UK
-        Long orderId FK
-        String orderNumber
-        String userId
-        BigDecimal amount
-        PaymentStatus status
-        PaymentMethod paymentMethod
-        String pgTransactionId
-        String pgResponse
-        String failureReason
-        LocalDateTime paidAt
-        LocalDateTime refundedAt
-        LocalDateTime createdAt
-        LocalDateTime updatedAt
-    }
+    %% Payment 엔티티는 payment-service (payment_db)로 이전됨 (2026-02-28)
 
     Delivery {
         Long id PK
@@ -200,7 +187,7 @@ erDiagram
     %% shopping_db 내부 관계
     Cart ||--o{ CartItem : contains
     Order ||--o{ OrderItem : contains
-    Order ||--o| Payment : has
+    %% Payment는 payment_db에서 관리 (payment-service)
     Order ||--o| Delivery : has
     Order ||--o| SagaState : tracks
     Delivery ||--o{ DeliveryHistory : has
@@ -341,6 +328,8 @@ erDiagram
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-28 | TIMESTAMP → TIMESTAMPTZ 마이그레이션, LocalDateTime → Instant (ADR-056) | Laze |
+| 2026-02-28 | Payment 도메인 독립 분리, payments 테이블 DROP, payment_intent_id 추가 (ADR-055) | Laze |
 | 2026-02-18 | MySQL → PostgreSQL 전환 (ADR-046) | Laze |
 | 2026-02-17 | Product 확장: discountPrice, featured 필드 추가, ProductImage 테이블 신규 (V2 migration) | Laze |
 | 2026-02-14 | 서비스 분해: Product, Inventory, Coupon, TimeDeal, WaitingQueue를 shopping_seller_db로 이전 | Laze |

@@ -19,9 +19,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -175,7 +173,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     private record CategoryStatsResult(
             String id,  // _id 필드 = category 값
             Long postCount,
-            LocalDateTime latestPostDate
+            Instant latestPostDate
     ) {}
 
     private record TagStatsResult(
@@ -214,7 +212,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
      * ])
      */
     @Override
-    public Page<Post> aggregateTrendingPosts(PostStatus status, LocalDateTime startDate,
+    public Page<Post> aggregateTrendingPosts(PostStatus status, Instant startDate,
                                               double halfLifeHours, int page, int size) {
         log.debug("Aggregating trending posts: status={}, startDate={}, halfLife={}, page={}, size={}",
                 status, startDate, halfLifeHours, page, size);
@@ -308,7 +306,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     @Override
     public BlogStats aggregateBlogStats(PostStatus publishedStatus, List<String> topCategories,
-                                         List<String> topTags, LocalDateTime lastPostDate) {
+                                         List<String> topTags, Instant lastPostDate) {
         log.debug("Aggregating blog stats");
 
         long totalPosts = mongoTemplate.count(new Query(), Post.class);
@@ -368,9 +366,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                         .and("status").is(PostStatus.PUBLISHED.name())),
                 Post.class);
 
-        // MongoDB의 Date를 LocalDateTime으로 변환
-        LocalDateTime firstPostDate = toLocalDateTime(stats.get("firstPostDate", Date.class));
-        LocalDateTime lastPostDate = toLocalDateTime(stats.get("lastPostDate", Date.class));
+        // MongoDB의 Date를 Instant으로 변환
+        Instant firstPostDate = toInstant(stats.get("firstPostDate", Date.class));
+        Instant lastPostDate = toInstant(stats.get("lastPostDate", Date.class));
 
         return new AuthorStats(
                 authorId,
@@ -457,9 +455,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     }
 
     /**
-     * MongoDB Date를 LocalDateTime으로 변환
+     * MongoDB Date를 Instant으로 변환
      */
-    private LocalDateTime toLocalDateTime(Date date) {
-        return date != null ? date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime() : null;
+    private Instant toInstant(Date date) {
+        return date != null ? date.toInstant() : null;
     }
 }

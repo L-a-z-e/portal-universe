@@ -5,7 +5,7 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -51,13 +51,13 @@ public class JwtProperties {
         /**
          * 키가 활성화된 시점
          */
-        private LocalDateTime activatedAt;
+        private Instant activatedAt;
 
         /**
          * 키의 만료 시점 (선택 사항)
          * null이면 만료되지 않습니다.
          */
-        private LocalDateTime expiresAt;
+        private Instant expiresAt;
 
         /**
          * 키가 만료되었는지 확인합니다.
@@ -65,7 +65,7 @@ public class JwtProperties {
          * @return 만료되었으면 true, 아니면 false
          */
         public boolean isExpired() {
-            return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
+            return expiresAt != null && Instant.now().isAfter(expiresAt);
         }
 
         /**
@@ -75,7 +75,7 @@ public class JwtProperties {
          */
         public boolean isActive() {
             return activatedAt != null &&
-                   LocalDateTime.now().isAfter(activatedAt) &&
+                   Instant.now().isAfter(activatedAt) &&
                    !isExpired();
         }
     }

@@ -150,19 +150,4 @@ class TimeDealRedisServiceTest {
         verify(stringRedisTemplate).delete("timedeal:stock:1:10");
     }
 
-    @Test
-    @DisplayName("should_setExpiration_when_called")
-    void should_setExpiration_when_called() {
-        // given
-        Long timeDealId = 1L;
-        Long productId = 10L;
-        long timeout = 3600;
-        TimeUnit unit = TimeUnit.SECONDS;
-
-        // when
-        timeDealRedisService.setExpiration(timeDealId, productId, timeout, unit);
-
-        // then
-        verify(stringRedisTemplate).expire("timedeal:stock:1:10", timeout, unit);
-    }
 }

@@ -71,7 +71,7 @@ class SagaStateTest {
             saga.proceedToNextStep();
 
             assertThat(saga.getCurrentStep()).isEqualTo(SagaStep.PROCESS_PAYMENT);
-            assertThat(saga.getCompletedSteps()).contains("RESERVE_INVENTORY");
+            assertThat(saga.getCompletedSteps()).contains(SagaStep.RESERVE_INVENTORY);
         }
 
         @Test
@@ -83,8 +83,8 @@ class SagaStateTest {
             saga.proceedToNextStep(); // PROCESS_PAYMENT -> DEDUCT_INVENTORY
 
             assertThat(saga.getCurrentStep()).isEqualTo(SagaStep.DEDUCT_INVENTORY);
-            assertThat(saga.getCompletedSteps()).contains("RESERVE_INVENTORY");
-            assertThat(saga.getCompletedSteps()).contains("PROCESS_PAYMENT");
+            assertThat(saga.getCompletedSteps()).contains(SagaStep.RESERVE_INVENTORY);
+            assertThat(saga.getCompletedSteps()).contains(SagaStep.PROCESS_PAYMENT);
         }
     }
 
@@ -105,7 +105,7 @@ class SagaStateTest {
 
             assertThat(saga.getStatus()).isEqualTo(SagaStatus.COMPLETED);
             assertThat(saga.getCompletedAt()).isNotNull();
-            assertThat(saga.getCompletedSteps()).contains("CONFIRM_ORDER");
+            assertThat(saga.getCompletedSteps()).contains(SagaStep.CONFIRM_ORDER);
         }
     }
 

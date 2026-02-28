@@ -14,7 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -48,8 +48,8 @@ class TagControllerTest {
             "Java",
             10L,
             "Java programming language",
-            LocalDateTime.now(),
-            LocalDateTime.now()
+            Instant.now(),
+            Instant.now()
         );
         given(tagService.createTag(any(TagCreateRequest.class))).willReturn(response);
 
@@ -87,8 +87,8 @@ class TagControllerTest {
             "Java",
             10L,
             "Java programming language",
-            LocalDateTime.now(),
-            LocalDateTime.now()
+            Instant.now(),
+            Instant.now()
         );
         given(tagService.getAllTags()).willReturn(List.of(response));
 
@@ -111,8 +111,8 @@ class TagControllerTest {
             "Java",
             10L,
             "Java programming language",
-            LocalDateTime.now(),
-            LocalDateTime.now()
+            Instant.now(),
+            Instant.now()
         );
         given(tagService.getTagByName("Java")).willReturn(response);
 
@@ -152,8 +152,8 @@ class TagControllerTest {
             "Java",
             10L,
             "Java programming language",
-            LocalDateTime.now(),
-            LocalDateTime.now()
+            Instant.now(),
+            Instant.now()
         );
         given(tagService.searchTags("Jav", 5)).willReturn(List.of(response));
 
@@ -177,8 +177,8 @@ class TagControllerTest {
             "Java",
             10L,
             "Updated description",
-            LocalDateTime.now(),
-            LocalDateTime.now()
+            Instant.now(),
+            Instant.now()
         );
         given(tagService.updateTagDescription("Java", "Updated description")).willReturn(response);
 

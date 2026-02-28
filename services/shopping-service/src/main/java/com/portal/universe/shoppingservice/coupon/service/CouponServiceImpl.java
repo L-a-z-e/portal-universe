@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -67,7 +67,7 @@ public class CouponServiceImpl implements CouponService {
         Coupon savedCoupon = couponRepository.save(coupon);
 
         // Redis에 쿠폰 재고 초기화 + TTL (SETEX로 값과 TTL 원자적 설정)
-        long ttlSeconds = Duration.between(LocalDateTime.now(), savedCoupon.getExpiresAt()).getSeconds()
+        long ttlSeconds = Duration.between(Instant.now(), savedCoupon.getExpiresAt()).getSeconds()
                 + TimeUnit.DAYS.toSeconds(1);
         if (ttlSeconds > 0) {
             couponRedisService.initializeCouponStock(savedCoupon.getId(), savedCoupon.getTotalQuantity(), ttlSeconds);
@@ -90,7 +90,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public List<CouponResponse> getAvailableCoupons() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return couponRepository.findAvailableCoupons(CouponStatus.ACTIVE, now)
                 .stream()
                 .map(CouponResponse::from)
@@ -137,14 +137,14 @@ public class CouponServiceImpl implements CouponService {
                 .setCouponName(coupon.getName())
                 .setDiscountType(coupon.getDiscountType().name())
                 .setDiscountValue(coupon.getDiscountValue().intValue())
-                .setExpiresAt(coupon.getExpiresAt().atZone(java.time.ZoneId.systemDefault()).toInstant())
+                .setExpiresAt(coupon.getExpiresAt())
                 .build());
 
         return UserCouponResponse.from(savedUserCoupon);
     }
 
     private void validateCouponForIssue(Coupon coupon) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         if (coupon.getStatus() != CouponStatus.ACTIVE) {
             throw new CustomBusinessException(ShoppingErrorCode.COUPON_INACTIVE);
@@ -170,7 +170,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public List<UserCouponResponse> getAvailableUserCoupons(String userId) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return userCouponRepository.findAvailableByUserId(userId, now)
                 .stream()
                 .map(UserCouponResponse::from)
@@ -187,7 +187,7 @@ public class CouponServiceImpl implements CouponService {
             throw new CustomBusinessException(ShoppingErrorCode.USER_COUPON_ALREADY_USED);
         }
         if (userCoupon.getStatus() == UserCouponStatus.EXPIRED ||
-                LocalDateTime.now().isAfter(userCoupon.getExpiresAt())) {
+                Instant.now().isAfter(userCoupon.getExpiresAt())) {
             throw new CustomBusinessException(ShoppingErrorCode.USER_COUPON_EXPIRED);
         }
 

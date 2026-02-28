@@ -1,15 +1,14 @@
 package com.portal.universe.authservice.oauth2.domain;
 
 import com.portal.universe.authservice.user.domain.User;
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 소셜 로그인 연동 정보를 담는 엔티티입니다.
@@ -22,8 +21,7 @@ import java.time.LocalDateTime;
         })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class SocialAccount {
+public class SocialAccount extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,9 +41,8 @@ public class SocialAccount {
     @Column(name = "access_token")
     private String accessToken; // 선택적 저장 (암호화 권장)
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime connectedAt;
+    @Column(name = "connected_at")
+    private Instant connectedAt;
 
     public SocialAccount(User user, SocialProvider provider, String providerId) {
         this.user = user;

@@ -19,7 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -61,8 +61,8 @@ class CommentControllerTest {
             null,
             10L,
             false,
-            LocalDateTime.now(),
-            LocalDateTime.now()
+            Instant.now(),
+            Instant.now()
         );
     }
 

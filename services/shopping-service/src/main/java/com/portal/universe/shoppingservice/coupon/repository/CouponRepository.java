@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,11 +24,11 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
            "AND c.issuedQuantity < c.totalQuantity " +
            "ORDER BY c.expiresAt ASC")
     List<Coupon> findAvailableCoupons(@Param("status") CouponStatus status,
-                                       @Param("now") LocalDateTime now);
+                                       @Param("now") Instant now);
 
     @Query("SELECT c FROM Coupon c WHERE c.status = 'ACTIVE' " +
            "AND c.expiresAt <= :now")
-    List<Coupon> findExpiredCoupons(@Param("now") LocalDateTime now);
+    List<Coupon> findExpiredCoupons(@Param("now") Instant now);
 
     @Modifying
     @Query("UPDATE Coupon c SET c.issuedQuantity = c.issuedQuantity + 1, " +

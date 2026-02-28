@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "queue_entries")
@@ -30,14 +30,14 @@ public class QueueEntry {
     private QueueEntryStatus status;
 
     @Column(name = "joined_at", nullable = false)
-    private LocalDateTime joinedAt;
+    private Instant joinedAt;
 
     @Column(name = "entered_at")
-    private LocalDateTime enteredAt;
+    private Instant enteredAt;
 
     @Column(name = "expired_at")
-    private LocalDateTime expiredAt;
+    private Instant expiredAt;
 
     @Column(name = "left_at")
-    private LocalDateTime leftAt;
+    private Instant leftAt;
 }

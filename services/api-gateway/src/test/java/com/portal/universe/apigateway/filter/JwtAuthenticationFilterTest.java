@@ -24,7 +24,8 @@ import org.springframework.security.core.context.SecurityContext;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ class JwtAuthenticationFilterTest {
 
         var keyConfig = new JwtProperties.KeyConfig();
         keyConfig.setSecretKey(SECRET_KEY);
-        keyConfig.setActivatedAt(LocalDateTime.now().minusDays(1));
+        keyConfig.setActivatedAt(Instant.now().minus(Duration.ofDays(1)));
         keyConfig.setExpiresAt(null); // 만료 없음
 
         var keys = new HashMap<String, JwtProperties.KeyConfig>();
@@ -415,12 +416,12 @@ class JwtAuthenticationFilterTest {
             String key2Secret = "another-secret-key-that-is-at-least-256-bits-long-for-hmac-sha";
             var key2Config = new JwtProperties.KeyConfig();
             key2Config.setSecretKey(key2Secret);
-            key2Config.setActivatedAt(LocalDateTime.now().minusDays(1));
+            key2Config.setActivatedAt(Instant.now().minus(Duration.ofDays(1)));
 
             var keys = new HashMap<String, JwtProperties.KeyConfig>();
             var key1Config = new JwtProperties.KeyConfig();
             key1Config.setSecretKey(SECRET_KEY);
-            key1Config.setActivatedAt(LocalDateTime.now().minusDays(1));
+            key1Config.setActivatedAt(Instant.now().minus(Duration.ofDays(1)));
             keys.put(KEY_ID, key1Config);
             keys.put("test-key-2", key2Config);
 
@@ -465,8 +466,8 @@ class JwtAuthenticationFilterTest {
         void should_return401_when_keyExpired() {
             var expiredConfig = new JwtProperties.KeyConfig();
             expiredConfig.setSecretKey(SECRET_KEY);
-            expiredConfig.setActivatedAt(LocalDateTime.now().minusDays(30));
-            expiredConfig.setExpiresAt(LocalDateTime.now().minusDays(1));
+            expiredConfig.setActivatedAt(Instant.now().minus(Duration.ofDays(30)));
+            expiredConfig.setExpiresAt(Instant.now().minus(Duration.ofDays(1)));
 
             var keys = new HashMap<String, JwtProperties.KeyConfig>();
             keys.put("expired-key", expiredConfig);

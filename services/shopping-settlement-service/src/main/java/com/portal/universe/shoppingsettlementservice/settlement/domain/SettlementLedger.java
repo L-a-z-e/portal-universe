@@ -1,24 +1,22 @@
 package com.portal.universe.shoppingsettlementservice.settlement.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "settlement_ledger", uniqueConstraints = {
         @UniqueConstraint(name = "uq_ledger_order_seller_event", columnNames = {"order_number", "seller_id", "event_type"})
 })
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SettlementLedger {
+public class SettlementLedger extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,18 +35,14 @@ public class SettlementLedger {
     private BigDecimal amount;
 
     @Column(name = "event_at", nullable = false)
-    private LocalDateTime eventAt;
+    private Instant eventAt;
 
     @Column(nullable = false)
     private Boolean processed;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
     @Builder
     public SettlementLedger(String orderNumber, Long sellerId, String eventType,
-                            BigDecimal amount, LocalDateTime eventAt) {
+                            BigDecimal amount, Instant eventAt) {
         this.orderNumber = orderNumber;
         this.sellerId = sellerId;
         this.eventType = eventType;

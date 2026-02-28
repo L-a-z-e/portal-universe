@@ -1,5 +1,6 @@
 package com.portal.universe.blogservice.series.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseDocument;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
@@ -8,7 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +26,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Series {
+public class Series extends BaseDocument {
 
     @Id
     private String id;
@@ -74,16 +74,6 @@ public class Series {
     private List<String> postIds = new ArrayList<>();
 
     /**
-     * 생성일시
-     */
-    private LocalDateTime createdAt;
-
-    /**
-     * 수정일시
-     */
-    private LocalDateTime updatedAt;
-
-    /**
      * 낙관적 잠금 버전 (동시 수정 방지)
      */
     @Version
@@ -98,7 +88,7 @@ public class Series {
         this.name = name;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
-        this.updatedAt = LocalDateTime.now();
+        // updatedAt is managed by BaseDocument @LastModifiedDate
     }
 
     /**
@@ -107,7 +97,7 @@ public class Series {
     public void addPost(String postId) {
         if (!this.postIds.contains(postId)) {
             this.postIds.add(postId);
-            this.updatedAt = LocalDateTime.now();
+            // updatedAt is managed by BaseDocument @LastModifiedDate
         }
     }
 
@@ -120,7 +110,7 @@ public class Series {
                 throw new IllegalArgumentException("Invalid index: " + index);
             }
             this.postIds.add(index, postId);
-            this.updatedAt = LocalDateTime.now();
+            // updatedAt is managed by BaseDocument @LastModifiedDate
         }
     }
 
@@ -129,7 +119,7 @@ public class Series {
      */
     public void removePost(String postId) {
         this.postIds.remove(postId);
-        this.updatedAt = LocalDateTime.now();
+        // updatedAt is managed by BaseDocument @LastModifiedDate
     }
 
     /**
@@ -141,7 +131,7 @@ public class Series {
             throw new IllegalArgumentException("Post IDs mismatch");
         }
         this.postIds = new ArrayList<>(newPostIds);
-        this.updatedAt = LocalDateTime.now();
+        // updatedAt is managed by BaseDocument @LastModifiedDate
     }
 
     /**

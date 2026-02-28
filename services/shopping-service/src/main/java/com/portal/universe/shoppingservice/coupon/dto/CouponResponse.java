@@ -6,7 +6,7 @@ import com.portal.universe.shoppingservice.coupon.domain.DiscountType;
 import lombok.Builder;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Builder
 public record CouponResponse(
@@ -22,9 +22,9 @@ public record CouponResponse(
         Integer issuedQuantity,
         Integer remainingQuantity,
         CouponStatus status,
-        LocalDateTime startsAt,
-        LocalDateTime expiresAt,
-        LocalDateTime createdAt
+        Instant startsAt,
+        Instant expiresAt,
+        Instant createdAt
 ) {
     public static CouponResponse from(Coupon coupon) {
         return CouponResponse.builder()

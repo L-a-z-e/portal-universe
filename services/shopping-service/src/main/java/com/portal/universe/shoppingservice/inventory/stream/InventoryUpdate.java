@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @NoArgsConstructor
@@ -15,5 +15,5 @@ public class InventoryUpdate {
     private Long productId;
     private Integer available;
     private Integer reserved;
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 }

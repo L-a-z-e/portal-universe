@@ -20,8 +20,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -56,8 +57,8 @@ public class DailySettlementJobConfig {
     public Tasklet dailySettlementTasklet() {
         return (contribution, chunkContext) -> {
             LocalDate yesterday = LocalDate.now().minusDays(1);
-            LocalDateTime startOfDay = yesterday.atStartOfDay();
-            LocalDateTime endOfDay = yesterday.atTime(23, 59, 59);
+            Instant startOfDay = yesterday.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+            Instant endOfDay = yesterday.atTime(23, 59, 59).atZone(ZoneId.of("Asia/Seoul")).toInstant();
 
             log.info("Starting daily settlement for: {}", yesterday);
 

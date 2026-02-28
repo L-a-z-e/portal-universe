@@ -12,7 +12,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -42,7 +42,7 @@ public class CouponRedisBootstrap implements ApplicationRunner {
         for (Coupon coupon : activeCoupons) {
             try {
                 int remainingQuantity = coupon.getRemainingQuantity();
-                long ttlSeconds = Duration.between(LocalDateTime.now(), coupon.getExpiresAt()).getSeconds()
+                long ttlSeconds = Duration.between(Instant.now(), coupon.getExpiresAt()).getSeconds()
                         + TimeUnit.DAYS.toSeconds(1);
 
                 // Stock 키: SETEX로 값 + TTL 원자적 설정 (expire 버그 우회)

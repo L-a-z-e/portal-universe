@@ -4,7 +4,6 @@ import com.portal.universe.authservice.auth.domain.PermissionEntity;
 import com.portal.universe.authservice.auth.domain.RoleEntity;
 import com.portal.universe.authservice.auth.domain.RoleInclude;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public record RoleDetailResponse(
@@ -40,9 +39,9 @@ public record RoleDetailResponse(
                 entity.isSystem(),
                 entity.isActive(),
                 entity.getCreatedAt() != null
-                        ? entity.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null,
+                        ? entity.getCreatedAt().toString() : null,
                 entity.getUpdatedAt() != null
-                        ? entity.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null,
+                        ? entity.getUpdatedAt().toString() : null,
                 permissions.stream().map(PermissionResponse::from).toList()
         );
     }

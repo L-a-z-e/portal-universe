@@ -3,7 +3,7 @@ package com.portal.universe.shoppingsellerservice.inventory.dto;
 import com.portal.universe.shoppingsellerservice.inventory.domain.MovementType;
 import com.portal.universe.shoppingsellerservice.inventory.domain.StockMovement;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record StockMovementResponse(
         Long id,
@@ -18,7 +18,7 @@ public record StockMovementResponse(
         String referenceId,
         String reason,
         String performedBy,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {
     public static StockMovementResponse from(StockMovement movement) {
         return new StockMovementResponse(

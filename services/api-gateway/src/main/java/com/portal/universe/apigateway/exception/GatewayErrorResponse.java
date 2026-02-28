@@ -9,7 +9,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -64,7 +64,7 @@ public final class GatewayErrorResponse {
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("code", code);
         error.put("message", message);
-        error.put("timestamp", LocalDateTime.now().toString());
+        error.put("timestamp", Instant.now().toString());
         response.put("error", error);
 
         return response;

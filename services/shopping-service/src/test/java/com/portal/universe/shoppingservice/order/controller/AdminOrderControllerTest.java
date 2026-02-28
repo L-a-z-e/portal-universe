@@ -21,7 +21,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -62,7 +63,7 @@ class AdminOrderControllerTest {
         return new OrderResponse(1L, "ORD-001", "user-1", OrderStatus.PENDING,
                 "주문 대기", List.of(), 1, 2, BigDecimal.valueOf(20000),
                 BigDecimal.ZERO, BigDecimal.valueOf(20000), null, null,
-                null, null, LocalDateTime.now(), LocalDateTime.now());
+                null, null, null, Instant.now(), Instant.now());
     }
 
     @Test

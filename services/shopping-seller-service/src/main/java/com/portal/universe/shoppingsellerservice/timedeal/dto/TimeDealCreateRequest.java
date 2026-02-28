@@ -5,14 +5,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public record TimeDealCreateRequest(
         @NotBlank @Size(max = 100) String name,
         String description,
-        @NotNull LocalDateTime startsAt,
-        @NotNull LocalDateTime endsAt,
+        @NotNull Instant startsAt,
+        @NotNull Instant endsAt,
         @NotEmpty @Valid List<TimeDealProductItem> products
 ) {
     public TimeDeal toEntity(Long sellerId) {

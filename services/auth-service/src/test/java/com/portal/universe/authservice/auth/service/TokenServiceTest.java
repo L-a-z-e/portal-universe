@@ -19,7 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
@@ -72,7 +73,7 @@ class TokenServiceTest {
 
         JwtProperties.KeyConfig keyConfig = new JwtProperties.KeyConfig();
         keyConfig.setSecretKey(SECRET_KEY);
-        keyConfig.setActivatedAt(LocalDateTime.now().minusDays(1));
+        keyConfig.setActivatedAt(Instant.now().minus(Duration.ofDays(1)));
         keyConfig.setExpiresAt(null); // never expires
 
         Map<String, JwtProperties.KeyConfig> keys = new HashMap<>();
@@ -284,8 +285,8 @@ class TokenServiceTest {
             // given - add an expired key
             JwtProperties.KeyConfig expiredKeyConfig = new JwtProperties.KeyConfig();
             expiredKeyConfig.setSecretKey(SECRET_KEY);
-            expiredKeyConfig.setActivatedAt(LocalDateTime.now().minusDays(30));
-            expiredKeyConfig.setExpiresAt(LocalDateTime.now().minusDays(1)); // expired yesterday
+            expiredKeyConfig.setActivatedAt(Instant.now().minus(Duration.ofDays(30)));
+            expiredKeyConfig.setExpiresAt(Instant.now().minus(Duration.ofDays(1))); // expired yesterday
 
             jwtProperties.getKeys().put("expired-key", expiredKeyConfig);
 

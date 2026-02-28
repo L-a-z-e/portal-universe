@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -35,7 +35,7 @@ public class SecurityAuditEvent {
      * 이벤트 발생 시각
      */
     @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private Instant timestamp = Instant.now();
 
     /**
      * 사용자 ID (시스템 내부 식별자)

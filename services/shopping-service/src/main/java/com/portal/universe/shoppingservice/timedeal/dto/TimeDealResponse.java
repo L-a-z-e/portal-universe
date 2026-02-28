@@ -6,7 +6,7 @@ import com.portal.universe.shoppingservice.timedeal.domain.TimeDealStatus;
 import lombok.Builder;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Builder
@@ -15,10 +15,10 @@ public record TimeDealResponse(
         String name,
         String description,
         TimeDealStatus status,
-        LocalDateTime startsAt,
-        LocalDateTime endsAt,
+        Instant startsAt,
+        Instant endsAt,
         List<TimeDealProductResponse> products,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {
     @Builder
     public record TimeDealProductResponse(

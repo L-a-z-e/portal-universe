@@ -23,7 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -116,7 +117,7 @@ public class DataInitializer {
 
     private void createCouponsAndAssignToTestUser() throws IOException {
         List<CouponSeed> seeds = readSeed("coupons.json", CouponSeed.class);
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         // auth-service의 고정 테스트 유저 UUID
         String testUserUuid = "00000000-0000-0000-0000-000000000001"; // test@test.com
@@ -131,8 +132,8 @@ public class DataInitializer {
                     .minimumOrderAmount(seed.minimumOrderAmount())
                     .maximumDiscountAmount(seed.maximumDiscountAmount())
                     .totalQuantity(seed.totalQuantity())
-                    .startsAt(now.plusDays(seed.daysAfterBase()))
-                    .expiresAt(now.plusDays(seed.daysAfterBase() + seed.durationDays()))
+                    .startsAt(now.plus(seed.daysAfterBase(), ChronoUnit.DAYS))
+                    .expiresAt(now.plus(seed.daysAfterBase() + seed.durationDays(), ChronoUnit.DAYS))
                     .build();
 
             Coupon savedCoupon = couponRepository.save(coupon);

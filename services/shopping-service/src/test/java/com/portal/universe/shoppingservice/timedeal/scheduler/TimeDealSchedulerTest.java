@@ -14,7 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,8 +38,8 @@ class TimeDealSchedulerTest {
         TimeDeal deal = TimeDeal.builder()
                 .name("테스트 타임딜")
                 .description("테스트")
-                .startsAt(LocalDateTime.now().minusHours(1))
-                .endsAt(LocalDateTime.now().plusHours(1))
+                .startsAt(Instant.now().minus(1, ChronoUnit.HOURS))
+                .endsAt(Instant.now().plus(1, ChronoUnit.HOURS))
                 .build();
         ReflectionTestUtils.setField(deal, "id", 1L);
 
@@ -64,9 +65,9 @@ class TimeDealSchedulerTest {
     @DisplayName("should activate scheduled deals and initialize Redis stock")
     void should_activate_scheduled_deals() {
         TimeDeal deal = createTimeDealWithProduct();
-        when(timeDealRepository.findDealsToStart(any(LocalDateTime.class)))
+        when(timeDealRepository.findDealsToStart(any(Instant.class)))
                 .thenReturn(List.of(deal));
-        when(timeDealRepository.findDealsToEnd(any(LocalDateTime.class)))
+        when(timeDealRepository.findDealsToEnd(any(Instant.class)))
                 .thenReturn(Collections.emptyList());
 
         timeDealScheduler.updateTimeDealStatus();
@@ -80,9 +81,9 @@ class TimeDealSchedulerTest {
     void should_end_active_deals() {
         TimeDeal deal = createTimeDealWithProduct();
         deal.activate();
-        when(timeDealRepository.findDealsToStart(any(LocalDateTime.class)))
+        when(timeDealRepository.findDealsToStart(any(Instant.class)))
                 .thenReturn(Collections.emptyList());
-        when(timeDealRepository.findDealsToEnd(any(LocalDateTime.class)))
+        when(timeDealRepository.findDealsToEnd(any(Instant.class)))
                 .thenReturn(List.of(deal));
 
         timeDealScheduler.updateTimeDealStatus();
@@ -94,9 +95,9 @@ class TimeDealSchedulerTest {
     @Test
     @DisplayName("should handle empty lists gracefully")
     void should_handle_empty_lists() {
-        when(timeDealRepository.findDealsToStart(any(LocalDateTime.class)))
+        when(timeDealRepository.findDealsToStart(any(Instant.class)))
                 .thenReturn(Collections.emptyList());
-        when(timeDealRepository.findDealsToEnd(any(LocalDateTime.class)))
+        when(timeDealRepository.findDealsToEnd(any(Instant.class)))
                 .thenReturn(Collections.emptyList());
 
         timeDealScheduler.updateTimeDealStatus();
@@ -112,8 +113,8 @@ class TimeDealSchedulerTest {
         TimeDeal deal = TimeDeal.builder()
                 .name("복수 상품 딜")
                 .description("테스트")
-                .startsAt(LocalDateTime.now().minusHours(1))
-                .endsAt(LocalDateTime.now().plusHours(1))
+                .startsAt(Instant.now().minus(1, ChronoUnit.HOURS))
+                .endsAt(Instant.now().plus(1, ChronoUnit.HOURS))
                 .build();
         ReflectionTestUtils.setField(deal, "id", 2L);
 
@@ -132,9 +133,9 @@ class TimeDealSchedulerTest {
                 .product(product2).dealPrice(new BigDecimal("15000"))
                 .dealQuantity(40).maxPerUser(1).build());
 
-        when(timeDealRepository.findDealsToStart(any(LocalDateTime.class)))
+        when(timeDealRepository.findDealsToStart(any(Instant.class)))
                 .thenReturn(List.of(deal));
-        when(timeDealRepository.findDealsToEnd(any(LocalDateTime.class)))
+        when(timeDealRepository.findDealsToEnd(any(Instant.class)))
                 .thenReturn(Collections.emptyList());
 
         timeDealScheduler.updateTimeDealStatus();

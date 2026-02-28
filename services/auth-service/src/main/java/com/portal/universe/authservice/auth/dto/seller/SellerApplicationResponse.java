@@ -3,7 +3,7 @@ package com.portal.universe.authservice.auth.dto.seller;
 import com.portal.universe.authservice.auth.domain.SellerApplication;
 import com.portal.universe.authservice.auth.domain.SellerApplicationStatus;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record SellerApplicationResponse(
         Long id,
@@ -14,8 +14,8 @@ public record SellerApplicationResponse(
         SellerApplicationStatus status,
         String reviewedBy,
         String reviewComment,
-        LocalDateTime reviewedAt,
-        LocalDateTime createdAt
+        Instant reviewedAt,
+        Instant createdAt
 ) {
     public static SellerApplicationResponse from(SellerApplication app) {
         return new SellerApplicationResponse(

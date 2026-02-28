@@ -4,7 +4,7 @@ import com.portal.universe.shoppingservice.timedeal.domain.TimeDealPurchase;
 import lombok.Builder;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Builder
 public record TimeDealPurchaseResponse(
@@ -14,7 +14,7 @@ public record TimeDealPurchaseResponse(
         Integer quantity,
         BigDecimal purchasePrice,
         BigDecimal totalPrice,
-        LocalDateTime purchasedAt
+        Instant purchasedAt
 ) {
     public static TimeDealPurchaseResponse from(TimeDealPurchase purchase) {
         return TimeDealPurchaseResponse.builder()

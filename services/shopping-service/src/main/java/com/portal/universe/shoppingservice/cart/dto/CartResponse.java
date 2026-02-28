@@ -4,7 +4,7 @@ import com.portal.universe.shoppingservice.cart.domain.Cart;
 import com.portal.universe.shoppingservice.cart.domain.CartStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -18,8 +18,8 @@ public record CartResponse(
         int itemCount,
         int totalQuantity,
         BigDecimal totalAmount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
     public static CartResponse from(Cart cart) {
         List<CartItemResponse> itemResponses = cart.getItems().stream()

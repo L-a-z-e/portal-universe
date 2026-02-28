@@ -8,7 +8,7 @@ import com.portal.universe.blogservice.post.dto.stats.CategoryStats;
 import com.portal.universe.blogservice.tag.dto.TagStatsResponse;
 import org.springframework.data.domain.Page;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -66,7 +66,7 @@ public interface PostRepositoryCustom {
      * @param size 페이지 크기
      * @return 트렌딩 점수 순으로 정렬된 게시물 페이지
      */
-    Page<Post> aggregateTrendingPosts(PostStatus status, LocalDateTime startDate,
+    Page<Post> aggregateTrendingPosts(PostStatus status, Instant startDate,
                                        double halfLifeHours, int page, int size);
 
     /**
@@ -76,7 +76,7 @@ public interface PostRepositoryCustom {
      * 개선 방식: $group으로 DB에서 합산 = 1번 쿼리
      */
     BlogStats aggregateBlogStats(PostStatus publishedStatus, List<String> topCategories,
-                                  List<String> topTags, LocalDateTime lastPostDate);
+                                  List<String> topTags, Instant lastPostDate);
 
     /**
      * 작성자별 통계 조회 (Aggregation 사용)

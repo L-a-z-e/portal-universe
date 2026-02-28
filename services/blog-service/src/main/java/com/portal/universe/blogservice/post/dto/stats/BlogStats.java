@@ -1,6 +1,6 @@
 package com.portal.universe.blogservice.post.dto.stats;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public record BlogStats(
@@ -10,5 +10,5 @@ public record BlogStats(
         Long totalLikes,
         List<String> topCategories,
         List<String> topTags,
-        LocalDateTime lastPostDate
+        Instant lastPostDate
 ) {}

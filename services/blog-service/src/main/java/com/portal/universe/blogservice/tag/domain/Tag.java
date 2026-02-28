@@ -1,5 +1,6 @@
 package com.portal.universe.blogservice.tag.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseDocument;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -8,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 태그 Entity
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Tag {
+public class Tag extends BaseDocument {
 
     @Id
     private String id;
@@ -50,14 +51,9 @@ public class Tag {
     private String description;
 
     /**
-     * 태그 생성일시
-     */
-    private LocalDateTime createdAt;
-
-    /**
      * 태그 최종 사용일시
      */
-    private LocalDateTime lastUsedAt;
+    private Instant lastUsedAt;
 
     // ========== 비즈니스 메서드 ==========
 
@@ -66,7 +62,7 @@ public class Tag {
      */
     public void incrementPostCount() {
         this.postCount++;
-        this.lastUsedAt = LocalDateTime.now();
+        this.lastUsedAt = Instant.now();
     }
 
     /**
@@ -89,7 +85,7 @@ public class Tag {
      * 최종 사용일시 업데이트
      */
     public void updateLastUsedAt() {
-        this.lastUsedAt = LocalDateTime.now();
+        this.lastUsedAt = Instant.now();
     }
 
     /**

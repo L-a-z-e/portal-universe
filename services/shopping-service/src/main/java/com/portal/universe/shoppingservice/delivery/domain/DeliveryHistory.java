@@ -1,14 +1,11 @@
 package com.portal.universe.shoppingservice.delivery.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 /**
  * 배송 이력을 나타내는 JPA 엔티티입니다.
@@ -18,10 +15,9 @@ import java.time.LocalDateTime;
         @Index(name = "idx_delivery_history_delivery_id", columnList = "delivery_id"),
         @Index(name = "idx_delivery_history_created_at", columnList = "created_at")
 })
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DeliveryHistory {
+public class DeliveryHistory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,10 +48,6 @@ public class DeliveryHistory {
      */
     @Column(name = "description", length = 500)
     private String description;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     @Builder
     public DeliveryHistory(Delivery delivery, DeliveryStatus status, String location, String description) {

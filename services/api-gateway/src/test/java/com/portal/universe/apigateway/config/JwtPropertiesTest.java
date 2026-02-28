@@ -4,7 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,7 @@ class JwtPropertiesTest {
         @DisplayName("만료 시간이 과거이면 true를 반환한다")
         void should_returnTrue_when_keyExpired() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setExpiresAt(LocalDateTime.now().minusHours(1));
+            keyConfig.setExpiresAt(Instant.now().minus(Duration.ofHours(1)));
 
             assertThat(keyConfig.isExpired()).isTrue();
         }
@@ -29,7 +30,7 @@ class JwtPropertiesTest {
         @DisplayName("만료 시간이 미래이면 false를 반환한다")
         void should_returnFalse_when_keyNotExpired() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setExpiresAt(LocalDateTime.now().plusHours(1));
+            keyConfig.setExpiresAt(Instant.now().plus(Duration.ofHours(1)));
 
             assertThat(keyConfig.isExpired()).isFalse();
         }
@@ -52,8 +53,8 @@ class JwtPropertiesTest {
         @DisplayName("활성화 시간이 과거이고 만료 전이면 true를 반환한다")
         void should_returnTrue_when_keyIsActive() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setActivatedAt(LocalDateTime.now().minusHours(1));
-            keyConfig.setExpiresAt(LocalDateTime.now().plusHours(1));
+            keyConfig.setActivatedAt(Instant.now().minus(Duration.ofHours(1)));
+            keyConfig.setExpiresAt(Instant.now().plus(Duration.ofHours(1)));
 
             assertThat(keyConfig.isActive()).isTrue();
         }
@@ -62,8 +63,8 @@ class JwtPropertiesTest {
         @DisplayName("활성화 시간이 미래이면 false를 반환한다")
         void should_returnFalse_when_keyNotYetActivated() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setActivatedAt(LocalDateTime.now().plusHours(1));
-            keyConfig.setExpiresAt(LocalDateTime.now().plusHours(2));
+            keyConfig.setActivatedAt(Instant.now().plus(Duration.ofHours(1)));
+            keyConfig.setExpiresAt(Instant.now().plus(Duration.ofHours(2)));
 
             assertThat(keyConfig.isActive()).isFalse();
         }
@@ -81,8 +82,8 @@ class JwtPropertiesTest {
         @DisplayName("활성화되었지만 만료되었으면 false를 반환한다")
         void should_returnFalse_when_keyExpiredButWasActive() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setActivatedAt(LocalDateTime.now().minusHours(2));
-            keyConfig.setExpiresAt(LocalDateTime.now().minusHours(1));
+            keyConfig.setActivatedAt(Instant.now().minus(Duration.ofHours(2)));
+            keyConfig.setExpiresAt(Instant.now().minus(Duration.ofHours(1)));
 
             assertThat(keyConfig.isActive()).isFalse();
         }
@@ -91,7 +92,7 @@ class JwtPropertiesTest {
         @DisplayName("expiresAt이 null이면 만료되지 않은 것으로 취급한다")
         void should_returnTrue_when_activeAndNoExpiry() {
             var keyConfig = new JwtProperties.KeyConfig();
-            keyConfig.setActivatedAt(LocalDateTime.now().minusHours(1));
+            keyConfig.setActivatedAt(Instant.now().minus(Duration.ofHours(1)));
             keyConfig.setExpiresAt(null);
 
             assertThat(keyConfig.isActive()).isTrue();

@@ -60,6 +60,7 @@ class DeliveryServiceImplTest {
         Delivery delivery = Delivery.builder()
                 .orderId(1L)
                 .orderNumber(orderNumber)
+                .userId("user-1")
                 .shippingAddress(null)
                 .carrier("Test Carrier")
                 .build();
@@ -104,7 +105,7 @@ class DeliveryServiceImplTest {
                     .thenReturn(Optional.of(delivery));
 
             // when
-            DeliveryResponse result = deliveryService.getDeliveryByTrackingNumber("TRK-ABC123");
+            DeliveryResponse result = deliveryService.getDeliveryByTrackingNumber("TRK-ABC123", "user-1");
 
             // then
             assertThat(result).isNotNull();
@@ -118,7 +119,7 @@ class DeliveryServiceImplTest {
                     .thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> deliveryService.getDeliveryByTrackingNumber("TRK-999"))
+            assertThatThrownBy(() -> deliveryService.getDeliveryByTrackingNumber("TRK-999", "user-1"))
                     .isInstanceOf(CustomBusinessException.class);
         }
     }
@@ -136,7 +137,7 @@ class DeliveryServiceImplTest {
                     .thenReturn(Optional.of(delivery));
 
             // when
-            DeliveryResponse result = deliveryService.getDeliveryByOrderNumber("ORD-001");
+            DeliveryResponse result = deliveryService.getDeliveryByOrderNumber("ORD-001", "user-1");
 
             // then
             assertThat(result).isNotNull();
@@ -150,7 +151,7 @@ class DeliveryServiceImplTest {
                     .thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> deliveryService.getDeliveryByOrderNumber("ORD-999"))
+            assertThatThrownBy(() -> deliveryService.getDeliveryByOrderNumber("ORD-999", "user-1"))
                     .isInstanceOf(CustomBusinessException.class);
         }
     }

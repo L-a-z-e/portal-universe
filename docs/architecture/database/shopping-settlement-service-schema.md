@@ -2,7 +2,7 @@
 
 **Database**: PostgreSQL (shopping_settlement_db)
 **Entity Count**: 4
-**Last Updated**: 2026-02-18
+**Last Updated**: 2026-02-28
 
 > Shopping 서비스 분해 (2026-02-14, ADR-041)로 Settlement 도메인이 독립 서비스로 분리되었습니다.
 > Spring Batch 기반 주기적 정산 처리.
@@ -124,5 +124,6 @@ Spring Batch Job (주기적 실행):
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-28 | TIMESTAMP → TIMESTAMPTZ 마이그레이션, LocalDateTime → Instant (ADR-056) | Laze |
 | 2026-02-18 | MySQL → PostgreSQL 전환 (ADR-046) | Laze |
 | 2026-02-14 | Settlement 서비스 독립 분리 (ADR-041) | Laze |

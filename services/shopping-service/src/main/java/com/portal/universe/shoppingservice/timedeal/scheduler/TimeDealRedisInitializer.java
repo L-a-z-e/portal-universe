@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +36,7 @@ public class TimeDealRedisInitializer {
             TimeDeal dealWithProducts = timeDealRepository.findByIdWithProducts(deal.getId());
             if (dealWithProducts == null || dealWithProducts.getProducts() == null) continue;
 
-            long ttlSeconds = Duration.between(LocalDateTime.now(), deal.getEndsAt()).getSeconds()
+            long ttlSeconds = Duration.between(Instant.now(), deal.getEndsAt()).getSeconds()
                     + TimeUnit.DAYS.toSeconds(1);
 
             dealWithProducts.getProducts().forEach(product -> {

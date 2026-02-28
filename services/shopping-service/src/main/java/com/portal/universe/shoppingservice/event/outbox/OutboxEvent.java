@@ -11,7 +11,7 @@ import org.apache.avro.specific.SpecificRecord;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "outbox_events", indexes = {
@@ -51,10 +51,10 @@ public class OutboxEvent {
     private int retryCount;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "published_at")
-    private LocalDateTime publishedAt;
+    private Instant publishedAt;
 
     public static OutboxEvent create(String topic, String key, SpecificRecord event) {
         OutboxEvent outbox = new OutboxEvent();
@@ -66,13 +66,13 @@ public class OutboxEvent {
         outbox.payload = serializeToAvroJson(event);
         outbox.status = OutboxStatus.PENDING;
         outbox.retryCount = 0;
-        outbox.createdAt = LocalDateTime.now();
+        outbox.createdAt = Instant.now();
         return outbox;
     }
 
     public void markPublished() {
         this.status = OutboxStatus.PUBLISHED;
-        this.publishedAt = LocalDateTime.now();
+        this.publishedAt = Instant.now();
     }
 
     public void markFailed() {

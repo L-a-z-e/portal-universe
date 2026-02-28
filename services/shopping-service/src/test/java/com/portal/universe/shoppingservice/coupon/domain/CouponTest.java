@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,8 +24,8 @@ class CouponTest {
                 .minimumOrderAmount(new BigDecimal("10000"))
                 .maximumDiscountAmount(new BigDecimal("5000"))
                 .totalQuantity(totalQuantity)
-                .startsAt(LocalDateTime.now().minusDays(1))
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .startsAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                 .build();
     }
 
@@ -148,8 +149,8 @@ class CouponTest {
                     .discountType(DiscountType.FIXED)
                     .discountValue(new BigDecimal("1000"))
                     .totalQuantity(100)
-                    .startsAt(LocalDateTime.now().plusDays(1))
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .startsAt(Instant.now().plus(1, ChronoUnit.DAYS))
+                    .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                     .build();
 
             assertThat(coupon.isAvailable()).isFalse();
@@ -196,8 +197,8 @@ class CouponTest {
                     .minimumOrderAmount(new BigDecimal("10000"))
                     .maximumDiscountAmount(null)
                     .totalQuantity(100)
-                    .startsAt(LocalDateTime.now().minusDays(1))
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .startsAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                    .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                     .build();
 
             BigDecimal discount = coupon.calculateDiscount(new BigDecimal("50000"));
@@ -216,8 +217,8 @@ class CouponTest {
                     .minimumOrderAmount(new BigDecimal("10000"))
                     .maximumDiscountAmount(new BigDecimal("5000"))
                     .totalQuantity(100)
-                    .startsAt(LocalDateTime.now().minusDays(1))
-                    .expiresAt(LocalDateTime.now().plusDays(30))
+                    .startsAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                    .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                     .build();
 
             BigDecimal discount = coupon.calculateDiscount(new BigDecimal("50000"));

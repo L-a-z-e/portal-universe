@@ -23,7 +23,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -79,7 +80,7 @@ class MembershipAdminControllerTest {
         return new MembershipResponse(
                 1L, userId, membershipGroup, tierKey, tierKey.toUpperCase(),
                 MembershipStatus.ACTIVE, true,
-                LocalDateTime.now(), LocalDateTime.now().plusMonths(1), LocalDateTime.now()
+                Instant.now(), Instant.now().plus(Duration.ofDays(30)), Instant.now()
         );
     }
 

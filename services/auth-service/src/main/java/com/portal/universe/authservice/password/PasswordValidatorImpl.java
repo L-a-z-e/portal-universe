@@ -10,7 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +112,7 @@ public class PasswordValidatorImpl implements PasswordValidator {
         }
 
         // 비밀번호 변경일 기준으로 확인
-        LocalDateTime passwordChangedAt = user.getPasswordChangedAt();
+        Instant passwordChangedAt = user.getPasswordChangedAt();
         if (passwordChangedAt == null) {
             // passwordChangedAt이 null이면 생성일 기준으로 확인
             passwordChangedAt = user.getCreatedAt();
@@ -122,7 +122,7 @@ public class PasswordValidatorImpl implements PasswordValidator {
             return false;
         }
 
-        long daysSinceChange = ChronoUnit.DAYS.between(passwordChangedAt, LocalDateTime.now());
+        long daysSinceChange = ChronoUnit.DAYS.between(passwordChangedAt, Instant.now());
         return daysSinceChange > policyProperties.getMaxAge();
     }
 

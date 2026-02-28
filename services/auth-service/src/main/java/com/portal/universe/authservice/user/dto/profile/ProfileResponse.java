@@ -3,7 +3,7 @@ package com.portal.universe.authservice.user.dto.profile;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -19,7 +19,7 @@ public record ProfileResponse(
         boolean marketingAgree,
         boolean hasSocialAccount,
         List<String> socialProviders,
-        LocalDateTime createdAt
+        Instant createdAt
 ) {
     public static ProfileResponse from(User user) {
         UserProfile profile = user.getProfile();

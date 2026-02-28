@@ -1,22 +1,19 @@
 package com.portal.universe.shoppingsettlementservice.settlement.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "settlement_details")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SettlementDetail {
+public class SettlementDetail extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,10 +39,6 @@ public class SettlementDetail {
 
     @Column(name = "net_amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal netAmount;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     @Builder
     public SettlementDetail(Long settlementId, String orderNumber, BigDecimal orderAmount,

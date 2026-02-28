@@ -3,7 +3,7 @@ package com.portal.universe.authservice.auth.dto.membership;
 import com.portal.universe.authservice.auth.domain.MembershipStatus;
 import com.portal.universe.authservice.auth.domain.UserMembership;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record MembershipResponse(
         Long id,
@@ -13,9 +13,9 @@ public record MembershipResponse(
         String tierDisplayName,
         MembershipStatus status,
         boolean autoRenew,
-        LocalDateTime startedAt,
-        LocalDateTime expiresAt,
-        LocalDateTime createdAt
+        Instant startedAt,
+        Instant expiresAt,
+        Instant createdAt
 ) {
     public static MembershipResponse from(UserMembership membership) {
         return new MembershipResponse(

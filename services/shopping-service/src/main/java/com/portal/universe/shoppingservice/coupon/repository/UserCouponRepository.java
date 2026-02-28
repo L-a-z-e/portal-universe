@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,11 +27,11 @@ public interface UserCouponRepository extends JpaRepository<UserCoupon, Long> {
            "WHERE uc.userId = :userId AND uc.status = 'AVAILABLE' " +
            "AND uc.expiresAt > :now")
     List<UserCoupon> findAvailableByUserId(@Param("userId") String userId,
-                                            @Param("now") LocalDateTime now);
+                                            @Param("now") Instant now);
 
     @Query("SELECT uc FROM UserCoupon uc WHERE uc.status = 'AVAILABLE' " +
            "AND uc.expiresAt <= :now")
-    List<UserCoupon> findExpiredUserCoupons(@Param("now") LocalDateTime now);
+    List<UserCoupon> findExpiredUserCoupons(@Param("now") Instant now);
 
     @Query("SELECT COUNT(uc) FROM UserCoupon uc WHERE uc.coupon.id = :couponId")
     long countByCouponId(@Param("couponId") Long couponId);

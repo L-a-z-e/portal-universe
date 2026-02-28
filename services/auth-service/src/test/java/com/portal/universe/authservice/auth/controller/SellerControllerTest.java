@@ -19,7 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -62,7 +62,7 @@ class SellerControllerTest {
     private SellerApplicationResponse createApplicationResponse(SellerApplicationStatus status) {
         return new SellerApplicationResponse(
                 1L, USER_UUID, "Test Business", "123-45-67890",
-                "Want to sell", status, null, null, null, LocalDateTime.now()
+                "Want to sell", status, null, null, null, Instant.now()
         );
     }
 
@@ -133,7 +133,7 @@ class SellerControllerTest {
             SellerApplicationResponse response = new SellerApplicationResponse(
                     1L, USER_UUID, "Test Business", "123-45-67890",
                     "Want to sell", SellerApplicationStatus.APPROVED,
-                    "admin-uuid", "Looks good", LocalDateTime.now(), LocalDateTime.now()
+                    "admin-uuid", "Looks good", Instant.now(), Instant.now()
             );
             when(sellerApplicationService.getMyApplication(USER_UUID)).thenReturn(response);
 

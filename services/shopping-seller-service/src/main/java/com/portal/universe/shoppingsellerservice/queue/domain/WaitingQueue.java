@@ -1,20 +1,18 @@
 package com.portal.universe.shoppingsellerservice.queue.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "waiting_queues")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
-public class WaitingQueue {
+public class WaitingQueue extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,15 +36,11 @@ public class WaitingQueue {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @CreatedDate
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
     @Column(name = "activated_at")
-    private LocalDateTime activatedAt;
+    private Instant activatedAt;
 
     @Column(name = "deactivated_at")
-    private LocalDateTime deactivatedAt;
+    private Instant deactivatedAt;
 
     @Builder
     public WaitingQueue(String eventType, Long eventId, Integer maxCapacity,
@@ -61,12 +55,12 @@ public class WaitingQueue {
 
     public void activate() {
         this.isActive = true;
-        this.activatedAt = LocalDateTime.now();
+        this.activatedAt = Instant.now();
         this.deactivatedAt = null;
     }
 
     public void deactivate() {
         this.isActive = false;
-        this.deactivatedAt = LocalDateTime.now();
+        this.deactivatedAt = Instant.now();
     }
 }

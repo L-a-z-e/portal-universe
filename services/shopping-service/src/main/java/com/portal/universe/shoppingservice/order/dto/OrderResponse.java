@@ -4,7 +4,7 @@ import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -23,11 +23,12 @@ public record OrderResponse(
         BigDecimal discountAmount,
         BigDecimal finalAmount,
         Long appliedUserCouponId,
+        String paymentIntentId,
         AddressResponse shippingAddress,
         String cancelReason,
-        LocalDateTime cancelledAt,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant cancelledAt,
+        Instant createdAt,
+        Instant updatedAt
 ) {
     public static OrderResponse from(Order order) {
         List<OrderItemResponse> itemResponses = order.getItems().stream()
@@ -52,6 +53,7 @@ public record OrderResponse(
                 order.getDiscountAmount(),
                 order.getFinalAmount(),
                 order.getAppliedUserCouponId(),
+                order.getPaymentIntentId(),
                 addressResponse,
                 order.getCancelReason(),
                 order.getCancelledAt(),

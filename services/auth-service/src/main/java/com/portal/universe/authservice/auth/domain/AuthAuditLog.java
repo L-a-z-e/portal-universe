@@ -1,14 +1,11 @@
 package com.portal.universe.authservice.auth.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "auth_audit_log", indexes = {
@@ -18,8 +15,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class AuthAuditLog {
+public class AuthAuditLog extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,10 +36,6 @@ public class AuthAuditLog {
 
     @Column(name = "ip_address", length = 50)
     private String ipAddress;
-
-    @CreatedDate
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
 
     @Builder
     public AuthAuditLog(AuditEventType eventType, String targetUserId,

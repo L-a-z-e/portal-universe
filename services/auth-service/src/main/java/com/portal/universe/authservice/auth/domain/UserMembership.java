@@ -1,15 +1,13 @@
 package com.portal.universe.authservice.auth.domain;
 
+import com.portal.universe.commonlibrary.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "user_memberships", uniqueConstraints = {
@@ -17,8 +15,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class UserMembership {
+public class UserMembership extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,29 +36,22 @@ public class UserMembership {
     private MembershipStatus status = MembershipStatus.ACTIVE;
 
     @Column(name = "started_at", nullable = false)
-    private LocalDateTime startedAt;
+    private Instant startedAt;
 
     @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 
     @Column(name = "auto_renew", nullable = false)
     private boolean autoRenew;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
-
     @Builder
     public UserMembership(String userId, String membershipGroup, MembershipTier tier,
-                          LocalDateTime expiresAt, boolean autoRenew) {
+                          Instant expiresAt, boolean autoRenew) {
         this.userId = userId;
         this.membershipGroup = membershipGroup;
         this.tier = tier;
         this.status = MembershipStatus.ACTIVE;
-        this.startedAt = LocalDateTime.now();
+        this.startedAt = Instant.now();
         this.expiresAt = expiresAt;
         this.autoRenew = autoRenew;
     }
@@ -79,9 +69,9 @@ public class UserMembership {
         this.status = MembershipStatus.EXPIRED;
     }
 
-    public void renew(LocalDateTime newExpiresAt) {
+    public void renew(Instant newExpiresAt) {
         this.status = MembershipStatus.ACTIVE;
-        this.startedAt = LocalDateTime.now();
+        this.startedAt = Instant.now();
         this.expiresAt = newExpiresAt;
     }
 

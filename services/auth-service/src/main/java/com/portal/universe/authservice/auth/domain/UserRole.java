@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "user_roles", uniqueConstraints = {
@@ -31,21 +31,21 @@ public class UserRole {
     private String assignedBy;
 
     @Column(name = "assigned_at", nullable = false)
-    private LocalDateTime assignedAt;
+    private Instant assignedAt;
 
     @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 
     @Builder
-    public UserRole(String userId, RoleEntity role, String assignedBy, LocalDateTime expiresAt) {
+    public UserRole(String userId, RoleEntity role, String assignedBy, Instant expiresAt) {
         this.userId = userId;
         this.role = role;
         this.assignedBy = assignedBy;
-        this.assignedAt = LocalDateTime.now();
+        this.assignedAt = Instant.now();
         this.expiresAt = expiresAt;
     }
 
     public boolean isExpired() {
-        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
+        return expiresAt != null && Instant.now().isAfter(expiresAt);
     }
 }

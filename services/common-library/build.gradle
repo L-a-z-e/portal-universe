@@ -53,6 +53,11 @@ dependencies {
     // PageResponse에서 Spring Data Page<T> 변환에 필요
     compileOnly 'org.springframework.data:spring-data-commons'
 
+    // --- JPA (Optional) ---
+    // BaseEntity에서 @MappedSuperclass, @EntityListeners 사용
+    compileOnly 'jakarta.persistence:jakarta.persistence-api'
+    compileOnly 'org.springframework.data:spring-data-jpa'
+
     // --- Security (Optional) ---
     // 보안 관련 기능은 해당 기능이 필요한 서비스에만 선택적으로 포함되도록 compileOnly로 설정합니다.
     compileOnly 'org.springframework.boot:spring-boot-starter-security'

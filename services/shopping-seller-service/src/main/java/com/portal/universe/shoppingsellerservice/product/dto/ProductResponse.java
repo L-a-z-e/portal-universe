@@ -3,7 +3,7 @@ package com.portal.universe.shoppingsellerservice.product.dto;
 import com.portal.universe.shoppingsellerservice.product.domain.Product;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record ProductResponse(
         Long id,
@@ -16,8 +16,8 @@ public record ProductResponse(
         String imageUrl,
         String category,
         Boolean featured,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
     public static ProductResponse from(Product product) {
         return new ProductResponse(
