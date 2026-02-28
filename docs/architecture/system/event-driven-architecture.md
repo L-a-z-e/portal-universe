@@ -72,8 +72,9 @@ graph LR
 - **디버깅**: AKHQ (`:9000`) — Avro 메시지 자동 디시리얼라이제이션
 
 ### Topic 기본 설정
-- **파티션 수**: 3
-- **Replication Factor**: 1 (dev 환경 기준)
+- **파티션 수**: 3 (`app.kafka.topic.partitions`, 프로퍼티 기반)
+- **Replication Factor**: 1 (local/docker), 3 (kubernetes) — `app.kafka.topic.replicas` 프로퍼티 기반
+- **Consumer Concurrency**: 3 — `spring.kafka.listener.concurrency` 프로퍼티 기반
 - **Serialization**: StringSerializer (key), KafkaAvroSerializer (value) — Avro Wire Format
 - **acks**: `all` (모든 replica 동기화 후 응답)
 - **retries**: 3회
@@ -571,6 +572,66 @@ public class SagaCloudWatchPublisher {
 
 ---
 
+## 이벤트 발행 안정성 패턴 (ADR-054)
+
+서비스별 비즈니스 요구에 따라 3가지 이벤트 발행 패턴을 적용한다.
+
+### 패턴 비교
+
+| 패턴 | 적용 서비스 | 보장 수준 | 메커니즘 |
+|------|-------------|----------|----------|
+| **Outbox + Polling** | shopping-service | at-least-once | DB 트랜잭션 → outbox 테이블 → 3초 폴링 → Kafka |
+| **ResilientPublisher** | auth-service | best-effort (3회 재시도) | AFTER_COMMIT → 지수 백오프 재시도 → Kafka |
+| **AFTER_COMMIT** | blog-service | at-most-once | MongoDB TX 커밋 → 즉시 Kafka |
+| **Lazy Reconnect** | prism-service (NestJS) | best-effort | 연결 끊김 시 lazy 재연결 → 실패 시 throw |
+
+### Shopping — Outbox Pattern
+
+```
+[Service Layer] → @Transactional {
+  DB 저장 + outbox_events INSERT (같은 트랜잭션)
+}
+[OutboxPollingScheduler] → 3초마다 {
+  SELECT ... FOR UPDATE SKIP LOCKED
+  → Avro 역직렬화 → Kafka send → markPublished()
+  → 5회 실패 시 markFailed()
+}
+```
+
+- **직렬화**: `SpecificDatumWriter` + `JsonEncoder` (Avro Wire JSON)
+- **역직렬화**: `SpecificDatumReader` + `JsonDecoder`
+- **동시성 제어**: `FOR UPDATE SKIP LOCKED` (다중 인스턴스 안전)
+
+### Auth — ResilientKafkaPublisher
+
+```
+[Service Layer] → ApplicationEventPublisher.publishEvent()
+  → @TransactionalEventListener(AFTER_COMMIT)
+    → ResilientKafkaPublisher.publish()
+      → 실패 시 CompletableFuture.delayedExecutor()로 1초/2초/4초 백오프 재시도
+```
+
+### Blog — AFTER_COMMIT (MongoDB TX)
+
+```
+[Service Layer] → @Transactional (MongoTransactionManager)
+  → ApplicationEventPublisher.publishEvent()
+    → @TransactionalEventListener(AFTER_COMMIT)
+      → BlogKafkaEventListener → avroKafkaTemplate.send()
+```
+
+- **전제 조건**: MongoDB Replica Set 모드 + `MongoTransactionManager` 빈 필수
+
+### Kafka 인프라 설정
+
+| 설정 | 프로퍼티 | 기본값 | k8s |
+|------|---------|--------|-----|
+| Consumer Concurrency | `spring.kafka.listener.concurrency` | 3 | 3 |
+| Topic Replicas | `app.kafka.topic.replicas` | 1 | 3 |
+| Topic Partitions | `app.kafka.topic.partitions` | 3 | 3 |
+
+---
+
 ## 관련 문서
 - [service-communication.md](./service-communication.md) - 서비스 간 통신 패턴 (동기 vs 비동기)
 - [notification-service 아키텍처](../notification-service/architecture-overview.md)
@@ -578,6 +639,7 @@ public class SagaCloudWatchPublisher {
 - [ADR-047: Avro 및 Schema Registry 도입](../../adr/ADR-047-avro-schema-registry-adoption.md)
 - [ADR-049: Secrets Manager + SSM 통합](../../adr/ADR-049-secrets-manager-ssm-integration.md)
 - [ADR-050: LocalStack AWS 서비스 확장](../../adr/ADR-050-localstack-aws-services-expansion.md)
+- [ADR-054: Event Stability 패턴](../../adr/ADR-054-event-stability-patterns.md)
 - [shopping-service Data Flow](../shopping-service/data-flow.md) - EventBridge Dual Publish + CloudWatch 상세
 - [notification-service Data Flow](../notification-service/data-flow.md) - SQS 이메일 큐 통합
 
@@ -591,6 +653,7 @@ public class SagaCloudWatchPublisher {
 | 2026-02-10 | ADR-032 반영: topic 명명 규칙 통일, user-signup → auth.user.signed-up, Topics SSOT 명시 | Laze |
 | 2026-02-21 | ADR-047 반영: JSON → Avro 전환, Schema Registry 추가, event-contracts 통합 모듈, 다이어그램 확장 | Laze |
 | 2026-02-25 | AWS 메시징 통합: SQS(notification), EventBridge Dual Publish(shopping), CloudWatch Custom Metrics, LocalStack 섹션 추가 | Laze |
+| 2026-02-28 | ADR-054 반영: 이벤트 발행 안정성 패턴 3종 (Outbox/Resilient/AFTER_COMMIT), Kafka 인프라 설정 프로퍼티화 | Laze |
 
 ---
 
