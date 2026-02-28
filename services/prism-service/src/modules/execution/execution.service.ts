@@ -193,16 +193,23 @@ export class ExecutionService {
       await this.taskService.completeTask(execution.taskId);
 
       // Send Kafka event
-      await this.kafkaProducer.sendTaskCompleted({
-        taskId: taskInfo.taskId,
-        boardId: taskInfo.boardId,
-        userId,
-        title: taskInfo.title,
-        status: 'IN_REVIEW',
-        agentName: taskInfo.agentName,
-        executionId,
-        timestamp: new Date().toISOString(),
-      });
+      try {
+        await this.kafkaProducer.sendTaskCompleted({
+          taskId: taskInfo.taskId,
+          boardId: taskInfo.boardId,
+          userId,
+          title: taskInfo.title,
+          status: 'IN_REVIEW',
+          agentName: taskInfo.agentName,
+          executionId,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (kafkaError) {
+        this.logger.error(
+          `Failed to publish task completed event: executionId=${executionId}`,
+          kafkaError,
+        );
+      }
 
       // Emit SSE event for execution completed
       this.sseService.emitExecutionCompleted(
@@ -228,17 +235,24 @@ export class ExecutionService {
       await this.executionRepository.save(execution);
 
       // Send Kafka event
-      await this.kafkaProducer.sendTaskFailed({
-        taskId: taskInfo.taskId,
-        boardId: taskInfo.boardId,
-        userId,
-        title: taskInfo.title,
-        status: 'FAILED',
-        agentName: taskInfo.agentName,
-        executionId,
-        errorMessage,
-        timestamp: new Date().toISOString(),
-      });
+      try {
+        await this.kafkaProducer.sendTaskFailed({
+          taskId: taskInfo.taskId,
+          boardId: taskInfo.boardId,
+          userId,
+          title: taskInfo.title,
+          status: 'FAILED',
+          agentName: taskInfo.agentName,
+          executionId,
+          errorMessage,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (kafkaError) {
+        this.logger.error(
+          `Failed to publish task failed event: executionId=${executionId}`,
+          kafkaError,
+        );
+      }
 
       // Emit SSE event for execution failed
       this.sseService.emitExecutionFailed(

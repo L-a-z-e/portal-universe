@@ -138,8 +138,10 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
     schemaId: number | null,
   ): Promise<void> {
     if (!this.isConnected) {
-      this.logger.debug(`Kafka not connected, skipping event: ${topic}`);
-      return;
+      await this.connectProducer();
+      if (!this.isConnected) {
+        throw new Error(`Kafka not connected, cannot send event to ${topic}`);
+      }
     }
 
     const key = String(payload.taskId);
@@ -156,13 +158,9 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
       messages: [{ key, value, timestamp: String(Date.now()) }],
     };
 
-    try {
-      await this.producer.send(record);
-      this.logger.debug(
-        `Event sent to ${topic}: taskId=${payload.taskId} (${this.isRegistryAvailable ? 'avro' : 'json'})`,
-      );
-    } catch (error) {
-      this.logger.error(`Failed to send event to ${topic}:`, error);
-    }
+    await this.producer.send(record);
+    this.logger.debug(
+      `Event sent to ${topic}: taskId=${payload.taskId} (${this.isRegistryAvailable ? 'avro' : 'json'})`,
+    );
   }
 }
