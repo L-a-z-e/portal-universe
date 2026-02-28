@@ -73,7 +73,7 @@ Auth Service의 OAuth2 인증을 통해 토큰을 발급받아야 합니다.
 | **Product** | [product-api.md](./product-api.md) | 상품 목록/상세 조회, 리뷰 포함 조회 (읽기 전용) |
 | **Cart** | [cart-api.md](./cart-api.md) | 장바구니 조회, 아이템 추가/수정/삭제, 체크아웃 |
 | **Order** | [order-api.md](./order-api.md) | 주문 생성, 조회, 취소 |
-| **Payment** | [payment-api.md](./payment-api.md) | 결제 처리, 조회, 취소, 환불 |
+| **Payment** | [payment-api.md](./payment-api.md) | **[Deprecated]** 결제 API — payment-service로 이전, [payment-service API](../payment-service/payment-api.md) 참조 |
 | **Delivery** | [delivery-api.md](./delivery-api.md) | 배송 조회 (읽기 전용) |
 | **Coupon** | [coupon-api.md](./coupon-api.md) | 쿠폰 조회, 선착순 발급, 내 쿠폰 관리 (사용자 기능만) |
 | **TimeDeal** | [timedeal-api.md](./timedeal-api.md) | 타임딜 조회, 구매, 내 구매 내역 (사용자 기능만) |
@@ -106,6 +106,9 @@ Shopping Service는 Seller Service에 의존하여 상품/재고 정보를 조�
 | **SellerInventoryClient** | shopping-seller-service | 재고 차감 | `POST /api/v1/seller/internal/inventory/deduct` |
 | **SellerInventoryClient** | shopping-seller-service | 재고 해제 | `POST /api/v1/seller/internal/inventory/release` |
 
+| **PaymentIntentFeignClient** | payment-service | Intent 생성 | `POST /internal/intents` |
+| **PaymentIntentFeignClient** | payment-service | Saga 보상 환불 | `POST /internal/refund/{orderNumber}` |
+
 **Circuit Breaker**: Resilience4j 적용 (fallback: 에러 응답)
 
 ---
@@ -124,9 +127,10 @@ Shopping Service는 Seller Service에 의존하여 상품/재고 정보를 조�
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-28 | Payment API Deprecated, payment-service Feign Client 추가 | Laze |
 | 2026-02-14 | 서비스 분해: Buyer 전용 서비스로 전환, Admin API 제거, Feign Client 추가 | Laze |
 | 2026-02-06 | 초기 문서 작성 | Laze |
 
 ---
 
-**최종 업데이트**: 2026-02-14
+**최종 업데이트**: 2026-02-28

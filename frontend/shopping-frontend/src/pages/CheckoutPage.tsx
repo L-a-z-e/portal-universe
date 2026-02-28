@@ -106,16 +106,15 @@ const CheckoutPage: React.FC = () => {
     }
   }
 
-  // Handle payment processing
+  // Handle payment processing (Payment Intent 패턴)
   const handleProcessPayment = async () => {
-    if (!order) return
+    if (!order || !order.paymentIntentId) return
 
     setLoading(true)
     setError(null)
 
     try {
-      await paymentApi.processPayment({
-        orderNumber: order.orderNumber,
+      await paymentApi.confirmPayment(order.paymentIntentId, {
         paymentMethod: paymentMethod
       })
       // Clear cart after successful payment (ignore errors - cart may already be consumed)

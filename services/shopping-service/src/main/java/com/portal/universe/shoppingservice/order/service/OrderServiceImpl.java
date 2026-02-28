@@ -16,9 +16,14 @@ import com.portal.universe.shoppingservice.order.repository.SagaStateRepository;
 import com.portal.universe.shoppingservice.order.saga.OrderSagaOrchestrator;
 import com.portal.universe.shoppingservice.order.saga.SagaState;
 import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
+import com.portal.universe.shoppingservice.feign.PaymentIntentFeignClient;
+import com.portal.universe.shoppingservice.feign.dto.CreatePaymentIntentRequest;
+import com.portal.universe.shoppingservice.feign.dto.PaymentIntentResponse;
 import com.portal.universe.event.shopping.OrderCreatedEvent;
 import com.portal.universe.event.shopping.OrderCancelledEvent;
 import com.portal.universe.event.shopping.OrderItemInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -43,6 +48,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderSagaOrchestrator orderSagaOrchestrator;
     private final CouponService couponService;
     private final ShoppingEventPublisher eventPublisher;
+    private final PaymentIntentFeignClient paymentIntentFeignClient;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -104,6 +111,25 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.error("Failed to start saga for order {}: {}", savedOrder.getOrderNumber(), e.getMessage());
             throw e;
+        }
+
+        // 6. Payment Intent 생성 (payment-service)
+        try {
+            String metadata = buildIntentMetadata(savedOrder);
+            var intentRequest = new CreatePaymentIntentRequest(
+                    savedOrder.getOrderNumber(),
+                    userId,
+                    savedOrder.getFinalAmount(),
+                    metadata
+            );
+            var intentResponse = paymentIntentFeignClient.createIntent(intentRequest);
+            PaymentIntentResponse intent = intentResponse.getData();
+            savedOrder.assignPaymentIntentId(intent.intentId());
+            orderRepository.save(savedOrder);
+            log.info("Payment intent created: {} for order {}", intent.intentId(), savedOrder.getOrderNumber());
+        } catch (Exception e) {
+            log.error("Failed to create payment intent for order {}: {}", savedOrder.getOrderNumber(), e.getMessage());
+            throw new CustomBusinessException(ShoppingErrorCode.ORDER_CREATION_FAILED);
         }
 
         log.info("Order created successfully: {} (user: {}, items: {}, total: {}, discount: {}, final: {})",
@@ -210,5 +236,23 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("Order completed after payment: {}", orderNumber);
         return OrderResponse.from(order);
+    }
+
+    private String buildIntentMetadata(Order order) {
+        try {
+            var items = order.getItems().stream()
+                    .map(item -> java.util.Map.of(
+                            "sellerId", item.getSellerId(),
+                            "productId", item.getProductId(),
+                            "productName", item.getProductName(),
+                            "price", item.getPrice(),
+                            "quantity", item.getQuantity()
+                    ))
+                    .toList();
+            return objectMapper.writeValueAsString(java.util.Map.of("items", items));
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize intent metadata for order {}", order.getOrderNumber(), e);
+            return "{}";
+        }
     }
 }

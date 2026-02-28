@@ -12,6 +12,7 @@ public final class ShoppingTopics {
     public static final String DELIVERY_SHIPPED = "shopping.delivery.shipped";
     public static final String COUPON_ISSUED = "shopping.coupon.issued";
     public static final String TIMEDEAL_STARTED = "shopping.timedeal.started";
+    public static final String ORDER_SETTLEMENT_CREATED = "shopping.order.settlement.created";
 
     private ShoppingTopics() {}
 }

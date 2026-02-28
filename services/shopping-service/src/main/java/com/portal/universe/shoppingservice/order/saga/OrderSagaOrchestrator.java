@@ -4,13 +4,13 @@ import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.delivery.service.DeliveryService;
 import com.portal.universe.shoppingservice.event.CloudWatchMetricsPublisher;
+import com.portal.universe.shoppingservice.feign.PaymentIntentFeignClient;
 import com.portal.universe.shoppingservice.feign.SellerInventoryClient;
 import com.portal.universe.shoppingservice.feign.dto.StockReserveRequest;
 import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderItem;
 import com.portal.universe.shoppingservice.order.repository.OrderRepository;
 import com.portal.universe.shoppingservice.order.repository.SagaStateRepository;
-import com.portal.universe.shoppingservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -42,7 +42,7 @@ public class OrderSagaOrchestrator {
     private final OrderRepository orderRepository;
     private final SellerInventoryClient sellerInventoryClient;
     private final DeliveryService deliveryService;
-    private final PaymentService paymentService;
+    private final PaymentIntentFeignClient paymentIntentFeignClient;
     private final CloudWatchMetricsPublisher cloudWatchMetricsPublisher;
 
     private static final int MAX_COMPENSATION_ATTEMPTS = 3;
@@ -152,8 +152,8 @@ public class OrderSagaOrchestrator {
         }
 
         if (sagaState.isStepCompleted(SagaStep.PROCESS_PAYMENT)) {
-            paymentService.refundPaymentForCompensation(orderNumber);
-            log.info("Saga {} - Payment refunded for order {}", sagaId, orderNumber);
+            paymentIntentFeignClient.refundForCompensation(orderNumber);
+            log.info("Saga {} - Payment refunded via payment-service for order {}", sagaId, orderNumber);
         }
 
         // RESERVE 보상은 DEDUCT가 미완료일 때만 (DEDUCT 완료 시 reserved는 이미 0)

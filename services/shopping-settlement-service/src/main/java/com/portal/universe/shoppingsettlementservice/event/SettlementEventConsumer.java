@@ -2,7 +2,7 @@ package com.portal.universe.shoppingsettlementservice.event;
 
 import com.portal.universe.event.shopping.OrderCancelledEvent;
 import com.portal.universe.event.shopping.OrderItemInfo;
-import com.portal.universe.event.shopping.PaymentCompletedEvent;
+import com.portal.universe.event.shopping.OrderSettlementCreatedEvent;
 import com.portal.universe.event.shopping.ShoppingTopics;
 import com.portal.universe.shoppingsettlementservice.settlement.domain.SettlementLedger;
 import com.portal.universe.shoppingsettlementservice.settlement.repository.SettlementLedgerRepository;
@@ -13,8 +13,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,14 +25,14 @@ public class SettlementEventConsumer {
 
     private final SettlementLedgerRepository ledgerRepository;
 
-    @KafkaListener(topics = ShoppingTopics.PAYMENT_COMPLETED, groupId = "shopping-settlement-service",
+    @KafkaListener(topics = ShoppingTopics.ORDER_SETTLEMENT_CREATED, groupId = "shopping-settlement-service",
             containerFactory = "avroKafkaListenerContainerFactory")
-    public void onPaymentCompleted(PaymentCompletedEvent event) {
-        LocalDateTime paidAt = LocalDateTime.ofInstant(event.getPaidAt(), ZoneId.systemDefault());
+    public void onOrderSettlementCreated(OrderSettlementCreatedEvent event) {
+        Instant settledAt = event.getSettledAt();
         List<OrderItemInfo> items = event.getItems();
 
         if (items == null || items.isEmpty()) {
-            log.warn("PaymentCompletedEvent has no items, skipping seller breakdown: order={}", event.getOrderNumber());
+            log.warn("OrderSettlementCreatedEvent has no items, skipping: order={}", event.getOrderNumber());
             return;
         }
 
@@ -46,10 +45,10 @@ public class SettlementEventConsumer {
                                 BigDecimal::add)
                 ));
 
-        log.info("Recording payment to ledger: order={}, sellers={}", event.getOrderNumber(), sellerAmounts.size());
+        log.info("Recording settlement to ledger: order={}, sellers={}", event.getOrderNumber(), sellerAmounts.size());
 
         sellerAmounts.forEach((sellerId, amount) ->
-                saveLedgerIdempotent(event.getOrderNumber(), sellerId, "PAYMENT_COMPLETED", amount, paidAt)
+                saveLedgerIdempotent(event.getOrderNumber(), sellerId, "PAYMENT_COMPLETED", amount, settledAt)
         );
     }
 
@@ -57,7 +56,7 @@ public class SettlementEventConsumer {
             containerFactory = "avroKafkaListenerContainerFactory")
     public void onOrderCancelled(OrderCancelledEvent event) {
         log.info("Recording cancellation to ledger: order={}", event.getOrderNumber());
-        LocalDateTime cancelledAt = LocalDateTime.ofInstant(event.getCancelledAt(), ZoneId.systemDefault());
+        Instant cancelledAt = event.getCancelledAt();
 
         // 기존 PAYMENT_COMPLETED 레코드에서 판매자별 금액을 조회하여 역분개
         List<SettlementLedger> paymentLedgers = ledgerRepository
@@ -80,7 +79,7 @@ public class SettlementEventConsumer {
     }
 
     private void saveLedgerIdempotent(String orderNumber, Long sellerId, String eventType,
-                                       BigDecimal amount, LocalDateTime eventAt) {
+                                       BigDecimal amount, Instant eventAt) {
         try {
             SettlementLedger ledger = SettlementLedger.builder()
                     .orderNumber(orderNumber)

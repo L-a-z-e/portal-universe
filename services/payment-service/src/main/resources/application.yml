@@ -1,0 +1,75 @@
+# ===================================================================
+# Payment Service - Default Configuration
+# ===================================================================
+
+server:
+  port: 8090
+
+spring:
+  application:
+    name: payment-service
+
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+# Swagger/OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# Resilience4j
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+
+# Internal API authentication token
+app:
+  internal:
+    token: ${INTERNAL_SERVICE_TOKEN:portal-internal-token-2026}
+  kafka:
+    topic:
+      partitions: 3
+      replicas: 1
+  intent:
+    expiry-minutes: 30

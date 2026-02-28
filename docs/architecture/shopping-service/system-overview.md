@@ -4,7 +4,7 @@ title: Shopping Service System Overview
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-02-28
 author: Laze
 tags: [architecture, shopping-service, system-design, microservices]
 related:
@@ -22,7 +22,7 @@ related:
 
 **Shopping Service는 2026-02-14 서비스 분해를 거쳐 Buyer(구매자) 전용 서비스로 재구조화되었습니다.**
 
-Shopping Service는 장바구니, 주문, 결제, 배송 조회, 쿠폰/타임딜 사용자 기능, 대기열, 검색 등 구매자 쇼핑 경험을 제공하는 마이크로서비스입니다. Product와 Inventory 도메인은 직접 관리하지 않고 `shopping-seller-service`의 Feign Client를 통해 읽기 전용으로 조회합니다. Saga 패턴 분산 트랜잭션, Redis Lua Script 기반 동시성 제어, Elasticsearch 검색, SSE 실시간 대기열을 구현합니다.
+Shopping Service는 장바구니, 주문, 배송 조회, 쿠폰/타임딜 사용자 기능, 대기열, 검색 등 구매자 쇼핑 경험을 제공하는 마이크로서비스입니다. 결제 기능은 2026-02-28 payment-service (:8090)로 독립 분리되어, shopping-service는 Feign Client로 payment-service를 호출합니다. Product와 Inventory 도메인은 직접 관리하지 않고 `shopping-seller-service`의 Feign Client를 통해 읽기 전용으로 조회합니다. Saga 패턴 분산 트랜잭션, Redis Lua Script 기반 동시성 제어, Elasticsearch 검색, SSE 실시간 대기열을 구현합니다.
 
 **분해된 서비스**:
 - **shopping-seller-service** (:8088): Product, Inventory, Coupon, TimeDeal, Queue 관리 (Seller/Admin)
@@ -32,7 +32,8 @@ Shopping Service는 장바구니, 주문, 결제, 배송 조회, 쿠폰/타임�
 
 ## 핵심 특징
 
-- **6개 도메인 (직접 관리)**: Cart, Order, Payment, Delivery, UserCoupon (사용), Search
+- **5개 도메인 (직접 관리)**: Cart, Order, Delivery, UserCoupon (사용), Search
+- **1개 도메인 (Feign 통신)**: Payment (payment-service :8090)
 - **2개 도메인 (Feign 프록시)**: Product (읽기 전용), Inventory (읽기 전용)
 - **Saga 패턴**: 5단계 Forward/Compensation 분산 트랜잭션 관리 (Feign 기반 Orchestrator)
 - **Redis Lua Script**: 쿠폰 선착순 발급, 타임딜 구매의 원자적 처리
@@ -180,19 +181,20 @@ PENDING -> CONFIRMED -> PAID -> SHIPPING -> DELIVERED
 CANCELLED   REFUNDED
 ```
 
-### 4. Payment (결제)
+### 4. Payment (결제) — payment-service로 이전
+
+> **[2026-02-28 변경]** Payment 도메인은 payment-service (:8090)로 독립 분리되었습니다.
+> Shopping Service는 Feign Client(`PaymentIntentFeignClient`)로 payment-service를 호출합니다.
 
 | 항목 | 내용 |
 |------|------|
-| **역할** | 결제 처리 및 PG 연동 (Mock) |
-| **엔티티** | `Payment` |
-| **결제 번호** | `PAY-XXXXXXXX` |
-| **상태** | PENDING -> PROCESSING -> COMPLETED/FAILED |
-| **결제 수단** | CREDIT_CARD, BANK_TRANSFER, VIRTUAL_ACCOUNT, KAKAO_PAY, NAVER_PAY |
-| **API** | POST/GET `/api/v1/shopping/payments` |
-| **에러코드** | S3XX (S301~S313) |
+| **역할** | payment-service Feign 호출 (Intent 생성, 보상 환불) |
+| **엔티티** | 없음 (payments 테이블 제거됨 — V7__drop_payments_table.sql) |
+| **Feign Client** | `PaymentIntentFeignClient` → POST /internal/intents, POST /internal/refund/{orderNumber} |
+| **API** | [Payment Service API](../../api/payment-service/payment-api.md) 참조 |
+| **이벤트** | `PaymentCompletedEvent` 소비 (payment-service 발행) |
 
-**Mock PG Client**: 테스트 환경 90% 성공, 10% 실패
+**Payment Intent 패턴**: 서버가 확정한 금액으로만 결제 진행 (금액 변조 방지)
 
 ### 5. Delivery (배송)
 
@@ -567,8 +569,7 @@ erDiagram
 | OrderCreatedEvent | `shopping.order.created` | OrderService | 주문 생성 |
 | OrderConfirmedEvent | `shopping.order.confirmed` | OrderService | 주문 확정 |
 | OrderCancelledEvent | `shopping.order.cancelled` | OrderService | 주문 취소 |
-| PaymentCompletedEvent | `shopping.payment.completed` | PaymentService | 결제 완료 |
-| PaymentFailedEvent | `shopping.payment.failed` | PaymentService | 결제 실패 |
+| OrderSettlementCreatedEvent | `shopping.order.settlement.created` | OrderService | 결제 완료 후 정산 이벤트 생성 |
 | InventoryReservedEvent | `shopping.inventory.reserved` | InventoryService | 재고 예약 |
 | DeliveryShippedEvent | `shopping.delivery.shipped` | DeliveryService | 배송 발송 |
 | CouponIssuedEvent | `shopping.coupon.issued` | CouponService | 쿠폰 발급 |
@@ -586,6 +587,9 @@ erDiagram
 | **shopping-seller-service** | **재고 예약** | `POST /api/v1/seller/internal/inventory/reserve` | **2026-02-14 추가** |
 | **shopping-seller-service** | **재고 차감** | `POST /api/v1/seller/internal/inventory/deduct` | **2026-02-14 추가** |
 | **shopping-seller-service** | **재고 해제** | `POST /api/v1/seller/internal/inventory/release` | **2026-02-14 추가** |
+
+| **payment-service** | **Intent 생성** | `POST /internal/intents` | **2026-02-28 추가** |
+| **payment-service** | **Saga 보상 환불** | `POST /internal/refund/{orderNumber}` | **2026-02-28 추가** |
 
 **Circuit Breaker**: Resilience4j 적용, fallback: 에러 응답
 
@@ -738,9 +742,10 @@ erDiagram
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-28 | Payment 모듈 제거, payment-service Feign 클라이언트 추가, payments 테이블 제거 반영 | Laze |
 | 2026-02-14 | 서비스 분해: Buyer 전용으로 전환, Product/Inventory Feign 프록시, Admin 기능 제거 | Laze |
 | 2026-02-06 | 초기 문서 작성 | Laze |
 
 ---
 
-**최종 업데이트**: 2026-02-14
+**최종 업데이트**: 2026-02-28

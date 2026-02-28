@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "OrderSettlementCreatedEvent",
+  "namespace": "com.portal.universe.event.shopping",
+  "doc": "결제 완료 후 주문 확정 시 정산을 위해 발행되는 이벤트. 판매자별 아이템 정보를 포함한다.",
+  "fields": [
+    {"name": "orderNumber", "type": "string", "doc": "주문번호"},
+    {"name": "userId", "type": "string", "doc": "구매자 ID"},
+    {"name": "paymentNumber", "type": "string", "doc": "결제번호"},
+    {"name": "totalAmount", "type": {"type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 2}, "doc": "총 결제 금액"},
+    {"name": "items", "type": {"type": "array", "items": "OrderItemInfo"}, "doc": "주문 아이템 목록 (판매자별 정산용)"},
+    {"name": "settledAt", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "정산 이벤트 생성 시각"}
+  ]
+}

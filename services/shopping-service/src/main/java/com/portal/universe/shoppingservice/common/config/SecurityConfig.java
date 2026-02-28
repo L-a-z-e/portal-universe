@@ -110,11 +110,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/orders", "/orders/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/orders/*/cancel").hasAnyRole("USER", "ADMIN")
 
-                        // 결제
-                        .requestMatchers(HttpMethod.POST, "/payments").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/payments/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/payments/*/cancel").hasAnyRole("USER", "ADMIN")
-
                         // 배송 조회
                         .requestMatchers(HttpMethod.GET, "/deliveries/**").hasAnyRole("USER", "ADMIN")
 
