@@ -78,6 +78,11 @@ management:
       application: ${spring.application.name}
       environment: kubernetes
 
+app:
+  kafka:
+    topic:
+      replicas: 3
+
 logging:
   level:
     root: INFO

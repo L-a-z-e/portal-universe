@@ -57,6 +57,11 @@ spring:
     properties:
       schema.registry.url: http://schema-registry:8081
 
+app:
+  kafka:
+    topic:
+      replicas: 3
+
   # JWT 검증은 API Gateway에서 수행, 이 서비스는 X-User-Id 헤더로 인증 정보 수신
 
 # Swagger 설정 (Kubernetes 환경: 비활성화, 프로덕션)

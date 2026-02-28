@@ -186,15 +186,32 @@ describe('KafkaProducer', () => {
       );
     });
 
-    it('should skip sending when not connected', async () => {
+    it('should attempt reconnection and throw when not connected', async () => {
       mockProducerInstance.connect.mockRejectedValue(
         new Error('Connection refused'),
       );
 
       await producer.onModuleInit();
+
+      await expect(producer.sendTaskCompleted(taskEvent)).rejects.toThrow(
+        'Kafka not connected',
+      );
+      expect(mockProducerInstance.connect).toHaveBeenCalledTimes(2);
+      expect(mockProducerInstance.send).not.toHaveBeenCalled();
+    });
+
+    it('should recover when reconnection succeeds', async () => {
+      mockProducerInstance.connect
+        .mockRejectedValueOnce(new Error('Connection refused'))
+        .mockResolvedValueOnce(undefined);
+
+      await producer.onModuleInit();
+      expect((producer as any).isConnected).toBe(false);
+
       await producer.sendTaskCompleted(taskEvent);
 
-      expect(mockProducerInstance.send).not.toHaveBeenCalled();
+      expect(mockProducerInstance.connect).toHaveBeenCalledTimes(2);
+      expect(mockProducerInstance.send).toHaveBeenCalled();
     });
   });
 
@@ -225,6 +242,28 @@ describe('KafkaProducer', () => {
         expect.objectContaining({
           topic: 'prism.task.failed',
         }),
+      );
+    });
+  });
+
+  describe('error propagation', () => {
+    const taskEvent: TaskEvent = {
+      taskId: 1,
+      boardId: 10,
+      userId: 'user-123',
+      title: 'Test Task',
+      status: 'IN_REVIEW',
+      timestamp: '2026-02-21T10:00:00.000Z',
+    };
+
+    it('should throw when producer.send fails', async () => {
+      await producer.onModuleInit();
+      mockProducerInstance.send.mockRejectedValue(
+        new Error('Broker not available'),
+      );
+
+      await expect(producer.sendTaskCompleted(taskEvent)).rejects.toThrow(
+        'Broker not available',
       );
     });
   });
