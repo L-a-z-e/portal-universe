@@ -24,6 +24,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const { suggestions, isLoading } = useSearchSuggest(value)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listboxId = 'search-autocomplete-listbox'
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -91,6 +92,11 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         <input
           ref={inputRef}
           type="text"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={isOpen && suggestions.length > 0}
+          aria-controls={listboxId}
+          aria-activedescendant={activeIndex >= 0 ? `search-option-${activeIndex}` : undefined}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -102,6 +108,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         <button
           type="button"
           onClick={() => onSearch(value)}
+          aria-label="Search"
           className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-meta hover:text-brand-primary transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,10 +124,17 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
       {/* Dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <ul className="absolute z-50 w-full mt-1 bg-bg-card border border-border-default rounded-lg shadow-lg overflow-hidden">
+        <ul
+          id={listboxId}
+          role="listbox"
+          className="absolute z-50 w-full mt-1 bg-bg-card border border-border-default rounded-lg shadow-lg overflow-hidden"
+        >
           {suggestions.map((suggestion, index) => (
             <li
               key={suggestion}
+              id={`search-option-${index}`}
+              role="option"
+              aria-selected={index === activeIndex}
               onClick={() => handleSelect(suggestion)}
               className={`px-4 py-2.5 cursor-pointer text-sm transition-colors ${
                 index === activeIndex

@@ -36,7 +36,7 @@ const sizeClasses = {
 };
 
 const activeColorClasses = {
-  primary: 'bg-brand-600 dark:bg-brand-500',
+  primary: 'bg-brand-primary',
   success: 'bg-status-success',
   warning: 'bg-status-warning',
   error: 'bg-status-error',
@@ -46,17 +46,17 @@ const trackClasses = computed(() => [
   'relative inline-flex items-center rounded-full transition-colors duration-200',
   sizeClasses[props.size].track,
   props.disabled
-    ? 'bg-gray-200 cursor-not-allowed dark:bg-gray-600'
+    ? 'bg-bg-muted cursor-not-allowed'
     : props.modelValue
       ? activeColorClasses[props.activeColor]
-      : 'bg-gray-300 dark:bg-gray-600',
+      : 'bg-border-default',
 ]);
 
 const thumbClasses = computed(() => [
-  'absolute left-0.5 rounded-full bg-white shadow-sm transition-transform duration-200',
+  'absolute left-0.5 rounded-full bg-bg-elevated shadow-sm transition-transform duration-200',
   sizeClasses[props.size].thumb,
   props.modelValue ? sizeClasses[props.size].translate : 'translate-x-0',
-  props.disabled ? 'bg-gray-100 dark:bg-gray-400' : '',
+  props.disabled ? 'opacity-60' : '',
 ]);
 
 const handleChange = () => {
@@ -84,7 +84,7 @@ const handleChange = () => {
       :disabled="disabled"
       :name="name"
       :class="trackClasses"
-      class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+      class="focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
       @click="handleChange"
     >
       <span :class="thumbClasses" />

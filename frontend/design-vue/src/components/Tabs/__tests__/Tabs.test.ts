@@ -160,7 +160,7 @@ describe('Tabs', () => {
           variant: 'underline',
         },
       });
-      expect(wrapper.find('[role="tablist"]').classes()).toContain('border-b-2');
+      expect(wrapper.find('[role="tablist"]').classes()).toContain('border-b');
     });
   });
 

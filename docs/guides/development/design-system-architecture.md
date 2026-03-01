@@ -603,7 +603,7 @@ import { Button, Card, Tag, Input, Modal, Alert, Spinner } from '@portal/design-
 | | `Modal` | title, v-model |
 | **Navigation** | `Link` | href, external |
 | | `Dropdown` | items |
-| | `Tabs` | items, modelValue, variant(`underline`/`pill`/`boxed`), size(`sm`/`md`/`lg`), fullWidth |
+| | `Tabs` | items, modelValue, variant(`underline`/`pill`/`boxed`), size(`sm`/`md`/`lg`), fullWidth, keyboard navigation (Arrow/Home/End) |
 | | `Breadcrumb` | items |
 | **Data** | `Badge` | variant, size |
 | | `Tag` | variant(`default`/`primary`/`success`/`error`/`warning`/`info`), size, removable, clickable |
