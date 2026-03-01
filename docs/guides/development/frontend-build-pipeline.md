@@ -57,13 +57,13 @@ npm run build:apps         # 앱 4개만
 ## 의존성 체인
 
 ```
-design-tokens
-  ├── design-system-vue → portal-shell, blog-frontend
-  └── design-system-react → shopping-frontend, prism-frontend
+design-core
+  ├── design-vue → portal-shell, blog-frontend, admin-frontend, drive-frontend
+  └── design-react → shopping-frontend, prism-frontend, shopping-seller-frontend
 
-react-bridge → react-bootstrap → shopping-frontend, prism-frontend
+react-bridge → react-bootstrap → shopping-frontend, prism-frontend, shopping-seller-frontend
 
-portal-shell (MF Host) ← blog-frontend, shopping-frontend, prism-frontend (MF Remotes)
+portal-shell (MF Host) ← blog, shopping, prism, admin, drive, seller (MF Remotes)
 ```
 
 ---
@@ -118,6 +118,8 @@ portal-shell (MF Host) ← blog-frontend, shopping-frontend, prism-frontend (MF 
 | `react-dom/client` 에러 (#321) | MF shared 설정 누락 | `vite.config.ts` shared 배열에 `react-dom/client` 포함 |
 | remoteEntry.js 404 | Remote 앱 미실행 | 해당 Remote 앱 실행 확인 (포트: 30001~30003) |
 | axios 에러 | MF shared 누락 | `vite.config.ts` shared 배열에 `axios` 포함 |
+| lazy chunk 404 | `base` URL 미설정 | `.env`에 `VITE_BASE_URL` 설정 (trailing slash 필수) |
+| 라우팅 에러 | `react-router-dom` shared 누락 | React Remote의 shared 배열에 `react-router-dom` 포함 |
 
 ---
 
@@ -154,6 +156,20 @@ ls frontend/shopping-frontend/dist/
 - Vue Router: `const Page = () => import('../views/Page.vue')` 패턴 사용
 - React Router: `React.lazy(() => import('./Page'))` 패턴 사용
 - 무거운 에디터(toast-ui-editor 등)는 사용 시점에만 로드
+
+### 폰트 로딩
+
+- **`@fontsource-variable/inter`** 폰트는 각 앱에서 직접 import
+- design-vue/design-react 라이브러리에서 import하면 Vite lib mode가 woff2를 base64로 CSS에 인라인 → CSS 비대화
+- 각 앱의 entry CSS (`style.css` 또는 `index.css`)에서 `@import '@fontsource-variable/inter'`
+- 앱 빌드 시 Vite app mode가 woff2를 별도 파일로 emit → 브라우저 캐싱 가능
+
+### MF Remote `base` URL 설정
+
+- Module Federation Remote 앱에서 code splitting(lazy loading) 사용 시 `vite.config.ts`에 `base` 설정 필수
+- 미설정 시 dynamic import chunk가 Host URL에서 로드 시도 → 404 에러
+- `.env.{mode}`에 `VITE_BASE_URL` 설정, trailing slash 필수 (예: `http://localhost:30001/`)
+- `vite.config.ts`에서 `base: env.VITE_BASE_URL || '/'`
 
 ### 미사용 의존성 제거
 

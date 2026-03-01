@@ -8,14 +8,12 @@ import { Button, Card, SearchBar, Spinner } from '@portal/design-vue';
 import PostCard from '../components/PostCard.vue';
 import { useApiError } from '@portal/design-vue';
 import { useSearchStore } from '../stores/searchStore';
-import { useFollowStore } from '../stores/followStore';
 import { usePortalAuth } from '@portal/vue-bridge';
 
 const router = useRouter();
 const route = useRoute();
 const { isAuthenticated } = usePortalAuth();
 const searchStore = useSearchStore();
-const followStore = useFollowStore();
 const { getErrorMessage } = useApiError();
 
 // 탭 관련 상태

@@ -1,3 +1,6 @@
+/* Inter Variable Font (앱에서 직접 로드 → woff2 별도 파일로 emit) */
+@import '@fontsource-variable/inter';
+
 /* design-system CSS import */
 @import '@portal/design-vue/style.css';
 
