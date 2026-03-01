@@ -141,41 +141,51 @@ const routes = [
       {
         path: 'cart',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <CartPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <CartPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'checkout',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <CheckoutPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <CheckoutPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'orders',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <OrderListPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <OrderListPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'orders/:orderNumber',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <OrderDetailPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <OrderDetailPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'coupons',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <CouponListPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <CouponListPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
@@ -197,17 +207,21 @@ const routes = [
       {
         path: 'time-deals/purchases',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <TimeDealPurchasesPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <TimeDealPurchasesPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'queue/:eventType/:eventId',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <QueueWaitingPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <QueueWaitingPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {

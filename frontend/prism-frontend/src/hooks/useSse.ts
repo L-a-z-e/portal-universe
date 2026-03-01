@@ -1,5 +1,7 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { isBridgeReady, getAdapter } from '@portal/react-bridge';
+
+export type SseConnectionState = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'failed';
 
 export interface SseEvent {
   type: string;
@@ -49,6 +51,7 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  const [connectionState, setConnectionState] = useState<SseConnectionState>('idle');
 
   const connect = useCallback(async () => {
     if (!boardId || !enabled) return;
@@ -60,6 +63,7 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
+    setConnectionState('connecting');
 
     const url = `${SSE_BASE_URL}/api/v1/prism/sse/boards/${boardId}`;
     const token = getAccessToken();
@@ -86,6 +90,7 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
 
       console.log(`[SSE] Connected to board ${boardId}`);
       reconnectAttemptsRef.current = 0;
+      setConnectionState('connected');
 
       const reader = response.body?.getReader();
       if (!reader) {
@@ -128,12 +133,14 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
       }
 
       console.error('[SSE] Connection error:', error);
+      setConnectionState('disconnected');
 
       if (!enabled) return;
 
       const attempts = reconnectAttemptsRef.current;
       if (attempts >= MAX_RECONNECT_ATTEMPTS) {
         console.error(`[SSE] Max reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Giving up.`);
+        setConnectionState('failed');
         return;
       }
 
@@ -157,6 +164,7 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    setConnectionState('idle');
   }, []);
 
   useEffect(() => {
@@ -164,5 +172,10 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
     return () => disconnect();
   }, [connect, disconnect]);
 
-  return { disconnect, reconnect: connect };
+  const retry = useCallback(() => {
+    reconnectAttemptsRef.current = 0;
+    connect();
+  }, [connect]);
+
+  return { disconnect, reconnect: retry, connectionState };
 }

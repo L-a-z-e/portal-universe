@@ -76,7 +76,7 @@ function BoardPage() {
   ]);
 
   // Connect to SSE
-  useSse({
+  const { connectionState, reconnect } = useSse({
     boardId: boardIdNum,
     onEvent: handleSseEvent,
     enabled: !!boardIdNum,
@@ -198,6 +198,17 @@ function BoardPage() {
           Add Task
         </Button>
       </div>
+
+      {connectionState === 'failed' && (
+        <div className="mb-4 px-4 py-3 bg-status-warning-bg border border-status-warning rounded-lg flex items-center justify-between">
+          <span className="text-sm text-text-body">
+            Real-time updates disconnected.
+          </span>
+          <Button variant="secondary" size="sm" onClick={reconnect}>
+            Reconnect
+          </Button>
+        </div>
+      )}
 
       {taskLoading && (
         <div className="absolute top-4 right-4">
