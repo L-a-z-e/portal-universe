@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -28,13 +27,17 @@ class TimeDealRedisServiceTest {
     private DefaultRedisScript<Long> timeDealPurchaseScript;
 
     @Mock
+    private DefaultRedisScript<Long> timeDealRollbackScript;
+
+    @Mock
     private ValueOperations<String, String> valueOperations;
 
-    @InjectMocks
     private TimeDealRedisService timeDealRedisService;
 
     @BeforeEach
     void setUp() {
+        timeDealRedisService = new TimeDealRedisService(
+                stringRedisTemplate, timeDealPurchaseScript, timeDealRollbackScript);
         lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
@@ -120,20 +123,27 @@ class TimeDealRedisServiceTest {
     }
 
     @Test
-    @DisplayName("should_rollbackStock_when_called")
-    void should_rollbackStock_when_called() {
+    @DisplayName("should_rollbackStock_atomically_via_lua_script")
+    void should_rollbackStock_atomically_via_lua_script() {
         // given
         Long timeDealId = 1L;
         Long productId = 10L;
         String userId = "user-1";
         int quantity = 2;
 
+        when(stringRedisTemplate.execute(eq(timeDealRollbackScript), anyList(), any()))
+                .thenReturn(52L);
+
         // when
-        timeDealRedisService.rollbackStock(timeDealId, productId, userId, quantity);
+        Long newStock = timeDealRedisService.rollbackStock(timeDealId, productId, userId, quantity);
 
         // then
-        verify(valueOperations).increment("timedeal:stock:1:10", 2);
-        verify(valueOperations).decrement("timedeal:purchased:1:10:user-1", 2);
+        assertThat(newStock).isEqualTo(52L);
+        verify(stringRedisTemplate).execute(
+                eq(timeDealRollbackScript),
+                eq(Arrays.asList("timedeal:stock:1:10", "timedeal:purchased:1:10:user-1")),
+                eq("2")
+        );
     }
 
     @Test

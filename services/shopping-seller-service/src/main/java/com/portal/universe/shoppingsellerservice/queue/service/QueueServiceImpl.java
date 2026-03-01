@@ -1,6 +1,8 @@
 package com.portal.universe.shoppingsellerservice.queue.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.seller.QueueActivatedEvent;
+import com.portal.universe.event.seller.QueueDeactivatedEvent;
 import com.portal.universe.shoppingsellerservice.common.exception.SellerErrorCode;
 import com.portal.universe.shoppingsellerservice.queue.domain.QueueEntryStatus;
 import com.portal.universe.shoppingsellerservice.queue.domain.WaitingQueue;
@@ -9,8 +11,11 @@ import com.portal.universe.shoppingsellerservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingsellerservice.queue.repository.QueueEntryRepository;
 import com.portal.universe.shoppingsellerservice.queue.repository.WaitingQueueRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +24,7 @@ public class QueueServiceImpl implements QueueService {
 
     private final WaitingQueueRepository waitingQueueRepository;
     private final QueueEntryRepository queueEntryRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -38,6 +44,17 @@ public class QueueServiceImpl implements QueueService {
 
         queue.activate();
         WaitingQueue saved = waitingQueueRepository.save(queue);
+
+        eventPublisher.publishEvent(QueueActivatedEvent.newBuilder()
+                .setQueueId(saved.getId())
+                .setEventType(saved.getEventType())
+                .setEventId(saved.getEventId())
+                .setMaxCapacity(saved.getMaxCapacity())
+                .setEntryBatchSize(saved.getEntryBatchSize())
+                .setEntryIntervalSeconds(saved.getEntryIntervalSeconds())
+                .setTimestamp(Instant.now())
+                .build());
+
         return toStatusResponse(saved);
     }
 
@@ -50,6 +67,13 @@ public class QueueServiceImpl implements QueueService {
             throw new CustomBusinessException(SellerErrorCode.QUEUE_NOT_ACTIVE);
         }
         queue.deactivate();
+
+        eventPublisher.publishEvent(QueueDeactivatedEvent.newBuilder()
+                .setQueueId(queue.getId())
+                .setEventType(queue.getEventType())
+                .setEventId(queue.getEventId())
+                .setTimestamp(Instant.now())
+                .build());
     }
 
     @Override

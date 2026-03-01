@@ -2,28 +2,45 @@
  * CouponListPage
  * 쿠폰 목록 페이지 - 발급 가능한 쿠폰 및 내 쿠폰 관리
  */
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Button, Spinner, Badge, useApiError, useToast } from '@portal/design-react'
 import { useAvailableCoupons, useUserCoupons, useIssueCoupon } from '@/hooks/useCoupons'
 import { CouponCard } from '@/components/coupon/CouponCard'
+import { queueApi } from '@/api'
 
 type TabType = 'available' | 'my'
 
 export function CouponListPage() {
   const { handleError } = useApiError()
   const { success } = useToast()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<TabType>('available')
   const [issuingCouponId, setIssuingCouponId] = useState<number | null>(null)
+  const autoIssueAttempted = useRef(false)
 
   const { data: availableCoupons, isLoading: loadingAvailable, refetch: refetchAvailable } = useAvailableCoupons()
   const { data: userCoupons, isLoading: loadingMy, refetch: refetchMy } = useUserCoupons()
   const { mutateAsync: issueCoupon } = useIssueCoupon()
 
-  const handleIssueCoupon = async (couponId: number) => {
+  // Queue 통과 후 자동 발급 처리
+  useEffect(() => {
+    const issueCouponId = searchParams.get('issueCouponId')
+    if (!issueCouponId || autoIssueAttempted.current) return
+
+    autoIssueAttempted.current = true
+    // URL에서 param 제거 (중복 발급 방지)
+    searchParams.delete('issueCouponId')
+    setSearchParams(searchParams, { replace: true })
+
+    executeIssueCoupon(parseInt(issueCouponId))
+  }, [searchParams])
+
+  const executeIssueCoupon = async (couponId: number) => {
     try {
       setIssuingCouponId(couponId)
       await issueCoupon(couponId)
-      // 발급 성공 후 목록 갱신
       await Promise.all([refetchAvailable(), refetchMy()])
       success('쿠폰이 발급되었습니다!')
     } catch (error) {
@@ -31,6 +48,24 @@ export function CouponListPage() {
     } finally {
       setIssuingCouponId(null)
     }
+  }
+
+  const handleIssueCoupon = async (couponId: number) => {
+    try {
+      // Queue 활성 여부 확인
+      const queueResponse = await queueApi.checkQueueActive('COUPON', couponId)
+      if (queueResponse.success && queueResponse.data) {
+        // Queue 활성 → 대기열 페이지로 이동
+        const returnUrl = encodeURIComponent(`/coupons?issueCouponId=${couponId}`)
+        navigate(`/queue/COUPON/${couponId}?returnUrl=${returnUrl}`)
+        return
+      }
+    } catch {
+      // Queue 확인 실패 시 직접 발급 진행
+    }
+
+    // Queue 비활성 → 직접 발급
+    await executeIssueCoupon(couponId)
   }
 
   const isLoading = activeTab === 'available' ? loadingAvailable : loadingMy

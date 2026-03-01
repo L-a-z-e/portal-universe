@@ -4,7 +4,7 @@ title: TimeDeal System Architecture
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-27
+updated: 2026-03-01
 author: Laze
 tags: [architecture, shopping-service, timedeal, redis, lua-script, scheduler]
 related:
@@ -48,6 +48,7 @@ graph TB
         RS[timedeal:stock:{d}:{p}<br/>String]
         RP[timedeal:purchased:{d}:{p}:{u}<br/>String]
         LUA[timedeal_purchase.lua]
+        RLUA[timedeal_rollback.lua]
         LOCK[lock:scheduler:timedeal:status]
     end
 
@@ -264,6 +265,23 @@ TTL 계산: `endsAt - now + 1일` (+1일 버퍼로 만료 직전 구매 처리 �
 | Redis Pub/Sub | 실시간 | 메시지 유실 가능 | - |
 | Spring Batch | 대량 처리 | 오버스펙 | - |
 
+### 구매 실패 시 Redis Rollback (`timedeal_rollback.lua`)
+
+DB 저장 실패 시 Redis 재고를 원자적으로 복원합니다.
+
+```
+KEYS[1] = timedeal:stock:{dealId}:{productId}
+KEYS[2] = timedeal:purchased:{dealId}:{productId}:{userId}
+ARGV[1] = quantity (복원 수량)
+
+1. INCRBY KEYS[1] ARGV[1]    → 재고 복원
+2. DECRBY KEYS[2] ARGV[1]    → 구매 수량 감소
+3. result < 0이면 DEL KEYS[2] → 음수 방지
+4. return 1
+```
+
+Pipeline으로 INCRBY + DECRBY를 별개 실행하면 중간에 다른 요청이 끼어들어 정합성 깨질 수 있으므로, Lua Script로 원자성을 보장합니다.
+
 ### 1인당 구매 제한
 
 - Redis Key: `timedeal:purchased:{dealId}:{productId}:{userId}`
@@ -308,4 +326,4 @@ TTL 계산: `endsAt - now + 1일` (+1일 버퍼로 만료 직전 구매 처리 �
 
 ---
 
-**최종 업데이트**: 2026-02-27
+**최종 업데이트**: 2026-03-01

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -32,6 +33,7 @@ public class CouponRedisService {
 
     private final StringRedisTemplate stringRedisTemplate;
     private final DefaultRedisScript<Long> couponIssueScript;
+    private final DefaultRedisScript<Long> couponRollbackScript;
 
     /**
      * 쿠폰 재고를 Redis에 초기화합니다. (TTL 없음)
@@ -100,6 +102,38 @@ public class CouponRedisService {
         String issuedKey = COUPON_ISSUED_KEY + couponId;
         Long size = stringRedisTemplate.opsForSet().size(issuedKey);
         return size != null ? size : 0;
+    }
+
+    /**
+     * Lua Script를 사용하여 원자적으로 쿠폰 발급을 롤백합니다.
+     * 재고 복원(INCRBY) + 발급 기록 제거(SREM)를 단일 원자 연산으로 수행합니다.
+     *
+     * @return 롤백 후 남은 재고 수량
+     */
+    public Long rollbackIssuance(Long couponId, String userId) {
+        String stockKey = COUPON_STOCK_KEY + couponId;
+        String issuedKey = COUPON_ISSUED_KEY + couponId;
+
+        Long newStock = stringRedisTemplate.execute(
+                couponRollbackScript,
+                Arrays.asList(stockKey, issuedKey),
+                userId
+        );
+
+        log.info("Rolled back coupon issuance: couponId={}, userId={}, newStock={}",
+                couponId, userId, newStock);
+        return newStock;
+    }
+
+    /**
+     * DB 기준으로 Issued Set을 재구성합니다 (정합성 스케줄러용).
+     */
+    public void rebuildIssuedSet(Long couponId, List<String> userIds) {
+        String issuedKey = COUPON_ISSUED_KEY + couponId;
+        stringRedisTemplate.delete(issuedKey);
+        if (!userIds.isEmpty()) {
+            stringRedisTemplate.opsForSet().add(issuedKey, userIds.toArray(new String[0]));
+        }
     }
 
     /**

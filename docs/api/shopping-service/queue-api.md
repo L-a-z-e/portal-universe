@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-01-19
-updated: 2026-01-19
+updated: 2026-03-01
 author: Laze
 tags: [api, shopping-service, queue, sse, redis]
 related:
@@ -39,8 +39,9 @@ related:
 |--------|----------|------|------|
 | POST | `/{eventType}/{eventId}/enter` | 대기열 진입 | ✅ |
 | GET | `/{eventType}/{eventId}/status` | 대기열 상태 조회 | ✅ |
+| GET | `/{eventType}/{eventId}/check` | 대기열 활성 여부 확인 | ✅ |
 | GET | `/token/{entryToken}` | 토큰으로 상태 조회 | ✅ |
-| GET | `/{eventType}/{eventId}/subscribe/{entryToken}` | 실시간 구독 (SSE) | ✅ |
+| GET | `/{eventType}/{eventId}/subscribe/{entryToken}` | 실시간 구독 (SSE) | ❌ (entryToken 인증) |
 | DELETE | `/{eventType}/{eventId}/leave` | 대기열 이탈 | ✅ |
 | DELETE | `/token/{entryToken}` | 토큰으로 이탈 | ✅ |
 
@@ -202,20 +203,51 @@ X-User-Id: {userId}
 
 ---
 
+## 🔹 대기열 활성 여부 확인
+
+특정 이벤트의 대기열이 활성화되어 있는지 확인합니다. 프론트엔드에서 대기열 진입 리다이렉트 여부를 판단할 때 사용합니다.
+
+### Request
+
+```http
+GET /api/shopping/queue/{eventType}/{eventId}/check
+Authorization: Bearer {token}
+X-User-Id: {userId}
+```
+
+### Path Parameters
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| `eventType` | string | ✅ | 이벤트 유형 |
+| `eventId` | long | ✅ | 이벤트 ID |
+
+### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "active": true
+  },
+  "timestamp": "2026-03-01T14:30:00Z"
+}
+```
+
+---
+
 ## 🔹 실시간 구독 (SSE)
 
-Server-Sent Events를 통해 대기열 상태를 실시간으로 수신합니다. 토큰 소유자 본인만 구독 가능합니다.
+Server-Sent Events를 통해 대기열 상태를 실시간으로 수신합니다.
 
 ### Request
 
 ```http
 GET /api/shopping/queue/{eventType}/{eventId}/subscribe/{entryToken}
 Accept: text/event-stream
-Authorization: Bearer {accessToken}
-X-User-Id: {userId}
 ```
 
-> **인증 필수**: Gateway가 JWT에서 추출한 `X-User-Id`와 entryToken 소유자를 비교하여 불일치 시 403을 반환합니다.
+> **인증 방식**: JWT 인증 없이 접근 가능 (Gateway permitAll). entryToken(UUID v4)이 비밀값으로서 인증 역할을 수행합니다. 브라우저 EventSource API가 Authorization 헤더를 지원하지 않으므로 이 방식을 채택했습니다.
 
 ### Path Parameters
 
@@ -482,4 +514,4 @@ estimatedWaitSeconds =
 
 ---
 
-**최종 업데이트**: 2026-01-19
+**최종 업데이트**: 2026-03-01

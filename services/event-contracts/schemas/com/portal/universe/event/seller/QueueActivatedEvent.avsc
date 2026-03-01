@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "QueueActivatedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a queue is activated.",
+  "fields": [
+    { "name": "queueId", "type": "long", "doc": "WaitingQueue entity ID in seller-service" },
+    { "name": "eventType", "type": "string", "doc": "Queue event type (e.g. COUPON, TIMEDEAL)" },
+    { "name": "eventId", "type": "long", "doc": "Target event ID (e.g. couponId, timeDealId)" },
+    { "name": "maxCapacity", "type": "int", "doc": "Maximum concurrent entries allowed" },
+    { "name": "entryBatchSize", "type": "int", "doc": "Number of entries processed per batch" },
+    { "name": "entryIntervalSeconds", "type": "int", "doc": "Interval between batch processing in seconds" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

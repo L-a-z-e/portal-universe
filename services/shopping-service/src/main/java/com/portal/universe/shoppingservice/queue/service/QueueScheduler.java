@@ -1,5 +1,6 @@
 package com.portal.universe.shoppingservice.queue.service;
 
+import com.portal.universe.shoppingservice.common.annotation.DistributedLock;
 import com.portal.universe.shoppingservice.queue.domain.WaitingQueue;
 import com.portal.universe.shoppingservice.queue.repository.WaitingQueueRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,10 @@ public class QueueScheduler {
 
     /**
      * 활성 대기열에서 대기자를 입장 처리
-     * 5초마다 실행
+     * 5초마다 실행, 멀티 Pod 환경에서 동시 실행 방지
      */
     @Scheduled(fixedDelay = 5000)
+    @DistributedLock(key = "'scheduler:queue:process'", waitTime = 0, leaseTime = 4)
     public void processActiveQueues() {
         List<WaitingQueue> activeQueues = waitingQueueRepository.findByIsActiveTrue();
 

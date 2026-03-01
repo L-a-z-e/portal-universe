@@ -5,6 +5,13 @@ import type { QueueStatusResponse, QueueActivateRequest } from '@/dto/queue'
 const API_PREFIX = '/api/v1/shopping'
 
 export const queueApi = {
+  checkQueueActive: async (eventType: string, eventId: number) => {
+    const response = await getApiClient().get<ApiResponse<boolean>>(
+      `${API_PREFIX}/queue/${eventType}/${eventId}/check`
+    )
+    return response.data
+  },
+
   enterQueue: async (eventType: string, eventId: number) => {
     const response = await getApiClient().post<ApiResponse<QueueStatusResponse>>(
       `${API_PREFIX}/queue/${eventType}/${eventId}/enter`
