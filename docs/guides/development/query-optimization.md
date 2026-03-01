@@ -74,3 +74,33 @@ bulkOps.execute();
 
 - `$setOnInsert`: 문서가 없을 때만 필드 설정 (기존 문서 보존)
 - `BulkMode.UNORDERED`: 순서 무관, 병렬 처리, 부분 실패 허용
+
+## Index Strategy
+
+### 인덱스 추가 기준
+
+1. **Filesort 제거**: `ORDER BY ... DESC` + 대용량 테이블 → 정렬 포함 복합 인덱스 필수
+2. **Full Scan 방지**: FK 역참조, 조회용 컬럼에 인덱스 누락 시 추가
+3. **단일 → 복합**: 다중 조건 WHERE에 개별 인덱스만 있으면 복합 인덱스로 통합
+4. **UK 활용**: UNIQUE 제약은 자동으로 인덱스 생성 — 별도 추가 불필요
+
+### MongoDB ESR 법칙
+
+인덱스 필드 순서: **E**quality → **S**ort → **R**ange
+
+```javascript
+// Query: { postCount: { $gt: 0 } } + Sort: { lastUsedAt: -1 }
+// E: 없음, S: lastUsedAt, R: postCount
+
+// Good (ESR): Sort → Range
+{ lastUsedAt: -1, postCount: 1 }
+
+// Bad: Range → Sort (정렬 커버 불가 → 메모리 정렬)
+{ postCount: 1, lastUsedAt: -1 }
+```
+
+### 인덱스 추가 시 고려사항
+
+- **WRITE 비용**: INSERT/UPDATE마다 인덱스 갱신. 대용량 쓰기 테이블은 신중하게
+- **미사용 쿼리**: Repository에 정의만 있고 호출되지 않는 메서드의 인덱스는 추가하지 않음
+- **테이블 크기**: 소형 테이블(수십~수백 행)은 Full Scan도 빠름 — 인덱스 효과 미미
