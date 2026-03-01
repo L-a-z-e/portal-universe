@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Card, useApiError } from '@portal/design-vue';
+import { Card, Spinner, useApiError } from '@portal/design-vue';
 import { getPostNavigation } from '@/api/posts';
 import type { PostNavigationResponse } from '@/types';
 import { DEFAULT_THUMBNAILS } from '@/config/assets';
@@ -58,7 +58,7 @@ onMounted(() => {
   <div class="post-navigation">
     <!-- Loading -->
     <div v-if="loading" class="nav-loading">
-      <div class="loading-spinner"></div>
+      <Spinner size="md" class="mx-auto mb-4" />
       <p>네비게이션을 불러오는 중...</p>
     </div>
 
@@ -154,22 +154,6 @@ onMounted(() => {
   text-align: center;
   padding: 2rem;
   color: var(--semantic-text-meta);
-}
-
-.loading-spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid var(--semantic-border-muted);
-  border-top-color: var(--semantic-brand-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .nav-error {

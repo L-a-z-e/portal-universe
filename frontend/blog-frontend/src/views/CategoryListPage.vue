@@ -3,7 +3,7 @@ import { onMounted, onBeforeUnmount, ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { getCategoryStats, getPostsByCategory, getPublishedPosts } from '../api/posts';
 import type { CategoryStats, PostSummaryResponse, PageResponse } from '@/types';
-import { Spinner, useApiError } from '@portal/design-vue';
+import { Alert, Spinner, useApiError } from '@portal/design-vue';
 import PostCard from '../components/PostCard.vue';
 
 const router = useRouter();
@@ -196,9 +196,9 @@ onBeforeUnmount(() => {
       </header>
 
       <!-- 카테고리 에러 -->
-      <div v-if="categoriesError" class="mb-6 p-3 bg-status-error-bg border border-status-error/20 rounded-lg text-sm text-status-error">
+      <Alert v-if="categoriesError" variant="error" class="mb-6">
         {{ categoriesError }}
-      </div>
+      </Alert>
 
       <!-- 카테고리 필터 -->
       <div v-if="!categoriesLoading" class="flex flex-wrap items-center gap-2 mb-8">
@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
 
       <!-- 카테고리 로딩 -->
       <div v-else class="flex items-center gap-2 mb-8 text-text-meta text-sm">
-        <div class="w-4 h-4 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+        <Spinner size="sm" />
         카테고리 로딩 중...
       </div>
 
@@ -270,7 +270,7 @@ onBeforeUnmount(() => {
           ref="loadMoreTrigger"
           class="flex items-center justify-center py-12"
         >
-          <div v-if="isLoadingMore" class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+          <Spinner v-if="isLoadingMore" size="md" />
         </div>
 
         <!-- 모두 로드 완료 -->

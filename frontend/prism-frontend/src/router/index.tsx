@@ -10,6 +10,7 @@
  * - Outlet은 이 파일에서 직접 import하여 사용
  */
 import React, { Suspense, lazy, useEffect, useRef } from 'react'
+import { Spinner } from '@portal/design-react'
 import {
   createBrowserRouter,
   createMemoryRouter,
@@ -34,7 +35,7 @@ import { RequireAuth } from '@portal/react-bridge'
 const PageLoader: React.FC = () => (
   <div className="min-h-[400px] flex items-center justify-center">
     <div className="flex flex-col items-center gap-4">
-      <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+      <Spinner size="md" />
       <p className="text-text-meta text-sm">Loading...</p>
     </div>
   </div>

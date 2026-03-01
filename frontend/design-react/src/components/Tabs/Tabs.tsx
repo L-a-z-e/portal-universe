@@ -1,6 +1,6 @@
 import { forwardRef, type HTMLAttributes } from 'react';
 import type { TabsProps, TabItem } from '@portal/design-core';
-import { cn, tabsSizes } from '@portal/design-core';
+import { cn, tabsBase, tabsVariants, tabsItemBase, tabsItemVariants, tabsSizes } from '@portal/design-core';
 
 export interface TabsComponentProps
   extends Omit<TabsProps, 'value'>,
@@ -14,7 +14,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsComponentProps>(
     {
       value,
       items,
-      variant = 'default',
+      variant = 'underline',
       size = 'md',
       fullWidth = false,
       onChange,
@@ -24,39 +24,15 @@ export const Tabs = forwardRef<HTMLDivElement, TabsComponentProps>(
     ref
   ) => {
     const getTabStyles = (isActive: boolean, isDisabled: boolean) => {
-      const base = cn(
-        'px-4 py-2 font-medium transition-all duration-normal',
+      const variantStyles = tabsItemVariants[variant];
+      return cn(
+        tabsItemBase,
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary',
+        tabsSizes[size],
+        isActive ? variantStyles.active : variantStyles.inactive,
         isDisabled && 'opacity-50 cursor-not-allowed',
-        !isDisabled && 'cursor-pointer'
+        fullWidth && 'flex-1'
       );
-
-      switch (variant) {
-        case 'pills':
-          return cn(
-            base,
-            'rounded-lg',
-            isActive
-              ? 'bg-brand-primary text-text-inverse'
-              : 'text-text-body hover:bg-bg-hover'
-          );
-        case 'underline':
-          return cn(
-            base,
-            'border-b-2 -mb-px',
-            isActive
-              ? 'border-brand-primary text-brand-primary'
-              : 'border-transparent text-text-muted hover:text-text-body hover:border-border-default'
-          );
-        default:
-          return cn(
-            base,
-            'rounded-t-lg',
-            isActive
-              ? 'bg-bg-card text-text-heading border border-border-default border-b-bg-card'
-              : 'text-text-muted hover:text-text-body hover:bg-bg-hover'
-          );
-      }
     };
 
     return (
@@ -64,10 +40,9 @@ export const Tabs = forwardRef<HTMLDivElement, TabsComponentProps>(
         ref={ref}
         role="tablist"
         className={cn(
-          'flex',
-          variant === 'underline' && 'border-b border-border-default',
+          tabsBase,
+          tabsVariants[variant],
           fullWidth && 'w-full',
-          tabsSizes[size],
           className
         )}
         {...props}
@@ -81,10 +56,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsComponentProps>(
             aria-disabled={item.disabled}
             disabled={item.disabled}
             onClick={() => !item.disabled && onChange?.(item.value)}
-            className={cn(
-              getTabStyles(value === item.value, !!item.disabled),
-              fullWidth && 'flex-1'
-            )}
+            className={getTabStyles(value === item.value, !!item.disabled)}
           >
             {item.icon && <span className="mr-2">{item.icon}</span>}
             {item.label}

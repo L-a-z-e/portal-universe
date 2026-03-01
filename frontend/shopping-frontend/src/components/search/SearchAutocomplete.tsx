@@ -3,6 +3,7 @@
  * 검색 입력 시 자동완성 드롭다운 표시
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { Spinner } from '@portal/design-react'
 import { useSearchSuggest } from '@/hooks/useSearch'
 
 interface SearchAutocompleteProps {
@@ -109,7 +110,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         </button>
         {isLoading && (
           <div className="absolute right-10 top-1/2 -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+            <Spinner size="sm" />
           </div>
         )}
       </div>

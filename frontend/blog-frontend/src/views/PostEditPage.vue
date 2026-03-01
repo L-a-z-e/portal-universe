@@ -6,7 +6,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
-import { Button, Card, Input, Select, useToast, useApiError } from '@portal/design-vue';
+import { Button, Card, Input, Select, Spinner, useToast, useApiError } from '@portal/design-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import { getMySeries, getSeriesByPostId, addPostToSeries, removePostFromSeries } from '../api/series';
@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
 
     <!-- Loading -->
     <div v-if="isLoading" class="text-center py-20">
-      <div class="inline-block w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+      <Spinner size="lg" class="mx-auto" />
       <p class="mt-4 text-text-meta">게시글을 불러오는 중...</p>
     </div>
 

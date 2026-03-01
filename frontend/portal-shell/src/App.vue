@@ -11,7 +11,7 @@ import TopBar from "./components/TopBar.vue";
 import QuickActions from "./components/QuickActions.vue";
 import LoginModal from "./components/LoginModal.vue";
 import ChatWidget from "./components/chat/ChatWidget.vue";
-import { ToastContainer } from "@portal/design-vue";
+import { ToastContainer, Spinner } from "@portal/design-vue";
 
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
@@ -168,7 +168,7 @@ watch(() => authStore.isAuthenticated, (isAuth) => {
           <template #fallback>
             <div class="flex items-center justify-center min-h-[400px]">
               <div class="text-center">
-                <div class="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <Spinner size="lg" />
                 <p class="mt-4 text-text-meta text-sm font-medium">Loading...</p>
               </div>
             </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Button, Spinner, Alert, Card } from '@portal/design-vue';
+import { Button, Spinner, Alert, Card, Tabs } from '@portal/design-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import ProfileEditForm from '@/components/ProfileEditForm.vue';
 import MyPostList from '@/components/MyPostList.vue';
@@ -42,12 +42,12 @@ const tabs: { label: string; value: TabType }[] = [
 ];
 
 // URL 쿼리 동기화
-const handleTabChange = (tab: TabType) => {
+const handleTabChange = (tab: string) => {
   if (tab === 'write') {
     router.push('/write');
     return;
   }
-  activeTab.value = tab;
+  activeTab.value = tab as TabType;
   router.replace({ query: { tab } });
 };
 
@@ -118,19 +118,14 @@ onMounted(() => {
         </section>
 
         <!-- 탭 -->
-        <div class="flex items-center gap-1 mb-8 border-b border-border-default overflow-x-auto">
-          <button
-            v-for="tab in tabs"
-            :key="tab.value"
-            class="pb-3 px-3 text-sm font-medium transition-all border-b-2 whitespace-nowrap"
-            :class="activeTab === tab.value
-              ? 'text-brand-primary border-brand-primary'
-              : 'text-text-meta border-transparent hover:text-text-heading hover:border-border-hover'"
-            @click="handleTabChange(tab.value)"
-          >
-            {{ tab.label }}
-          </button>
-        </div>
+        <Tabs
+          v-model="activeTab"
+          :items="tabs"
+          variant="underline"
+          size="sm"
+          class="mb-8"
+          @change="handleTabChange"
+        />
 
         <!-- 탭 콘텐츠 -->
         <div v-if="activeTab === 'posts'">

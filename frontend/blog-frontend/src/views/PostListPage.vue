@@ -392,7 +392,7 @@ onBeforeUnmount(() => {
           class="flex items-center justify-center py-12"
         >
           <div v-if="isLoadingMore || searchStore.isSearching" class="text-center" data-testid="loading-more">
-            <div class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin mx-auto"></div>
+            <Spinner size="md" class="mx-auto" />
           </div>
         </div>
 

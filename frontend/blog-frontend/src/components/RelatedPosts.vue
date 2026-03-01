@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { Spinner } from '@portal/design-vue';
 import { getRelatedPosts } from '@/api/posts';
 import PostCard from './PostCard.vue';
 import type { PostSummaryResponse } from '@/types';
@@ -67,7 +68,7 @@ onMounted(() => {
   <!-- Loading State -->
   <section v-else-if="loading" class="related-posts loading">
     <div class="loading-container">
-      <div class="loading-spinner"></div>
+      <Spinner size="md" class="mx-auto mb-4" />
       <p>관련 게시글을 불러오는 중...</p>
     </div>
   </section>
@@ -135,22 +136,6 @@ onMounted(() => {
   text-align: center;
   padding: 3rem 1rem;
   color: var(--semantic-text-meta);
-}
-
-.loading-spinner {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 3px solid var(--semantic-border-muted);
-  border-top-color: var(--semantic-brand-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* Error State */

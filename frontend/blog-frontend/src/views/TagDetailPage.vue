@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { getTagByName, getPostsByTag } from '../api/tags';
 import type { TagResponse, PostSummaryResponse, PageResponse } from '@/types';
 import PostCard from '../components/PostCard.vue';
-import { Button } from '@portal/design-vue';
+import { Badge, Button, Spinner } from '@portal/design-vue';
 
 interface Props {
   tagName: string;
@@ -168,9 +168,9 @@ onBeforeUnmount(() => {
       <header class="mb-8 pb-8 border-b border-border-default">
         <div class="flex items-center gap-3 mb-3">
           <h1 class="text-2xl font-bold text-text-heading">#{{ decodeURIComponent(tagName) }}</h1>
-          <span v-if="tag" class="px-2.5 py-0.5 bg-brand-primary/10 text-brand-primary text-sm rounded-full font-medium">
+          <Badge v-if="tag" variant="primary" size="sm">
             {{ tag.postCount }}개
-          </span>
+          </Badge>
         </div>
 
         <p v-if="tag?.description" class="text-text-meta text-sm mb-4">{{ tag.description }}</p>
@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-else-if="isLoadingTag" class="flex items-center gap-2 text-text-meta text-sm">
-          <div class="w-4 h-4 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+          <Spinner size="sm" />
           태그 정보 로딩 중...
         </div>
 
@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
 
       <!-- Loading (초기) -->
       <div v-if="isLoading && posts.length === 0" class="flex justify-center py-24">
-        <div class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+        <Spinner size="md" />
       </div>
 
       <!-- Error -->
@@ -229,7 +229,7 @@ onBeforeUnmount(() => {
           ref="loadMoreTrigger"
           class="flex items-center justify-center py-12"
         >
-          <div v-if="isLoadingMore" class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+          <Spinner v-if="isLoadingMore" size="md" />
         </div>
 
         <!-- 모두 로드 완료 -->

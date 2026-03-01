@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { Spinner, Alert } from '@portal/design-vue';
+import { Spinner, Alert, Tabs } from '@portal/design-vue';
 import UserProfileCard from '@/components/UserProfileCard.vue';
 import PostCard from '@/components/PostCard.vue';
 import AuthorSeriesList from '@/components/AuthorSeriesList.vue';
@@ -52,8 +52,8 @@ const tabs: { label: string; value: TabType }[] = [
   { label: '소개', value: 'about' },
 ];
 
-const handleTabChange = (tab: TabType) => {
-  currentTab.value = tab;
+const handleTabChange = (tab: string) => {
+  currentTab.value = tab as TabType;
   router.replace({ query: { tab } });
 };
 
@@ -166,19 +166,14 @@ onBeforeUnmount(() => {
         <UserProfileCard :user="user" />
 
         <!-- 탭 -->
-        <div class="flex items-center gap-1 mb-12 border-b border-border-default overflow-x-auto">
-          <button
-            v-for="tab in tabs"
-            :key="tab.value"
-            class="pb-3 px-3 text-sm font-medium transition-all border-b-2 whitespace-nowrap"
-            :class="currentTab === tab.value
-              ? 'text-brand-primary border-brand-primary'
-              : 'text-text-meta border-transparent hover:text-text-heading hover:border-border-hover'"
-            @click="handleTabChange(tab.value)"
-          >
-            {{ tab.label }}
-          </button>
-        </div>
+        <Tabs
+          v-model="currentTab"
+          :items="tabs"
+          variant="underline"
+          size="sm"
+          class="mb-12"
+          @change="handleTabChange"
+        />
 
         <!-- 글 탭 -->
         <template v-if="currentTab === 'posts'">
@@ -206,7 +201,7 @@ onBeforeUnmount(() => {
 
           <!-- 로딩 (더 보기) -->
           <div v-if="postsLoading && posts.length > 0" class="flex justify-center py-12">
-            <div class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+            <Spinner size="md" />
           </div>
         </template>
 
