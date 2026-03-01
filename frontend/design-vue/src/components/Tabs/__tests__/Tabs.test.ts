@@ -128,26 +128,27 @@ describe('Tabs', () => {
   });
 
   describe('variants', () => {
-    it('applies default variant classes', () => {
+    it('applies boxed variant classes', () => {
       const wrapper = mount(Tabs, {
         props: {
           items: defaultItems,
           modelValue: 'tab1',
-          variant: 'default',
+          variant: 'boxed',
         },
       });
-      expect(wrapper.find('[role="tablist"]').classes()).toContain('border-b');
+      expect(wrapper.find('[role="tablist"]').classes()).toContain('border');
+      expect(wrapper.find('[role="tablist"]').classes()).toContain('rounded-lg');
     });
 
-    it('applies pills variant classes', () => {
+    it('applies pill variant classes', () => {
       const wrapper = mount(Tabs, {
         props: {
           items: defaultItems,
           modelValue: 'tab1',
-          variant: 'pills',
+          variant: 'pill',
         },
       });
-      expect(wrapper.find('[role="tablist"]').classes()).toContain('bg-gray-100');
+      expect(wrapper.find('[role="tablist"]').classes()).toContain('bg-bg-muted');
       expect(wrapper.find('[role="tablist"]').classes()).toContain('rounded-lg');
     });
 
@@ -159,7 +160,7 @@ describe('Tabs', () => {
           variant: 'underline',
         },
       });
-      expect(wrapper.find('[role="tablist"]').classes()).toContain('border-b-2');
+      expect(wrapper.find('[role="tablist"]').classes()).toContain('border-b');
     });
   });
 

@@ -8,10 +8,8 @@ import { setupErrorHandler } from '@portal/design-vue';
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
 
-console.log(`[Drive] Detected mode: ${mode}`);
 
 if (isEmbedded) {
-  console.log('[Drive] Waiting for Portal Shell to mount...');
 } else {
   console.group('[Drive] Starting in STANDALONE mode');
 
@@ -33,9 +31,6 @@ if (isEmbedded) {
     app.use(router);
     app.mount(appElement);
 
-    console.log('[Drive] Mounted successfully');
-    console.log(`   URL: ${window.location.href}`);
-    console.log(`   Route: ${router.currentRoute.value.path}`);
   } catch (err) {
     console.error('[Drive] Mount failed:', err);
   }

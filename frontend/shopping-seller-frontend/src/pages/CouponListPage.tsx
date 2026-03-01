@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { sellerCouponApi } from '@/api'
 import { Button, Table } from '@portal/design-react'
 import type { TableColumn } from '@portal/design-core'
+import { useConfirm } from '@/hooks/useConfirm'
 
 export const CouponListPage: React.FC = () => {
   const navigate = useNavigate()
+  const { confirm, ConfirmDialogPortal } = useConfirm()
   const [coupons, setCoupons] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [page, _setPage] = useState(0)
@@ -30,7 +32,7 @@ export const CouponListPage: React.FC = () => {
   }, [page, refreshKey])
 
   const handleDeactivate = async (id: number) => {
-    if (!confirm('Deactivate this coupon?')) return
+    if (!await confirm({ message: 'Deactivate this coupon?', variant: 'danger', confirmText: 'Deactivate' })) return
     try {
       await sellerCouponApi.deleteCoupon(id)
       setRefreshKey(prev => prev + 1)
@@ -130,6 +132,7 @@ export const CouponListPage: React.FC = () => {
           />
         )}
       </div>
+      <ConfirmDialogPortal />
     </div>
   )
 }

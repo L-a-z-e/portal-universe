@@ -21,7 +21,6 @@ function addAuthGuard(router: Router): void {
     // Standalone fallback: 글로벌 토큰으로 확인
     if ((window as any).__PORTAL_ACCESS_TOKEN__) return true;
 
-    console.log(`[Admin Router Guard] Auth required for ${to.path}`);
     if (typeof (window as any).__PORTAL_SHOW_LOGIN__ === 'function') {
       (window as any).__PORTAL_SHOW_LOGIN__();
     }

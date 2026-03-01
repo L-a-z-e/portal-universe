@@ -29,7 +29,6 @@ export function initPortalApi(): Promise<void> {
       }
 
       portalApiClient = client
-      console.log('[api-registry] portal/api apiClient resolved')
     })
     .catch((err) => {
       console.warn('[api-registry] Failed to load portal/api:', err)

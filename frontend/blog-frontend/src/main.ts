@@ -15,13 +15,11 @@ import { setupErrorHandler } from '@portal/design-vue';
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
 
-console.log(`🎯 [Blog] Detected mode: ${mode}`);
 
 if (isEmbedded) {
   // ============================================
   // Embedded 모드: Portal Shell에서 mountBlogApp() 호출 대기
   // ============================================
-  console.log('⏳ [Blog] Waiting for Portal Shell to mount...');
 
   // bootstrap.ts의 mountBlogApp이 export되므로 Portal Shell이 사용 가능
 
@@ -50,9 +48,6 @@ if (isEmbedded) {
     app.use(router);
     app.mount(appElement);
 
-    console.log('✅ [Blog] Mounted successfully');
-    console.log(`   URL: ${window.location.href}`);
-    console.log(`   Route: ${router.currentRoute.value.path}`);
 
     // ✅ 방법 2: mountBlogApp 재사용 (대안)
     // mountBlogApp(appElement, {

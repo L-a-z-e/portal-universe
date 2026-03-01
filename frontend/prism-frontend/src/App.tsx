@@ -74,7 +74,6 @@ function App({
   const updateDataTheme = (isDark: boolean) => {
     const themeValue = isDark ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', themeValue);
-    console.log(`[Prism] Theme synced: data-theme="${themeValue}"`);
   };
 
   // ============================================
@@ -91,23 +90,13 @@ function App({
       document.documentElement.classList.remove('dark');
     }
     updateDataTheme(isDark);
-    console.log(`[Prism] Theme applied: ${isDark ? 'dark' : 'light'} (source: ${
-      isEmbedded && portalTheme.isConnected ? 'Portal adapter' : 'props'
-    })`);
   }, [isDark, isEmbedded, portalTheme.isConnected]);
 
   /**
    * 마운트 및 초기 설정
    */
   useEffect(() => {
-    console.group('🔧 [Prism] App mounted with props:');
-    console.log('  theme:', theme);
-    console.log('  locale:', locale);
-    console.log('  isEmbedded:', isEmbedded);
-    console.log('  portalTheme.isConnected:', portalTheme.isConnected);
-    console.groupEnd();
-
-    // ✅ Step 1: data-service="prism" 속성 설정 (CSS 선택자 활성화)
+    // data-service="prism" 속성 설정 (CSS 선택자 활성화)
     document.documentElement.setAttribute('data-service', 'prism');
 
     // Auth 동기화는 PortalBridgeProvider + usePortalAuth가 처리

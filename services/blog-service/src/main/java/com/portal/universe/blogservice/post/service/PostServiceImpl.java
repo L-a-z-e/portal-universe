@@ -83,7 +83,7 @@ public class PostServiceImpl implements PostService {
         // Tag postCount 동기화: 태그 자동 생성 + postCount 증가
         if (request.tags() != null && !request.tags().isEmpty()) {
             List<String> tagNames = new ArrayList<>(request.tags());
-            tagNames.forEach(tagService::getOrCreateTag);
+            tagService.ensureTagsExist(tagNames);
             tagService.incrementTagPostCounts(tagNames);
         }
 
@@ -153,7 +153,7 @@ public class PostServiceImpl implements PostService {
 
         if (!addedTags.isEmpty()) {
             List<String> addedList = new ArrayList<>(addedTags);
-            addedList.forEach(tagService::getOrCreateTag);
+            tagService.ensureTagsExist(addedList);
             tagService.incrementTagPostCounts(addedList);
         }
         if (!removedTags.isEmpty()) {

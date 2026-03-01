@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Card, useApiError } from '@portal/design-vue'
+import { Card, Spinner, useApiError } from '@portal/design-vue'
 import type { CommentResponse } from '@/dto/comment'
 import {
   getCommentsByPostId,
@@ -158,7 +158,7 @@ onMounted(() => {
     <Card class="bg-bg-card border-border-default p-6">
       <!-- 로딩 -->
       <div v-if="isLoading" class="text-center py-12">
-        <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+        <Spinner size="md" class="mx-auto mb-3" />
         <p class="text-text-meta text-sm">댓글을 불러오는 중...</p>
       </div>
 

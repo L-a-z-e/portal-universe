@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Button, Switch } from '@portal/design-vue';
+import { Badge, Button, Card, Switch } from '@portal/design-vue';
+import type { BadgeProps } from '@portal/design-vue';
 import { useHealthCheck } from '../composables/useHealthCheck';
 import type { ServiceStatus, ServiceHealth } from '../store/serviceStatus';
 
@@ -54,6 +55,14 @@ const overallMessage = computed(() => {
 
 // Check if any service has K8s info
 const hasK8sInfo = computed(() => services.value.some((s: ServiceHealth) => s.replicas !== undefined));
+
+// Status → Badge variant mapping
+const statusBadgeVariant: Record<ServiceStatus, BadgeProps['variant']> = {
+  up: 'success',
+  down: 'danger',
+  degraded: 'warning',
+  unknown: 'default',
+};
 
 // Auto refresh toggle
 const autoRefresh = ref(true);
@@ -118,10 +127,12 @@ const toggleAutoRefresh = (value: boolean) => {
 
     <!-- Services Grid -->
     <div class="grid gap-4 md:grid-cols-2">
-      <div
+      <Card
         v-for="service in services"
         :key="service.name"
-        class="bg-bg-card rounded-xl border border-border-default p-5 hover:border-border-hover transition-colors"
+        variant="outlined"
+        padding="md"
+        class="hover:border-border-hover"
       >
         <div class="flex items-start justify-between mb-3">
           <div class="flex items-center gap-3">
@@ -131,17 +142,9 @@ const toggleAutoRefresh = (value: boolean) => {
               <p class="text-xs text-text-meta">{{ service.name }}</p>
             </div>
           </div>
-          <span
-            :class="[
-              'px-2 py-1 rounded-md text-xs font-medium',
-              service.status === 'up' ? 'bg-status-success/10 text-status-success' :
-              service.status === 'down' ? 'bg-status-error/10 text-status-error' :
-              service.status === 'degraded' ? 'bg-status-warning/10 text-status-warning' :
-              'bg-bg-elevated text-text-meta'
-            ]"
-          >
+          <Badge :variant="statusBadgeVariant[service.status]" size="sm">
             {{ statusConfig[service.status].label }}
-          </span>
+          </Badge>
         </div>
 
         <div class="space-y-2 text-sm">
@@ -224,11 +227,11 @@ const toggleAutoRefresh = (value: boolean) => {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
 
     <!-- Legend -->
-    <div class="mt-8 bg-bg-card rounded-xl border border-border-default p-4">
+    <Card variant="outlined" padding="md" class="mt-8">
       <h3 class="text-sm font-semibold text-text-heading mb-3">Status Legend</h3>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div
@@ -240,14 +243,14 @@ const toggleAutoRefresh = (value: boolean) => {
           <span class="text-sm text-text-body">{{ config.label }}</span>
         </div>
       </div>
-    </div>
+    </Card>
 
     <!-- Info Note -->
-    <div class="mt-4 p-4 bg-bg-elevated rounded-lg border border-border-default">
+    <Card variant="elevated" padding="md" class="mt-4">
       <p class="text-sm text-text-meta">
         <strong class="text-text-body">Note:</strong> Services are checked every 10 seconds when auto-refresh is enabled.
         <template v-if="hasK8sInfo"> Replica and pod information is available in Kubernetes environments.</template>
       </p>
-    </div>
+    </Card>
   </div>
 </template>

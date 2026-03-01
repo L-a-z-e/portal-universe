@@ -78,8 +78,8 @@ export type DividerColor = 'default' | 'muted' | 'strong';
 // Link variants
 export type LinkVariant = 'default' | 'primary' | 'muted' | 'underline';
 
-// Tab variants
-export type TabVariant = 'default' | 'pills' | 'underline';
+// Tab variants (SSOT — tabs.ts variants와 동일)
+export type TabVariant = 'underline' | 'pill' | 'boxed';
 
 // Avatar shapes
 export type AvatarShape = 'circle' | 'square';

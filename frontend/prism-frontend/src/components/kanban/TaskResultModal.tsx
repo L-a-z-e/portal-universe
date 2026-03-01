@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Modal, Button, Textarea, useApiError } from '@portal/design-react';
+import { Modal, Button, Textarea, Spinner, useApiError } from '@portal/design-react';
 import { api } from '@/services/api';
 import type { Task, Execution } from '@/types';
 
@@ -144,7 +144,7 @@ export function TaskResultModal({
           {/* Loading State */}
           {contextLoading && (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
+              <Spinner size="md" />
             </div>
           )}
 

@@ -103,7 +103,7 @@ describe('Switch', () => {
       const wrapper = mount(Switch, {
         props: { modelValue: true },
       });
-      expect(wrapper.find('[role="switch"]').classes()).toContain('bg-brand-600');
+      expect(wrapper.find('[role="switch"]').classes()).toContain('bg-brand-primary');
     });
 
     it.each(['primary', 'success', 'warning', 'error'] as const)('applies %s color when active', (color) => {
@@ -112,7 +112,7 @@ describe('Switch', () => {
       });
 
       const colorMap = {
-        primary: 'bg-brand-600',
+        primary: 'bg-brand-primary',
         success: 'bg-status-success',
         warning: 'bg-status-warning',
         error: 'bg-status-error',
@@ -125,7 +125,7 @@ describe('Switch', () => {
       const wrapper = mount(Switch, {
         props: { modelValue: false },
       });
-      expect(wrapper.find('[role="switch"]').classes()).toContain('bg-gray-300');
+      expect(wrapper.find('[role="switch"]').classes()).toContain('bg-border-default');
     });
   });
 

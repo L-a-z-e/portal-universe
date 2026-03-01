@@ -6,7 +6,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
-import { Button, Card, Input, Select, useToast, useApiError } from '@portal/design-vue';
+import { Button, Card, Input, Select, Spinner, useToast, useApiError, useConfirm } from '@portal/design-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import { getMySeries, getSeriesByPostId, addPostToSeries, removePostFromSeries } from '../api/series';
@@ -25,6 +25,7 @@ const props = defineProps<{
 const router = useRouter();
 const toast = useToast();
 const { handleError } = useApiError();
+const { confirm } = useConfirm();
 
 // 다크모드 감지
 const isDarkMode = ref(false);
@@ -66,6 +67,8 @@ const error = ref<string | null>(null);
 const isLoading = ref(true);
 const titleError = ref('');
 const postData = ref<any>(null);
+const isDirty = ref(false);
+const isSaved = ref(false);
 
 // 시리즈 선택
 const mySeriesList = ref<SeriesListResponse[]>([]);
@@ -77,10 +80,54 @@ const seriesOptions = computed(() => [
   ...mySeriesList.value.map(s => ({ label: `${s.name} (${s.postCount}개)`, value: String(s.id) })),
 ]);
 
+// Draft auto-save
+const DRAFT_KEY = `post-edit-draft-${props.postId}`;
+
+function saveDraft() {
+  if (!editorInstance) return;
+  const draft = {
+    title: title.value,
+    content: editorInstance.getMarkdown(),
+    tags: tags.value,
+    category: category.value,
+    savedAt: Date.now(),
+  };
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // localStorage full or unavailable — ignore
+  }
+}
+
+function loadDraft(): { title: string; content: string; tags: string[]; category: string } | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const draft = JSON.parse(raw) as { title: string; content: string; tags: string[]; category: string; savedAt: number };
+    // Discard drafts older than 24h
+    if (Date.now() - draft.savedAt > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    return draft;
+  } catch {
+    return null;
+  }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+// beforeunload guard
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+  if (isDirty.value && !isSaved.value) {
+    e.preventDefault();
+  }
+}
+
 // Editor 초기화 함수
 function initEditor(content: string) {
-  console.log('🔍 [DEBUG] initEditor called');
-  console.log('🔍 [DEBUG] editorElement exists:', !!editorElement.value);
 
   if (!editorElement.value) {
     console.error('❌ [ERROR] editorElement is null!');
@@ -113,11 +160,6 @@ function initEditor(content: string) {
     hooks: {
       addImageBlobHook: async (blob: Blob, callback: (url: string, alt: string) => void) => {
         try {
-          console.log('📷 이미지 업로드 시작...', {
-            size: blob.size,
-            type: blob.type
-          });
-
           const file = blob instanceof File
               ? blob
               : new File([blob], 'image.png', { type: blob.type });
@@ -125,7 +167,6 @@ function initEditor(content: string) {
           const response = await uploadFile(file);
           callback(response.url, file.name);
 
-          console.log('✅ 이미지 업로드 성공:', response.url);
         } catch (error) {
           console.error('❌ 이미지 업로드 실패:', error);
           handleError(error, '이미지 업로드에 실패했습니다.');
@@ -136,7 +177,11 @@ function initEditor(content: string) {
 
   // content 설정
   editorInstance.setMarkdown(content);
-  console.log('✅ [SUCCESS] Editor initialized with content');
+
+  // Track content changes for dirty state
+  editorInstance.on('change', () => {
+    isDirty.value = true;
+  });
 
   // 초기 테마 적용
   updateEditorTheme();
@@ -144,9 +189,7 @@ function initEditor(content: string) {
 
 watch(() => postData.value, async (newPost) => {
   if (newPost?.content) {
-    console.log('🔍 [WATCH] Post loaded, waiting for DOM...');
     await nextTick();
-    console.log('🔍 [WATCH] editorElement:', editorElement.value);
 
     if (editorElement.value) {
       initEditor(newPost.content);
@@ -156,7 +199,29 @@ watch(() => postData.value, async (newPost) => {
   }
 });
 
+// Track form field changes
+watch([title, tags, category], () => {
+  if (!isLoading.value) {
+    isDirty.value = true;
+  }
+});
+
 onMounted(async () => {
+  // beforeunload guard
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
+  // Auto-save draft every 30 seconds
+  const autoSaveInterval = setInterval(() => {
+    if (isDirty.value && editorInstance) {
+      saveDraft();
+    }
+  }, 30_000);
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+    clearInterval(autoSaveInterval);
+  });
+
   // 초기 테마 감지
   detectTheme();
 
@@ -170,6 +235,20 @@ onMounted(async () => {
     }
     if (post.category) {
       category.value = post.category;
+    }
+
+    // Check for unsaved draft
+    const draft = loadDraft();
+    if (draft) {
+      const useDraft = await confirm({ message: '이전에 저장되지 않은 수정 내용이 있습니다. 복원하시겠습니까?', confirmText: '복원' });
+      if (useDraft) {
+        title.value = draft.title;
+        tags.value = draft.tags;
+        category.value = draft.category;
+        post.content = draft.content;
+      } else {
+        clearDraft();
+      }
     }
 
     postData.value = post;
@@ -273,6 +352,8 @@ async function handleSubmit() {
       }
     }
 
+    clearDraft();
+    isSaved.value = true;
     toast.success('게시글이 수정되었습니다!');
     await router.push(`/${updatedPost.id}`);
 
@@ -284,9 +365,13 @@ async function handleSubmit() {
   }
 }
 
-function handleCancel() {
-  const confirmed = confirm('수정을 취소하시겠습니까?');
+async function handleCancel() {
+  const confirmed = await confirm({ message: '수정을 취소하시겠습니까?' });
   if (confirmed) {
+    if (isDirty.value) {
+      saveDraft();
+    }
+    isSaved.value = true; // prevent beforeunload
     router.push(`/${props.postId}`);
   }
 }
@@ -315,7 +400,7 @@ onBeforeUnmount(() => {
 
     <!-- Loading -->
     <div v-if="isLoading" class="text-center py-20">
-      <div class="inline-block w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+      <Spinner size="lg" class="mx-auto" />
       <p class="mt-4 text-text-meta">게시글을 불러오는 중...</p>
     </div>
 

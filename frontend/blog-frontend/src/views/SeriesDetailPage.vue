@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { Avatar, Button, Spinner } from '@portal/design-vue';
+import { Avatar, Badge, Button, Spinner } from '@portal/design-vue';
 import { getSeriesById, getSeriesPosts } from '../api/series';
 import type { SeriesResponse, PostSummaryResponse } from '@/types';
 import { DEFAULT_THUMBNAILS } from '../config/assets';
@@ -131,12 +131,12 @@ onMounted(() => {
           </div>
 
           <!-- 배지 -->
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-primary/10 text-brand-primary text-xs font-semibold rounded-full mb-3">
+          <Badge variant="primary" size="sm" class="mb-3">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
             시리즈
-          </span>
+          </Badge>
 
           <h1 class="text-3xl font-bold text-text-heading tracking-tight mb-3">{{ series.name }}</h1>
 
@@ -176,9 +176,9 @@ onMounted(() => {
               class="w-full flex items-start gap-4 py-5 border-b border-border-default hover:bg-bg-hover transition-colors text-left group"
             >
               <!-- 번호 -->
-              <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-brand-primary/10 text-brand-primary text-sm font-bold rounded-lg">
+              <Badge variant="primary" class="flex-shrink-0 w-8 h-8 flex items-center justify-center">
                 {{ index + 1 }}
-              </span>
+              </Badge>
 
               <!-- 콘텐츠 -->
               <div class="flex-1 min-w-0">

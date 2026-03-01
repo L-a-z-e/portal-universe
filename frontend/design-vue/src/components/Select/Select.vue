@@ -82,12 +82,12 @@ const triggerClasses = computed(() => [
   'focus:outline-none focus:ring-2',
   sizeClasses[props.size].trigger,
   props.disabled
-    ? 'bg-gray-100 border-gray-300 cursor-not-allowed text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-500'
+    ? 'bg-bg-muted border-border-default cursor-not-allowed text-text-muted'
     : props.error
-      ? 'border-status-error focus:ring-status-error/20 bg-white dark:bg-gray-800'
+      ? 'border-status-error focus:ring-status-error/20 bg-bg-card'
       : isOpen.value
-        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-gray-800'
-        : 'border-border-default hover:border-brand-500 bg-white dark:bg-gray-800 dark:border-gray-600',
+        ? 'border-brand-primary ring-2 ring-brand-primary/20 bg-bg-card'
+        : 'border-border-default hover:border-brand-primary bg-bg-card',
 ]);
 
 const open = () => {
@@ -264,15 +264,17 @@ onUnmounted(() => {
       </span>
       <div class="flex items-center gap-1">
         <!-- Clear button -->
-        <span
+        <button
           v-if="clearable && (selectedOption || selectedOptions.length) && !disabled"
-          class="p-1 hover:bg-gray-100 rounded dark:hover:bg-gray-700"
+          type="button"
+          aria-label="Clear selection"
+          class="p-1 hover:bg-bg-hover rounded"
           @click="clear"
         >
           <svg class="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
-        </span>
+        </button>
         <!-- Chevron -->
         <svg
           :class="[
@@ -299,16 +301,16 @@ onUnmounted(() => {
     >
       <div
         v-if="isOpen"
-        class="absolute z-50 w-full mt-1 bg-white border border-border-default rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-600"
+        class="absolute z-50 w-full mt-1 bg-bg-card border border-border-default rounded-lg shadow-lg"
       >
         <!-- Search input -->
-        <div v-if="searchable" class="p-2 border-b border-border-default dark:border-gray-600">
+        <div v-if="searchable" class="p-2 border-b border-border-default">
           <input
             ref="inputRef"
             type="text"
             :value="searchQuery"
             placeholder="Search..."
-            class="w-full px-3 py-2 text-sm border border-border-default rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+            class="w-full px-3 py-2 text-sm bg-bg-elevated text-text-body border border-border-default rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
             @input="handleSearchInput"
             @keydown="handleKeydown"
           />
@@ -333,10 +335,10 @@ onUnmounted(() => {
               option.disabled
                 ? 'text-text-muted cursor-not-allowed'
                 : highlightedIndex === index
-                  ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
+                  ? 'bg-brand-primary/10 text-brand-primary'
                   : isSelected(option.value)
-                    ? 'bg-gray-100 dark:bg-gray-700'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700',
+                    ? 'bg-bg-muted'
+                    : 'hover:bg-bg-hover',
             ]"
             @click="selectOption(option)"
             @mouseenter="highlightedIndex = index"
@@ -345,7 +347,7 @@ onUnmounted(() => {
               <span>{{ option.label }}</span>
               <svg
                 v-if="isSelected(option.value)"
-                class="w-5 h-5 text-brand-600 dark:text-brand-400"
+                class="w-5 h-5 text-brand-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

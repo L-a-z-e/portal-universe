@@ -9,11 +9,13 @@ import { orderApi, deliveryApi } from '@/api'
 import type { Order, Delivery, OrderStatus, DeliveryStatus } from '@/types'
 import { ORDER_STATUS_LABELS, DELIVERY_STATUS_LABELS } from '@/types'
 import { Button, Spinner, Alert, Badge, useApiError } from '@portal/design-react'
+import { useConfirm } from '@/hooks/useConfirm'
 
 const OrderDetailPage: React.FC = () => {
   const { orderNumber } = useParams<{ orderNumber: string }>()
   const navigate = useNavigate()
   const { handleError } = useApiError()
+  const { confirm, ConfirmDialogPortal } = useConfirm()
 
   // State
   const [order, setOrder] = useState<Order | null>(null)
@@ -99,7 +101,7 @@ const OrderDetailPage: React.FC = () => {
   }
 
   const handleCancelOrder = async () => {
-    if (!order || !window.confirm('Are you sure you want to cancel this order?')) return
+    if (!order || !await confirm({ message: 'Are you sure you want to cancel this order?', variant: 'danger', confirmText: 'Cancel Order' })) return
 
     setCancelling(true)
     try {
@@ -367,6 +369,7 @@ const OrderDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <ConfirmDialogPortal />
     </div>
   )
 }

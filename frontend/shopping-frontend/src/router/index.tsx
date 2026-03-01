@@ -61,7 +61,6 @@ let isAppActive = true
  * When deactivated, NavigationSync will skip callback invocation
  */
 export const setAppActive = (active: boolean) => {
-  console.log(`🔄 [Shopping Router] setAppActive: ${active}`)
   isAppActive = active
 }
 
@@ -83,13 +82,11 @@ const NavigationSync: React.FC = () => {
   useEffect(() => {
     // Skip callback if app is not active (deactivated by keep-alive)
     if (!isAppActive) {
-      console.log(`⏸️ [Shopping Router] Skipping navigation sync (inactive): ${location.pathname}`)
       prevPathRef.current = location.pathname // Sync state only
       return
     }
 
     if (prevPathRef.current !== location.pathname) {
-      console.log(`📍 [Shopping Router] Path changed: ${prevPathRef.current} → ${location.pathname}`)
       prevPathRef.current = location.pathname
       navigationCallback?.(location.pathname)
     }
@@ -141,41 +138,51 @@ const routes = [
       {
         path: 'cart',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <CartPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <CartPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'checkout',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <CheckoutPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <CheckoutPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'orders',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <OrderListPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <OrderListPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'orders/:orderNumber',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <OrderDetailPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <OrderDetailPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'coupons',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <CouponListPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <CouponListPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
@@ -197,17 +204,21 @@ const routes = [
       {
         path: 'time-deals/purchases',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <TimeDealPurchasesPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <TimeDealPurchasesPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
         path: 'queue/:eventType/:eventId',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <QueueWaitingPage />
-          </Suspense>
+          <RequireAuth>
+            <Suspense fallback={<PageLoader />}>
+              <QueueWaitingPage />
+            </Suspense>
+          </RequireAuth>
         )
       },
       {
@@ -260,7 +271,6 @@ export const getRouter = () => routerInstance
  */
 export const navigateTo = (path: string) => {
   if (routerInstance) {
-    console.log(`📥 [Shopping Router] Navigating to: ${path}`)
     routerInstance.navigate(path)
   } else {
     console.error('❌ [Shopping Router] Router not initialized')
@@ -272,7 +282,6 @@ export const navigateTo = (path: string) => {
  * 다음 마운트 시 새로운 라우터가 생성되도록 인스턴스 초기화
  */
 export const resetRouter = () => {
-  console.log('🔄 [Shopping Router] Resetting router instance')
   routerInstance = null
   setNavigationCallback(null)
 }
@@ -310,7 +319,6 @@ export const ShoppingRouter: React.FC<ShoppingRouterProps> = ({
     if (routerRef.current && initialPath) {
       const currentPath = routerRef.current.state.location.pathname
       if (currentPath !== initialPath) {
-        console.log(`📥 [Shopping Router] Parent navigation: ${currentPath} → ${initialPath}`)
         routerRef.current.navigate(initialPath)
       }
     }

@@ -8,14 +8,12 @@ import { Button, Card, SearchBar, Spinner } from '@portal/design-vue';
 import PostCard from '../components/PostCard.vue';
 import { useApiError } from '@portal/design-vue';
 import { useSearchStore } from '../stores/searchStore';
-import { useFollowStore } from '../stores/followStore';
 import { usePortalAuth } from '@portal/vue-bridge';
 
 const router = useRouter();
 const route = useRoute();
 const { isAuthenticated } = usePortalAuth();
 const searchStore = useSearchStore();
-const followStore = useFollowStore();
 const { getErrorMessage } = useApiError();
 
 // 탭 관련 상태
@@ -394,7 +392,7 @@ onBeforeUnmount(() => {
           class="flex items-center justify-center py-12"
         >
           <div v-if="isLoadingMore || searchStore.isSearching" class="text-center" data-testid="loading-more">
-            <div class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin mx-auto"></div>
+            <Spinner size="md" class="mx-auto" />
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Execution, ExecutionStatus } from './execution.entity';
 import { Task } from '../task/task.entity';
 import { TaskService } from '../task/task.service';
@@ -305,30 +305,42 @@ export class ExecutionService {
   ): Promise<Array<{ taskTitle: string; outputResult: string }>> {
     if (!taskIds || taskIds.length === 0) return [];
 
-    const results: Array<{ taskTitle: string; outputResult: string }> = [];
+    const filteredIds = taskIds.filter((id) => id !== currentTaskId);
+    if (filteredIds.length === 0) return [];
 
-    for (const taskId of taskIds) {
-      // 순환 참조 방지
-      if (taskId === currentTaskId) continue;
+    // IN 조회 2회 (N×2 → 2 고정)
+    const executions = await this.executionRepository.find({
+      where: { taskId: In(filteredIds), status: ExecutionStatus.COMPLETED },
+      order: { executionNumber: 'DESC' },
+    });
 
-      // 각 참조 task의 최신 완료된 execution 조회
-      const execution = await this.executionRepository.findOne({
-        where: { taskId, status: ExecutionStatus.COMPLETED },
-        order: { executionNumber: 'DESC' },
-      });
-
-      if (execution?.outputResult) {
-        const task = await this.taskRepository.findOne({
-          where: { id: taskId },
-        });
-        results.push({
-          taskTitle: task?.title || `Task #${taskId}`,
-          outputResult: execution.outputResult.substring(0, 3000), // 토큰 제한
-        });
+    // taskId별 최신 execution 추출
+    const latestByTaskId = new Map<number, Execution>();
+    for (const exec of executions) {
+      if (!latestByTaskId.has(exec.taskId)) {
+        latestByTaskId.set(exec.taskId, exec);
       }
     }
 
-    return results;
+    const taskIdsWithResult = [...latestByTaskId.keys()];
+    if (taskIdsWithResult.length === 0) return [];
+
+    const tasks = await this.taskRepository.find({
+      where: { id: In(taskIdsWithResult) },
+    });
+    const taskMap = new Map(tasks.map((t) => [t.id, t]));
+
+    return taskIdsWithResult
+      .map((taskId) => {
+        const exec = latestByTaskId.get(taskId);
+        if (!exec?.outputResult) return null;
+        const task = taskMap.get(taskId);
+        return {
+          taskTitle: task?.title || `Task #${taskId}`,
+          outputResult: exec.outputResult.substring(0, 3000),
+        };
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null);
   }
 
   private async findByIdAndUser(

@@ -17,6 +17,8 @@ const tagInput = ref('');
 const suggestions = ref<TagResponse[]>([]);
 const showSuggestions = ref(false);
 const loading = ref(false);
+const activeIndex = ref(-1);
+const listboxId = 'tag-autocomplete-listbox';
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 function addTag(tagName: string) {
@@ -34,14 +36,37 @@ function removeTag(tagToRemove: string) {
 }
 
 function handleKeydown(e: KeyboardEvent) {
+  if (showSuggestions.value && suggestions.value.length > 0) {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        activeIndex.value = activeIndex.value < suggestions.value.length - 1 ? activeIndex.value + 1 : 0;
+        return;
+      case 'ArrowUp':
+        e.preventDefault();
+        activeIndex.value = activeIndex.value > 0 ? activeIndex.value - 1 : suggestions.value.length - 1;
+        return;
+      case 'Enter': {
+        e.preventDefault();
+        const selected = activeIndex.value >= 0 ? suggestions.value[activeIndex.value] : undefined;
+        if (selected) {
+          selectSuggestion(selected);
+        } else if (tagInput.value.trim()) {
+          addTag(tagInput.value);
+        }
+        return;
+      }
+      case 'Escape':
+        showSuggestions.value = false;
+        activeIndex.value = -1;
+        return;
+    }
+  }
   if (e.key === 'Enter') {
     e.preventDefault();
     if (tagInput.value.trim()) {
       addTag(tagInput.value);
     }
-  }
-  if (e.key === 'Escape') {
-    showSuggestions.value = false;
   }
 }
 
@@ -55,6 +80,7 @@ watch(tagInput, (value) => {
   if (!value.trim() || value.trim().length < 1) {
     suggestions.value = [];
     showSuggestions.value = false;
+    activeIndex.value = -1;
     return;
   }
 
@@ -91,20 +117,33 @@ function handleBlur() {
           v-model="tagInput"
           label="태그 추가"
           placeholder="태그 입력 후 Enter"
+          role="combobox"
+          aria-autocomplete="list"
+          :aria-expanded="showSuggestions && suggestions.length > 0"
+          :aria-controls="listboxId"
+          :aria-activedescendant="activeIndex >= 0 ? `tag-option-${activeIndex}` : undefined"
           @keydown="handleKeydown"
           @focus="tagInput.trim().length > 0 && suggestions.length > 0 && (showSuggestions = true)"
           @blur="handleBlur"
         />
 
         <!-- 자동완성 드롭다운 -->
-        <div v-if="showSuggestions" class="suggestions-dropdown">
+        <div
+          v-if="showSuggestions"
+          :id="listboxId"
+          role="listbox"
+          class="suggestions-dropdown"
+        >
           <div v-if="loading" class="suggestion-loading">
             검색 중...
           </div>
           <button
-            v-for="tag in suggestions"
+            v-for="(tag, index) in suggestions"
             :key="tag.name"
-            class="suggestion-item"
+            :id="`tag-option-${index}`"
+            role="option"
+            :aria-selected="index === activeIndex"
+            :class="['suggestion-item', index === activeIndex && 'suggestion-item--active']"
             @mousedown.prevent="selectSuggestion(tag)"
           >
             <span class="suggestion-name">{{ tag.name }}</span>
@@ -210,7 +249,8 @@ function handleBlur() {
   transition: background 0.15s;
 }
 
-.suggestion-item:hover {
+.suggestion-item:hover,
+.suggestion-item--active {
   background: var(--semantic-bg-hover);
 }
 

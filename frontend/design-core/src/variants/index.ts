@@ -9,7 +9,7 @@ export { spinnerSizes, spinnerColors } from './spinner';
 export { skeletonBase, skeletonVariants, skeletonAnimations } from './skeleton';
 export { dividerVariants, dividerColors, dividerSpacing, dividerVerticalSpacing } from './divider';
 export { tabsBase, tabsVariants, tabsItemBase, tabsItemVariants, tabsSizes } from './tabs';
-export type { TabsVariant } from './tabs';
+// TabVariant는 types/common.ts에서 export (SSOT)
 export { toastBase, toastVariants } from './toast';
 export { selectSizes } from './select';
 export { sidebarBase, sidebarNavItem, sidebarDivider, sidebarLogo } from './sidebar';

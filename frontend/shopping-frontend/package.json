@@ -13,6 +13,7 @@
     "preview": "vite preview --port 30002 --strictPort"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.1.1",
     "@hookform/resolvers": "^5.2.2",
     "@portal/design-core": "*",
     "@portal/design-react": "*",

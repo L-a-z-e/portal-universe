@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { computed, inject, useAttrs, type ComputedRef, type Ref } from 'vue';
 import type { InputProps } from './Input.types';
+
+defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<InputProps>(), {
   type: 'text',
@@ -24,7 +27,16 @@ function handleInput(event: Event) {
 
 import { inputSizes } from '@portal/design-core';
 
-// Note: inputSizes only provides height/padding, base styles remain local
+// FormField context injection
+const formFieldId = inject<Ref<string> | ComputedRef<string> | null>('formFieldId', null);
+const formFieldError = inject<ComputedRef<boolean> | null>('formFieldError', null);
+const formFieldDisabled = inject<ComputedRef<boolean> | null>('formFieldDisabled', null);
+const formFieldDescribedBy = inject<ComputedRef<string | undefined> | null>('formFieldDescribedBy', null);
+
+const inputId = computed(() => formFieldId?.value ?? undefined);
+const isError = computed(() => props.error || formFieldError?.value);
+const isDisabled = computed(() => props.disabled || formFieldDisabled?.value);
+const ariaDescribedBy = computed(() => formFieldDescribedBy?.value);
 </script>
 
 <template>
@@ -40,10 +52,14 @@ import { inputSizes } from '@portal/design-core';
 
     <!-- Input - Using design tokens -->
     <input
+      v-bind="$attrs"
+      :id="inputId"
       :type="type"
       :value="modelValue"
       :placeholder="placeholder"
-      :disabled="disabled"
+      :disabled="isDisabled"
+      :aria-invalid="isError || undefined"
+      :aria-describedby="ariaDescribedBy"
       @input="handleInput"
       :class="[
         'w-full rounded-md',
@@ -60,17 +76,17 @@ import { inputSizes } from '@portal/design-core';
         // Sizing
         inputSizes[size],
         // Error state
-        error
+        isError
           ? 'border-status-error focus:border-status-error focus:ring-status-error/30'
           : '',
         // Disabled state
-        disabled && 'bg-bg-elevated cursor-not-allowed opacity-50'
+        isDisabled && 'bg-bg-elevated cursor-not-allowed opacity-50'
       ]"
     />
 
-    <!-- Error Message -->
+    <!-- Error Message (standalone, without FormField) -->
     <p
-      v-if="error && errorMessage"
+      v-if="!formFieldError && error && errorMessage"
       class="mt-1.5 text-sm text-status-error"
     >
       {{ errorMessage }}

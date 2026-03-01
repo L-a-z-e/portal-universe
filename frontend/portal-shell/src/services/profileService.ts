@@ -83,7 +83,6 @@ class ProfileServiceClass {
     const apiBase = getApiBaseUrl();
 
     try {
-      console.log('[Profile] Fetching profile...');
 
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${apiBase}/auth-service/api/v1/profile/me`, {
@@ -96,7 +95,6 @@ class ProfileServiceClass {
       const result = await response.json();
       const data: ProfileResponse = result.data || result;
 
-      console.log('Profile fetched successfully');
       return data;
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -111,7 +109,6 @@ class ProfileServiceClass {
     const apiBase = getApiBaseUrl();
 
     try {
-      console.log('[Profile] Updating profile...');
 
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${apiBase}/auth-service/api/v1/profile`, {
@@ -125,7 +122,6 @@ class ProfileServiceClass {
       const result = await response.json();
       const data: ProfileResponse = result.data || result;
 
-      console.log('Profile updated successfully');
       return data;
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -140,7 +136,6 @@ class ProfileServiceClass {
     const apiBase = getApiBaseUrl();
 
     try {
-      console.log('[Profile] Changing password...');
 
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${apiBase}/auth-service/api/v1/profile/password`, {
@@ -151,7 +146,6 @@ class ProfileServiceClass {
 
       await throwIfNotOk(response, 'Failed to change password');
 
-      console.log('Password changed successfully');
     } catch (error) {
       console.error('Failed to change password:', error);
       throw error;
@@ -165,7 +159,6 @@ class ProfileServiceClass {
     const apiBase = getApiBaseUrl();
 
     try {
-      console.log('[Profile] Deleting account...');
 
       const headers = await this.getAuthHeaders();
       const response = await fetch(`${apiBase}/auth-service/api/v1/profile/account`, {
@@ -179,7 +172,6 @@ class ProfileServiceClass {
       // Clear tokens after successful account deletion
       authService.clearTokens();
 
-      console.log('Account deleted successfully');
     } catch (error) {
       console.error('Failed to delete account:', error);
       throw error;

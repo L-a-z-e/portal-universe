@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { KanbanBoard, TaskModal, TaskResultModal } from '@/components/kanban';
-import { Button } from '@portal/design-react';
+import { Button, Spinner } from '@portal/design-react';
 import { useBoardStore } from '@/stores/boardStore';
 import { useTaskStore } from '@/stores/taskStore';
 import { useSse, SseEvent } from '@/hooks/useSse';
@@ -76,7 +76,7 @@ function BoardPage() {
   ]);
 
   // Connect to SSE
-  useSse({
+  const { connectionState, reconnect } = useSse({
     boardId: boardIdNum,
     onEvent: handleSseEvent,
     enabled: !!boardIdNum,
@@ -149,7 +149,7 @@ function BoardPage() {
   if (boardLoading && !currentBoard) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
+        <Spinner size="md" />
       </div>
     );
   }
@@ -199,9 +199,20 @@ function BoardPage() {
         </Button>
       </div>
 
+      {connectionState === 'failed' && (
+        <div className="mb-4 px-4 py-3 bg-status-warning-bg border border-status-warning rounded-lg flex items-center justify-between">
+          <span className="text-sm text-text-body">
+            Real-time updates disconnected.
+          </span>
+          <Button variant="secondary" size="sm" onClick={reconnect}>
+            Reconnect
+          </Button>
+        </div>
+      )}
+
       {taskLoading && (
         <div className="absolute top-4 right-4">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-primary" />
+          <Spinner size="sm" />
         </div>
       )}
 

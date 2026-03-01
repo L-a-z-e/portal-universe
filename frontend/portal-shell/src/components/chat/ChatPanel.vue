@@ -18,6 +18,7 @@ const {
   messages,
   loading,
   streaming,
+  error: chatError,
   sendMessageStream,
   startNewConversation,
 } = useChat()
@@ -132,6 +133,11 @@ watch(
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Error -->
+        <div v-if="chatError" class="mx-4 mb-2 px-3 py-2 bg-status-error-bg border border-status-error rounded-lg">
+          <p class="text-xs text-status-error">{{ chatError }}</p>
         </div>
 
         <!-- Input -->

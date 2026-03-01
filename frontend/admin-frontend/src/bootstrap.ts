@@ -55,7 +55,6 @@ export function mountAdminApp(
   });
 
   app.mount(el);
-  console.log('[Admin] App mounted successfully');
   console.groupEnd();
 
   return {

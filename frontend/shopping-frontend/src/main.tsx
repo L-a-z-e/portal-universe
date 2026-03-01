@@ -19,13 +19,11 @@ import './styles/index.css'
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
 
-console.log(`🎯 [Shopping] Detected mode: ${mode}`);
 
 if (isEmbedded) {
   // ============================================
   // Embedded 모드: Portal Shell에서 mountShoppingApp() 호출 대기
   // ============================================
-  console.log('⏳ [Shopping] Waiting for Portal Shell to mount...');
 
   // bootstrap.tsx의 mountShoppingApp이 export되므로 Portal Shell이 사용 가능
 
@@ -59,8 +57,6 @@ if (isEmbedded) {
       </React.StrictMode>
     );
 
-    console.log('✅ [Shopping] Mounted successfully');
-    console.log(`   URL: ${window.location.href}`);
 
   } catch (err) {
     console.error('❌ [Shopping] Mount failed:', err);

@@ -4,6 +4,9 @@
  * Design System 스타일 import 및 Shopping 전용 스타일
  */
 
+/* Inter Variable Font (앱에서 직접 로드 → woff2 별도 파일로 emit) */
+@import '@fontsource-variable/inter';
+
 /* Design System 스타일 import */
 @import '@portal/design-react/style.css';
 

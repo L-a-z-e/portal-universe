@@ -15,7 +15,6 @@ onMounted(() => {
 });
 
 async function handleOAuth2Callback() {
-  console.log('[OAuth2 Callback] Processing OAuth2 callback...');
 
   try {
     // Extract tokens from URL fragment
@@ -24,11 +23,6 @@ async function handleOAuth2Callback() {
 
     const accessToken = params.get('access_token');
     const expiresIn = params.get('expires_in');
-
-    console.log('[OAuth2 Callback] Received tokens:', {
-      hasAccessToken: !!accessToken,
-      expiresIn,
-    });
 
     if (!accessToken) {
       throw new Error('Missing access token in callback URL');
@@ -47,7 +41,6 @@ async function handleOAuth2Callback() {
     authStore.setAuthenticated(true);
     authStore.setUser(userInfo);
 
-    console.log('✅ [OAuth2 Callback] Login successful');
 
     // Redirect to home page
     await router.replace('/');
