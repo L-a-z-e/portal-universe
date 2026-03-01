@@ -2,19 +2,19 @@
 
 import {createMemoryHistory, createRouter, createWebHistory, type Router, type RouteRecordRaw} from "vue-router";
 
-import PostListPage from '../views/PostListPage.vue';
-import PostDetailPage from '../views/PostDetailPage.vue';
-import PostWritePage from '../views/PostWritePage.vue';
-import PostEditPage from '../views/PostEditPage.vue';
-import SeriesDetailPage from '../views/SeriesDetailPage.vue';
-import TagListPage from '../views/TagListPage.vue';
-import TagDetailPage from '../views/TagDetailPage.vue';
-import UserBlogPage from '../views/UserBlogPage.vue';
-import MyPage from '../views/MyPage.vue';
-import CategoryListPage from '../views/CategoryListPage.vue';
-import AdvancedSearchPage from '../views/AdvancedSearchPage.vue';
-import StatsPage from '../views/StatsPage.vue';
-import SeriesListPage from '../views/SeriesListPage.vue';
+const PostListPage = () => import('../views/PostListPage.vue');
+const PostDetailPage = () => import('../views/PostDetailPage.vue');
+const PostWritePage = () => import('../views/PostWritePage.vue');
+const PostEditPage = () => import('../views/PostEditPage.vue');
+const SeriesDetailPage = () => import('../views/SeriesDetailPage.vue');
+const TagListPage = () => import('../views/TagListPage.vue');
+const TagDetailPage = () => import('../views/TagDetailPage.vue');
+const UserBlogPage = () => import('../views/UserBlogPage.vue');
+const MyPage = () => import('../views/MyPage.vue');
+const CategoryListPage = () => import('../views/CategoryListPage.vue');
+const AdvancedSearchPage = () => import('../views/AdvancedSearchPage.vue');
+const StatsPage = () => import('../views/StatsPage.vue');
+const SeriesListPage = () => import('../views/SeriesListPage.vue');
 
 import { getPortalAuthState } from '@portal/vue-bridge';
 

@@ -46,9 +46,9 @@ export const getAssetUrl = (path: string): string => {
  * 기본 썸네일 타입별 경로
  */
 export const DEFAULT_THUMBNAILS = {
-  write: getAssetUrl('/default-thumbnail-write.png'),
-  travel: getAssetUrl('/default-thumbnail-travel.png'),
-  tech: getAssetUrl('/default-thumbnail-tech.png'),
+  write: getAssetUrl('/default-thumbnail-write.webp'),
+  travel: getAssetUrl('/default-thumbnail-travel.webp'),
+  tech: getAssetUrl('/default-thumbnail-tech.webp'),
 } as const;
 
 export type ThumbnailType = keyof typeof DEFAULT_THUMBNAILS;

@@ -4,7 +4,7 @@ title: Frontend 빌드 파이프라인 가이드
 type: guide
 status: current
 created: 2026-02-05
-updated: 2026-02-06
+updated: 2026-03-01
 author: Laze
 tags: [frontend, build, pipeline, monorepo, guide]
 ---
@@ -25,12 +25,10 @@ Portal Universe의 프론트엔드는 npm workspaces 기반 모노레포입니�
 
 ```
 Step 1: build:design
-  ├── design-tokens
-  ├── design-types
-  ├── design-system-vue
-  └── design-system-react
+  └── design-core (토큰 + 타입 + variant)
 
 Step 2: build:libs
+  ├── vue-bridge
   ├── react-bridge
   └── react-bootstrap
 
@@ -38,7 +36,10 @@ Step 3: build:apps
   ├── portal-shell
   ├── blog-frontend
   ├── shopping-frontend
-  └── prism-frontend
+  ├── prism-frontend
+  ├── admin-frontend
+  ├── drive-frontend
+  └── shopping-seller-frontend
 ```
 
 ### 사용 가능한 명령어
@@ -73,16 +74,14 @@ portal-shell (MF Host) ← blog-frontend, shopping-frontend, prism-frontend (MF 
 
 | 패키지 | 명령어 | 역할 | 산출물 |
 |--------|--------|------|--------|
-| design-tokens | `npm run build:tokens` | CSS variables, Tailwind preset 생성 | `design-tokens/dist/` |
-| design-types | `npm run build:types` | 공유 TypeScript 타입 정의 | `design-types/dist/` |
-| design-system-vue | `npm run build:vue` | Vue 3 컴포넌트 라이브러리 | `design-system-vue/dist/` |
-| design-system-react | `npm run build:react` | React 컴포넌트 라이브러리 | `design-system-react/dist/` |
+| design-core | `npm run build:design` | 토큰 JSON + TypeScript 타입 + variant 클래스 | `design-core/dist/` |
 
 ### Libs 단계
 
 | 패키지 | 명령어 | 역할 | 산출물 |
 |--------|--------|------|--------|
-| react-bridge | `npm run build:react-bridge` | MF bridge (api-registry, bridge-registry) | `react-bridge/dist/` |
+| vue-bridge | `npm run build:vue-bridge` | Vue MF bridge (auth/theme adapter) | `vue-bridge/dist/` |
+| react-bridge | `npm run build:react-bridge` | React MF bridge (api-registry, bridge-registry) | `react-bridge/dist/` |
 | react-bootstrap | `npm run build:react-bootstrap` | React 앱 공통 bootstrap | `react-bootstrap/dist/` |
 
 ### Apps 단계
@@ -95,6 +94,9 @@ portal-shell (MF Host) ← blog-frontend, shopping-frontend, prism-frontend (MF 
 | blog-frontend | 30001 | Vue 3 | Remote |
 | shopping-frontend | 30002 | React 18 | Remote |
 | prism-frontend | 30003 | React 18 | Remote |
+| admin-frontend | 30004 | Vue 3 | Remote |
+| drive-frontend | 30005 | Vue 3 | Remote |
+| shopping-seller-frontend | 30006 | React 18 | Remote |
 
 ---
 
@@ -104,8 +106,8 @@ portal-shell (MF Host) ← blog-frontend, shopping-frontend, prism-frontend (MF 
 
 | 에러 메시지 | 원인 | 해결 |
 |------------|------|------|
-| `Cannot find module '@portal/design-tokens/tailwind'` | design-tokens 미빌드 | `npm run build:tokens` 실행 |
-| `Cannot find module '@portal/design-system-vue'` | design-system 미빌드 | `npm run build:design` 실행 |
+| `Cannot find module '@portal/design-core'` | design-core 미빌드 | `npm run build:design` 실행 |
+| `Cannot find module '@portal/vue-bridge'` | vue-bridge 미빌드 | `npm run build:libs` 실행 |
 | `Cannot find module '@portal/react-bridge'` | react-bridge 미빌드 | `npm run build:libs` 실행 |
 
 ### Module Federation 관련
@@ -125,11 +127,10 @@ portal-shell (MF Host) ← blog-frontend, shopping-frontend, prism-frontend (MF 
 
 ```bash
 # Design 패키지
-ls frontend/design-tokens/dist/
-ls frontend/design-system-vue/dist/
-ls frontend/design-system-react/dist/
+ls frontend/design-core/dist/
 
 # Libs 패키지
+ls frontend/vue-bridge/dist/
 ls frontend/react-bridge/dist/
 ls frontend/react-bootstrap/dist/
 
@@ -137,6 +138,26 @@ ls frontend/react-bootstrap/dist/
 ls frontend/portal-shell/dist/
 ls frontend/shopping-frontend/dist/
 ```
+
+---
+
+## 성능 최적화
+
+### 이미지 최적화
+
+- 정적 이미지는 **WebP** 포맷 사용 (PNG 대비 95%+ 감소)
+- 썸네일 해상도: 최대 900px 너비 (`cwebp -resize 900 0 -q 80`)
+- 경로 관리: `src/config/assets.ts`에서 중앙 관리
+
+### 코드 스플리팅
+
+- Vue Router: `const Page = () => import('../views/Page.vue')` 패턴 사용
+- React Router: `React.lazy(() => import('./Page'))` 패턴 사용
+- 무거운 에디터(toast-ui-editor 등)는 사용 시점에만 로드
+
+### 미사용 의존성 제거
+
+`package.json`에서 `import`로 참조되지 않는 의존성을 정기적으로 점검한다.
 
 ---
 
@@ -151,7 +172,6 @@ ls frontend/shopping-frontend/dist/
 ### 관련 문서
 
 - [Execution Guide](../../../.claude/rules/execution.md) - 실행 명령어 전체
-- [Module Federation 상세](../../../.claude/skills/module-federation.md) - MF 설정 및 트러블슈팅
 - [Design System Architecture](design-system-architecture.md) - 디자인 시스템 구조
 - [Module Federation 통합 가이드](module-federation-guide.md) - Module Federation 통합
 
