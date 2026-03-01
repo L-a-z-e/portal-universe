@@ -146,7 +146,6 @@ router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormal
 
   // 인증 필요 라우트 체크
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    console.log(`[Router Guard] Auth required for ${to.path}, showing login modal`);
     authStore.requestLogin(to.fullPath);
     return false; // 이동 차단
   }
@@ -159,7 +158,6 @@ router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormal
     }
 
     if (!authStore.hasAnyRole(to.meta.requiresRoles)) {
-      console.log(`[Router Guard] Insufficient roles for ${to.path}`);
       return { path: '/403' };
     }
   }

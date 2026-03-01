@@ -101,7 +101,6 @@ export function useQueue(options: UseQueueOptions) {
 
     eventSource.onopen = () => {
       setIsConnected(true)
-      console.log('SSE connected for queue')
     }
 
     eventSource.addEventListener('queue-status', (event) => {

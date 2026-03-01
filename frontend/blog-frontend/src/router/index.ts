@@ -35,7 +35,6 @@ function addAuthGuard(router: Router): void {
     if ((window as any).__PORTAL_ACCESS_TOKEN__) return true;
 
     // 미인증 → Portal Shell에 로그인 모달 요청
-    console.log(`[Blog Router Guard] Auth required for ${to.path}`);
     if (typeof (window as any).__PORTAL_SHOW_LOGIN__ === 'function') {
       (window as any).__PORTAL_SHOW_LOGIN__();
     }
@@ -123,8 +122,6 @@ const routes: RouteRecordRaw[] = [
  * - Parent(Portal Shell)가 URL을 관리
  */
 export function createBlogRouter(basePath: string = '/'): Router {
-  console.log(`🔧 [Blog Router] Creating router for EMBEDDED mode`);
-  console.log(`   Base path: ${basePath}`);
 
   const router = createRouter({
     history: createMemoryHistory(basePath),
@@ -138,7 +135,6 @@ export function createBlogRouter(basePath: string = '/'): Router {
     console.error('❌ [Blog Router] Initial navigation failed:', err);
   });
 
-  console.log('✅ [Blog Router] Router created (Memory History)');
   return router;
 }
 
@@ -148,7 +144,6 @@ export function createBlogRouter(basePath: string = '/'): Router {
  * - 브라우저 URL을 직접 관리
  */
 export function createStandaloneBlogRouter(): Router {
-  console.log(`🔧 [Blog Router] Creating router for STANDALONE mode`);
 
   const router = createRouter({
     history: createWebHistory('/'),
@@ -157,8 +152,6 @@ export function createStandaloneBlogRouter(): Router {
 
   addAuthGuard(router);
 
-  console.log('✅ [Blog Router] Router created (Web History)');
-  console.log(`   Current path: ${router.currentRoute.value.path}`);
 
   return router;
 }
@@ -167,8 +160,4 @@ export function createStandaloneBlogRouter(): Router {
  * Router 설정 요약 출력 (디버깅용)
  */
 export function logRouterInfo(router: Router) {
-  console.log('📋 [Blog Router] Configuration:');
-  console.log('   Routes:', routes.map(r => r.path).join(', '));
-  console.log('   Current route:', router.currentRoute.value.path);
-  console.log('   History type:', router.options.history.constructor.name);
 }

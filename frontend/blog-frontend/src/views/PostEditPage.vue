@@ -6,7 +6,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
-import { Button, Card, Input, Select, Spinner, useToast, useApiError } from '@portal/design-vue';
+import { Button, Card, Input, Select, Spinner, useToast, useApiError, useConfirm } from '@portal/design-vue';
 import { getPostById, updatePost } from '../api/posts';
 import { uploadFile } from '../api/files';
 import { getMySeries, getSeriesByPostId, addPostToSeries, removePostFromSeries } from '../api/series';
@@ -25,6 +25,7 @@ const props = defineProps<{
 const router = useRouter();
 const toast = useToast();
 const { handleError } = useApiError();
+const { confirm } = useConfirm();
 
 // 다크모드 감지
 const isDarkMode = ref(false);
@@ -127,8 +128,6 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 
 // Editor 초기화 함수
 function initEditor(content: string) {
-  console.log('🔍 [DEBUG] initEditor called');
-  console.log('🔍 [DEBUG] editorElement exists:', !!editorElement.value);
 
   if (!editorElement.value) {
     console.error('❌ [ERROR] editorElement is null!');
@@ -161,11 +160,6 @@ function initEditor(content: string) {
     hooks: {
       addImageBlobHook: async (blob: Blob, callback: (url: string, alt: string) => void) => {
         try {
-          console.log('📷 이미지 업로드 시작...', {
-            size: blob.size,
-            type: blob.type
-          });
-
           const file = blob instanceof File
               ? blob
               : new File([blob], 'image.png', { type: blob.type });
@@ -173,7 +167,6 @@ function initEditor(content: string) {
           const response = await uploadFile(file);
           callback(response.url, file.name);
 
-          console.log('✅ 이미지 업로드 성공:', response.url);
         } catch (error) {
           console.error('❌ 이미지 업로드 실패:', error);
           handleError(error, '이미지 업로드에 실패했습니다.');
@@ -184,7 +177,6 @@ function initEditor(content: string) {
 
   // content 설정
   editorInstance.setMarkdown(content);
-  console.log('✅ [SUCCESS] Editor initialized with content');
 
   // Track content changes for dirty state
   editorInstance.on('change', () => {
@@ -197,9 +189,7 @@ function initEditor(content: string) {
 
 watch(() => postData.value, async (newPost) => {
   if (newPost?.content) {
-    console.log('🔍 [WATCH] Post loaded, waiting for DOM...');
     await nextTick();
-    console.log('🔍 [WATCH] editorElement:', editorElement.value);
 
     if (editorElement.value) {
       initEditor(newPost.content);
@@ -250,7 +240,7 @@ onMounted(async () => {
     // Check for unsaved draft
     const draft = loadDraft();
     if (draft) {
-      const useDraft = confirm('이전에 저장되지 않은 수정 내용이 있습니다. 복원하시겠습니까?');
+      const useDraft = await confirm({ message: '이전에 저장되지 않은 수정 내용이 있습니다. 복원하시겠습니까?', confirmText: '복원' });
       if (useDraft) {
         title.value = draft.title;
         tags.value = draft.tags;
@@ -375,8 +365,8 @@ async function handleSubmit() {
   }
 }
 
-function handleCancel() {
-  const confirmed = confirm('수정을 취소하시겠습니까?');
+async function handleCancel() {
+  const confirmed = await confirm({ message: '수정을 취소하시겠습니까?' });
   if (confirmed) {
     if (isDirty.value) {
       saveDraft();

@@ -81,7 +81,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(email: string, password: string): Promise<void> {
     loading.value = true;
     try {
-      console.log('[Auth Store] Logging in:', email);
 
       const response = await authService.login(email, password);
 
@@ -92,7 +91,6 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       showLoginModal.value = false;
-      console.log('✅ [Auth Store] Login successful');
 
       // Redirect after login: saved path or dashboard
       const path = redirectPath.value || '/dashboard';
@@ -113,7 +111,6 @@ export const useAuthStore = defineStore('auth', () => {
    * Social login (redirect)
    */
   function socialLogin(provider: 'google' | 'naver' | 'kakao'): void {
-    console.log(`[Auth Store] Redirecting to ${provider} login`);
     authService.socialLogin(provider);
   }
 
@@ -123,7 +120,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout(): Promise<void> {
     loading.value = true;
     try {
-      console.log('[Auth Store] Logging out');
 
       await authService.logout();
       user.value = null;
@@ -131,7 +127,6 @@ export const useAuthStore = defineStore('auth', () => {
       // Clear global token
       delete window.__PORTAL_ACCESS_TOKEN__;
 
-      console.log('✅ [Auth Store] Logout successful');
 
       // Notify Remote apps (React Zustand) of auth state change
       window.dispatchEvent(new CustomEvent('portal:auth-changed'));
@@ -150,7 +145,6 @@ export const useAuthStore = defineStore('auth', () => {
    * Check authentication status and restore user if token exists
    */
   async function checkAuth(): Promise<void> {
-    console.log('[Auth Store] Checking authentication status');
 
     try {
       // Try to refresh token if expired
@@ -161,11 +155,9 @@ export const useAuthStore = defineStore('auth', () => {
         const accessToken = authService.getAccessToken();
         if (accessToken) {
           setUserFromInfo(userInfo, accessToken);
-          console.log('✅ [Auth Store] User restored from token');
         }
       } else {
         user.value = null;
-        console.log('[Auth Store] No valid token found');
       }
     } catch (error) {
       console.error('❌ [Auth Store] Auth check failed:', error);
@@ -222,10 +214,6 @@ export const useAuthStore = defineStore('auth', () => {
       // Set global token for remote apps
       window.__PORTAL_ACCESS_TOKEN__ = accessToken;
 
-      console.log('✅ User set successfully');
-      console.log('   Display name:', displayName.value);
-      console.log('   Roles:', authority.roles);
-      console.log('   Scopes:', authority.scopes);
     } catch (error) {
       console.error('❌ Failed to set user:', error);
       user.value = null;
@@ -280,7 +268,6 @@ export const useAuthStore = defineStore('auth', () => {
       setUserFromInfo(userInfo, newAccessToken);
     }
 
-    console.log('✅ [Auth Store] Access token updated after profile/membership change');
   }
 
   /**

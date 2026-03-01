@@ -3,11 +3,12 @@ import { ref } from 'vue';
 import { useThemeStore, type ThemeMode } from '../store/theme';
 import { useSettingsStore, type Language } from '../store/settings';
 import { useAuthStore } from '../store/auth';
-import { Switch, Button } from '@portal/design-vue';
+import { Switch, Button, useConfirm } from '@portal/design-vue';
 
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
 const authStore = useAuthStore();
+const { confirm } = useConfirm();
 
 // Theme options
 const themeOptions: { value: ThemeMode; label: string; icon: string }[] = [
@@ -52,8 +53,8 @@ const handleCompactModeChange = (value: boolean) => {
   showSavedMessage();
 };
 
-const handleResetSettings = () => {
-  if (confirm('모든 설정을 기본값으로 초기화하시겠습니까?')) {
+const handleResetSettings = async () => {
+  if (await confirm({ message: '모든 설정을 기본값으로 초기화하시겠습니까?', variant: 'danger', confirmText: '초기화' })) {
     settingsStore.resetToDefaults();
     themeStore.setMode('dark');
     showSavedMessage();

@@ -4,6 +4,7 @@ import { useCartStore } from '@/stores/cartStore'
 import CartItemComponent from '@/components/cart/CartItem'
 import SecurityBadges from '@/components/common/SecurityBadges'
 import { Button, Spinner, Alert } from '@portal/design-react'
+import { useConfirm } from '@/hooks/useConfirm'
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(price)
@@ -11,6 +12,7 @@ const formatPrice = (price: number) =>
 const CartPage: React.FC = () => {
   const navigate = useNavigate()
   const { cart, loading, error, fetchCart, clearCart } = useCartStore()
+  const { confirm, ConfirmDialogPortal } = useConfirm()
 
   useEffect(() => {
     fetchCart()
@@ -19,7 +21,7 @@ const CartPage: React.FC = () => {
   const handleCheckout = () => navigate('/checkout')
 
   const handleClearCart = async () => {
-    if (window.confirm('장바구니를 비우시겠습니까?')) {
+    if (await confirm({ message: '장바구니를 비우시겠습니까?', variant: 'danger', confirmText: '비우기' })) {
       try {
         await clearCart()
       } catch {
@@ -150,6 +152,7 @@ const CartPage: React.FC = () => {
           </div>
         </div>
       )}
+      <ConfirmDialogPortal />
     </div>
   )
 }

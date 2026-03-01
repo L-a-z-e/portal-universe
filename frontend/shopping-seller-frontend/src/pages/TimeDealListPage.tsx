@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { sellerTimeDealApi } from '@/api'
 import { Button, Table } from '@portal/design-react'
 import type { TableColumn } from '@portal/design-core'
+import { useConfirm } from '@/hooks/useConfirm'
 
 export const TimeDealListPage: React.FC = () => {
   const navigate = useNavigate()
+  const { confirm, ConfirmDialogPortal } = useConfirm()
   const [deals, setDeals] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [page, _setPage] = useState(0)
@@ -30,7 +32,7 @@ export const TimeDealListPage: React.FC = () => {
   }, [page, refreshKey])
 
   const handleCancel = async (id: number) => {
-    if (!confirm('Cancel this time deal?')) return
+    if (!await confirm({ message: 'Cancel this time deal?', variant: 'danger', confirmText: 'Cancel Deal' })) return
     try {
       await sellerTimeDealApi.deleteTimeDeal(id)
       setRefreshKey(prev => prev + 1)
@@ -124,6 +126,7 @@ export const TimeDealListPage: React.FC = () => {
           />
         )}
       </div>
+      <ConfirmDialogPortal />
     </div>
   )
 }

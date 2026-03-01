@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Badge, Spinner, Alert, Select, Avatar, Tag, Button, Tooltip, useApiError, useToast } from '@portal/design-vue';
+import { Badge, Spinner, Alert, Select, Avatar, Tag, Button, Tooltip, useApiError, useToast, useConfirm } from '@portal/design-vue';
 import type { SelectOption } from '@portal/design-vue';
 import {
   searchUsers,
@@ -27,6 +27,7 @@ import type {
 
 const { getErrorMessage, handleError } = useApiError();
 const toast = useToast();
+const { confirm } = useConfirm();
 
 // --- Search & List ---
 const query = ref('');
@@ -136,6 +137,7 @@ async function handleAssign() {
 
 async function handleRevoke(roleKey: string) {
   if (!selectedUser.value) return;
+  if (!await confirm({ message: `"${roleKey}" 역할을 해제하시겠습니까?`, variant: 'danger', confirmText: '해제' })) return;
   try {
     await revokeRole(selectedUser.value.uuid, roleKey);
     await selectUser(selectedUser.value);

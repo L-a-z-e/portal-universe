@@ -102,3 +102,50 @@ const { error, sendMessageStream } = useChat();
 - 새 메시지 전송 시 `error` 초기화
 
 **적용**: portal-shell useChat + ChatPanel
+
+## 5. Confirm Dialog (DS Modal 기반)
+
+`window.confirm()` 대신 디자인 시스템 Modal 기반의 programmatic confirm을 사용한다.
+
+### Vue (design-vue)
+
+```ts
+import { useConfirm } from '@portal/design-vue';
+
+const { confirm } = useConfirm();
+
+const ok = await confirm({
+  message: '삭제하시겠습니까?',
+  variant: 'danger',
+  confirmText: '삭제',
+});
+```
+
+### React (shopping/seller)
+
+```tsx
+import { useConfirm } from '@/hooks/useConfirm';
+
+const { confirm, ConfirmDialogPortal } = useConfirm();
+
+// JSX에 포탈 추가
+return (
+  <>
+    {/* ... */}
+    <ConfirmDialogPortal />
+  </>
+);
+```
+
+**적용**: 전 프론트엔드 앱 (14개 사용처)
+
+## 6. console.log 정책
+
+- 런타임 코드에서 `console.log` 사용 금지
+- 에러/경고는 `console.error` / `console.warn` 사용
+- 빌드 설정에서 production 빌드 시 자동 제거:
+  ```ts
+  // vite.config.ts
+  esbuild: { pure: ['console.log', 'console.debug', 'console.group', 'console.groupEnd'] }
+  ```
+- 유지되는 예외: `vite.config.ts` (빌드 타임), `logger.ts` (유틸리티), `*.stories.ts` (데모)

@@ -51,7 +51,6 @@ let isAppActive = true
  * Set app active state (for keep-alive activated/deactivated)
  */
 export const setAppActive = (active: boolean) => {
-  console.log(`🔄 [Prism Router] setAppActive: ${active}`)
   isAppActive = active
 }
 
@@ -73,13 +72,11 @@ const NavigationSync: React.FC = () => {
   useEffect(() => {
     // Skip callback if app is not active (deactivated by keep-alive)
     if (!isAppActive) {
-      console.log(`⏸️ [Prism Router] Skipping navigation sync (inactive): ${location.pathname}`)
       prevPathRef.current = location.pathname
       return
     }
 
     if (prevPathRef.current !== location.pathname) {
-      console.log(`📍 [Prism Router] Path changed: ${prevPathRef.current} → ${location.pathname}`)
       prevPathRef.current = location.pathname
       navigationCallback?.(location.pathname)
     }
@@ -209,7 +206,6 @@ export const getRouter = () => routerInstance
  */
 export const navigateTo = (path: string) => {
   if (routerInstance) {
-    console.log(`📥 [Prism Router] Navigating to: ${path}`)
     routerInstance.navigate(path)
   } else {
     console.error('❌ [Prism Router] Router not initialized')
@@ -220,7 +216,6 @@ export const navigateTo = (path: string) => {
  * Reset router instance (for cleanup on unmount)
  */
 export const resetRouter = () => {
-  console.log('🔄 [Prism Router] Resetting router instance')
   routerInstance = null
   setNavigationCallback(null)
 }
@@ -258,7 +253,6 @@ export const PrismRouter: React.FC<PrismRouterProps> = ({
     if (routerRef.current && initialPath) {
       const currentPath = routerRef.current.state.location.pathname
       if (currentPath !== initialPath) {
-        console.log(`📥 [Prism Router] Parent navigation: ${currentPath} → ${initialPath}`)
         routerRef.current.navigate(initialPath)
       }
     }

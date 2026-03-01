@@ -19,7 +19,6 @@ app.use(pinia);
 const authStore = useAuthStore();
 const authReady = authStore.checkAuth()
   .then(() => {
-    console.log('✅ Auth check completed');
   })
   .catch(err => {
     console.error('⚠️ Auth initialization failed:', err);

@@ -15,6 +15,7 @@ import {
 } from '@/types'
 import type { OrderStatus, Payment, Delivery } from '@/types'
 import { Button, Spinner, Alert } from '@portal/design-react'
+import { useConfirm } from '@/hooks/useConfirm'
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   PENDING: ['CONFIRMED', 'CANCELLED'],
@@ -50,6 +51,7 @@ const AdminOrderDetailPage: React.FC = () => {
   const { data: order, isLoading, error, refetch } = useAdminOrder(orderNumber ?? null)
   const updateStatusMutation = useUpdateOrderStatus()
   const refundMutation = useRefundPayment()
+  const { confirm, ConfirmDialogPortal } = useConfirm()
 
   const [payment, setPayment] = useState<Payment | null>(null)
   const [delivery, setDelivery] = useState<Delivery | null>(null)
@@ -75,7 +77,7 @@ const AdminOrderDetailPage: React.FC = () => {
 
   const handleRefund = async () => {
     if (!payment?.transactionId) return
-    if (!confirm('Are you sure you want to refund this payment?')) return
+    if (!await confirm({ message: 'Are you sure you want to refund this payment?', variant: 'danger', confirmText: 'Refund' })) return
     setActionError(null)
     try {
       await refundMutation.mutateAsync(payment.transactionId)
@@ -287,6 +289,7 @@ const AdminOrderDetailPage: React.FC = () => {
           )}
         </div>
       )}
+      <ConfirmDialogPortal />
     </div>
   )
 }

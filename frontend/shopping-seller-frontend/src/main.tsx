@@ -6,10 +6,8 @@ import './styles/index.css'
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
 
-console.log(`[Seller] Detected mode: ${mode}`);
 
 if (isEmbedded) {
-  console.log('[Seller] Waiting for Portal Shell to mount...');
 } else {
   console.group('[Seller] Starting in STANDALONE mode');
 
@@ -36,7 +34,6 @@ if (isEmbedded) {
       </React.StrictMode>
     );
 
-    console.log('[Seller] Mounted successfully');
   } catch (err) {
     console.error('[Seller] Mount failed:', err);
   }

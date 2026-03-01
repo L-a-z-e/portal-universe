@@ -126,7 +126,6 @@ const onRemoteNavigate = (path: string) => {
   if (shellRoute.path !== newPath && !isNavigating) {
     isNavigating = true;
     lastNavigatedPath = newPath;
-    console.log(`📤 [RemoteWrapper] Remote navigated to: ${path}, updating shell to: ${newPath}`);
     shellRouter.push(newPath)
         .catch((err: unknown) => {
           // NavigationDuplicated 등 Vue Router 내부 에러는 무시 가능
@@ -144,7 +143,6 @@ const onRemoteNavigate = (path: string) => {
 const debouncedParentNavigate = debounce((remotePath: string) => {
   if (remoteApp?.onParentNavigate) {
     try {
-      console.log(`📥 [RemoteWrapper] Shell route changed → ${remotePath}`);
       remoteApp.onParentNavigate(remotePath);
     } catch (err) {
       console.error('⚠️ Error in onParentNavigate:', err);
@@ -173,13 +171,11 @@ watch(() => shellRoute.path, (newPath, oldPath) => {
 // 🆕 keep-alive 훅 연동
 onActivated(() => {
   isComponentActive = true; // 🆕 활성화 상태로 변경
-  console.log(`🔄 [RemoteWrapper] ${props.config.name} activated (keep-alive)`);
   remoteApp?.onActivated?.();
 });
 
 onDeactivated(() => {
   isComponentActive = false; // 🆕 비활성화 상태로 변경
-  console.log(`🔄 [RemoteWrapper] ${props.config.name} deactivated (keep-alive)`);
   remoteApp?.onDeactivated?.();
 });
 
@@ -187,7 +183,6 @@ onDeactivated(() => {
 watch(() => themeStore.isDark, (isDark) => {
   if (remoteApp?.onThemeChange && isComponentActive) {
     const newTheme = isDark ? 'dark' : 'light';
-    console.log(`🎨 [RemoteWrapper] Theme changed, notifying ${props.config.name}: ${newTheme}`);
     remoteApp.onThemeChange(newTheme);
   }
 });
@@ -215,21 +210,16 @@ async function mountRemote() {
     return;
   }
 
-  console.log(`📍 [RemoteWrapper] Mounting ${props.config.name}...`);
 
   try {
     const initialPath = props.initialPath ||
         shellRoute.path.substring(props.config.basePath.length) || '/';
 
-    console.log(`🚀 [RemoteWrapper] Calling mount function...`);
-    console.log(`   Container:`, container.value);
-    console.log(`   Initial path: ${initialPath}`);
 
     // CSS 관리: 이전에 tracked된 CSS가 있으면 재활성화
     const tracked = getTrackedCss(props.config.key);
     if (tracked.length > 0) {
       enableTrackedCss();
-      console.log(`🎨 [RemoteWrapper] Re-enabled ${tracked.length} tracked CSS elements for ${props.config.name}`);
     }
 
     // ✅ 저장된 mountFn 사용 (중복 load 없음)
@@ -240,7 +230,6 @@ async function mountRemote() {
       theme: themeStore.isDark ? 'dark' : 'light',
     });
 
-    console.log(`✅ [RemoteWrapper] ${props.config.name} mounted successfully`);
     loading.value = false;
 
   } catch (err: any) {
@@ -266,7 +255,6 @@ watch(loading, async (isLoading, wasLoading) => {
 // ✅ 초기 로드 (mountFn만 가져오기)
 // -------------------------
 onMounted(async () => {
-  console.log(`📍 [RemoteWrapper] Component mounted for ${props.config.name}`);
 
   // CSS tracking: 모듈 로드 시 주입되는 CSS를 캡처하기 위해 로드 전에 시작
   // module-level registry를 사용하므로 이미 tracked된 CSS가 있으면 observer 생략
@@ -288,7 +276,6 @@ onMounted(async () => {
     // ✅ mountFn 저장 (나중에 watch에서 사용)
     mountFn = result.mountFn as MountFn;
 
-    console.log(`🎨 [RemoteWrapper] Tracked ${getTrackedCss(props.config.key).length} CSS elements for ${props.config.name}`);
 
     // ✅ loading을 false로 변경 → watch가 mountRemote() 호출
     loading.value = false;
@@ -307,7 +294,6 @@ onMounted(async () => {
 onUnmounted(() => {
   if (remoteApp?.unmount) {
     try {
-      console.log(`🔄 [RemoteWrapper] Unmounting ${props.config.name}`);
       remoteApp.unmount();
     } catch (err) {
       console.error('⚠️ Error during unmount:', err);
@@ -317,7 +303,6 @@ onUnmounted(() => {
   // CSS disable (제거하지 않고 비활성화)
   disableTrackedCss();
   stopCssTracking();
-  console.log(`🎨 [RemoteWrapper] Disabled ${getTrackedCss(props.config.key).length} CSS elements for ${props.config.name}`);
 
   remoteApp = null;
   mountFn = null;
@@ -331,7 +316,6 @@ onUnmounted(() => {
 // ✅ Retry
 // -------------------------
 async function retry() {
-  console.log(`🔄 [RemoteWrapper] Retrying ${props.config.name}...`);
 
   // 기존 앱 정리
   if (remoteApp?.unmount) {

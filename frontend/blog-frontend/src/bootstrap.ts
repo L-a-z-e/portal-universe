@@ -65,8 +65,6 @@ export function mountBlogApp(
     throw new Error('[Blog] Mount element is required');
   }
 
-  console.log('📍 Mount target:', el.tagName, el.className || '(no class)');
-  console.log('📍 Options:', options);
 
   const { initialPath, onNavigate } = options;
 
@@ -85,7 +83,6 @@ export function mountBlogApp(
 
   // ✅ 초기 경로 설정
   const targetPath = initialPath || '/';
-  console.log(`🔄 [Blog] Navigating to: ${targetPath}`);
 
   router.push(targetPath).catch(err => {
     console.error('❌ [Blog] Initial navigation failed:', err);
@@ -94,14 +91,12 @@ export function mountBlogApp(
   // ✅ Parent에게 경로 변경 알림
   router.afterEach((to, from) => {
     if (to.path !== from.path) {
-      console.log(`📍 [Blog] Route changed: ${from.path} → ${to.path}`);
       onNavigate?.(to.path);
     }
   });
 
   // DOM에 마운트
   app.mount(el);
-  console.log('✅ [Blog] App mounted successfully');
 
   // ✅ 로그아웃 시 followStore 초기화
   const authChangedHandler = () => {
@@ -122,14 +117,12 @@ export function mountBlogApp(
      * Parent(Portal Shell)로부터 경로 변경 수신
      */
     onParentNavigate: (path: string) => {
-      console.log(`📥 [Blog] Received navigation from parent: ${path}`);
 
       if (router.currentRoute.value.path !== path) {
         router.push(path).catch(err => {
           console.error('❌ [Blog] Parent navigation failed:', err);
         });
       } else {
-        console.log('   ℹ️ Already on this path, skipping navigation');
       }
     },
 
@@ -139,9 +132,7 @@ export function mountBlogApp(
      * Shopping → Blog 전환 시 data-service="shopping"이 유지되는 문제 해결
      */
     onActivated: () => {
-      console.log('🔄 [Blog] App activated (keep-alive)');
       document.documentElement.setAttribute('data-service', 'blog');
-      console.log('[Blog] KeepAlive activated: Restored data-service="blog"');
     },
 
     /**
@@ -149,7 +140,6 @@ export function mountBlogApp(
      * RemoteWrapper의 onDeactivated에서 호출됨
      */
     onDeactivated: () => {
-      console.log('⏸️ [Blog] App deactivated (keep-alive)');
     },
 
     /**
@@ -168,7 +158,6 @@ export function mountBlogApp(
       // 1. Vue App Unmount
       try {
         app.unmount();
-        console.log('✅ [Blog] App unmounted successfully');
       } catch (err) {
         console.error('❌ [Blog] App unmount failed:', err);
       }
@@ -181,7 +170,6 @@ export function mountBlogApp(
           document.documentElement.removeAttribute('data-service');
         }
 
-        console.log('✅ [Blog] Cleanup completed');
       } catch (err) {
         console.error('❌ [Blog] Cleanup failed:', err);
       }

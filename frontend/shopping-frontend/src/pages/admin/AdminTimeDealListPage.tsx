@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { useAdminTimeDeals, useCancelTimeDeal } from '@/hooks/useAdminTimeDeals'
 import { TIMEDEAL_STATUS_LABELS } from '@/types'
 import { Button, Card, Badge, Spinner, useApiError, useToast } from '@portal/design-react'
+import { useConfirm } from '@/hooks/useConfirm'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -25,12 +26,13 @@ function formatPrice(price: number): string {
 export function AdminTimeDealListPage() {
   const { handleError } = useApiError()
   const { success } = useToast()
+  const { confirm, ConfirmDialogPortal } = useConfirm()
   const [page, setPage] = useState(1)
   const { data, isLoading, error, refetch } = useAdminTimeDeals({ page, size: 10 })
   const { mutateAsync: cancelTimeDeal, isPending: isCancelling } = useCancelTimeDeal()
 
   const handleCancel = async (id: number, name: string) => {
-    if (!confirm(`"${name}" 타임딜을 취소하시겠습니까?`)) return
+    if (!await confirm({ message: `"${name}" 타임딜을 취소하시겠습니까?`, variant: 'danger', confirmText: '취소' })) return
 
     try {
       await cancelTimeDeal(id)
@@ -195,6 +197,7 @@ export function AdminTimeDealListPage() {
           )}
         </>
       )}
+      <ConfirmDialogPortal />
     </div>
   )
 }

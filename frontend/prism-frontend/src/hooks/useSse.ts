@@ -88,7 +88,6 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
         throw new Error(`SSE connection failed: ${response.status}`);
       }
 
-      console.log(`[SSE] Connected to board ${boardId}`);
       reconnectAttemptsRef.current = 0;
       setConnectionState('connected');
 
@@ -128,7 +127,6 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
       }
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
-        console.log('[SSE] Connection aborted');
         return;
       }
 
@@ -147,7 +145,6 @@ export function useSse({ boardId, onEvent, enabled = true }: UseSseOptions) {
       // Exponential backoff reconnection
       const delay = Math.min(1000 * Math.pow(2, attempts), 30000);
 
-      console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${attempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
       reconnectTimeoutRef.current = window.setTimeout(() => {
         reconnectAttemptsRef.current += 1;
         connect();

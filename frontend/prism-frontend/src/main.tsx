@@ -12,10 +12,8 @@ import './index.css';
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
 
-console.log(`🎯 [Prism] Detected mode: ${mode}`);
 
 if (isEmbedded) {
-  console.log('⏳ [Prism] Waiting for Portal Shell to mount...');
 } else {
   console.group('📦 [Prism] Starting in STANDALONE mode');
 
@@ -37,7 +35,6 @@ if (isEmbedded) {
       </React.StrictMode>
     );
 
-    console.log('✅ [Prism] Mounted successfully');
   } catch (err) {
     console.error('❌ [Prism] Mount failed:', err);
   }
