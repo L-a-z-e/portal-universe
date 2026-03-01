@@ -18,8 +18,22 @@ spec:
       storage: 5Gi
 
 # ===================================================================
+# MongoDB: Replica Set KeyFile Secret
+# 역할: Replica Set 멤버 간 인증에 사용되는 키 파일입니다.
+# ===================================================================
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-keyfile
+  namespace: portal-universe
+type: Opaque
+data:
+  replica-keyfile: Y0V4VUlEd2t3cVIzSFBmT2dPa2lPa0loc211L043eStnT0ZjOFBIUnpQNFUrVmhvbjl5TjJrUW1rRGpLQklaVwozNkJMWnByMU1rcFZMN1o4cHVDR0g0Ri8rd0NncURGYW1OUUJrUVJySFErVmdkbVppTExJdWk4UjhnY0p6bitMCkFzWjRkNGtpcWJTUmFhamJCczZUWW5tWTRPVjVHcW9QLzJOUlRkVW5wOUNYdEYxbkxQWWROSWNpNkxRaUU3Q3IKWmtCeWovbmtxQkNUV2FTWVNFakU3WWs3NkZKWTdWamRCMXlCTk1jcXZJa1JobC9KZnhuTnVDMEdXN0lXN05mbQpuVTZCZ21aRm9EN1huc0ZMVlNXajlPQkkwcmY1b1pNSjF6RmxrNndzVXg3SHJrTklaYVdvRmxST0NwWmx2alBpCnhKL1pYZzFVaHdtZzYyZGZXZmlPcWZjOUhOZXpYT283NVJTQjJsUDBObnJFckFjTkNyN1cvRGQvc3kySkpzOHEKWVYxUWRkcks1NDA0QjlLanNEaGZ6LytlRzJhTGZIMEE3RkpHdzVNcGJIeUpWL2xZRE10SHh4d2xCV3ZiSWdkYgpNb0dubGliSTJndUVkU3h4dVhTdTJBVUJ5ZDFFTkh5K0xUUEdHZjkzNURuWVZNRkZwK0hOZjJoMnloTUZ1dStjCmxpYVFldlZiaTB6UzBqM254MzRqTUpHU3hvTkwzUGNnczVUTkl3MlU4RjFCcTlMaTVEN1VlVUhlQ01SSiswM2QKK3dhaEZmT2p3QXpWK2FaOHNGektscmI4UDhaY0E5SXA5RGpQYkY4djBMK2wwRWNCaEw4akc3OVNrY3duOGRCNwpCcXkvZ29ydEgvdkdqSEQxeW1rbjVJTGNXSzVENU82aTlhN1BRQmd1OGVuSWtrbnZKdTVRUHc3R3pwUEVPdWVhCmNtUzV5VGlQZTJzTGV1WVY0dDhqZzJrT085bG1JQkZuWDVHRTZKWEdjekJTYUZ6eFdlMVlkQnBVbytVMiszTGgKa1FVdWcwbGRjeEFMUUhUN2FwRkNLSGlVQStDZlNRZUFwT0UveExFMnBXM3ZpaXE2cnZuSzltSnl4L2E0UVpTSApqSWNlNmpJWng1Tzhqb0pnYk5qYkVsRGxjRjhOR3FoNmZ0QjVOVkMzWXg5MzY2VWhtaW4zaWp1WlR0UUhTaFpKCm01aFpQRXZ2SjZBazRXVENwZ1JENlBaekszdUYvaDA4cmt0MGlnczZ5WmI5Q1Y1Vk9oaGFYYnZVRThLa1lwenEKeWllOWdQWXQvMG5vZWNobzJDYTRPQWl2VVNiakFEbnU3RWk3YWhWTThBS2VLTEEzCg==
+
+# ===================================================================
 # MongoDB: Deployment
-# 역할: MongoDB 서버를 실행하는 Pod를 정의하고 관리합니다.
+# 역할: MongoDB 서버를 Replica Set 모드로 실행하는 Pod를 정의하고 관리합니다.
 # ===================================================================
 ---
 apiVersion: apps/v1
@@ -39,9 +53,22 @@ spec:
       labels:
         app: mongodb
     spec:
+      # keyFile 권한을 600으로 설정 (MongoDB 필수 요구사항)
+      initContainers:
+        - name: fix-keyfile-permissions
+          image: mongo:8.0
+          command: ["sh", "-c", "cp /tmp/keyfile/replica-keyfile /etc/mongo/replica-keyfile && chmod 600 /etc/mongo/replica-keyfile && chown 999:999 /etc/mongo/replica-keyfile"]
+          volumeMounts:
+            - name: keyfile-secret
+              mountPath: /tmp/keyfile
+              readOnly: true
+            - name: keyfile-volume
+              mountPath: /etc/mongo
       containers:
         - name: mongodb
           image: mongo:8.0
+          # Replica Set 모드 + keyFile 인증 (Docker compose와 동일)
+          args: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/etc/mongo/replica-keyfile"]
           ports:
             - containerPort: 27017
               name: mongodb
@@ -53,26 +80,60 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           env:
-            # MongoDB 초기 루트 사용자 이름을 설정합니다.
             - name: MONGO_INITDB_ROOT_USERNAME
               value: "laze"
-            # Secret 리소스로부터 루트 사용자 비밀번호를 안전하게 주입받습니다.
             - name: MONGO_INITDB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: portal-universe-secret
                   key: MONGO_PASSWORD
-            # 초기 데이터베이스를 생성합니다. (blog-service에서 사용)
             - name: MONGO_INITDB_DATABASE
               value: "blog_db"
+          # Replica Set 초기화 + 상태 확인 (Docker healthcheck과 동일 패턴)
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - >-
+                  mongosh --quiet
+                  -u "$MONGO_INITDB_ROOT_USERNAME"
+                  -p "$MONGO_INITDB_ROOT_PASSWORD"
+                  --authenticationDatabase admin
+                  --eval "try { rs.status().ok } catch(e) { rs.initiate({_id:'rs0', members:[{_id:0, host:'localhost:27017'}]}).ok }"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - >-
+                  mongosh --quiet
+                  -u "$MONGO_INITDB_ROOT_USERNAME"
+                  -p "$MONGO_INITDB_ROOT_PASSWORD"
+                  --authenticationDatabase admin
+                  --eval "db.runCommand('ping').ok"
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
           volumeMounts:
-            # 위에서 생성한 PVC를 컨테이너의 /data/db 경로에 마운트하여 데이터를 영구 저장합니다.
             - name: mongodb-storage
               mountPath: /data/db
+            - name: keyfile-volume
+              mountPath: /etc/mongo
+              readOnly: true
       volumes:
         - name: mongodb-storage
           persistentVolumeClaim:
             claimName: mongodb-pvc
+        - name: keyfile-secret
+          secret:
+            secretName: mongodb-keyfile
+        - name: keyfile-volume
+          emptyDir: {}
 
 # ===================================================================
 # MongoDB: Service
