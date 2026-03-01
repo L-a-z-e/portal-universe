@@ -16,7 +16,7 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
     @Query("SELECT ur FROM UserRole ur JOIN FETCH ur.role WHERE ur.userId = :userId")
     List<UserRole> findByUserIdWithRole(@Param("userId") String userId);
 
-    @Query("SELECT ur.role.roleKey FROM UserRole ur WHERE ur.userId = :userId " +
+    @Query("SELECT r.roleKey FROM UserRole ur JOIN ur.role r WHERE ur.userId = :userId " +
             "AND (ur.expiresAt IS NULL OR ur.expiresAt > CURRENT_TIMESTAMP)")
     List<String> findActiveRoleKeysByUserId(@Param("userId") String userId);
 
@@ -26,9 +26,9 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
 
     void deleteByUserIdAndRole(String userId, RoleEntity role);
 
-    @Query("SELECT COUNT(ur) FROM UserRole ur WHERE ur.role.roleKey = :roleKey")
+    @Query("SELECT COUNT(ur) FROM UserRole ur JOIN ur.role r WHERE r.roleKey = :roleKey")
     long countByRoleKey(@Param("roleKey") String roleKey);
 
-    @Query("SELECT ur.role.roleKey, COUNT(ur) FROM UserRole ur GROUP BY ur.role.roleKey")
+    @Query("SELECT r.roleKey, COUNT(ur) FROM UserRole ur JOIN ur.role r GROUP BY r.roleKey")
     List<Object[]> countGroupByRoleKey();
 }
