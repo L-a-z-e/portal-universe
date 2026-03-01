@@ -5,7 +5,7 @@ type: api
 status: current
 version: v1
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-03-01
 author: Laze
 tags: [api, shopping, frontend, queue, sse, admin]
 related: [api-shopping-types, api-shopping-timedeal]
@@ -93,6 +93,18 @@ leaveQueueByToken(entryToken: string): Promise<ApiResponse<void>>
 ```
 
 **Endpoint**: `DELETE /api/v1/shopping/queue/token/{entryToken}`
+
+---
+
+### 대기열 활성 여부 확인
+
+```typescript
+checkQueueActive(eventType: string, eventId: number): Promise<ApiResponse<{ active: boolean }>>
+```
+
+**Endpoint**: `GET /api/v1/shopping/queue/{eventType}/{eventId}/check`
+
+프론트엔드에서 대기열 활성 여부를 확인하여 직접 발급 vs 대기열 리다이렉트를 판단합니다.
 
 ---
 
@@ -340,4 +352,4 @@ export interface QueueActivateRequest {
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-03-01

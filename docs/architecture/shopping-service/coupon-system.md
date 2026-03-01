@@ -4,7 +4,7 @@ title: Coupon System Architecture
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-27
+updated: 2026-03-01
 author: Laze
 tags: [architecture, shopping-service, coupon, redis, lua-script]
 related:
@@ -23,7 +23,7 @@ related:
 | **배포 환경** | Shopping Service 내 Coupon 도메인 |
 | **관련 서비스** | auth-service (userId), notification-service (발급 알림) |
 
-선착순 쿠폰 발급은 Redis Lua Script로 원자적 동시성 제어를 수행하며, MySQL과 이중으로 관리하여 데이터 정합성을 보장합니다.
+선착순 쿠폰 발급은 Redis Lua Script로 원자적 동시성 제어를 수행하며, DB와 이중으로 관리하여 데이터 정합성을 보장합니다. DB 저장 실패 시 `coupon_rollback.lua`로 Redis 원자적 보상하고, `CouponReconciliationScheduler`가 5분 주기로 최종 보정합니다.
 
 ---
 
@@ -114,6 +114,8 @@ Redis를 통한 선착순 발급 동시성 제어:
 | `getStock(couponId)` | 잔여 재고 조회 |
 | `incrementStock(couponId)` | 발급 취소 시 재고 복원 |
 | `removeIssuedUser(couponId, userId)` | 발급 취소 시 사용자 제거 |
+| `rollbackIssuance(couponId, userId)` | Lua Script로 INCRBY stock + SREM issued 원자적 보상 |
+| `rebuildIssuedSet(couponId, userIds)` | DB 기준으로 Redis Issued Set 재구축 (정합성 스케줄러용) |
 | `setIssuedKeyExpiration(couponId, ttlSeconds)` | Issued Set 키에 Lua Script로 TTL 설정 |
 | `addIssuedUser(couponId, userId)` | Issued Set에 사용자 추가 (Bootstrap용) |
 
@@ -163,6 +165,12 @@ sequenceDiagram
         CS-->>C: S602 COUPON_EXHAUSTED (409)
     else result = -1
         CS-->>C: S604 COUPON_ALREADY_ISSUED (409)
+    end
+
+    Note over CS,Redis: DB 저장 실패 시 보상
+    alt DB Exception
+        CS->>RD: rollbackIssuance(couponId, userId)
+        RD->>Redis: EVAL coupon_rollback.lua (INCRBY stock + SREM issued 원자적)
     end
 ```
 
@@ -225,6 +233,31 @@ FIXED:       discount = discountValue
 PERCENTAGE:  discount = min(orderAmount * discountValue / 100, maximumDiscountAmount)
 ```
 
+### Redis-DB 정합성 보장
+
+| 계층 | 역할 |
+|------|------|
+| **1차 방어**: try-catch + `coupon_rollback.lua` | DB 저장 실패 시 Redis 즉시 원자적 보상 (INCRBY stock + SREM issued) |
+| **2차 방어**: `CouponReconciliationScheduler` | 5분 주기 @DistributedLock, DB를 source of truth로 Redis 보정 |
+
+**`coupon_rollback.lua`**:
+```
+KEYS[1] = coupon:stock:{couponId}
+KEYS[2] = coupon:issued:{couponId}
+ARGV[1] = userId
+ARGV[2] = 1 (복원 수량)
+
+1. INCRBY KEYS[1] ARGV[2]   → 재고 복원
+2. SREM KEYS[2] ARGV[1]     → 발급 기록 제거
+3. return 1
+```
+
+**CouponReconciliationScheduler** (`@Scheduled(5분)`, `@DistributedLock`):
+1. ACTIVE 쿠폰 목록 조회 (DB)
+2. 각 쿠폰의 발급 수량 비교: `Redis coupon:stock` vs `DB totalQuantity - issuedQuantity`
+3. 불일치 시 Redis stock 보정
+4. Redis issued Set을 DB 기준으로 재구축 (`rebuildIssuedSet()`)
+
 ### 제약사항
 
 - 1인 1매 제한 (DB unique constraint + Redis Set)
@@ -272,4 +305,4 @@ PERCENTAGE:  discount = min(orderAmount * discountValue / 100, maximumDiscountAm
 
 ---
 
-**최종 업데이트**: 2026-02-27
+**최종 업데이트**: 2026-03-01
