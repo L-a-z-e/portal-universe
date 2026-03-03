@@ -1,7 +1,9 @@
 import http from 'k6/http';
 import { check } from 'k6';
-import { login, authHeaders } from '../lib/auth.js';
+import { login, loginBulk, getTokenForVU, authHeaders } from '../lib/auth.js';
 import { config } from '../lib/config.js';
+
+const USE_BULK = __ENV.USE_BULK === 'true';
 
 const PRODUCT_ID = __ENV.PRODUCT_ID || '1';
 
@@ -33,13 +35,19 @@ export const options = {
 };
 
 export function setup() {
+  if (USE_BULK) {
+    const tokens = loginBulk();
+    if (tokens.length === 0) throw new Error('Setup failed: bulk login returned 0 tokens');
+    return { tokens };
+  }
   const token = login();
   if (!token) throw new Error('Setup failed: cannot login');
-  return { token };
+  return { tokens: [token] };
 }
 
 export function warmCache(data) {
-  const params = authHeaders(data.token);
+  const token = USE_BULK ? getTokenForVU(data.tokens) : data.tokens[0];
+  const params = authHeaders(token);
   // Gateway: /api/v1/shopping/** → shopping-service
   const res = http.get(
     `${config.BASE_URL}/api/v1/shopping/products/${PRODUCT_ID}`,
@@ -49,7 +57,8 @@ export function warmCache(data) {
 }
 
 export function thunderingHerd(data) {
-  const params = authHeaders(data.token);
+  const token = USE_BULK ? getTokenForVU(data.tokens) : data.tokens[0];
+  const params = authHeaders(token);
   // Gateway: /api/v1/shopping/** → shopping-service
   const res = http.get(
     `${config.BASE_URL}/api/v1/shopping/products/${PRODUCT_ID}`,

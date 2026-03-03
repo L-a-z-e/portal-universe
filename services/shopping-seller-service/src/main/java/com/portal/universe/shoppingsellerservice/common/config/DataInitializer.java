@@ -46,7 +46,7 @@ public class DataInitializer {
 
     @Bean
     @Order(1)
-    @Profile({"local", "docker"})
+    @Profile({"local", "docker", "kubernetes"})
     public CommandLineRunner initSellerData() {
         return args -> {
             if (sellerRepository.count() > 0) {

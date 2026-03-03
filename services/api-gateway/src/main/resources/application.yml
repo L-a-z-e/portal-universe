@@ -304,8 +304,8 @@ spring:
                 - StripPrefix=3
                 - name: RequestRateLimiter
                   args:
-                    rate-limiter: "#{@unauthenticatedRedisRateLimiter}"
-                    key-resolver: "#{@ipKeyResolver}"
+                    rate-limiter: "#{@authenticatedRedisRateLimiter}"
+                    key-resolver: "#{@userKeyResolver}"
                 - name: CircuitBreaker
                   args:
                     name: shoppingCircuitBreaker
@@ -535,12 +535,12 @@ resilience4j:
     configs:
       default:
         sliding-window-type: count_based
-        sliding-window-size: 20
-        minimum-number-of-calls: 10
-        failure-rate-threshold: 50
-        slow-call-duration-threshold: 3s
-        slow-call-rate-threshold: 80
-        wait-duration-in-open-state: 10s
+        sliding-window-size: ${CB_SLIDING_WINDOW_SIZE:20}
+        minimum-number-of-calls: ${CB_MINIMUM_NUMBER_OF_CALLS:10}
+        failure-rate-threshold: ${CB_FAILURE_RATE_THRESHOLD:50}
+        slow-call-duration-threshold: ${CB_SLOW_CALL_DURATION_THRESHOLD:3s}
+        slow-call-rate-threshold: ${CB_SLOW_CALL_RATE_THRESHOLD:80}
+        wait-duration-in-open-state: ${CB_WAIT_DURATION_IN_OPEN_STATE:10s}
         permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
 
@@ -569,7 +569,7 @@ resilience4j:
   timelimiter:
     configs:
       default:
-        timeout-duration: 5s
+        timeout-duration: ${CB_TIMEOUT_DURATION:5s}
     instances:
       authCircuitBreaker:
         base-config: default
@@ -749,5 +749,26 @@ health-check:
       url: ${services.chatbot.url:http://localhost:8086}
       health-path: /api/v1/chat/health
       k8s-deployment-name: chatbot-service
+
+# Rate Limiter / Circuit Breaker 설정 (환경변수로 오버라이드 가능)
+# Rate Limiter:  RATE_LIMITER_{TYPE}_{REPLENISH_RATE|BURST_CAPACITY}
+# Circuit Breaker: CB_{SLIDING_WINDOW_SIZE|MINIMUM_NUMBER_OF_CALLS|FAILURE_RATE_THRESHOLD|...}
+# TimeLimiter:   CB_TIMEOUT_DURATION
+rate-limiter:
+  default:
+    replenish-rate: ${RATE_LIMITER_DEFAULT_REPLENISH_RATE:10}
+    burst-capacity: ${RATE_LIMITER_DEFAULT_BURST_CAPACITY:20}
+  strict:
+    replenish-rate: ${RATE_LIMITER_STRICT_REPLENISH_RATE:1}
+    burst-capacity: ${RATE_LIMITER_STRICT_BURST_CAPACITY:5}
+  signup:
+    replenish-rate: ${RATE_LIMITER_SIGNUP_REPLENISH_RATE:1}
+    burst-capacity: ${RATE_LIMITER_SIGNUP_BURST_CAPACITY:3}
+  authenticated:
+    replenish-rate: ${RATE_LIMITER_AUTHENTICATED_REPLENISH_RATE:2}
+    burst-capacity: ${RATE_LIMITER_AUTHENTICATED_BURST_CAPACITY:100}
+  unauthenticated:
+    replenish-rate: ${RATE_LIMITER_UNAUTHENTICATED_REPLENISH_RATE:1}
+    burst-capacity: ${RATE_LIMITER_UNAUTHENTICATED_BURST_CAPACITY:30}
 
 # 로깅 설정은 logback-spring.xml에서 관리

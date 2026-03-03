@@ -10,6 +10,7 @@
 | [monitoring.md](./monitoring.md) | Prometheus, Grafana, Zipkin, CloudWatch 모니터링 구성 |
 | [loki-query-guide.md](./loki-query-guide.md) | Loki 로그 쿼리 작성 가이드 |
 | [network-policy.md](./network-policy.md) | Kubernetes 네트워크 정책 설정 |
+| [load-testing.md](./load-testing.md) | k6 부하 테스트 실행 가이드 (Rate Limit 완화, K8s 환경) |
 
 ## 관련 문서
 

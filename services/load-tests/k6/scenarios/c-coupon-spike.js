@@ -1,7 +1,9 @@
 import http from 'k6/http';
 import { check } from 'k6';
-import { login, authHeaders } from '../lib/auth.js';
+import { login, loginBulk, getTokenForVU, authHeaders } from '../lib/auth.js';
 import { config } from '../lib/config.js';
+
+const USE_BULK = __ENV.USE_BULK === 'true';
 
 export const options = {
   scenarios: {
@@ -13,20 +15,27 @@ export const options = {
     },
   },
   thresholds: {
-    http_req_duration: ['p(99)<500'],
+    'http_req_duration{name:coupon_issue}': ['p(99)<500'],
+    'http_req_duration{name:login}': ['p(95)<5000'],
     // Error rate threshold is intentionally relaxed:
     // most requests will fail with SOLD_OUT after coupon limit is reached
   },
 };
 
 export function setup() {
+  if (USE_BULK) {
+    const tokens = loginBulk();
+    if (tokens.length === 0) throw new Error('Setup failed: bulk login returned 0 tokens');
+    return { tokens, couponId: __ENV.COUPON_ID || '1' };
+  }
   const token = login();
   if (!token) throw new Error('Setup failed: cannot login');
-  return { token, couponId: __ENV.COUPON_ID || '1' };
+  return { tokens: [token], couponId: __ENV.COUPON_ID || '1' };
 }
 
 export default function (data) {
-  const params = authHeaders(data.token);
+  const token = USE_BULK ? getTokenForVU(data.tokens) : data.tokens[0];
+  const params = authHeaders(token);
 
   // Gateway: /api/v1/shopping/** → shopping-service
   const res = http.post(
@@ -36,6 +45,7 @@ export default function (data) {
   );
 
   check(res, {
-    'response received': (r) => r.status === 200 || r.status === 400 || r.status === 409,
+    'coupon_issue status valid': (r) => [200, 400, 409, 429, 503].includes(r.status),
+    'coupon_issue success or expected error': (r) => r.status === 200 || r.status === 409,
   });
 }

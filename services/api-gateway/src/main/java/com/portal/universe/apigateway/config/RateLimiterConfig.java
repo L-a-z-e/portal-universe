@@ -1,17 +1,16 @@
 package com.portal.universe.apigateway.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;
 import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 
 /**
  * Redis 기반 Rate Limiting 설정을 담당하는 클래스입니다.
@@ -26,21 +25,43 @@ import java.util.Arrays;
  * - replenishRate: 초당 토큰 충전 속도 (sustained rate)
  * - burstCapacity: 최대 버스트 용량 (peak rate)
  * - requestedTokens: 요청당 소비 토큰 수 (기본값 1)
+ *
+ * 환경변수로 Rate Limit 값을 외부에서 조정할 수 있습니다.
+ * 부하 테스트 시 K8s ConfigMap의 환경변수를 변경하여 rate limit을 완화할 수 있습니다.
  */
 @Slf4j
 @Configuration
 public class RateLimiterConfig {
 
-    private final boolean isRelaxedRateLimiting;
+    // --- Default Rate Limiter (일반 API) ---
+    @Value("${rate-limiter.default.replenish-rate:10}")
+    private int defaultReplenishRate;
+    @Value("${rate-limiter.default.burst-capacity:20}")
+    private int defaultBurstCapacity;
 
-    public RateLimiterConfig(Environment environment) {
-        var profiles = Arrays.asList(environment.getActiveProfiles());
-        // docker, local 프로파일에서는 개발/테스트를 위해 완화된 Rate Limiting 적용
-        this.isRelaxedRateLimiting = profiles.contains("docker") || profiles.contains("local");
-        if (isRelaxedRateLimiting) {
-            log.info("Development profile detected (docker/local) - using relaxed rate limits for testing");
-        }
-    }
+    // --- Strict Rate Limiter (로그인 API) ---
+    @Value("${rate-limiter.strict.replenish-rate:1}")
+    private int strictReplenishRate;
+    @Value("${rate-limiter.strict.burst-capacity:5}")
+    private int strictBurstCapacity;
+
+    // --- Signup Rate Limiter (회원가입 API) ---
+    @Value("${rate-limiter.signup.replenish-rate:1}")
+    private int signupReplenishRate;
+    @Value("${rate-limiter.signup.burst-capacity:3}")
+    private int signupBurstCapacity;
+
+    // --- Authenticated Rate Limiter (인증된 사용자) ---
+    @Value("${rate-limiter.authenticated.replenish-rate:2}")
+    private int authenticatedReplenishRate;
+    @Value("${rate-limiter.authenticated.burst-capacity:100}")
+    private int authenticatedBurstCapacity;
+
+    // --- Unauthenticated Rate Limiter (비인증 사용자) ---
+    @Value("${rate-limiter.unauthenticated.replenish-rate:1}")
+    private int unauthenticatedReplenishRate;
+    @Value("${rate-limiter.unauthenticated.burst-capacity:30}")
+    private int unauthenticatedBurstCapacity;
 
     /**
      * IP 주소 기반 KeyResolver (기본값)
@@ -100,68 +121,48 @@ public class RateLimiterConfig {
     /**
      * 기본 RedisRateLimiter Bean
      * 일반 API 요청에 대한 기본값 설정
-     *
-     * replenishRate: 10 req/sec (지속 속도)
-     * burstCapacity: 20 (버스트 용량)
      */
     @Bean
     @Primary
     public RedisRateLimiter defaultRedisRateLimiter() {
-        return isRelaxedRateLimiting
-            ? new RedisRateLimiter(50, 200, 1)
-            : new RedisRateLimiter(10, 20, 1);
+        log.info("Default Rate Limiter: replenishRate={}, burstCapacity={}", defaultReplenishRate, defaultBurstCapacity);
+        return new RedisRateLimiter(defaultReplenishRate, defaultBurstCapacity, 1);
     }
 
     /**
      * 로그인 API용 엄격한 Rate Limiter
      * Brute Force 공격 방어
-     *
-     * replenishRate: 1 req/sec (지속 속도)
-     * burstCapacity: 5 (최대 5회 버스트 후 초당 1회로 제한)
      */
     @Bean
     public RedisRateLimiter strictRedisRateLimiter() {
-        return isRelaxedRateLimiting
-            ? new RedisRateLimiter(20, 50, 1)
-            : new RedisRateLimiter(1, 5, 1);
+        log.info("Strict Rate Limiter: replenishRate={}, burstCapacity={}", strictReplenishRate, strictBurstCapacity);
+        return new RedisRateLimiter(strictReplenishRate, strictBurstCapacity, 1);
     }
 
     /**
      * 회원가입 API용 Rate Limiter
-     *
-     * replenishRate: 1 req/sec (지속 속도)
-     * burstCapacity: 3 (최대 3회 버스트 후 초당 1회로 제한)
      */
     @Bean
     public RedisRateLimiter signupRedisRateLimiter() {
-        return isRelaxedRateLimiting
-            ? new RedisRateLimiter(20, 50, 1)
-            : new RedisRateLimiter(1, 3, 1);
+        log.info("Signup Rate Limiter: replenishRate={}, burstCapacity={}", signupReplenishRate, signupBurstCapacity);
+        return new RedisRateLimiter(signupReplenishRate, signupBurstCapacity, 1);
     }
 
     /**
      * 인증된 사용자용 관대한 Rate Limiter
-     *
-     * replenishRate: 2 req/sec (지속 속도)
-     * burstCapacity: 100 (버스트 허용, 지속적으로는 초당 2회)
      */
     @Bean
     public RedisRateLimiter authenticatedRedisRateLimiter() {
-        return isRelaxedRateLimiting
-            ? new RedisRateLimiter(50, 500, 1)
-            : new RedisRateLimiter(2, 100, 1);
+        log.info("Authenticated Rate Limiter: replenishRate={}, burstCapacity={}", authenticatedReplenishRate, authenticatedBurstCapacity);
+        return new RedisRateLimiter(authenticatedReplenishRate, authenticatedBurstCapacity, 1);
     }
 
     /**
      * 비인증 사용자용 제한적인 Rate Limiter
-     *
-     * replenishRate: 1 req/sec (지속 속도)
-     * burstCapacity: 30 (버스트 허용, 지속적으로는 초당 1회)
      */
     @Bean
     public RedisRateLimiter unauthenticatedRedisRateLimiter() {
-        return isRelaxedRateLimiting
-            ? new RedisRateLimiter(50, 200, 1)
-            : new RedisRateLimiter(1, 30, 1);
+        log.info("Unauthenticated Rate Limiter: replenishRate={}, burstCapacity={}", unauthenticatedReplenishRate, unauthenticatedBurstCapacity);
+        return new RedisRateLimiter(unauthenticatedReplenishRate, unauthenticatedBurstCapacity, 1);
     }
 }
