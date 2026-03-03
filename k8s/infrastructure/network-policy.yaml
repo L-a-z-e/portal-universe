@@ -96,7 +96,10 @@ spec:
               - 192.168.0.0/16
 
 ---
-# 5. K8s API 접근 허용: api-gateway가 Health Aggregation을 위해 K8s API에 접근할 수 있도록 합니다.
+# 5. K8s API 접근 허용: api-gateway(Health Aggregation)와 prometheus(kubernetes_sd_configs)가
+#    K8s API에 접근할 수 있도록 합니다.
+#    ClusterIP(10.96.0.1:443)는 kube-proxy DNAT 후 실제 endpoint(172.18.0.0/16:6443)로
+#    변환되므로, CNI NetworkPolicy 평가 시점에서 두 가지 모두 허용해야 합니다.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -104,14 +107,26 @@ metadata:
   namespace: portal-universe
 spec:
   podSelector:
-    matchLabels:
-      app: api-gateway
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - api-gateway
+          - prometheus
   policyTypes:
     - Egress
   egress:
+    # ClusterIP 경유 (DNAT 전)
     - to:
         - ipBlock:
             cidr: 10.96.0.1/32
       ports:
         - protocol: TCP
           port: 443
+    # Kind 노드 네트워크의 실제 API server endpoint (DNAT 후)
+    - to:
+        - ipBlock:
+            cidr: 172.18.0.0/16
+      ports:
+        - protocol: TCP
+          port: 6443

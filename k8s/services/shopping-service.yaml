@@ -51,10 +51,10 @@ spec:
           resources:
             requests:
               cpu: "100m"
-              memory: "256Mi"
+              memory: "512Mi"
             limits:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "1Gi"
           # Startup Probe: 컨테이너가 시작될 때, 애플리케이션이 완전히 구동될 때까지 기다립니다.
           startupProbe:
             httpGet:

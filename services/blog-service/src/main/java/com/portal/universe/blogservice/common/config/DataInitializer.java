@@ -53,7 +53,7 @@ public class DataInitializer {
 
     @Bean
     @Order(1)
-    @Profile({"local", "docker"})
+    @Profile({"local", "docker", "kubernetes"})
     public CommandLineRunner initBlogData() {
         return args -> {
             if (postRepository.count() > 0) {

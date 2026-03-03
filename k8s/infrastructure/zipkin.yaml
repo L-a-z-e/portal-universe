@@ -34,10 +34,10 @@ spec:
           # 컨테이너가 사용할 최소/최대 리소스를 설정합니다.
           resources:
             requests:
-              memory: "128Mi"
+              memory: "256Mi"
               cpu: "100m"
             limits:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "250m"
           # Liveness Probe: Pod가 살아있는지 확인합니다.
           livenessProbe:
