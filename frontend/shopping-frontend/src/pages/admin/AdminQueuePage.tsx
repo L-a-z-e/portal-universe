@@ -6,8 +6,10 @@ import React, { useState } from 'react'
 import { useActivateQueue, useDeactivateQueue, useProcessQueue } from '@/hooks/useAdminQueue'
 import { Button, Input, Alert, Select } from '@portal/design-react'
 import type { SelectOption } from '@portal/design-core'
+import { useConfirm } from '@/hooks/useConfirm'
 
 const AdminQueuePage: React.FC = () => {
+  const { confirm, ConfirmDialogPortal } = useConfirm()
   const [eventType, setEventType] = useState('TIME_DEAL')
   const [eventId, setEventId] = useState('')
   const [maxCapacity, setMaxCapacity] = useState('100')
@@ -39,7 +41,7 @@ const AdminQueuePage: React.FC = () => {
 
   const handleDeactivate = async () => {
     if (!isValidInput) return
-    if (!confirm('Are you sure you want to deactivate this queue?')) return
+    if (!await confirm({ message: 'Are you sure you want to deactivate this queue?', variant: 'danger', confirmText: 'Deactivate' })) return
     setMessage(null)
     try {
       await deactivateMutation.mutateAsync(eventType, eventIdNum)
@@ -181,6 +183,7 @@ const AdminQueuePage: React.FC = () => {
           <li><strong>Deactivate</strong>: Stop the queue and remove all waiting entries</li>
         </ul>
       </div>
+      <ConfirmDialogPortal />
     </div>
   )
 }

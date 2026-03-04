@@ -56,7 +56,7 @@ public class CouponServiceImpl implements CouponService {
 
         validateCouponForIssue(coupon);
 
-        // Lua Script를 통한 원자적 발급
+        // Phase 1: Redis Lua Script — 원자적 재고 확보 + 중복 검증
         Long result = couponRedisService.issueCoupon(couponId, userId, coupon.getTotalQuantity());
 
         if (result == -1) {
@@ -66,32 +66,42 @@ public class CouponServiceImpl implements CouponService {
             throw new CustomBusinessException(ShoppingErrorCode.COUPON_EXHAUSTED);
         }
 
-        // DB에 발급 기록 저장
-        UserCoupon userCoupon = UserCoupon.builder()
-                .userId(userId)
-                .coupon(coupon)
-                .expiresAt(coupon.getExpiresAt())
-                .build();
+        // Phase 2: DB 영속화 (실패 시 Redis 원자적 보상)
+        try {
+            UserCoupon userCoupon = UserCoupon.builder()
+                    .userId(userId)
+                    .coupon(coupon)
+                    .expiresAt(coupon.getExpiresAt())
+                    .build();
 
-        UserCoupon savedUserCoupon = userCouponRepository.save(userCoupon);
+            UserCoupon savedUserCoupon = userCouponRepository.save(userCoupon);
 
-        // 쿠폰 발급 수량 원자적 증가 (Lost Update 방지, EXHAUSTED 자동 전환 포함)
-        couponRepository.incrementIssuedQuantity(couponId);
+            couponRepository.incrementIssuedQuantity(couponId);
 
-        log.info("Issued coupon: couponId={}, userId={}, userCouponId={}",
-                couponId, userId, savedUserCoupon.getId());
+            log.info("Issued coupon: couponId={}, userId={}, userCouponId={}",
+                    couponId, userId, savedUserCoupon.getId());
 
-        // 쿠폰 발급 이벤트 발행
-        eventPublisher.publishCouponIssued(CouponIssuedEvent.newBuilder()
-                .setUserId(userId)
-                .setCouponCode(coupon.getCode())
-                .setCouponName(coupon.getName())
-                .setDiscountType(coupon.getDiscountType().name())
-                .setDiscountValue(coupon.getDiscountValue().intValue())
-                .setExpiresAt(coupon.getExpiresAt())
-                .build());
+            eventPublisher.publishCouponIssued(CouponIssuedEvent.newBuilder()
+                    .setUserId(userId)
+                    .setCouponCode(coupon.getCode())
+                    .setCouponName(coupon.getName())
+                    .setDiscountType(coupon.getDiscountType().name())
+                    .setDiscountValue(coupon.getDiscountValue().intValue())
+                    .setExpiresAt(coupon.getExpiresAt())
+                    .build());
 
-        return UserCouponResponse.from(savedUserCoupon);
+            return UserCouponResponse.from(savedUserCoupon);
+
+        } catch (Exception e) {
+            // Phase 3: Lua 원자적 보상 — 재고 복원 + 발급 기록 제거
+            try {
+                couponRedisService.rollbackIssuance(couponId, userId);
+            } catch (Exception rollbackEx) {
+                log.error("Redis rollback failed, reconciliation scheduler will fix: couponId={}, userId={}",
+                        couponId, userId, rollbackEx);
+            }
+            throw e;
+        }
     }
 
     private void validateCouponForIssue(Coupon coupon) {

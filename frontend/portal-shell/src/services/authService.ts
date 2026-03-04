@@ -70,7 +70,6 @@ class AuthenticationService {
     const apiBase = getApiBaseUrl();
 
     try {
-      console.log('[Auth] Attempting login:', email);
 
       const response = await fetch(`${apiBase}/auth-service/api/v1/auth/login`, {
         method: 'POST',
@@ -94,7 +93,6 @@ class AuthenticationService {
       window.__PORTAL_ACCESS_TOKEN__ = data.accessToken;
       window.__PORTAL_GET_ACCESS_TOKEN__ = () => this.accessToken;
 
-      console.log('[Auth] Login successful');
       return data;
     } catch (error) {
       console.error('[Auth] Login error:', error);
@@ -109,7 +107,6 @@ class AuthenticationService {
     const apiBase = getApiBaseUrl();
     const redirectUrl = `${apiBase}/auth-service/oauth2/authorization/${provider}`;
 
-    console.log(`[Auth] Redirecting to ${provider} login:`, redirectUrl);
     window.location.href = redirectUrl;
   }
 
@@ -136,7 +133,6 @@ class AuthenticationService {
     const apiBase = getApiBaseUrl();
 
     try {
-      console.log('[Auth] Refreshing access token...');
 
       const response = await fetch(`${apiBase}/auth-service/api/v1/auth/refresh`, {
         method: 'POST',
@@ -155,7 +151,6 @@ class AuthenticationService {
       this.hasRefreshToken = true;
       window.__PORTAL_ACCESS_TOKEN__ = data.accessToken;
 
-      console.log('[Auth] Token refreshed successfully');
       return data.accessToken;
     } catch (error) {
       console.error('[Auth] Token refresh error:', error);
@@ -172,7 +167,6 @@ class AuthenticationService {
     const apiBase = getApiBaseUrl();
 
     try {
-      console.log('[Auth] Logging out...');
 
       if (this.accessToken) {
         await fetch(`${apiBase}/auth-service/api/v1/auth/logout`, {
@@ -187,7 +181,6 @@ class AuthenticationService {
         });
       }
 
-      console.log('[Auth] Logout successful');
     } finally {
       // Always clear tokens locally
       this.clearTokens();
@@ -313,7 +306,6 @@ class AuthenticationService {
       } catch (error) {
         // If no cookie exists, refresh will fail silently on page load
         if (this.accessToken === null) {
-          console.log('[Auth] No refresh cookie available');
           return;
         }
         console.error('Auto-refresh failed:', error);

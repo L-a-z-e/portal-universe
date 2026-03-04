@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import type { TabsProps, TabsEmits, TabItem } from './Tabs.types';
 
 const props = withDefaults(defineProps<TabsProps>(), {
-  variant: 'default',
+  variant: 'underline',
   size: 'md',
   fullWidth: false,
 });
@@ -12,66 +12,37 @@ const emit = defineEmits<TabsEmits>();
 
 const tablistRef = ref<HTMLDivElement | null>(null);
 
-import { tabsSizes } from '@portal/design-core';
+import { tabsBase, tabsVariants, tabsItemBase, tabsItemVariants, tabsSizes } from '@portal/design-core';
 
 const containerClasses = computed(() => {
-  const base = ['flex'];
-
-  if (props.variant === 'default') {
-    base.push('border-b border-border-default');
-  } else if (props.variant === 'pills') {
-    base.push('gap-1 p-1 bg-bg-muted rounded-lg');
-  } else if (props.variant === 'underline') {
-    base.push('border-b-2 border-border-default');
-  }
+  const classes = [tabsBase, tabsVariants[props.variant]];
 
   if (props.fullWidth) {
-    base.push('w-full');
+    classes.push('w-full');
   }
 
-  return base;
+  return classes;
 });
 
 const getTabClasses = (tab: TabItem) => {
   const isActive = props.modelValue === tab.value;
-  const base = [
-    'relative inline-flex items-center justify-center font-medium transition-all duration-200',
+  const variantStyles = tabsItemVariants[props.variant];
+  const classes = [
+    tabsItemBase,
     'focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:ring-offset-2',
     tabsSizes[props.size],
+    isActive ? variantStyles.active : variantStyles.inactive,
   ];
 
   if (props.fullWidth) {
-    base.push('flex-1');
+    classes.push('flex-1');
   }
 
   if (tab.disabled) {
-    base.push('cursor-not-allowed opacity-50');
-  } else {
-    base.push('cursor-pointer');
+    classes.push('cursor-not-allowed opacity-50');
   }
 
-  if (props.variant === 'default') {
-    base.push(
-      isActive
-        ? 'text-brand-primary border-b-2 border-brand-primary -mb-px'
-        : 'text-text-muted hover:text-text-body border-b-2 border-transparent -mb-px'
-    );
-  } else if (props.variant === 'pills') {
-    base.push(
-      'rounded-md',
-      isActive
-        ? 'bg-bg-elevated text-text-heading shadow-sm'
-        : 'text-text-muted hover:text-text-body hover:bg-bg-hover'
-    );
-  } else if (props.variant === 'underline') {
-    base.push(
-      isActive
-        ? 'text-brand-primary border-b-2 border-brand-primary -mb-0.5'
-        : 'text-text-muted hover:text-text-body border-b-2 border-transparent -mb-0.5'
-    );
-  }
-
-  return base;
+  return classes;
 };
 
 const selectTab = (tab: TabItem) => {

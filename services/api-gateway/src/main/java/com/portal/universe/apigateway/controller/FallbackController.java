@@ -64,4 +64,9 @@ public class FallbackController {
     public Mono<ResponseEntity<Map<String, Object>>> chatbotServiceFallback() {
         return Mono.just(GatewayErrorResponse.of(GatewayErrorCode.CHATBOT_SERVICE_UNAVAILABLE));
     }
+
+    @RequestMapping(value = "/fallback/payment", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Map<String, Object>>> paymentServiceFallback() {
+        return Mono.just(GatewayErrorResponse.of(GatewayErrorCode.PAYMENT_SERVICE_UNAVAILABLE));
+    }
 }

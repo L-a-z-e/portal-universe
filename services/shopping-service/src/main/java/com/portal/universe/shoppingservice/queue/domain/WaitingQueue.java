@@ -58,6 +58,12 @@ public class WaitingQueue {
         this.createdAt = Instant.now();
     }
 
+    public void updateConfig(Integer maxCapacity, Integer entryBatchSize, Integer entryIntervalSeconds) {
+        this.maxCapacity = maxCapacity;
+        this.entryBatchSize = entryBatchSize;
+        this.entryIntervalSeconds = entryIntervalSeconds;
+    }
+
     public void activate() {
         this.isActive = true;
         this.activatedAt = Instant.now();

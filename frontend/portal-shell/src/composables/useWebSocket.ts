@@ -41,19 +41,16 @@ export function useWebSocket() {
   async function connect() {
     // Skip if already connected
     if (clientInstance?.active) {
-      console.log('[WebSocket] Already connected')
       isConnected.value = true
       return
     }
 
     // Skip if not authenticated
     if (!authStore.isAuthenticated || !authStore.user?.profile.sub) {
-      console.log('[WebSocket] Not authenticated, skipping connection')
       return
     }
 
     const userId = authStore.user.profile.sub
-    console.log('[WebSocket] Connecting...', { userId })
 
     clientInstance = new Client({
       // Use SockJS as WebSocket factory
@@ -70,16 +67,11 @@ export function useWebSocket() {
         }
       },
 
-      // Debug logging (dev only)
-      debug: (str) => {
-        if (import.meta.env.DEV) {
-          console.log('[STOMP]', str)
-        }
-      },
+      // Debug logging disabled
+      debug: () => {},
 
       // On connect success
       onConnect: () => {
-        console.log('[WebSocket] Connected successfully')
         isConnected.value = true
         reconnectAttempts.value = 0
 
@@ -89,7 +81,6 @@ export function useWebSocket() {
 
       // On disconnect
       onDisconnect: () => {
-        console.log('[WebSocket] Disconnected')
         isConnected.value = false
         subscriptionInstance = null
       },
@@ -118,14 +109,12 @@ export function useWebSocket() {
     if (!clientInstance) return
 
     const destination = `/user/${userId}/queue/notifications`
-    console.log('[WebSocket] Subscribing to:', destination)
 
     subscriptionInstance = clientInstance.subscribe(
       destination,
       (message: IMessage) => {
         try {
           const notification: Notification = JSON.parse(message.body)
-          console.log('[WebSocket] Received notification:', notification)
 
           // Check for duplicate before adding
           const existingNotifications = notificationStore.notifications
@@ -150,7 +139,6 @@ export function useWebSocket() {
 
     if (clientInstance?.active) {
       clientInstance.deactivate()
-      console.log('[WebSocket] Disconnected')
     }
 
     clientInstance = null

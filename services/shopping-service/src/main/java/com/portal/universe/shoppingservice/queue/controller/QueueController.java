@@ -25,6 +25,16 @@ public class QueueController {
 
     private final QueueService queueService;
 
+    @GetMapping("/{eventType}/{eventId}/check")
+    @Operation(summary = "대기열 활성 여부 확인", description = "해당 이벤트의 대기열이 활성화되어 있는지 확인합니다")
+    public ResponseEntity<ApiResponse<Boolean>> checkQueueActive(
+            @PathVariable String eventType,
+            @PathVariable Long eventId
+    ) {
+        boolean isActive = queueService.isQueueActive(eventType, eventId);
+        return ResponseEntity.ok(ApiResponse.success(isActive));
+    }
+
     @PostMapping("/{eventType}/{eventId}/enter")
     @Operation(summary = "대기열 진입", description = "이벤트 대기열에 진입합니다")
     public ResponseEntity<ApiResponse<QueueStatusResponse>> enterQueue(

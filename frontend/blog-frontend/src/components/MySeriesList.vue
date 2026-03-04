@@ -5,7 +5,7 @@ import { getMySeries, createSeries, updateSeries, deleteSeries, getSeriesPosts, 
 import { getMyPosts } from '@/api/posts'
 import type { SeriesListResponse, SeriesCreateRequest, SeriesUpdateRequest } from '@/dto/series'
 import type { PostSummaryResponse } from '@/dto/post'
-import { Button, Card, Input, Textarea, Modal } from '@portal/design-vue'
+import { Button, Card, Input, Textarea, Modal, Spinner } from '@portal/design-vue'
 
 const router = useRouter()
 
@@ -212,7 +212,7 @@ onMounted(() => fetchSeries())
 
     <!-- Loading -->
     <div v-if="loading && seriesList.length === 0" class="loading-state">
-      <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+      <Spinner size="md" />
     </div>
 
     <!-- Empty State -->
@@ -318,7 +318,7 @@ onMounted(() => fetchSeries())
       @close="closePostsModal"
     >
       <div v-if="postsLoading" class="posts-loading">
-        <div class="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+        <Spinner size="md" />
       </div>
 
       <div v-else class="posts-manage">

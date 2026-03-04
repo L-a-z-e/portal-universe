@@ -9,6 +9,7 @@ import { COUPON_STATUS_LABELS, DISCOUNT_TYPE_LABELS } from '@/types'
 import type { Coupon } from '@/types'
 import { Button, Card, Badge, Spinner, Table, useApiError, useToast } from '@portal/design-react'
 import type { TableColumn } from '@portal/design-core'
+import { useConfirm } from '@/hooks/useConfirm'
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -25,12 +26,13 @@ function formatPrice(price: number): string {
 export function AdminCouponListPage() {
   const { handleError } = useApiError()
   const { success } = useToast()
+  const { confirm, ConfirmDialogPortal } = useConfirm()
   const [page, setPage] = useState(1)
   const { data, isLoading, error, refetch } = useAdminCoupons({ page, size: 10 })
   const { mutateAsync: deactivateCoupon, isPending: isDeactivating } = useDeactivateCoupon()
 
   const handleDeactivate = async (id: number, name: string) => {
-    if (!confirm(`"${name}" 쿠폰을 비활성화하시겠습니까?`)) return
+    if (!await confirm({ message: `"${name}" 쿠폰을 비활성화하시겠습니까?`, variant: 'danger', confirmText: '비활성화' })) return
 
     try {
       await deactivateCoupon(id)
@@ -172,6 +174,7 @@ export function AdminCouponListPage() {
           )}
         </>
       )}
+      <ConfirmDialogPortal />
     </div>
   )
 }

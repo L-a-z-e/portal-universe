@@ -9,7 +9,6 @@ import { setupErrorHandler } from '@portal/design-vue';
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 
 if (isEmbedded) {
-  console.log('[Admin] Waiting for Portal Shell to mount...');
 } else {
   console.group('[Admin] Starting in STANDALONE mode');
 
@@ -31,7 +30,6 @@ if (isEmbedded) {
     app.use(router);
     app.mount(appElement);
 
-    console.log('[Admin] Mounted successfully');
   } catch (err) {
     console.error('[Admin] Mount failed:', err);
   }

@@ -1,12 +1,10 @@
-import type { FormSize } from '../types/common';
-
-export type TabsVariant = 'underline' | 'pill' | 'boxed';
+import type { FormSize, TabVariant } from '../types/common';
 
 export const tabsBase = [
   'flex',
 ].join(' ');
 
-export const tabsVariants: Record<TabsVariant, string> = {
+export const tabsVariants: Record<TabVariant, string> = {
   underline: [
     'border-b border-border-default',
     'gap-0',
@@ -30,7 +28,7 @@ export const tabsItemBase = [
   'whitespace-nowrap',
 ].join(' ');
 
-export const tabsItemVariants: Record<TabsVariant, { active: string; inactive: string }> = {
+export const tabsItemVariants: Record<TabVariant, { active: string; inactive: string }> = {
   underline: {
     active: [
       'text-text-heading',

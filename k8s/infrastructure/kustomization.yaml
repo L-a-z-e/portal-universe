@@ -12,6 +12,7 @@ resources:
 
   # Message Queue & Cache
   - kafka.yaml
+  - schema-registry.yaml
   - redis.yaml
   - elasticsearch.yaml
 
@@ -22,7 +23,10 @@ resources:
   - zipkin.yaml
   - prometheus.yaml
   - grafana.yaml
+  - grafana-provisioning.yaml
+  - grafana-dashboards.yaml
 
   # Network & Ingress
   - network-policy.yaml
   - ingress.yaml
+  - ingress-zipkin.yaml

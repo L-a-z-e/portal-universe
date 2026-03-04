@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Spinner, Button, Table } from '@portal/design-vue'
+import { Spinner, Button, Table, Card } from '@portal/design-vue'
 import type { TableColumn } from '@portal/design-core'
 import { getBlogStats, getCategoryStats, getPopularTags, getAuthorStats } from '@/api/posts'
 import type { BlogStats, CategoryStats, TagStatsResponse, AuthorStats } from '@/types'
@@ -120,22 +120,22 @@ onMounted(() => {
         <section v-if="blogStats">
           <h2 class="text-lg font-semibold text-text-heading mb-4">전체 통계</h2>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div class="p-4 rounded-lg bg-bg-elevated border border-border-default">
+            <Card variant="elevated" padding="md">
               <p class="text-xs text-text-meta mb-1">총 게시글</p>
               <p class="text-2xl font-bold text-text-heading">{{ formatNumber(blogStats.totalPosts) }}</p>
-            </div>
-            <div class="p-4 rounded-lg bg-bg-elevated border border-border-default">
+            </Card>
+            <Card variant="elevated" padding="md">
               <p class="text-xs text-text-meta mb-1">발행됨</p>
               <p class="text-2xl font-bold text-text-heading">{{ formatNumber(blogStats.publishedPosts) }}</p>
-            </div>
-            <div class="p-4 rounded-lg bg-bg-elevated border border-border-default">
+            </Card>
+            <Card variant="elevated" padding="md">
               <p class="text-xs text-text-meta mb-1">총 조회수</p>
               <p class="text-2xl font-bold text-text-heading">{{ formatNumber(blogStats.totalViews) }}</p>
-            </div>
-            <div class="p-4 rounded-lg bg-bg-elevated border border-border-default">
+            </Card>
+            <Card variant="elevated" padding="md">
               <p class="text-xs text-text-meta mb-1">총 좋아요</p>
               <p class="text-2xl font-bold text-text-heading">{{ formatNumber(blogStats.totalLikes) }}</p>
-            </div>
+            </Card>
           </div>
         </section>
 
@@ -143,22 +143,22 @@ onMounted(() => {
         <section v-if="isAuthenticated && authorStats">
           <h2 class="text-lg font-semibold text-text-heading mb-4">내 통계</h2>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div class="p-4 rounded-lg bg-brand-primary/5 border border-brand-primary/20">
+            <Card variant="outlined" padding="md" class="bg-brand-primary/5 !border-brand-primary/20">
               <p class="text-xs text-text-meta mb-1">내 게시글</p>
               <p class="text-2xl font-bold text-brand-primary">{{ formatNumber(authorStats.totalPosts) }}</p>
-            </div>
-            <div class="p-4 rounded-lg bg-brand-primary/5 border border-brand-primary/20">
+            </Card>
+            <Card variant="outlined" padding="md" class="bg-brand-primary/5 !border-brand-primary/20">
               <p class="text-xs text-text-meta mb-1">발행됨</p>
               <p class="text-2xl font-bold text-brand-primary">{{ formatNumber(authorStats.publishedPosts) }}</p>
-            </div>
-            <div class="p-4 rounded-lg bg-brand-primary/5 border border-brand-primary/20">
+            </Card>
+            <Card variant="outlined" padding="md" class="bg-brand-primary/5 !border-brand-primary/20">
               <p class="text-xs text-text-meta mb-1">내 조회수</p>
               <p class="text-2xl font-bold text-brand-primary">{{ formatNumber(authorStats.totalViews) }}</p>
-            </div>
-            <div class="p-4 rounded-lg bg-brand-primary/5 border border-brand-primary/20">
+            </Card>
+            <Card variant="outlined" padding="md" class="bg-brand-primary/5 !border-brand-primary/20">
               <p class="text-xs text-text-meta mb-1">내 좋아요</p>
               <p class="text-2xl font-bold text-brand-primary">{{ formatNumber(authorStats.totalLikes) }}</p>
-            </div>
+            </Card>
           </div>
           <div class="flex gap-6 mt-3 text-xs text-text-meta">
             <span>첫 게시글: <strong class="text-text-body">{{ formatDate(authorStats.firstPostDate) }}</strong></span>

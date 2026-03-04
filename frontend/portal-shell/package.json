@@ -13,6 +13,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.1.1",
     "@portal/design-core": "*",
     "@portal/design-vue": "*",
     "@stomp/stompjs": "^7.3.0",

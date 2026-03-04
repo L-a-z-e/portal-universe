@@ -95,6 +95,9 @@ CLAUDE.md
 /docs/learning/mentor-desktop-prompt.md
 /docs/learning/learner-profile.md
 
+# TypeScript build cache
+*.tsbuildinfo
+
 # Python
 __pycache__/
 *.py[cod]

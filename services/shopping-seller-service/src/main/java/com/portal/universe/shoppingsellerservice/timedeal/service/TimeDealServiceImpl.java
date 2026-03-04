@@ -5,6 +5,7 @@ import com.portal.universe.event.seller.TimeDealCancelledEvent;
 import com.portal.universe.event.seller.TimeDealCreatedEvent;
 import com.portal.universe.event.seller.TimeDealProductInfo;
 import com.portal.universe.shoppingsellerservice.common.exception.SellerErrorCode;
+import com.portal.universe.shoppingsellerservice.product.domain.Product;
 import com.portal.universe.shoppingsellerservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingsellerservice.timedeal.domain.TimeDeal;
 import com.portal.universe.shoppingsellerservice.timedeal.domain.TimeDealProduct;
@@ -20,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,9 +41,17 @@ public class TimeDealServiceImpl implements TimeDealService {
             throw new CustomBusinessException(SellerErrorCode.TIMEDEAL_INVALID_PERIOD);
         }
 
+        List<Long> productIds = request.products().stream()
+                .map(TimeDealCreateRequest.TimeDealProductItem::productId)
+                .toList();
+        Map<Long, Product> productMap = productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
         for (TimeDealCreateRequest.TimeDealProductItem item : request.products()) {
-            var product = productRepository.findById(item.productId())
-                    .orElseThrow(() -> new CustomBusinessException(SellerErrorCode.TIMEDEAL_PRODUCT_NOT_FOUND));
+            var product = productMap.get(item.productId());
+            if (product == null) {
+                throw new CustomBusinessException(SellerErrorCode.TIMEDEAL_PRODUCT_NOT_FOUND);
+            }
             if (!product.getSellerId().equals(sellerId)) {
                 throw new CustomBusinessException(SellerErrorCode.PRODUCT_NOT_OWNED);
             }

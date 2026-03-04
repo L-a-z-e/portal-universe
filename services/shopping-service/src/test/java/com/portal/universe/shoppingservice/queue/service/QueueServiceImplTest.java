@@ -7,22 +7,22 @@ import com.portal.universe.shoppingservice.queue.domain.WaitingQueue;
 import com.portal.universe.shoppingservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingservice.queue.repository.QueueEntryRepository;
 import com.portal.universe.shoppingservice.queue.repository.WaitingQueueRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,10 +45,15 @@ class QueueServiceImplTest {
     private ZSetOperations<String, String> zSetOperations;
 
     @Mock
-    private SetOperations<String, String> setOperations;
+    private DefaultRedisScript<List> queueProcessScript;
 
-    @InjectMocks
     private QueueServiceImpl queueService;
+
+    @BeforeEach
+    void setUp() {
+        queueService = new QueueServiceImpl(
+                waitingQueueRepository, queueEntryRepository, redisTemplate, queueProcessScript);
+    }
 
     private WaitingQueue createWaitingQueue(Long id, String eventType, Long eventId,
                                              int maxCapacity, int batchSize, int intervalSec, boolean active) {
@@ -288,23 +293,19 @@ class QueueServiceImplTest {
     class ProcessEntries {
 
         @Test
-        @DisplayName("should_processEntries_when_slotsAvailable")
-        void should_processEntries_when_slotsAvailable() {
+        @DisplayName("should_processEntries_atomically_via_lua_script")
+        void should_processEntries_atomically_via_lua_script() {
             // given
             WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
             QueueEntry entry = createQueueEntry(1L, queue, "user1", QueueStatus.WAITING);
 
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
-            when(redisTemplate.opsForSet()).thenReturn(setOperations);
-            when(setOperations.size(anyString())).thenReturn(5L);
-            when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
-            when(zSetOperations.zCard(anyString())).thenReturn(1L);
 
-            @SuppressWarnings("unchecked")
-            ZSetOperations.TypedTuple<String> tuple = mock(ZSetOperations.TypedTuple.class);
-            when(tuple.getValue()).thenReturn(entry.getEntryToken());
-            when(zSetOperations.popMin(anyString(), anyLong())).thenReturn(Set.of(tuple));
+            // Lua Script가 입장 처리된 토큰 목록 반환
+            List<String> processedTokens = List.of(entry.getEntryToken());
+            when(redisTemplate.execute(eq(queueProcessScript), anyList(), any(), any()))
+                    .thenReturn(processedTokens);
 
             when(queueEntryRepository.findByEntryToken(entry.getEntryToken()))
                     .thenReturn(Optional.of(entry));
@@ -313,8 +314,29 @@ class QueueServiceImplTest {
             queueService.processEntries("TIMEDEAL", 100L);
 
             // then
+            verify(redisTemplate).execute(
+                    eq(queueProcessScript),
+                    eq(Arrays.asList("queue:entered:TIMEDEAL:100", "queue:waiting:TIMEDEAL:100")),
+                    eq("50"), eq("10"));
             verify(queueEntryRepository).save(any(QueueEntry.class));
-            verify(setOperations).add(anyString(), anyString());
+        }
+
+        @Test
+        @DisplayName("should_notProcess_when_luaReturnsEmpty")
+        void should_notProcess_when_luaReturnsEmpty() {
+            // given
+            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
+
+            when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
+                    .thenReturn(Optional.of(queue));
+            when(redisTemplate.execute(eq(queueProcessScript), anyList(), any(), any()))
+                    .thenReturn(Collections.emptyList());
+
+            // when
+            queueService.processEntries("TIMEDEAL", 100L);
+
+            // then
+            verify(queueEntryRepository, never()).save(any(QueueEntry.class));
         }
 
         @Test
@@ -329,6 +351,40 @@ class QueueServiceImplTest {
 
             // then
             verify(queueEntryRepository, never()).save(any(QueueEntry.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("isQueueActive")
+    class IsQueueActive {
+
+        @Test
+        @DisplayName("should_returnTrue_when_activeQueueExists")
+        void should_returnTrue_when_activeQueueExists() {
+            // given
+            WaitingQueue queue = createWaitingQueue(1L, "COUPON", 5L, 100, 20, 10, true);
+            when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("COUPON", 5L))
+                    .thenReturn(Optional.of(queue));
+
+            // when
+            boolean result = queueService.isQueueActive("COUPON", 5L);
+
+            // then
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        @DisplayName("should_returnFalse_when_noActiveQueue")
+        void should_returnFalse_when_noActiveQueue() {
+            // given
+            when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("COUPON", 5L))
+                    .thenReturn(Optional.empty());
+
+            // when
+            boolean result = queueService.isQueueActive("COUPON", 5L);
+
+            // then
+            assertThat(result).isFalse();
         }
     }
 

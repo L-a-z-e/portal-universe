@@ -92,7 +92,6 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        console.log('[API Client] 401 detected, attempting token refresh...');
         const newToken = await authService.refresh();
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return apiClient.request(originalRequest);

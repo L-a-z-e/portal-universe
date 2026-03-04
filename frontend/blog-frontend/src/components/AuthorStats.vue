@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { Spinner } from '@portal/design-vue';
+import { Spinner, Card } from '@portal/design-vue';
 import { getAuthorStats } from '@/api/posts';
 import type { AuthorStats } from '@/dto/post';
 
@@ -59,25 +59,25 @@ watch(() => props.authorId, fetchStats);
     <template v-else-if="stats">
       <div class="grid grid-cols-2 gap-4 mb-8">
         <!-- 총 게시글 -->
-        <div class="p-5 rounded-xl border border-border-default bg-bg-card">
+        <Card variant="outlined" padding="md">
           <p class="text-xs text-text-meta mb-1">총 게시글</p>
           <p class="text-2xl font-bold text-text-heading">{{ formatNumber(stats.totalPosts) }}</p>
-        </div>
+        </Card>
         <!-- 발행됨 -->
-        <div class="p-5 rounded-xl border border-border-default bg-bg-card">
+        <Card variant="outlined" padding="md">
           <p class="text-xs text-text-meta mb-1">발행됨</p>
           <p class="text-2xl font-bold text-brand-primary">{{ formatNumber(stats.publishedPosts) }}</p>
-        </div>
+        </Card>
         <!-- 총 조회수 -->
-        <div class="p-5 rounded-xl border border-border-default bg-bg-card">
+        <Card variant="outlined" padding="md">
           <p class="text-xs text-text-meta mb-1">총 조회수</p>
           <p class="text-2xl font-bold text-text-heading">{{ formatNumber(stats.totalViews) }}</p>
-        </div>
+        </Card>
         <!-- 총 좋아요 -->
-        <div class="p-5 rounded-xl border border-border-default bg-bg-card">
+        <Card variant="outlined" padding="md">
           <p class="text-xs text-text-meta mb-1">총 좋아요</p>
           <p class="text-2xl font-bold text-text-heading">{{ formatNumber(stats.totalLikes) }}</p>
-        </div>
+        </Card>
       </div>
 
       <!-- 날짜 정보 -->

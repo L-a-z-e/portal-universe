@@ -4,9 +4,11 @@ import { sellerProductApi } from '@/api'
 import { Button, Table } from '@portal/design-react'
 import type { TableColumn } from '@portal/design-core'
 import type { Product } from '@/types'
+import { useConfirm } from '@/hooks/useConfirm'
 
 export const ProductListPage: React.FC = () => {
   const navigate = useNavigate()
+  const { confirm, ConfirmDialogPortal } = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -30,7 +32,7 @@ export const ProductListPage: React.FC = () => {
   }, [page])
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this product?')) return
+    if (!await confirm({ message: 'Delete this product?', variant: 'danger', confirmText: 'Delete' })) return
     try {
       await sellerProductApi.deleteProduct(id)
       setPage(1)
@@ -111,6 +113,7 @@ export const ProductListPage: React.FC = () => {
           />
         )}
       </div>
+      <ConfirmDialogPortal />
     </div>
   )
 }

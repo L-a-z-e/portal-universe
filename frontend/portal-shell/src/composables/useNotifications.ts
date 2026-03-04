@@ -30,7 +30,6 @@ export function useNotifications() {
    */
   function startPolling() {
     if (!authStore.isAuthenticated) {
-      console.log('[useNotifications] Not authenticated, skipping poll')
       return
     }
 
@@ -45,7 +44,6 @@ export function useNotifications() {
     }, POLL_INTERVAL_MS)
 
     isConnected.value = true
-    console.log('[useNotifications] Polling started')
   }
 
   /**
@@ -57,7 +55,6 @@ export function useNotifications() {
       pollInterval = null
     }
     isConnected.value = false
-    console.log('[useNotifications] Polling stopped')
   }
 
   /**

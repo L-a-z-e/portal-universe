@@ -298,10 +298,7 @@ function buildTokens() {
 
         console.log('\n🎨 Step 5: Generating CSS with Linear theme support...');
 
-        let cssContent = `/* Inter Variable Font */
-@import '@fontsource-variable/inter';
-
-@tailwind base;
+        let cssContent = `@tailwind base;
 @tailwind components;
 @tailwind utilities;
 

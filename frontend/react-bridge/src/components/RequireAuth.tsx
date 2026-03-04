@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { usePortalAuth } from '../hooks/usePortalAuth'
 import { usePortalBridge } from '../hooks/usePortalBridge'
+import { Spinner } from '@portal/design-react'
 
 interface RequireAuthProps {
   children: ReactNode
@@ -40,7 +41,7 @@ export function RequireAuth({ children, fallback, redirectTo = '/' }: RequireAut
     return <>{fallback ?? (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          <Spinner size="lg" />
           <p className="text-text-meta text-sm">Checking authentication...</p>
         </div>
       </div>

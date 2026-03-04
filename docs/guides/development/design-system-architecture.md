@@ -4,7 +4,7 @@ title: Design System Architecture - End-to-End Flow
 type: guide
 status: current
 created: 2026-01-28
-updated: 2026-01-28
+updated: 2026-03-01
 author: Laze
 tags: [guide, architecture, design-system, tokens, theming, components]
 related:
@@ -603,7 +603,7 @@ import { Button, Card, Tag, Input, Modal, Alert, Spinner } from '@portal/design-
 | | `Modal` | title, v-model |
 | **Navigation** | `Link` | href, external |
 | | `Dropdown` | items |
-| | `Tabs` | items, activeTab |
+| | `Tabs` | items, modelValue, variant(`underline`/`pill`/`boxed`), size(`sm`/`md`/`lg`), fullWidth, keyboard navigation (Arrow/Home/End) |
 | | `Breadcrumb` | items |
 | **Data** | `Badge` | variant, size |
 | | `Tag` | variant(`default`/`primary`/`success`/`error`/`warning`/`info`), size, removable, clickable |

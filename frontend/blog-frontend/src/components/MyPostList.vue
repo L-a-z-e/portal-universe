@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Button, Tag, Alert, Spinner, Tabs, useApiError } from '@portal/design-vue';
+import { Button, Tag, Alert, Spinner, Tabs, useApiError, useConfirm } from '@portal/design-vue';
 import type { TabItem } from '@portal/design-vue';
 import type { PostSummaryResponse, PostStatus } from '@/dto/post';
 import { getMyPosts, deletePost, changePostStatus } from '@/api/posts';
@@ -11,6 +11,7 @@ type FilterStatus = 'ALL' | PostStatus;
 
 const router = useRouter();
 const { handleError } = useApiError();
+const { confirm } = useConfirm();
 
 // 상태
 const posts = ref<PostSummaryResponse[]>([]);
@@ -84,7 +85,7 @@ const handleEdit = (postId: string) => {
 
 // 게시글 삭제
 const handleDelete = async (postId: string) => {
-  if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+  if (!await confirm({ message: '정말 이 게시글을 삭제하시겠습니까?', variant: 'danger', confirmText: '삭제' })) return;
 
   try {
     await deletePost(postId);

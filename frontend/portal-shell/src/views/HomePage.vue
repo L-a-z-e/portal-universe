@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button } from '@portal/design-vue';
+import { Button, Spinner } from '@portal/design-vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import MaterialIcon from '../components/MaterialIcon.vue';
@@ -179,7 +179,7 @@ function handleStartClick() {
                   <div class="w-full md:w-1/3 bg-[#0f1011] border border-[rgba(255,255,255,0.06)] rounded-xl p-6">
                     <div class="h-4 w-1/2 bg-white/10 rounded mb-6"></div>
                     <div class="flex justify-center py-8">
-                      <div class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-brand-primary/20 border-t-brand-primary animate-spin"></div>
+                      <Spinner size="lg" />
                     </div>
                   </div>
                 </div>

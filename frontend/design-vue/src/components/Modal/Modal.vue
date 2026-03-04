@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, ref, nextTick, onMounted, onUnmounted, watch } from 'vue';
 import type { ModalProps } from './Modal.types';
 
 const props = withDefaults(defineProps<ModalProps>(), {
@@ -16,6 +16,10 @@ const emit = defineEmits<{
 }>();
 
 import { modalSizes } from '@portal/design-core';
+
+const modalRef = ref<HTMLDivElement | null>(null);
+const previousActiveElement = ref<HTMLElement | null>(null);
+const titleId = `modal-title-${Math.random().toString(36).slice(2, 9)}`;
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -39,11 +43,39 @@ function handleEscape(e: KeyboardEvent) {
   }
 }
 
-watch(isOpen, (value) => {
+function trapFocus(e: KeyboardEvent) {
+  if (e.key !== 'Tab' || !modalRef.value) return;
+
+  const focusableEls = modalRef.value.querySelectorAll<HTMLElement>(
+    'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (focusableEls.length === 0) return;
+
+  const first = focusableEls[0];
+  const last = focusableEls[focusableEls.length - 1];
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+}
+
+watch(isOpen, async (value) => {
   if (value) {
+    previousActiveElement.value = document.activeElement as HTMLElement;
     document.body.style.overflow = 'hidden';
+    await nextTick();
+    const firstFocusable = modalRef.value?.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    firstFocusable?.focus();
   } else {
     document.body.style.overflow = '';
+    previousActiveElement.value?.focus();
+    previousActiveElement.value = null;
   }
 });
 
@@ -67,8 +99,12 @@ onUnmounted(() => {
     >
       <div
         v-if="isOpen"
+        role="dialog"
+        aria-modal="true"
+        :aria-labelledby="title ? titleId : undefined"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         @click.self="handleBackdropClick"
+        @keydown="trapFocus"
       >
         <Transition
           enter-active-class="transition-all duration-150 ease-out"
@@ -78,6 +114,7 @@ onUnmounted(() => {
         >
           <div
             v-if="isOpen"
+            ref="modalRef"
             :class="[
               // Linear dark mode first
               'bg-[#18191b] rounded-xl w-full',
@@ -94,7 +131,7 @@ onUnmounted(() => {
               v-if="title || showClose"
               class="flex items-center justify-between px-5 py-4 border-b border-[#2a2a2a] light:border-gray-200"
             >
-              <h3 v-if="title" class="text-lg font-semibold text-white light:text-gray-900">
+              <h3 v-if="title" :id="titleId" class="text-lg font-semibold text-white light:text-gray-900">
                 {{ title }}
               </h3>
               <button

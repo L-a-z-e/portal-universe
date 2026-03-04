@@ -31,6 +31,7 @@ public class TimeDealRedisService {
 
     private final StringRedisTemplate stringRedisTemplate;
     private final DefaultRedisScript<Long> timeDealPurchaseScript;
+    private final DefaultRedisScript<Long> timeDealRollbackScript;
 
     /**
      * 타임딜 상품 재고를 Redis에 초기화합니다. (TTL 없음)
@@ -99,17 +100,23 @@ public class TimeDealRedisService {
     }
 
     /**
-     * 재고를 롤백합니다 (구매 취소 시).
+     * Lua Script를 사용하여 원자적으로 재고를 롤백합니다 (구매 취소 시).
+     *
+     * @return 롤백 후 남은 재고 수량
      */
-    public void rollbackStock(Long timeDealId, Long productId, String userId, int quantity) {
+    public Long rollbackStock(Long timeDealId, Long productId, String userId, int quantity) {
         String stockKey = buildStockKey(timeDealId, productId);
         String purchasedKey = buildPurchasedKey(timeDealId, productId, userId);
 
-        stringRedisTemplate.opsForValue().increment(stockKey, quantity);
-        stringRedisTemplate.opsForValue().decrement(purchasedKey, quantity);
+        Long newStock = stringRedisTemplate.execute(
+                timeDealRollbackScript,
+                Arrays.asList(stockKey, purchasedKey),
+                String.valueOf(quantity)
+        );
 
-        log.info("Rolled back timedeal stock: dealId={}, productId={}, userId={}, quantity={}",
-                timeDealId, productId, userId, quantity);
+        log.info("Rolled back timedeal stock: dealId={}, productId={}, userId={}, qty={}, newStock={}",
+                timeDealId, productId, userId, quantity, newStock);
+        return newStock;
     }
 
     /**

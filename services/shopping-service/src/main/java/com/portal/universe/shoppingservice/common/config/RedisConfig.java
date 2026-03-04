@@ -87,10 +87,34 @@ public class RedisConfig {
     }
 
     @Bean
+    public DefaultRedisScript<Long> couponRollbackScript() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/coupon_rollback.lua")));
+        script.setResultType(Long.class);
+        return script;
+    }
+
+    @Bean
     public DefaultRedisScript<Long> timeDealPurchaseScript() {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/timedeal_purchase.lua")));
         script.setResultType(Long.class);
+        return script;
+    }
+
+    @Bean
+    public DefaultRedisScript<Long> timeDealRollbackScript() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/timedeal_rollback.lua")));
+        script.setResultType(Long.class);
+        return script;
+    }
+
+    @Bean
+    public DefaultRedisScript<java.util.List> queueProcessScript() {
+        DefaultRedisScript<java.util.List> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/queue_process.lua")));
+        script.setResultType(java.util.List.class);
         return script;
     }
 

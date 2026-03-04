@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { searchPostsAdvanced } from '@/api/posts';
 import type { PostSummaryResponse, PostSearchRequest, PageResponse } from '@/types';
-import { Button, Input, Tag } from '@portal/design-vue';
+import { Button, Input, Tag, Spinner } from '@portal/design-vue';
 import PostCard from '@/components/PostCard.vue';
 
 const router = useRouter();
@@ -263,7 +263,7 @@ onBeforeUnmount(() => {
 
       <!-- Loading (초기) -->
       <div v-else-if="isLoading && !isLoadingMore" class="flex justify-center py-24">
-        <div class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+        <Spinner size="md" />
       </div>
 
       <!-- Empty -->
@@ -281,7 +281,7 @@ onBeforeUnmount(() => {
 
         <!-- Infinite Scroll Trigger -->
         <div v-if="hasMore" ref="loadMoreTrigger" class="flex items-center justify-center py-12">
-          <div v-if="isLoadingMore" class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+          <Spinner v-if="isLoadingMore" size="md" />
         </div>
 
         <!-- 모두 로드 완료 -->

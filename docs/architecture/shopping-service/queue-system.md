@@ -4,7 +4,7 @@ title: Queue System Architecture
 type: architecture
 status: current
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-03-01
 author: Laze
 tags: [architecture, shopping-service, queue, redis, sse, sorted-set]
 related:
@@ -22,9 +22,9 @@ related:
 | **범위** | 이벤트 대기열 관리, 순번 추적, 실시간 상태 알림 |
 | **주요 기술** | Redis Sorted Set, SSE (SseEmitter), MySQL |
 | **배포 환경** | Shopping Service 내 Queue 도메인 |
-| **관련 서비스** | TimeDeal (대기열 연동 예정), auth-service (userId) |
+| **관련 서비스** | TimeDeal, Coupon (Queue-Coupon 연동), seller-service (Kafka 동기화), auth-service (userId) |
 
-이벤트(타임딜, 플래시세일 등)에 대한 대기열을 Redis Sorted Set으로 관리하며, SSE(Server-Sent Events)를 통해 클라이언트에 실시간 순번 업데이트를 전달합니다.
+이벤트(타임딜, 플래시세일, 쿠폰 등)에 대한 대기열을 Redis Sorted Set으로 관리하며, SSE(Server-Sent Events)를 통해 클라이언트에 실시간 순번 업데이트를 전달합니다. 대기열 설정은 seller-service에서 Kafka 이벤트로 동기화됩니다.
 
 ---
 
@@ -179,35 +179,48 @@ sequenceDiagram
 - `@PreDestroy` - 서버 종료 시 모든 연결 정리
 - Timeout: 5분 (클라이언트 재연결 필요)
 
-### 입장 처리 (Batch Admission)
+### 입장 처리 (Batch Admission — Lua Script)
+
+TOCTOU(Time-of-Check-to-Time-of-Use) Race Condition을 방지하기 위해 `queue_process.lua` Lua Script로 CHECK+POP+ADD를 원자적으로 실행합니다. `@DistributedLock`으로 멀티 Pod 동시 실행을 이중 방어합니다.
 
 ```mermaid
 sequenceDiagram
-    participant ADM as Admin / Scheduler
+    participant SCHED as QueueScheduler<br/>@DistributedLock
     participant QS as QueueService
-    participant Redis as Redis
-    participant DB as MySQL
+    participant Redis as Redis (Lua)
+    participant DB as PostgreSQL
 
-    ADM->>QS: processEntries(eventType, eventId)
-    QS->>Redis: SCARD queue:entered:{type}:{id}
-    Redis-->>QS: currentEnteredCount
+    SCHED->>QS: processEntries(eventType, eventId)
+    QS->>Redis: EVAL queue_process.lua
 
-    QS->>QS: availableSlots = maxCapacity - currentEnteredCount
-    QS->>QS: toAdmit = min(availableSlots, entryBatchSize)
+    Note over Redis: Lua 원자적 실행
+    Note over Redis: 1. SCARD entered → 현재 입장 인원
+    Note over Redis: 2. availableSlots = maxCapacity - entered
+    Note over Redis: 3. toAdmit = min(available, batchSize)
+    Note over Redis: 4. ZPOPMIN waiting toAdmit
+    Note over Redis: 5. SADD entered (각 userId)
 
-    QS->>Redis: ZPOPMIN queue:waiting:{type}:{id} toAdmit
-    Redis-->>QS: [{userId, score}, ...]
+    Redis-->>QS: admitted tokens[]
 
     loop 각 admitted user
         QS->>DB: UPDATE queue_entry SET status=ENTERED, enteredAt=now
-        QS->>Redis: SADD queue:entered:{type}:{id} {userId}
     end
 ```
 
-**입장 공식**:
+### Lua Script 상세 (`queue_process.lua`)
+
 ```
-availableSlots = maxCapacity - SCARD(entered)
-toAdmit = min(availableSlots, entryBatchSize)
+KEYS[1] = queue:entered:{eventType}:{eventId}     (Set)
+KEYS[2] = queue:waiting:{eventType}:{eventId}      (Sorted Set)
+ARGV[1] = maxCapacity
+ARGV[2] = entryBatchSize
+
+1. SCARD KEYS[1]                    → 현재 입장 인원
+2. availableSlots = max - entered   → 0이면 빈 목록 반환
+3. toAdmit = min(available, batch)
+4. ZPOPMIN KEYS[2] toAdmit          → 최전방 N명 추출
+5. SADD KEYS[1] (각 userId)         → 입장 완료 기록
+6. return admitted tokens
 ```
 
 ---
@@ -242,6 +255,39 @@ estimatedWaitSeconds = (position / entryBatchSize) * entryIntervalSeconds
 
 ---
 
+## Kafka 이벤트 동기화 (Seller → Buyer)
+
+대기열 설정은 seller-service에서 관리되고 (shopping_seller_db), buyer 조회는 shopping-service에서 수행됩니다 (shopping_db). 두 DB 간 동기화를 위해 Kafka 이벤트를 사용합니다.
+
+```mermaid
+sequenceDiagram
+    participant SS as Seller Service
+    participant K as Kafka
+    participant BS as Shopping Service
+    participant SDB as shopping_seller_db
+    participant BDB as shopping_db
+
+    SS->>SDB: queue.activate()
+    SS->>SS: ApplicationEventPublisher.publishEvent()
+    SS->>K: QueueActivatedEvent (AFTER_COMMIT)
+    K->>BS: @KafkaListener
+    BS->>BDB: waiting_queues INSERT/UPDATE + activate()
+```
+
+| 이벤트 | Topic | 설명 |
+|--------|-------|------|
+| `QueueActivatedEvent` | `seller.queue.activated` | 대기열 활성화 (maxCapacity, batchSize, interval 포함) |
+| `QueueDeactivatedEvent` | `seller.queue.deactivated` | 대기열 비활성화 |
+
+### SSE 인증 모델
+
+SSE 구독 엔드포인트는 Gateway `permitAll`로 설정되어 JWT 인증 없이 접근 가능합니다. entryToken(UUID v4) 자체가 비밀값으로서 인증 역할을 수행합니다.
+
+- **이유**: 브라우저 EventSource API가 Authorization 헤더를 지원하지 않음
+- **보안**: entryToken은 UUID v4로 추측 불가, `getQueueStatusByToken()`에서 존재 여부 검증
+
+---
+
 ## 에러 코드
 
 | 코드 | 이름 | 설명 |
@@ -266,7 +312,8 @@ estimatedWaitSeconds = (position / entryBatchSize) * entryIntervalSeconds
 | GET | `/queue/{eventType}/{eventId}/status` | 대기열 상태 조회 |
 | POST | `/queue/{eventType}/{eventId}/leave` | 대기열 이탈 |
 | GET | `/queue/token/{entryToken}/status` | 토큰으로 상태 조회 |
-| GET | `/queue/{eventType}/{eventId}/subscribe/{entryToken}` | SSE 구독 |
+| GET | `/queue/{eventType}/{eventId}/check` | 활성 여부 확인 |
+| GET | `/queue/{eventType}/{eventId}/subscribe/{entryToken}` | SSE 구독 (permitAll) |
 
 ### 관리자 API
 
@@ -286,4 +333,4 @@ estimatedWaitSeconds = (position / entryBatchSize) * entryIntervalSeconds
 
 ---
 
-**최종 업데이트**: 2026-02-06
+**최종 업데이트**: 2026-03-01

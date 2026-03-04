@@ -53,30 +53,21 @@ export function createAppBootstrap(config: AppBootstrapConfig) {
    * @returns 앱 인스턴스 (onParentNavigate, unmount, onActivated 등)
    */
   function mount(el: HTMLElement, options: MountOptions = {}): AppInstance {
-    console.group(`🚀 [${name}] Mounting app in EMBEDDED mode`);
-
     // Portal Shell에서 마운트됨을 표시
     (window as any).__POWERED_BY_PORTAL_SHELL__ = true;
 
     // 필수 파라미터 검증
     if (!el) {
-      console.error(`❌ [${name}] Mount element is null!`);
-      console.groupEnd();
       throw new Error(`[${name}] Mount element is required`);
     }
 
     // 기존 인스턴스가 있으면 정리
     const existingState = mountedAppStates.get(el);
     if (existingState) {
-      console.log(`⚠️ [${name}] Cleaning up existing instance...`);
       cleanupInstance(el, existingState);
     }
 
-    console.log('📍 Mount target:', el.tagName, el.className || '(no class)');
-
     const { initialPath = '/', onNavigate, theme = 'light' } = options;
-    console.log('📍 Initial path:', initialPath);
-    console.log('📍 Theme:', theme);
 
     try {
       // Step 1: React 루트 생성
@@ -95,7 +86,6 @@ export function createAppBootstrap(config: AppBootstrapConfig) {
         onNavigate: (path: string) => {
           const state = mountedAppStates.get(el);
           if (state?.isActive) {
-            console.log(`📍 [${name}] Route changed to: ${path}`);
             state.navigateCallback?.(path);
           }
         },
@@ -124,19 +114,15 @@ export function createAppBootstrap(config: AppBootstrapConfig) {
 
       // Step 6: data-service 속성 설정 (CSS 선택자 활성화)
       document.documentElement.setAttribute('data-service', dataService);
-      console.log(`[${name}] Set data-service="${dataService}"`);
 
       // Step 7: 초기 렌더링
       rerender();
-      console.log(`✅ [${name}] App mounted successfully`);
-      console.groupEnd();
 
       // Step 8: 앱 인스턴스 반환
       return createAppInstance(el, name, dataService, router, () => currentTheme, (t) => { currentTheme = t; });
 
     } catch (error) {
-      console.error(`❌ [${name}] Mount failed:`, error);
-      console.groupEnd();
+      console.error(`[${name}] Mount failed:`, error);
       throw error;
     }
   }
@@ -189,15 +175,12 @@ function createAppInstance(
     onParentNavigate: (path: string) => {
       const state = mountedAppStates.get(el);
       if (!state?.isActive) {
-        console.log(`⏸️ [${name}] Skipping navigation (inactive): ${path}`);
         return;
       }
-      console.log(`📥 [${name}] Received navigation from parent: ${path}`);
       router?.navigateTo(path);
     },
 
     onActivated: () => {
-      console.log(`🔄 [${name}] App activated (keep-alive)`);
       const state = mountedAppStates.get(el);
       if (state) {
         state.isActive = true;
@@ -207,7 +190,6 @@ function createAppInstance(
     },
 
     onDeactivated: () => {
-      console.log(`⏸️ [${name}] App deactivated (keep-alive)`);
       const state = mountedAppStates.get(el);
       if (state) {
         state.isActive = false;
@@ -216,7 +198,6 @@ function createAppInstance(
     },
 
     onThemeChange: (newTheme: Theme) => {
-      console.log(`🎨 [${name}] Theme changed to: ${newTheme}`);
       const state = mountedAppStates.get(el);
       if (state) {
         setTheme(newTheme);
@@ -226,7 +207,6 @@ function createAppInstance(
     },
 
     unmount: () => {
-      console.group(`🔄 [${name}] Unmounting app`);
       const state = mountedAppStates.get(el);
 
       if (state) {
@@ -240,12 +220,9 @@ function createAppInstance(
           document.documentElement.removeAttribute('data-service');
         }
         router?.resetRouter();
-        console.log(`✅ [${name}] Cleanup completed`);
       } catch (err) {
-        console.error(`❌ [${name}] Cleanup failed:`, err);
+        console.error(`[${name}] Cleanup failed:`, err);
       }
-
-      console.groupEnd();
     },
   };
 }

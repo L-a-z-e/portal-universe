@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllTags } from '../api/tags';
 import type { TagResponse } from '@/types';
-import { Input, Spinner, Button } from '@portal/design-vue';
+import { Badge, Input, Spinner, Button } from '@portal/design-vue';
 
 const router = useRouter();
 
@@ -170,9 +170,9 @@ onMounted(() => {
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 mb-1">
                 <span class="font-semibold text-text-heading group-hover:text-brand-primary transition-colors">#{{ tag.name }}</span>
-                <span class="px-2 py-0.5 bg-brand-primary/10 text-brand-primary text-xs rounded-full font-medium">
+                <Badge variant="primary" size="sm">
                   {{ tag.postCount }}
-                </span>
+                </Badge>
               </div>
               <p v-if="tag.description" class="text-sm text-text-meta line-clamp-1">
                 {{ tag.description }}

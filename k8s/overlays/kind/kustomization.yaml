@@ -14,6 +14,22 @@ resources:
   # Metrics Server (Kind용 — kubelet-insecure-tls)
   - metrics-server.yaml
 
+  # HPA (autoscaling/v2)
+  - hpa/api-gateway.yaml
+  - hpa/auth-service.yaml
+  - hpa/shopping-service.yaml
+  - hpa/shopping-seller-service.yaml
+  - hpa/payment-service.yaml
+  - hpa/portal-shell.yaml
+
+  # PDB (policy/v1)
+  - pdb/api-gateway.yaml
+  - pdb/auth-service.yaml
+  - pdb/shopping-service.yaml
+  - pdb/shopping-seller-service.yaml
+
 patches:
   - path: patches/replicas.yaml
   - path: patches/affinity.yaml
+  - path: patches/resources.yaml
+  - path: patches/rate-limiter.yaml

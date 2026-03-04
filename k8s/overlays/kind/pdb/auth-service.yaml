@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth-service-pdb
+  namespace: portal-universe
+  labels:
+    app: auth-service
+    tier: critical
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: auth-service

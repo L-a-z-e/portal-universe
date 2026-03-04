@@ -11,7 +11,7 @@ import 'prismjs/themes/prism.css';
 import 'prismjs/themes/prism-okaidia.css';
 import { getPostById, deletePost } from "../api/posts";
 import { getSeriesByPostId } from "../api/series";
-import {Button, Tag, Avatar, Card, Modal, useApiError} from "@portal/design-vue";
+import {Button, Tag, Avatar, Card, Modal, Spinner, useApiError} from "@portal/design-vue";
 import type { PostResponse } from "@/dto/post.ts";
 import LikeButton from "@/components/LikeButton.vue";
 
@@ -213,7 +213,7 @@ function handleLikeChanged(liked: boolean, count: number) {
     <div class="max-w-3xl mx-auto px-6 py-8">
       <!-- Loading -->
       <div v-if="isLoading" class="flex justify-center py-24">
-        <div class="w-8 h-8 border-2 border-border-default border-t-brand-primary rounded-full animate-spin"></div>
+        <Spinner size="md" />
       </div>
 
       <!-- Error -->

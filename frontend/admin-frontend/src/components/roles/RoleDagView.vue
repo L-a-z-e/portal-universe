@@ -58,6 +58,8 @@ watch(() => props.selectedRoleKey, () => {
   <Card variant="elevated" padding="none">
     <button
       class="w-full flex items-center justify-between p-5 text-left hover:bg-bg-hover transition-colors"
+      :aria-expanded="!collapsed"
+      aria-label="Toggle role hierarchy view"
       @click="collapsed = !collapsed"
     >
       <h3 class="text-sm font-semibold text-text-heading">Role Hierarchy (DAG)</h3>

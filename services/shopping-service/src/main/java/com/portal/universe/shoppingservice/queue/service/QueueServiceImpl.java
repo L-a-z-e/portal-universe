@@ -11,13 +11,13 @@ import com.portal.universe.shoppingservice.queue.repository.WaitingQueueReposito
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * QueueServiceImpl
@@ -31,6 +31,7 @@ public class QueueServiceImpl implements QueueService {
     private final WaitingQueueRepository waitingQueueRepository;
     private final QueueEntryRepository queueEntryRepository;
     private final StringRedisTemplate redisTemplate;
+    private final DefaultRedisScript<List> queueProcessScript;
 
     private static final String QUEUE_KEY_PREFIX = "queue:waiting:";
     private static final String ENTERED_KEY_PREFIX = "queue:entered:";
@@ -166,6 +167,7 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     @Transactional
+    @SuppressWarnings("unchecked")
     public void processEntries(String eventType, Long eventId) {
         Optional<WaitingQueue> queueOpt = waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue(eventType, eventId);
         if (queueOpt.isEmpty()) {
@@ -173,48 +175,26 @@ public class QueueServiceImpl implements QueueService {
         }
 
         WaitingQueue queue = queueOpt.get();
-        String queueKey = getQueueKey(eventType, eventId);
         String enteredKey = getEnteredKey(eventType, eventId);
+        String queueKey = getQueueKey(eventType, eventId);
 
-        // 현재 입장한 인원 확인
-        Long enteredCount = redisTemplate.opsForSet().size(enteredKey);
-        if (enteredCount == null) {
-            enteredCount = 0L;
-        }
+        // Lua Script로 CHECK+POP+ADD 원자적 실행 (TOCTOU 방지)
+        List<String> tokens = (List<String>) redisTemplate.execute(
+                queueProcessScript,
+                Arrays.asList(enteredKey, queueKey),
+                String.valueOf(queue.getMaxCapacity()),
+                String.valueOf(queue.getEntryBatchSize())
+        );
 
-        int availableSlots = queue.getMaxCapacity() - enteredCount.intValue();
-        if (availableSlots <= 0) {
-            log.debug("Queue full for {} {}, no slots available", eventType, eventId);
+        if (tokens == null || tokens.isEmpty()) {
             return;
         }
 
-        int toProcess = Math.min(availableSlots, queue.getEntryBatchSize());
-
-        // 대기열이 비어있으면 popMin 호출 생략 (Redisson 3.27.0 빈 응답 디코딩 버그 우회)
-        Long queueSize = redisTemplate.opsForZSet().zCard(queueKey);
-        if (queueSize == null || queueSize == 0) {
-            return;
-        }
-
-        // Redis에서 대기열 상위 N명 가져오기
-        Set<ZSetOperations.TypedTuple<String>> topEntries =
-            redisTemplate.opsForZSet().popMin(queueKey, toProcess);
-
-        if (topEntries == null || topEntries.isEmpty()) {
-            return;
-        }
-
-        for (ZSetOperations.TypedTuple<String> tuple : topEntries) {
-            String entryToken = tuple.getValue();
-            if (entryToken == null) continue;
-
+        // DB 상태 업데이트 (Redis 원자 연산 이후)
+        for (String entryToken : tokens) {
             queueEntryRepository.findByEntryToken(entryToken).ifPresent(entry -> {
                 entry.enter();
                 queueEntryRepository.save(entry);
-
-                // 입장 목록에 추가
-                redisTemplate.opsForSet().add(enteredKey, entryToken);
-
                 log.info("User {} entered from queue for {} {}", entry.getUserId(), eventType, eventId);
             });
         }
@@ -261,6 +241,12 @@ public class QueueServiceImpl implements QueueService {
         if (!entry.getUserId().equals(userId)) {
             throw new CustomBusinessException(ShoppingErrorCode.QUEUE_TOKEN_USER_MISMATCH);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isQueueActive(String eventType, Long eventId) {
+        return waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue(eventType, eventId).isPresent();
     }
 
     @Override

@@ -36,7 +36,9 @@ public enum GatewayErrorCode {
     PRISM_SERVICE_UNAVAILABLE("GW-F008",
             "Prism 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.", HttpStatus.SERVICE_UNAVAILABLE),
     CHATBOT_SERVICE_UNAVAILABLE("GW-F009",
-            "챗봇 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.", HttpStatus.SERVICE_UNAVAILABLE);
+            "챗봇 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.", HttpStatus.SERVICE_UNAVAILABLE),
+    PAYMENT_SERVICE_UNAVAILABLE("GW-F010",
+            "결제 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.", HttpStatus.SERVICE_UNAVAILABLE);
 
     private final String code;
     private final String message;

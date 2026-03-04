@@ -33,8 +33,6 @@ export function mountDriveApp(
     throw new Error('[Drive] Mount element is required');
   }
 
-  console.log('Mount target:', el.tagName, el.className || '(no class)');
-  console.log('Options:', options);
 
   const { initialPath, onNavigate } = options;
 
@@ -49,7 +47,6 @@ export function mountDriveApp(
   logRouterInfo(router);
 
   const targetPath = initialPath || '/';
-  console.log(`[Drive] Navigating to: ${targetPath}`);
 
   router.push(targetPath).catch(err => {
     console.error('[Drive] Initial navigation failed:', err);
@@ -57,20 +54,17 @@ export function mountDriveApp(
 
   router.afterEach((to, from) => {
     if (to.path !== from.path) {
-      console.log(`[Drive] Route changed: ${from.path} -> ${to.path}`);
       onNavigate?.(to.path);
     }
   });
 
   app.mount(el);
-  console.log('[Drive] App mounted successfully');
   console.groupEnd();
 
   return {
     router,
 
     onParentNavigate: (path: string) => {
-      console.log(`[Drive] Received navigation from parent: ${path}`);
 
       if (router.currentRoute.value.path !== path) {
         router.push(path).catch(err => {
@@ -80,12 +74,10 @@ export function mountDriveApp(
     },
 
     onActivated: () => {
-      console.log('[Drive] App activated (keep-alive)');
       document.documentElement.setAttribute('data-service', 'drive');
     },
 
     onDeactivated: () => {
-      console.log('[Drive] App deactivated (keep-alive)');
     },
 
     unmount: () => {
@@ -96,7 +88,6 @@ export function mountDriveApp(
 
       try {
         app.unmount();
-        console.log('[Drive] App unmounted successfully');
       } catch (err) {
         console.error('[Drive] App unmount failed:', err);
       }
@@ -108,7 +99,6 @@ export function mountDriveApp(
           document.documentElement.removeAttribute('data-service');
         }
 
-        console.log('[Drive] Cleanup completed');
       } catch (err) {
         console.error('[Drive] Cleanup failed:', err);
       }

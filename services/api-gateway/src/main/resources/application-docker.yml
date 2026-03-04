@@ -124,6 +124,7 @@ gateway:
       - "/api/v1/shopping/time-deals/**"
       - "/api/v1/shopping/inventory/batch"
       - "/api/v1/shopping/inventory/stream"
+      - "/api/v1/shopping/queue/*/subscribe/*"
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
       - "/api/v1/chat/health"
@@ -148,6 +149,24 @@ gateway:
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
       - "/api/v1/chat/health"
+
+# Docker 개발용 완화된 Rate Limit
+rate-limiter:
+  default:
+    replenish-rate: 50
+    burst-capacity: 200
+  strict:
+    replenish-rate: 20
+    burst-capacity: 50
+  signup:
+    replenish-rate: 20
+    burst-capacity: 50
+  authenticated:
+    replenish-rate: 50
+    burst-capacity: 500
+  unauthenticated:
+    replenish-rate: 50
+    burst-capacity: 200
 
 logging:
   level:

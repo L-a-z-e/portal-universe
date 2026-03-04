@@ -83,6 +83,28 @@ public class MongoConfig implements InitializingBean {
                         .on("productId", Sort.Direction.ASC)
         );
 
-        System.out.println("✅ MongoDB 인덱스 생성 완료");
+        System.out.println("✅ MongoDB posts 인덱스 생성 완료");
+
+        // Tags 컬렉션 인덱스
+        createTagIndexes();
+    }
+
+    private void createTagIndexes() {
+        IndexOperations tagOps = mongoTemplate.indexOps("tags");
+
+        // 1. 인기 태그 조회: postCount DESC (ESR: S=R 동일 필드)
+        tagOps.createIndex(
+                new Index()
+                        .on("postCount", Sort.Direction.DESC)
+        );
+
+        // 2. 최근 사용 태그 조회: lastUsedAt DESC → postCount (ESR: S→R)
+        tagOps.createIndex(
+                new Index()
+                        .on("lastUsedAt", Sort.Direction.DESC)
+                        .on("postCount", Sort.Direction.ASC)
+        );
+
+        System.out.println("✅ MongoDB tags 인덱스 생성 완료");
     }
 }

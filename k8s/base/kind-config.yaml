@@ -32,3 +32,4 @@ nodes:
   # --- Worker 노드 ---
   - role: worker
   - role: worker
+  - role: worker

@@ -2,8 +2,6 @@ package com.portal.universe.shoppingservice.queue.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.commonlibrary.response.SseEnvelope;
-import com.portal.universe.commonlibrary.security.context.AuthUser;
-import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import com.portal.universe.shoppingservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingservice.queue.service.QueueService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,10 +42,10 @@ public class QueueStreamController {
     public SseEmitter subscribe(
             @PathVariable String eventType,
             @PathVariable Long eventId,
-            @PathVariable String entryToken,
-            @CurrentUser AuthUser user
+            @PathVariable String entryToken
     ) {
-        queueService.validateTokenOwnership(entryToken, user.uuid());
+        // entryToken 자체가 UUID v4 비밀값 — 토큰 소유자만 SSE 구독 가능
+        // sendStatusUpdate()에서 토큰 존재 여부를 검증 (QUEUE_ENTRY_NOT_FOUND)
         SseEmitter emitter = new SseEmitter(300_000L); // 5분 타임아웃
         String emitterKey = entryToken;
 

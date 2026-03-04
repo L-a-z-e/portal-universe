@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
   console.log('🔧 [Vite Config] Shopping Remote URL:', env.VITE_SHOPPING_REMOTE_URL);
 
   return {
+    base: env.VITE_BASE_URL || '/',
     plugins: [
       vue(),
       federation({

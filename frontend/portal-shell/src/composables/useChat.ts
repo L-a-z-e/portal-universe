@@ -9,9 +9,11 @@ export function useChat() {
   const currentConversationId = ref<string | null>(null)
   const loading = ref(false)
   const streaming = ref(false)
+  const error = ref<string | null>(null)
 
   async function sendMessage(message: string): Promise<void> {
     loading.value = true
+    error.value = null
 
     // 사용자 메시지를 즉시 UI에 추가
     const userMsg: ChatMessage = {
@@ -42,6 +44,8 @@ export function useChat() {
         created_at: new Date().toISOString(),
       }
       messages.value.push(assistantMsg)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '메시지 전송에 실패했습니다.'
     } finally {
       loading.value = false
     }
@@ -49,6 +53,7 @@ export function useChat() {
 
   async function sendMessageStream(message: string): Promise<void> {
     streaming.value = true
+    error.value = null
 
     const userMsg: ChatMessage = {
       message_id: crypto.randomUUID(),
@@ -129,6 +134,13 @@ export function useChat() {
           }
         }
       }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '스트리밍에 실패했습니다.'
+      // Remove empty assistant placeholder on failure
+      const placeholder = messages.value[assistantIdx]
+      if (placeholder && !placeholder.content) {
+        messages.value.splice(assistantIdx, 1)
+      }
     } finally {
       streaming.value = false
     }
@@ -170,6 +182,7 @@ export function useChat() {
     currentConversationId,
     loading,
     streaming,
+    error,
     sendMessage,
     sendMessageStream,
     loadConversations,

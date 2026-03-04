@@ -1,0 +1,64 @@
+# ===================================================================
+# Grafana Provisioning: Datasources
+# 역할: Prometheus, Loki, Zipkin datasource를 자동 프로비저닝합니다.
+# UID는 Dashboard JSON에 하드코딩된 값과 일치해야 합니다.
+# ===================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: portal-universe
+data:
+  # language=yaml
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090/prometheus
+        uid: PBFA97CFB590B2093
+        isDefault: true
+        editable: false
+
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        uid: P8E80F9AEF21F6940
+        editable: false
+        jsonData:
+          maxLines: 1000
+
+      - name: Zipkin
+        type: zipkin
+        access: proxy
+        url: http://zipkin:9411
+        uid: PC9A941ED8D3B8B07
+        editable: false
+
+# ===================================================================
+# Grafana Provisioning: Dashboard Provider
+# 역할: /var/lib/grafana/dashboards 경로에서 대시보드 JSON을 로드합니다.
+# ===================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-provider
+  namespace: portal-universe
+data:
+  # language=yaml
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'Portal Universe'
+        orgId: 1
+        folder: 'Portal Universe'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+          foldersFromFilesStructure: false

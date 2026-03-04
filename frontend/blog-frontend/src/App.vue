@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, onActivated } from 'vue';
 import { useRoute } from 'vue-router';
-import { Button, ToastContainer } from '@portal/design-vue';
+import { Alert, Button, ToastContainer } from '@portal/design-vue';
 import { usePortalTheme, isEmbedded as checkEmbedded } from '@portal/vue-bridge';
 
 const route = useRoute();
@@ -128,14 +128,14 @@ onActivated(() => {
 
         <!-- 404 Error -->
         <div v-else class="max-w-5xl mx-auto px-6">
-          <div class="bg-status-error-bg border border-status-error/20 rounded-lg p-8 text-center">
-            <p class="text-xl text-status-error mb-4">
-              ❌ 페이지를 찾을 수 없습니다: {{ route.path }}
+          <Alert variant="error" class="text-center">
+            <p class="text-xl mb-4">
+              페이지를 찾을 수 없습니다: {{ route.path }}
             </p>
             <Button variant="primary" @click="$router.push('/')">
               홈으로 돌아가기
             </Button>
-          </div>
+          </Alert>
         </div>
       </router-view>
     </main>

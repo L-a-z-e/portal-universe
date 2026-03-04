@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Avatar } from '@portal/design-vue'
+import { Avatar, useConfirm } from '@portal/design-vue'
 import type { CommentResponse } from '@/dto/comment'
 import CommentForm from './CommentForm.vue'
 import { formatRelativeTime } from '@/composables/useRelativeTime'
@@ -25,6 +25,8 @@ const emit = defineEmits<{
   (e: 'submitReply', commentId: string, content: string): void
   (e: 'toggleReplies', commentId: string): void
 }>()
+
+const { confirm } = useConfirm()
 
 // 상태 관리
 const isEditMode = ref(false)
@@ -78,8 +80,8 @@ const handleReplySubmit = (content: string) => {
 }
 
 // 삭제
-const handleDelete = () => {
-  if (confirm('댓글을 삭제하시겠습니까?')) {
+const handleDelete = async () => {
+  if (await confirm({ message: '댓글을 삭제하시겠습니까?', variant: 'danger', confirmText: '삭제' })) {
     emit('delete', props.comment.id)
   }
 }
@@ -216,10 +218,10 @@ const handleReplyCancel = () => {
         :replies="[]"
         :current-user-id="currentUserId"
         @reply="emit('reply', $event)"
-        @edit="emit('edit', $event, $event)"
+        @edit="(id: string, content: string) => emit('edit', id, content)"
         @delete="emit('delete', $event)"
         @cancel-reply="emit('cancelReply', $event)"
-        @submit-reply="emit('submitReply', $event, $event)"
+        @submit-reply="(id: string, content: string) => emit('submitReply', id, content)"
         @toggle-replies="emit('toggleReplies', $event)"
       />
     </div>

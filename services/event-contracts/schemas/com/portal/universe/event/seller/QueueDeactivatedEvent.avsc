@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "QueueDeactivatedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when a queue is deactivated.",
+  "fields": [
+    { "name": "queueId", "type": "long", "doc": "WaitingQueue entity ID in seller-service" },
+    { "name": "eventType", "type": "string", "doc": "Queue event type (e.g. COUPON, TIMEDEAL)" },
+    { "name": "eventId", "type": "long", "doc": "Target event ID (e.g. couponId, timeDealId)" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}
