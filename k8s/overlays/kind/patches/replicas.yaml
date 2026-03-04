@@ -1,7 +1,7 @@
 # Kind 환경 replica 설정
-# Critical Tier: 2 replicas
-# High Tier: 2 replicas
-# Frontend Tier: 2 replicas
+# Critical Tier: 2 replicas (HPA min)
+# High Tier: 2 replicas (HPA min)
+# Frontend Tier: 1 replica (리소스 절약)
 # Standard Tier: base 기본값 유지 (1)
 
 # --- Critical Tier ---
@@ -41,19 +41,27 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: payment-service
+  namespace: portal-universe
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: portal-shell
   namespace: portal-universe
 spec:
   replicas: 2
 ---
-# --- Frontend Tier ---
+# --- Frontend Tier (리소스 절약: 1 replica) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: blog-frontend
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -61,7 +69,7 @@ metadata:
   name: shopping-frontend
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -69,7 +77,7 @@ metadata:
   name: shopping-seller-frontend
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -77,7 +85,7 @@ metadata:
   name: prism-frontend
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -85,7 +93,7 @@ metadata:
   name: admin-frontend
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -93,4 +101,4 @@ metadata:
   name: drive-frontend
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1

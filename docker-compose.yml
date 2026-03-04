@@ -462,6 +462,41 @@ services:
     networks:
       - portal-universe-net
 
+  payment-service:
+    build:
+      context: .
+      dockerfile: ./services/payment-service/Dockerfile
+    container_name: payment-service
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:8090:8090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USER=laze
+      - DB_PASSWORD=Laze2026!
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8090/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - portal-universe-net
+
   shopping-settlement-service:
     build:
       context: .

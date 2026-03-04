@@ -91,6 +91,27 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: payment-service
+  namespace: portal-universe
+spec:
+  template:
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 80
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - payment-service
+                topologyKey: kubernetes.io/hostname
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: portal-shell
   namespace: portal-universe
 spec:

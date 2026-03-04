@@ -1,0 +1,112 @@
+# Kind 환경 리소스 설정
+# HPA가 CPU utilization을 정확히 계산하려면 적절한 requests 필요
+
+# --- Critical Tier ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: portal-universe
+spec:
+  template:
+    spec:
+      containers:
+        - name: api-gateway
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: portal-universe
+spec:
+  template:
+    spec:
+      containers:
+        - name: auth-service
+          resources:
+            requests:
+              cpu: 150m
+              memory: 384Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
+---
+# --- High Tier ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-service
+  namespace: portal-universe
+spec:
+  template:
+    spec:
+      containers:
+        - name: shopping-service
+          resources:
+            requests:
+              cpu: 150m
+              memory: 512Mi
+            limits:
+              cpu: 750m
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-seller-service
+  namespace: portal-universe
+spec:
+  template:
+    spec:
+      containers:
+        - name: shopping-seller-service
+          resources:
+            requests:
+              cpu: 150m
+              memory: 384Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: portal-universe
+spec:
+  template:
+    spec:
+      containers:
+        - name: payment-service
+          resources:
+            requests:
+              cpu: 150m
+              memory: 384Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-shell
+  namespace: portal-universe
+spec:
+  template:
+    spec:
+      containers:
+        - name: portal-shell
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
