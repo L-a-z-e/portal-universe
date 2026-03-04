@@ -43,7 +43,6 @@ public class ProductEventConsumer {
                 .description(event.getDescription())
                 .price(event.getPrice())
                 .discountPrice(event.getDiscountPrice())
-                .stock(event.getStock())
                 .imageUrl(event.getImageUrl())
                 .category(event.getCategory())
                 .featured(event.getFeatured())
@@ -55,7 +54,7 @@ public class ProductEventConsumer {
         if (!inventoryRepository.existsByProductId(saved.getId())) {
             Inventory inventory = Inventory.builder()
                     .productId(saved.getId())
-                    .initialQuantity(event.getStock() > 0 ? event.getStock() : 100)
+                    .initialQuantity(100)
                     .build();
             inventoryRepository.save(inventory);
         }
@@ -80,7 +79,6 @@ public class ProductEventConsumer {
                     .description(event.getDescription())
                     .price(event.getPrice())
                     .discountPrice(event.getDiscountPrice())
-                    .stock(0)
                     .imageUrl(event.getImageUrl())
                     .category(event.getCategory())
                     .featured(event.getFeatured())
@@ -113,9 +111,10 @@ public class ProductEventConsumer {
         productRepository.findById(event.getProductId())
                 .ifPresentOrElse(
                         product -> {
+                            inventoryRepository.deleteByProductId(event.getProductId());
                             productRepository.delete(product);
                             productSearchService.deleteProduct(event.getProductId());
-                            log.info("Deleted product: id={}", event.getProductId());
+                            log.info("Deleted product and inventory: id={}", event.getProductId());
                         },
                         () -> log.warn("Product not found for id={}, skipping delete",
                                 event.getProductId())

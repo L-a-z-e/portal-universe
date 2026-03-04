@@ -10,7 +10,6 @@ public record ProductResponse(
         String description,
         BigDecimal price,
         BigDecimal discountPrice,
-        Integer stock,
         String imageUrl,
         String category,
         Boolean featured,

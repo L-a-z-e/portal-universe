@@ -4,7 +4,6 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.UpdateResponse;
 import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -47,7 +46,6 @@ class ProductSearchServiceTest {
         when(product.getName()).thenReturn("Test Product");
         when(product.getDescription()).thenReturn("Description");
         when(product.getPrice()).thenReturn(BigDecimal.valueOf(10000));
-        when(product.getStock()).thenReturn(100);
 
         IndexResponse indexResponse = mock(IndexResponse.class);
         when(esClient.index(any(java.util.function.Function.class))).thenReturn(indexResponse);
@@ -69,7 +67,6 @@ class ProductSearchServiceTest {
         when(product.getName()).thenReturn("Updated Product");
         when(product.getDescription()).thenReturn("Updated");
         when(product.getPrice()).thenReturn(BigDecimal.valueOf(20000));
-        when(product.getStock()).thenReturn(50);
 
         IndexResponse indexResponse = mock(IndexResponse.class);
         when(esClient.index(any(java.util.function.Function.class))).thenReturn(indexResponse);
@@ -97,22 +94,6 @@ class ProductSearchServiceTest {
     }
 
     @Test
-    @DisplayName("should_updateStock_when_called")
-    @SuppressWarnings("unchecked")
-    void should_updateStock_when_called() throws IOException {
-        // given
-        UpdateResponse<ProductDocument> updateResponse = mock(UpdateResponse.class);
-        when(esClient.update(any(java.util.function.Function.class), eq(ProductDocument.class)))
-                .thenReturn(updateResponse);
-
-        // when
-        productSearchService.updateStock(1L, 50);
-
-        // then
-        verify(esClient).update(any(java.util.function.Function.class), eq(ProductDocument.class));
-    }
-
-    @Test
     @DisplayName("should_returnSearchResults_when_searchWithKeyword")
     @SuppressWarnings("unchecked")
     void should_returnSearchResults_when_searchWithKeyword() throws IOException {
@@ -124,7 +105,6 @@ class ProductSearchServiceTest {
                 .name("Laptop")
                 .description("A good laptop")
                 .price(BigDecimal.valueOf(1500000))
-                .stock(10)
                 .build();
 
         Hit<ProductDocument> hit = mock(Hit.class);

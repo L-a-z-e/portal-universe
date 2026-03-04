@@ -4,7 +4,7 @@ title: Shopping Service Data Flow
 type: architecture
 status: current
 created: 2026-01-18
-updated: 2026-02-06
+updated: 2026-03-05
 author: Laze
 tags: [architecture, shopping-service, data-flow, saga, events, redis]
 related:
@@ -39,7 +39,7 @@ sequenceDiagram
 
     C->>G: GET /api/v1/shopping/products
     G->>PS: Forward Request
-    PS->>DB: SELECT * FROM products
+    PS->>DB: SELECT FROM products (no stock)
     DB-->>PS: Product List
     PS-->>G: ProductResponse[]
     G-->>C: 200 OK
@@ -47,9 +47,12 @@ sequenceDiagram
 
 **설명**:
 1. 클라이언트가 상품 목록 조회 요청
-2. API Gateway가 JWT 검증 후 ProductService로 라우팅
-3. ProductService가 DB에서 활성 상품 조회
+2. API Gateway가 요청을 ProductService로 라우팅 (공개 API, 인증 불필요)
+3. ProductService가 Read Model DB에서 상품 조회 (stock 필드 없음, 재고는 Inventory로 분리)
 4. 상품 정보를 DTO로 변환하여 반환
+
+> **CQRS**: Product 데이터는 seller-service(Write) → Kafka → shopping-service(Read) 이벤트 동기화.
+> 삭제 시 inventory → product 순서로 제거 (FK 제약조건).
 
 ---
 

@@ -19,7 +19,6 @@ public class ProductSearchResult {
     private String name;
     private String description;
     private BigDecimal price;
-    private Integer stock;
 
     // Highlighted fields (검색어 강조)
     private String highlightedName;
