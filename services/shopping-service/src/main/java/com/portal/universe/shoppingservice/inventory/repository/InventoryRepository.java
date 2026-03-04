@@ -65,6 +65,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
      */
     boolean existsByProductId(Long productId);
 
+    void deleteByProductId(Long productId);
+
     /**
      * 여러 상품 ID로 재고를 조회합니다 (락 없음, 읽기 전용).
      *

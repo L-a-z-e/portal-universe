@@ -12,7 +12,6 @@
     { "name": "discountPrice", "type": ["null", { "type": "bytes", "logicalType": "decimal", "precision": 19, "scale": 2 }], "default": null, "doc": "Discounted price" },
     { "name": "imageUrl", "type": ["null", "string"], "default": null, "doc": "Product image URL" },
     { "name": "category", "type": ["null", "string"], "default": null, "doc": "Product category" },
-    { "name": "stock", "type": "int", "default": 0, "doc": "Product stock quantity" },
     { "name": "featured", "type": "boolean", "default": false, "doc": "Featured product flag" },
     { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
   ]

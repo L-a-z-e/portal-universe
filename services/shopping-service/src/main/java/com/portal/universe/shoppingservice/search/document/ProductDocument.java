@@ -19,7 +19,6 @@ public class ProductDocument {
     private String description;
     private BigDecimal price;
     private BigDecimal discountPrice;
-    private Integer stock;
     private String imageUrl;
     private String category;
     private Boolean featured;
@@ -32,7 +31,6 @@ public class ProductDocument {
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .discountPrice(product.getDiscountPrice())
-                .stock(product.getStock())
                 .imageUrl(product.getImageUrl())
                 .category(product.getCategory())
                 .featured(product.getFeatured())

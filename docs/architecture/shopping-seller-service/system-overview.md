@@ -4,7 +4,7 @@ title: Shopping Seller Service System Overview
 type: architecture
 status: current
 created: 2026-02-14
-updated: 2026-02-14
+updated: 2026-03-05
 author: Laze
 tags: [architecture, shopping-seller-service, seller, product, inventory, microservices]
 related:
@@ -28,7 +28,9 @@ Shopping Seller Service는 판매자, 상품, 마케팅 도구 관리를 담당�
 - **6개 도메인**: Seller (판매자), Product (상품), Inventory (재고), Coupon (쿠폰), TimeDeal (타임딜), Queue (대기열)
 - **Internal API**: shopping-service Saga 패턴을 위한 재고 예약/차감/해제 API 제공
 - **Redis 동시성 제어**: Coupon/TimeDeal Lua Script, Redisson 분산 락
-- **Kafka 이벤트**: 배송 발송, 주문 생성 이벤트 구독하여 재고 업데이트
+- **Outbox 패턴**: Product CUD 이벤트를 outbox_events 테이블에 기록 후 polling으로 Kafka 발행 (이벤트 유실 방지)
+- **Kafka 이벤트**: Product CRUD → shopping-service 동기화, 배송/주문 이벤트 구독하여 재고 업데이트
+- **Kafka key**: productId 기준 파티셔닝 (동일 상품 이벤트 순서 보장)
 - **Pessimistic Lock**: 재고 차감 시 동시성 제어
 - **판매자 권한**: userId → sellerId 매핑으로 본인 상품만 관리 가능
 

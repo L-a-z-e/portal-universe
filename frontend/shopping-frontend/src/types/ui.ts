@@ -3,8 +3,6 @@
  * admin.ts 대체 - UI 공통 타입
  */
 
-import type { ProductFormData } from '@/dto/product'
-
 // ============================================
 // UI State Types
 // ============================================
@@ -64,14 +62,6 @@ export interface PaginationProps {
   totalPages: number
   onPageChange: (page: number) => void
   disabled?: boolean
-}
-
-export interface ProductFormProps {
-  mode: 'create' | 'edit'
-  initialData?: Partial<ProductFormData>
-  onSubmit: (data: ProductFormData) => void | Promise<void>
-  onCancel: () => void
-  isSubmitting?: boolean
 }
 
 // ============================================

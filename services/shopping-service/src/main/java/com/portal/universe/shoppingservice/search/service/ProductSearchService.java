@@ -60,19 +60,6 @@ public class ProductSearchService {
         }
     }
 
-    public void updateStock(Long productId, Integer stock) {
-        try {
-            esClient.update(u -> u
-                    .index(INDEX_NAME)
-                    .id(String.valueOf(productId))
-                    .doc(Map.of("stock", stock)),
-                    ProductDocument.class
-            );
-            log.debug("Updated stock for product {}: {}", productId, stock);
-        } catch (IOException e) {
-            log.error("Failed to update stock for product {}", productId, e);
-        }
-    }
 
     public SearchResponse<ProductSearchResult> search(ProductSearchRequest request) {
         try {
@@ -180,7 +167,6 @@ public class ProductSearchService {
                 .name(doc.getName())
                 .description(doc.getDescription())
                 .price(doc.getPrice())
-                .stock(doc.getStock())
                 .score(hit.score())
                 .build();
 

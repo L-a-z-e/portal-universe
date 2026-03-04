@@ -233,7 +233,6 @@ export function AdminTimeDealFormPage() {
                 <div>
                   <h3 className="font-medium text-text-heading">{selectedProduct.name}</h3>
                   <p className="text-text-meta">정가: {formatPrice(selectedProduct.price)}원</p>
-                  <p className="text-text-muted text-sm">재고: {selectedProduct.stockQuantity ?? '-'}개</p>
                 </div>
               </div>
             </div>
