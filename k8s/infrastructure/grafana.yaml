@@ -45,6 +45,10 @@ spec:
             # Grafana 시작 시 자동으로 설치할 플러그인을 지정합니다.
             - name: GF_INSTALL_PLUGINS
               value: "grafana-piechart-panel"
+            - name: GF_SERVER_ROOT_URL
+              value: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: "true"
           volumeMounts:
             - name: datasources
               mountPath: /etc/grafana/provisioning/datasources
