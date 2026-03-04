@@ -2,10 +2,10 @@
 id: api-admin-product
 title: Admin Product API
 type: api
-status: current
+status: deprecated
 version: v1
 created: 2026-01-19
-updated: 2026-01-19
+updated: 2026-03-04
 author: Laze
 tags: [api, shopping-service, admin, product]
 related:
@@ -14,7 +14,7 @@ related:
 
 # Admin Product API
 
-> 관리자용 상품 관리 API (등록, 수정, 삭제, 재고 관리)
+> **Deprecated**: 상품 CUD는 `shopping-seller-service`로 이관되었습니다. [Seller Product API](../shopping-seller-service/product-api.md)를 참조하세요.
 
 ---
 

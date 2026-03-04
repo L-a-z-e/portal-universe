@@ -1,6 +1,6 @@
 import { getApiClient } from './client'
 import type { ApiResponse, PageResponse } from '@/types'
-import type { Product, ProductCreateRequest, ProductUpdateRequest } from '@/dto/product'
+import type { Product } from '@/dto/product'
 import type { ProductWithReviews } from '@/dto/review'
 
 const API_PREFIX = '/api/v1/shopping'
@@ -44,29 +44,6 @@ export const productApi = {
       `${API_PREFIX}/search/products?${params}`
     )
     return response.data
-  },
-
-  createProduct: async (data: ProductCreateRequest) => {
-    const response = await getApiClient().post<ApiResponse<Product>>(
-      `${API_PREFIX}/products`,
-      data
-    )
-    return response.data
-  },
-
-  updateProduct: async (id: number, data: ProductUpdateRequest) => {
-    const response = await getApiClient().put<ApiResponse<Product>>(
-      `${API_PREFIX}/products/${id}`,
-      data
-    )
-    return response.data
-  },
-
-  deleteProduct: async (id: number) => {
-    const response = await getApiClient().delete<ApiResponse<void>>(
-      `${API_PREFIX}/products/${id}`
-    )
-    return response.data
   }
 }
 
@@ -93,40 +70,9 @@ export const adminProductApi = {
     return response.data
   },
 
-  createProduct: async (data: ProductCreateRequest) => {
-    const response = await getApiClient().post<ApiResponse<Product>>(
-      `${API_PREFIX}/admin/products`,
-      data
-    )
-    return response.data
-  },
-
-  updateProduct: async (id: number, data: ProductUpdateRequest) => {
-    const response = await getApiClient().put<ApiResponse<Product>>(
-      `${API_PREFIX}/admin/products/${id}`,
-      data
-    )
-    return response.data
-  },
-
-  deleteProduct: async (id: number) => {
-    const response = await getApiClient().delete<ApiResponse<void>>(
-      `${API_PREFIX}/admin/products/${id}`
-    )
-    return response.data
-  },
-
   getProduct: async (id: number) => {
     const response = await getApiClient().get<ApiResponse<Product>>(
       `${API_PREFIX}/products/${id}`
-    )
-    return response.data
-  },
-
-  updateStock: async (id: number, stock: number) => {
-    const response = await getApiClient().patch<ApiResponse<Product>>(
-      `${API_PREFIX}/admin/products/${id}/stock`,
-      { stock }
     )
     return response.data
   }

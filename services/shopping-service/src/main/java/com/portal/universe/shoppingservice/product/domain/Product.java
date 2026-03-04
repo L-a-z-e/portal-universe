@@ -48,9 +48,6 @@ public class Product extends BaseEntity implements Persistable<Long> {
     @Column(name = "discount_price", precision = 19, scale = 2)
     private BigDecimal discountPrice;
 
-    @Column(nullable = false)
-    private Integer stock;
-
     private String imageUrl;
 
     private String category;
@@ -64,26 +61,16 @@ public class Product extends BaseEntity implements Persistable<Long> {
 
     @Builder
     public Product(Long id, Long sellerId, String name, String description, BigDecimal price, BigDecimal discountPrice,
-                   Integer stock, String imageUrl, String category, Boolean featured) {
+                   String imageUrl, String category, Boolean featured) {
         this.id = id;
         this.sellerId = sellerId;
         this.name = name;
         this.description = description;
         this.price = price;
         this.discountPrice = discountPrice;
-        this.stock = stock;
         this.imageUrl = imageUrl;
         this.category = category;
         this.featured = featured != null ? featured : false;
-    }
-
-    public void update(String name, String description, BigDecimal price, Integer stock, String imageUrl, String category) {
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.stock = stock;
-        this.imageUrl = imageUrl;
-        this.category = category;
     }
 
     public void updateDiscountPrice(BigDecimal discountPrice) {

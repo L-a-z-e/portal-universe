@@ -71,7 +71,6 @@ class CartServiceImplTest {
                 .name("Test Product")
                 .description("desc")
                 .price(BigDecimal.valueOf(5000))
-                .stock(100)
                 .build();
         ReflectionTestUtils.setField(product, "id", id);
         return product;
