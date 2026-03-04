@@ -9,6 +9,7 @@ resources:
   - shopping-service.yaml
   - shopping-seller-service.yaml
   - shopping-settlement-service.yaml
+  - payment-service.yaml
   - notification-service.yaml
   - drive-service.yaml
   - prism-service.yaml

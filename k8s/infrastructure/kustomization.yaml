@@ -12,6 +12,7 @@ resources:
 
   # Message Queue & Cache
   - kafka.yaml
+  - schema-registry.yaml
   - redis.yaml
   - elasticsearch.yaml
 
@@ -28,3 +29,4 @@ resources:
   # Network & Ingress
   - network-policy.yaml
   - ingress.yaml
+  - ingress-zipkin.yaml

@@ -1,0 +1,36 @@
+# =============================================================================
+# Rate Limiter: Kind 로컬 부하 테스트용 완화 설정
+# Docker profile과 동일 수준으로 완화 (프로덕션 기본값 대비 ~25-50x)
+# =============================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: portal-universe
+spec:
+  template:
+    spec:
+      containers:
+        - name: api-gateway
+          env:
+            - name: RATE_LIMITER_DEFAULT_REPLENISH_RATE
+              value: "50"
+            - name: RATE_LIMITER_DEFAULT_BURST_CAPACITY
+              value: "200"
+            - name: RATE_LIMITER_STRICT_REPLENISH_RATE
+              value: "100"
+            - name: RATE_LIMITER_STRICT_BURST_CAPACITY
+              value: "500"
+            - name: RATE_LIMITER_SIGNUP_REPLENISH_RATE
+              value: "20"
+            - name: RATE_LIMITER_SIGNUP_BURST_CAPACITY
+              value: "50"
+            - name: RATE_LIMITER_AUTHENTICATED_REPLENISH_RATE
+              value: "50"
+            - name: RATE_LIMITER_AUTHENTICATED_BURST_CAPACITY
+              value: "500"
+            - name: RATE_LIMITER_UNAUTHENTICATED_REPLENISH_RATE
+              value: "50"
+            - name: RATE_LIMITER_UNAUTHENTICATED_BURST_CAPACITY
+              value: "200"

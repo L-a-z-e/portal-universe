@@ -10,7 +10,6 @@ import './index.css';
  * - Standalone 모드: 직접 브라우저에서 접근 시 독립 실행
  */
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
-const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
 
 
 if (isEmbedded) {

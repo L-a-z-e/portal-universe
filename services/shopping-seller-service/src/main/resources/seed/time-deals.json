@@ -1,0 +1,60 @@
+[
+  {
+    "name": "Flash Electronics",
+    "description": "Limited electronics deals - grab them before they're gone!",
+    "status": "ACTIVE",
+    "hoursFromNow": -1,
+    "durationHours": 25,
+    "products": [
+      { "productIndex": 0, "dealPrice": 40000, "dealQuantity": 500, "maxPerUser": 2 },
+      { "productIndex": 1, "dealPrice": 41000, "dealQuantity": 500, "maxPerUser": 2 },
+      { "productIndex": 2, "dealPrice": 42000, "dealQuantity": 500, "maxPerUser": 2 }
+    ]
+  },
+  {
+    "name": "Fashion Rush",
+    "description": "One-day fashion blowout - limited quantity per person!",
+    "status": "ACTIVE",
+    "hoursFromNow": -2,
+    "durationHours": 26,
+    "products": [
+      { "productIndex": 21, "dealPrice": 55000, "dealQuantity": 300, "maxPerUser": 1 },
+      { "productIndex": 22, "dealPrice": 56000, "dealQuantity": 300, "maxPerUser": 1 },
+      { "productIndex": 23, "dealPrice": 57000, "dealQuantity": 300, "maxPerUser": 1 }
+    ]
+  },
+  {
+    "name": "Sports Special",
+    "description": "Sports gear at unbeatable prices - stock up now!",
+    "status": "ACTIVE",
+    "hoursFromNow": -3,
+    "durationHours": 27,
+    "products": [
+      { "productIndex": 63, "dealPrice": 90000, "dealQuantity": 1000, "maxPerUser": 3 },
+      { "productIndex": 64, "dealPrice": 91000, "dealQuantity": 1000, "maxPerUser": 3 },
+      { "productIndex": 65, "dealPrice": 92000, "dealQuantity": 1000, "maxPerUser": 3 }
+    ]
+  },
+  {
+    "name": "Upcoming Beauty",
+    "description": "Beauty deals starting tomorrow - set your alarm!",
+    "status": "SCHEDULED",
+    "hoursFromNow": 24,
+    "durationHours": 24,
+    "products": [
+      { "productIndex": 84, "dealPrice": 105000, "dealQuantity": 500, "maxPerUser": 2 },
+      { "productIndex": 85, "dealPrice": 106000, "dealQuantity": 500, "maxPerUser": 2 }
+    ]
+  },
+  {
+    "name": "Premium Preview",
+    "description": "Exclusive premium items at preview prices - very limited!",
+    "status": "SCHEDULED",
+    "hoursFromNow": 48,
+    "durationHours": 12,
+    "products": [
+      { "productIndex": 9, "dealPrice": 45000, "dealQuantity": 200, "maxPerUser": 1 },
+      { "productIndex": 19, "dealPrice": 50000, "dealQuantity": 200, "maxPerUser": 1 }
+    ]
+  }
+]

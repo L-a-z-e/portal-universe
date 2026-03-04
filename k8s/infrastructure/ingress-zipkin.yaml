@@ -1,0 +1,28 @@
+# Zipkin API rewrite - UI JS가 /zipkin/api/v2/... 호출 시
+# /zipkin prefix를 제거하여 Zipkin의 실제 API 경로 /api/v2/...로 전달
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: portal-universe-zipkin-api
+  namespace: portal-universe
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - portal-universe
+      secretName: portal-tls-secret
+  rules:
+    - host: portal-universe
+      http:
+        paths:
+          - path: /zipkin/(api/.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: zipkin
+                port:
+                  number: 9411

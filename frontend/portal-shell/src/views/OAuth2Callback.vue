@@ -22,8 +22,6 @@ async function handleOAuth2Callback() {
     const params = new URLSearchParams(hash);
 
     const accessToken = params.get('access_token');
-    const expiresIn = params.get('expires_in');
-
     if (!accessToken) {
       throw new Error('Missing access token in callback URL');
     }

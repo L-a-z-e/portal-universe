@@ -37,6 +37,7 @@ BACKEND_SERVICES=(
     "shopping-service"
     "shopping-seller-service"
     "shopping-settlement-service"
+    "payment-service"
     "notification-service"
     "drive-service"
 )

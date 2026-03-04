@@ -298,5 +298,29 @@
     "totalQuantity": 2500,
     "daysAfterBase": 0,
     "durationDays": 18
+  },
+  {
+    "code": "FLASH_50",
+    "name": "Flash Sale 50 Limited",
+    "description": "Limited to 50! First come, first served flash discount.",
+    "discountType": "FIXED",
+    "discountValue": 3000,
+    "minimumOrderAmount": 30000,
+    "maximumDiscountAmount": 3000,
+    "totalQuantity": 50,
+    "daysAfterBase": 0,
+    "durationDays": 7
+  },
+  {
+    "code": "FLASH_100",
+    "name": "Flash Sale 100 Limited",
+    "description": "Limited to 100! First come, first served flash discount.",
+    "discountType": "PERCENTAGE",
+    "discountValue": 15,
+    "minimumOrderAmount": 20000,
+    "maximumDiscountAmount": 15000,
+    "totalQuantity": 100,
+    "daysAfterBase": 0,
+    "durationDays": 7
   }
 ]

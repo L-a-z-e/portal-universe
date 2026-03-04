@@ -33,6 +33,8 @@ services:
     url: "http://shopping-seller-service:8088"
   shopping-settlement:
     url: "http://shopping-settlement-service:8089"
+  payment:
+    url: "http://payment-service:8090"
 
 spring:
   config:

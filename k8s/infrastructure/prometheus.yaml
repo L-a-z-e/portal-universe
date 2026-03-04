@@ -88,6 +88,7 @@ spec:
             - '--storage.tsdb.path=/prometheus'
             - '--web.enable-remote-write-receiver'
             - '--enable-feature=native-histograms'
+            - '--web.external-url=/prometheus'
       volumes:
         - name: prometheus-config
           configMap:

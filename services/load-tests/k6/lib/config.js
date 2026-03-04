@@ -14,12 +14,12 @@ const configs = {
   k8s: {
     BASE_URL: 'http://localhost:80',
     HOST_HEADER: 'portal-universe',
-    DEFAULT_VU_ACCOUNTS: 300,
+    DEFAULT_VU_ACCOUNTS: 500,
   },
   'k8s-pod': {
     BASE_URL: 'http://api-gateway.portal-universe.svc:8080',
     HOST_HEADER: null,
-    DEFAULT_VU_ACCOUNTS: 300,
+    DEFAULT_VU_ACCOUNTS: 500,
   },
 };
 

@@ -17,7 +17,7 @@ NAMESPACE="portal-universe"
 # --- 서비스 목록 (빌드 context별 분류) ---
 
 # 루트 context: docker build -f <Dockerfile> <ROOT_DIR>
-JAVA_SERVICES=(api-gateway auth-service blog-service shopping-service shopping-seller-service shopping-settlement-service drive-service notification-service)
+JAVA_SERVICES=(api-gateway auth-service blog-service shopping-service shopping-seller-service shopping-settlement-service payment-service drive-service notification-service)
 REACT_FRONTENDS=(blog-frontend shopping-frontend prism-frontend admin-frontend drive-frontend shopping-seller-frontend)
 
 # frontend/ context: docker build -f <Dockerfile> frontend/
