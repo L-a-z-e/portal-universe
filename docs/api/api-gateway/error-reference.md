@@ -28,6 +28,7 @@ related:
 | `GW002` | 503 | 블로그 서비스를 일시적으로 사용할 수 없습니다 | FallbackController | blog-service Circuit Breaker Open |
 | `GW003` | 503 | 쇼핑 서비스를 일시적으로 사용할 수 없습니다 | FallbackController | shopping-service Circuit Breaker Open |
 | `GW004` | 503 | 알림 서비스를 일시적으로 사용할 수 없습니다 | FallbackController | notification-service Circuit Breaker Open |
+| `GW-F010` | 503 | 결제 서비스를 일시적으로 사용할 수 없습니다 | FallbackController | payment-service Circuit Breaker Open |
 | `TOO_MANY_REQUESTS` | 429 | 요청 한도를 초과했습니다 | RateLimitHeaderFilter | Rate Limit 초과 |
 
 ## 에러 응답 형식
@@ -207,7 +208,7 @@ flowchart TD
 | **검증** | JWT 토큰의 `roles` 클레임 확인 |
 | **해결** | 필요 권한 부여 또는 적절한 엔드포인트 사용 |
 
-### GW001~GW004: 서비스 불가
+### GW001~GW004, GW-F010: 서비스 불가
 
 | 항목 | 내용 |
 |------|------|
@@ -232,7 +233,7 @@ flowchart TD
 | `security/CustomAuthenticationEntryPoint.java` | A001 |
 | `security/CustomAccessDeniedHandler.java` | A002 |
 | `filter/JwtAuthenticationFilter.java` | GW-A005, GW-A006, GW-A007 |
-| `controller/FallbackController.java` | GW001, GW002, GW003, GW004 |
+| `controller/FallbackController.java` | GW001, GW002, GW003, GW004, GW-F010 |
 | `filter/RateLimitHeaderFilter.java` | TOO_MANY_REQUESTS |
 
 ## 관련 문서

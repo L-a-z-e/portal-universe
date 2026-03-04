@@ -14,28 +14,22 @@ local purchasedKey = KEYS[2]
 local requestedQuantity = tonumber(ARGV[1])
 local maxPerUser = tonumber(ARGV[2])
 
--- 사용자의 현재 구매 수량 확인
+-- Phase 1: 사용자별 구매 제한 검증 (Early Return)
 local currentPurchased = tonumber(redis.call('GET', purchasedKey) or 0)
 if currentPurchased + requestedQuantity > maxPerUser then
     return -1
 end
 
--- 현재 재고 확인
+-- Phase 2: 재고 확인 (Early Return - 재고 소진 후 Write 부하 방지)
 local currentStock = tonumber(redis.call('GET', stockKey) or 0)
 if currentStock < requestedQuantity then
     return 0
 end
 
--- 원자적으로 재고 감소
+-- Phase 3: 원자적 재고 차감
 local newStock = redis.call('DECRBY', stockKey, requestedQuantity)
-if newStock < 0 then
-    -- 롤백: 재고가 음수가 되면 다시 증가
-    redis.call('INCRBY', stockKey, requestedQuantity)
-    return 0
-end
 
--- 사용자 구매 수량 증가
+-- Phase 4: 사용자 구매 수량 기록
 redis.call('INCRBY', purchasedKey, requestedQuantity)
 
--- 남은 재고 반환
 return newStock

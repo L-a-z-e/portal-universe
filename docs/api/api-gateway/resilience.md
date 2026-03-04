@@ -71,6 +71,7 @@ resilience4j:
 | `notificationCircuitBreaker` | notification-service | 기본값 사용 |
 | `prismCircuitBreaker` | prism-service | 기본값 사용 |
 | `chatbotCircuitBreaker` | chatbot-service | 기본값 사용 |
+| `paymentCircuitBreaker` | payment-service | 기본값 사용 |
 
 ### State Machine
 
@@ -142,6 +143,7 @@ Circuit Breaker가 Open 상태이거나 타임아웃 발생 시 호출되는 Fal
 | `/fallback/notification` | `GW004` | 알림 서비스를 일시적으로 사용할 수 없습니다 | notification-service |
 | `/fallback/shopping-settlement` | `GW008` | 정산 서비스를 일시적으로 사용할 수 없습니다 | shopping-settlement-service |
 | `/fallback/drive` | `GW009` | 드라이브 서비스를 일시적으로 사용할 수 없습니다 | drive-service |
+| `/fallback/payment` | `GW-F010` | 결제 서비스를 일시적으로 사용할 수 없습니다 | payment-service |
 
 ### Fallback 응답 형식
 
@@ -163,7 +165,6 @@ Circuit Breaker가 Open 상태이거나 타임아웃 발생 시 호출되는 Fal
 
 | 라우트의 fallbackUri | 상태 |
 |---------------------|------|
-| `forward:/fallback/chatbot` | **미구현** - chatbot-service 라우트에서 참조 |
 | `forward:/fallback/prism` | **미구현** - prism-service 라우트에서 참조 |
 | `forward:/fallback/shopping-seller` | **미구현** - shopping-seller-service 라우트에서 참조 |
 
@@ -210,7 +211,7 @@ server:
 | 파일 | 역할 |
 |------|------|
 | `application.yml` (resilience4j) | Circuit Breaker, Time Limiter 설정 |
-| `controller/FallbackController.java` | 6개 Fallback 엔드포인트 |
+| `controller/FallbackController.java` | 7개 Fallback 엔드포인트 |
 
 ### Feign Client Circuit Breaker
 
