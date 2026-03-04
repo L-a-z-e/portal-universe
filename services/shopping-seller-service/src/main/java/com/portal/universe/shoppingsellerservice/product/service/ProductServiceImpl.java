@@ -4,14 +4,16 @@ import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.event.seller.ProductCreatedEvent;
 import com.portal.universe.event.seller.ProductDeletedEvent;
 import com.portal.universe.event.seller.ProductUpdatedEvent;
+import com.portal.universe.event.seller.SellerTopics;
 import com.portal.universe.shoppingsellerservice.common.exception.SellerErrorCode;
+import com.portal.universe.shoppingsellerservice.event.outbox.OutboxEvent;
+import com.portal.universe.shoppingsellerservice.event.outbox.OutboxEventRepository;
 import com.portal.universe.shoppingsellerservice.product.domain.Product;
 import com.portal.universe.shoppingsellerservice.product.dto.ProductCreateRequest;
 import com.portal.universe.shoppingsellerservice.product.dto.ProductResponse;
 import com.portal.universe.shoppingsellerservice.product.dto.ProductUpdateRequest;
 import com.portal.universe.shoppingsellerservice.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ import java.time.Instant;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final OutboxEventRepository outboxEventRepository;
 
     @Override
     @Transactional
@@ -33,7 +35,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = request.toEntity(sellerId);
         Product saved = productRepository.save(product);
 
-        eventPublisher.publishEvent(buildCreatedEvent(saved));
+        outboxEventRepository.save(OutboxEvent.create(
+                SellerTopics.PRODUCT_CREATED,
+                String.valueOf(saved.getId()),
+                buildCreatedEvent(saved)));
 
         return ProductResponse.from(saved);
     }
@@ -72,7 +77,10 @@ public class ProductServiceImpl implements ProductService {
             product.updateFeatured(request.featured());
         }
 
-        eventPublisher.publishEvent(buildUpdatedEvent(product));
+        outboxEventRepository.save(OutboxEvent.create(
+                SellerTopics.PRODUCT_UPDATED,
+                String.valueOf(product.getId()),
+                buildUpdatedEvent(product)));
 
         return ProductResponse.from(product);
     }
@@ -87,11 +95,14 @@ public class ProductServiceImpl implements ProductService {
         }
         productRepository.delete(product);
 
-        eventPublisher.publishEvent(ProductDeletedEvent.newBuilder()
-                .setProductId(product.getId())
-                .setSellerId(product.getSellerId())
-                .setTimestamp(Instant.now())
-                .build());
+        outboxEventRepository.save(OutboxEvent.create(
+                SellerTopics.PRODUCT_DELETED,
+                String.valueOf(product.getId()),
+                ProductDeletedEvent.newBuilder()
+                        .setProductId(product.getId())
+                        .setSellerId(product.getSellerId())
+                        .setTimestamp(Instant.now())
+                        .build()));
     }
 
     private ProductCreatedEvent buildCreatedEvent(Product product) {
@@ -102,7 +113,6 @@ public class ProductServiceImpl implements ProductService {
                 .setDescription(product.getDescription())
                 .setPrice(product.getPrice())
                 .setDiscountPrice(product.getDiscountPrice())
-                .setStock(product.getStock() != null ? product.getStock() : 0)
                 .setImageUrl(product.getImageUrl())
                 .setCategory(product.getCategory())
                 .setFeatured(product.getFeatured())
