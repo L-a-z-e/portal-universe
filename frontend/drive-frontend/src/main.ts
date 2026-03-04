@@ -6,7 +6,6 @@ import { createPinia } from "pinia";
 import { setupErrorHandler } from '@portal/design-vue';
 
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
-const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
 
 
 if (isEmbedded) {

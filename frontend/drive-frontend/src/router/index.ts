@@ -58,5 +58,5 @@ export function createStandaloneDriveRouter(): Router {
   return router;
 }
 
-export function logRouterInfo(router: Router) {
+export function logRouterInfo(_router: Router) {
 }

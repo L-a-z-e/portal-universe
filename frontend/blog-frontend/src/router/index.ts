@@ -159,5 +159,5 @@ export function createStandaloneBlogRouter(): Router {
 /**
  * Router 설정 요약 출력 (디버깅용)
  */
-export function logRouterInfo(router: Router) {
+export function logRouterInfo(_router: Router) {
 }

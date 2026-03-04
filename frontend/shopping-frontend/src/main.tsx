@@ -17,7 +17,6 @@ import './styles/index.css'
  * - 직접 브라우저에서 접속할 때: Standalone 모드
  */
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
-const mode = isEmbedded ? 'EMBEDDED' : 'STANDALONE';
 
 
 if (isEmbedded) {
