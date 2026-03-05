@@ -14,7 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -37,32 +37,42 @@ public class OutboxPollingScheduler {
         List<OutboxEvent> pending = outboxEventRepository.findPendingForUpdate(BATCH_SIZE);
         if (pending.isEmpty()) return;
 
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        Map<OutboxEvent, CompletableFuture<Boolean>> futureMap = new LinkedHashMap<>();
 
         for (OutboxEvent event : pending) {
             try {
                 SpecificRecord record = deserialize(event.getEventType(), event.getPayload());
 
-                CompletableFuture<Void> future = avroKafkaTemplate.send(
+                CompletableFuture<Boolean> future = avroKafkaTemplate.send(
                         event.getTopic(), event.getEventKey(), record)
-                    .thenAccept(result -> {
-                        event.markPublished();
+                    .thenApply(result -> {
                         publishToEventBridgeIfNeeded(record);
-                        log.debug("Outbox event published: id={}, topic={}, key={}",
-                                event.getId(), event.getTopic(), event.getEventKey());
+                        return true;
                     })
                     .exceptionally(ex -> {
-                        handlePublishFailure(event, ex);
-                        return null;
+                        log.warn("Kafka send failed for outbox event id={}: {}",
+                                event.getId(), ex.getMessage());
+                        return false;
                     });
 
-                futures.add(future);
+                futureMap.put(event, future);
             } catch (Exception ex) {
                 handlePublishFailure(event, ex);
             }
         }
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        CompletableFuture.allOf(futureMap.values().toArray(new CompletableFuture[0])).join();
+
+        for (var entry : futureMap.entrySet()) {
+            OutboxEvent event = entry.getKey();
+            boolean success = entry.getValue().join();
+            if (success) {
+                event.markPublished();
+                log.debug("Outbox event published: id={}, topic={}", event.getId(), event.getTopic());
+            } else {
+                handlePublishFailure(event, new RuntimeException("Kafka send failed"));
+            }
+        }
     }
 
     private void handlePublishFailure(OutboxEvent event, Throwable ex) {
