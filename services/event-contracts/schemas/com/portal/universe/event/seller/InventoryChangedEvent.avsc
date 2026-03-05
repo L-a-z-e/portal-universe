@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "InventoryChangedEvent",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "Published by seller-service when inventory changes (init, add, reserve, deduct, release, restore).",
+  "fields": [
+    { "name": "productId", "type": "long", "doc": "Product entity ID" },
+    { "name": "availableQuantity", "type": "int", "doc": "Current available quantity (snapshot)" },
+    { "name": "reservedQuantity", "type": "int", "doc": "Current reserved quantity (snapshot)" },
+    { "name": "totalQuantity", "type": "int", "doc": "Current total quantity (snapshot)" },
+    { "name": "changeType", "type": "InventoryChangeType", "doc": "Type of inventory change" },
+    { "name": "quantity", "type": "int", "doc": "Changed quantity" },
+    { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "Event timestamp" }
+  ]
+}

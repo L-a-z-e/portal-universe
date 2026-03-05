@@ -427,6 +427,18 @@ erDiagram
 
 **Kafka Consumer 설정**: auto-offset-reset=earliest, enable-auto-commit=false (수동 커밋)
 
+### Kafka 이벤트 발행
+
+| 이벤트 | Topic | 발행 패턴 | 처리 로직 |
+|--------|-------|----------|----------|
+| ProductCreated/Updated/DeletedEvent | `seller.product.*` | Outbox (3s polling) | shopping-service Read Model 동기화 |
+| InventoryChangedEvent | `seller.inventory.changed` | @TransactionalEventListener | 재고 snapshot 동기화 (INIT/ADD/RESERVE/DEDUCT/RELEASE/RESTORE) |
+| CouponCreated/Updated/DeletedEvent | `seller.coupon.*` | @TransactionalEventListener | shopping-service Coupon Read Model |
+| TimeDealCreated/Updated/CancelledEvent | `seller.timedeal.*` | @TransactionalEventListener | shopping-service TimeDeal Read Model |
+| QueueActivated/DeactivatedEvent | `seller.queue.*` | @TransactionalEventListener | shopping-service Queue Read Model |
+
+**Inventory 이벤트 설계**: Snapshot 기반 절대값(available/reserved/total) 전송. Delta가 아닌 절대값을 보내어 이벤트 유실 시 다음 이벤트가 자동 보정.
+
 ### Feign Client 제공
 
 | 대상 서비스 | API | 메서드 | 설명 |
@@ -562,4 +574,4 @@ erDiagram
 
 ---
 
-**최종 업데이트**: 2026-02-14
+**최종 업데이트**: 2026-03-06

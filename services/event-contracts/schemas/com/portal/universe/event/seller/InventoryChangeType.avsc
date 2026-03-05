@@ -1,0 +1,7 @@
+{
+  "type": "enum",
+  "name": "InventoryChangeType",
+  "namespace": "com.portal.universe.event.seller",
+  "doc": "재고 변경 유형",
+  "symbols": ["INITIALIZED", "STOCK_ADDED", "RESERVED", "DEDUCTED", "RELEASED", "RESTORED"]
+}

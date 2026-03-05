@@ -57,7 +57,7 @@ export const options = {
 };
 
 export function setup() {
-  const tokens = loginBulk(300);
+  const tokens = loginBulk();
   if (tokens.length === 0) throw new Error('Setup failed: bulk login returned 0 tokens');
 
   const adminParams = authHeaders(tokens[0]);

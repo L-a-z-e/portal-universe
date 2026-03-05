@@ -24,5 +24,7 @@ public final class SellerTopics {
     public static final String PRODUCT_UPDATED = "seller.product.updated";
     public static final String PRODUCT_DELETED = "seller.product.deleted";
 
+    public static final String INVENTORY_CHANGED = "seller.inventory.changed";
+
     private SellerTopics() {}
 }

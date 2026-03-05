@@ -51,7 +51,12 @@ sequenceDiagram
 3. ProductService가 Read Model DB에서 상품 조회 (stock 필드 없음, 재고는 Inventory로 분리)
 4. 상품 정보를 DTO로 변환하여 반환
 
-> **CQRS**: Product 데이터는 seller-service(Write) → Kafka → shopping-service(Read) 이벤트 동기화.
+> **CQRS**: seller-service(Write) → Kafka → shopping-service(Read) 이벤트 동기화.
+> - Product: `seller.product.created/updated/deleted` → `ProductEventConsumer`
+> - Inventory: `seller.inventory.changed` → `InventoryEventConsumer` (snapshot 기반 절대값 동기화)
+> - Coupon: `seller.coupon.created/updated/deleted` → `CouponEventConsumer`
+> - TimeDeal: `seller.timedeal.created/updated/cancelled` → `TimeDealEventConsumer`
+> - Queue: `seller.queue.activated/deactivated` → `QueueEventConsumer`
 > 삭제 시 inventory → product 순서로 제거 (FK 제약조건).
 
 ---
@@ -551,6 +556,16 @@ CloudWatch Alarm 4개가 이상 상태를 감지하여 SNS(`cloudwatch-alarms`)�
 | PaymentCompletedEvent | `shopping.payment.completed` | PaymentService | paymentNumber, orderNumber, amount |
 | PaymentFailedEvent | `shopping.payment.failed` | PaymentService | paymentNumber, orderNumber, reason |
 | InventoryReservedEvent | `shopping.inventory.reserved` | InventoryService | orderNumber, productId, quantity |
+
+**수신 이벤트 (seller-service → shopping-service CQRS)**:
+
+| 이벤트 | Topic | 발행자 | Consumer |
+|--------|-------|--------|----------|
+| ProductCreated/Updated/DeletedEvent | `seller.product.*` | seller ProductService | ProductEventConsumer |
+| InventoryChangedEvent | `seller.inventory.changed` | seller InventoryService | InventoryEventConsumer |
+| CouponCreated/Updated/DeletedEvent | `seller.coupon.*` | seller CouponService | CouponEventConsumer |
+| TimeDealCreated/Updated/CancelledEvent | `seller.timedeal.*` | seller TimeDealService | TimeDealEventConsumer |
+| QueueActivated/DeactivatedEvent | `seller.queue.*` | seller QueueService | QueueEventConsumer |
 | DeliveryShippedEvent | `shopping.delivery.shipped` | DeliveryService | trackingNumber, orderNumber |
 | CouponIssuedEvent | `shopping.coupon.issued` | CouponService | couponId, userId, couponCode |
 | TimeDealStartedEvent | `shopping.timedeal.started` | TimeDealScheduler | timeDealId, name, startsAt |
@@ -697,4 +712,4 @@ graph TD
 
 ---
 
-**최종 업데이트**: 2026-02-25
+**최종 업데이트**: 2026-03-06
