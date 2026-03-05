@@ -14,7 +14,7 @@ interface UseInventoryStreamOptions {
 const MAX_RECONNECT_ATTEMPTS = 5
 const BASE_RECONNECT_DELAY = 3000
 
-export function useInventoryStream({ productIds, enabled = true }: UseInventoryStreamOptions) {
+export function useInventoryStream({ productIds, enabled = false }: UseInventoryStreamOptions) {
   const [updates, setUpdates] = useState<Map<number, InventoryUpdate>>(new Map())
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<Error | null>(null)
