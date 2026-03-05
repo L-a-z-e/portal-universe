@@ -49,16 +49,6 @@ public interface QueueService {
     boolean isQueueActive(String eventType, Long eventId);
 
     /**
-     * 대기열 생성/활성화 (Admin)
-     */
-    void activateQueue(String eventType, Long eventId, Integer maxCapacity, Integer entryBatchSize, Integer entryIntervalSeconds);
-
-    /**
-     * 대기열 비활성화 (Admin)
-     */
-    void deactivateQueue(String eventType, Long eventId);
-
-    /**
      * entryToken 소유권 검증
      */
     void validateTokenOwnership(String entryToken, String userId);
