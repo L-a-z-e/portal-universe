@@ -52,12 +52,13 @@ public class QueueStreamController {
         // 이전 연결 정리
         SseEmitter oldEmitter = emitters.put(emitterKey, emitter);
         if (oldEmitter != null) {
+            cancelScheduledTask(emitterKey);
             oldEmitter.complete();
         }
 
         // 연결 완료/에러/타임아웃 시 정리
         Runnable cleanup = () -> {
-            emitters.remove(emitterKey);
+            emitters.remove(emitterKey, emitter);
             cancelScheduledTask(emitterKey);
         };
 

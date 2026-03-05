@@ -1,7 +1,5 @@
 package com.portal.universe.shoppingservice.inventory.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.shoppingservice.inventory.domain.Inventory;
@@ -14,9 +12,9 @@ import com.portal.universe.shoppingservice.inventory.repository.StockMovementRep
 import com.portal.universe.shoppingservice.inventory.stream.InventoryUpdate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,8 +38,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final StockMovementRepository stockMovementRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public InventoryResponse getInventory(Long productId) {
@@ -325,7 +322,8 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     /**
-     * 재고 변동을 Redis Pub/Sub으로 발행합니다.
+     * 재고 변동 이벤트를 등록합니다.
+     * 실제 Redis 발행은 트랜잭션 커밋 후 InventoryUpdateEventListener에서 처리됩니다.
      */
     private void publishInventoryUpdate(Inventory inventory) {
         InventoryUpdate update = InventoryUpdate.builder()
@@ -335,14 +333,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .timestamp(Instant.now())
                 .build();
 
-        String channel = "inventory:" + inventory.getProductId();
-        try {
-            String jsonPayload = objectMapper.writeValueAsString(update);
-            redisTemplate.convertAndSend(channel, jsonPayload);
-            log.debug("Published inventory update for product {}: available={}, reserved={}",
-                    inventory.getProductId(), update.getAvailable(), update.getReserved());
-        } catch (JsonProcessingException e) {
-            log.error("Failed to publish inventory update for product {}", inventory.getProductId(), e);
-        }
+        eventPublisher.publishEvent(update);
     }
 }
