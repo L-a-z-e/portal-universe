@@ -16,6 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 /**
  * 장바구니 관리 서비스 구현체입니다.
  */
@@ -118,10 +123,10 @@ public class CartServiceImpl implements CartService {
     public CartResponse checkout(String userId) {
         Cart cart = getActiveCartWithItems(userId);
 
-        // 모든 항목의 재고 확인
-        for (CartItem item : cart.getItems()) {
-            validateStockAvailability(item.getProductId(), item.getQuantity());
-        }
+        // 모든 항목의 재고를 한 번에 조회하여 검증
+        Map<Long, Integer> requirements = cart.getItems().stream()
+                .collect(Collectors.toMap(CartItem::getProductId, CartItem::getQuantity));
+        validateStockAvailability(requirements);
 
         cart.checkout();
 
@@ -156,19 +161,24 @@ public class CartServiceImpl implements CartService {
         return carts.get(0);
     }
 
-    /**
-     * 상품의 재고 가용량을 검증합니다.
-     *
-     * @param productId 상품 ID
-     * @param requiredQuantity 필요한 수량
-     * @throws CustomBusinessException 재고가 없거나 부족한 경우
-     */
     private void validateStockAvailability(Long productId, int requiredQuantity) {
-        Inventory inventory = inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.INVENTORY_NOT_FOUND));
+        validateStockAvailability(Map.of(productId, requiredQuantity));
+    }
 
-        if (inventory.getAvailableQuantity() < requiredQuantity) {
-            throw new CustomBusinessException(ShoppingErrorCode.CART_ITEM_QUANTITY_EXCEEDED);
+    private void validateStockAvailability(Map<Long, Integer> requirements) {
+        Map<Long, Inventory> inventoryMap = inventoryRepository
+                .findByProductIds(List.copyOf(requirements.keySet()))
+                .stream()
+                .collect(Collectors.toMap(Inventory::getProductId, Function.identity()));
+
+        for (var entry : requirements.entrySet()) {
+            Inventory inventory = inventoryMap.get(entry.getKey());
+            if (inventory == null) {
+                throw new CustomBusinessException(ShoppingErrorCode.INVENTORY_NOT_FOUND);
+            }
+            if (inventory.getAvailableQuantity() < entry.getValue()) {
+                throw new CustomBusinessException(ShoppingErrorCode.CART_ITEM_QUANTITY_EXCEEDED);
+            }
         }
     }
 }

@@ -14,8 +14,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
@@ -35,27 +37,43 @@ public class OutboxPollingScheduler {
         List<OutboxEvent> pending = outboxEventRepository.findPendingForUpdate(BATCH_SIZE);
         if (pending.isEmpty()) return;
 
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         for (OutboxEvent event : pending) {
             try {
                 SpecificRecord record = deserialize(event.getEventType(), event.getPayload());
-                avroKafkaTemplate.send(event.getTopic(), event.getEventKey(), record).get();
-                event.markPublished();
 
-                publishToEventBridgeIfNeeded(record);
+                CompletableFuture<Void> future = avroKafkaTemplate.send(
+                        event.getTopic(), event.getEventKey(), record)
+                    .thenAccept(result -> {
+                        event.markPublished();
+                        publishToEventBridgeIfNeeded(record);
+                        log.debug("Outbox event published: id={}, topic={}, key={}",
+                                event.getId(), event.getTopic(), event.getEventKey());
+                    })
+                    .exceptionally(ex -> {
+                        handlePublishFailure(event, ex);
+                        return null;
+                    });
 
-                log.debug("Outbox event published: id={}, topic={}, key={}",
-                        event.getId(), event.getTopic(), event.getEventKey());
+                futures.add(future);
             } catch (Exception ex) {
-                event.incrementRetry();
-                if (event.getRetryCount() >= MAX_RETRIES) {
-                    event.markFailed();
-                    log.error("Outbox event permanently failed: id={}, topic={}, key={}",
-                            event.getId(), event.getTopic(), event.getEventKey(), ex);
-                } else {
-                    log.warn("Outbox event publish failed (attempt {}/{}): id={}, topic={}",
-                            event.getRetryCount(), MAX_RETRIES, event.getId(), event.getTopic());
-                }
+                handlePublishFailure(event, ex);
             }
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
+
+    private void handlePublishFailure(OutboxEvent event, Throwable ex) {
+        event.incrementRetry();
+        if (event.getRetryCount() >= MAX_RETRIES) {
+            event.markFailed();
+            log.error("Outbox event permanently failed: id={}, topic={}, key={}",
+                    event.getId(), event.getTopic(), event.getEventKey(), ex);
+        } else {
+            log.warn("Outbox event publish failed (attempt {}/{}): id={}, topic={}",
+                    event.getRetryCount(), MAX_RETRIES, event.getId(), event.getTopic());
         }
     }
 
