@@ -29,7 +29,7 @@ public class DeadSagaRecoveryScheduler {
 
     private final SagaStateRepository sagaStateRepository;
     private final OrderRepository orderRepository;
-    private final OrderSagaOrchestrator orderSagaOrchestrator;
+    private final SagaCompensationService sagaCompensationService;
     private final CloudWatchMetricsPublisher cloudWatchMetricsPublisher;
 
     /**
@@ -63,7 +63,7 @@ public class DeadSagaRecoveryScheduler {
                 sagaId, orderNumber, sagaState.getStatus(), sagaState.getStartedAt());
 
         try {
-            orderSagaOrchestrator.compensate(sagaState, "Dead saga recovery (timeout)");
+            sagaCompensationService.compensate(sagaState, "Dead saga recovery (timeout)");
 
             cloudWatchMetricsPublisher.publishOrderFailure(orderNumber, "DEAD_SAGA_RECOVERY");
             log.info("Dead saga recovered: {} (order: {})", sagaId, orderNumber);

@@ -14,6 +14,7 @@ import com.portal.universe.shoppingservice.order.dto.OrderResponse;
 import com.portal.universe.shoppingservice.order.repository.OrderRepository;
 import com.portal.universe.shoppingservice.order.repository.SagaStateRepository;
 import com.portal.universe.shoppingservice.order.saga.OrderSagaOrchestrator;
+import com.portal.universe.shoppingservice.order.saga.SagaCompensationService;
 import com.portal.universe.shoppingservice.order.saga.SagaState;
 import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
 import com.portal.universe.shoppingservice.feign.PaymentIntentFeignClient;
@@ -46,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final SagaStateRepository sagaStateRepository;
     private final OrderSagaOrchestrator orderSagaOrchestrator;
+    private final SagaCompensationService sagaCompensationService;
     private final CouponService couponService;
     private final ShoppingEventPublisher eventPublisher;
     private final PaymentIntentFeignClient paymentIntentFeignClient;
@@ -196,7 +198,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (sagaState != null) {
             try {
-                orderSagaOrchestrator.compensateSagaSteps(order, sagaState);
+                sagaCompensationService.compensateSagaSteps(order, sagaState);
             } catch (Exception e) {
                 log.error("Failed to compensate saga steps for order {}: {}", orderNumber, e.getMessage());
             }

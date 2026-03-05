@@ -4,7 +4,6 @@ import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.delivery.dto.DeliveryResponse;
 import com.portal.universe.shoppingservice.delivery.service.DeliveryService;
 import com.portal.universe.shoppingservice.event.CloudWatchMetricsPublisher;
-import com.portal.universe.shoppingservice.feign.PaymentIntentFeignClient;
 import com.portal.universe.shoppingservice.feign.SellerInventoryClient;
 import com.portal.universe.shoppingservice.feign.dto.StockReserveRequest;
 import com.portal.universe.shoppingservice.order.domain.Order;
@@ -49,10 +48,10 @@ class OrderSagaOrchestratorTest {
     private DeliveryService deliveryService;
 
     @Mock
-    private PaymentIntentFeignClient paymentIntentFeignClient;
+    private CloudWatchMetricsPublisher cloudWatchMetricsPublisher;
 
     @Mock
-    private CloudWatchMetricsPublisher cloudWatchMetricsPublisher;
+    private SagaCompensationService sagaCompensationService;
 
     @InjectMocks
     private OrderSagaOrchestrator sagaOrchestrator;
@@ -140,12 +139,11 @@ class OrderSagaOrchestratorTest {
             doThrow(new RuntimeException("Reserve failed"))
                     .when(sellerInventoryClient).reserveStock(any(StockReserveRequest.class));
 
-            when(orderRepository.findByOrderNumberWithItems("ORD-001"))
-                    .thenReturn(Optional.of(order));
-
             // when & then
             assertThatThrownBy(() -> sagaOrchestrator.startSaga(order))
                     .isInstanceOf(CustomBusinessException.class);
+
+            verify(sagaCompensationService).compensate(any(SagaState.class), eq("Reserve failed"));
         }
     }
 
@@ -200,11 +198,12 @@ class OrderSagaOrchestratorTest {
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
             doThrow(new RuntimeException("Deduct failed"))
                     .when(sellerInventoryClient).deductStock(any(StockReserveRequest.class));
-            when(sagaStateRepository.save(any(SagaState.class))).thenReturn(sagaState);
 
             // when & then
             assertThatThrownBy(() -> sagaOrchestrator.completeSagaAfterPayment("ORD-001"))
                     .isInstanceOf(CustomBusinessException.class);
+
+            verify(sagaCompensationService).compensate(any(SagaState.class), eq("Deduct failed"));
         }
 
         @Test
@@ -218,95 +217,37 @@ class OrderSagaOrchestratorTest {
             when(sagaStateRepository.findByOrderNumber("ORD-001")).thenReturn(Optional.of(sagaState));
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
             when(deliveryService.createDelivery(order)).thenThrow(new RuntimeException("Delivery creation failed"));
-            when(sagaStateRepository.save(any(SagaState.class))).thenReturn(sagaState);
 
             // when & then
             assertThatThrownBy(() -> sagaOrchestrator.completeSagaAfterPayment("ORD-001"))
                     .isInstanceOf(CustomBusinessException.class);
+
+            verify(sagaCompensationService).compensate(any(SagaState.class), eq("Delivery creation failed"));
         }
     }
 
     @Nested
-    @DisplayName("compensate")
-    class Compensate {
+    @DisplayName("compensate delegation")
+    class CompensateDelegation {
 
         @Test
-        @DisplayName("should_releaseInventory_when_inventoryReserved")
-        void should_releaseInventory_when_inventoryReserved() {
+        @DisplayName("should_delegateToSagaCompensationService_when_sagaFails")
+        void should_delegateToSagaCompensationService_when_sagaFails() {
             // given
             Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.PENDING);
-            SagaState sagaState = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.RESERVE_INVENTORY, SagaStatus.STARTED, "RESERVE_INVENTORY");
 
-            when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
-            when(sagaStateRepository.save(any(SagaState.class))).thenReturn(sagaState);
-            when(orderRepository.save(any(Order.class))).thenReturn(order);
-
-            // when
-            sagaOrchestrator.compensate(sagaState, "Test error");
-
-            // then
-            verify(sellerInventoryClient).releaseStock(any(StockReserveRequest.class));
-            verify(sagaStateRepository, atLeast(2)).save(any(SagaState.class));
-        }
-
-        @Test
-        @DisplayName("should_cancelDelivery_when_deliveryCreated")
-        void should_cancelDelivery_when_deliveryCreated() {
-            // given
-            Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.CONFIRMED);
-            SagaState sagaState = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.CONFIRM_ORDER, SagaStatus.STARTED,
-                    "RESERVE_INVENTORY,DEDUCT_INVENTORY,CREATE_DELIVERY");
-
-            when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
-            when(sagaStateRepository.save(any(SagaState.class))).thenReturn(sagaState);
-            when(orderRepository.save(any(Order.class))).thenReturn(order);
-
-            // when
-            sagaOrchestrator.compensate(sagaState, "Test error");
-
-            // then
-            verify(deliveryService).cancelDelivery(1L);
-            verify(sellerInventoryClient).restoreStock(any(StockReserveRequest.class));
-        }
-
-        @Test
-        @DisplayName("should_markAsFailed_when_orderNotFound")
-        void should_markAsFailed_when_orderNotFound() {
-            // given
-            SagaState sagaState = createSagaState(1L, 1L, "ORD-001",
+            SagaState initialSaga = createSagaState(1L, 1L, "ORD-001",
                     SagaStep.RESERVE_INVENTORY, SagaStatus.STARTED, "");
+            when(sagaStateRepository.save(any(SagaState.class))).thenReturn(initialSaga);
 
-            when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.empty());
-            when(sagaStateRepository.save(any(SagaState.class))).thenReturn(sagaState);
+            doThrow(new RuntimeException("Reserve failed"))
+                    .when(sellerInventoryClient).reserveStock(any(StockReserveRequest.class));
 
-            // when
-            sagaOrchestrator.compensate(sagaState, "Test error");
+            // when & then
+            assertThatThrownBy(() -> sagaOrchestrator.startSaga(order))
+                    .isInstanceOf(CustomBusinessException.class);
 
-            // then
-            verify(sagaStateRepository, atLeast(2)).save(any(SagaState.class));
-        }
-
-        @Test
-        @DisplayName("should_markCompensationFailed_when_maxAttemptsReached")
-        void should_markCompensationFailed_when_maxAttemptsReached() {
-            // given
-            Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.PENDING);
-            SagaState sagaState = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.RESERVE_INVENTORY, SagaStatus.STARTED, "RESERVE_INVENTORY");
-            ReflectionTestUtils.setField(sagaState, "compensationAttempts", 2);
-
-            when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
-            when(sagaStateRepository.save(any(SagaState.class))).thenReturn(sagaState);
-            doThrow(new RuntimeException("Release failed"))
-                    .when(sellerInventoryClient).releaseStock(any(StockReserveRequest.class));
-
-            // when
-            sagaOrchestrator.compensate(sagaState, "Test error");
-
-            // then
-            verify(sagaStateRepository, atLeast(2)).save(any(SagaState.class));
+            verify(sagaCompensationService).compensate(any(SagaState.class), eq("Reserve failed"));
         }
     }
 }
