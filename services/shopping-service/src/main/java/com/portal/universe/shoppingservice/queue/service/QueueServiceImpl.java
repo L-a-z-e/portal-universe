@@ -216,24 +216,6 @@ public class QueueServiceImpl implements QueueService {
     }
 
     @Override
-    @Transactional
-    public void activateQueue(String eventType, Long eventId, Integer maxCapacity, Integer entryBatchSize, Integer entryIntervalSeconds) {
-        WaitingQueue queue = waitingQueueRepository.findByEventTypeAndEventId(eventType, eventId)
-            .orElseGet(() -> WaitingQueue.builder()
-                .eventType(eventType)
-                .eventId(eventId)
-                .maxCapacity(maxCapacity)
-                .entryBatchSize(entryBatchSize)
-                .entryIntervalSeconds(entryIntervalSeconds)
-                .build());
-
-        queue.activate();
-        waitingQueueRepository.save(queue);
-
-        log.info("Queue activated for {} {}", eventType, eventId);
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public void validateTokenOwnership(String entryToken, String userId) {
         QueueEntry entry = queueEntryRepository.findByEntryToken(entryToken)
@@ -249,21 +231,4 @@ public class QueueServiceImpl implements QueueService {
         return waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue(eventType, eventId).isPresent();
     }
 
-    @Override
-    @Transactional
-    public void deactivateQueue(String eventType, Long eventId) {
-        WaitingQueue queue = waitingQueueRepository.findByEventTypeAndEventId(eventType, eventId)
-            .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.QUEUE_NOT_FOUND));
-
-        queue.deactivate();
-        waitingQueueRepository.save(queue);
-
-        // Redis 데이터 정리
-        String queueKey = getQueueKey(eventType, eventId);
-        String enteredKey = getEnteredKey(eventType, eventId);
-        redisTemplate.delete(queueKey);
-        redisTemplate.delete(enteredKey);
-
-        log.info("Queue deactivated for {} {}", eventType, eventId);
-    }
 }

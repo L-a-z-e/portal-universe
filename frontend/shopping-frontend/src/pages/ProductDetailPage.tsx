@@ -29,7 +29,7 @@ const ProductDetailPage: React.FC = () => {
   const parsedId = productId ? parseInt(productId) : 0
   const { getUpdate } = useInventoryStream({
     productIds: parsedId > 0 ? [parsedId] : [],
-    enabled: parsedId > 0
+    enabled: false
   })
   const sseUpdate = parsedId > 0 ? getUpdate(parsedId) : null
 

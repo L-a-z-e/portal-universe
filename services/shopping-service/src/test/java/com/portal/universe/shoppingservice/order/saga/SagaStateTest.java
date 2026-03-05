@@ -46,7 +46,7 @@ class SagaStateTest {
 
             assertThat(saga.getSagaId()).isNotNull();
             assertThat(saga.getSagaId()).startsWith("SAGA-");
-            assertThat(saga.getSagaId()).hasSize(13); // "SAGA-" + 8 chars
+            assertThat(saga.getSagaId()).hasSize(17); // "SAGA-" + 12 chars
         }
 
         @Test
@@ -133,22 +133,6 @@ class SagaStateTest {
             saga.startCompensation("두 번째 에러");
 
             assertThat(saga.getLastErrorMessage()).isEqualTo("두 번째 에러");
-        }
-    }
-
-    @Nested
-    @DisplayName("rollbackToPreviousStep")
-    class RollbackTest {
-
-        @Test
-        @DisplayName("should move to previous step")
-        void should_rollback_to_previous_step() {
-            SagaState saga = createTestSagaState();
-            saga.proceedToNextStep(); // now at PROCESS_PAYMENT
-
-            saga.rollbackToPreviousStep();
-
-            assertThat(saga.getCurrentStep()).isEqualTo(SagaStep.RESERVE_INVENTORY);
         }
     }
 

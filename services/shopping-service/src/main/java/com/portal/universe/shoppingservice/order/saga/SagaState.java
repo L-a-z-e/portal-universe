@@ -132,16 +132,6 @@ public class SagaState {
     }
 
     /**
-     * 이전 단계로 롤백합니다.
-     */
-    public void rollbackToPreviousStep() {
-        SagaStep previousStep = this.currentStep.previous();
-        if (previousStep != null) {
-            this.currentStep = previousStep;
-        }
-    }
-
-    /**
      * Saga 실패를 기록합니다.
      */
     public void markAsFailed(String errorMessage) {
@@ -177,6 +167,6 @@ public class SagaState {
      * Saga ID를 생성합니다.
      */
     private static String generateSagaId() {
-        return "SAGA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        return "SAGA-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
     }
 }

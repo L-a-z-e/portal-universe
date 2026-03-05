@@ -135,7 +135,7 @@ class CartServiceImplTest {
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
             when(productRepository.findById(2L)).thenReturn(Optional.of(product));
-            when(inventoryRepository.findByProductId(2L)).thenReturn(Optional.of(inventory));
+            when(inventoryRepository.findByProductIds(List.of(2L))).thenReturn(List.of(inventory));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
             AddCartItemRequest request = new AddCartItemRequest(2L, 3);
@@ -173,7 +173,7 @@ class CartServiceImplTest {
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
             when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-            when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.of(inventory));
+            when(inventoryRepository.findByProductIds(List.of(1L))).thenReturn(List.of(inventory));
 
             AddCartItemRequest request = new AddCartItemRequest(1L, 10);
 
@@ -195,7 +195,7 @@ class CartServiceImplTest {
             Inventory inventory = createInventory(1L, 100);
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
-            when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.of(inventory));
+            when(inventoryRepository.findByProductIds(List.of(1L))).thenReturn(List.of(inventory));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
             UpdateCartItemRequest request = new UpdateCartItemRequest(5);
@@ -229,7 +229,7 @@ class CartServiceImplTest {
             Inventory inventory = createInventory(1L, 2);
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
-            when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.of(inventory));
+            when(inventoryRepository.findByProductIds(List.of(1L))).thenReturn(List.of(inventory));
 
             UpdateCartItemRequest request = new UpdateCartItemRequest(10);
 
@@ -305,7 +305,7 @@ class CartServiceImplTest {
             Inventory inventory = createInventory(1L, 100);
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
-            when(inventoryRepository.findByProductId(1L)).thenReturn(Optional.of(inventory));
+            when(inventoryRepository.findByProductIds(List.of(1L))).thenReturn(List.of(inventory));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
             // when

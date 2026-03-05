@@ -74,8 +74,9 @@ class OutboxPollingSchedulerTest {
                     .thenReturn(List.of(outbox));
 
             @SuppressWarnings("unchecked")
-            CompletableFuture<SendResult<String, SpecificRecord>> future = mock(CompletableFuture.class);
-            when(avroKafkaTemplate.send(anyString(), anyString(), any())).thenReturn(future);
+            SendResult<String, SpecificRecord> sendResult = mock(SendResult.class);
+            when(avroKafkaTemplate.send(anyString(), anyString(), any()))
+                    .thenReturn(CompletableFuture.completedFuture(sendResult));
 
             // when
             scheduler.pollAndPublish();
@@ -147,8 +148,9 @@ class OutboxPollingSchedulerTest {
             when(outboxEventRepository.findPendingForUpdate(anyInt()))
                     .thenReturn(List.of(outbox));
             @SuppressWarnings("unchecked")
-            CompletableFuture<SendResult<String, SpecificRecord>> future = mock(CompletableFuture.class);
-            when(avroKafkaTemplate.send(anyString(), anyString(), any())).thenReturn(future);
+            SendResult<String, SpecificRecord> sendResult = mock(SendResult.class);
+            when(avroKafkaTemplate.send(anyString(), anyString(), any()))
+                    .thenReturn(CompletableFuture.completedFuture(sendResult));
 
             // when
             scheduler.pollAndPublish();
