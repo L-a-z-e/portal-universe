@@ -51,10 +51,11 @@ public class ProductEventConsumer {
         Product saved = productRepository.save(product);
         productSearchService.indexProduct(saved);
 
+        // Read model 초기화: seller-service에서 InventoryEvent 수신 전까지 기본값 사용
         if (!inventoryRepository.existsByProductId(saved.getId())) {
             Inventory inventory = Inventory.builder()
                     .productId(saved.getId())
-                    .initialQuantity(100)
+                    .initialQuantity(0)
                     .build();
             inventoryRepository.save(inventory);
         }
