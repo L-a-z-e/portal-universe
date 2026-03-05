@@ -181,3 +181,64 @@ export function getOrder(params, orderNumber) {
     Object.assign({}, params, { tags: { name: 'get_order' } })
   );
 }
+
+/**
+ * Get inventory for a single product
+ */
+export function getInventory(params, productId) {
+  return http.get(
+    `${BASE}/api/v1/shopping/inventory/${productId}`,
+    Object.assign({}, params, { tags: { name: 'get_inventory' } })
+  );
+}
+
+/**
+ * Get inventory for multiple products (batch)
+ */
+export function getInventoryBatch(params, productIds) {
+  return http.post(
+    `${BASE}/api/v1/shopping/inventory/batch`,
+    JSON.stringify({ productIds }),
+    Object.assign({}, params, { tags: { name: 'get_inventory_batch' } })
+  );
+}
+
+/**
+ * Get product detail by ID
+ */
+export function getProductDetail(params, productId) {
+  return http.get(
+    `${BASE}/api/v1/shopping/products/${productId}`,
+    Object.assign({}, params, { tags: { name: 'product_detail' } })
+  );
+}
+
+/**
+ * Get product categories
+ */
+export function getCategories(params) {
+  return http.get(
+    `${BASE}/api/v1/shopping/products/categories`,
+    Object.assign({}, params, { tags: { name: 'get_categories' } })
+  );
+}
+
+/**
+ * Search products by keyword
+ */
+export function searchProducts(params, keyword, page, size) {
+  return http.get(
+    `${BASE}/api/v1/shopping/search/products?keyword=${encodeURIComponent(keyword)}&page=${page || 0}&size=${size || 20}`,
+    Object.assign({}, params, { tags: { name: 'product_search' } })
+  );
+}
+
+/**
+ * Get products by category
+ */
+export function getProductsByCategory(params, category, page, size) {
+  return http.get(
+    `${BASE}/api/v1/shopping/products?category=${encodeURIComponent(category)}&page=${page || 1}&size=${size || 20}`,
+    Object.assign({}, params, { tags: { name: 'product_by_category' } })
+  );
+}
