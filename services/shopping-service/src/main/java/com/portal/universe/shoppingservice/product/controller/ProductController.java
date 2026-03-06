@@ -59,10 +59,10 @@ public class ProductController {
     }
 
     /**
-     * 특정 상품 정보와 해당 상품에 대한 리뷰(블로그 게시물) 목록을 함께 조회합니다. (공개)
-     * Blog 서비스와의 Feign 통신을 통해 데이터를 조합합니다.
+     * 특정 상품 정보와 리뷰 목록을 함께 조회합니다. (공개)
+     * 리뷰 데이터는 프론트엔드에서 blog-service를 직접 호출하여 조합합니다.
      * @param productId 조회할 상품의 ID
-     * @return 상품 정보와 리뷰 목록을 포함한 ApiResponse
+     * @return 상품 정보를 포함한 ApiResponse
      */
     @GetMapping("/{productId}/with-reviews")
     public ApiResponse<ProductWithReviewsResponse> getProductWithReviews(@PathVariable Long productId) {

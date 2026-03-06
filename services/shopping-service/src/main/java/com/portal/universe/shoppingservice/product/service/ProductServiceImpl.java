@@ -5,11 +5,10 @@ import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.product.dto.ProductResponse;
 import com.portal.universe.shoppingservice.product.dto.ProductWithReviewsResponse;
 import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
-import com.portal.universe.shoppingservice.feign.BlogServiceClient;
-import com.portal.universe.shoppingservice.feign.dto.BlogResponse;
 import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,6 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final BlogServiceClient blogServiceClient;
 
     @Override
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
@@ -43,47 +41,23 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(value = "product-categories")
     public List<String> getAllCategories() {
         return productRepository.findDistinctCategories();
     }
 
     @Override
+    @Cacheable(value = "product-detail", key = "#id")
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
-
-        Double averageRating = null;
-        Integer reviewCount = null;
-        try {
-            List<BlogResponse> reviews = blogServiceClient.getPostByProductId(String.valueOf(id));
-            if (reviews != null && !reviews.isEmpty()) {
-                reviewCount = reviews.size();
-                averageRating = reviews.stream()
-                        .filter(r -> r.rating() != null)
-                        .mapToInt(BlogResponse::rating)
-                        .average()
-                        .orElse(0.0);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to fetch review stats for productId={}: {}", id, e.getMessage());
-        }
-
-        return convertToResponseWithReviewStats(product, averageRating, reviewCount);
+        return convertToResponse(product);
     }
 
     @Override
     public ProductWithReviewsResponse getProductWithReviews(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
-
-        List<BlogResponse> reviews;
-        try {
-            reviews = blogServiceClient.getPostByProductId(String.valueOf(productId));
-        } catch (Exception e) {
-            log.warn("Failed to fetch reviews from blog service for productId={}: {}", productId, e.getMessage());
-            reviews = List.of();
-        }
-
         return new ProductWithReviewsResponse(
                 product.getId(),
                 product.getName(),
@@ -91,7 +65,7 @@ public class ProductServiceImpl implements ProductService {
                 product.getPrice(),
                 product.getImageUrl(),
                 product.getCategory(),
-                reviews
+                List.of()
         );
     }
 
@@ -114,30 +88,6 @@ public class ProductServiceImpl implements ProductService {
                 imageUrls,
                 null,
                 null,
-                product.getCreatedAt(),
-                product.getUpdatedAt()
-        );
-    }
-
-    private ProductResponse convertToResponseWithReviewStats(Product product, Double averageRating, Integer reviewCount) {
-        List<String> imageUrls = product.getImages() != null
-                ? product.getImages().stream()
-                    .map(com.portal.universe.shoppingservice.product.domain.ProductImage::getImageUrl)
-                    .toList()
-                : List.of();
-
-        return new ProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getDiscountPrice(),
-                product.getImageUrl(),
-                product.getCategory(),
-                product.getFeatured(),
-                imageUrls,
-                averageRating,
-                reviewCount,
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );

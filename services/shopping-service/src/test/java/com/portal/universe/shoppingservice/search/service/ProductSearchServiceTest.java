@@ -8,6 +8,7 @@ import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.portal.universe.shoppingservice.product.domain.Product;
+import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingservice.search.document.ProductDocument;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchResult;
@@ -17,6 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -25,6 +29,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +37,9 @@ class ProductSearchServiceTest {
 
     @Mock
     private ElasticsearchClient esClient;
+
+    @Mock
+    private ProductRepository productRepository;
 
     @InjectMocks
     private ProductSearchService productSearchService;
@@ -135,20 +143,32 @@ class ProductSearchServiceTest {
     }
 
     @Test
-    @DisplayName("should_returnEmptyResults_when_searchFails")
+    @DisplayName("should_fallbackToDbSearch_when_esFails")
     @SuppressWarnings("unchecked")
-    void should_returnEmptyResults_when_searchFails() throws IOException {
+    void should_fallbackToDbSearch_when_esFails() throws IOException {
         // given
         ProductSearchRequest request = ProductSearchRequest.of("laptop", 0, 20);
         when(esClient.search(any(co.elastic.clients.elasticsearch.core.SearchRequest.class), eq(ProductDocument.class)))
                 .thenThrow(new IOException("Connection refused"));
 
+        Product product = Product.builder()
+                .name("Laptop Pro")
+                .description("A great laptop")
+                .price(BigDecimal.valueOf(1500000))
+                .build();
+        ReflectionTestUtils.setField(product, "id", 1L);
+
+        when(productRepository.searchByKeyword(eq("laptop"), any()))
+                .thenReturn(new PageImpl<>(List.of(product), PageRequest.of(0, 20), 1));
+
         // when
         var result = productSearchService.search(request);
 
         // then
-        assertThat(result.getResults()).isEmpty();
-        assertThat(result.getTotalHits()).isEqualTo(0L);
+        assertThat(result.getResults()).hasSize(1);
+        assertThat(result.getResults().get(0).getName()).isEqualTo("Laptop Pro");
+        assertThat(result.getTotalHits()).isEqualTo(1L);
+        verify(productRepository).searchByKeyword(eq("laptop"), any());
     }
 
     @Test

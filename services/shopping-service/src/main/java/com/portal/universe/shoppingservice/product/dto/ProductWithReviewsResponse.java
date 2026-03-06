@@ -1,7 +1,5 @@
 package com.portal.universe.shoppingservice.product.dto;
 
-import com.portal.universe.shoppingservice.feign.dto.BlogResponse;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -12,5 +10,5 @@ public record ProductWithReviewsResponse(
         BigDecimal price,
         String imageUrl,
         String category,
-        List<BlogResponse> reviews
+        List<Object> reviews
 ) {}

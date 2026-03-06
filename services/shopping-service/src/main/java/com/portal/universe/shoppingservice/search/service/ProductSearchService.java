@@ -7,12 +7,15 @@ import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.portal.universe.shoppingservice.product.domain.Product;
+import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingservice.search.document.ProductDocument;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchResult;
 import com.portal.universe.shoppingservice.search.dto.SearchResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +32,7 @@ public class ProductSearchService {
 
     private static final String INDEX_NAME = "products";
     private final ElasticsearchClient esClient;
+    private final ProductRepository productRepository;
 
     public void indexProduct(Product product) {
         try {
@@ -78,10 +82,32 @@ public class ProductSearchService {
             long totalHits = response.hits().total() != null ? response.hits().total().value() : 0;
             return SearchResponse.of(results, totalHits, request.getPage(), request.getSize());
 
-        } catch (IOException e) {
-            log.error("Search failed for keyword: {}", request.getKeyword(), e);
+        } catch (Exception e) {
+            log.warn("ES search failed, falling back to DB search for keyword: {}", request.getKeyword(), e);
+            return searchFromDatabase(request);
+        }
+    }
+
+    private SearchResponse<ProductSearchResult> searchFromDatabase(ProductSearchRequest request) {
+        String keyword = request.getKeyword();
+        if (!StringUtils.hasText(keyword)) {
             return SearchResponse.of(List.of(), 0, request.getPage(), request.getSize());
         }
+
+        Page<Product> page = productRepository.searchByKeyword(
+                keyword, PageRequest.of(request.getPage(), request.getSize()));
+
+        List<ProductSearchResult> results = page.getContent().stream()
+                .map(p -> ProductSearchResult.builder()
+                        .id(p.getId())
+                        .name(p.getName())
+                        .description(p.getDescription())
+                        .price(p.getPrice())
+                        .score(1.0)
+                        .build())
+                .toList();
+
+        return SearchResponse.of(results, page.getTotalElements(), request.getPage(), request.getSize());
     }
 
     private SearchRequest buildSearchRequest(ProductSearchRequest request) {

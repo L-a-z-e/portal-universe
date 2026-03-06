@@ -16,8 +16,6 @@ feign:
       default:
         connectTimeout: 5000
         readTimeout: 5000
-  blog-service:
-    url: "http://blog-service:8082"
   shopping-seller-service:
     url: "http://shopping-seller-service:8088"
   payment-service:

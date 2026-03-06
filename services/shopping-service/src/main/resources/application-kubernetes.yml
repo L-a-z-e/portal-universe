@@ -12,8 +12,6 @@ feign:
       default:
         connectTimeout: 5000
         readTimeout: 5000
-  blog-service:
-    url: "http://blog-service:8082"
   shopping-seller-service:
     url: "http://shopping-seller-service:8088"
   payment-service:
@@ -50,6 +48,9 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       leak-detection-threshold: 10000
+
+  elasticsearch:
+    uris: http://elasticsearch:9200
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -100,6 +101,11 @@ management:
     tracing:
       endpoint: http://zipkin:9411/api/v2/spans
   metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms,1s,5s
     tags:
       application: ${spring.application.name}
       environment: kubernetes
