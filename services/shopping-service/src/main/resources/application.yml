@@ -90,6 +90,7 @@ resilience4j:
     configs:
       default:
         timeout-duration: 5s
+        cancel-running-future: true
 
 # 서비스 간 내부 API 인증 토큰
 app:

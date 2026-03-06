@@ -1,5 +1,6 @@
 package com.portal.universe.shoppingservice.event;
 
+import com.portal.universe.shoppingservice.common.config.CacheType;
 import com.portal.universe.event.seller.ProductCreatedEvent;
 import com.portal.universe.event.seller.ProductDeletedEvent;
 import com.portal.universe.event.seller.ProductUpdatedEvent;
@@ -29,7 +30,7 @@ public class ProductEventConsumer {
     @KafkaListener(topics = SellerTopics.PRODUCT_CREATED, groupId = "shopping-service",
             containerFactory = "avroKafkaListenerContainerFactory")
     @Transactional
-    @CacheEvict(value = "product-categories", allEntries = true)
+    @CacheEvict(value = CacheType.Names.PRODUCT_CATEGORIES, allEntries = true)
     public void onProductCreated(ProductCreatedEvent event) {
         log.info("Received ProductCreatedEvent: productId={}, sellerId={}",
                 event.getProductId(), event.getSellerId());
@@ -70,8 +71,8 @@ public class ProductEventConsumer {
             containerFactory = "avroKafkaListenerContainerFactory")
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "product-detail", key = "#event.productId"),
-            @CacheEvict(value = "product-categories", allEntries = true)
+            @CacheEvict(value = CacheType.Names.PRODUCT_DETAIL, key = "#event.productId"),
+            @CacheEvict(value = CacheType.Names.PRODUCT_CATEGORIES, allEntries = true)
     })
     public void onProductUpdated(ProductUpdatedEvent event) {
         log.info("Received ProductUpdatedEvent: productId={}, sellerId={}",
@@ -113,8 +114,8 @@ public class ProductEventConsumer {
             containerFactory = "avroKafkaListenerContainerFactory")
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "product-detail", key = "#event.productId"),
-            @CacheEvict(value = "product-categories", allEntries = true)
+            @CacheEvict(value = CacheType.Names.PRODUCT_DETAIL, key = "#event.productId"),
+            @CacheEvict(value = CacheType.Names.PRODUCT_CATEGORIES, allEntries = true)
     })
     public void onProductDeleted(ProductDeletedEvent event) {
         log.info("Received ProductDeletedEvent: productId={}, sellerId={}",

@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingservice.product.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.shoppingservice.common.config.CacheType;
 import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.product.dto.ProductResponse;
 import com.portal.universe.shoppingservice.product.dto.ProductWithReviewsResponse;
@@ -41,13 +42,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Cacheable(value = "product-categories")
+    @Cacheable(value = CacheType.Names.PRODUCT_CATEGORIES)
     public List<String> getAllCategories() {
         return productRepository.findDistinctCategories();
     }
 
     @Override
-    @Cacheable(value = "product-detail", key = "#id")
+    @Cacheable(value = CacheType.Names.PRODUCT_DETAIL, key = "#id")
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
