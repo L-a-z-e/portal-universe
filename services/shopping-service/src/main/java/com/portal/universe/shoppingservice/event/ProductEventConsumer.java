@@ -11,6 +11,8 @@ import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingservice.search.service.ProductSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ public class ProductEventConsumer {
     @KafkaListener(topics = SellerTopics.PRODUCT_CREATED, groupId = "shopping-service",
             containerFactory = "avroKafkaListenerContainerFactory")
     @Transactional
+    @CacheEvict(value = "product-categories", allEntries = true)
     public void onProductCreated(ProductCreatedEvent event) {
         log.info("Received ProductCreatedEvent: productId={}, sellerId={}",
                 event.getProductId(), event.getSellerId());
@@ -66,6 +69,10 @@ public class ProductEventConsumer {
     @KafkaListener(topics = SellerTopics.PRODUCT_UPDATED, groupId = "shopping-service",
             containerFactory = "avroKafkaListenerContainerFactory")
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "product-detail", key = "#event.productId"),
+            @CacheEvict(value = "product-categories", allEntries = true)
+    })
     public void onProductUpdated(ProductUpdatedEvent event) {
         log.info("Received ProductUpdatedEvent: productId={}, sellerId={}",
                 event.getProductId(), event.getSellerId());
@@ -105,6 +112,10 @@ public class ProductEventConsumer {
     @KafkaListener(topics = SellerTopics.PRODUCT_DELETED, groupId = "shopping-service",
             containerFactory = "avroKafkaListenerContainerFactory")
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "product-detail", key = "#event.productId"),
+            @CacheEvict(value = "product-categories", allEntries = true)
+    })
     public void onProductDeleted(ProductDeletedEvent event) {
         log.info("Received ProductDeletedEvent: productId={}, sellerId={}",
                 event.getProductId(), event.getSellerId());

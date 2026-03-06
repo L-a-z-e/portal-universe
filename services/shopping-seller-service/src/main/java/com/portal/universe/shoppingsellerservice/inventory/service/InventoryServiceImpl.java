@@ -1,6 +1,8 @@
 package com.portal.universe.shoppingsellerservice.inventory.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
+import com.portal.universe.event.seller.InventoryChangeType;
+import com.portal.universe.event.seller.InventoryChangedEvent;
 import com.portal.universe.shoppingsellerservice.common.exception.SellerErrorCode;
 import com.portal.universe.shoppingsellerservice.inventory.domain.Inventory;
 import com.portal.universe.shoppingsellerservice.inventory.domain.MovementType;
@@ -9,6 +11,7 @@ import com.portal.universe.shoppingsellerservice.inventory.dto.InventoryResponse
 import com.portal.universe.shoppingsellerservice.inventory.dto.StockAddRequest;
 import com.portal.universe.shoppingsellerservice.inventory.dto.StockMovementResponse;
 import com.portal.universe.shoppingsellerservice.inventory.dto.StockReserveRequest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.portal.universe.shoppingsellerservice.inventory.repository.InventoryRepository;
@@ -33,6 +36,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public InventoryResponse getInventory(Long productId) {
@@ -62,6 +66,7 @@ public class InventoryServiceImpl implements InventoryService {
                 prevReserved, inventory.getReservedQuantity(),
                 "MANUAL", null, request.reason(), performedBy);
 
+        publishInventoryEvent(inventory, InventoryChangeType.STOCK_ADDED, request.quantity());
         return InventoryResponse.from(inventory);
     }
 
@@ -81,6 +86,7 @@ public class InventoryServiceImpl implements InventoryService {
                 0, initialQuantity, 0, 0,
                 "INIT", null, "Initial inventory", "SYSTEM");
 
+        publishInventoryEvent(inventory, InventoryChangeType.INITIALIZED, initialQuantity);
         return InventoryResponse.from(inventory);
     }
 
@@ -106,6 +112,8 @@ public class InventoryServiceImpl implements InventoryService {
                     prevAvailable, inventory.getAvailableQuantity(),
                     prevReserved, inventory.getReservedQuantity(),
                     "ORDER", request.orderNumber(), "Stock reserved for order", "SYSTEM");
+
+            publishInventoryEvent(inventory, InventoryChangeType.RESERVED, entry.getValue());
         }
     }
 
@@ -131,6 +139,8 @@ public class InventoryServiceImpl implements InventoryService {
                     prevAvailable, inventory.getAvailableQuantity(),
                     prevReserved, inventory.getReservedQuantity(),
                     "ORDER", request.orderNumber(), "Stock deducted after payment", "SYSTEM");
+
+            publishInventoryEvent(inventory, InventoryChangeType.DEDUCTED, entry.getValue());
         }
     }
 
@@ -156,6 +166,8 @@ public class InventoryServiceImpl implements InventoryService {
                     prevAvailable, inventory.getAvailableQuantity(),
                     prevReserved, inventory.getReservedQuantity(),
                     "ORDER", request.orderNumber(), "Stock released due to cancellation", "SYSTEM");
+
+            publishInventoryEvent(inventory, InventoryChangeType.RELEASED, entry.getValue());
         }
     }
 
@@ -181,7 +193,22 @@ public class InventoryServiceImpl implements InventoryService {
                     prevAvailable, inventory.getAvailableQuantity(),
                     prevReserved, inventory.getReservedQuantity(),
                     "ORDER_COMPENSATION", request.orderNumber(), "Stock restored due to saga compensation", "SYSTEM");
+
+            publishInventoryEvent(inventory, InventoryChangeType.RESTORED, entry.getValue());
         }
+    }
+
+    private void publishInventoryEvent(Inventory inventory, InventoryChangeType changeType, int quantity) {
+        InventoryChangedEvent event = InventoryChangedEvent.newBuilder()
+                .setProductId(inventory.getProductId())
+                .setAvailableQuantity(inventory.getAvailableQuantity())
+                .setReservedQuantity(inventory.getReservedQuantity())
+                .setTotalQuantity(inventory.getTotalQuantity())
+                .setChangeType(changeType)
+                .setQuantity(quantity)
+                .setTimestamp(java.time.Instant.now())
+                .build();
+        eventPublisher.publishEvent(event);
     }
 
     private void recordMovement(Inventory inventory, MovementType type, int quantity,

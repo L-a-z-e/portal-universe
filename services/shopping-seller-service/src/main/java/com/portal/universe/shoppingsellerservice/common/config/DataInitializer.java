@@ -6,8 +6,8 @@ import com.portal.universe.shoppingsellerservice.coupon.domain.DiscountType;
 import com.portal.universe.shoppingsellerservice.coupon.dto.CouponCreateRequest;
 import com.portal.universe.shoppingsellerservice.coupon.repository.CouponRepository;
 import com.portal.universe.shoppingsellerservice.coupon.service.CouponService;
-import com.portal.universe.shoppingsellerservice.inventory.domain.Inventory;
 import com.portal.universe.shoppingsellerservice.inventory.repository.InventoryRepository;
+import com.portal.universe.shoppingsellerservice.inventory.service.InventoryService;
 import com.portal.universe.shoppingsellerservice.product.domain.Product;
 import com.portal.universe.shoppingsellerservice.product.dto.ProductCreateRequest;
 import com.portal.universe.shoppingsellerservice.product.repository.ProductRepository;
@@ -43,6 +43,7 @@ public class DataInitializer {
     private final ProductService productService;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
+    private final InventoryService inventoryService;
     private final CouponService couponService;
     private final CouponRepository couponRepository;
     private final TimeDealService timeDealService;
@@ -117,16 +118,15 @@ public class DataInitializer {
 
     private void createInventory() {
         List<Product> products = productRepository.findAll();
+        int created = 0;
         for (Product product : products) {
             if (inventoryRepository.findByProductId(product.getId()).isEmpty()) {
-                Inventory inventory = Inventory.builder()
-                        .productId(product.getId())
-                        .initialQuantity(product.getStock() != null ? product.getStock() : 100)
-                        .build();
-                inventoryRepository.save(inventory);
+                int quantity = product.getStock() != null ? product.getStock() : 100;
+                inventoryService.initializeInventory(product.getId(), quantity);
+                created++;
             }
         }
-        log.info("Created inventory for {} products", products.size());
+        log.info("Created inventory for {} products (events published)", created);
     }
 
     private void createCoupons() throws IOException {

@@ -161,3 +161,15 @@ data:
             regex: ([^:]+)(?::\d+)?;(\d+)
             replacement: $1:$2
             target_label: __address__
+          # 4. K8s Pod 이름 → pod 라벨 (인스턴스 구별용)
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          # 5. K8s namespace → namespace 라벨
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          # 6. K8s Deployment의 app 라벨 → app 라벨 (서비스 식별, polyglot 공통)
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: replace
+            target_label: app

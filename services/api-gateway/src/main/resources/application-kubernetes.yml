@@ -94,6 +94,11 @@ management:
     tracing:
       endpoint: http://zipkin:9411/api/v2/spans
   metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms,1s,5s
     tags:
       application: ${spring.application.name}
       environment: kubernetes
@@ -137,8 +142,6 @@ gateway:
       - "/api/v1/auth/"
       - "/api/health/"
       - "/actuator/"
-      - "/api/v1/shopping/products"
-      - "/api/v1/shopping/categories"
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
       - "/api/v1/chat/health"

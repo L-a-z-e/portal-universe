@@ -56,11 +56,11 @@ spec:
                   key: POSTGRES_PASSWORD
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "250m"
-            limits:
-              memory: "512Mi"
+              memory: "1Gi"
               cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
           volumeMounts:
             - name: postgresql-storage
               mountPath: /var/lib/postgresql/data

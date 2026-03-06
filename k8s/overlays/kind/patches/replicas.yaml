@@ -1,17 +1,14 @@
 # Kind 환경 replica 설정
-# Critical Tier: 2 replicas (HPA min)
-# High Tier: 2 replicas (HPA min)
-# Frontend Tier: 1 replica (리소스 절약)
-# Standard Tier: base 기본값 유지 (1)
+# HPA가 부하에 따라 scale-out. 기본 1 replica로 시작.
 
-# --- Critical Tier ---
+# --- 핵심 경로: 기본 1, HPA가 필요 시 scale-out ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -19,16 +16,15 @@ metadata:
   name: auth-service
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
-# --- High Tier ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shopping-service
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,7 +32,7 @@ metadata:
   name: shopping-seller-service
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -44,17 +40,17 @@ metadata:
   name: payment-service
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
+# --- 비핵심 서비스: 1 replica ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: portal-shell
   namespace: portal-universe
 spec:
-  replicas: 2
+  replicas: 1
 ---
-# --- Frontend Tier (리소스 절약: 1 replica) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

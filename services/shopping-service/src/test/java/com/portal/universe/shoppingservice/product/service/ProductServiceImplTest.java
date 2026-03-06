@@ -1,8 +1,6 @@
 package com.portal.universe.shoppingservice.product.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
-import com.portal.universe.shoppingservice.feign.BlogServiceClient;
-import com.portal.universe.shoppingservice.feign.dto.BlogResponse;
 import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.product.dto.ProductResponse;
 import com.portal.universe.shoppingservice.product.dto.ProductWithReviewsResponse;
@@ -33,9 +31,6 @@ class ProductServiceImplTest {
 
     @Mock
     private ProductRepository productRepository;
-
-    @Mock
-    private BlogServiceClient blogServiceClient;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -115,14 +110,11 @@ class ProductServiceImplTest {
     class GetProductWithReviews {
 
         @Test
-        @DisplayName("should_returnProductWithReviews_when_success")
-        void should_returnProductWithReviews_when_success() {
+        @DisplayName("should_returnProductWithEmptyReviews_when_called")
+        void should_returnProductWithEmptyReviews_when_called() {
             // given
             Product product = createProduct(1L, "Product1", BigDecimal.valueOf(1000));
             when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-
-            List<BlogResponse> reviews = List.of();
-            when(blogServiceClient.getPostByProductId("1")).thenReturn(reviews);
 
             // when
             ProductWithReviewsResponse result = productService.getProductWithReviews(1L);
@@ -132,23 +124,7 @@ class ProductServiceImplTest {
             assertThat(result.id()).isEqualTo(1L);
             assertThat(result.name()).isEqualTo("Product1");
             assertThat(result.reviews()).isEmpty();
-            verify(blogServiceClient).getPostByProductId("1");
-        }
-
-        @Test
-        @DisplayName("should_returnEmptyReviews_when_feignFails")
-        void should_returnEmptyReviews_when_feignFails() {
-            // given
-            Product product = createProduct(1L, "Product1", BigDecimal.valueOf(1000));
-            when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-            when(blogServiceClient.getPostByProductId("1")).thenThrow(new RuntimeException("Feign Error"));
-
-            // when
-            ProductWithReviewsResponse result = productService.getProductWithReviews(1L);
-
-            // then
-            assertThat(result).isNotNull();
-            assertThat(result.reviews()).isEmpty();
+            verify(productRepository).findById(1L);
         }
     }
 }

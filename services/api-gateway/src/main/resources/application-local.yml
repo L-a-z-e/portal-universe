@@ -140,8 +140,6 @@ gateway:
       - "/api/v1/auth/"
       - "/api/health/"
       - "/actuator/"
-      - "/api/v1/shopping/products"
-      - "/api/v1/shopping/categories"
       - "/api/v1/prism/health"
       - "/api/v1/prism/ready"
       - "/api/v1/chat/health"

@@ -1,5 +1,5 @@
 # Kind 환경 리소스 설정
-# HPA가 CPU utilization을 정확히 계산하려면 적절한 requests 필요
+# 부하 테스트 최적화: 핵심 경로에 리소스 집중
 
 # --- Critical Tier ---
 apiVersion: apps/v1
@@ -38,7 +38,7 @@ spec:
               cpu: 500m
               memory: 768Mi
 ---
-# --- High Tier ---
+# --- High Tier (부하 테스트 핵심) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -51,10 +51,10 @@ spec:
         - name: shopping-service
           resources:
             requests:
-              cpu: 150m
+              cpu: 200m
               memory: 512Mi
             limits:
-              cpu: 750m
+              cpu: 1000m
               memory: 1Gi
 ---
 apiVersion: apps/v1
@@ -69,11 +69,11 @@ spec:
         - name: shopping-seller-service
           resources:
             requests:
-              cpu: 150m
+              cpu: 200m
               memory: 384Mi
             limits:
-              cpu: 500m
-              memory: 768Mi
+              cpu: 750m
+              memory: 1Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -93,6 +93,7 @@ spec:
               cpu: 500m
               memory: 768Mi
 ---
+# --- Minimal Tier ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -105,8 +106,8 @@ spec:
         - name: portal-shell
           resources:
             requests:
-              cpu: 100m
-              memory: 128Mi
+              cpu: 50m
+              memory: 64Mi
             limits:
-              cpu: 300m
-              memory: 256Mi
+              cpu: 200m
+              memory: 128Mi
