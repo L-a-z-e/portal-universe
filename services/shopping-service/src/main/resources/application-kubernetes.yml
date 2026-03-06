@@ -10,8 +10,8 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 5000
-        readTimeout: 5000
+        connectTimeout: 2000
+        readTimeout: 3000
   shopping-seller-service:
     url: "http://shopping-seller-service:8088"
   payment-service:
