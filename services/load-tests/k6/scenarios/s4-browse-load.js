@@ -38,10 +38,10 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '1m', target: 200 },   // ramp up
-        { duration: '3m', target: 500 },   // ramp to peak
-        { duration: '4m', target: 500 },   // sustained peak
-        { duration: '1m', target: 200 },   // cool down
+        { duration: '1m', target: 100 },   // ramp up
+        { duration: '2m', target: 200 },   // ramp to peak
+        { duration: '4m', target: 200 },   // sustained peak
+        { duration: '2m', target: 100 },   // cool down
         { duration: '1m', target: 0 },     // drain
       ],
       gracefulRampDown: '30s',
