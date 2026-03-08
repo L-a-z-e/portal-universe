@@ -1,6 +1,8 @@
 package com.portal.universe.shoppingservice.event;
 
+import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.common.config.CacheType;
+import com.portal.universe.shoppingservice.common.exception.ShoppingErrorCode;
 import com.portal.universe.event.seller.ProductCreatedEvent;
 import com.portal.universe.event.seller.ProductDeletedEvent;
 import com.portal.universe.event.seller.ProductUpdatedEvent;
@@ -9,7 +11,11 @@ import com.portal.universe.shoppingservice.inventory.domain.Inventory;
 import com.portal.universe.shoppingservice.inventory.repository.InventoryRepository;
 import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.product.repository.ProductRepository;
-import com.portal.universe.shoppingservice.search.service.ProductSearchService;
+import com.portal.universe.shoppingservice.search.document.ProductDocument;
+import com.portal.universe.shoppingservice.search.outbox.EsOutboxEvent;
+import com.portal.universe.shoppingservice.search.outbox.EsOutboxEventRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -23,9 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ProductEventConsumer {
 
+    private static final String ES_INDEX_PRODUCTS = "products";
+
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
-    private final ProductSearchService productSearchService;
+    private final EsOutboxEventRepository esOutboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = SellerTopics.PRODUCT_CREATED, groupId = "shopping-service",
             containerFactory = "avroKafkaListenerContainerFactory")
@@ -53,7 +62,7 @@ public class ProductEventConsumer {
                 .build();
 
         Product saved = productRepository.save(product);
-        productSearchService.indexProduct(saved);
+        saveEsOutboxIndex(saved);
 
         // Read model 초기화: seller-service에서 InventoryEvent 수신 전까지 기본값 사용
         if (!inventoryRepository.existsByProductId(saved.getId())) {
@@ -107,7 +116,7 @@ public class ProductEventConsumer {
             log.info("Updated product from seller-service: id={}", event.getProductId());
         }
 
-        productSearchService.indexProduct(product);
+        saveEsOutboxIndex(product);
     }
 
     @KafkaListener(topics = SellerTopics.PRODUCT_DELETED, groupId = "shopping-service",
@@ -126,11 +135,23 @@ public class ProductEventConsumer {
                         product -> {
                             inventoryRepository.deleteByProductId(event.getProductId());
                             productRepository.delete(product);
-                            productSearchService.deleteProduct(event.getProductId());
+                            esOutboxEventRepository.save(
+                                    EsOutboxEvent.delete(ES_INDEX_PRODUCTS, String.valueOf(event.getProductId())));
                             log.info("Deleted product and inventory: id={}", event.getProductId());
                         },
                         () -> log.warn("Product not found for id={}, skipping delete",
                                 event.getProductId())
                 );
+    }
+
+    private void saveEsOutboxIndex(Product product) {
+        try {
+            String payload = objectMapper.writeValueAsString(ProductDocument.from(product));
+            esOutboxEventRepository.save(
+                    EsOutboxEvent.index(ES_INDEX_PRODUCTS, String.valueOf(product.getId()), payload));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize product for ES outbox: id={}", product.getId(), e);
+            throw new CustomBusinessException(ShoppingErrorCode.ES_OUTBOX_SERIALIZATION_FAILED);
+        }
     }
 }

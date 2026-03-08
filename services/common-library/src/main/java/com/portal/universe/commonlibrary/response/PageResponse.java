@@ -45,4 +45,20 @@ public class PageResponse<T> {
                 page.getTotalPages()
         );
     }
+
+    /**
+     * 임의의 데이터 소스(ES, 외부 API 등)에서 PageResponse를 생성합니다.
+     * Spring Data Page가 아닌 소스에서도 동일한 페이지네이션 구조를 사용할 수 있습니다.
+     *
+     * @param items         항목 목록
+     * @param page          1-based 페이지 번호
+     * @param size          페이지 크기
+     * @param totalElements 전체 항목 수
+     * @param <T>           항목 타입
+     * @return PageResponse
+     */
+    public static <T> PageResponse<T> of(List<T> items, int page, int size, long totalElements) {
+        int totalPages = size > 0 ? (int) Math.ceil((double) totalElements / size) : 0;
+        return new PageResponse<>(items, page, size, totalElements, totalPages);
+    }
 }

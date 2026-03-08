@@ -4,6 +4,7 @@ import com.portal.universe.shoppingservice.product.domain.Product;
 import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,7 @@ public class ProductDocument {
     private String imageUrl;
     private String category;
     private Boolean featured;
+    private Instant createdAt;
 
     public static ProductDocument from(Product product) {
         return ProductDocument.builder()
@@ -34,6 +36,7 @@ public class ProductDocument {
                 .imageUrl(product.getImageUrl())
                 .category(product.getCategory())
                 .featured(product.getFeatured())
+                .createdAt(product.getCreatedAt())
                 .build();
     }
 }

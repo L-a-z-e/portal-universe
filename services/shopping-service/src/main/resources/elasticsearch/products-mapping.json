@@ -3,10 +3,16 @@
     "number_of_shards": 1,
     "number_of_replicas": 0,
     "analysis": {
+      "tokenizer": {
+        "nori_custom": {
+          "type": "nori_tokenizer",
+          "decompound_mode": "mixed"
+        }
+      },
       "analyzer": {
         "korean": {
           "type": "custom",
-          "tokenizer": "nori_tokenizer",
+          "tokenizer": "nori_custom",
           "filter": ["lowercase", "nori_readingform"]
         }
       }
@@ -15,6 +21,7 @@
   "mappings": {
     "properties": {
       "id": { "type": "long" },
+      "sellerId": { "type": "long" },
       "name": {
         "type": "text",
         "analyzer": "korean",
@@ -31,7 +38,11 @@
         "analyzer": "korean"
       },
       "price": { "type": "double" },
-      "stock": { "type": "integer" }
+      "discountPrice": { "type": "double" },
+      "imageUrl": { "type": "keyword", "index": false },
+      "category": { "type": "keyword" },
+      "featured": { "type": "boolean" },
+      "createdAt": { "type": "date" }
     }
   }
 }

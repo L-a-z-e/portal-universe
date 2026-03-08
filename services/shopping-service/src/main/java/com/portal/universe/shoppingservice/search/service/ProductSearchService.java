@@ -3,7 +3,6 @@ package com.portal.universe.shoppingservice.search.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.portal.universe.shoppingservice.product.domain.Product;
@@ -11,7 +10,7 @@ import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingservice.search.document.ProductDocument;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchResult;
-import com.portal.universe.shoppingservice.search.dto.SearchResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,38 +32,7 @@ public class ProductSearchService {
     private final ElasticsearchClient esClient;
     private final ProductRepository productRepository;
 
-    public void indexProduct(Product product) {
-        try {
-            ProductDocument document = ProductDocument.from(product);
-            IndexResponse response = esClient.index(i -> i
-                    .index(INDEX_NAME)
-                    .id(String.valueOf(product.getId()))
-                    .document(document)
-            );
-            log.info("Indexed product {}: result={}", product.getId(), response.result());
-        } catch (IOException e) {
-            log.error("Failed to index product {}", product.getId(), e);
-        }
-    }
-
-    public void updateProduct(Product product) {
-        indexProduct(product);  // Upsert
-    }
-
-    public void deleteProduct(Long productId) {
-        try {
-            esClient.delete(d -> d
-                    .index(INDEX_NAME)
-                    .id(String.valueOf(productId))
-            );
-            log.info("Deleted product {} from index", productId);
-        } catch (IOException e) {
-            log.error("Failed to delete product {} from index", productId, e);
-        }
-    }
-
-
-    public SearchResponse<ProductSearchResult> search(ProductSearchRequest request) {
+    public PageResponse<ProductSearchResult> search(ProductSearchRequest request) {
         try {
             SearchRequest searchRequest = buildSearchRequest(request);
             var response = esClient.search(searchRequest, ProductDocument.class);
@@ -80,7 +47,7 @@ public class ProductSearchService {
             }
 
             long totalHits = response.hits().total() != null ? response.hits().total().value() : 0;
-            return SearchResponse.of(results, totalHits, request.getPage(), request.getSize());
+            return PageResponse.of(results, request.getPage(), request.getSize(), totalHits);
 
         } catch (Exception e) {
             log.warn("ES search failed, falling back to DB search for keyword: {}", request.getKeyword(), e);
@@ -88,10 +55,10 @@ public class ProductSearchService {
         }
     }
 
-    private SearchResponse<ProductSearchResult> searchFromDatabase(ProductSearchRequest request) {
+    private PageResponse<ProductSearchResult> searchFromDatabase(ProductSearchRequest request) {
         String keyword = request.getKeyword();
         if (!StringUtils.hasText(keyword)) {
-            return SearchResponse.of(List.of(), 0, request.getPage(), request.getSize());
+            return PageResponse.of(List.of(), request.getPage(), request.getSize(), 0);
         }
 
         Page<Product> page = productRepository.searchByKeyword(
@@ -100,14 +67,19 @@ public class ProductSearchService {
         List<ProductSearchResult> results = page.getContent().stream()
                 .map(p -> ProductSearchResult.builder()
                         .id(p.getId())
+                        .sellerId(p.getSellerId())
                         .name(p.getName())
                         .description(p.getDescription())
                         .price(p.getPrice())
+                        .discountPrice(p.getDiscountPrice())
+                        .imageUrl(p.getImageUrl())
+                        .category(p.getCategory())
+                        .featured(p.getFeatured())
                         .score(1.0)
                         .build())
                 .toList();
 
-        return SearchResponse.of(results, page.getTotalElements(), request.getPage(), request.getSize());
+        return PageResponse.of(results, request.getPage(), request.getSize(), page.getTotalElements());
     }
 
     private SearchRequest buildSearchRequest(ProductSearchRequest request) {
@@ -155,6 +127,26 @@ public class ProductSearchService {
                 );
             }
 
+            // Category filter — keyword 타입이므로 term(정확 매칭)으로 필터
+            if (StringUtils.hasText(request.getCategory())) {
+                b.filter(f -> f
+                        .term(t -> t
+                                .field("category")
+                                .value(request.getCategory())
+                        )
+                );
+            }
+
+            // Featured filter — boolean 타입이므로 term으로 필터
+            if (request.getFeatured() != null) {
+                b.filter(f -> f
+                        .term(t -> t
+                                .field("featured")
+                                .value(request.getFeatured())
+                        )
+                );
+            }
+
             return b;
         });
     }
@@ -190,9 +182,14 @@ public class ProductSearchService {
     private ProductSearchResult mapToSearchResult(ProductDocument doc, Hit<ProductDocument> hit) {
         ProductSearchResult result = ProductSearchResult.builder()
                 .id(doc.getId())
+                .sellerId(doc.getSellerId())
                 .name(doc.getName())
                 .description(doc.getDescription())
                 .price(doc.getPrice())
+                .discountPrice(doc.getDiscountPrice())
+                .imageUrl(doc.getImageUrl())
+                .category(doc.getCategory())
+                .featured(doc.getFeatured())
                 .score(hit.score())
                 .build();
 

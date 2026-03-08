@@ -13,6 +13,8 @@ public class ProductSearchRequest {
     private String keyword;
     private Double minPrice;
     private Double maxPrice;
+    private String category;
+    private Boolean featured;
     private String sort;  // relevance, price_asc, price_desc
     @Builder.Default
     private int page = 0;
@@ -22,6 +24,21 @@ public class ProductSearchRequest {
     public static ProductSearchRequest of(String keyword, int page, int size) {
         return ProductSearchRequest.builder()
                 .keyword(keyword)
+                .page(page)
+                .size(size)
+                .build();
+    }
+
+    public static ProductSearchRequest of(String keyword, Double minPrice, Double maxPrice,
+                                           String category, Boolean featured, String sort,
+                                           int page, int size) {
+        return ProductSearchRequest.builder()
+                .keyword(keyword)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+                .category(category)
+                .featured(featured)
+                .sort(sort)
                 .page(page)
                 .size(size)
                 .build();

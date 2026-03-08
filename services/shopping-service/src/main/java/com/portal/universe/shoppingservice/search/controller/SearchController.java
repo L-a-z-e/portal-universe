@@ -5,7 +5,7 @@ import com.portal.universe.commonlibrary.security.context.CurrentUser;
 import com.portal.universe.commonlibrary.security.context.AuthUser;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchResult;
-import com.portal.universe.shoppingservice.search.dto.SearchResponse;
+import com.portal.universe.commonlibrary.response.PageResponse;
 import com.portal.universe.shoppingservice.search.service.ProductSearchService;
 import com.portal.universe.shoppingservice.search.service.SuggestService;
 import lombok.RequiredArgsConstructor;
@@ -23,25 +23,19 @@ public class SearchController {
     private final SuggestService suggestService;
 
     @GetMapping("/products")
-    public ResponseEntity<ApiResponse<SearchResponse<ProductSearchResult>>> searchProducts(
+    public ResponseEntity<ApiResponse<PageResponse<ProductSearchResult>>> searchProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Boolean featured,
             @RequestParam(required = false, defaultValue = "relevance") String sort,
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "20") int size) {
 
-        ProductSearchRequest request = ProductSearchRequest.builder()
-                .keyword(keyword)
-                .minPrice(minPrice)
-                .maxPrice(maxPrice)
-                .sort(sort)
-                .page(page)
-                .size(size)
-                .build();
-
-        SearchResponse<ProductSearchResult> response = productSearchService.search(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        ProductSearchRequest request = ProductSearchRequest.of(
+                keyword, minPrice, maxPrice, category, featured, sort, page, size);
+        return ResponseEntity.ok(ApiResponse.success(productSearchService.search(request)));
     }
 
     @GetMapping("/suggest")

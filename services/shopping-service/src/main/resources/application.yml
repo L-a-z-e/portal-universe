@@ -34,6 +34,11 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+  # Kafka consumer 공통 설정
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+
   # Elasticsearch 공통 설정
   elasticsearch:
     uris: ${ELASTICSEARCH_URIS:http://localhost:9200}

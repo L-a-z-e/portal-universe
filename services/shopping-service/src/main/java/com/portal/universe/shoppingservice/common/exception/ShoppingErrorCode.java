@@ -137,7 +137,8 @@ public enum ShoppingErrorCode implements ErrorCode {
     SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S1001", "Search operation failed"),
     INVALID_SEARCH_QUERY(HttpStatus.BAD_REQUEST, "S1002", "Invalid search query"),
     INDEX_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "S1003", "Search index not found"),
-    SUGGEST_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S1004", "Autocomplete suggestion failed");
+    SUGGEST_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S1004", "Autocomplete suggestion failed"),
+    ES_OUTBOX_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S1005", "ES outbox payload serialization failed");
 
     private final HttpStatus status;
     private final String code;
