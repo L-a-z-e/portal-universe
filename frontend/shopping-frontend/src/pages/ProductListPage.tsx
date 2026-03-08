@@ -12,6 +12,7 @@ const ProductListPage: React.FC = () => {
   const currentPage = parseInt(searchParams.get('page') || '1')
   const searchKeyword = searchParams.get('keyword') || ''
   const category = searchParams.get('category') || ''
+  const sortBy = searchParams.get('sort') || ''
 
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<string[]>([])
@@ -28,7 +29,7 @@ const ProductListPage: React.FC = () => {
     try {
       let response
       if (searchKeyword) {
-        response = await productApi.searchProducts(searchKeyword, currentPage, 12)
+        response = await productApi.searchProducts(searchKeyword, currentPage, 12, category || undefined, undefined, sortBy || undefined)
       } else {
         response = await productApi.getProducts(currentPage, 12, category || undefined)
       }
@@ -55,7 +56,7 @@ const ProductListPage: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [currentPage, searchKeyword, category])
+  }, [currentPage, searchKeyword, category, sortBy])
 
   useEffect(() => {
     fetchProducts()
@@ -84,6 +85,17 @@ const ProductListPage: React.FC = () => {
       params.set('category', cat)
     } else {
       params.delete('category')
+    }
+    params.set('page', '1')
+    setSearchParams(params)
+  }
+
+  const handleSortChange = (sort: string) => {
+    const params = new URLSearchParams(searchParams)
+    if (sort) {
+      params.set('sort', sort)
+    } else {
+      params.delete('sort')
     }
     params.set('page', '1')
     setSearchParams(params)
@@ -127,6 +139,18 @@ const ProductListPage: React.FC = () => {
             onSearch={handleSearch}
             placeholder="Search products..."
           />
+          {searchKeyword && (
+            <select
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value)}
+              className="px-3 py-2 border border-border-default rounded-lg bg-bg-card text-text-body text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            >
+              <option value="">관련도순</option>
+              <option value="price_asc">가격 낮은순</option>
+              <option value="price_desc">가격 높은순</option>
+              <option value="newest">최신순</option>
+            </select>
+          )}
           {searchKeyword && (
             <Button type="button" onClick={clearSearch} variant="secondary" size="sm">
               Clear

@@ -34,12 +34,21 @@ export const productApi = {
     return response.data
   },
 
-  searchProducts: async (keyword: string, page = 1, size = 12) => {
+  searchProducts: async (keyword: string, page = 1, size = 12, category?: string, featured?: boolean, sort?: string) => {
     const params = new URLSearchParams({
       keyword,
       page: String(page),
       size: String(size)
     })
+    if (category) {
+      params.append('category', category)
+    }
+    if (featured !== undefined) {
+      params.append('featured', String(featured))
+    }
+    if (sort) {
+      params.append('sort', sort)
+    }
     const response = await getApiClient().get<ApiResponse<PageResponse<Product>>>(
       `${API_PREFIX}/search/products?${params}`
     )
