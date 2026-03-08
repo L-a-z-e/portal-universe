@@ -16,11 +16,15 @@ import java.util.Map;
 @Builder
 public class ProductSearchResult {
     private Long id;
+    private Long sellerId;
     private String name;
     private String description;
     private BigDecimal price;
+    private BigDecimal discountPrice;
+    private String imageUrl;
+    private String category;
+    private Boolean featured;
 
-    // Highlighted fields (검색어 강조)
     private String highlightedName;
     private String highlightedDescription;
 

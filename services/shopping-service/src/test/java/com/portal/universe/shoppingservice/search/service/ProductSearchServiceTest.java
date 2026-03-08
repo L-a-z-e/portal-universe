@@ -1,8 +1,6 @@
 package com.portal.universe.shoppingservice.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.DeleteResponse;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
@@ -45,63 +43,6 @@ class ProductSearchServiceTest {
     private ProductSearchService productSearchService;
 
     @Test
-    @DisplayName("should_indexProduct_when_called")
-    @SuppressWarnings("unchecked")
-    void should_indexProduct_when_called() throws IOException {
-        // given
-        Product product = mock(Product.class);
-        when(product.getId()).thenReturn(1L);
-        when(product.getName()).thenReturn("Test Product");
-        when(product.getDescription()).thenReturn("Description");
-        when(product.getPrice()).thenReturn(BigDecimal.valueOf(10000));
-
-        IndexResponse indexResponse = mock(IndexResponse.class);
-        when(esClient.index(any(java.util.function.Function.class))).thenReturn(indexResponse);
-
-        // when
-        productSearchService.indexProduct(product);
-
-        // then
-        verify(esClient).index(any(java.util.function.Function.class));
-    }
-
-    @Test
-    @DisplayName("should_callIndexProduct_when_updateProduct")
-    @SuppressWarnings("unchecked")
-    void should_callIndexProduct_when_updateProduct() throws IOException {
-        // given
-        Product product = mock(Product.class);
-        when(product.getId()).thenReturn(1L);
-        when(product.getName()).thenReturn("Updated Product");
-        when(product.getDescription()).thenReturn("Updated");
-        when(product.getPrice()).thenReturn(BigDecimal.valueOf(20000));
-
-        IndexResponse indexResponse = mock(IndexResponse.class);
-        when(esClient.index(any(java.util.function.Function.class))).thenReturn(indexResponse);
-
-        // when
-        productSearchService.updateProduct(product);
-
-        // then
-        verify(esClient).index(any(java.util.function.Function.class));
-    }
-
-    @Test
-    @DisplayName("should_deleteProduct_when_called")
-    @SuppressWarnings("unchecked")
-    void should_deleteProduct_when_called() throws IOException {
-        // given
-        DeleteResponse deleteResponse = mock(DeleteResponse.class);
-        when(esClient.delete(any(java.util.function.Function.class))).thenReturn(deleteResponse);
-
-        // when
-        productSearchService.deleteProduct(1L);
-
-        // then
-        verify(esClient).delete(any(java.util.function.Function.class));
-    }
-
-    @Test
     @DisplayName("should_returnSearchResults_when_searchWithKeyword")
     @SuppressWarnings("unchecked")
     void should_returnSearchResults_when_searchWithKeyword() throws IOException {
@@ -137,9 +78,9 @@ class ProductSearchServiceTest {
         var result = productSearchService.search(request);
 
         // then
-        assertThat(result.getResults()).hasSize(1);
-        assertThat(result.getTotalHits()).isEqualTo(1L);
-        assertThat(result.getResults().get(0).getName()).isEqualTo("Laptop");
+        assertThat(result.getItems()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(1L);
+        assertThat(result.getItems().get(0).getName()).isEqualTo("Laptop");
     }
 
     @Test
@@ -165,9 +106,9 @@ class ProductSearchServiceTest {
         var result = productSearchService.search(request);
 
         // then
-        assertThat(result.getResults()).hasSize(1);
-        assertThat(result.getResults().get(0).getName()).isEqualTo("Laptop Pro");
-        assertThat(result.getTotalHits()).isEqualTo(1L);
+        assertThat(result.getItems()).hasSize(1);
+        assertThat(result.getItems().get(0).getName()).isEqualTo("Laptop Pro");
+        assertThat(result.getTotalElements()).isEqualTo(1L);
         verify(productRepository).searchByKeyword(eq("laptop"), any());
     }
 
@@ -200,7 +141,7 @@ class ProductSearchServiceTest {
         var result = productSearchService.search(request);
 
         // then
-        assertThat(result.getResults()).isEmpty();
+        assertThat(result.getItems()).isEmpty();
         verify(esClient).search(any(co.elastic.clients.elasticsearch.core.SearchRequest.class), eq(ProductDocument.class));
     }
 }

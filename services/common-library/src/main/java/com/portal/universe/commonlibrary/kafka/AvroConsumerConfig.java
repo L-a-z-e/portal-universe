@@ -108,8 +108,9 @@ public class AvroConsumerConfig {
         );
 
         errorHandler.setRetryListeners((record, ex, deliveryAttempt) ->
-                log.warn("Avro retry attempt {} for topic={}, key={}, error={}",
-                        deliveryAttempt, record.topic(), record.key(), ex.getMessage()));
+                log.warn("Avro retry attempt {} for topic={}, key={}, error={}, cause={}",
+                        deliveryAttempt, record.topic(), record.key(), ex.getMessage(),
+                        ex.getCause() != null ? ex.getCause().toString() : "unknown"));
 
         return errorHandler;
     }
@@ -124,6 +125,7 @@ public class AvroConsumerConfig {
         factory.setCommonErrorHandler(avroErrorHandler);
         factory.setConcurrency(listenerConcurrency);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
+        factory.getContainerProperties().setObservationEnabled(true);
 
         log.info("Kafka listener concurrency set to {}", listenerConcurrency);
         return factory;

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 
 @Slf4j
 @Service
@@ -48,7 +49,7 @@ public class IndexInitializationService {
 
             esClient.indices().create(CreateIndexRequest.of(c -> c
                     .index(indexName)
-                    .withJson(new java.io.StringReader(mapping.toString()))
+                    .withJson(new StringReader(mapping.toString()))
             ));
 
             log.info("Created Elasticsearch index: {}", indexName);
