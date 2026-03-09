@@ -140,6 +140,7 @@ spec:
 # 5-1. 모니터링 컴포넌트 전체 Egress 허용
 # Prometheus: K8s API(service discovery) + 모든 Pod/Node IP(scrape) 접근 필요
 # Grafana Sidecar: K8s API(ConfigMap list/watch) 접근 필요
+# kube-state-metrics: K8s API(리소스 상태 조회) 접근 필요
 # 표준 NetworkPolicy로는 K8s API를 추상 참조할 수 없으므로 all egress 허용,
 # 보안은 대상 측 ingress 정책으로 제어
 apiVersion: networking.k8s.io/v1
@@ -155,6 +156,7 @@ spec:
         values:
           - prometheus
           - grafana
+          - kube-state-metrics
   policyTypes:
     - Egress
   egress:

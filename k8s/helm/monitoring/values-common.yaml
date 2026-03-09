@@ -879,15 +879,18 @@ grafana:
       editable: false
 
 # =================================================================
-# 불필요 컴포넌트 비활성화
-# (Kind 환경 + 자체 Exporter 사용)
+# K8s 컴포넌트 설정
 # =================================================================
+# kubeStateMetrics: Pod/Deployment/Node 상태 메트릭 (kube_*)
 kubeStateMetrics:
-  enabled: false
+  enabled: true
 
+# nodeExporter: 호스트 CPU/Disk/Memory 메트릭 (node_*)
+# infrastructure-alerts (LowDiskSpace, HighCPUUsage) 동작에 필수
 nodeExporter:
-  enabled: false
+  enabled: true
 
+# Kind 환경에서 control plane은 static pod → 서비스 디스커버리 접근 불가
 kubeControllerManager:
   enabled: false
 
