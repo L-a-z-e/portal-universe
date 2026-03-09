@@ -1044,6 +1044,29 @@ services:
       - portal-universe-net
     restart: unless-stopped
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    container_name: postgres-exporter
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres_exporter:exporter_pass@postgresql:5432/postgres?sslmode=disable"
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    networks:
+      - portal-universe-net
+    restart: unless-stopped
+
   mysql-exporter:
     image: prom/mysqld-exporter:v0.15.0
     container_name: mysql-exporter

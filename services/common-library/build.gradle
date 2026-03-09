@@ -37,9 +37,14 @@ dependencies {
     implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
 
     // =======================================
-    // AOP (for @AuditLog aspect)
+    // AOP (for @AuditLog aspect, Kafka consumer metrics)
     // =======================================
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // =======================================
+    // Micrometer (Kafka consumer metrics AOP)
+    // =======================================
+    compileOnly 'io.micrometer:micrometer-core'
 
     // =======================================
     // Provided Dependencies

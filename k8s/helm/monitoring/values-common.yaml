@@ -1,0 +1,901 @@
+# =================================================================
+# kube-prometheus-stack Helm Values (공통)
+# Prometheus + Grafana + AlertManager 통합 설정
+#
+# 사용법:
+#   helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+#     -n portal-universe \
+#     -f k8s/helm/monitoring/values-common.yaml \
+#     -f k8s/helm/monitoring/values-kind.yaml
+#
+# 서비스 이름 (release: monitoring):
+#   - monitoring-prometheus  (9090)
+#   - monitoring-grafana     (3000)
+#   - monitoring-alertmanager (9093)
+# =================================================================
+
+fullnameOverride: "monitoring"
+
+# =================================================================
+# Prometheus
+# =================================================================
+prometheus:
+  prometheusSpec:
+    # 서브패스: Ingress /prometheus 경유 접근
+    externalUrl: "/prometheus"
+    routePrefix: "/prometheus"
+
+    # 수집 간격
+    scrapeInterval: "15s"
+    evaluationInterval: "15s"
+
+    # 외부 라벨
+    externalLabels:
+      cluster: portal-universe
+      environment: k8s
+
+    # Remote Write 수신 + Native Histograms
+    enableRemoteWriteReceiver: true
+    enableFeatures:
+      - native-histograms
+
+    # 모든 namespace의 ServiceMonitor/PodMonitor 감지
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+    # Annotation 기반 Pod 자동 발견 (kubernetes_sd_configs)
+    # 기존 K8s manifest의 scrape config을 그대로 이전
+    additionalScrapeConfigs:
+      # kubelet cAdvisor: 컨테이너 CPU/Memory/Disk/Network 메트릭
+      - job_name: 'kubelet-cadvisor'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+          - role: node
+        metrics_path: /metrics/cadvisor
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+        metric_relabel_configs:
+          - source_labels: [namespace]
+            regex: portal-universe
+            action: keep
+
+      # Annotation 기반 Pod 발견
+      # prometheus.io/scrape: "true" 어노테이션이 있는 Pod 자동 수집
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - portal-universe
+        relabel_configs:
+          # prometheus.io/scrape: "true" Pod만 대상
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          # prometheus.io/path → __metrics_path__
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          # Pod주소:prometheus.io/port → __address__
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          # K8s 메타 → 라벨
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: replace
+            target_label: job
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: replace
+            target_label: app
+
+# =================================================================
+# Prometheus Rules (Recording + Alert)
+# 정본: monitoring/prometheus/rules/*.yml
+# =================================================================
+additionalPrometheusRulesMap:
+  # ----- Recording Rules -----
+  portal-recording-rules:
+    groups:
+      # Request Rate (Polyglot: Java/NestJS/Python)
+      - name: request-rate-rules
+        interval: 15s
+        rules:
+          - record: job:http_requests:rate5m
+            expr: |
+              sum(rate(http_server_requests_seconds_count[5m])) by (job)
+              or
+              sum(rate(http_server_duration_count[5m])) by (job)
+              or
+              sum(rate(http_requests_total[5m])) by (job)
+
+          - record: job:http_errors:rate5m
+            expr: |
+              sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+              or
+              sum(rate(http_server_duration_count{http_status_code=~"5.."}[5m])) by (job)
+              or
+              sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+
+          - record: job:http_error_ratio:rate5m
+            expr: |
+              (
+                sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+                /
+                sum(rate(http_server_requests_seconds_count[5m])) by (job)
+              )
+              or
+              (
+                sum(rate(http_server_duration_count{http_status_code=~"5.."}[5m])) by (job)
+                /
+                sum(rate(http_server_duration_count[5m])) by (job)
+              )
+              or
+              (
+                sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+                /
+                sum(rate(http_requests_total[5m])) by (job)
+              )
+
+          - record: job_uri:http_requests:rate5m
+            expr: |
+              sum(rate(http_server_requests_seconds_count[5m])) by (job, uri)
+              or
+              sum(rate(http_requests_total[5m])) by (job, uri)
+
+      # Latency (Polyglot: seconds 단위 통일)
+      - name: latency-rules
+        interval: 15s
+        rules:
+          - record: job:http_latency_p50:rate5m
+            expr: |
+              histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+              or
+              histogram_quantile(0.50, sum(rate(http_server_duration_bucket[5m])) by (le, job)) / 1000
+              or
+              histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+
+          - record: job:http_latency_p95:rate5m
+            expr: |
+              histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+              or
+              histogram_quantile(0.95, sum(rate(http_server_duration_bucket[5m])) by (le, job)) / 1000
+              or
+              histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+
+          - record: job:http_latency_p99:rate5m
+            expr: |
+              histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+              or
+              histogram_quantile(0.99, sum(rate(http_server_duration_bucket[5m])) by (le, job)) / 1000
+              or
+              histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+
+          - record: job:http_latency_avg:rate5m
+            expr: |
+              (
+                sum(rate(http_server_requests_seconds_sum[5m])) by (job)
+                /
+                sum(rate(http_server_requests_seconds_count[5m])) by (job)
+              )
+              or
+              (
+                sum(rate(http_server_duration_sum[5m])) by (job)
+                /
+                sum(rate(http_server_duration_count[5m])) by (job)
+                / 1000
+              )
+              or
+              (
+                sum(rate(http_request_duration_seconds_sum[5m])) by (job)
+                /
+                sum(rate(http_request_duration_seconds_count[5m])) by (job)
+              )
+
+      # JVM (Java only)
+      - name: jvm-rules
+        interval: 30s
+        rules:
+          - record: job:jvm_heap_usage_ratio
+            expr: |
+              jvm_memory_used_bytes{area="heap"}
+              /
+              jvm_memory_max_bytes{area="heap"}
+
+          - record: job:jvm_nonheap_used_bytes
+            expr: jvm_memory_used_bytes{area="nonheap"}
+
+          - record: job:jvm_gc_rate:rate5m
+            expr: sum(rate(jvm_gc_pause_seconds_count[5m])) by (job)
+
+          - record: job:jvm_gc_time_ratio:rate5m
+            expr: sum(rate(jvm_gc_pause_seconds_sum[5m])) by (job)
+
+      # Database Connection Pool (HikariCP)
+      - name: database-rules
+        interval: 30s
+        rules:
+          - record: job:hikaricp_connection_usage_ratio
+            expr: |
+              hikaricp_connections_active
+              /
+              hikaricp_connections_max
+
+          - record: job:hikaricp_pending_requests
+            expr: hikaricp_connections_pending
+
+      # PostgreSQL
+      - name: postgresql-rules
+        interval: 30s
+        rules:
+          - record: pg:active_connections
+            expr: pg_stat_activity_count{state="active"}
+
+          - record: pg:connection_usage_ratio
+            expr: |
+              sum(pg_stat_activity_count) by (datname)
+              /
+              pg_settings_max_connections
+
+          - record: pg:cache_hit_ratio
+            expr: |
+              pg_stat_database_blks_hit
+              /
+              (pg_stat_database_blks_hit + pg_stat_database_blks_read + 1)
+
+          - record: pg:transaction_rate:rate5m
+            expr: |
+              sum(rate(pg_stat_database_xact_commit[5m]) + rate(pg_stat_database_xact_rollback[5m])) by (datname)
+
+      # SLI (Service Level Indicators) - Polyglot
+      - name: sli-rules
+        interval: 1m
+        rules:
+          - record: job:availability:rate5m
+            expr: |
+              (
+                1 - (
+                  sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+                  /
+                  sum(rate(http_server_requests_seconds_count[5m])) by (job)
+                )
+              )
+              or
+              (
+                1 - (
+                  sum(rate(http_server_duration_count{http_status_code=~"5.."}[5m])) by (job)
+                  /
+                  sum(rate(http_server_duration_count[5m])) by (job)
+                )
+              )
+              or
+              (
+                1 - (
+                  sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+                  /
+                  sum(rate(http_requests_total[5m])) by (job)
+                )
+              )
+
+          - record: job:latency_sli:rate5m
+            expr: |
+              (
+                sum(rate(http_server_requests_seconds_bucket{le="0.2"}[5m])) by (job)
+                /
+                sum(rate(http_server_requests_seconds_count[5m])) by (job)
+              )
+              or
+              (
+                sum(rate(http_server_duration_bucket{le="200"}[5m])) by (job)
+                /
+                sum(rate(http_server_duration_count[5m])) by (job)
+              )
+              or
+              (
+                sum(rate(http_request_duration_seconds_bucket{le="0.2"}[5m])) by (job)
+                /
+                sum(rate(http_request_duration_seconds_count[5m])) by (job)
+              )
+
+  # ----- Alert Rules -----
+  portal-alert-rules:
+    groups:
+      # Service Health
+      - name: service-alerts
+        rules:
+          - alert: ServiceDown
+            expr: up == 0
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Service {{ $labels.job }} is down"
+              description: "{{ $labels.job }} has been down for more than 1 minute."
+              runbook_url: "https://wiki.portal-universe.com/runbooks/service-down"
+
+          - alert: HighErrorRate
+            expr: |
+              (
+                sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+                /
+                sum(rate(http_server_requests_seconds_count[5m])) by (job)
+              )
+              or
+              (
+                sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+                /
+                sum(rate(http_requests_total[5m])) by (job)
+              )
+              > 0.05
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High error rate on {{ $labels.job }}"
+              description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}."
+
+          - alert: CriticalErrorRate
+            expr: |
+              (
+                sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
+                /
+                sum(rate(http_server_requests_seconds_count[5m])) by (job)
+              )
+              or
+              (
+                sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+                /
+                sum(rate(http_requests_total[5m])) by (job)
+              )
+              > 0.10
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Critical error rate on {{ $labels.job }}"
+              description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}. Immediate action required."
+
+          - alert: HighLatency
+            expr: |
+              (
+                histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+              )
+              or
+              (
+                histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+              )
+              > 0.5
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High latency on {{ $labels.job }}"
+              description: "p95 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}."
+
+          - alert: VeryHighLatency
+            expr: |
+              (
+                histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
+              )
+              or
+              (
+                histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+              )
+              > 1.0
+            for: 3m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Very high latency on {{ $labels.job }}"
+              description: "p99 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}."
+
+      # JVM
+      - name: jvm-alerts
+        rules:
+          - alert: HighMemoryUsage
+            expr: |
+              jvm_memory_used_bytes{area="heap"}
+              /
+              jvm_memory_max_bytes{area="heap"}
+              > 0.85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High heap memory usage on {{ $labels.job }}"
+              description: "Heap memory usage is {{ $value | humanizePercentage }} on {{ $labels.job }}."
+
+          - alert: CriticalMemoryUsage
+            expr: |
+              jvm_memory_used_bytes{area="heap"}
+              /
+              jvm_memory_max_bytes{area="heap"}
+              > 0.95
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Critical heap memory usage on {{ $labels.job }}"
+              description: "Heap memory usage is {{ $value | humanizePercentage }}. OOM risk!"
+
+          - alert: HighGCPauseTime
+            expr: |
+              rate(jvm_gc_pause_seconds_sum[5m])
+              /
+              rate(jvm_gc_pause_seconds_count[5m])
+              > 0.5
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High GC pause time on {{ $labels.job }}"
+              description: "Average GC pause time is {{ $value | humanizeDuration }}."
+
+          - alert: HighThreadCount
+            expr: jvm_threads_live_threads > 500
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High thread count on {{ $labels.job }}"
+              description: "Thread count is {{ $value }}."
+
+      # Database (MySQL + Redis)
+      - name: database-alerts
+        rules:
+          - alert: MySQLConnectionsHigh
+            expr: |
+              mysql_global_status_threads_connected
+              /
+              mysql_global_variables_max_connections
+              > 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "MySQL connections running high"
+              description: "Connection usage is {{ $value | humanizePercentage }}."
+
+          - alert: MySQLSlowQueries
+            expr: rate(mysql_global_status_slow_queries[5m]) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "MySQL slow queries detected"
+              description: "Slow query rate is {{ $value }} per second."
+
+          - alert: RedisMemoryHigh
+            expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Redis memory usage is high"
+              description: "Redis memory usage is {{ $value | humanizePercentage }}."
+
+          - alert: RedisConnectionsHigh
+            expr: redis_connected_clients > 100
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Redis connection count is high"
+              description: "Redis has {{ $value }} connected clients."
+
+      # Infrastructure
+      - name: infrastructure-alerts
+        rules:
+          - alert: LowDiskSpace
+            expr: |
+              (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+              < 0.15
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Low disk space"
+              description: "Disk space is below 15%."
+
+          - alert: CriticalDiskSpace
+            expr: |
+              (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+              < 0.05
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Critical disk space"
+              description: "Disk space is below 5%. Immediate action required."
+
+          - alert: HighCPUUsage
+            expr: |
+              100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU usage"
+              description: "CPU usage is above 85%."
+
+      # Kafka
+      - name: kafka-alerts
+        rules:
+          - alert: KafkaConsumerLag
+            expr: kafka_consumergroup_lag > 1000
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Kafka consumer lag detected"
+              description: "Consumer group {{ $labels.consumergroup }} has lag of {{ $value }} for topic {{ $labels.topic }}."
+
+          - alert: HighKafkaConsumerLag
+            expr: kafka_consumergroup_lag > 10000
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High Kafka consumer lag"
+              description: "Consumer group {{ $labels.consumergroup }} has lag of {{ $value }}. Messages are not being processed!"
+
+      # Business Metrics
+      - name: business-alerts
+        rules:
+          - alert: HighOrderFailureRate
+            expr: |
+              sum(rate(order_created_total{status="failed"}[5m]))
+              /
+              sum(rate(order_created_total[5m]))
+              > 0.10
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High order failure rate"
+              description: "Order failure rate is {{ $value | humanizePercentage }}."
+
+          - alert: HighPaymentFailureRate
+            expr: |
+              sum(rate(payment_processed_total{status="failed"}[5m]))
+              /
+              sum(rate(payment_processed_total[5m]))
+              > 0.10
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High payment failure rate"
+              description: "Payment failure rate is {{ $value | humanizePercentage }}. Revenue impact!"
+
+          - alert: CouponIssueErrors
+            expr: rate(coupon_issue_errors_total[5m]) > 0.5
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Coupon issue errors detected"
+              description: "Coupon issue error rate is {{ $value }} per second."
+
+          - alert: LowSearchPerformance
+            expr: |
+              histogram_quantile(0.95, sum(rate(elasticsearch_search_duration_seconds_bucket[5m])) by (le))
+              > 0.3
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Low search performance"
+              description: "Search p95 latency is {{ $value | humanizeDuration }}."
+
+      # PostgreSQL
+      - name: postgresql-alerts
+        rules:
+          - alert: PostgreSQLConnectionsHigh
+            expr: |
+              sum(pg_stat_activity_count) by (datname)
+              /
+              pg_settings_max_connections
+              > 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "PostgreSQL connection usage high on {{ $labels.datname }}"
+              description: "Connection usage is {{ $value | humanizePercentage }}."
+
+          - alert: PostgreSQLCacheHitLow
+            expr: |
+              pg_stat_database_blks_hit{datname!~"template.*|postgres"}
+              /
+              (pg_stat_database_blks_hit{datname!~"template.*|postgres"} + pg_stat_database_blks_read{datname!~"template.*|postgres"} + 1)
+              < 0.95
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "PostgreSQL cache hit ratio low on {{ $labels.datname }}"
+              description: "Cache hit ratio is {{ $value | humanizePercentage }}. Consider increasing shared_buffers."
+
+          - alert: PostgreSQLDeadlocks
+            expr: rate(pg_stat_database_deadlocks[5m]) > 0
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "PostgreSQL deadlocks detected on {{ $labels.datname }}"
+              description: "Deadlock rate is {{ $value }} per second."
+
+      # HikariCP Connection Pool
+      - name: hikaricp-alerts
+        rules:
+          - alert: HikariCPPoolHigh
+            expr: |
+              hikaricp_connections_active
+              /
+              hikaricp_connections_max
+              > 0.85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "HikariCP pool usage high on {{ $labels.application }}"
+              description: "Pool usage is {{ $value | humanizePercentage }}."
+
+          - alert: HikariCPConnectionTimeout
+            expr: rate(hikaricp_connections_timeout_total[5m]) > 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "HikariCP connection timeouts on {{ $labels.application }}"
+              description: "Connection timeout rate is {{ $value }} per second."
+
+      # Kafka Consumer
+      - name: kafka-consumer-alerts
+        rules:
+          - alert: KafkaDLQMessages
+            expr: rate(kafka_consumer_errors_total[5m]) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Kafka consumer errors on topic {{ $labels.topic }}"
+              description: "Consumer error rate is {{ $value }} per second."
+
+          - alert: KafkaSlowProcessing
+            expr: |
+              histogram_quantile(0.95, sum(rate(kafka_consumer_processing_seconds_bucket[5m])) by (le, topic))
+              > 5
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Slow Kafka consumer processing on topic {{ $labels.topic }}"
+              description: "p95 processing time is {{ $value | humanizeDuration }}."
+
+      # Service Calls (Feign + Circuit Breaker)
+      - name: service-call-alerts
+        rules:
+          - alert: CircuitBreakerOpen
+            expr: resilience4j_circuitbreaker_state{state="open"} == 1
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Circuit breaker {{ $labels.name }} is OPEN on {{ $labels.application }}"
+              description: "Downstream service is failing. Circuit breaker opened to prevent cascade."
+
+          - alert: FeignHighLatency
+            expr: |
+              histogram_quantile(0.95, sum(rate(http_client_requests_seconds_bucket[5m])) by (le, clientName))
+              > 2
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High Feign client latency for {{ $labels.clientName }}"
+              description: "p95 latency is {{ $value | humanizeDuration }}."
+
+          - alert: FeignHighErrorRate
+            expr: |
+              sum(rate(http_client_requests_seconds_count{status=~"5.."}[5m])) by (clientName)
+              /
+              sum(rate(http_client_requests_seconds_count[5m])) by (clientName)
+              > 0.1
+            for: 3m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High Feign error rate for {{ $labels.clientName }}"
+              description: "Error rate is {{ $value | humanizePercentage }}."
+
+# =================================================================
+# AlertManager
+# =================================================================
+alertmanager:
+  alertmanagerSpec:
+    routePrefix: "/"
+
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'https://hooks.slack.com/services/placeholder'
+
+    route:
+      receiver: 'slack-notifications'
+      group_by: ['alertname', 'job', 'severity']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+        - match:
+            severity: critical
+          receiver: 'slack-critical'
+          group_wait: 10s
+          repeat_interval: 1h
+          continue: true
+        - match:
+            severity: warning
+          receiver: 'slack-notifications'
+          group_wait: 1m
+          repeat_interval: 4h
+        - match_re:
+            alertname: ^(HighOrderFailureRate|HighPaymentFailureRate|CouponIssueErrors)$
+          receiver: 'slack-business'
+          continue: true
+
+    inhibit_rules:
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['alertname', 'job']
+      - source_match:
+          alertname: 'ServiceDown'
+        target_match_re:
+          alertname: '.+'
+        equal: ['job']
+
+    receivers:
+      - name: 'slack-notifications'
+        slack_configs:
+          - channel: '#portal-alerts'
+            username: 'Prometheus'
+            icon_emoji: ':prometheus:'
+            send_resolved: true
+            title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+            text: |-
+              {{ range .Alerts }}
+              *{{ .Labels.alertname }}* ({{ .Labels.severity }})
+              {{ .Annotations.description }}
+              {{ end }}
+            actions:
+              - type: button
+                text: 'View in Grafana'
+                url: 'http://localhost:3000/alerting/list'
+      - name: 'slack-critical'
+        slack_configs:
+          - channel: '#portal-alerts-critical'
+            username: 'Prometheus CRITICAL'
+            icon_emoji: ':rotating_light:'
+            send_resolved: true
+            color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+            title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+            text: |-
+              {{ range .Alerts }}
+              *{{ .Labels.alertname }}* ({{ .Labels.severity }})
+              {{ .Annotations.description }}
+              {{ end }}
+      - name: 'slack-business'
+        slack_configs:
+          - channel: '#portal-business-alerts'
+            username: 'Business Monitor'
+            icon_emoji: ':chart_with_upwards_trend:'
+            send_resolved: true
+            title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+            text: |-
+              {{ range .Alerts }}
+              *{{ .Labels.alertname }}* ({{ .Labels.severity }})
+              {{ .Annotations.description }}
+              {{ end }}
+
+# =================================================================
+# Grafana
+# =================================================================
+grafana:
+  # 서브패스: Ingress /grafana 경유 접근
+  grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
+      serve_from_sub_path: true
+
+  # 관리자 계정 (개발 환경)
+  adminUser: admin
+  adminPassword: admin
+
+  # 플러그인
+  plugins:
+    - grafana-piechart-panel
+
+  # Service 포트 (기존 Ingress와 호환)
+  service:
+    port: 3000
+
+  # Sidecar: ConfigMap에서 대시보드 자동 로드
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      folder: /tmp/dashboards
+      folderAnnotation: grafana_dashboard_folder
+      provider:
+        name: 'Portal Universe'
+        orgId: 1
+        folder: 'Portal Universe'
+        disableDeletion: false
+        allowUiUpdates: true
+    datasources:
+      defaultDatasourceEnabled: false  # 수동 정의로 UID 제어
+
+  # 데이터소스 (UID가 대시보드 JSON과 일치해야 함)
+  additionalDataSources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://monitoring-prometheus:9090/prometheus
+      uid: prometheus
+      isDefault: true
+      editable: false
+
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      uid: loki
+      editable: false
+      jsonData:
+        maxLines: 1000
+
+    - name: Zipkin
+      type: zipkin
+      access: proxy
+      url: http://zipkin:9411
+      uid: zipkin
+      editable: false
+
+# =================================================================
+# 불필요 컴포넌트 비활성화
+# (Kind 환경 + 자체 Exporter 사용)
+# =================================================================
+kubeStateMetrics:
+  enabled: false
+
+nodeExporter:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeEtcd:
+  enabled: false

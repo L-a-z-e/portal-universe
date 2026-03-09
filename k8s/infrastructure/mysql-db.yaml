@@ -125,4 +125,8 @@ data:
     GRANT ALL PRIVILEGES ON auth_db.* TO 'laze'@'%';
     GRANT ALL PRIVILEGES ON shopping_db.* TO 'laze'@'%';
     GRANT ALL PRIVILEGES ON notification_db.* TO 'laze'@'%';
+
+    -- MySQL Exporter monitoring user
+    CREATE USER IF NOT EXISTS 'exporter'@'%' IDENTIFIED BY 'exporter';
+    GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'%';
     FLUSH PRIVILEGES;

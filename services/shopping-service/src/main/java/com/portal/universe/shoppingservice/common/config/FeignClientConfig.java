@@ -2,6 +2,8 @@ package com.portal.universe.shoppingservice.common.config;
 
 import com.portal.universe.commonlibrary.security.constants.AuthConstants;
 import feign.RequestInterceptor;
+import feign.micrometer.MicrometerCapability;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,11 @@ import java.util.List;
  */
 @Configuration
 public class FeignClientConfig {
+
+    @Bean
+    public MicrometerCapability micrometerCapability(MeterRegistry meterRegistry) {
+        return new MicrometerCapability(meterRegistry);
+    }
 
     private static final List<String> FORWARDED_HEADERS = List.of(
             AuthConstants.Headers.USER_ID,

@@ -19,6 +19,10 @@ spec:
     metadata:
       labels:
         app: prism-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9464"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: prism-service

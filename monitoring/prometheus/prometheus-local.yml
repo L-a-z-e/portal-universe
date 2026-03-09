@@ -26,31 +26,73 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['host.docker.internal:8080']
+    relabel_configs:
+      - target_label: app
+        replacement: 'api-gateway'
 
   - job_name: 'auth-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['host.docker.internal:8081']
+    relabel_configs:
+      - target_label: app
+        replacement: 'auth-service'
 
   - job_name: 'blog-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['host.docker.internal:8082']
+    relabel_configs:
+      - target_label: app
+        replacement: 'blog-service'
 
   - job_name: 'shopping-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['host.docker.internal:8083']
+    relabel_configs:
+      - target_label: app
+        replacement: 'shopping-service'
 
   - job_name: 'notification-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['host.docker.internal:8084']
+    relabel_configs:
+      - target_label: app
+        replacement: 'notification-service'
 
   - job_name: 'drive-service'
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['host.docker.internal:8087']
+    relabel_configs:
+      - target_label: app
+        replacement: 'drive-service'
+
+  - job_name: 'shopping-seller-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8088']
+    relabel_configs:
+      - target_label: app
+        replacement: 'shopping-seller-service'
+
+  - job_name: 'shopping-settlement-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8089']
+    relabel_configs:
+      - target_label: app
+        replacement: 'shopping-settlement-service'
+
+  - job_name: 'payment-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8090']
+    relabel_configs:
+      - target_label: app
+        replacement: 'payment-service'
 
   # ========================================
   # Polyglot Services (ADR-033)
@@ -59,11 +101,17 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ['host.docker.internal:9464']
+    relabel_configs:
+      - target_label: app
+        replacement: 'prism-service'
 
   - job_name: 'chatbot-service'
     metrics_path: /metrics
     static_configs:
       - targets: ['host.docker.internal:8086']
+    relabel_configs:
+      - target_label: app
+        replacement: 'chatbot-service'
 
   # ========================================
   # Exporters (Docker 내부 서비스)
@@ -74,6 +122,13 @@ scrape_configs:
     relabel_configs:
       - target_label: service
         replacement: 'cadvisor'
+
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    relabel_configs:
+      - target_label: service
+        replacement: 'postgresql'
 
   - job_name: 'mysql-exporter'  # notification-service 전용 (MySQL)
     static_configs:

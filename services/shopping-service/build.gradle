@@ -102,6 +102,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus' // Prometheus-compatible metrics
     implementation 'io.micrometer:micrometer-tracing-bridge-otel' // Distributed Tracing (OpenTelemetry)
     implementation 'io.opentelemetry:opentelemetry-exporter-zipkin' // Tracing data reporter for Zipkin
+    implementation 'io.github.openfeign:feign-micrometer' // Feign client metrics for Prometheus
 
     // =======================================
     // Development Tools

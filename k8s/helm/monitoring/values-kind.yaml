@@ -1,0 +1,54 @@
+# =================================================================
+# kube-prometheus-stack Helm Values (Kind 환경 오버라이드)
+# Kind 클러스터 리소스 제한 적용
+#
+# 사용법:
+#   helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+#     -n portal-universe \
+#     -f k8s/helm/monitoring/values-common.yaml \
+#     -f k8s/helm/monitoring/values-kind.yaml
+# =================================================================
+
+prometheus:
+  prometheusSpec:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    # Kind에서는 영구 저장소 불필요
+    storageSpec: {}
+    retention: 24h
+
+grafana:
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "25m"
+      limits:
+        memory: "64Mi"
+        cpu: "50m"
+    storage: {}
+    retention: 24h
+
+# Prometheus Operator 자체 리소스
+prometheusOperator:
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"

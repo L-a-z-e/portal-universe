@@ -22,3 +22,14 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'drive_db')\gexec
 
 SELECT 'CREATE DATABASE payment_db'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'payment_db')\gexec
+
+-- PostgreSQL Exporter 전용 모니터링 사용자
+-- pg_monitor 역할: pg_stat_* 뷰 읽기 권한 포함
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'postgres_exporter') THEN
+        CREATE ROLE postgres_exporter WITH LOGIN PASSWORD 'exporter_pass';
+        GRANT pg_monitor TO postgres_exporter;
+    END IF;
+END
+$$;

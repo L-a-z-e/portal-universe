@@ -34,6 +34,8 @@ scrape_configs:
     static_configs:
       - targets: ['api-gateway:8080']
     relabel_configs:
+      - target_label: app
+        replacement: 'api-gateway'
       - target_label: service
         replacement: 'api-gateway'
       - target_label: team
@@ -47,6 +49,8 @@ scrape_configs:
     static_configs:
       - targets: ['auth-service:8081']
     relabel_configs:
+      - target_label: app
+        replacement: 'auth-service'
       - target_label: service
         replacement: 'auth-service'
       - target_label: team
@@ -60,6 +64,8 @@ scrape_configs:
     static_configs:
       - targets: ['blog-service:8082']
     relabel_configs:
+      - target_label: app
+        replacement: 'blog-service'
       - target_label: service
         replacement: 'blog-service'
       - target_label: team
@@ -73,8 +79,55 @@ scrape_configs:
     static_configs:
       - targets: ['shopping-service:8083']
     relabel_configs:
+      - target_label: app
+        replacement: 'shopping-service'
       - target_label: service
         replacement: 'shopping-service'
+      - target_label: team
+        replacement: 'commerce'
+
+  # ========================================
+  # Shopping Seller Service
+  # ========================================
+  - job_name: 'shopping-seller-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['shopping-seller-service:8088']
+    relabel_configs:
+      - target_label: app
+        replacement: 'shopping-seller-service'
+      - target_label: service
+        replacement: 'shopping-seller-service'
+      - target_label: team
+        replacement: 'commerce'
+
+  # ========================================
+  # Shopping Settlement Service
+  # ========================================
+  - job_name: 'shopping-settlement-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['shopping-settlement-service:8089']
+    relabel_configs:
+      - target_label: app
+        replacement: 'shopping-settlement-service'
+      - target_label: service
+        replacement: 'shopping-settlement-service'
+      - target_label: team
+        replacement: 'commerce'
+
+  # ========================================
+  # Payment Service
+  # ========================================
+  - job_name: 'payment-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['payment-service:8090']
+    relabel_configs:
+      - target_label: app
+        replacement: 'payment-service'
+      - target_label: service
+        replacement: 'payment-service'
       - target_label: team
         replacement: 'commerce'
 
@@ -86,8 +139,25 @@ scrape_configs:
     static_configs:
       - targets: ['notification-service:8084']
     relabel_configs:
+      - target_label: app
+        replacement: 'notification-service'
       - target_label: service
         replacement: 'notification-service'
+      - target_label: team
+        replacement: 'platform'
+
+  # ========================================
+  # Drive Service
+  # ========================================
+  - job_name: 'drive-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['drive-service:8087']
+    relabel_configs:
+      - target_label: app
+        replacement: 'drive-service'
+      - target_label: service
+        replacement: 'drive-service'
       - target_label: team
         replacement: 'platform'
 
@@ -99,6 +169,8 @@ scrape_configs:
     static_configs:
       - targets: ['prism-service:9464']
     relabel_configs:
+      - target_label: app
+        replacement: 'prism-service'
       - target_label: service
         replacement: 'prism-service'
       - target_label: team
@@ -112,6 +184,8 @@ scrape_configs:
     static_configs:
       - targets: ['chatbot-service:8086']
     relabel_configs:
+      - target_label: app
+        replacement: 'chatbot-service'
       - target_label: service
         replacement: 'chatbot-service'
       - target_label: team
@@ -126,6 +200,16 @@ scrape_configs:
     relabel_configs:
       - target_label: service
         replacement: 'cadvisor'
+
+  # ========================================
+  # PostgreSQL Exporter (7 databases)
+  # ========================================
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    relabel_configs:
+      - target_label: service
+        replacement: 'postgresql'
 
   # ========================================
   # MySQL Exporter (notification-service 전용)

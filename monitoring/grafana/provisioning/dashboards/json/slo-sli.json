@@ -50,7 +50,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -107,7 +107,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - ((sum(rate(http_server_requests_seconds_count{application=\"api-gateway\", status=~\"5..\"}[$__range])) or vector(0)) / sum(rate(http_server_requests_seconds_count{application=\"api-gateway\"}[$__range]))))",
           "legendFormat": "api-gateway",
@@ -120,7 +120,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -177,7 +177,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - ((sum(rate(http_server_requests_seconds_count{application=\"auth-service\", status=~\"5..\"}[$__range])) or vector(0)) / sum(rate(http_server_requests_seconds_count{application=\"auth-service\"}[$__range]))))",
           "legendFormat": "auth-service",
@@ -190,7 +190,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -247,7 +247,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - ((sum(rate(http_server_requests_seconds_count{application=\"blog-service\", status=~\"5..\"}[$__range])) or vector(0)) / sum(rate(http_server_requests_seconds_count{application=\"blog-service\"}[$__range]))))",
           "legendFormat": "blog-service",
@@ -260,7 +260,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -317,7 +317,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - ((sum(rate(http_server_requests_seconds_count{application=\"shopping-service\", status=~\"5..\"}[$__range])) or vector(0)) / sum(rate(http_server_requests_seconds_count{application=\"shopping-service\"}[$__range]))))",
           "legendFormat": "shopping-service",
@@ -330,7 +330,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -387,7 +387,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - ((sum(rate(http_server_requests_seconds_count{application=\"notification-service\", status=~\"5..\"}[$__range])) or vector(0)) / sum(rate(http_server_requests_seconds_count{application=\"notification-service\"}[$__range]))))",
           "legendFormat": "notification-service",
@@ -400,7 +400,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -456,7 +456,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - (((sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[$__range])) or vector(0)) / sum(rate(http_server_requests_seconds_count[$__range]))) / (1 - $slo_target/100)))",
           "legendFormat": "Budget Remaining",
@@ -482,7 +482,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "description": "\uc11c\ube44\uc2a4\ubcc4 \uac00\uc6a9\uc131 (\uc131\uacf5 \uc694\uccad \ube44\uc728)",
       "fieldConfig": {
@@ -598,7 +598,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - ((sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[5m])) by (application) or sum(rate(http_server_requests_seconds_count[5m])) by (application) * 0) / sum(rate(http_server_requests_seconds_count[5m])) by (application)))",
           "legendFormat": "{{application}}",
@@ -607,7 +607,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "$slo_target",
           "legendFormat": "SLO Target",
@@ -620,7 +620,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "description": "\uc11c\ube44\uc2a4\ubcc4 \ud604\uc7ac \uac00\uc6a9\uc131 \ud604\ud669",
       "fieldConfig": {
@@ -772,7 +772,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - ((sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[$__range])) by (application) or sum(rate(http_server_requests_seconds_count[$__range])) by (application) * 0) / sum(rate(http_server_requests_seconds_count[$__range])) by (application)))",
           "format": "table",
@@ -835,7 +835,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "description": "P95 \uc751\ub2f5 \uc2dc\uac04",
       "fieldConfig": {
@@ -945,7 +945,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, application))",
           "legendFormat": "{{application}}",
@@ -954,7 +954,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "$latency_p95_target / 1000",
           "legendFormat": "P95 Target",
@@ -967,7 +967,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "description": "P99 \uc751\ub2f5 \uc2dc\uac04",
       "fieldConfig": {
@@ -1077,7 +1077,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, application))",
           "legendFormat": "{{application}}",
@@ -1086,7 +1086,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "$latency_p99_target / 1000",
           "legendFormat": "P99 Target",
@@ -1112,7 +1112,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "description": "SLO 99.9% \uae30\uc900 \ud5c8\uc6a9 \uc5d0\ub7ec \uc608\uc0b0 \ub300\ube44 \ud604\uc7ac \uc18c\uc9c4\ub7c9",
       "fieldConfig": {
@@ -1170,7 +1170,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "clamp_min(100 * (1 - (((sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[$__range])) or vector(0)) / sum(rate(http_server_requests_seconds_count[$__range]))) / (1 - $slo_target/100))), 0)",
           "legendFormat": "Budget Remaining",
@@ -1183,7 +1183,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "description": "\uc120\ud0dd\ub41c \uae30\uac04 \ub3d9\uc548\uc758 \uc5d0\ub7ec \uc608\uc0b0 \uc18c\uc9c4 \ucd94\uc774",
       "fieldConfig": {
@@ -1273,7 +1273,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "clamp_min(100 * (1 - (((sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1h])) by (application) or sum(rate(http_server_requests_seconds_count[1h])) by (application) * 0) / sum(rate(http_server_requests_seconds_count[1h])) by (application)) / (1 - $slo_target/100))), 0)",
           "legendFormat": "{{application}}",
@@ -1299,7 +1299,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "description": "\uac01 \uc11c\ube44\uc2a4\ubcc4 SLO \ud604\ud669 \uc694\uc57d",
       "fieldConfig": {
@@ -1542,7 +1542,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "100 * (1 - ((sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[$__range])) by (application) or sum(rate(http_server_requests_seconds_count[$__range])) by (application) * 0) / sum(rate(http_server_requests_seconds_count[$__range])) by (application)))",
           "format": "table",
@@ -1553,7 +1553,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "1000 * histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[$__range])) by (le, application))",
           "format": "table",
@@ -1564,7 +1564,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "1000 * histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[$__range])) by (le, application))",
           "format": "table",
@@ -1575,7 +1575,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "prometheus"
           },
           "expr": "clamp_min(100 * (1 - (((sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[$__range])) by (application) or sum(rate(http_server_requests_seconds_count[$__range])) by (application) * 0) / sum(rate(http_server_requests_seconds_count[$__range])) by (application)) / (1 - $slo_target/100))), 0)",
           "format": "table",

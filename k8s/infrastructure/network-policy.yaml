@@ -49,9 +49,32 @@ spec:
           - blog-frontend
           - shopping-frontend
           - prism-frontend
+          - zipkin
+          # grafana, prometheus는 Helm이 관리 → 별도 NetworkPolicy (아래)
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+
+---
+# 3-1. Helm 모니터링 Pod에 대한 Ingress Controller 허용
+# kube-prometheus-stack Helm이 배포한 Pod는 app.kubernetes.io/name 라벨 사용
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-helm-monitoring
+  namespace: portal-universe
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
           - grafana
           - prometheus
-          - zipkin
   policyTypes:
     - Ingress
   ingress:
@@ -96,37 +119,43 @@ spec:
               - 192.168.0.0/16
 
 ---
-# 5. K8s API 접근 허용: api-gateway(Health Aggregation)와 prometheus(kubernetes_sd_configs)가
-#    K8s API에 접근할 수 있도록 합니다.
-#    ClusterIP(10.96.0.1:443)는 kube-proxy DNAT 후 실제 endpoint(172.18.0.0/16:6443)로
-#    변환되므로, CNI NetworkPolicy 평가 시점에서 두 가지 모두 허용해야 합니다.
+# 5. API Gateway의 전체 Egress 허용
+# Health Aggregation에서 K8s API 접근 필요
+# 표준 NetworkPolicy로는 K8s API를 추상 참조할 수 없으므로 all egress 허용
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-k8s-api-for-gateway
+  name: allow-all-egress-gateway
+  namespace: portal-universe
+spec:
+  podSelector:
+    matchLabels:
+      app: api-gateway
+  policyTypes:
+    - Egress
+  egress:
+    - {}
+
+---
+# 5-1. 모니터링 컴포넌트 전체 Egress 허용
+# Prometheus: K8s API(service discovery) + 모든 Pod/Node IP(scrape) 접근 필요
+# Grafana Sidecar: K8s API(ConfigMap list/watch) 접근 필요
+# 표준 NetworkPolicy로는 K8s API를 추상 참조할 수 없으므로 all egress 허용,
+# 보안은 대상 측 ingress 정책으로 제어
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-egress-monitoring
   namespace: portal-universe
 spec:
   podSelector:
     matchExpressions:
-      - key: app
+      - key: app.kubernetes.io/name
         operator: In
         values:
-          - api-gateway
           - prometheus
+          - grafana
   policyTypes:
     - Egress
   egress:
-    # ClusterIP 경유 (DNAT 전)
-    - to:
-        - ipBlock:
-            cidr: 10.96.0.1/32
-      ports:
-        - protocol: TCP
-          port: 443
-    # Kind 노드 네트워크의 실제 API server endpoint (DNAT 후)
-    - to:
-        - ipBlock:
-            cidr: 172.18.0.0/16
-      ports:
-        - protocol: TCP
-          port: 6443
+    - {}
