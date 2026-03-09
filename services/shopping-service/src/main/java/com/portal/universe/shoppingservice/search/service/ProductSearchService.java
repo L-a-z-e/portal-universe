@@ -11,6 +11,10 @@ import com.portal.universe.shoppingservice.search.document.ProductDocument;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchResult;
 import com.portal.universe.commonlibrary.response.PageResponse;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,24 +35,44 @@ public class ProductSearchService {
     private static final String INDEX_NAME = "products";
     private final ElasticsearchClient esClient;
     private final ProductRepository productRepository;
+    private final MeterRegistry meterRegistry;
+
+    private Counter searchRequestCounter;
+    private Timer esSearchTimer;
+
+    @PostConstruct
+    void initMetrics() {
+        searchRequestCounter = Counter.builder("search_requests_total")
+                .description("Total search requests")
+                .register(meterRegistry);
+        esSearchTimer = Timer.builder("elasticsearch_search_duration_seconds")
+                .description("Elasticsearch search duration")
+                .register(meterRegistry);
+    }
 
     public PageResponse<ProductSearchResult> search(ProductSearchRequest request) {
+        searchRequestCounter.increment();
         try {
-            SearchRequest searchRequest = buildSearchRequest(request);
-            var response = esClient.search(searchRequest, ProductDocument.class);
+            return esSearchTimer.record(() -> {
+                try {
+                    SearchRequest searchRequest = buildSearchRequest(request);
+                    var response = esClient.search(searchRequest, ProductDocument.class);
 
-            List<ProductSearchResult> results = new ArrayList<>();
-            for (Hit<ProductDocument> hit : response.hits().hits()) {
-                ProductDocument doc = hit.source();
-                if (doc != null) {
-                    ProductSearchResult result = mapToSearchResult(doc, hit);
-                    results.add(result);
+                    List<ProductSearchResult> results = new ArrayList<>();
+                    for (Hit<ProductDocument> hit : response.hits().hits()) {
+                        ProductDocument doc = hit.source();
+                        if (doc != null) {
+                            ProductSearchResult result = mapToSearchResult(doc, hit);
+                            results.add(result);
+                        }
+                    }
+
+                    long totalHits = response.hits().total() != null ? response.hits().total().value() : 0;
+                    return PageResponse.of(results, request.getPage(), request.getSize(), totalHits);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-            }
-
-            long totalHits = response.hits().total() != null ? response.hits().total().value() : 0;
-            return PageResponse.of(results, request.getPage(), request.getSize(), totalHits);
-
+            });
         } catch (Exception e) {
             log.warn("ES search failed, falling back to DB search for keyword: {}", request.getKeyword(), e);
             return searchFromDatabase(request);

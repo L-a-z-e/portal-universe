@@ -26,6 +26,9 @@ import com.portal.universe.event.shopping.OrderCancelledEvent;
 import com.portal.universe.event.shopping.OrderItemInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -53,6 +56,26 @@ public class OrderServiceImpl implements OrderService {
     private final ShoppingEventPublisher eventPublisher;
     private final PaymentIntentFeignClient paymentIntentFeignClient;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meterRegistry;
+
+    private Counter orderSuccessCounter;
+    private Counter orderFailedCounter;
+    private Counter orderCancelledCounter;
+
+    @PostConstruct
+    void initMetrics() {
+        orderSuccessCounter = Counter.builder("order_created_total")
+                .tag("status", "success")
+                .description("Total orders created successfully")
+                .register(meterRegistry);
+        orderFailedCounter = Counter.builder("order_created_total")
+                .tag("status", "failed")
+                .description("Total orders that failed to create")
+                .register(meterRegistry);
+        orderCancelledCounter = Counter.builder("order_cancelled_total")
+                .description("Total orders cancelled")
+                .register(meterRegistry);
+    }
 
     @Override
     @Transactional
@@ -131,9 +154,12 @@ public class OrderServiceImpl implements OrderService {
             orderRepository.save(savedOrder);
             log.info("Payment intent created: {} for order {}", intent.intentId(), savedOrder.getOrderNumber());
         } catch (Exception e) {
+            orderFailedCounter.increment();
             log.error("Failed to create payment intent for order {}: {}", savedOrder.getOrderNumber(), e.getMessage());
             throw new CustomBusinessException(ShoppingErrorCode.ORDER_CREATION_FAILED);
         }
+
+        orderSuccessCounter.increment();
 
         log.info("Order created successfully: {} (user: {}, items: {}, total: {}, discount: {}, final: {})",
                 savedOrder.getOrderNumber(), userId, savedOrder.getItems().size(),
@@ -206,6 +232,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.cancel(request.reason());
         Order savedOrder = orderRepository.save(order);
+        orderCancelledCounter.increment();
 
         log.info("Order cancelled: {} (user: {}, reason: {})", orderNumber, userId, request.reason());
 

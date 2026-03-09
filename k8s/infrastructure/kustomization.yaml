@@ -19,12 +19,13 @@ resources:
   # AWS Local Emulation
   - localstack.yaml
 
-  # Monitoring
+  # Monitoring (Prometheus/Grafana/AlertManager는 Helm으로 관리: k8s/helm/monitoring/)
   - zipkin.yaml
-  - prometheus.yaml
-  - grafana.yaml
-  - grafana-provisioning.yaml
-  - grafana-dashboards.yaml
+
+  # Exporters
+  - postgres-exporter.yaml
+  - kafka-exporter.yaml
+  - mysql-exporter.yaml
 
   # Network & Ingress
   - network-policy.yaml

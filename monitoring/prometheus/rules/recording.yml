@@ -4,7 +4,7 @@ groups:
   # ========================================
   # Metric name mapping:
   #   Java (Micrometer): http_server_requests_seconds_count
-  #   NestJS (OTel):     http_server_duration_milliseconds_count
+  #   NestJS (OTel):     http_server_duration_count
   #   Python:            http_requests_total
   - name: request-rate-rules
     interval: 15s
@@ -14,7 +14,7 @@ groups:
         expr: |
           sum(rate(http_server_requests_seconds_count[5m])) by (job)
           or
-          sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+          sum(rate(http_server_duration_count[5m])) by (job)
           or
           sum(rate(http_requests_total[5m])) by (job)
 
@@ -23,7 +23,7 @@ groups:
         expr: |
           sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (job)
           or
-          sum(rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[5m])) by (job)
+          sum(rate(http_server_duration_count{http_status_code=~"5.."}[5m])) by (job)
           or
           sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
 
@@ -37,9 +37,9 @@ groups:
           )
           or
           (
-            sum(rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[5m])) by (job)
+            sum(rate(http_server_duration_count{http_status_code=~"5.."}[5m])) by (job)
             /
-            sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+            sum(rate(http_server_duration_count[5m])) by (job)
           )
           or
           (
@@ -59,7 +59,7 @@ groups:
   # Latency Recording Rules (Polyglot)
   # ========================================
   # Java: http_server_requests_seconds_bucket (seconds)
-  # NestJS: http_server_duration_milliseconds_bucket (milliseconds)
+  # NestJS: http_server_duration_bucket (milliseconds)
   # Python: http_request_duration_seconds_bucket (seconds)
   - name: latency-rules
     interval: 15s
@@ -69,7 +69,7 @@ groups:
         expr: |
           histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
           or
-          histogram_quantile(0.50, sum(rate(http_server_duration_milliseconds_bucket[5m])) by (le, job)) / 1000
+          histogram_quantile(0.50, sum(rate(http_server_duration_bucket[5m])) by (le, job)) / 1000
           or
           histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
 
@@ -78,7 +78,7 @@ groups:
         expr: |
           histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
           or
-          histogram_quantile(0.95, sum(rate(http_server_duration_milliseconds_bucket[5m])) by (le, job)) / 1000
+          histogram_quantile(0.95, sum(rate(http_server_duration_bucket[5m])) by (le, job)) / 1000
           or
           histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
 
@@ -87,7 +87,7 @@ groups:
         expr: |
           histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, job))
           or
-          histogram_quantile(0.99, sum(rate(http_server_duration_milliseconds_bucket[5m])) by (le, job)) / 1000
+          histogram_quantile(0.99, sum(rate(http_server_duration_bucket[5m])) by (le, job)) / 1000
           or
           histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
 
@@ -101,9 +101,9 @@ groups:
           )
           or
           (
-            sum(rate(http_server_duration_milliseconds_sum[5m])) by (job)
+            sum(rate(http_server_duration_sum[5m])) by (job)
             /
-            sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+            sum(rate(http_server_duration_count[5m])) by (job)
             / 1000
           )
           or
@@ -156,6 +156,35 @@ groups:
         expr: hikaricp_connections_pending
 
   # ========================================
+  # PostgreSQL Recording Rules
+  # ========================================
+  - name: postgresql-rules
+    interval: 30s
+    rules:
+      # Active connections by database
+      - record: pg:active_connections
+        expr: pg_stat_activity_count{state="active"}
+
+      # Connection usage ratio (active / max)
+      - record: pg:connection_usage_ratio
+        expr: |
+          sum(pg_stat_activity_count) by (datname)
+          /
+          pg_settings_max_connections
+
+      # Cache hit ratio (should be > 99%)
+      - record: pg:cache_hit_ratio
+        expr: |
+          pg_stat_database_blks_hit
+          /
+          (pg_stat_database_blks_hit + pg_stat_database_blks_read + 1)
+
+      # Transaction rate (commits + rollbacks per second)
+      - record: pg:transaction_rate:rate5m
+        expr: |
+          sum(rate(pg_stat_database_xact_commit[5m]) + rate(pg_stat_database_xact_rollback[5m])) by (datname)
+
+  # ========================================
   # Service Availability (SLI) - Polyglot
   # ========================================
   - name: sli-rules
@@ -174,9 +203,9 @@ groups:
           or
           (
             1 - (
-              sum(rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[5m])) by (job)
+              sum(rate(http_server_duration_count{http_status_code=~"5.."}[5m])) by (job)
               /
-              sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+              sum(rate(http_server_duration_count[5m])) by (job)
             )
           )
           or
@@ -198,9 +227,9 @@ groups:
           )
           or
           (
-            sum(rate(http_server_duration_milliseconds_bucket{le="200"}[5m])) by (job)
+            sum(rate(http_server_duration_bucket{le="200"}[5m])) by (job)
             /
-            sum(rate(http_server_duration_milliseconds_count[5m])) by (job)
+            sum(rate(http_server_duration_count[5m])) by (job)
           )
           or
           (

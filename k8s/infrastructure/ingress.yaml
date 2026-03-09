@@ -26,21 +26,21 @@ spec:
       http:
         paths:
           # --- 모니터링 서비스 라우팅 ---
-          # /grafana 경로로 들어오는 모든 요청은 grafana 서비스의 3000 포트로 전달됩니다.
+          # /grafana → Helm release monitoring-grafana (kube-prometheus-stack)
           - path: /grafana
             pathType: Prefix
             backend:
               service:
-                name: grafana
+                name: monitoring-grafana
                 port:
                   number: 3000
 
-          # /prometheus 경로로 들어오는 모든 요청은 prometheus 서비스의 9090 포트로 전달됩니다.
+          # /prometheus → Helm release monitoring-prometheus (kube-prometheus-stack)
           - path: /prometheus
             pathType: Prefix
             backend:
               service:
-                name: prometheus
+                name: monitoring-prometheus
                 port:
                   number: 9090
 

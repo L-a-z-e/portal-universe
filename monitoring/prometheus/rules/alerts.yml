@@ -313,7 +313,7 @@ groups:
       # Low Search Performance
       - alert: LowSearchPerformance
         expr: |
-          histogram_quantile(0.95, sum(rate(elasticsearch_search_duration_bucket[5m])) by (le))
+          histogram_quantile(0.95, sum(rate(elasticsearch_search_duration_seconds_bucket[5m])) by (le))
           > 0.3
         for: 5m
         labels:
@@ -321,3 +321,143 @@ groups:
         annotations:
           summary: "Low search performance"
           description: "Search p95 latency is {{ $value | humanizeDuration }}."
+
+  # ========================================
+  # PostgreSQL Alerts
+  # ========================================
+  - name: postgresql-alerts
+    rules:
+      # PostgreSQL Connection Usage High
+      - alert: PostgreSQLConnectionsHigh
+        expr: |
+          sum(pg_stat_activity_count) by (datname)
+          /
+          pg_settings_max_connections
+          > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL connection usage high on {{ $labels.datname }}"
+          description: "Connection usage is {{ $value | humanizePercentage }}."
+
+      # PostgreSQL Cache Hit Ratio Low
+      - alert: PostgreSQLCacheHitLow
+        expr: |
+          pg_stat_database_blks_hit{datname!~"template.*|postgres"}
+          /
+          (pg_stat_database_blks_hit{datname!~"template.*|postgres"} + pg_stat_database_blks_read{datname!~"template.*|postgres"} + 1)
+          < 0.95
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL cache hit ratio low on {{ $labels.datname }}"
+          description: "Cache hit ratio is {{ $value | humanizePercentage }}. Consider increasing shared_buffers."
+
+      # PostgreSQL Deadlocks
+      - alert: PostgreSQLDeadlocks
+        expr: rate(pg_stat_database_deadlocks[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL deadlocks detected on {{ $labels.datname }}"
+          description: "Deadlock rate is {{ $value }} per second."
+
+  # ========================================
+  # HikariCP Connection Pool Alerts
+  # ========================================
+  - name: hikaricp-alerts
+    rules:
+      # HikariCP Pool Usage High
+      - alert: HikariCPPoolHigh
+        expr: |
+          hikaricp_connections_active
+          /
+          hikaricp_connections_max
+          > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HikariCP pool usage high on {{ $labels.application }}"
+          description: "Pool usage is {{ $value | humanizePercentage }}."
+
+      # HikariCP Connection Timeout
+      - alert: HikariCPConnectionTimeout
+        expr: rate(hikaricp_connections_timeout_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "HikariCP connection timeouts on {{ $labels.application }}"
+          description: "Connection timeout rate is {{ $value }} per second."
+
+  # ========================================
+  # Kafka Consumer Alerts
+  # ========================================
+  - name: kafka-consumer-alerts
+    rules:
+      # DLQ Messages
+      - alert: KafkaDLQMessages
+        expr: rate(kafka_consumer_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer errors on topic {{ $labels.topic }}"
+          description: "Consumer error rate is {{ $value }} per second."
+
+      # Slow Kafka Consumer Processing
+      - alert: KafkaSlowProcessing
+        expr: |
+          histogram_quantile(0.95, sum(rate(kafka_consumer_processing_seconds_bucket[5m])) by (le, topic))
+          > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow Kafka consumer processing on topic {{ $labels.topic }}"
+          description: "p95 processing time is {{ $value | humanizeDuration }}."
+
+  # ========================================
+  # Service Call Alerts (Feign + Circuit Breaker)
+  # ========================================
+  - name: service-call-alerts
+    rules:
+      # Circuit Breaker Open
+      - alert: CircuitBreakerOpen
+        expr: resilience4j_circuitbreaker_state{state="open"} == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Circuit breaker {{ $labels.name }} is OPEN on {{ $labels.application }}"
+          description: "Downstream service is failing. Circuit breaker opened to prevent cascade."
+
+      # Feign High Latency
+      - alert: FeignHighLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_client_requests_seconds_bucket[5m])) by (le, clientName))
+          > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Feign client latency for {{ $labels.clientName }}"
+          description: "p95 latency is {{ $value | humanizeDuration }}."
+
+      # Feign High Error Rate
+      - alert: FeignHighErrorRate
+        expr: |
+          sum(rate(http_client_requests_seconds_count{status=~"5.."}[5m])) by (clientName)
+          /
+          sum(rate(http_client_requests_seconds_count[5m])) by (clientName)
+          > 0.1
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Feign error rate for {{ $labels.clientName }}"
+          description: "Error rate is {{ $value | humanizePercentage }}."

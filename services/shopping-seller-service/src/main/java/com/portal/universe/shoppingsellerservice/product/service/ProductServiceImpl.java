@@ -13,6 +13,9 @@ import com.portal.universe.shoppingsellerservice.product.dto.ProductCreateReques
 import com.portal.universe.shoppingsellerservice.product.dto.ProductResponse;
 import com.portal.universe.shoppingsellerservice.product.dto.ProductUpdateRequest;
 import com.portal.universe.shoppingsellerservice.product.repository.ProductRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +31,16 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final OutboxEventRepository outboxEventRepository;
+    private final MeterRegistry meterRegistry;
+
+    private Counter productCreatedCounter;
+
+    @PostConstruct
+    void initMetrics() {
+        productCreatedCounter = Counter.builder("product_created_total")
+                .description("Total products created")
+                .register(meterRegistry);
+    }
 
     @Override
     @Transactional
@@ -40,6 +53,7 @@ public class ProductServiceImpl implements ProductService {
                 String.valueOf(saved.getId()),
                 buildCreatedEvent(saved)));
 
+        productCreatedCounter.increment();
         return ProductResponse.from(saved);
     }
 
