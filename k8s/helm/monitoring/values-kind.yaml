@@ -52,3 +52,23 @@ prometheusOperator:
     limits:
       memory: "128Mi"
       cpu: "100m"
+
+# kube-state-metrics 리소스
+kube-state-metrics:
+  resources:
+    requests:
+      memory: "32Mi"
+      cpu: "25m"
+    limits:
+      memory: "64Mi"
+      cpu: "50m"
+
+# node-exporter 리소스 (DaemonSet, Kind 1노드 = 1 Pod)
+prometheus-node-exporter:
+  resources:
+    requests:
+      memory: "16Mi"
+      cpu: "25m"
+    limits:
+      memory: "32Mi"
+      cpu: "50m"
