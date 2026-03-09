@@ -16,6 +16,7 @@ import com.portal.universe.shoppingservice.order.repository.SagaStateRepository;
 import com.portal.universe.shoppingservice.order.saga.OrderSagaOrchestrator;
 import com.portal.universe.shoppingservice.order.saga.SagaCompensationService;
 import com.portal.universe.shoppingservice.order.saga.SagaState;
+import com.portal.universe.shoppingservice.order.saga.SagaStatus;
 import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
 import com.portal.universe.shoppingservice.feign.PaymentIntentFeignClient;
 import com.portal.universe.shoppingservice.feign.dto.CreatePaymentIntentRequest;
@@ -192,19 +193,15 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomBusinessException(ShoppingErrorCode.ORDER_CANNOT_BE_CANCELLED);
         }
 
-        // Saga 완료 단계에 따라 보상 (재고 release/restore, 결제 환불)
         SagaState sagaState = sagaStateRepository.findByOrderNumber(orderNumber)
                 .orElse(null);
 
         if (sagaState != null) {
-            try {
-                sagaCompensationService.compensateSagaSteps(order, sagaState);
-            } catch (Exception e) {
-                log.error("Failed to compensate saga steps for order {}: {}", orderNumber, e.getMessage());
-            }
+            sagaCompensationService.compensate(sagaState, "Order cancelled by user: " + request.reason());
 
-            sagaState.markAsFailed("Order cancelled by user: " + request.reason());
-            sagaStateRepository.save(sagaState);
+            if (sagaState.getStatus() != SagaStatus.FAILED) {
+                throw new CustomBusinessException(ShoppingErrorCode.SAGA_COMPENSATION_FAILED);
+            }
         }
 
         order.cancel(request.reason());
