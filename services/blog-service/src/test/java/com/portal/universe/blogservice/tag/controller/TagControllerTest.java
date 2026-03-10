@@ -18,8 +18,8 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,7 +51,7 @@ class TagControllerTest {
             Instant.now(),
             Instant.now()
         );
-        given(tagService.createTag(any(TagCreateRequest.class))).willReturn(response);
+        when(tagService.createTag(any(TagCreateRequest.class))).thenReturn(response);
 
         // when & then
         mockMvc.perform(post("/tags")
@@ -90,7 +90,7 @@ class TagControllerTest {
             Instant.now(),
             Instant.now()
         );
-        given(tagService.getAllTags()).willReturn(List.of(response));
+        when(tagService.getAllTags()).thenReturn(List.of(response));
 
         // when & then
         mockMvc.perform(get("/tags"))
@@ -114,7 +114,7 @@ class TagControllerTest {
             Instant.now(),
             Instant.now()
         );
-        given(tagService.getTagByName("Java")).willReturn(response);
+        when(tagService.getTagByName("Java")).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/tags/Java"))
@@ -130,7 +130,7 @@ class TagControllerTest {
     void should_returnPopularTags() throws Exception {
         // given
         TagStatsResponse stats = new TagStatsResponse("Java", 50L, 10000L);
-        given(tagService.getPopularTags(10)).willReturn(List.of(stats));
+        when(tagService.getPopularTags(10)).thenReturn(List.of(stats));
 
         // when & then
         mockMvc.perform(get("/tags/popular")
@@ -155,7 +155,7 @@ class TagControllerTest {
             Instant.now(),
             Instant.now()
         );
-        given(tagService.searchTags("Jav", 5)).willReturn(List.of(response));
+        when(tagService.searchTags("Jav", 5)).thenReturn(List.of(response));
 
         // when & then
         mockMvc.perform(get("/tags/search")
@@ -180,7 +180,7 @@ class TagControllerTest {
             Instant.now(),
             Instant.now()
         );
-        given(tagService.updateTagDescription("Java", "Updated description")).willReturn(response);
+        when(tagService.updateTagDescription("Java", "Updated description")).thenReturn(response);
 
         // when & then
         mockMvc.perform(patch("/tags/Java/description")

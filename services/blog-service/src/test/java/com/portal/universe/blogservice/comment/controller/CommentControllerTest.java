@@ -23,8 +23,8 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -79,8 +79,8 @@ class CommentControllerTest {
             null,
             "Test Comment Content"
         );
-        given(commentService.createComment(any(CommentCreateRequest.class), eq("user-1"), anyString(), anyString()))
-            .willReturn(commentResponse);
+        when(commentService.createComment(any(CommentCreateRequest.class), eq("user-1"), anyString(), anyString()))
+            .thenReturn(commentResponse);
 
         // when & then
         mockMvc.perform(post("/comments")
@@ -136,8 +136,8 @@ class CommentControllerTest {
     void should_updateComment() throws Exception {
         // given
         CommentUpdateRequest request = new CommentUpdateRequest("Updated Comment Content");
-        given(commentService.updateComment(eq("comment-1"), any(CommentUpdateRequest.class), eq("user-1")))
-            .willReturn(commentResponse);
+        when(commentService.updateComment(eq("comment-1"), any(CommentUpdateRequest.class), eq("user-1")))
+            .thenReturn(commentResponse);
 
         // when & then
         mockMvc.perform(put("/comments/comment-1")
@@ -168,7 +168,7 @@ class CommentControllerTest {
     @DisplayName("GET /comments/post/{postId} - should_returnComments")
     void should_returnComments() throws Exception {
         // given
-        given(commentService.getCommentsByPostId("post-1")).willReturn(List.of(commentResponse));
+        when(commentService.getCommentsByPostId("post-1")).thenReturn(List.of(commentResponse));
 
         // when & then
         mockMvc.perform(get("/comments/post/post-1"))

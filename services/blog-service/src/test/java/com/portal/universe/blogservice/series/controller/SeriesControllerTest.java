@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -98,8 +98,8 @@ class SeriesControllerTest {
             "Test Description",
             "thumbnail.jpg"
         );
-        given(seriesService.createSeries(any(SeriesCreateRequest.class), eq("user-1"), anyString(), anyString()))
-            .willReturn(seriesResponse);
+        when(seriesService.createSeries(any(SeriesCreateRequest.class), eq("user-1"), anyString(), anyString()))
+            .thenReturn(seriesResponse);
 
         // when & then
         mockMvc.perform(post("/series")
@@ -141,8 +141,8 @@ class SeriesControllerTest {
             "Updated Description",
             "new-thumbnail.jpg"
         );
-        given(seriesService.updateSeries(eq("series-1"), any(SeriesUpdateRequest.class), eq("user-1")))
-            .willReturn(seriesResponse);
+        when(seriesService.updateSeries(eq("series-1"), any(SeriesUpdateRequest.class), eq("user-1")))
+            .thenReturn(seriesResponse);
 
         // when & then
         mockMvc.perform(put("/series/series-1")
@@ -173,7 +173,7 @@ class SeriesControllerTest {
     @DisplayName("GET /series/{seriesId} - should_returnSeries")
     void should_returnSeries() throws Exception {
         // given
-        given(seriesService.getSeriesById("series-1")).willReturn(seriesResponse);
+        when(seriesService.getSeriesById("series-1")).thenReturn(seriesResponse);
 
         // when & then
         mockMvc.perform(get("/series/series-1"))
@@ -201,7 +201,7 @@ class SeriesControllerTest {
             Instant.now(),
             Instant.now()
         );
-        given(seriesService.getSeriesByAuthor("user-1")).willReturn(List.of(listResponse));
+        when(seriesService.getSeriesByAuthor("user-1")).thenReturn(List.of(listResponse));
 
         // when & then
         mockMvc.perform(get("/series/author/user-1"))
@@ -217,7 +217,7 @@ class SeriesControllerTest {
     @DisplayName("GET /series/{seriesId}/posts - should_returnSeriesPosts")
     void should_returnSeriesPosts() throws Exception {
         // given
-        given(seriesService.getSeriesPosts("series-1")).willReturn(List.of(postSummaryResponse));
+        when(seriesService.getSeriesPosts("series-1")).thenReturn(List.of(postSummaryResponse));
 
         // when & then
         mockMvc.perform(get("/series/series-1/posts"))
@@ -233,7 +233,7 @@ class SeriesControllerTest {
     @DisplayName("POST /series/{seriesId}/posts/{postId} - should_addPost")
     void should_addPost() throws Exception {
         // given
-        given(seriesService.addPostToSeries("series-1", "post-1", "user-1")).willReturn(seriesResponse);
+        when(seriesService.addPostToSeries("series-1", "post-1", "user-1")).thenReturn(seriesResponse);
 
         // when & then
         mockMvc.perform(post("/series/series-1/posts/post-1")
@@ -249,7 +249,7 @@ class SeriesControllerTest {
     @DisplayName("DELETE /series/{seriesId}/posts/{postId} - should_removePost")
     void should_removePost() throws Exception {
         // given
-        given(seriesService.removePostFromSeries("series-1", "post-1", "user-1")).willReturn(seriesResponse);
+        when(seriesService.removePostFromSeries("series-1", "post-1", "user-1")).thenReturn(seriesResponse);
 
         // when & then
         mockMvc.perform(delete("/series/series-1/posts/post-1")
@@ -266,8 +266,8 @@ class SeriesControllerTest {
     void should_reorderPosts() throws Exception {
         // given
         SeriesPostOrderRequest request = new SeriesPostOrderRequest(List.of("post-2", "post-1"));
-        given(seriesService.reorderPosts(eq("series-1"), any(SeriesPostOrderRequest.class), eq("user-1")))
-            .willReturn(seriesResponse);
+        when(seriesService.reorderPosts(eq("series-1"), any(SeriesPostOrderRequest.class), eq("user-1")))
+            .thenReturn(seriesResponse);
 
         // when & then
         mockMvc.perform(put("/series/series-1/posts/order")
