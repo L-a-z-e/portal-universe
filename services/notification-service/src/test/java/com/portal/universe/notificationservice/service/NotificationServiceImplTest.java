@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -66,9 +66,9 @@ class NotificationServiceImplTest {
                 .referenceType("order")
                 .build();
 
-        given(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
-                "ORD-123", "order", userId)).willReturn(false);
-        given(notificationRepository.save(any(Notification.class))).willReturn(savedNotification);
+        when(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
+                "ORD-123", "order", userId)).thenReturn(false);
+        when(notificationRepository.save(any(Notification.class))).thenReturn(savedNotification);
 
         // when
         Notification result = notificationService.create(command);
@@ -99,10 +99,10 @@ class NotificationServiceImplTest {
                 .referenceType("order")
                 .build();
 
-        given(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
-                "ORD-123", "order", userId)).willReturn(true);
-        given(notificationRepository.findByReferenceIdAndReferenceTypeAndUserId(
-                "ORD-123", "order", userId)).willReturn(Optional.of(existingNotification));
+        when(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
+                "ORD-123", "order", userId)).thenReturn(true);
+        when(notificationRepository.findByReferenceIdAndReferenceTypeAndUserId(
+                "ORD-123", "order", userId)).thenReturn(Optional.of(existingNotification));
 
         // when
         Notification result = notificationService.create(command);
@@ -129,7 +129,7 @@ class NotificationServiceImplTest {
                 .message("가입 감사합니다")
                 .build();
 
-        given(notificationRepository.save(any(Notification.class))).willReturn(savedNotification);
+        when(notificationRepository.save(any(Notification.class))).thenReturn(savedNotification);
 
         // when
         Notification result = notificationService.create(command);
@@ -146,8 +146,8 @@ class NotificationServiceImplTest {
     void should_returnUnreadCount_when_userHasNotifications() {
         // given
         String userId = "550e8400-e29b-41d4-a716-446655440000";
-        given(notificationRepository.countByUserIdAndStatus(userId, NotificationStatus.UNREAD))
-                .willReturn(5L);
+        when(notificationRepository.countByUserIdAndStatus(userId, NotificationStatus.UNREAD))
+                .thenReturn(5L);
 
         // when
         long count = notificationService.getUnreadCount(userId);
@@ -179,7 +179,7 @@ class NotificationServiceImplTest {
                     .referenceId("REF-001")
                     .build();
 
-            given(notificationRepository.save(any(Notification.class))).willReturn(savedNotification);
+            when(notificationRepository.save(any(Notification.class))).thenReturn(savedNotification);
 
             // when
             Notification result = notificationService.create(command);
@@ -210,10 +210,10 @@ class NotificationServiceImplTest {
                     .status(NotificationStatus.UNREAD)
                     .build();
 
-            given(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
-                    "PAY-001", "payment", TEST_USER_ID)).willReturn(true);
-            given(notificationRepository.findByReferenceIdAndReferenceTypeAndUserId(
-                    "PAY-001", "payment", TEST_USER_ID)).willReturn(Optional.of(existingNotification));
+            when(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
+                    "PAY-001", "payment", TEST_USER_ID)).thenReturn(true);
+            when(notificationRepository.findByReferenceIdAndReferenceTypeAndUserId(
+                    "PAY-001", "payment", TEST_USER_ID)).thenReturn(Optional.of(existingNotification));
 
             // when
             Notification result = notificationService.create(command);
@@ -233,10 +233,10 @@ class NotificationServiceImplTest {
                     "/blog/1", "LIKE-001", "like"
             );
 
-            given(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
-                    "LIKE-001", "like", TEST_USER_ID)).willReturn(false);
-            given(notificationRepository.save(any(Notification.class)))
-                    .willAnswer(invocation -> invocation.getArgument(0));
+            when(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
+                    "LIKE-001", "like", TEST_USER_ID)).thenReturn(false);
+            when(notificationRepository.save(any(Notification.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
             // when
             notificationService.create(command);
@@ -265,10 +265,10 @@ class NotificationServiceImplTest {
                     "TRK-001", "delivery"
             );
 
-            given(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
-                    "TRK-001", "delivery", TEST_USER_ID)).willReturn(false);
-            given(notificationRepository.save(any(Notification.class)))
-                    .willAnswer(invocation -> invocation.getArgument(0));
+            when(notificationRepository.existsByReferenceIdAndReferenceTypeAndUserId(
+                    "TRK-001", "delivery", TEST_USER_ID)).thenReturn(false);
+            when(notificationRepository.save(any(Notification.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
             // when
             Notification result = notificationService.create(command);
@@ -299,7 +299,7 @@ class NotificationServiceImplTest {
                     .message("메시지")
                     .build();
 
-            given(notificationRepository.save(any(Notification.class))).willReturn(saved);
+            when(notificationRepository.save(any(Notification.class))).thenReturn(saved);
 
             // when
             Notification result = notificationService.create(command);
@@ -324,7 +324,7 @@ class NotificationServiceImplTest {
                     .type(NotificationType.ORDER_CREATED)
                     .build();
 
-            given(notificationRepository.save(any(Notification.class))).willReturn(saved);
+            when(notificationRepository.save(any(Notification.class))).thenReturn(saved);
 
             // when
             notificationService.create(command);
@@ -356,8 +356,8 @@ class NotificationServiceImplTest {
                     .build();
 
             Page<Notification> page = new PageImpl<>(List.of(notification), pageable, 1);
-            given(notificationRepository.findByUserIdOrderByCreatedAtDesc(TEST_USER_ID, pageable))
-                    .willReturn(page);
+            when(notificationRepository.findByUserIdOrderByCreatedAtDesc(TEST_USER_ID, pageable))
+                    .thenReturn(page);
 
             // when
             Page<NotificationResponse> result = notificationService.getNotifications(TEST_USER_ID, pageable);
@@ -386,8 +386,8 @@ class NotificationServiceImplTest {
                     .build();
 
             Page<Notification> page = new PageImpl<>(List.of(notification), pageable, 1);
-            given(notificationRepository.findByUserIdOrderByCreatedAtDesc(TEST_USER_ID, pageable))
-                    .willReturn(page);
+            when(notificationRepository.findByUserIdOrderByCreatedAtDesc(TEST_USER_ID, pageable))
+                    .thenReturn(page);
 
             // when
             Page<NotificationResponse> result = notificationService.getNotifications(TEST_USER_ID, pageable);
@@ -421,8 +421,8 @@ class NotificationServiceImplTest {
                     .build();
 
             Page<Notification> page = new PageImpl<>(List.of(unread), pageable, 1);
-            given(notificationRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
-                    TEST_USER_ID, NotificationStatus.UNREAD, pageable)).willReturn(page);
+            when(notificationRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
+                    TEST_USER_ID, NotificationStatus.UNREAD, pageable)).thenReturn(page);
 
             // when
             Page<NotificationResponse> result = notificationService.getUnreadNotifications(TEST_USER_ID, pageable);
@@ -452,8 +452,8 @@ class NotificationServiceImplTest {
                     .status(NotificationStatus.UNREAD)
                     .build();
 
-            given(notificationRepository.findByIdAndUserId(notificationId, TEST_USER_ID))
-                    .willReturn(Optional.of(notification));
+            when(notificationRepository.findByIdAndUserId(notificationId, TEST_USER_ID))
+                    .thenReturn(Optional.of(notification));
 
             // when
             NotificationResponse result = notificationService.markAsRead(notificationId, TEST_USER_ID);
@@ -468,8 +468,8 @@ class NotificationServiceImplTest {
         void should_throwCustomBusinessException_when_notificationNotFound() {
             // given
             Long notificationId = 999L;
-            given(notificationRepository.findByIdAndUserId(notificationId, TEST_USER_ID))
-                    .willReturn(Optional.empty());
+            when(notificationRepository.findByIdAndUserId(notificationId, TEST_USER_ID))
+                    .thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> notificationService.markAsRead(notificationId, TEST_USER_ID))
@@ -496,8 +496,8 @@ class NotificationServiceImplTest {
                     .createdAt(LocalDateTime.now())
                     .build();
 
-            given(notificationRepository.findByIdAndUserId(notificationId, TEST_USER_ID))
-                    .willReturn(Optional.of(notification));
+            when(notificationRepository.findByIdAndUserId(notificationId, TEST_USER_ID))
+                    .thenReturn(Optional.of(notification));
 
             // when
             NotificationResponse result = notificationService.markAsRead(notificationId, TEST_USER_ID);
@@ -519,9 +519,9 @@ class NotificationServiceImplTest {
         @DisplayName("should_returnUpdatedCount_when_markAllAsRead")
         void should_returnUpdatedCount_when_markAllAsRead() {
             // given
-            given(notificationRepository.markAllAsRead(
+            when(notificationRepository.markAllAsRead(
                     eq(TEST_USER_ID), eq(NotificationStatus.READ), any(LocalDateTime.class)))
-                    .willReturn(5);
+                    .thenReturn(5);
 
             // when
             int count = notificationService.markAllAsRead(TEST_USER_ID);
@@ -534,9 +534,9 @@ class NotificationServiceImplTest {
         @DisplayName("should_returnZero_when_noUnreadNotifications")
         void should_returnZero_when_noUnreadNotifications() {
             // given
-            given(notificationRepository.markAllAsRead(
+            when(notificationRepository.markAllAsRead(
                     eq(TEST_USER_ID), eq(NotificationStatus.READ), any(LocalDateTime.class)))
-                    .willReturn(0);
+                    .thenReturn(0);
 
             // when
             int count = notificationService.markAllAsRead(TEST_USER_ID);
@@ -549,9 +549,9 @@ class NotificationServiceImplTest {
         @DisplayName("should_passCorrectStatusToRepository_when_markAllAsRead")
         void should_passCorrectStatusToRepository_when_markAllAsRead() {
             // given
-            given(notificationRepository.markAllAsRead(
+            when(notificationRepository.markAllAsRead(
                     eq(TEST_USER_ID), eq(NotificationStatus.READ), any(LocalDateTime.class)))
-                    .willReturn(3);
+                    .thenReturn(3);
 
             // when
             notificationService.markAllAsRead(TEST_USER_ID);
@@ -599,8 +599,8 @@ class NotificationServiceImplTest {
         @DisplayName("should_returnZero_when_noUnreadNotifications")
         void should_returnZero_when_noUnreadNotifications() {
             // given
-            given(notificationRepository.countByUserIdAndStatus(TEST_USER_ID, NotificationStatus.UNREAD))
-                    .willReturn(0L);
+            when(notificationRepository.countByUserIdAndStatus(TEST_USER_ID, NotificationStatus.UNREAD))
+                    .thenReturn(0L);
 
             // when
             long count = notificationService.getUnreadCount(TEST_USER_ID);

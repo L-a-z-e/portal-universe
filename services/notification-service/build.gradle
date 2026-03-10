@@ -87,6 +87,10 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     // Kafka 관련 로직을 테스트하기 위한 라이브러리
     testImplementation 'org.springframework.kafka:spring-kafka-test'
+    // Testcontainers (MySQL 통합 테스트)
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
 }
 
 tasks.named('test') {

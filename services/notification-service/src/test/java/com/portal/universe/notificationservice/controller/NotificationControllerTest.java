@@ -27,7 +27,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,8 +65,8 @@ class NotificationControllerTest {
     @DisplayName("should_returnNotifications_when_validUser")
     void should_returnNotifications_when_validUser() {
         // given
-        given(notificationService.getNotifications(eq(TEST_USER_ID), any(Pageable.class)))
-                .willReturn(new PageImpl<>(List.of(sampleResponse)));
+        when(notificationService.getNotifications(eq(TEST_USER_ID), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sampleResponse)));
 
         // when
         ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
@@ -84,7 +84,7 @@ class NotificationControllerTest {
     @DisplayName("should_returnUnreadCount_when_validUser")
     void should_returnUnreadCount_when_validUser() {
         // given
-        given(notificationService.getUnreadCount(TEST_USER_ID)).willReturn(5L);
+        when(notificationService.getUnreadCount(TEST_USER_ID)).thenReturn(5L);
 
         // when
         ResponseEntity<ApiResponse<Long>> result = notificationController.getUnreadCount(AUTH_USER);
@@ -98,7 +98,7 @@ class NotificationControllerTest {
     @DisplayName("should_markAllAsRead_when_validUser")
     void should_markAllAsRead_when_validUser() {
         // given
-        given(notificationService.markAllAsRead(TEST_USER_ID)).willReturn(3);
+        when(notificationService.markAllAsRead(TEST_USER_ID)).thenReturn(3);
 
         // when
         ResponseEntity<ApiResponse<Integer>> result = notificationController.markAllAsRead(AUTH_USER);
@@ -132,8 +132,8 @@ class NotificationControllerTest {
             Page<NotificationResponse> page = new PageImpl<>(
                     List.of(sampleResponse), pageable, 11);
 
-            given(notificationService.getNotifications(eq(TEST_USER_ID), any(Pageable.class)))
-                    .willReturn(page);
+            when(notificationService.getNotifications(eq(TEST_USER_ID), any(Pageable.class)))
+                    .thenReturn(page);
 
             // when
             ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
@@ -150,8 +150,8 @@ class NotificationControllerTest {
         @DisplayName("should_wrapResponseWithApiResponse_when_getNotifications")
         void should_wrapResponseWithApiResponse_when_getNotifications() {
             // given
-            given(notificationService.getNotifications(eq(TEST_USER_ID), any(Pageable.class)))
-                    .willReturn(new PageImpl<>(List.of(sampleResponse)));
+            when(notificationService.getNotifications(eq(TEST_USER_ID), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(sampleResponse)));
 
             // when
             ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
@@ -169,8 +169,8 @@ class NotificationControllerTest {
         void should_callService_when_getNotifications() {
             // given
             Pageable pageable = PageRequest.of(0, 20);
-            given(notificationService.getNotifications(eq(TEST_USER_ID), eq(pageable)))
-                    .willReturn(new PageImpl<>(List.of()));
+            when(notificationService.getNotifications(eq(TEST_USER_ID), eq(pageable)))
+                    .thenReturn(new PageImpl<>(List.of()));
 
             // when
             notificationController.getNotifications(AUTH_USER, pageable);
@@ -197,8 +197,8 @@ class NotificationControllerTest {
                     .status(NotificationStatus.UNREAD)
                     .build();
 
-            given(notificationService.getUnreadNotifications(eq(TEST_USER_ID), any(Pageable.class)))
-                    .willReturn(new PageImpl<>(List.of(unreadResponse)));
+            when(notificationService.getUnreadNotifications(eq(TEST_USER_ID), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(unreadResponse)));
 
             // when
             ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
@@ -215,8 +215,8 @@ class NotificationControllerTest {
         void should_callGetUnreadNotifications_when_unreadEndpoint() {
             // given
             Pageable pageable = PageRequest.of(0, 20);
-            given(notificationService.getUnreadNotifications(eq(TEST_USER_ID), eq(pageable)))
-                    .willReturn(new PageImpl<>(List.of()));
+            when(notificationService.getUnreadNotifications(eq(TEST_USER_ID), eq(pageable)))
+                    .thenReturn(new PageImpl<>(List.of()));
 
             // when
             notificationController.getUnreadNotifications(AUTH_USER, pageable);
@@ -238,8 +238,8 @@ class NotificationControllerTest {
                     .message("메시지")
                     .build();
 
-            given(notificationService.getUnreadNotifications(eq(TEST_USER_ID), any(Pageable.class)))
-                    .willReturn(new PageImpl<>(List.of(unread)));
+            when(notificationService.getUnreadNotifications(eq(TEST_USER_ID), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(unread)));
 
             // when
             ResponseEntity<ApiResponse<PageResponse<NotificationResponse>>> result =
@@ -259,7 +259,7 @@ class NotificationControllerTest {
         @DisplayName("should_returnUnreadCount_as_long")
         void should_returnUnreadCount_as_long() {
             // given
-            given(notificationService.getUnreadCount(TEST_USER_ID)).willReturn(42L);
+            when(notificationService.getUnreadCount(TEST_USER_ID)).thenReturn(42L);
 
             // when
             ResponseEntity<ApiResponse<Long>> result = notificationController.getUnreadCount(AUTH_USER);
@@ -289,7 +289,7 @@ class NotificationControllerTest {
                     .readAt(LocalDateTime.now())
                     .build();
 
-            given(notificationService.markAsRead(1L, TEST_USER_ID)).willReturn(readResponse);
+            when(notificationService.markAsRead(1L, TEST_USER_ID)).thenReturn(readResponse);
 
             // when
             ResponseEntity<ApiResponse<NotificationResponse>> result =
@@ -315,7 +315,7 @@ class NotificationControllerTest {
                     .status(NotificationStatus.READ)
                     .build();
 
-            given(notificationService.markAsRead(notificationId, differentUser.uuid())).willReturn(response);
+            when(notificationService.markAsRead(notificationId, differentUser.uuid())).thenReturn(response);
 
             // when
             notificationController.markAsRead(notificationId, differentUser);
@@ -338,7 +338,7 @@ class NotificationControllerTest {
                     .readAt(LocalDateTime.now())
                     .build();
 
-            given(notificationService.markAsRead(1L, TEST_USER_ID)).willReturn(readResponse);
+            when(notificationService.markAsRead(1L, TEST_USER_ID)).thenReturn(readResponse);
 
             // when
             ResponseEntity<ApiResponse<NotificationResponse>> result =
@@ -361,7 +361,7 @@ class NotificationControllerTest {
         @DisplayName("should_returnCount_when_markAllAsRead")
         void should_returnCount_when_markAllAsRead() {
             // given
-            given(notificationService.markAllAsRead(TEST_USER_ID)).willReturn(7);
+            when(notificationService.markAllAsRead(TEST_USER_ID)).thenReturn(7);
 
             // when
             ResponseEntity<ApiResponse<Integer>> result =
@@ -376,7 +376,7 @@ class NotificationControllerTest {
         @DisplayName("should_callMarkAllAsRead_when_putReadAll")
         void should_callMarkAllAsRead_when_putReadAll() {
             // given
-            given(notificationService.markAllAsRead(TEST_USER_ID)).willReturn(0);
+            when(notificationService.markAllAsRead(TEST_USER_ID)).thenReturn(0);
 
             // when
             notificationController.markAllAsRead(AUTH_USER);

@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -65,8 +65,8 @@ class NotificationPushServiceTest {
         // given
         Notification notification = createTestNotification();
         String expectedJson = "{\"id\":1}";
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willReturn(expectedJson);
+        when(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
+                .thenReturn(expectedJson);
 
         // when
         pushService.push(notification);
@@ -80,8 +80,8 @@ class NotificationPushServiceTest {
     void should_useCorrectRedisChannel_when_push() throws JsonProcessingException {
         // given
         Notification notification = createTestNotification();
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willReturn("{}");
+        when(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
+                .thenReturn("{}");
 
         // when
         pushService.push(notification);
@@ -100,8 +100,8 @@ class NotificationPushServiceTest {
     void should_serializeResponseAsJson_when_push() throws JsonProcessingException {
         // given
         Notification notification = createTestNotification();
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willReturn("{\"serialized\":true}");
+        when(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
+                .thenReturn("{\"serialized\":true}");
 
         // when
         pushService.push(notification);
@@ -115,8 +115,8 @@ class NotificationPushServiceTest {
     void should_handleJsonSerializationError_when_push() throws JsonProcessingException {
         // given
         Notification notification = createTestNotification();
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willThrow(new JsonProcessingException("Serialization failed") {});
+        when(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
+                .thenThrow(new JsonProcessingException("Serialization failed") {});
 
         // when - should not throw
         pushService.push(notification);
@@ -140,8 +140,8 @@ class NotificationPushServiceTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        given(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
-                .willReturn("{}");
+        when(redisObjectMapper.writeValueAsString(any(NotificationResponse.class)))
+                .thenReturn("{}");
 
         // when
         pushService.push(notification);
