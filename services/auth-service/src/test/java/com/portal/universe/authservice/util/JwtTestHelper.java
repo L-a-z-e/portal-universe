@@ -1,103 +1,70 @@
 package com.portal.universe.authservice.util;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.portal.universe.authservice.support.fixture.JwtFixture;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
+/**
+ * JWT 토큰 생성 유틸리티.
+ *
+ * @deprecated {@link JwtFixture}를 대신 사용하세요.
+ *             이 클래스는 기존 테스트 호환을 위해 유지되며, JwtFixture로 위임합니다.
+ */
+@Deprecated(forRemoval = true)
 public final class JwtTestHelper {
 
-    public static final String SECRET_KEY = "test-secret-key-must-be-at-least-256-bits-long!!";
-    public static final String USER_UUID = "550e8400-e29b-41d4-a716-446655440000";
-    public static final String USER_EMAIL = "test@example.com";
+    public static final String SECRET_KEY = JwtFixture.SECRET_KEY;
+    public static final String USER_UUID = JwtFixture.USER_UUID;
+    public static final String USER_EMAIL = JwtFixture.USER_EMAIL;
 
     private JwtTestHelper() {}
 
-    public static String createValidToken(String secretKey, String userId, List<String> roles) {
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + 900_000); // 15 min
-        return Jwts.builder()
-                .header().add("kid", "test-key").and()
+    public static String createValidToken(String secretKey, String userId, java.util.List<String> roles) {
+        return JwtFixture.tokenBuilder()
+                .secretKey(secretKey)
                 .subject(userId)
-                .claim("roles", roles)
-                .claim("email", USER_EMAIL)
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(getSigningKey(secretKey), Jwts.SIG.HS256)
-                .compact();
+                .roles(roles)
+                .build();
     }
 
     public static String createExpiredToken(String secretKey, String userId) {
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() - 1000); // already expired
-        return Jwts.builder()
-                .header().add("kid", "test-key").and()
+        return JwtFixture.tokenBuilder()
+                .secretKey(secretKey)
                 .subject(userId)
-                .claim("roles", List.of("ROLE_USER"))
-                .issuedAt(new Date(now.getTime() - 900_000))
-                .expiration(expiration)
-                .signWith(getSigningKey(secretKey), Jwts.SIG.HS256)
-                .compact();
+                .issuedAt(new java.util.Date(System.currentTimeMillis() - 900_000))
+                .expiration(new java.util.Date(System.currentTimeMillis() - 1000))
+                .build();
     }
 
     public static String createTokenWithKid(String secretKey, String kid, String userId) {
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + 900_000);
-        return Jwts.builder()
-                .header().add("kid", kid).and()
+        return JwtFixture.tokenBuilder()
+                .secretKey(secretKey)
+                .kid(kid)
                 .subject(userId)
-                .claim("roles", List.of("ROLE_USER"))
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(getSigningKey(secretKey), Jwts.SIG.HS256)
-                .compact();
+                .build();
     }
 
     public static String createTokenWithMemberships(String secretKey, String userId,
-                                                     Map<String, String> memberships) {
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + 900_000);
-        return Jwts.builder()
-                .header().add("kid", "test-key").and()
+                                                     java.util.Map<String, String> memberships) {
+        return JwtFixture.tokenBuilder()
+                .secretKey(secretKey)
                 .subject(userId)
-                .claim("roles", List.of("ROLE_USER"))
                 .claim("memberships", memberships)
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(getSigningKey(secretKey), Jwts.SIG.HS256)
-                .compact();
+                .build();
     }
 
     public static String createTokenWithClaims(String secretKey, String userId,
-                                                Map<String, Object> claims) {
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + 900_000);
-        return Jwts.builder()
-                .header().add("kid", "test-key").and()
-                .subject(userId)
-                .claims(claims)
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(getSigningKey(secretKey), Jwts.SIG.HS256)
-                .compact();
+                                                java.util.Map<String, Object> claims) {
+        var builder = JwtFixture.tokenBuilder()
+                .secretKey(secretKey)
+                .subject(userId);
+        claims.forEach(builder::claim);
+        return builder.build();
     }
 
     public static String createTokenWithoutKid(String secretKey, String userId) {
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + 900_000);
-        return Jwts.builder()
+        return JwtFixture.tokenBuilder()
+                .secretKey(secretKey)
+                .kid(null)
                 .subject(userId)
-                .claim("roles", List.of("ROLE_USER"))
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(getSigningKey(secretKey), Jwts.SIG.HS256)
-                .compact();
-    }
-
-    private static SecretKey getSigningKey(String secretKey) {
-        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+                .build();
     }
 }

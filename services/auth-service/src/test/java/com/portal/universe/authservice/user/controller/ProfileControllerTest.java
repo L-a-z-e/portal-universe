@@ -5,8 +5,8 @@ import com.portal.universe.authservice.user.dto.profile.ChangePasswordRequest;
 import com.portal.universe.authservice.user.dto.profile.DeleteAccountRequest;
 import com.portal.universe.authservice.user.dto.profile.ProfileResponse;
 import com.portal.universe.authservice.user.dto.profile.UpdateProfileRequest;
+import com.portal.universe.authservice.support.fixture.UserFixture;
 import com.portal.universe.authservice.user.domain.User;
-import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.auth.service.RefreshTokenService;
 import com.portal.universe.authservice.auth.service.TokenBlacklistService;
 import com.portal.universe.authservice.auth.service.TokenService;
@@ -32,7 +32,6 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -132,21 +131,14 @@ class ProfileControllerTest {
                     "UpdatedNick", "Updated Real", "010-9999-8888", "https://img.new.com/pic.jpg", true
             );
 
-            User mockUser = mock(User.class);
-            UserProfile mockProfile = mock(UserProfile.class);
-            when(mockUser.getUuid()).thenReturn(USER_UUID);
-            when(mockUser.getEmail()).thenReturn("user@test.com");
-            when(mockUser.getProfile()).thenReturn(mockProfile);
-            when(mockUser.getCreatedAt()).thenReturn(Instant.now());
-            when(mockUser.getSocialAccounts()).thenReturn(Collections.emptyList());
-            when(mockProfile.getNickname()).thenReturn("UpdatedNick");
-            when(mockProfile.getRealName()).thenReturn("Updated Real");
-            when(mockProfile.getPhoneNumber()).thenReturn("010-9999-8888");
-            when(mockProfile.getProfileImageUrl()).thenReturn("https://img.new.com/pic.jpg");
-            when(mockProfile.isMarketingAgree()).thenReturn(true);
+            User user = UserFixture.builder()
+                    .uuid(USER_UUID).email("user@test.com")
+                    .nickname("UpdatedNick").realName("Updated Real")
+                    .phoneNumber("010-9999-8888").profileImageUrl("https://img.new.com/pic.jpg")
+                    .marketingAgree(true).build();
 
-            when(profileService.updateProfile(eq(USER_UUID), any(UpdateProfileRequest.class))).thenReturn(mockUser);
-            when(tokenService.generateAccessToken(mockUser)).thenReturn("new-access-token");
+            when(profileService.updateProfile(eq(USER_UUID), any(UpdateProfileRequest.class))).thenReturn(user);
+            when(tokenService.generateAccessToken(any(User.class))).thenReturn("new-access-token");
 
             // when & then
             mockMvc.perform(patch(BASE_URL)

@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.auth.service;
 
-import com.portal.universe.authservice.LocalIntegrationTest;
+import com.portal.universe.authservice.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Testcontainers Redis 환경에서 실행됩니다.
  * Phase 2-1: Refresh Token Rotation 원자성 검증
  */
-class RefreshTokenServiceIntegrationTest extends LocalIntegrationTest {
+class RefreshTokenServiceIntegrationTest extends IntegrationTest {
 
     @Autowired
     private RefreshTokenService refreshTokenService;

@@ -6,10 +6,8 @@ import com.portal.universe.authservice.password.PasswordValidator;
 import com.portal.universe.authservice.password.ValidationResult;
 import com.portal.universe.authservice.password.domain.PasswordHistory;
 import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;
-import com.portal.universe.authservice.oauth2.domain.SocialAccount;
-import com.portal.universe.authservice.oauth2.domain.SocialProvider;
+import com.portal.universe.authservice.support.fixture.UserFixture;
 import com.portal.universe.authservice.user.domain.User;
-import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.user.dto.SignupCommand;
 import com.portal.universe.authservice.user.dto.UserProfileResponse;
 import com.portal.universe.authservice.user.repository.UserRepository;
@@ -24,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -62,41 +61,6 @@ class UserServiceTest {
     private static final String EMAIL = "test@example.com";
     private static final String UUID = "test-uuid-1234";
 
-    private User createTestUser() {
-        User user = new User(EMAIL, "encodedPassword");
-        try {
-            var uuidField = User.class.getDeclaredField("uuid");
-            uuidField.setAccessible(true);
-            uuidField.set(user, UUID);
-            var idField = User.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(user, 1L);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        UserProfile profile = new UserProfile(user, "testNick", "realName", false);
-        user.setProfile(profile);
-        return user;
-    }
-
-    private User createSocialUser() {
-        User user = new User(EMAIL, null);
-        try {
-            var uuidField = User.class.getDeclaredField("uuid");
-            uuidField.setAccessible(true);
-            uuidField.set(user, UUID);
-            var idField = User.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(user, 2L);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        UserProfile profile = new UserProfile(user, "socialNick", "socialName", false);
-        user.setProfile(profile);
-        user.getSocialAccounts().add(new SocialAccount(user, SocialProvider.GOOGLE, "google-id-123"));
-        return user;
-    }
-
     @Nested
     @DisplayName("registerUser")
     class RegisterUser {
@@ -111,16 +75,8 @@ class UserServiceTest {
             when(passwordEncoder.encode("Password1!")).thenReturn("encodedPassword");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
-                try {
-                    var idField = User.class.getDeclaredField("id");
-                    idField.setAccessible(true);
-                    idField.set(user, 1L);
-                    var uuidField = User.class.getDeclaredField("uuid");
-                    uuidField.setAccessible(true);
-                    uuidField.set(user, UUID);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                ReflectionTestUtils.setField(user, "id", 1L);
+                ReflectionTestUtils.setField(user, "uuid", UUID);
                 return user;
             });
             when(passwordHistoryRepository.save(any(PasswordHistory.class))).thenReturn(null);
@@ -139,7 +95,8 @@ class UserServiceTest {
         void should_throwException_when_emailAlreadyExists() {
             // given
             SignupCommand command = new SignupCommand(EMAIL, "Password1!", "testNick", "realName", false);
-            when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(createTestUser()));
+            when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(
+                    UserFixture.builder().id(1L).uuid(UUID).email(EMAIL).nickname("testNick").build()));
 
             // when & then
             assertThatThrownBy(() -> userService.registerUser(command))
@@ -177,7 +134,7 @@ class UserServiceTest {
         @DisplayName("should_returnProfile_when_usernameExists")
         void should_returnProfile_when_usernameExists() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL).nickname("testNick").build();
             when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
             when(followRepository.countByFollowing(user)).thenReturn(10L);
             when(followRepository.countByFollower(user)).thenReturn(5L);
@@ -215,7 +172,7 @@ class UserServiceTest {
         @DisplayName("should_setUsername_when_validAndNotAlreadySet")
         void should_setUsername_when_validAndNotAlreadySet() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL).nickname("testNick").build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(userRepository.existsByUsername("newuser")).thenReturn(false);
             when(followRepository.countByFollowing(user)).thenReturn(0L);
@@ -244,7 +201,7 @@ class UserServiceTest {
         @DisplayName("should_throwException_when_usernameAlreadySet")
         void should_throwException_when_usernameAlreadySet() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL).nickname("testNick").build();
             user.getProfile().setUsername("existinguser");
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
 
@@ -261,7 +218,7 @@ class UserServiceTest {
         @DisplayName("should_throwException_when_usernameAlreadyExists")
         void should_throwException_when_usernameAlreadyExists() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL).nickname("testNick").build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(userRepository.existsByUsername("taken")).thenReturn(true);
 
@@ -322,7 +279,7 @@ class UserServiceTest {
         @DisplayName("should_changePassword_when_validRequest")
         void should_changePassword_when_validRequest() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL).nickname("testNick").build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("currentPwd", "encodedPassword")).thenReturn(true);
             when(passwordValidator.validate(eq("NewPassword1!"), any(User.class)))
@@ -340,7 +297,7 @@ class UserServiceTest {
         @DisplayName("should_throwException_when_currentPasswordInvalid")
         void should_throwException_when_currentPasswordInvalid() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL).nickname("testNick").build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("wrongPwd", "encodedPassword")).thenReturn(false);
 
@@ -357,7 +314,11 @@ class UserServiceTest {
         @DisplayName("should_throwException_when_socialUser")
         void should_throwException_when_socialUser() {
             // given
-            User socialUser = createSocialUser();
+            User socialUser = UserFixture.builder().id(2L).uuid(UUID).email(EMAIL).password(null)
+                    .nickname("socialNick").build();
+            socialUser.getSocialAccounts().add(
+                    new com.portal.universe.authservice.oauth2.domain.SocialAccount(
+                            socialUser, com.portal.universe.authservice.oauth2.domain.SocialProvider.GOOGLE, "google-id-123"));
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(socialUser));
 
             // when & then

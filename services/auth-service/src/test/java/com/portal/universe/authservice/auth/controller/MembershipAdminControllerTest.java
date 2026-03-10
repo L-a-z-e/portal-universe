@@ -57,6 +57,9 @@ class MembershipAdminControllerTest {
     @MockitoBean
     MembershipService membershipService;
 
+    @MockitoBean
+    com.portal.universe.authservice.auth.service.RoleDefaultMembershipService roleDefaultMembershipService;
+
     private static final String ADMIN_UUID = "admin-uuid";
     private static final String TARGET_USER_UUID = "target-user-uuid";
     private static final String BASE_URL = "/api/v1/admin/memberships";

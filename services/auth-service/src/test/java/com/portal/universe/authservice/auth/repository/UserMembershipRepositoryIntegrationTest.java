@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.auth.repository;
 
-import com.portal.universe.authservice.LocalIntegrationTest;
+import com.portal.universe.authservice.IntegrationTest;
 import com.portal.universe.authservice.auth.domain.MembershipTier;
 import com.portal.universe.authservice.auth.domain.UserMembership;
 import jakarta.persistence.EntityManager;
@@ -23,10 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * UserMembershipRepository 통합 테스트
  * Phase 4-4: JPQL active tier 필터 검증
- * Testcontainers MySQL 환경에서 실행됩니다.
+ * Testcontainers PostgreSQL + Redis 환경에서 실행됩니다.
  */
 @Transactional
-class UserMembershipRepositoryIntegrationTest extends LocalIntegrationTest {
+class UserMembershipRepositoryIntegrationTest extends IntegrationTest {
 
     @Autowired
     private UserMembershipRepository userMembershipRepository;

@@ -52,9 +52,8 @@ class DataInitializerTest {
         @Test
         @DisplayName("should_createTestUsers_when_theyDontExist")
         void should_createTestUsers_when_theyDontExist() throws Exception {
-            // given
-            when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.empty());
-            when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.empty());
+            // given — 7 test users (test, admin, 5 bloggers)
+            when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
@@ -62,9 +61,6 @@ class DataInitializerTest {
                     var idField = User.class.getDeclaredField("id");
                     idField.setAccessible(true);
                     idField.set(user, 1L);
-                    var uuidField = User.class.getDeclaredField("uuid");
-                    uuidField.setAccessible(true);
-                    uuidField.set(user, "generated-uuid");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -85,21 +81,18 @@ class DataInitializerTest {
             CommandLineRunner runner = dataInitializer.initData();
             runner.run();
 
-            // then
-            verify(userRepository, times(2)).save(any(User.class));
-            verify(rbacInitializationService, times(2)).initializeNewUser(anyString());
+            // then — 7 users created, all get RBAC init, 1 gets SUPER_ADMIN
+            verify(userRepository, times(7)).save(any(User.class));
+            verify(rbacInitializationService, times(7)).initializeNewUser(anyString());
             verify(userRoleRepository).save(any(UserRole.class)); // ROLE_SUPER_ADMIN for admin user
         }
 
         @Test
         @DisplayName("should_skipUserCreation_when_usersAlreadyExist")
         void should_skipUserCreation_when_usersAlreadyExist() throws Exception {
-            // given
+            // given — all 7 users already exist
             User existingUser = new User("test@test.com", "encodedPassword");
-            User existingAdmin = new User("admin@test.com", "encodedPassword");
-
-            when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(existingUser));
-            when(userRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(existingAdmin));
+            when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(existingUser));
 
             // when
             CommandLineRunner runner = dataInitializer.initData();

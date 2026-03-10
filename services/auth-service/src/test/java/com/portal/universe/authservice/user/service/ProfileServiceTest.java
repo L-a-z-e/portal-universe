@@ -4,8 +4,8 @@ import com.portal.universe.authservice.common.exception.AuthErrorCode;
 import com.portal.universe.authservice.password.PasswordValidator;
 import com.portal.universe.authservice.password.ValidationResult;
 import com.portal.universe.authservice.password.repository.PasswordHistoryRepository;
+import com.portal.universe.authservice.support.fixture.UserFixture;
 import com.portal.universe.authservice.user.domain.User;
-import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.user.domain.UserStatus;
 import com.portal.universe.authservice.user.dto.profile.ChangePasswordRequest;
 import com.portal.universe.authservice.user.dto.profile.DeleteAccountRequest;
@@ -46,28 +46,17 @@ class ProfileServiceTest {
     @Mock
     private PasswordHistoryRepository passwordHistoryRepository;
 
+    @Mock
+    private com.portal.universe.authservice.follow.repository.FollowRepository followRepository;
+
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private ProfileService profileService;
 
     private static final String UUID = "test-uuid-1234";
     private static final String EMAIL = "test@example.com";
-
-    private User createTestUser() {
-        User user = new User(EMAIL, "encodedPassword");
-        try {
-            var uuidField = User.class.getDeclaredField("uuid");
-            uuidField.setAccessible(true);
-            uuidField.set(user, UUID);
-            var idField = User.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(user, 1L);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        UserProfile profile = new UserProfile(user, "testNick", "realName", true);
-        user.setProfile(profile);
-        return user;
-    }
 
     @Nested
     @DisplayName("getProfile")
@@ -77,7 +66,8 @@ class ProfileServiceTest {
         @DisplayName("should_returnProfileResponse_when_userExists")
         void should_returnProfileResponse_when_userExists() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
 
             // when
@@ -113,7 +103,8 @@ class ProfileServiceTest {
         @DisplayName("should_updateProfile_when_validRequest")
         void should_updateProfile_when_validRequest() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             UpdateProfileRequest request = new UpdateProfileRequest(
                     "newNick", "newRealName", "010-1234-5678", "http://image.url", true
@@ -132,7 +123,8 @@ class ProfileServiceTest {
         @DisplayName("should_updateOnlyNonNullFields_when_partialRequest")
         void should_updateOnlyNonNullFields_when_partialRequest() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             UpdateProfileRequest request = new UpdateProfileRequest(
                     "updatedNick", null, null, null, null
@@ -155,7 +147,8 @@ class ProfileServiceTest {
         @DisplayName("should_changePassword_when_validRequest")
         void should_changePassword_when_validRequest() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("currentPwd", "encodedPassword")).thenReturn(true);
             when(passwordValidator.validate(eq("NewPassword1!"), any(User.class)))
@@ -177,22 +170,11 @@ class ProfileServiceTest {
         @DisplayName("should_throwException_when_socialUser")
         void should_throwException_when_socialUser() {
             // given - social user has null password and social accounts
-            User user = new User(EMAIL, null);
-            try {
-                var uuidField = User.class.getDeclaredField("uuid");
-                uuidField.setAccessible(true);
-                uuidField.set(user, UUID);
-                // Add a social account to make isSocialUser() return true
-                var socialField = User.class.getDeclaredField("socialAccounts");
-                socialField.setAccessible(true);
-                var socialAccounts = new java.util.ArrayList<>();
-                socialAccounts.add(new Object()); // mock social account
-                socialField.set(user, socialAccounts);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            UserProfile profile = new UserProfile(user, "social", "Social User", false);
-            user.setProfile(profile);
+            User user = UserFixture.builder().uuid(UUID).email(EMAIL).password(null)
+                    .nickname("social").realName("Social User").build();
+            user.getSocialAccounts().add(
+                    new com.portal.universe.authservice.oauth2.domain.SocialAccount(
+                            user, com.portal.universe.authservice.oauth2.domain.SocialProvider.GOOGLE, "google-id-123"));
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
 
             ChangePasswordRequest request = new ChangePasswordRequest(
@@ -212,7 +194,8 @@ class ProfileServiceTest {
         @DisplayName("should_throwException_when_currentPasswordIncorrect")
         void should_throwException_when_currentPasswordIncorrect() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("wrongPwd", "encodedPassword")).thenReturn(false);
 
@@ -233,7 +216,8 @@ class ProfileServiceTest {
         @DisplayName("should_throwException_when_passwordMismatch")
         void should_throwException_when_passwordMismatch() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("currentPwd", "encodedPassword")).thenReturn(true);
 
@@ -254,7 +238,8 @@ class ProfileServiceTest {
         @DisplayName("should_throwException_when_newPasswordTooWeak")
         void should_throwException_when_newPasswordTooWeak() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("currentPwd", "encodedPassword")).thenReturn(true);
             when(passwordValidator.validate(eq("weakpwd"), any(User.class)))
@@ -282,7 +267,8 @@ class ProfileServiceTest {
         @DisplayName("should_markForWithdrawal_when_passwordCorrect")
         void should_markForWithdrawal_when_passwordCorrect() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
 
@@ -299,7 +285,8 @@ class ProfileServiceTest {
         @DisplayName("should_throwException_when_passwordIncorrect")
         void should_throwException_when_passwordIncorrect() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().id(1L).uuid(UUID).email(EMAIL)
+                    .nickname("testNick").realName("realName").marketingAgree(true).build();
             when(userRepository.findByUuid(UUID)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("wrongPwd", "encodedPassword")).thenReturn(false);
 
