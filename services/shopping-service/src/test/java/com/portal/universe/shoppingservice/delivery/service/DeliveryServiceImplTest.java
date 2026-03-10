@@ -1,7 +1,6 @@
 package com.portal.universe.shoppingservice.delivery.service;
 
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
-import com.portal.universe.shoppingservice.common.domain.Address;
 import com.portal.universe.shoppingservice.delivery.domain.Delivery;
 import com.portal.universe.shoppingservice.delivery.domain.DeliveryStatus;
 import com.portal.universe.shoppingservice.delivery.dto.DeliveryResponse;
@@ -11,6 +10,8 @@ import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
 import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderStatus;
 import com.portal.universe.shoppingservice.order.repository.OrderRepository;
+import com.portal.universe.shoppingservice.support.fixture.DeliveryFixture;
+import com.portal.universe.shoppingservice.support.fixture.OrderFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,9 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,33 +42,6 @@ class DeliveryServiceImplTest {
     @InjectMocks
     private DeliveryServiceImpl deliveryService;
 
-    private Order createOrder(String userId, String orderNumber) {
-        Order order = Order.builder()
-                .userId(userId)
-                .shippingAddress(null)
-                .build();
-        ReflectionTestUtils.setField(order, "id", 1L);
-        ReflectionTestUtils.setField(order, "orderNumber", orderNumber);
-        ReflectionTestUtils.setField(order, "status", OrderStatus.PAID);
-        ReflectionTestUtils.setField(order, "totalAmount", BigDecimal.valueOf(10000));
-        ReflectionTestUtils.setField(order, "finalAmount", BigDecimal.valueOf(10000));
-        return order;
-    }
-
-    private Delivery createDelivery(Long id, String trackingNumber, String orderNumber, DeliveryStatus status) {
-        Delivery delivery = Delivery.builder()
-                .orderId(1L)
-                .orderNumber(orderNumber)
-                .userId("user-1")
-                .shippingAddress(null)
-                .carrier("Test Carrier")
-                .build();
-        ReflectionTestUtils.setField(delivery, "id", id);
-        ReflectionTestUtils.setField(delivery, "trackingNumber", trackingNumber);
-        ReflectionTestUtils.setField(delivery, "status", status);
-        return delivery;
-    }
-
     @Nested
     @DisplayName("createDelivery")
     class CreateDelivery {
@@ -78,9 +50,12 @@ class DeliveryServiceImplTest {
         @DisplayName("should_createDelivery_when_valid")
         void should_createDelivery_when_valid() {
             // given
-            Order order = createOrder("user1", "ORD-001");
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.PAID).build();
             when(deliveryRepository.findByOrderId(1L)).thenReturn(Optional.empty());
-            Delivery delivery = createDelivery(1L, "TRK-ABC123", "ORD-001", DeliveryStatus.PREPARING);
+            Delivery delivery = DeliveryFixture.builder()
+                    .id(1L).trackingNumber("TRK-ABC123").orderNumber("ORD-001")
+                    .userId("user-1").carrier("Test Carrier").status(DeliveryStatus.PREPARING).build();
             when(deliveryRepository.save(any(Delivery.class))).thenReturn(delivery);
 
             // when
@@ -100,7 +75,9 @@ class DeliveryServiceImplTest {
         @DisplayName("should_returnDelivery_when_found")
         void should_returnDelivery_when_found() {
             // given
-            Delivery delivery = createDelivery(1L, "TRK-ABC123", "ORD-001", DeliveryStatus.PREPARING);
+            Delivery delivery = DeliveryFixture.builder()
+                    .id(1L).trackingNumber("TRK-ABC123").orderNumber("ORD-001")
+                    .userId("user-1").carrier("Test Carrier").status(DeliveryStatus.PREPARING).build();
             when(deliveryRepository.findByTrackingNumberWithHistories("TRK-ABC123"))
                     .thenReturn(Optional.of(delivery));
 
@@ -132,7 +109,9 @@ class DeliveryServiceImplTest {
         @DisplayName("should_returnDelivery_when_found")
         void should_returnDelivery_when_found() {
             // given
-            Delivery delivery = createDelivery(1L, "TRK-ABC123", "ORD-001", DeliveryStatus.PREPARING);
+            Delivery delivery = DeliveryFixture.builder()
+                    .id(1L).trackingNumber("TRK-ABC123").orderNumber("ORD-001")
+                    .userId("user-1").carrier("Test Carrier").status(DeliveryStatus.PREPARING).build();
             when(deliveryRepository.findByOrderNumberWithHistories("ORD-001"))
                     .thenReturn(Optional.of(delivery));
 
@@ -164,7 +143,9 @@ class DeliveryServiceImplTest {
         @DisplayName("should_updateStatus_when_valid")
         void should_updateStatus_when_valid() {
             // given
-            Delivery delivery = createDelivery(1L, "TRK-ABC123", "ORD-001", DeliveryStatus.PREPARING);
+            Delivery delivery = DeliveryFixture.builder()
+                    .id(1L).trackingNumber("TRK-ABC123").orderNumber("ORD-001")
+                    .userId("user-1").carrier("Test Carrier").status(DeliveryStatus.PREPARING).build();
             when(deliveryRepository.findByTrackingNumberWithHistories("TRK-ABC123"))
                     .thenReturn(Optional.of(delivery));
             when(deliveryRepository.save(any(Delivery.class))).thenReturn(delivery);
@@ -173,7 +154,8 @@ class DeliveryServiceImplTest {
                     DeliveryStatus.SHIPPED, "Warehouse", "Package shipped"
             );
 
-            Order order = createOrder("user1", "ORD-001");
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.PAID).build();
             when(orderRepository.findByOrderNumber("ORD-001")).thenReturn(Optional.of(order));
 
             // when
@@ -188,7 +170,9 @@ class DeliveryServiceImplTest {
         @DisplayName("should_publishEvent_when_statusChangedToShipped")
         void should_publishEvent_when_statusChangedToShipped() {
             // given
-            Delivery delivery = createDelivery(1L, "TRK-ABC123", "ORD-001", DeliveryStatus.PREPARING);
+            Delivery delivery = DeliveryFixture.builder()
+                    .id(1L).trackingNumber("TRK-ABC123").orderNumber("ORD-001")
+                    .userId("user-1").carrier("Test Carrier").status(DeliveryStatus.PREPARING).build();
             when(deliveryRepository.findByTrackingNumberWithHistories("TRK-ABC123"))
                     .thenReturn(Optional.of(delivery));
             when(deliveryRepository.save(any(Delivery.class))).thenReturn(delivery);
@@ -197,7 +181,8 @@ class DeliveryServiceImplTest {
                     DeliveryStatus.SHIPPED, "Warehouse", "Package shipped"
             );
 
-            Order order = createOrder("user1", "ORD-001");
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.PAID).build();
             when(orderRepository.findByOrderNumber("ORD-001")).thenReturn(Optional.of(order));
 
             // when
@@ -216,7 +201,9 @@ class DeliveryServiceImplTest {
         @DisplayName("should_cancelDelivery_when_preparing")
         void should_cancelDelivery_when_preparing() {
             // given
-            Delivery delivery = createDelivery(1L, "TRK-ABC123", "ORD-001", DeliveryStatus.PREPARING);
+            Delivery delivery = DeliveryFixture.builder()
+                    .id(1L).trackingNumber("TRK-ABC123").orderNumber("ORD-001")
+                    .userId("user-1").carrier("Test Carrier").status(DeliveryStatus.PREPARING).build();
             when(deliveryRepository.findByOrderId(1L)).thenReturn(Optional.of(delivery));
             when(deliveryRepository.save(any(Delivery.class))).thenReturn(delivery);
 
@@ -231,7 +218,9 @@ class DeliveryServiceImplTest {
         @DisplayName("should_notCancel_when_alreadyShipped")
         void should_notCancel_when_alreadyShipped() {
             // given
-            Delivery delivery = createDelivery(1L, "TRK-ABC123", "ORD-001", DeliveryStatus.SHIPPED);
+            Delivery delivery = DeliveryFixture.builder()
+                    .id(1L).trackingNumber("TRK-ABC123").orderNumber("ORD-001")
+                    .userId("user-1").carrier("Test Carrier").status(DeliveryStatus.SHIPPED).build();
             when(deliveryRepository.findByOrderId(1L)).thenReturn(Optional.of(delivery));
 
             // when

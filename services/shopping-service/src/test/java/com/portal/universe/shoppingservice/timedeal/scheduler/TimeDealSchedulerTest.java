@@ -4,13 +4,13 @@ import com.portal.universe.shoppingservice.timedeal.domain.TimeDeal;
 import com.portal.universe.shoppingservice.timedeal.domain.TimeDealProduct;
 import com.portal.universe.shoppingservice.timedeal.redis.TimeDealRedisService;
 import com.portal.universe.shoppingservice.timedeal.repository.TimeDealRepository;
+import com.portal.universe.shoppingservice.support.fixture.TimeDealFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -34,22 +34,17 @@ class TimeDealSchedulerTest {
     private TimeDealScheduler timeDealScheduler;
 
     private TimeDeal createTimeDealWithProduct() {
-        TimeDeal deal = TimeDeal.builder()
+        TimeDeal deal = TimeDealFixture.builder()
                 .name("테스트 타임딜")
-                .description("테스트")
                 .startsAt(Instant.now().minus(1, ChronoUnit.HOURS))
                 .endsAt(Instant.now().plus(1, ChronoUnit.HOURS))
                 .build();
-        ReflectionTestUtils.setField(deal, "id", 1L);
-
-        TimeDealProduct tdp = TimeDealProduct.builder()
+        deal.addProduct(TimeDealProduct.builder()
                 .productId(10L)
                 .dealPrice(new BigDecimal("5000"))
                 .dealQuantity(50)
                 .maxPerUser(3)
-                .build();
-
-        deal.addProduct(tdp);
+                .build());
         return deal;
     }
 
@@ -102,13 +97,11 @@ class TimeDealSchedulerTest {
     @Test
     @DisplayName("should initialize Redis stock for all products in a deal")
     void should_initialize_redis_stock_for_all_products() {
-        TimeDeal deal = TimeDeal.builder()
-                .name("복수 상품 딜")
-                .description("테스트")
+        TimeDeal deal = TimeDealFixture.builder()
+                .id(2L).name("복수 상품 딜")
                 .startsAt(Instant.now().minus(1, ChronoUnit.HOURS))
                 .endsAt(Instant.now().plus(1, ChronoUnit.HOURS))
                 .build();
-        ReflectionTestUtils.setField(deal, "id", 2L);
 
         deal.addProduct(TimeDealProduct.builder()
                 .productId(20L).dealPrice(new BigDecimal("5000"))

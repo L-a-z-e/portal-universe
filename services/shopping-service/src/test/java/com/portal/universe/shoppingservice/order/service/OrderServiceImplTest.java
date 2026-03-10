@@ -21,7 +21,10 @@ import com.portal.universe.shoppingservice.order.dto.OrderResponse;
 import com.portal.universe.shoppingservice.order.repository.OrderRepository;
 import com.portal.universe.shoppingservice.order.repository.SagaStateRepository;
 import com.portal.universe.shoppingservice.order.saga.OrderSagaOrchestrator;
-import com.portal.universe.shoppingservice.order.saga.SagaState;
+import com.portal.universe.shoppingservice.support.fixture.CartFixture;
+import com.portal.universe.shoppingservice.support.fixture.OrderFixture;
+import com.portal.universe.shoppingservice.support.fixture.SagaStateFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,10 +37,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,39 +75,15 @@ class OrderServiceImplTest {
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    @Spy
+    private io.micrometer.core.instrument.MeterRegistry meterRegistry = new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+
     @InjectMocks
     private OrderServiceImpl orderService;
 
-    private Order createOrder(String userId, String orderNumber, OrderStatus status) {
-        Order order = Order.builder()
-                .userId(userId)
-                .shippingAddress(null)
-                .build();
-        ReflectionTestUtils.setField(order, "id", 1L);
-        ReflectionTestUtils.setField(order, "orderNumber", orderNumber);
-        ReflectionTestUtils.setField(order, "status", status);
-        ReflectionTestUtils.setField(order, "totalAmount", BigDecimal.valueOf(10000));
-        ReflectionTestUtils.setField(order, "discountAmount", BigDecimal.ZERO);
-        ReflectionTestUtils.setField(order, "finalAmount", BigDecimal.valueOf(10000));
-        return order;
-    }
-
-    private Cart createCartWithItems(String userId) {
-        Cart cart = Cart.builder().userId(userId).build();
-        ReflectionTestUtils.setField(cart, "id", 1L);
-        ReflectionTestUtils.setField(cart, "status", CartStatus.CHECKED_OUT);
-
-        CartItem item = CartItem.builder()
-                .cart(cart)
-                .sellerId(1L)
-                .productId(1L)
-                .productName("Test Product")
-                .price(BigDecimal.valueOf(5000))
-                .quantity(2)
-                .build();
-        ReflectionTestUtils.setField(item, "id", 1L);
-        cart.getItems().add(item);
-        return cart;
+    @BeforeEach
+    void setUp() {
+        orderService.initMetrics();
     }
 
     private void mockPaymentIntentSuccess() {
@@ -128,26 +105,22 @@ class OrderServiceImplTest {
         void should_createOrder_when_cartHasItems() {
             // given
             String userId = "user1";
-            Cart cart = createCartWithItems(userId);
+            Cart cart = CartFixture.builder().userId(userId).status(CartStatus.CHECKED_OUT).build();
+            CartItem item = CartFixture.createItem(cart, 1L, "Test Product", BigDecimal.valueOf(5000), 2);
+            cart.getItems().add(item);
             AddressRequest addressRequest = new AddressRequest("John", "010-1234-5678", "12345", "Seoul", "Apt 101");
             CreateOrderRequest request = new CreateOrderRequest(addressRequest, null);
 
             when(cartRepository.findByUserIdAndStatusWithItems(userId, CartStatus.CHECKED_OUT))
                     .thenReturn(List.of(cart));
 
-            Order savedOrder = createOrder(userId, "ORD-20260205-TEST0001", OrderStatus.CONFIRMED);
-            OrderItem orderItem = OrderItem.builder()
-                    .order(savedOrder)
-                    .sellerId(1L)
-                    .productId(1L)
-                    .productName("Test Product")
-                    .price(BigDecimal.valueOf(5000))
-                    .quantity(2)
-                    .build();
+            Order savedOrder = OrderFixture.builder()
+                    .userId(userId).orderNumber("ORD-20260205-TEST0001").status(OrderStatus.CONFIRMED).build();
+            OrderItem orderItem = OrderFixture.createItem(savedOrder, 1L, 2, BigDecimal.valueOf(5000));
             savedOrder.getItems().add(orderItem);
 
             when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
-            when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(mock(SagaState.class));
+            when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(SagaStateFixture.create());
             mockPaymentIntentSuccess();
 
             // when
@@ -181,10 +154,7 @@ class OrderServiceImplTest {
         void should_throwException_when_cartEmpty() {
             // given
             String userId = "user1";
-            Cart cart = Cart.builder().userId(userId).build();
-            ReflectionTestUtils.setField(cart, "id", 1L);
-            ReflectionTestUtils.setField(cart, "status", CartStatus.CHECKED_OUT);
-            // items is empty
+            Cart cart = CartFixture.builder().userId(userId).status(CartStatus.CHECKED_OUT).build();
 
             AddressRequest addressRequest = new AddressRequest("John", "010-1234-5678", "12345", "Seoul", "Apt 101");
             CreateOrderRequest request = new CreateOrderRequest(addressRequest, null);
@@ -202,7 +172,9 @@ class OrderServiceImplTest {
         void should_applyCoupon_when_couponProvided() {
             // given
             String userId = "user1";
-            Cart cart = createCartWithItems(userId);
+            Cart cart = CartFixture.builder().userId(userId).status(CartStatus.CHECKED_OUT).build();
+            CartItem item = CartFixture.createItem(cart, 1L, "Test Product", BigDecimal.valueOf(5000), 2);
+            cart.getItems().add(item);
             AddressRequest addressRequest = new AddressRequest("John", "010-1234-5678", "12345", "Seoul", "Apt 101");
             CreateOrderRequest request = new CreateOrderRequest(addressRequest, 100L);
 
@@ -212,19 +184,13 @@ class OrderServiceImplTest {
             when(couponService.calculateDiscount(eq(100L), any(BigDecimal.class)))
                     .thenReturn(BigDecimal.valueOf(1000));
 
-            Order savedOrder = createOrder(userId, "ORD-20260205-TEST0002", OrderStatus.CONFIRMED);
-            OrderItem orderItem = OrderItem.builder()
-                    .order(savedOrder)
-                    .sellerId(1L)
-                    .productId(1L)
-                    .productName("Test Product")
-                    .price(BigDecimal.valueOf(5000))
-                    .quantity(2)
-                    .build();
+            Order savedOrder = OrderFixture.builder()
+                    .userId(userId).orderNumber("ORD-20260205-TEST0002").status(OrderStatus.CONFIRMED).build();
+            OrderItem orderItem = OrderFixture.createItem(savedOrder, 1L, 2, BigDecimal.valueOf(5000));
             savedOrder.getItems().add(orderItem);
 
             when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
-            when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(mock(SagaState.class));
+            when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(SagaStateFixture.create());
             mockPaymentIntentSuccess();
 
             // when
@@ -242,26 +208,22 @@ class OrderServiceImplTest {
         void should_startSaga_when_orderCreated() {
             // given
             String userId = "user1";
-            Cart cart = createCartWithItems(userId);
+            Cart cart = CartFixture.builder().userId(userId).status(CartStatus.CHECKED_OUT).build();
+            CartItem item = CartFixture.createItem(cart, 1L, "Test Product", BigDecimal.valueOf(5000), 2);
+            cart.getItems().add(item);
             AddressRequest addressRequest = new AddressRequest("John", "010-1234-5678", "12345", "Seoul", "Apt 101");
             CreateOrderRequest request = new CreateOrderRequest(addressRequest, null);
 
             when(cartRepository.findByUserIdAndStatusWithItems(userId, CartStatus.CHECKED_OUT))
                     .thenReturn(List.of(cart));
 
-            Order savedOrder = createOrder(userId, "ORD-20260205-TEST0003", OrderStatus.CONFIRMED);
-            OrderItem orderItem = OrderItem.builder()
-                    .order(savedOrder)
-                    .sellerId(1L)
-                    .productId(1L)
-                    .productName("Test Product")
-                    .price(BigDecimal.valueOf(5000))
-                    .quantity(2)
-                    .build();
+            Order savedOrder = OrderFixture.builder()
+                    .userId(userId).orderNumber("ORD-20260205-TEST0003").status(OrderStatus.CONFIRMED).build();
+            OrderItem orderItem = OrderFixture.createItem(savedOrder, 1L, 2, BigDecimal.valueOf(5000));
             savedOrder.getItems().add(orderItem);
 
             when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
-            when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(mock(SagaState.class));
+            when(orderSagaOrchestrator.startSaga(any(Order.class))).thenReturn(SagaStateFixture.create());
             mockPaymentIntentSuccess();
 
             // when
@@ -280,7 +242,8 @@ class OrderServiceImplTest {
         @DisplayName("should_returnOrder_when_found")
         void should_returnOrder_when_found() {
             // given
-            Order order = createOrder("user1", "ORD-001", OrderStatus.CONFIRMED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.CONFIRMED).build();
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
 
             // when
@@ -306,7 +269,8 @@ class OrderServiceImplTest {
         @DisplayName("should_throwException_when_userMismatch")
         void should_throwException_when_userMismatch() {
             // given
-            Order order = createOrder("user1", "ORD-001", OrderStatus.CONFIRMED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.CONFIRMED).build();
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
 
             // when & then
@@ -324,7 +288,8 @@ class OrderServiceImplTest {
         void should_returnUserOrders_when_called() {
             // given
             Pageable pageable = PageRequest.of(0, 10);
-            Order order = createOrder("user1", "ORD-001", OrderStatus.CONFIRMED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.CONFIRMED).build();
             Page<Order> orderPage = new PageImpl<>(List.of(order), pageable, 1);
             when(orderRepository.findByUserIdOrderByCreatedAtDesc("user1", pageable)).thenReturn(orderPage);
 
@@ -344,7 +309,8 @@ class OrderServiceImplTest {
         @DisplayName("should_cancelOrder_when_cancellable")
         void should_cancelOrder_when_cancellable() {
             // given
-            Order order = createOrder("user1", "ORD-001", OrderStatus.CONFIRMED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.CONFIRMED).build();
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
             when(sagaStateRepository.findByOrderNumber("ORD-001")).thenReturn(Optional.empty());
             when(orderRepository.save(any(Order.class))).thenReturn(order);
@@ -363,7 +329,8 @@ class OrderServiceImplTest {
         @DisplayName("should_throwException_when_orderCannotBeCancelled")
         void should_throwException_when_orderCannotBeCancelled() {
             // given
-            Order order = createOrder("user1", "ORD-001", OrderStatus.DELIVERED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.DELIVERED).build();
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
 
             CancelOrderRequest request = new CancelOrderRequest("Want to cancel");
@@ -382,7 +349,8 @@ class OrderServiceImplTest {
         @DisplayName("should_completeOrder_when_paymentDone")
         void should_completeOrder_when_paymentDone() {
             // given
-            Order order = createOrder("user1", "ORD-001", OrderStatus.PAID);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.PAID).build();
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
 
             // when

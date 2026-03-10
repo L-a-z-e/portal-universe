@@ -5,6 +5,7 @@ import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.product.dto.ProductResponse;
 import com.portal.universe.shoppingservice.product.dto.ProductWithReviewsResponse;
 import com.portal.universe.shoppingservice.product.repository.ProductRepository;
+import com.portal.universe.shoppingservice.support.fixture.ProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,18 +35,6 @@ class ProductServiceImplTest {
     @InjectMocks
     private ProductServiceImpl productService;
 
-    private Product createProduct(Long id, String name, BigDecimal price) {
-        Product product = Product.builder()
-                .name(name)
-                .description("Test description")
-                .price(price)
-                .imageUrl("http://img.test/1.jpg")
-                .category("Electronics")
-                .build();
-        ReflectionTestUtils.setField(product, "id", id);
-        return product;
-    }
-
     @Nested
     @DisplayName("getAllProducts")
     class GetAllProducts {
@@ -56,7 +44,10 @@ class ProductServiceImplTest {
         void should_returnPagedProducts_when_called() {
             // given
             Pageable pageable = PageRequest.of(0, 10);
-            Product product = createProduct(1L, "Product1", BigDecimal.valueOf(1000));
+            Product product = ProductFixture.builder()
+                    .id(1L).name("Product1").price(BigDecimal.valueOf(1000))
+                    .imageUrl("http://img.test/1.jpg").category("Electronics")
+                    .build();
             Page<Product> productPage = new PageImpl<>(List.of(product), pageable, 1);
             when(productRepository.findAll(pageable)).thenReturn(productPage);
 
@@ -79,7 +70,8 @@ class ProductServiceImplTest {
         @DisplayName("should_returnProduct_when_found")
         void should_returnProduct_when_found() {
             // given
-            Product product = createProduct(1L, "Product1", BigDecimal.valueOf(1000));
+            Product product = ProductFixture.builder()
+                    .id(1L).name("Product1").price(BigDecimal.valueOf(1000)).build();
             when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
             // when
@@ -113,7 +105,8 @@ class ProductServiceImplTest {
         @DisplayName("should_returnProductWithEmptyReviews_when_called")
         void should_returnProductWithEmptyReviews_when_called() {
             // given
-            Product product = createProduct(1L, "Product1", BigDecimal.valueOf(1000));
+            Product product = ProductFixture.builder()
+                    .id(1L).name("Product1").price(BigDecimal.valueOf(1000)).build();
             when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
             // when

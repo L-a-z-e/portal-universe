@@ -11,6 +11,8 @@ import com.portal.universe.shoppingservice.order.domain.OrderItem;
 import com.portal.universe.shoppingservice.order.domain.OrderStatus;
 import com.portal.universe.shoppingservice.order.repository.OrderRepository;
 import com.portal.universe.shoppingservice.order.repository.SagaStateRepository;
+import com.portal.universe.shoppingservice.support.fixture.OrderFixture;
+import com.portal.universe.shoppingservice.support.fixture.SagaStateFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,14 +20,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -57,50 +54,16 @@ class OrderSagaOrchestratorTest {
     private OrderSagaOrchestrator sagaOrchestrator;
 
     private Order createOrderWithItems(Long id, String orderNumber, String userId, OrderStatus status) {
-        Order order = Order.builder()
-                .userId(userId)
-                .shippingAddress(null)
+        Order order = OrderFixture.builder()
+                .id(id).orderNumber(orderNumber).userId(userId).status(status)
+                .totalAmount(BigDecimal.valueOf(20000)).finalAmount(BigDecimal.valueOf(20000))
                 .build();
-        ReflectionTestUtils.setField(order, "id", id);
-        ReflectionTestUtils.setField(order, "orderNumber", orderNumber);
-        ReflectionTestUtils.setField(order, "status", status);
-        ReflectionTestUtils.setField(order, "totalAmount", BigDecimal.valueOf(20000));
-        ReflectionTestUtils.setField(order, "finalAmount", BigDecimal.valueOf(20000));
-
-        List<OrderItem> items = new ArrayList<>();
-        OrderItem item = OrderItem.builder()
-                .sellerId(1L)
-                .productId(1L)
-                .productName("Product A")
-                .price(BigDecimal.valueOf(10000))
-                .quantity(2)
-                .build();
-        ReflectionTestUtils.setField(item, "id", 1L);
-        ReflectionTestUtils.setField(item, "subtotal", BigDecimal.valueOf(20000));
-        items.add(item);
-        ReflectionTestUtils.setField(order, "items", items);
-
+        OrderItem item = OrderFixture.itemBuilder()
+                .order(order).sellerId(1L).productId(1L).productName("Product A")
+                .price(BigDecimal.valueOf(10000)).quantity(2)
+                .subtotal(BigDecimal.valueOf(20000)).build();
+        order.getItems().add(item);
         return order;
-    }
-
-    private SagaState createSagaState(Long id, Long orderId, String orderNumber,
-                                       SagaStep currentStep, SagaStatus status, String completedStepsStr) {
-        SagaState sagaState = SagaState.builder()
-                .orderId(orderId)
-                .orderNumber(orderNumber)
-                .build();
-        ReflectionTestUtils.setField(sagaState, "id", id);
-        ReflectionTestUtils.setField(sagaState, "currentStep", currentStep);
-        ReflectionTestUtils.setField(sagaState, "status", status);
-        Set<SagaStep> steps = EnumSet.noneOf(SagaStep.class);
-        if (completedStepsStr != null && !completedStepsStr.isEmpty()) {
-            for (String s : completedStepsStr.split(",")) {
-                steps.add(SagaStep.valueOf(s.trim()));
-            }
-        }
-        ReflectionTestUtils.setField(sagaState, "completedSteps", steps);
-        ReflectionTestUtils.setField(sagaState, "compensationAttempts", 0);
-        return sagaState;
     }
 
     @Nested
@@ -113,8 +76,10 @@ class OrderSagaOrchestratorTest {
             // given
             Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.PENDING);
 
-            SagaState initialSaga = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.RESERVE_INVENTORY, SagaStatus.STARTED, "");
+            SagaState initialSaga = SagaStateFixture.builder()
+                    .id(1L).orderId(1L).orderNumber("ORD-001")
+                    .currentStep(SagaStep.RESERVE_INVENTORY).status(SagaStatus.STARTED)
+                    .completedStepsFromCsv("").build();
             when(sagaStateRepository.save(any(SagaState.class))).thenReturn(initialSaga);
 
             // when
@@ -132,8 +97,10 @@ class OrderSagaOrchestratorTest {
             // given
             Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.PENDING);
 
-            SagaState initialSaga = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.RESERVE_INVENTORY, SagaStatus.STARTED, "");
+            SagaState initialSaga = SagaStateFixture.builder()
+                    .id(1L).orderId(1L).orderNumber("ORD-001")
+                    .currentStep(SagaStep.RESERVE_INVENTORY).status(SagaStatus.STARTED)
+                    .completedStepsFromCsv("").build();
             when(sagaStateRepository.save(any(SagaState.class))).thenReturn(initialSaga);
 
             doThrow(new RuntimeException("Reserve failed"))
@@ -156,8 +123,10 @@ class OrderSagaOrchestratorTest {
         void should_completeSaga_when_allStepsSucceed() {
             // given
             Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.CONFIRMED);
-            SagaState sagaState = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.PROCESS_PAYMENT, SagaStatus.STARTED, "RESERVE_INVENTORY");
+            SagaState sagaState = SagaStateFixture.builder()
+                    .id(1L).orderId(1L).orderNumber("ORD-001")
+                    .currentStep(SagaStep.PROCESS_PAYMENT).status(SagaStatus.STARTED)
+                    .completedStepsFromCsv("RESERVE_INVENTORY").build();
 
             when(sagaStateRepository.findByOrderNumber("ORD-001")).thenReturn(Optional.of(sagaState));
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
@@ -191,8 +160,10 @@ class OrderSagaOrchestratorTest {
         void should_compensateAndThrow_when_deductInventoryFails() {
             // given
             Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.CONFIRMED);
-            SagaState sagaState = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.PROCESS_PAYMENT, SagaStatus.STARTED, "RESERVE_INVENTORY");
+            SagaState sagaState = SagaStateFixture.builder()
+                    .id(1L).orderId(1L).orderNumber("ORD-001")
+                    .currentStep(SagaStep.PROCESS_PAYMENT).status(SagaStatus.STARTED)
+                    .completedStepsFromCsv("RESERVE_INVENTORY").build();
 
             when(sagaStateRepository.findByOrderNumber("ORD-001")).thenReturn(Optional.of(sagaState));
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
@@ -211,8 +182,10 @@ class OrderSagaOrchestratorTest {
         void should_compensateAndThrow_when_deliveryCreationFails() {
             // given
             Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.CONFIRMED);
-            SagaState sagaState = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.PROCESS_PAYMENT, SagaStatus.STARTED, "RESERVE_INVENTORY");
+            SagaState sagaState = SagaStateFixture.builder()
+                    .id(1L).orderId(1L).orderNumber("ORD-001")
+                    .currentStep(SagaStep.PROCESS_PAYMENT).status(SagaStatus.STARTED)
+                    .completedStepsFromCsv("RESERVE_INVENTORY").build();
 
             when(sagaStateRepository.findByOrderNumber("ORD-001")).thenReturn(Optional.of(sagaState));
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
@@ -236,8 +209,10 @@ class OrderSagaOrchestratorTest {
             // given
             Order order = createOrderWithItems(1L, "ORD-001", "user1", OrderStatus.PENDING);
 
-            SagaState initialSaga = createSagaState(1L, 1L, "ORD-001",
-                    SagaStep.RESERVE_INVENTORY, SagaStatus.STARTED, "");
+            SagaState initialSaga = SagaStateFixture.builder()
+                    .id(1L).orderId(1L).orderNumber("ORD-001")
+                    .currentStep(SagaStep.RESERVE_INVENTORY).status(SagaStatus.STARTED)
+                    .completedStepsFromCsv("").build();
             when(sagaStateRepository.save(any(SagaState.class))).thenReturn(initialSaga);
 
             doThrow(new RuntimeException("Reserve failed"))

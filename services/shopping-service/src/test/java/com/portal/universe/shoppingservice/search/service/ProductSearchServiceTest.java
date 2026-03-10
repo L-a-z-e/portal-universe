@@ -10,15 +10,17 @@ import com.portal.universe.shoppingservice.product.repository.ProductRepository;
 import com.portal.universe.shoppingservice.search.document.ProductDocument;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchRequest;
 import com.portal.universe.shoppingservice.search.dto.ProductSearchResult;
+import com.portal.universe.shoppingservice.support.fixture.ProductFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -39,8 +41,16 @@ class ProductSearchServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Spy
+    private io.micrometer.core.instrument.MeterRegistry meterRegistry = new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+
     @InjectMocks
     private ProductSearchService productSearchService;
+
+    @BeforeEach
+    void setUp() {
+        productSearchService.initMetrics();
+    }
 
     @Test
     @DisplayName("should_returnSearchResults_when_searchWithKeyword")
@@ -92,12 +102,9 @@ class ProductSearchServiceTest {
         when(esClient.search(any(co.elastic.clients.elasticsearch.core.SearchRequest.class), eq(ProductDocument.class)))
                 .thenThrow(new IOException("Connection refused"));
 
-        Product product = Product.builder()
-                .name("Laptop Pro")
-                .description("A great laptop")
-                .price(BigDecimal.valueOf(1500000))
-                .build();
-        ReflectionTestUtils.setField(product, "id", 1L);
+        Product product = ProductFixture.builder()
+                .id(1L).name("Laptop Pro").description("A great laptop")
+                .price(BigDecimal.valueOf(1500000)).build();
 
         when(productRepository.searchByKeyword(eq("laptop"), any()))
                 .thenReturn(new PageImpl<>(List.of(product), PageRequest.of(0, 20), 1));
