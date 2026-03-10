@@ -1,6 +1,7 @@
 package com.portal.universe.authservice.auth.service;
 
 import com.portal.universe.authservice.auth.repository.UserRoleRepository;
+import com.portal.universe.authservice.support.fixture.UserFixture;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -37,18 +38,6 @@ class CustomUserDetailsServiceTest {
     private static final String PASSWORD = "encodedPassword";
     private static final String UUID = "test-uuid-1234";
 
-    private User createTestUser() {
-        User user = new User(EMAIL, PASSWORD);
-        try {
-            var uuidField = User.class.getDeclaredField("uuid");
-            uuidField.setAccessible(true);
-            uuidField.set(user, UUID);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return user;
-    }
-
     @Nested
     @DisplayName("loadUserByUsername")
     class LoadUserByUsername {
@@ -57,7 +46,7 @@ class CustomUserDetailsServiceTest {
         @DisplayName("should_returnUserDetails_when_userExistsWithRoles")
         void should_returnUserDetails_when_userExistsWithRoles() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().uuid(UUID).email(EMAIL).password(PASSWORD).withoutProfile().build();
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
             when(userRoleRepository.findActiveRoleKeysByUserId(UUID))
                     .thenReturn(List.of("ROLE_USER", "ROLE_ADMIN"));
@@ -78,7 +67,7 @@ class CustomUserDetailsServiceTest {
         @DisplayName("should_returnUserDetailsWithEmptyAuthorities_when_userHasNoRoles")
         void should_returnUserDetailsWithEmptyAuthorities_when_userHasNoRoles() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.builder().uuid(UUID).email(EMAIL).password(PASSWORD).withoutProfile().build();
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
             when(userRoleRepository.findActiveRoleKeysByUserId(UUID))
                     .thenReturn(List.of());

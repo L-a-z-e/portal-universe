@@ -6,8 +6,8 @@ import com.portal.universe.authservice.follow.dto.FollowResponse;
 import com.portal.universe.authservice.follow.dto.FollowStatusResponse;
 import com.portal.universe.authservice.follow.dto.FollowingIdsResponse;
 import com.portal.universe.authservice.follow.repository.FollowRepository;
+import com.portal.universe.authservice.support.fixture.UserFixture;
 import com.portal.universe.authservice.user.domain.User;
-import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,29 +39,16 @@ class FollowServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private FollowService followService;
 
     private User createUser(Long id, String uuid, String email, String username) {
-        User user = new User(email, "password");
-        try {
-            var idField = User.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(user, id);
-            var uuidField = User.class.getDeclaredField("uuid");
-            uuidField.setAccessible(true);
-            uuidField.set(user, uuid);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        UserProfile profile = new UserProfile(user, "nick-" + id, "Real Name", false);
-        if (username != null) {
-            profile.setUsername(username);
-        }
-        user.setProfile(profile);
-        return user;
+        return UserFixture.builder()
+                .id(id).uuid(uuid).email(email)
+                .nickname("nick-" + id).username(username)
+                .build();
     }
 
     @Nested
@@ -77,13 +66,7 @@ class FollowServiceTest {
             when(userRepository.findByUsername("user2")).thenReturn(Optional.of(targetUser));
             when(followRepository.existsByFollowerAndFollowing(currentUser, targetUser)).thenReturn(false);
             Follow savedFollow = new Follow(currentUser, targetUser);
-            try {
-                var idField = Follow.class.getDeclaredField("id");
-                idField.setAccessible(true);
-                idField.set(savedFollow, 100L);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            ReflectionTestUtils.setField(savedFollow, "id", 100L);
             when(followRepository.save(any(Follow.class))).thenReturn(savedFollow);
             when(followRepository.countByFollowing(targetUser)).thenReturn(1L);
             when(followRepository.countByFollower(targetUser)).thenReturn(0L);
@@ -172,13 +155,7 @@ class FollowServiceTest {
             when(userRepository.findByUsername("user2")).thenReturn(Optional.of(targetUser));
             when(followRepository.existsByFollowerAndFollowing(currentUser, targetUser)).thenReturn(false);
             Follow savedFollow = new Follow(currentUser, targetUser);
-            try {
-                var idField = Follow.class.getDeclaredField("id");
-                idField.setAccessible(true);
-                idField.set(savedFollow, 101L);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            ReflectionTestUtils.setField(savedFollow, "id", 101L);
             when(followRepository.save(any(Follow.class))).thenReturn(savedFollow);
             when(followRepository.countByFollowing(targetUser)).thenReturn(1L);
             when(followRepository.countByFollower(targetUser)).thenReturn(0L);

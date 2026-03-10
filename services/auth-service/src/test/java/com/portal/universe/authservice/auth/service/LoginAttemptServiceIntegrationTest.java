@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.auth.service;
 
-import com.portal.universe.authservice.LocalIntegrationTest;
+import com.portal.universe.authservice.IntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Testcontainers Redis 환경에서 실행됩니다.
  * Phase 4-3: Lua Script 원자성 검증
  */
-class LoginAttemptServiceIntegrationTest extends LocalIntegrationTest {
+class LoginAttemptServiceIntegrationTest extends IntegrationTest {
 
     @Autowired
     private LoginAttemptService loginAttemptService;

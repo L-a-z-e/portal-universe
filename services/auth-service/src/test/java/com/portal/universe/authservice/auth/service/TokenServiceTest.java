@@ -1,13 +1,13 @@
 package com.portal.universe.authservice.auth.service;
 
-import com.portal.universe.authservice.auth.domain.MembershipTier;
 import com.portal.universe.authservice.auth.domain.UserMembership;
 import com.portal.universe.authservice.auth.repository.UserMembershipRepository;
 import com.portal.universe.authservice.auth.repository.UserRoleRepository;
 import com.portal.universe.authservice.common.config.JwtProperties;
+import com.portal.universe.authservice.support.fixture.JwtFixture;
+import com.portal.universe.authservice.support.fixture.MembershipFixture;
+import com.portal.universe.authservice.support.fixture.UserFixture;
 import com.portal.universe.authservice.user.domain.User;
-import com.portal.universe.authservice.user.domain.UserProfile;
-import com.portal.universe.authservice.util.JwtTestHelper;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -30,12 +31,10 @@ import static org.mockito.Mockito.*;
 @DisplayName("TokenService 테스트")
 class TokenServiceTest {
 
-    private static final String SECRET_KEY = JwtTestHelper.SECRET_KEY;
-    private static final String KEY_ID = "test-key";
-    private static final String USER_UUID = JwtTestHelper.USER_UUID;
-    private static final String USER_EMAIL = JwtTestHelper.USER_EMAIL;
-    private static final long ACCESS_TOKEN_EXPIRATION = 900_000L; // 15min
-    private static final long REFRESH_TOKEN_EXPIRATION = 604_800_000L; // 7days
+    private static final String SECRET_KEY = JwtFixture.SECRET_KEY;
+    private static final String KEY_ID = JwtFixture.KEY_ID;
+    private static final String USER_UUID = JwtFixture.USER_UUID;
+    private static final String USER_EMAIL = JwtFixture.USER_EMAIL;
 
     @Mock
     private UserRoleRepository userRoleRepository;
@@ -53,59 +52,8 @@ class TokenServiceTest {
 
     @BeforeEach
     void setUp() {
-        jwtProperties = createJwtProperties();
-
-        // Inject real JwtProperties via reflection
-        try {
-            var field = TokenService.class.getDeclaredField("jwtProperties");
-            field.setAccessible(true);
-            field.set(tokenService, jwtProperties);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private JwtProperties createJwtProperties() {
-        JwtProperties props = new JwtProperties();
-        props.setCurrentKeyId(KEY_ID);
-        props.setAccessTokenExpiration(ACCESS_TOKEN_EXPIRATION);
-        props.setRefreshTokenExpiration(REFRESH_TOKEN_EXPIRATION);
-
-        JwtProperties.KeyConfig keyConfig = new JwtProperties.KeyConfig();
-        keyConfig.setSecretKey(SECRET_KEY);
-        keyConfig.setActivatedAt(Instant.now().minus(Duration.ofDays(1)));
-        keyConfig.setExpiresAt(null); // never expires
-
-        Map<String, JwtProperties.KeyConfig> keys = new HashMap<>();
-        keys.put(KEY_ID, keyConfig);
-        props.setKeys(keys);
-
-        return props;
-    }
-
-    private User createTestUser() {
-        User user = new User(USER_EMAIL, "encodedPassword");
-        // Set uuid via reflection
-        try {
-            var uuidField = User.class.getDeclaredField("uuid");
-            uuidField.setAccessible(true);
-            uuidField.set(user, USER_UUID);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        UserProfile profile = new UserProfile(user, "testNickname", "realName", false);
-        user.setProfile(profile);
-        return user;
-    }
-
-    private MembershipTier createFreeTier(String serviceName) {
-        return MembershipTier.builder()
-                .membershipGroup(serviceName)
-                .tierKey("FREE")
-                .displayName("Free")
-                .sortOrder(0)
-                .build();
+        jwtProperties = JwtFixture.createJwtProperties();
+        ReflectionTestUtils.setField(tokenService, "jwtProperties", jwtProperties);
     }
 
     @Nested
@@ -116,17 +64,16 @@ class TokenServiceTest {
         @DisplayName("should_generateValidToken_when_userHasRolesAndMemberships")
         void should_generateValidToken_when_userHasRolesAndMemberships() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.create();
             when(userRoleRepository.findActiveRoleKeysByUserId(USER_UUID))
                     .thenReturn(List.of("ROLE_USER"));
             when(roleHierarchyService.resolveEffectiveRoles(List.of("ROLE_USER")))
                     .thenReturn(List.of("ROLE_USER", "ROLE_GUEST"));
 
-            MembershipTier freeTier = createFreeTier("user:shopping");
-            UserMembership membership = UserMembership.builder()
+            UserMembership membership = MembershipFixture.membershipBuilder()
                     .userId(USER_UUID)
                     .membershipGroup("user:shopping")
-                    .tier(freeTier)
+                    .tier(MembershipFixture.tierBuilder().membershipGroup("user:shopping").build())
                     .build();
             when(userMembershipRepository.findActiveByUserId(USER_UUID))
                     .thenReturn(List.of(membership));
@@ -137,15 +84,18 @@ class TokenServiceTest {
             // then
             assertThat(token).isNotNull().isNotEmpty();
 
-            // Verify token can be parsed
             Claims claims = parseToken(token);
             assertThat(claims.getSubject()).isEqualTo(USER_UUID);
             assertThat(claims.get("email")).isEqualTo(USER_EMAIL);
-            assertThat(claims.get("nickname")).isEqualTo("testNickname");
+            assertThat(claims.get("nickname")).isEqualTo(UserFixture.DEFAULT_NICKNAME);
 
             @SuppressWarnings("unchecked")
             List<String> roles = (List<String>) claims.get("roles");
             assertThat(roles).containsExactly("ROLE_USER");
+
+            @SuppressWarnings("unchecked")
+            List<String> effectiveRoles = (List<String>) claims.get("effectiveRoles");
+            assertThat(effectiveRoles).containsExactlyInAnyOrder("ROLE_USER", "ROLE_GUEST");
 
             @SuppressWarnings("unchecked")
             Map<String, Map<String, Object>> memberships = (Map<String, Map<String, Object>>) claims.get("memberships");
@@ -162,7 +112,7 @@ class TokenServiceTest {
         @DisplayName("should_throwException_when_userHasNoRoles")
         void should_throwException_when_userHasNoRoles() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.create();
             when(userRoleRepository.findActiveRoleKeysByUserId(USER_UUID))
                     .thenReturn(Collections.emptyList());
 
@@ -181,7 +131,7 @@ class TokenServiceTest {
         @DisplayName("should_generateValidRefreshToken_when_userProvided")
         void should_generateValidRefreshToken_when_userProvided() {
             // given
-            User user = createTestUser();
+            User user = UserFixture.create();
 
             // when
             String token = tokenService.generateRefreshToken(user);
@@ -205,7 +155,7 @@ class TokenServiceTest {
         @DisplayName("should_returnClaims_when_tokenIsValid")
         void should_returnClaims_when_tokenIsValid() {
             // given
-            String token = JwtTestHelper.createValidToken(SECRET_KEY, USER_UUID, List.of("ROLE_USER"));
+            String token = JwtFixture.createValidToken();
 
             // when
             Claims claims = tokenService.validateAccessToken(token);
@@ -218,7 +168,7 @@ class TokenServiceTest {
         @DisplayName("should_throwExpiredJwtException_when_tokenExpired")
         void should_throwExpiredJwtException_when_tokenExpired() {
             // given
-            String token = JwtTestHelper.createExpiredToken(SECRET_KEY, USER_UUID);
+            String token = JwtFixture.createExpiredToken();
 
             // when & then
             assertThatThrownBy(() -> tokenService.validateAccessToken(token))
@@ -229,8 +179,9 @@ class TokenServiceTest {
         @DisplayName("should_throwSignatureException_when_signatureInvalid")
         void should_throwSignatureException_when_signatureInvalid() {
             // given
-            String differentSecret = "different-secret-key-must-be-at-least-256-bits!!";
-            String token = JwtTestHelper.createValidToken(differentSecret, USER_UUID, List.of("ROLE_USER"));
+            String token = JwtFixture.tokenBuilder()
+                    .secretKey("different-secret-key-must-be-at-least-256-bits!!")
+                    .build();
 
             // when & then
             assertThatThrownBy(() -> tokenService.validateAccessToken(token))
@@ -245,7 +196,7 @@ class TokenServiceTest {
 
             // when & then
             assertThatThrownBy(() -> tokenService.validateAccessToken(malformedToken))
-                    .isInstanceOf(Exception.class);
+                    .isInstanceOf(MalformedJwtException.class);
         }
     }
 
@@ -257,7 +208,7 @@ class TokenServiceTest {
         @DisplayName("should_useCurrentKeyId_when_tokenHasNoKid")
         void should_useCurrentKeyId_when_tokenHasNoKid() {
             // given
-            String token = JwtTestHelper.createTokenWithoutKid(SECRET_KEY, USER_UUID);
+            String token = JwtFixture.createTokenWithoutKid();
 
             // when
             Claims claims = tokenService.validateAccessToken(token);
@@ -270,7 +221,7 @@ class TokenServiceTest {
         @DisplayName("should_useKidFromToken_when_kidPresent")
         void should_useKidFromToken_when_kidPresent() {
             // given
-            String token = JwtTestHelper.createTokenWithKid(SECRET_KEY, KEY_ID, USER_UUID);
+            String token = JwtFixture.createTokenWithKid(KEY_ID);
 
             // when
             Claims claims = tokenService.validateAccessToken(token);
@@ -286,11 +237,11 @@ class TokenServiceTest {
             JwtProperties.KeyConfig expiredKeyConfig = new JwtProperties.KeyConfig();
             expiredKeyConfig.setSecretKey(SECRET_KEY);
             expiredKeyConfig.setActivatedAt(Instant.now().minus(Duration.ofDays(30)));
-            expiredKeyConfig.setExpiresAt(Instant.now().minus(Duration.ofDays(1))); // expired yesterday
+            expiredKeyConfig.setExpiresAt(Instant.now().minus(Duration.ofDays(1)));
 
             jwtProperties.getKeys().put("expired-key", expiredKeyConfig);
 
-            String token = JwtTestHelper.createTokenWithKid(SECRET_KEY, "expired-key", USER_UUID);
+            String token = JwtFixture.createTokenWithKid("expired-key");
 
             // when & then
             assertThatThrownBy(() -> tokenService.validateAccessToken(token))
@@ -307,7 +258,7 @@ class TokenServiceTest {
         @DisplayName("should_returnClaims_when_tokenExpired")
         void should_returnClaims_when_tokenExpired() {
             // given
-            String token = JwtTestHelper.createExpiredToken(SECRET_KEY, USER_UUID);
+            String token = JwtFixture.createExpiredToken();
 
             // when
             Claims claims = tokenService.parseClaimsAllowExpired(token);
@@ -320,8 +271,10 @@ class TokenServiceTest {
         @DisplayName("should_throwSignatureException_when_signatureInvalid")
         void should_throwSignatureException_when_signatureInvalid() {
             // given
-            String differentSecret = "different-secret-key-must-be-at-least-256-bits!!";
-            String token = JwtTestHelper.createExpiredToken(differentSecret, USER_UUID);
+            String token = JwtFixture.tokenBuilder()
+                    .secretKey("different-secret-key-must-be-at-least-256-bits!!")
+                    .expiration(new Date(System.currentTimeMillis() - 1000))
+                    .build();
 
             // when & then
             assertThatThrownBy(() -> tokenService.parseClaimsAllowExpired(token))
@@ -337,7 +290,7 @@ class TokenServiceTest {
         @DisplayName("should_returnUserId_when_tokenValid")
         void should_returnUserId_when_tokenValid() {
             // given
-            String token = JwtTestHelper.createValidToken(SECRET_KEY, USER_UUID, List.of("ROLE_USER"));
+            String token = JwtFixture.createValidToken();
 
             // when
             String userId = tokenService.getUserIdFromToken(token);
@@ -355,7 +308,7 @@ class TokenServiceTest {
         @DisplayName("should_returnPositiveValue_when_tokenNotExpired")
         void should_returnPositiveValue_when_tokenNotExpired() {
             // given
-            String token = JwtTestHelper.createValidToken(SECRET_KEY, USER_UUID, List.of("ROLE_USER"));
+            String token = JwtFixture.createValidToken();
 
             // when
             long remaining = tokenService.getRemainingExpiration(token);
@@ -368,7 +321,7 @@ class TokenServiceTest {
         @DisplayName("should_returnZero_when_tokenExpired")
         void should_returnZero_when_tokenExpired() {
             // given
-            String token = JwtTestHelper.createExpiredToken(SECRET_KEY, USER_UUID);
+            String token = JwtFixture.createExpiredToken();
 
             // when
             long remaining = tokenService.getRemainingExpiration(token);

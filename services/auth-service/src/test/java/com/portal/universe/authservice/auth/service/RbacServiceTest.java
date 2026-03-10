@@ -53,6 +53,18 @@ class RbacServiceTest {
     @Mock
     private RoleHierarchyService roleHierarchyService;
 
+    @Mock
+    private com.portal.universe.authservice.auth.repository.PermissionRepository permissionRepository;
+
+    @Mock
+    private com.portal.universe.authservice.auth.repository.MembershipTierRepository membershipTierRepository;
+
+    @Mock
+    private com.portal.universe.authservice.user.repository.UserRepository userRepository;
+
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private RbacService rbacService;
 

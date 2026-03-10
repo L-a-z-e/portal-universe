@@ -13,6 +13,7 @@ import com.portal.universe.authservice.auth.service.TokenService;
 import com.portal.universe.authservice.common.config.JwtProperties;
 import com.portal.universe.authservice.common.util.RefreshTokenCookieHelper;
 import com.portal.universe.authservice.password.config.PasswordPolicyProperties;
+import com.portal.universe.authservice.support.fixture.UserFixture;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -95,15 +96,14 @@ class AuthControllerTest {
             // given
             LoginRequest request = new LoginRequest("user@test.com", "password123");
 
-            User mockUser = mock(User.class);
-            when(mockUser.getPassword()).thenReturn("encoded-password");
-            when(mockUser.getUuid()).thenReturn("test-uuid");
+            User user = UserFixture.builder().uuid("test-uuid").email("user@test.com")
+                    .password("encoded-password").build();
 
             when(loginAttemptService.isBlocked(anyString())).thenReturn(false);
-            when(userRepository.findByEmailWithProfile("user@test.com")).thenReturn(Optional.of(mockUser));
+            when(userRepository.findByEmailWithProfile("user@test.com")).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
-            when(tokenService.generateAccessToken(mockUser)).thenReturn("access-token");
-            when(tokenService.generateRefreshToken(mockUser)).thenReturn("refresh-token");
+            when(tokenService.generateAccessToken(any(User.class))).thenReturn("access-token");
+            when(tokenService.generateRefreshToken(any(User.class))).thenReturn("refresh-token");
             when(jwtProperties.getAccessTokenExpiration()).thenReturn(900000L);
 
             // when & then
@@ -157,11 +157,10 @@ class AuthControllerTest {
             // given
             LoginRequest request = new LoginRequest("user@test.com", "wrong-password");
 
-            User mockUser = mock(User.class);
-            when(mockUser.getPassword()).thenReturn("encoded-password");
+            User user = UserFixture.builder().email("user@test.com").password("encoded-password").build();
 
             when(loginAttemptService.isBlocked(anyString())).thenReturn(false);
-            when(userRepository.findByEmailWithProfile("user@test.com")).thenReturn(Optional.of(mockUser));
+            when(userRepository.findByEmailWithProfile("user@test.com")).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("wrong-password", "encoded-password")).thenReturn(false);
 
             // when & then
@@ -191,11 +190,10 @@ class AuthControllerTest {
             // given
             LoginRequest request = new LoginRequest("user@test.com", "wrong-password");
 
-            User mockUser = mock(User.class);
-            when(mockUser.getPassword()).thenReturn("encoded-password");
+            User user = UserFixture.builder().email("user@test.com").password("encoded-password").build();
 
             when(loginAttemptService.isBlocked(anyString())).thenReturn(false);
-            when(userRepository.findByEmailWithProfile("user@test.com")).thenReturn(Optional.of(mockUser));
+            when(userRepository.findByEmailWithProfile("user@test.com")).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("wrong-password", "encoded-password")).thenReturn(false);
 
             // when & then
@@ -213,15 +211,13 @@ class AuthControllerTest {
             // given
             LoginRequest request = new LoginRequest("user@test.com", "password123");
 
-            User mockUser = mock(User.class);
-            when(mockUser.getPassword()).thenReturn("encoded-password");
-            when(mockUser.getUuid()).thenReturn("test-uuid");
+            User user = UserFixture.builder().uuid("test-uuid").email("user@test.com").password("encoded-password").build();
 
             when(loginAttemptService.isBlocked(anyString())).thenReturn(false);
-            when(userRepository.findByEmailWithProfile("user@test.com")).thenReturn(Optional.of(mockUser));
+            when(userRepository.findByEmailWithProfile("user@test.com")).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
-            when(tokenService.generateAccessToken(mockUser)).thenReturn("access-token");
-            when(tokenService.generateRefreshToken(mockUser)).thenReturn("refresh-token");
+            when(tokenService.generateAccessToken(any(User.class))).thenReturn("access-token");
+            when(tokenService.generateRefreshToken(any(User.class))).thenReturn("refresh-token");
             when(jwtProperties.getAccessTokenExpiration()).thenReturn(900000L);
 
             // when & then
@@ -247,13 +243,12 @@ class AuthControllerTest {
             Claims mockClaims = mock(Claims.class);
             when(mockClaims.getSubject()).thenReturn("test-uuid");
 
-            User mockUser = mock(User.class);
-            when(mockUser.getUuid()).thenReturn("test-uuid");
+            User user = UserFixture.builder().uuid("test-uuid").build();
 
             when(tokenService.validateRefreshToken("valid-refresh-token")).thenReturn(mockClaims);
-            when(userRepository.findByUuidWithProfile("test-uuid")).thenReturn(Optional.of(mockUser));
-            when(tokenService.generateAccessToken(mockUser)).thenReturn("new-access-token");
-            when(tokenService.generateRefreshToken(mockUser)).thenReturn("new-refresh-token");
+            when(userRepository.findByUuidWithProfile("test-uuid")).thenReturn(Optional.of(user));
+            when(tokenService.generateAccessToken(any(User.class))).thenReturn("new-access-token");
+            when(tokenService.generateRefreshToken(any(User.class))).thenReturn("new-refresh-token");
             when(refreshTokenService.rotateRefreshToken("test-uuid", "valid-refresh-token", "new-refresh-token"))
                     .thenReturn(true);
             when(jwtProperties.getAccessTokenExpiration()).thenReturn(900000L);
@@ -276,13 +271,12 @@ class AuthControllerTest {
             Claims mockClaims = mock(Claims.class);
             when(mockClaims.getSubject()).thenReturn("test-uuid");
 
-            User mockUser = mock(User.class);
-            when(mockUser.getUuid()).thenReturn("test-uuid");
+            User user = UserFixture.builder().uuid("test-uuid").build();
 
             when(tokenService.validateRefreshToken("cookie-refresh-token")).thenReturn(mockClaims);
-            when(userRepository.findByUuidWithProfile("test-uuid")).thenReturn(Optional.of(mockUser));
-            when(tokenService.generateAccessToken(mockUser)).thenReturn("new-access-token");
-            when(tokenService.generateRefreshToken(mockUser)).thenReturn("new-refresh-token");
+            when(userRepository.findByUuidWithProfile("test-uuid")).thenReturn(Optional.of(user));
+            when(tokenService.generateAccessToken(any(User.class))).thenReturn("new-access-token");
+            when(tokenService.generateRefreshToken(any(User.class))).thenReturn("new-refresh-token");
             when(refreshTokenService.rotateRefreshToken("test-uuid", "cookie-refresh-token", "new-refresh-token"))
                     .thenReturn(true);
             when(jwtProperties.getAccessTokenExpiration()).thenReturn(900000L);
@@ -315,13 +309,12 @@ class AuthControllerTest {
             Claims mockClaims = mock(Claims.class);
             when(mockClaims.getSubject()).thenReturn("test-uuid");
 
-            User mockUser = mock(User.class);
-            when(mockUser.getUuid()).thenReturn("test-uuid");
+            User user = UserFixture.builder().uuid("test-uuid").build();
 
             when(tokenService.validateRefreshToken("stale-refresh-token")).thenReturn(mockClaims);
-            when(userRepository.findByUuidWithProfile("test-uuid")).thenReturn(Optional.of(mockUser));
-            when(tokenService.generateAccessToken(mockUser)).thenReturn("new-access-token");
-            when(tokenService.generateRefreshToken(mockUser)).thenReturn("new-refresh-token");
+            when(userRepository.findByUuidWithProfile("test-uuid")).thenReturn(Optional.of(user));
+            when(tokenService.generateAccessToken(any(User.class))).thenReturn("new-access-token");
+            when(tokenService.generateRefreshToken(any(User.class))).thenReturn("new-refresh-token");
             when(refreshTokenService.rotateRefreshToken("test-uuid", "stale-refresh-token", "new-refresh-token"))
                     .thenReturn(false);
 

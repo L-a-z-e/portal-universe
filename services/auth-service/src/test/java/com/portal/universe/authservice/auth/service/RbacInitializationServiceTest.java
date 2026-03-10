@@ -1,13 +1,10 @@
 package com.portal.universe.authservice.auth.service;
 
-import com.portal.universe.authservice.auth.domain.MembershipTier;
 import com.portal.universe.authservice.auth.domain.RoleEntity;
-import com.portal.universe.authservice.auth.domain.UserMembership;
 import com.portal.universe.authservice.auth.domain.UserRole;
-import com.portal.universe.authservice.auth.repository.MembershipTierRepository;
 import com.portal.universe.authservice.auth.repository.RoleEntityRepository;
-import com.portal.universe.authservice.auth.repository.UserMembershipRepository;
 import com.portal.universe.authservice.auth.repository.UserRoleRepository;
+import com.portal.universe.event.auth.RoleAssignedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,10 +33,7 @@ class RbacInitializationServiceTest {
     private UserRoleRepository userRoleRepository;
 
     @Mock
-    private MembershipTierRepository membershipTierRepository;
-
-    @Mock
-    private UserMembershipRepository userMembershipRepository;
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private RbacInitializationService rbacInitializationService;
@@ -50,8 +45,8 @@ class RbacInitializationServiceTest {
     class InitializeNewUser {
 
         @Test
-        @DisplayName("should_assignRoleAndMemberships_when_newUser")
-        void should_assignRoleAndMemberships_when_newUser() {
+        @DisplayName("should_assignRoleAndPublishEvent_when_newUser")
+        void should_assignRoleAndPublishEvent_when_newUser() {
             // given
             when(userRoleRepository.findByUserId(USER_ID)).thenReturn(Collections.emptyList());
 
@@ -63,34 +58,12 @@ class RbacInitializationServiceTest {
             when(roleEntityRepository.findByRoleKey("ROLE_USER")).thenReturn(Optional.of(userRole));
             when(userRoleRepository.save(any(UserRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-            MembershipTier shoppingFree = MembershipTier.builder()
-                    .membershipGroup("user:shopping")
-                    .tierKey("FREE")
-                    .displayName("Free")
-                    .sortOrder(0)
-                    .build();
-            MembershipTier blogFree = MembershipTier.builder()
-                    .membershipGroup("user:blog")
-                    .tierKey("FREE")
-                    .displayName("Free")
-                    .sortOrder(0)
-                    .build();
-
-            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:shopping")).thenReturn(false);
-            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:blog")).thenReturn(false);
-            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:shopping", "FREE"))
-                    .thenReturn(Optional.of(shoppingFree));
-            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:blog", "FREE"))
-                    .thenReturn(Optional.of(blogFree));
-            when(userMembershipRepository.save(any(UserMembership.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(0));
-
             // when
             rbacInitializationService.initializeNewUser(USER_ID);
 
             // then
             verify(userRoleRepository).save(any(UserRole.class));
-            verify(userMembershipRepository, times(2)).save(any(UserMembership.class));
+            verify(eventPublisher).publishEvent(any(RoleAssignedEvent.class));
         }
 
         @Test
@@ -109,7 +82,7 @@ class RbacInitializationServiceTest {
 
             // then
             verify(userRoleRepository, never()).save(any(UserRole.class));
-            verify(userMembershipRepository, never()).save(any(UserMembership.class));
+            verify(eventPublisher, never()).publishEvent(any());
         }
 
         @Test
@@ -123,56 +96,6 @@ class RbacInitializationServiceTest {
             assertThatThrownBy(() -> rbacInitializationService.initializeNewUser(USER_ID))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("ROLE_USER not found");
-        }
-
-        @Test
-        @DisplayName("should_throwException_when_membershipTierNotFound")
-        void should_throwException_when_membershipTierNotFound() {
-            // given
-            when(userRoleRepository.findByUserId(USER_ID)).thenReturn(Collections.emptyList());
-
-            RoleEntity userRole = RoleEntity.builder()
-                    .roleKey("ROLE_USER")
-                    .displayName("User")
-                    .system(true)
-                    .build();
-            when(roleEntityRepository.findByRoleKey("ROLE_USER")).thenReturn(Optional.of(userRole));
-            when(userRoleRepository.save(any(UserRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:blog")).thenReturn(false);
-            when(membershipTierRepository.findByMembershipGroupAndTierKey("user:blog", "FREE"))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> rbacInitializationService.initializeNewUser(USER_ID))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("user:blog");
-        }
-
-        @Test
-        @DisplayName("should_skipMembershipCreation_when_alreadyExists")
-        void should_skipMembershipCreation_when_alreadyExists() {
-            // given
-            when(userRoleRepository.findByUserId(USER_ID)).thenReturn(Collections.emptyList());
-
-            RoleEntity userRole = RoleEntity.builder()
-                    .roleKey("ROLE_USER")
-                    .displayName("User")
-                    .system(true)
-                    .build();
-            when(roleEntityRepository.findByRoleKey("ROLE_USER")).thenReturn(Optional.of(userRole));
-            when(userRoleRepository.save(any(UserRole.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            // Both memberships already exist
-            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:shopping")).thenReturn(true);
-            when(userMembershipRepository.existsByUserIdAndMembershipGroup(USER_ID, "user:blog")).thenReturn(true);
-
-            // when
-            rbacInitializationService.initializeNewUser(USER_ID);
-
-            // then
-            verify(userRoleRepository).save(any(UserRole.class));
-            verify(userMembershipRepository, never()).save(any(UserMembership.class));
         }
     }
 }

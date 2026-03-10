@@ -1,6 +1,6 @@
 package com.portal.universe.authservice.auth.service;
 
-import com.portal.universe.authservice.LocalIntegrationTest;
+import com.portal.universe.authservice.IntegrationTest;
 import com.portal.universe.authservice.user.domain.User;
 import com.portal.universe.authservice.user.domain.UserProfile;
 import com.portal.universe.authservice.user.repository.UserRepository;
@@ -23,10 +23,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * TokenService 통합 테스트
- * Testcontainers MySQL + Redis 환경에서 실행됩니다.
+ * Testcontainers PostgreSQL + Redis 환경에서 실행됩니다.
  */
 @Transactional
-class TokenServiceIntegrationTest extends LocalIntegrationTest {
+class TokenServiceIntegrationTest extends IntegrationTest {
 
     @Autowired
     private TokenService tokenService;
