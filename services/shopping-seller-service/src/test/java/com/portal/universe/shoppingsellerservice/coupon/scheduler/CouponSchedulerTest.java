@@ -3,9 +3,10 @@ package com.portal.universe.shoppingsellerservice.coupon.scheduler;
 import com.portal.universe.event.seller.CouponUpdatedEvent;
 import com.portal.universe.shoppingsellerservice.coupon.domain.Coupon;
 import com.portal.universe.shoppingsellerservice.coupon.domain.CouponStatus;
-import com.portal.universe.shoppingsellerservice.coupon.domain.DiscountType;
 import com.portal.universe.shoppingsellerservice.coupon.repository.CouponRepository;
+import com.portal.universe.shoppingsellerservice.support.fixture.CouponFixture;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -13,9 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -26,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("CouponScheduler")
 class CouponSchedulerTest {
 
     @Mock
@@ -37,76 +37,68 @@ class CouponSchedulerTest {
     @InjectMocks
     private CouponScheduler couponScheduler;
 
-    private Coupon createCoupon(Long id, Long sellerId, String code, CouponStatus status, Instant expiresAt) {
-        Coupon coupon = Coupon.builder()
-                .sellerId(sellerId)
-                .code(code)
-                .name("Test Coupon")
-                .description("desc")
-                .discountType(DiscountType.FIXED)
-                .discountValue(BigDecimal.valueOf(1000))
-                .minimumOrderAmount(BigDecimal.valueOf(5000))
-                .maximumDiscountAmount(BigDecimal.valueOf(3000))
-                .totalQuantity(100)
-                .startsAt(Instant.now().minus(30, ChronoUnit.DAYS))
-                .expiresAt(expiresAt)
-                .build();
-        ReflectionTestUtils.setField(coupon, "id", id);
-        ReflectionTestUtils.setField(coupon, "status", status);
-        return coupon;
-    }
+    @Nested
+    @DisplayName("expireOverdueCoupons")
+    class ExpireOverdueCoupons {
 
-    @Test
-    @DisplayName("should_expireCoupons_when_expiresAtPassed")
-    void should_expireCoupons_when_expiresAtPassed() {
-        // given
-        Coupon coupon = createCoupon(1L, 10L, "EXPIRED01", CouponStatus.ACTIVE,
-                Instant.now().minus(1, ChronoUnit.DAYS));
-        when(couponRepository.findExpiredCoupons(any(Instant.class))).thenReturn(List.of(coupon));
+        @Test
+        @DisplayName("should expire coupon and publish event when expiresAt has passed")
+        void should_expire_coupon_when_overdue() {
+            // given
+            Coupon coupon = CouponFixture.builder()
+                    .id(1L).sellerId(10L).code("EXPIRED01")
+                    .expiresAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                    .build();
+            when(couponRepository.findExpiredCoupons(any(Instant.class))).thenReturn(List.of(coupon));
 
-        // when
-        couponScheduler.expireOverdueCoupons();
+            // when
+            couponScheduler.expireOverdueCoupons();
 
-        // then
-        assertThat(coupon.getStatus()).isEqualTo(CouponStatus.EXPIRED);
-        verify(couponRepository).saveAll(List.of(coupon));
+            // then
+            assertThat(coupon.getStatus()).isEqualTo(CouponStatus.EXPIRED);
+            verify(couponRepository).saveAll(List.of(coupon));
 
-        ArgumentCaptor<CouponUpdatedEvent> captor = ArgumentCaptor.forClass(CouponUpdatedEvent.class);
-        verify(eventPublisher).publishEvent(captor.capture());
-        assertThat(captor.getValue().getStatus()).isEqualTo("EXPIRED");
-    }
+            ArgumentCaptor<CouponUpdatedEvent> captor = ArgumentCaptor.forClass(CouponUpdatedEvent.class);
+            verify(eventPublisher).publishEvent(captor.capture());
+            assertThat(captor.getValue().getStatus()).isEqualTo("EXPIRED");
+        }
 
-    @Test
-    @DisplayName("should_doNothing_when_noExpiredCoupons")
-    void should_doNothing_when_noExpiredCoupons() {
-        // given
-        when(couponRepository.findExpiredCoupons(any(Instant.class))).thenReturn(Collections.emptyList());
+        @Test
+        @DisplayName("should do nothing when no expired coupons exist")
+        void should_do_nothing_when_no_expired_coupons() {
+            // given
+            when(couponRepository.findExpiredCoupons(any(Instant.class))).thenReturn(Collections.emptyList());
 
-        // when
-        couponScheduler.expireOverdueCoupons();
+            // when
+            couponScheduler.expireOverdueCoupons();
 
-        // then
-        verify(couponRepository, never()).saveAll(any());
-        verify(eventPublisher, never()).publishEvent(any(CouponUpdatedEvent.class));
-    }
+            // then
+            verify(couponRepository, never()).saveAll(any());
+            verify(eventPublisher, never()).publishEvent(any(CouponUpdatedEvent.class));
+        }
 
-    @Test
-    @DisplayName("should_expireMultipleCoupons_when_multipleExpired")
-    void should_expireMultipleCoupons_when_multipleExpired() {
-        // given
-        Coupon coupon1 = createCoupon(1L, 10L, "EXP01", CouponStatus.ACTIVE,
-                Instant.now().minus(2, ChronoUnit.DAYS));
-        Coupon coupon2 = createCoupon(2L, 20L, "EXP02", CouponStatus.ACTIVE,
-                Instant.now().minus(1, ChronoUnit.DAYS));
-        when(couponRepository.findExpiredCoupons(any(Instant.class))).thenReturn(List.of(coupon1, coupon2));
+        @Test
+        @DisplayName("should expire all coupons and publish events for each when multiple expired")
+        void should_expire_multiple_coupons() {
+            // given
+            Coupon coupon1 = CouponFixture.builder()
+                    .id(1L).sellerId(10L).code("EXP01")
+                    .expiresAt(Instant.now().minus(2, ChronoUnit.DAYS))
+                    .build();
+            Coupon coupon2 = CouponFixture.builder()
+                    .id(2L).sellerId(20L).code("EXP02")
+                    .expiresAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                    .build();
+            when(couponRepository.findExpiredCoupons(any(Instant.class))).thenReturn(List.of(coupon1, coupon2));
 
-        // when
-        couponScheduler.expireOverdueCoupons();
+            // when
+            couponScheduler.expireOverdueCoupons();
 
-        // then
-        assertThat(coupon1.getStatus()).isEqualTo(CouponStatus.EXPIRED);
-        assertThat(coupon2.getStatus()).isEqualTo(CouponStatus.EXPIRED);
-        verify(couponRepository).saveAll(List.of(coupon1, coupon2));
-        verify(eventPublisher, times(2)).publishEvent(any(CouponUpdatedEvent.class));
+            // then
+            assertThat(coupon1.getStatus()).isEqualTo(CouponStatus.EXPIRED);
+            assertThat(coupon2.getStatus()).isEqualTo(CouponStatus.EXPIRED);
+            verify(couponRepository).saveAll(List.of(coupon1, coupon2));
+            verify(eventPublisher, times(2)).publishEvent(any(CouponUpdatedEvent.class));
+        }
     }
 }
