@@ -103,9 +103,6 @@ public class RateLimitHeaderFilter implements GlobalFilter, Ordered {
         return 60; // 기본값: 60초
     }
 
-    /**
-     * ApiResponse 형식의 에러 응답 생성
-     */
     Map<String, Object> createErrorResponse(int retryAfterSeconds) {
         String customMessage = String.format("요청 한도를 초과했습니다. %d초 후에 다시 시도해주세요.", retryAfterSeconds);
         return GatewayErrorResponse.toMap(GatewayErrorCode.TOO_MANY_REQUESTS.getCode(), customMessage);

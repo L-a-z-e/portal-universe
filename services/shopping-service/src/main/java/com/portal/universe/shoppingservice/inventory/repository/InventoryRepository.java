@@ -9,11 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * 재고 엔티티에 대한 데이터 액세스를 담당하는 리포지토리입니다. (읽기 전용)
- *
- * 재고 변경(예약/차감/해제)은 shopping-seller-service에서 처리됩니다.
- */
+// 재고 변경(예약/차감/해제)은 shopping-seller-service에서 처리 (읽기 전용)
 @Repository
 public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 

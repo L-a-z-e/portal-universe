@@ -44,7 +44,7 @@ async function handleOAuth2Callback() {
     await router.replace('/');
 
   } catch (err: any) {
-    console.error('❌ [OAuth2 Callback] Error:', err);
+    console.error('[OAuth2 Callback] Error:', err);
     error.value = err.message || 'OAuth2 로그인 처리 중 오류가 발생했습니다.';
     processing.value = false;
   }

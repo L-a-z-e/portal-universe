@@ -35,8 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * PostService 구현체
- * 기존 코드베이스 기반 + PRD Phase 1 블로그 핵심 기능 구현
+ * Post CRUD, 검색, 통계, 피드 기능을 담당하는 서비스 구현체.
  */
 @Slf4j
 @Service
@@ -49,7 +48,6 @@ public class PostServiceImpl implements PostService {
     private final MongoTemplate mongoTemplate;
     private final TagService tagService;
 
-    // ===== 기존 메서드 구현 (하위 호환성) =====
 
     @Override
     @Transactional
@@ -192,7 +190,6 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
-    // ===== 블로그 핵심 기능 확장 =====
 
     @Override
     public Page<PostSummaryResponse> getPublishedPosts(int page, int size) {
@@ -380,9 +377,6 @@ public class PostServiceImpl implements PostService {
         };
     }
 
-    /**
-     * 기간 문자열을 기준으로 시작 날짜 계산
-     */
     private Instant calculateStartDateByPeriod(String period) {
         Instant now = Instant.now();
         return switch (period) {
@@ -424,7 +418,6 @@ public class PostServiceImpl implements PostService {
         return posts.map(this::convertToPostListResponse).getContent();
     }
 
-    // ===== 통계 및 메타 정보 =====
 
     /**
      * 카테고리별 통계 조회
@@ -615,7 +608,6 @@ public class PostServiceImpl implements PostService {
         );
     }
 
-    // ===== 변환 헬퍼 메서드 =====
 
     private PostResponse convertToPostResponse(Post post) {
         return new PostResponse(
@@ -668,7 +660,6 @@ public class PostServiceImpl implements PostService {
         return "사용자";
     }
 
-    // ===== 피드 기능 =====
 
     @Override
     public Page<PostSummaryResponse> getFeed(List<String> followingIds, int page, int size) {

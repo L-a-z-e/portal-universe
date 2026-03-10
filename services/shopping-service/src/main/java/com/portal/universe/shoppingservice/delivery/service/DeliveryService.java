@@ -9,44 +9,13 @@ import com.portal.universe.shoppingservice.order.domain.Order;
  */
 public interface DeliveryService {
 
-    /**
-     * 주문에 대한 배송을 생성합니다.
-     *
-     * @param order 주문 정보
-     * @return 생성된 배송 정보
-     */
     DeliveryResponse createDelivery(Order order);
 
-    /**
-     * 운송장 번호로 배송을 조회합니다.
-     *
-     * @param trackingNumber 운송장 번호
-     * @return 배송 정보
-     */
     DeliveryResponse getDeliveryByTrackingNumber(String trackingNumber, String userId);
 
-    /**
-     * 주문 번호로 배송을 조회합니다.
-     *
-     * @param orderNumber 주문 번호
-     * @param userId 현재 사용자 ID (소유권 검증)
-     * @return 배송 정보
-     */
     DeliveryResponse getDeliveryByOrderNumber(String orderNumber, String userId);
 
-    /**
-     * 배송 상태를 변경합니다 (관리자 전용).
-     *
-     * @param trackingNumber 운송장 번호
-     * @param request 상태 변경 요청
-     * @return 업데이트된 배송 정보
-     */
     DeliveryResponse updateDeliveryStatus(String trackingNumber, UpdateDeliveryStatusRequest request);
 
-    /**
-     * 배송을 취소합니다 (Saga 보상용).
-     *
-     * @param orderId 주문 ID
-     */
-    void cancelDelivery(Long orderId);
+    void cancelDelivery(Long orderId); // Saga 보상용
 }

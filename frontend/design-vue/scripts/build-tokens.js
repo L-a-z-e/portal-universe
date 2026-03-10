@@ -8,9 +8,7 @@ const __dirname = dirname(__filename);
 const tokensDir = resolve(__dirname, '../src/tokens');
 const outputFile = resolve(__dirname, '../src/styles/index.css');
 
-/**
- * 토큰 값을 재귀적으로 CSS 변수로 변환
- */
+// 토큰 값을 재귀적으로 CSS 변수로 변환
 function flattenTokens(tokens, prefix, cssVars, parentKey = '') {
     for (const [key, value] of Object.entries(tokens)) {
         if (key.startsWith('$')) continue;
@@ -28,9 +26,7 @@ function flattenTokens(tokens, prefix, cssVars, parentKey = '') {
     }
 }
 
-/**
- * 색상 참조 {color.xxx.yyy} 형식을 실제 값으로 해결
- */
+// 색상 참조 {color.xxx.yyy} 형식을 실제 값으로 해결
 function resolveColorReference(value, colorReferences) {
     if (typeof value !== 'string') return value;
 
@@ -47,14 +43,7 @@ function resolveColorReference(value, colorReferences) {
     }
 }
 
-/**
- * 테마 색상 객체를 CSS 변수로 변환 (darkMode 지원)
- * @param {Object} obj - 색상 객체
- * @param {Map} targetMap - 대상 CSS 변수 맵
- * @param {Object} colorReferences - 색상 참조 맵
- * @param {string} prefix - CSS 변수 접두사
- * @param {string} parentKey - 부모 키
- */
+// 테마 색상 객체를 CSS 변수로 변환 (darkMode 지원)
 function processThemeColors(obj, targetMap, colorReferences, prefix = '--semantic', parentKey = '') {
     for (const [key, value] of Object.entries(obj)) {
         if (key.startsWith('$') || key === 'darkMode') continue;
@@ -74,9 +63,7 @@ function processThemeColors(obj, targetMap, colorReferences, prefix = '--semanti
     }
 }
 
-/**
- * 토큰 파일들을 읽고 CSS 변수로 변환
- */
+// 토큰 파일들을 읽고 CSS 변수로 변환
 function buildTokens() {
     const cssVariables = new Map();
     const themes = new Map();
@@ -85,7 +72,7 @@ function buildTokens() {
     const unresolvedReferences = new Set();
 
     try {
-        console.log('📖 Step 1: Building color reference map...');
+        console.log('Step 1: Building color reference map...');
 
         try {
             const colorPath = join(tokensDir, 'base', 'colors.json');
@@ -110,17 +97,17 @@ function buildTokens() {
 
             buildColorMap(colorTokens.color || colorTokens, 'color');
 
-            console.log(`  ✅ Color reference map built (${Object.keys(colorReferences).length} colors)`);
+            console.log(`  Color reference map built (${Object.keys(colorReferences).length} colors)`);
 
             const colorRefSample = Object.entries(colorReferences).slice(0, 5);
             colorRefSample.forEach(([key, val]) => {
                 console.log(`     • ${key}: ${val}`);
             });
         } catch (err) {
-            console.log(`  ⚠️  Error building color reference map: ${err.message}`);
+            console.log(`  Error building color reference map: ${err.message}`);
         }
 
-        console.log('📖 Step 2: Reading base tokens...');
+        console.log('Step 2: Reading base tokens...');
 
         ['colors', 'typography', 'spacing', 'border', 'effects'].forEach(tokenType => {
             const filePath = join(tokensDir, 'base', `${tokenType}.json`);
@@ -149,13 +136,13 @@ function buildTokens() {
                 }
 
                 flattenTokens(tokenContent, prefix, cssVariables);
-                console.log(`  ✅ ${tokenType}.json loaded`);
+                console.log(`  ${tokenType}.json loaded`);
             } catch (err) {
-                console.log(`  ⚠️  ${tokenType}.json not found or invalid`);
+                console.log(`  ${tokenType}.json not found or invalid`);
             }
         });
 
-        console.log('📖 Step 3: Reading semantic tokens...');
+        console.log('Step 3: Reading semantic tokens...');
         try {
             const semanticPath = join(tokensDir, 'semantic', 'colors.json');
             const content = readFileSync(semanticPath, 'utf-8');
@@ -202,12 +189,12 @@ function buildTokens() {
             }
 
             processSemantic(semanticContent);
-            console.log('  ✅ semantic/colors.json loaded');
+            console.log('  semantic/colors.json loaded');
         } catch (err) {
-            console.log(`  ⚠️  semantic/colors.json not found or invalid: ${err.message}`);
+            console.log(`  semantic/colors.json not found or invalid: ${err.message}`);
         }
 
-        console.log('📖 Step 4: Reading theme tokens (with darkMode/lightMode support)...');
+        console.log('Step 4: Reading theme tokens (with darkMode/lightMode support)...');
         const themeFiles = ['portal', 'blog', 'shopping'];
         const themeLightModes = new Map(); // For dark-first themes like portal
 
@@ -271,18 +258,18 @@ function buildTokens() {
                     }
                 }
 
-                console.log(`  ✅ themes/${themeName}.json loaded (${themeName === 'portal' ? 'dark-first' : 'light-first'})`);
+                console.log(`  themes/${themeName}.json loaded (${themeName === 'portal' ? 'dark-first' : 'light-first'})`);
             } catch (err) {
-                console.log(`  ⚠️  themes/${themeName}.json not found or invalid: ${err.message}`);
+                console.log(`  themes/${themeName}.json not found or invalid: ${err.message}`);
             }
         });
 
         if (unresolvedReferences.size > 0) {
-            console.log('\n⚠️  UNRESOLVED REFERENCES:');
+            console.log('\nUNRESOLVED REFERENCES:');
             Array.from(unresolvedReferences).sort().forEach(ref => {
                 console.log(`   • {${ref}}`);
             });
-            console.log('\n📋 Available colors in reference map:');
+            console.log('\nAvailable colors in reference map:');
             const availableColors = Object.keys(colorReferences)
                 .filter(k => k.startsWith('color.'))
                 .sort();
@@ -293,10 +280,10 @@ function buildTokens() {
                 console.log(`   ... and ${availableColors.length - 30} more`);
             }
         } else {
-            console.log('\n✅ All color references resolved successfully!');
+            console.log('\nAll color references resolved successfully!');
         }
 
-        console.log('\n🎨 Step 5: Generating CSS with Linear theme support...');
+        console.log('\nStep 5: Generating CSS with Linear theme support...');
 
         let cssContent = `@tailwind base;
 @tailwind components;
@@ -455,15 +442,15 @@ function buildTokens() {
 `;
 
         writeFileSync(outputFile, cssContent, 'utf-8');
-        console.log(`✅ CSS variables written to: ${outputFile}`);
-        console.log(`📊 Total base variables: ${cssVariables.size}`);
-        console.log(`🎨 Service themes generated: ${themes.size}`);
-        console.log(`🌙 Dark mode overrides: ${themeDarkModes.size}`);
-        console.log(`☀️  Light mode overrides: ${themeLightModes.size}`);
-        console.log('\n✨ Design tokens built successfully with Linear theme support!');
+        console.log(`CSS variables written to: ${outputFile}`);
+        console.log(`Total base variables: ${cssVariables.size}`);
+        console.log(`Service themes generated: ${themes.size}`);
+        console.log(`Dark mode overrides: ${themeDarkModes.size}`);
+        console.log(`Light mode overrides: ${themeLightModes.size}`);
+        console.log('\nDesign tokens built successfully with Linear theme support!');
 
     } catch (error) {
-        console.error('❌ Fatal error:', error.message);
+        console.error('Fatal error:', error.message);
         process.exit(1);
     }
 }

@@ -33,7 +33,6 @@ export class TaskService {
     boardId: number,
     dto: CreateTaskDto,
   ): Promise<TaskResponseDto> {
-    // Verify board exists and belongs to user
     const board = await this.boardRepository.findOne({
       where: { id: boardId, userId },
     });
@@ -41,7 +40,6 @@ export class TaskService {
       throw BusinessException.notFound('Board');
     }
 
-    // Verify agent if provided
     if (dto.agentId) {
       const agent = await this.agentRepository.findOne({
         where: { id: dto.agentId, userId },
@@ -51,7 +49,6 @@ export class TaskService {
       }
     }
 
-    // Get max position
     const maxPosition = await this.taskRepository
       .createQueryBuilder('task')
       .where('task.boardId = :boardId', { boardId })
@@ -74,7 +71,6 @@ export class TaskService {
     const saved = await this.taskRepository.save(task);
     const result = await this.findOne(userId, saved.id);
 
-    // Emit SSE event
     this.sseService.emitTaskCreated(userId, boardId, result);
 
     return result;
@@ -84,7 +80,6 @@ export class TaskService {
     userId: string,
     boardId: number,
   ): Promise<TaskResponseDto[]> {
-    // Verify board
     const board = await this.boardRepository.findOne({
       where: { id: boardId, userId },
     });
@@ -140,7 +135,6 @@ export class TaskService {
     await this.taskRepository.save(task);
     const result = await this.findOne(userId, id);
 
-    // Emit SSE event
     this.sseService.emitTaskUpdated(userId, task.boardId, result);
 
     return result;
@@ -152,7 +146,6 @@ export class TaskService {
     const taskId = task.id;
     await this.taskRepository.remove(task);
 
-    // Emit SSE event
     this.sseService.emitTaskDeleted(userId, boardId, taskId);
   }
 
@@ -166,7 +159,6 @@ export class TaskService {
     task.position = dto.position;
     await this.taskRepository.save(task);
 
-    // Emit SSE event
     this.sseService.emitTaskMoved(
       userId,
       task.boardId,
@@ -179,7 +171,6 @@ export class TaskService {
     return this.findOne(userId, id);
   }
 
-  // State transition methods
   async execute(userId: string, id: number): Promise<TaskResponseDto> {
     return this.performAction(userId, id, 'execute', true);
   }
@@ -225,16 +216,12 @@ export class TaskService {
     return this.findByIdAndUser(userId, id);
   }
 
-  /**
-   * Get execution context for a task (previous executions + referenced task results)
-   */
   async getContext(
     userId: string,
     id: number,
   ): Promise<TaskContextResponseDto> {
     const task = await this.findByIdAndUser(userId, id);
 
-    // Get previous executions for this task (with agent info)
     const previousExecutions = await this.executionRepository.find({
       where: { taskId: id },
       relations: ['agent'],
@@ -242,7 +229,6 @@ export class TaskService {
       take: 10,
     });
 
-    // Get referenced tasks with their last execution
     const referencedTasks: TaskContextResponseDto['referencedTasks'] = [];
 
     if (task.referencedTaskIds && task.referencedTaskIds.length > 0) {

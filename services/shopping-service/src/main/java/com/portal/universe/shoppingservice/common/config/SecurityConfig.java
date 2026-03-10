@@ -24,12 +24,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /**
-     * Actuator 엔드포인트(/actuator/**)에 대한 보안 필터 체인을 설정합니다.
-     * - /actuator/health, /actuator/info: 공개 (상태 확인용)
-     * - /actuator/prometheus, /actuator/metrics: 내부망 전용 (Prometheus 스크래핑)
-     * - 나머지: 차단
-     */
     @Bean
     @Order(0)
     public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -44,9 +38,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Swagger UI 및 OpenAPI 문서 엔드포인트에 대한 보안 필터 체인을 설정합니다.
-     */
     @Bean
     @Order(1)
     public SecurityFilterChain swaggerSecurityFilterChain(HttpSecurity http) throws Exception {

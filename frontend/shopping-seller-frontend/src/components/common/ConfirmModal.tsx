@@ -1,7 +1,3 @@
-/**
- * ConfirmModal Component
- * design-system Modal 기반 확인 모달
- */
 import React from 'react'
 import { Modal, Button } from '@portal/design-react'
 

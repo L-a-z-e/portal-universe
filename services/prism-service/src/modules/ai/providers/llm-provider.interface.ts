@@ -14,18 +14,7 @@ export interface LLMRequest {
 }
 
 export interface LLMProvider {
-  /**
-   * Generate a completion from the LLM
-   */
   generate(request: LLMRequest): Promise<LLMResponse>;
-
-  /**
-   * List available models
-   */
   listModels(): Promise<string[]>;
-
-  /**
-   * Test connection to the provider
-   */
   testConnection(): Promise<boolean>;
 }

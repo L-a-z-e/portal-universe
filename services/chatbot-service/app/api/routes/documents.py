@@ -23,7 +23,6 @@ async def upload_document(
     file: UploadFile,
     user_id: str = Depends(require_admin),
 ):
-    """문서 업로드 및 인덱싱."""
     if not file.filename:
         raise BusinessException(ChatbotErrorCode.INVALID_FILENAME, "Filename required")
 
@@ -79,7 +78,6 @@ def _list_files(doc_dir: Path) -> list[Path]:
 
 @router.get("")
 async def list_documents(user_id: str = Depends(get_current_user_id)):
-    """인덱싱된 문서 목록."""
     doc_dir = Path(settings.documents_dir)
     documents = []
     files = await asyncio.to_thread(_list_files, doc_dir)
@@ -101,7 +99,6 @@ async def delete_document(
     document_id: str,
     user_id: str = Depends(require_admin),
 ):
-    """문서 삭제 및 벡터 제거."""
     # document_id로 파일 찾기 (메타데이터 또는 파일명 매핑)
     doc_dir = Path(settings.documents_dir).resolve()
     target_file: Path | None = None
@@ -143,7 +140,6 @@ async def delete_document(
 
 @router.post("/reindex")
 async def reindex_all(user_id: str = Depends(require_admin)):
-    """전체 문서 재인덱싱."""
     doc_dir = Path(settings.documents_dir)
     indexed = []
 

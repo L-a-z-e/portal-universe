@@ -23,9 +23,7 @@ class LLMProvider(ABC):
     _model: BaseChatModel
 
     @abstractmethod
-    def get_chat_model(self) -> BaseChatModel:
-        """LangChain ChatModel 인스턴스 반환."""
-        ...
+    def get_chat_model(self) -> BaseChatModel: ...
 
     def _build_messages(
         self,
@@ -64,7 +62,6 @@ class LLMProvider(ABC):
         context: str,
         conversation_history: list[dict] | None = None,
     ) -> str:
-        """동기 응답 생성."""
         messages = self._build_messages(prompt, context, conversation_history)
         response = await self._model.ainvoke(messages)
         return str(response.content)
@@ -75,7 +72,6 @@ class LLMProvider(ABC):
         context: str,
         conversation_history: list[dict] | None = None,
     ) -> AsyncIterator[str]:
-        """스트리밍 토큰 생성."""
         messages = self._build_messages(prompt, context, conversation_history)
         async for chunk in self._model.astream(messages):
             if chunk.content:
@@ -86,14 +82,10 @@ class EmbeddingProvider(ABC):
     """Embedding Provider 추상 인터페이스."""
 
     @abstractmethod
-    def get_embeddings(self) -> Embeddings:
-        """LangChain Embeddings 인스턴스 반환."""
-        ...
+    def get_embeddings(self) -> Embeddings: ...
 
     async def embed_text(self, text: str) -> list[float]:
-        """단일 텍스트 임베딩 생성."""
         return await self.get_embeddings().aembed_query(text)
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        """배치 텍스트 임베딩 생성."""
         return await self.get_embeddings().aembed_documents(texts)

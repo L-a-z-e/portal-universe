@@ -28,47 +28,35 @@ public class FrontendProperties {
      */
     private String host;
 
-    /**
-     * 스킴 (http, https)
-     */
     private String scheme = "http";
 
-    /**
-     * 포트
-     */
     private int port = 30000;
 
-    /**
-     * 초기화 후 baseUrl에서 개별 값들 파싱
-     */
     @PostConstruct
     public void init() {
         if (StringUtils.hasText(baseUrl)) {
             try {
                 URI uri = URI.create(baseUrl);
 
-                // host가 명시적으로 설정되지 않았으면 baseUrl에서 추출
                 if (host == null) {
-                    this.host = uri.getAuthority();  // host:port 형태
+                    this.host = uri.getAuthority();
                 }
 
-                // scheme이 기본값이면 baseUrl에서 추출
                 if ("http".equals(scheme)) {
                     this.scheme = uri.getScheme();
                 }
 
-                // port가 기본값이면 baseUrl에서 추출
                 if (port == 30000) {
                     int uriPort = uri.getPort();
                     this.port = uriPort == -1 ?
                             ("https".equals(scheme) ? 443 : 80) : uriPort;
                 }
 
-                log.info("🔧 Frontend Properties initialized: baseUrl={}, host={}, scheme={}, port={}",
+                log.info("Frontend Properties initialized: baseUrl={}, host={}, scheme={}, port={}",
                         baseUrl, host, scheme, port);
 
             } catch (Exception e) {
-                log.warn("⚠️ Failed to parse baseUrl: {}. Using defaults.", baseUrl);
+                log.warn("Failed to parse baseUrl: {}. Using defaults.", baseUrl);
             }
         }
     }

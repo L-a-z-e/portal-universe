@@ -46,11 +46,9 @@ public class CartServiceImpl implements CartService {
     public CartResponse addItem(String userId, AddCartItemRequest request) {
         Cart cart = getOrCreateActiveCart(userId);
 
-        // 상품 정보 조회
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.PRODUCT_NOT_FOUND));
 
-        // 이미 장바구니에 있는 상품인 경우 수량 증가, 없으면 새로 추가
         cart.findItemByProductId(request.productId())
                 .ifPresentOrElse(
                         existingItem -> {
@@ -80,13 +78,11 @@ public class CartServiceImpl implements CartService {
     public CartResponse updateItemQuantity(String userId, Long itemId, UpdateCartItemRequest request) {
         Cart cart = getActiveCartWithItems(userId);
 
-        // 항목 찾기
         CartItem item = cart.getItems().stream()
                 .filter(i -> i.getId().equals(itemId))
                 .findFirst()
                 .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.CART_ITEM_NOT_FOUND));
 
-        // 재고 확인
         validateStockAvailability(item.getProductId(), request.quantity());
 
         cart.updateItemQuantity(itemId, request.quantity());
@@ -123,7 +119,7 @@ public class CartServiceImpl implements CartService {
     public CartResponse checkout(String userId) {
         Cart cart = getActiveCartWithItems(userId);
 
-        // 모든 항목의 재고를 한 번에 조회하여 검증
+        // N+1 방지를 위해 배치 조회
         Map<Long, Integer> requirements = cart.getItems().stream()
                 .collect(Collectors.toMap(CartItem::getProductId, CartItem::getQuantity));
         validateStockAvailability(requirements);
@@ -135,9 +131,6 @@ public class CartServiceImpl implements CartService {
         return CartResponse.from(savedCart);
     }
 
-    /**
-     * 사용자의 활성 장바구니를 조회하거나, 없으면 새로 생성합니다.
-     */
     @Transactional
     protected Cart getOrCreateActiveCart(String userId) {
         var carts = cartRepository.findActiveCartWithItems(userId);
@@ -150,9 +143,6 @@ public class CartServiceImpl implements CartService {
         return cartRepository.save(newCart);
     }
 
-    /**
-     * 사용자의 활성 장바구니를 조회합니다 (항목 포함).
-     */
     private Cart getActiveCartWithItems(String userId) {
         var carts = cartRepository.findActiveCartWithItems(userId);
         if (carts.isEmpty()) {

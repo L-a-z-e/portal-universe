@@ -33,64 +33,34 @@ public class Delivery extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * 운송장 번호
-     */
     @Column(name = "tracking_number", nullable = false, unique = true, length = 30)
     private String trackingNumber;
 
-    /**
-     * 주문 ID
-     */
     @Column(name = "order_id", nullable = false)
     private Long orderId;
 
-    /**
-     * 주문 번호
-     */
     @Column(name = "order_number", nullable = false, length = 30)
     private String orderNumber;
 
-    /**
-     * 주문자 ID (소유권 검증용 denormalization)
-     */
     @Column(name = "user_id", nullable = false, length = 50)
-    private String userId;
+    private String userId; // 소유권 검증용 denormalization
 
-    /**
-     * 배송 상태
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private DeliveryStatus status;
 
-    /**
-     * 택배사
-     */
     @Column(name = "carrier", length = 50)
     private String carrier;
 
-    /**
-     * 배송지 주소
-     */
     @Embedded
     private Address shippingAddress;
 
-    /**
-     * 예상 배송일
-     */
     @Column(name = "estimated_delivery_date")
     private LocalDate estimatedDeliveryDate;
 
-    /**
-     * 실제 배송 완료일
-     */
     @Column(name = "actual_delivery_date")
     private LocalDate actualDeliveryDate;
 
-    /**
-     * 배송 이력
-     */
     @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt DESC")
     private List<DeliveryHistory> histories = new ArrayList<>();
@@ -107,9 +77,6 @@ public class Delivery extends BaseEntity {
         this.estimatedDeliveryDate = LocalDate.now().plusDays(3); // 기본 3일 후
     }
 
-    /**
-     * 배송 상태를 변경합니다.
-     */
     public void updateStatus(DeliveryStatus newStatus, String location, String description) {
         if (!this.status.canTransitionTo(newStatus)) {
             throw new CustomBusinessException(ShoppingErrorCode.INVALID_DELIVERY_STATUS);
@@ -126,30 +93,18 @@ public class Delivery extends BaseEntity {
         addHistory(newStatus, location, description);
     }
 
-    /**
-     * 배송을 발송 처리합니다.
-     */
     public void ship(String location, String description) {
         updateStatus(DeliveryStatus.SHIPPED, location, description);
     }
 
-    /**
-     * 배송 중 상태로 변경합니다.
-     */
     public void transit(String location, String description) {
         updateStatus(DeliveryStatus.IN_TRANSIT, location, description);
     }
 
-    /**
-     * 배송 완료 처리합니다.
-     */
     public void deliver(String location, String description) {
         updateStatus(DeliveryStatus.DELIVERED, location, description);
     }
 
-    /**
-     * 배송을 취소합니다.
-     */
     public void cancel(String reason) {
         if (!this.status.isCancellable()) {
             throw new CustomBusinessException(ShoppingErrorCode.DELIVERY_CANNOT_BE_CANCELLED);
@@ -158,9 +113,6 @@ public class Delivery extends BaseEntity {
         addHistory(DeliveryStatus.CANCELLED, null, reason);
     }
 
-    /**
-     * 배송 이력을 추가합니다.
-     */
     private void addHistory(DeliveryStatus status, String location, String description) {
         DeliveryHistory history = DeliveryHistory.builder()
                 .delivery(this)
@@ -172,10 +124,7 @@ public class Delivery extends BaseEntity {
         this.histories.add(history);
     }
 
-    /**
-     * 운송장 번호를 생성합니다.
-     * 형식: TRK-XXXXXXXXXXXX (12자리)
-     */
+    // 형식: TRK-XXXXXXXXXXXX (12자리)
     private static String generateTrackingNumber() {
         return "TRK-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
     }

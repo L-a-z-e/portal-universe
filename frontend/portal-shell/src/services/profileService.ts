@@ -1,17 +1,7 @@
 // portal-shell/src/services/profileService.ts
-/**
- * Profile Service
- * - Profile CRUD operations
- * - Password change
- * - Account deletion
- */
 
 import { authService } from './authService';
 import { throwIfNotOk } from './fetchUtils';
-
-// ====================================================================
-// Types
-// ====================================================================
 
 export interface ProfileResponse {
   uuid: string;
@@ -45,22 +35,11 @@ export interface DeleteAccountRequest {
   reason?: string;
 }
 
-// ====================================================================
-// Configuration
-// ====================================================================
-
 function getApiBaseUrl(): string {
   return import.meta.env.VITE_API_BASE_URL || window.location.origin;
 }
 
-// ====================================================================
-// Profile Service
-// ====================================================================
-
 class ProfileServiceClass {
-  /**
-   * Get authenticated headers with access token
-   */
   private async getAuthHeaders(): Promise<HeadersInit> {
     // Ensure token is fresh
     await authService.autoRefreshIfNeeded();
@@ -76,9 +55,6 @@ class ProfileServiceClass {
     };
   }
 
-  /**
-   * Get my profile
-   */
   async getProfile(): Promise<ProfileResponse> {
     const apiBase = getApiBaseUrl();
 
@@ -102,9 +78,6 @@ class ProfileServiceClass {
     }
   }
 
-  /**
-   * Update profile
-   */
   async updateProfile(request: UpdateProfileRequest): Promise<ProfileResponse> {
     const apiBase = getApiBaseUrl();
 
@@ -129,9 +102,6 @@ class ProfileServiceClass {
     }
   }
 
-  /**
-   * Change password
-   */
   async changePassword(request: ChangePasswordRequest): Promise<void> {
     const apiBase = getApiBaseUrl();
 
@@ -152,9 +122,6 @@ class ProfileServiceClass {
     }
   }
 
-  /**
-   * Delete account (soft delete)
-   */
   async deleteAccount(request: DeleteAccountRequest): Promise<void> {
     const apiBase = getApiBaseUrl();
 
@@ -179,15 +146,7 @@ class ProfileServiceClass {
   }
 }
 
-// ====================================================================
-// Singleton instance
-// ====================================================================
-
 export const profileService = new ProfileServiceClass();
-
-// ====================================================================
-// Public API
-// ====================================================================
 
 export async function getProfile(): Promise<ProfileResponse> {
   return profileService.getProfile();

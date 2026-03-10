@@ -144,7 +144,6 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 
 def register_exception_handlers(app) -> None:
-    """Register all exception handlers on the FastAPI app."""
     app.add_exception_handler(BusinessException, business_exception_handler)
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)

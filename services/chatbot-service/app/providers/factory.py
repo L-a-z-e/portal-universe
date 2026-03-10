@@ -7,7 +7,6 @@ class ProviderFactory:
 
     @staticmethod
     def create_llm(provider: str | None = None) -> LLMProvider:
-        """LLM Provider 인스턴스 생성."""
         provider = provider or settings.ai_provider
         match provider:
             case "openai":
@@ -31,7 +30,6 @@ class ProviderFactory:
 
     @staticmethod
     def create_embedding(provider: str | None = None) -> EmbeddingProvider:
-        """Embedding Provider 인스턴스 생성."""
         provider = provider or settings.embedding_provider
         api_key = settings.embedding_api_key or settings.ai_api_key
         match provider:

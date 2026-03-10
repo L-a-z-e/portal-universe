@@ -33,9 +33,6 @@ public class SeriesService {
     private final SeriesRepository seriesRepository;
     private final PostRepository postRepository;
 
-    /**
-     * 시리즈 생성
-     */
     public SeriesResponse createSeries(SeriesCreateRequest request, String authorId, String authorUsername, String authorNickname) {
         Series series = Series.builder()
                 .name(request.name())
@@ -50,9 +47,6 @@ public class SeriesService {
         return toResponse(series);
     }
 
-    /**
-     * 시리즈 수정
-     */
     public SeriesResponse updateSeries(String seriesId, SeriesUpdateRequest request, String authorId) {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
@@ -70,9 +64,6 @@ public class SeriesService {
         return toResponse(series);
     }
 
-    /**
-     * 시리즈 삭제
-     */
     public void deleteSeries(String seriesId, String authorId) {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
@@ -83,9 +74,6 @@ public class SeriesService {
         seriesRepository.delete(series);
     }
 
-    /**
-     * 시리즈 상세 조회
-     */
     @Transactional(readOnly = true)
     public SeriesResponse getSeriesById(String seriesId) {
         Series series = seriesRepository.findById(seriesId)
@@ -93,9 +81,6 @@ public class SeriesService {
         return toResponse(series);
     }
 
-    /**
-     * 전체 시리즈 목록 조회
-     */
     @Transactional(readOnly = true)
     public List<SeriesListResponse> getAllSeries() {
         List<Series> seriesList = seriesRepository.findAllByOrderByUpdatedAtDesc();
@@ -104,9 +89,6 @@ public class SeriesService {
                 .toList();
     }
 
-    /**
-     * 작성자별 시리즈 목록 조회
-     */
     @Transactional(readOnly = true)
     public List<SeriesListResponse> getSeriesByAuthor(String authorId) {
         List<Series> seriesList = seriesRepository.findByAuthorIdOrderByCreatedAtDesc(authorId);
@@ -115,9 +97,6 @@ public class SeriesService {
                 .toList();
     }
 
-    /**
-     * 시리즈에 포스트 추가
-     */
     public SeriesResponse addPostToSeries(String seriesId, String postId, String authorId) {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
@@ -135,9 +114,6 @@ public class SeriesService {
         return toResponse(series);
     }
 
-    /**
-     * 시리즈에서 포스트 제거
-     */
     public SeriesResponse removePostFromSeries(String seriesId, String postId, String authorId) {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
@@ -155,9 +131,6 @@ public class SeriesService {
         return toResponse(series);
     }
 
-    /**
-     * 시리즈 내 포스트 순서 변경
-     */
     public SeriesResponse reorderPosts(String seriesId, SeriesPostOrderRequest request, String authorId) {
         Series series = seriesRepository.findById(seriesId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.SERIES_NOT_FOUND));
@@ -199,9 +172,6 @@ public class SeriesService {
                 .toList();
     }
 
-    /**
-     * 특정 포스트가 포함된 시리즈 조회
-     */
     @Transactional(readOnly = true)
     public List<SeriesListResponse> getSeriesByPostId(String postId) {
         List<Series> seriesList = seriesRepository.findByPostIdsContaining(postId);
@@ -209,8 +179,6 @@ public class SeriesService {
                 .map(this::toListResponse)
                 .toList();
     }
-
-    // ========== 변환 메서드 ==========
 
     private SeriesResponse toResponse(Series series) {
         return new SeriesResponse(

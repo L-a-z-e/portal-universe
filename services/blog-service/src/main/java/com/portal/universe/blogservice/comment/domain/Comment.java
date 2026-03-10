@@ -48,42 +48,25 @@ public class Comment extends BaseDocument {
     @Builder.Default
     private Boolean isDeleted = false;
 
-    // ========== 비즈니스 메서드 ==========
-
-    /**
-     * 댓글 수정
-     */
     public void update(String content) {
         this.content = content;
         // updatedAt is managed by BaseDocument @LastModifiedDate
     }
 
-    /**
-     * 댓글 삭제 (soft delete)
-     */
     public void delete() {
         this.isDeleted = true;
     }
 
-    /**
-     * 좋아요 증가
-     */
     public void incrementLikeCount() {
         this.likeCount++;
     }
 
-    /**
-     * 좋아요 감소
-     */
     public void decrementLikeCount() {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
     }
 
-    /**
-     * 루트 댓글인지 확인
-     */
     public boolean isRootComment() {
         return parentCommentId == null;
     }

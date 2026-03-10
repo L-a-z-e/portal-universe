@@ -16,28 +16,23 @@ const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 
 
 if (isEmbedded) {
-  // ============================================
   // Embedded 모드: Portal Shell에서 mountBlogApp() 호출 대기
-  // ============================================
-
   // bootstrap.ts의 mountBlogApp이 export되므로 Portal Shell이 사용 가능
 
 } else {
-  // ============================================
   // Standalone 모드: 즉시 마운트
-  // ============================================
-  console.group('📦 [Blog] Starting in STANDALONE mode');
+  console.group('[Blog] Starting in STANDALONE mode');
 
   const appElement = document.querySelector('#app') as HTMLElement | null;
 
   if (!appElement) {
-    console.error('❌ [Blog] #app element not found!');
+    console.error('[Blog] #app element not found!');
     console.groupEnd();
     throw new Error('[Blog] Mount target not found');
   }
 
   try {
-    // ✅ 방법 1: Web History 사용 (권장)
+    // Web History 사용
     const app = createApp(App);
     const pinia = createPinia();
     const router = createStandaloneBlogRouter();
@@ -48,7 +43,7 @@ if (isEmbedded) {
     app.mount(appElement);
 
 
-    // ✅ 방법 2: mountBlogApp 재사용 (대안)
+    // 대안: mountBlogApp 재사용
     // mountBlogApp(appElement, {
     //   onNavigate: (path) => {
     //     console.log(`📍 [Standalone] Navigation: ${path}`);
@@ -56,15 +51,12 @@ if (isEmbedded) {
     // });
 
   } catch (err) {
-    console.error('❌ [Blog] Mount failed:', err);
+    console.error('[Blog] Mount failed:', err);
   }
 
   console.groupEnd();
 }
 
-// ============================================
-// Type Declarations
-// ============================================
 declare global {
   interface Window {
     /**

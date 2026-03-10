@@ -130,7 +130,7 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 function initEditor(content: string) {
 
   if (!editorElement.value) {
-    console.error('❌ [ERROR] editorElement is null!');
+    console.error('[PostEditPage] editorElement is null!');
     return;
   }
 
@@ -168,7 +168,7 @@ function initEditor(content: string) {
           callback(response.url, file.name);
 
         } catch (error) {
-          console.error('❌ 이미지 업로드 실패:', error);
+          console.error('[PostEditPage] 이미지 업로드 실패:', error);
           handleError(error, '이미지 업로드에 실패했습니다.');
         }
       }
@@ -194,7 +194,7 @@ watch(() => postData.value, async (newPost) => {
     if (editorElement.value) {
       initEditor(newPost.content);
     } else {
-      console.error('❌ [WATCH ERROR] editorElement still null after nextTick');
+      console.error('[PostEditPage] editorElement still null after nextTick');
     }
   }
 });

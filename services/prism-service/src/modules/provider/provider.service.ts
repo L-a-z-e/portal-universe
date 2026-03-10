@@ -30,7 +30,6 @@ export class ProviderService {
     userId: string,
     dto: CreateProviderDto,
   ): Promise<ProviderResponseDto> {
-    // Check for duplicate name
     const existing = await this.providerRepository.findOne({
       where: { userId, name: dto.name },
     });
@@ -120,7 +119,6 @@ export class ProviderService {
         provider.baseUrl,
       );
 
-      // Update models in database
       provider.models = models;
       await this.providerRepository.save(provider);
 
@@ -143,7 +141,6 @@ export class ProviderService {
       return provider.models;
     }
 
-    // Fetch fresh models
     const apiKey = this.encryptionUtil.decrypt(provider.apiKeyEncrypted);
     const models = await this.fetchModels(
       provider.providerType,
@@ -157,7 +154,6 @@ export class ProviderService {
     return models;
   }
 
-  // Internal methods
   private async findByIdAndUser(
     userId: string,
     id: number,

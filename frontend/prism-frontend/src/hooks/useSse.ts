@@ -20,9 +20,6 @@ interface UseSseOptions {
 const SSE_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 const MAX_RECONNECT_ATTEMPTS = 5;
 
-/**
- * Get access token from various sources
- */
 function getAccessToken(): string | null {
   if (isBridgeReady()) {
     return getAdapter('auth').getAccessToken?.() ?? null;
@@ -30,9 +27,6 @@ function getAccessToken(): string | null {
   return null;
 }
 
-/**
- * Parse SSE event from text line
- */
 function parseSseEvent(lines: string[]): { event?: string; data?: string; id?: string } {
   const result: { event?: string; data?: string; id?: string } = {};
   for (const line of lines) {

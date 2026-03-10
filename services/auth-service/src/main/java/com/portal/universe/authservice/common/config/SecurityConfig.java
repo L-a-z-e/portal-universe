@@ -27,11 +27,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.filter.ForwardedHeaderFilter;
 
 /**
- * 애플리케이션의 전반적인 웹 보안 설정을 담당하는 클래스입니다.
- * Spring Security의 필터 체인을 구성하여 요청에 대한 인증 및 인가를 처리합니다.
- *
- * OAuth2 소셜 로그인은 ClientRegistrationRepository가 존재할 때만 활성화됩니다.
- * (OAuth2 클라이언트 설정이 없는 환경에서도 서비스가 정상 시작됩니다)
+ * Auth 서비스 보안 설정.
+ * OAuth2 소셜 로그인은 ClientRegistrationRepository가 존재할 때만 활성화된다.
  */
 @Configuration
 @EnableWebSecurity

@@ -65,7 +65,7 @@ public class EmailQueueConsumer {
 
         // TODO: 실제 환경에서는 SES로 이메일 발송
         // sesClient.sendEmail(...)
-        log.info("📧 [EMAIL] To: {} | Subject: {} | Body: {} | Link: {}",
+        log.info("[EMAIL] To: {} | Subject: {} | Body: {} | Link: {}",
                 emailMessage.userId(),
                 emailMessage.subject(),
                 emailMessage.body(),

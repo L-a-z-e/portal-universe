@@ -3,23 +3,19 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-/**
- * Prism Frontend Entry Point
- *
- * - Embedded 모드: Portal Shell에서 bootstrap.tsx의 mountPrismApp() 호출
- * - Standalone 모드: 직접 브라우저에서 접근 시 독립 실행
- */
+// Embedded: Portal Shell에서 bootstrap.tsx의 mountPrismApp() 호출
+// Standalone: 직접 브라우저에서 접근 시 독립 실행
 const isEmbedded = window.__POWERED_BY_PORTAL_SHELL__ === true;
 
 
 if (isEmbedded) {
 } else {
-  console.group('📦 [Prism] Starting in STANDALONE mode');
+  console.group('[Prism] Starting in STANDALONE mode');
 
   const appElement = document.getElementById('root');
 
   if (!appElement) {
-    console.error('❌ [Prism] #root element not found!');
+    console.error('[Prism] #root element not found!');
     console.groupEnd();
     throw new Error('[Prism] Mount target not found');
   }
@@ -35,7 +31,7 @@ if (isEmbedded) {
     );
 
   } catch (err) {
-    console.error('❌ [Prism] Mount failed:', err);
+    console.error('[Prism] Mount failed:', err);
   }
 
   console.groupEnd();

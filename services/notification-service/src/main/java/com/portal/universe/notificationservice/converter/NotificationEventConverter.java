@@ -23,8 +23,6 @@ public class NotificationEventConverter {
 
     private static final NumberFormat PRICE_FORMAT = NumberFormat.getNumberInstance(Locale.KOREA);
 
-    // ===== Shopping Events =====
-
     public CreateNotificationCommand convert(OrderCreatedEvent event) {
         return new CreateNotificationCommand(
                 event.getUserId(),
@@ -99,8 +97,6 @@ public class NotificationEventConverter {
         );
     }
 
-    // ===== Blog Events =====
-
     public CreateNotificationCommand convert(PostLikedEvent event) {
         return new CreateNotificationCommand(
                 event.getAuthorId(),
@@ -153,8 +149,6 @@ public class NotificationEventConverter {
         );
     }
 
-    // ===== Prism Events =====
-
     public CreateNotificationCommand convert(PrismTaskCompletedEvent event) {
         return new CreateNotificationCommand(
                 event.getUserId(),
@@ -180,8 +174,6 @@ public class NotificationEventConverter {
                 "task"
         );
     }
-
-    // ===== Drive Events =====
 
     public CreateNotificationCommand convert(com.portal.universe.event.drive.FileUploadedEvent event) {
         return new CreateNotificationCommand(
@@ -219,8 +211,6 @@ public class NotificationEventConverter {
                 "folder"
         );
     }
-
-    // ===== Helper Methods =====
 
     private String formatPrice(BigDecimal price) {
         if (price == null) return "0";

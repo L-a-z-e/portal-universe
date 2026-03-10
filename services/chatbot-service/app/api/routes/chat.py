@@ -25,7 +25,6 @@ async def send_message(
     request: ChatRequest,
     user_id: str = Depends(get_current_user_id),
 ):
-    """질문에 대한 동기 답변."""
     conversation_id = request.conversation_id or str(uuid.uuid4())
     message_id = str(uuid.uuid4())
 
@@ -83,7 +82,6 @@ async def stream_message(
     request: ChatRequest,
     user_id: str = Depends(get_current_user_id),
 ):
-    """질문에 대한 SSE 스트리밍 답변."""
     conversation_id = request.conversation_id or str(uuid.uuid4())
     message_id = str(uuid.uuid4())
 
@@ -166,7 +164,6 @@ async def stream_message(
 
 @router.get("/conversations")
 async def list_conversations(user_id: str = Depends(get_current_user_id)):
-    """대화 목록 조회."""
     conversations = await conversation_service.list_conversations(user_id)
     return ApiResponse.ok(conversations)
 
@@ -176,7 +173,6 @@ async def get_conversation(
     conversation_id: str,
     user_id: str = Depends(get_current_user_id),
 ):
-    """특정 대화 이력 조회."""
     messages = await conversation_service.get_messages(user_id, conversation_id)
     return ApiResponse.ok(messages)
 
@@ -186,6 +182,5 @@ async def delete_conversation(
     conversation_id: str,
     user_id: str = Depends(get_current_user_id),
 ):
-    """대화 삭제."""
     await conversation_service.delete_conversation(user_id, conversation_id)
     return ApiResponse.ok({"deleted": conversation_id})

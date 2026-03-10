@@ -30,7 +30,7 @@ export class RemoteLoader {
       this.remoteEntryCache.set(url, remoteEntry);
       return remoteEntry;
     } catch (error: any) {
-      console.error(`❌ [RemoteLoader] Failed to load remoteEntry:`, error);
+      console.error('[RemoteLoader] Failed to load remoteEntry:', error);
       throw new Error(`Failed to load remoteEntry from ${url}: ${error.message}`);
     }
   }
@@ -39,7 +39,7 @@ export class RemoteLoader {
    * ✅ Remote 로드 (캐싱 + 에러 처리)
    */
   async loadRemote(config: RemoteConfig): Promise<RemoteLoadResult> {
-    console.group(`🔍 [RemoteLoader] Loading ${config.name}`);
+    console.group(`[RemoteLoader] Loading ${config.name}`);
 
     // 캐시 확인
     if (this.cache.has(config.key)) {
@@ -84,7 +84,7 @@ export class RemoteLoader {
       return { success: true, mountFn, error: null, config };
 
     } catch (error: any) {
-      console.error(`❌ [RemoteLoader] Failed to load ${config.name}`);
+      console.error(`[RemoteLoader] Failed to load ${config.name}`);
       console.error('Error:', error);
       console.error('Stack:', error.stack);
       console.groupEnd();

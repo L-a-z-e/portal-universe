@@ -24,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+/**
+ * 프로필 조회/수정, 비밀번호 변경, 계정 탈퇴 처리 서비스.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

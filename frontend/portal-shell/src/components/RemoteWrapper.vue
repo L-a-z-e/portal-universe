@@ -145,7 +145,7 @@ const debouncedParentNavigate = debounce((remotePath: string) => {
     try {
       remoteApp.onParentNavigate(remotePath);
     } catch (err) {
-      console.error('⚠️ Error in onParentNavigate:', err);
+      console.error('[RemoteWrapper] Error in onParentNavigate:', err);
     }
   }
 }, 50);
@@ -193,18 +193,18 @@ watch(() => themeStore.isDark, (isDark) => {
 async function mountRemote() {
   // Container 준비 확인
   if (!container.value) {
-    console.warn('⚠️ [RemoteWrapper] Container not ready, waiting...');
+    console.warn('[RemoteWrapper] Container not ready, waiting...');
     await nextTick();
 
     if (!container.value) {
-      console.error('❌ [RemoteWrapper] Container still null after nextTick!');
+      console.error('[RemoteWrapper] Container still null after nextTick!');
       return;
     }
   }
 
   // mountFn 확인
   if (!mountFn) {
-    console.error('❌ [RemoteWrapper] mountFn not available!');
+    console.error('[RemoteWrapper] mountFn not available!');
     error.value = new Error('Mount function not loaded');
     loading.value = false;
     return;
@@ -234,7 +234,7 @@ async function mountRemote() {
 
   } catch (err: any) {
     stopCssTracking();
-    console.error(`❌ [RemoteWrapper] Mount failed:`, err);
+    console.error('[RemoteWrapper] Mount failed:', err);
     error.value = err;
     loading.value = false;
   }
@@ -282,7 +282,7 @@ onMounted(async () => {
 
   } catch (err: any) {
     stopCssTracking();
-    console.error(`❌ [RemoteWrapper] Load failed:`, err);
+    console.error('[RemoteWrapper] Load failed:', err);
     error.value = err;
     loading.value = false;
   }
@@ -296,7 +296,7 @@ onUnmounted(() => {
     try {
       remoteApp.unmount();
     } catch (err) {
-      console.error('⚠️ Error during unmount:', err);
+      console.error('[RemoteWrapper] Error during unmount:', err);
     }
   }
 
@@ -322,7 +322,7 @@ async function retry() {
     try {
       remoteApp.unmount();
     } catch (err) {
-      console.error('⚠️ Cleanup error:', err);
+      console.error('[RemoteWrapper] Cleanup error:', err);
     }
   }
 

@@ -35,9 +35,6 @@ public class CommentService {
     private final MongoTemplate mongoTemplate;
     private final BlogEventPublisher eventPublisher;
 
-    /**
-     * 댓글 생성
-     */
     @Transactional
     public CommentResponse createComment(CommentCreateRequest request, String authorId, String authorUsername, String authorNickname) {
         // 게시물 조회 (알림 발행을 위해)
@@ -76,9 +73,6 @@ public class CommentService {
         return toResponse(savedComment);
     }
 
-    /**
-     * 댓글 수정
-     */
     @Transactional
     public CommentResponse updateComment(String commentId, CommentUpdateRequest request, String authorId) {
         Comment comment = commentRepository.findById(commentId)
@@ -92,9 +86,6 @@ public class CommentService {
         return toResponse(comment);
     }
 
-    /**
-     * 댓글 삭제 (soft delete)
-     */
     @Transactional
     public void deleteComment(String commentId, String authorId) {
         Comment comment = commentRepository.findById(commentId)
@@ -110,9 +101,7 @@ public class CommentService {
         updatePostCommentCount(comment.getPostId(), false);
     }
 
-    /**
-     * 게시물의 댓글 수 업데이트 (atomic $inc — race condition 방지)
-     */
+    // atomic $inc — race condition 방지
     private void updatePostCommentCount(String postId, boolean increment) {
         mongoTemplate.updateFirst(
                 Query.query(Criteria.where("id").is(postId)),
@@ -122,9 +111,6 @@ public class CommentService {
         log.debug("Updated comment count for post {}: increment={}", postId, increment);
     }
 
-    /**
-     * 특정 게시물의 모든 댓글 조회
-     */
     public List<CommentResponse> getCommentsByPostId(String postId) {
         List<Comment> comments = commentRepository
                 .findByPostIdAndIsDeletedFalseOrderByCreatedAtAsc(postId);
@@ -143,9 +129,6 @@ public class CommentService {
         }
     }
 
-    /**
-     * Entity → DTO 변환
-     */
     private CommentResponse toResponse(Comment comment) {
         return new CommentResponse(
                 comment.getId(),

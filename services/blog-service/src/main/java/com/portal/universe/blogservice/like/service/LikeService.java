@@ -37,34 +37,21 @@ public class LikeService {
     private final MongoTemplate mongoTemplate;
     private final BlogEventPublisher eventPublisher;
 
-    /**
-     * 좋아요 토글 (추가/취소)
-     * 이미 좋아요가 있으면 취소, 없으면 추가
-     * @param postId 포스트 ID
-     * @param userId 사용자 ID
-     * @param userName 사용자 Username (핸들)
-     * @param nickname 사용자 닉네임 (표시용)
-     * @return 좋아요 토글 결과 (liked 상태, 총 좋아요 수)
-     */
     @Transactional
     public LikeToggleResponse toggleLike(String postId, String userId, String userName, String nickname) {
-        // 1. Post 존재 여부 확인
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 2. 기존 좋아요 확인
         boolean liked;
         Like existingLike = likeRepository.findByPostIdAndUserId(postId, userId).orElse(null);
 
         int increment;
         if (existingLike != null) {
-            // 좋아요 취소
             likeRepository.delete(existingLike);
             increment = -1;
             liked = false;
             log.info("Like removed: postId={}, userId={}", postId, userId);
         } else {
-            // 좋아요 추가
             Like newLike = Like.builder()
                     .postId(postId)
                     .userId(userId)
@@ -90,7 +77,7 @@ public class LikeService {
             }
         }
 
-        // 3. likeCount atomic 업데이트 (race condition 방지)
+        // atomic $inc — race condition 방지
         mongoTemplate.updateFirst(
                 Query.query(Criteria.where("id").is(postId)),
                 new Update().inc("likeCount", increment),
@@ -100,32 +87,16 @@ public class LikeService {
         return LikeToggleResponse.of(liked, post.getLikeCount() + increment);
     }
 
-    /**
-     * 좋아요 상태 확인
-     * 현재 사용자가 해당 포스트를 좋아요했는지 여부와 전체 좋아요 수 반환
-     * @param postId 포스트 ID
-     * @param userId 사용자 ID
-     * @return 좋아요 상태 (liked 여부, 총 좋아요 수)
-     */
     public LikeStatusResponse getLikeStatus(String postId, String userId) {
-        // 1. Post 존재 여부 확인
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 
-        // 2. 좋아요 여부 확인
         boolean liked = likeRepository.existsByPostIdAndUserId(postId, userId);
 
         return LikeStatusResponse.of(liked, post.getLikeCount());
     }
 
-    /**
-     * 좋아요한 사용자 목록 조회 (페이징)
-     * @param postId 포스트 ID
-     * @param pageable 페이징 정보
-     * @return 좋아요한 사용자 목록 (페이징)
-     */
     public Page<LikerResponse> getLikers(String postId, Pageable pageable) {
-        // Post 존재 여부 확인
         postRepository.findById(postId)
                 .orElseThrow(() -> new CustomBusinessException(BlogErrorCode.POST_NOT_FOUND));
 

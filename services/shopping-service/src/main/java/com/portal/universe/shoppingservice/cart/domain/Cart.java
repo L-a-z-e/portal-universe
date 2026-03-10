@@ -30,22 +30,13 @@ public class Cart extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * 사용자 ID (auth-service의 사용자 ID)
-     */
     @Column(name = "user_id", nullable = false, length = 100)
     private String userId;
 
-    /**
-     * 장바구니 상태
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private CartStatus status;
 
-    /**
-     * 장바구니 항목 목록
-     */
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
@@ -55,15 +46,6 @@ public class Cart extends BaseEntity {
         this.status = CartStatus.ACTIVE;
     }
 
-    /**
-     * 장바구니에 상품을 추가합니다.
-     *
-     * @param productId 상품 ID
-     * @param productName 상품명
-     * @param price 단가
-     * @param quantity 수량
-     * @return 추가된 장바구니 항목
-     */
     public CartItem addItem(Long sellerId, Long productId, String productName, BigDecimal price, int quantity) {
         validateActive();
 
@@ -86,13 +68,6 @@ public class Cart extends BaseEntity {
         return cartItem;
     }
 
-    /**
-     * 장바구니 항목의 수량을 변경합니다.
-     *
-     * @param itemId 항목 ID
-     * @param newQuantity 새 수량
-     * @return 업데이트된 장바구니 항목
-     */
     public CartItem updateItemQuantity(Long itemId, int newQuantity) {
         validateActive();
 
@@ -103,11 +78,6 @@ public class Cart extends BaseEntity {
         return item;
     }
 
-    /**
-     * 장바구니에서 항목을 제거합니다.
-     *
-     * @param itemId 항목 ID
-     */
     public void removeItem(Long itemId) {
         validateActive();
 
@@ -117,17 +87,11 @@ public class Cart extends BaseEntity {
         this.items.remove(item);
     }
 
-    /**
-     * 장바구니를 비웁니다.
-     */
     public void clear() {
         validateActive();
         this.items.clear();
     }
 
-    /**
-     * 장바구니를 체크아웃 상태로 변경합니다.
-     */
     public void checkout() {
         validateActive();
 
@@ -138,58 +102,34 @@ public class Cart extends BaseEntity {
         this.status = CartStatus.CHECKED_OUT;
     }
 
-    /**
-     * 장바구니 총액을 계산합니다.
-     *
-     * @return 총액
-     */
     public BigDecimal getTotalAmount() {
         return items.stream()
                 .map(CartItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /**
-     * 장바구니 항목 수를 반환합니다.
-     *
-     * @return 항목 수
-     */
     public int getItemCount() {
         return items.size();
     }
 
-    /**
-     * 장바구니 총 수량을 반환합니다 (모든 항목의 수량 합계).
-     *
-     * @return 총 수량
-     */
     public int getTotalQuantity() {
         return items.stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum();
     }
 
-    /**
-     * 상품 ID로 항목을 찾습니다.
-     */
     public Optional<CartItem> findItemByProductId(Long productId) {
         return items.stream()
                 .filter(item -> item.getProductId().equals(productId))
                 .findFirst();
     }
 
-    /**
-     * 항목 ID로 항목을 찾습니다.
-     */
     private Optional<CartItem> findItemById(Long itemId) {
         return items.stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst();
     }
 
-    /**
-     * 장바구니가 활성 상태인지 검증합니다.
-     */
     private void validateActive() {
         if (this.status != CartStatus.ACTIVE) {
             throw new CustomBusinessException(ShoppingErrorCode.CART_ALREADY_CHECKED_OUT);

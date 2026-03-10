@@ -62,8 +62,6 @@ public class UserProfile {
         this.marketingAgree = false;
     }
 
-// ========== Update Methods ==========
-
     public void setUsername(String username) {
         this.username = username;
     }

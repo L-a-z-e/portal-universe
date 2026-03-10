@@ -166,7 +166,7 @@ router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormal
 });
 
 router.onError((error) => {
-  console.error('❌ Router error:', error);
+  console.error('[Router] Router error:', error);
   // Portal Shell은 계속 동작
 });
 

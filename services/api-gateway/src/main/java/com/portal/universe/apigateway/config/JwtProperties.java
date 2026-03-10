@@ -59,20 +59,10 @@ public class JwtProperties {
          */
         private Instant expiresAt;
 
-        /**
-         * 키가 만료되었는지 확인합니다.
-         *
-         * @return 만료되었으면 true, 아니면 false
-         */
         public boolean isExpired() {
             return expiresAt != null && Instant.now().isAfter(expiresAt);
         }
 
-        /**
-         * 키가 활성화 상태인지 확인합니다.
-         *
-         * @return 활성화 상태이면 true, 아니면 false
-         */
         public boolean isActive() {
             return activatedAt != null &&
                    Instant.now().isAfter(activatedAt) &&

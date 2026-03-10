@@ -20,7 +20,6 @@ export class BoardService {
   ) {}
 
   async create(userId: string, dto: CreateBoardDto): Promise<BoardResponseDto> {
-    // Check for duplicate name
     const existing = await this.boardRepository.findOne({
       where: { userId, name: dto.name, isArchived: false },
     });

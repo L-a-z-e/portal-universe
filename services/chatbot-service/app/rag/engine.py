@@ -102,7 +102,6 @@ class RAGEngine:
 
     @staticmethod
     def _build_context(results: list) -> str:
-        """검색 결과로부터 LLM 컨텍스트 문자열을 조합."""
         return "\n\n---\n\n".join(
             f"[출처: {doc.metadata.get('source', 'unknown')}]\n{doc.page_content}"
             for doc, _ in results
@@ -110,7 +109,6 @@ class RAGEngine:
 
     @staticmethod
     def _build_sources(results: list) -> list[SourceInfo]:
-        """검색 결과로부터 SourceInfo 리스트 생성."""
         return [
             SourceInfo(
                 document=doc.metadata.get("source", "unknown"),
@@ -127,7 +125,6 @@ class RAGEngine:
         question: str,
         conversation_history: list[dict] | None = None,
     ) -> tuple[str, list[SourceInfo]]:
-        """질문에 대한 RAG 기반 답변 생성."""
         processed_question = self._preprocess_query(question)
         results = await asyncio.to_thread(self.vectorstore.search, processed_question)
 
@@ -145,7 +142,6 @@ class RAGEngine:
         question: str,
         conversation_history: list[dict] | None = None,
     ):
-        """질문에 대한 RAG 기반 스트리밍 답변 생성."""
         processed_question = self._preprocess_query(question)
         results = await asyncio.to_thread(self.vectorstore.search, processed_question)
 

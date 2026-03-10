@@ -5,24 +5,13 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * 쇼핑(Shopping) 서비스에서 발생하는 비즈니스 예외에 대한 오류 코드를 정의하는 열거형 클래스입니다.
- *
- * 에러코드 체계:
- * - S0XX: Product (S001-S010)
- * - S1XX: Cart (S101-S110)
- * - S2XX: Order (S201-S220)
- * - S3XX: (Reserved — migrated to payment-service)
- * - S4XX: Inventory (S401-S410)
- * - S5XX: Delivery (S501-S510)
- * - S9XX: Saga/System (S901-S910)
- * - S10XX: Search (S1001-S1010) — 4자리 코드, S9XX와 충돌 없음
+ * Shopping 서비스 오류 코드 정의.
+ * S0XX: Product, S1XX: Cart, S2XX: Order, S4XX: Inventory, S5XX: Delivery,
+ * S6XX: Coupon, S7XX: TimeDeal, S8XX: Queue, S9XX: Saga, S10XX: Search
  */
 @Getter
 public enum ShoppingErrorCode implements ErrorCode {
 
-    // ========================================
-    // Product Errors (S0XX)
-    // ========================================
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "Product not found"),
     PRODUCT_ALREADY_EXISTS(HttpStatus.CONFLICT, "S002", "Product with this name already exists"),
     PRODUCT_INACTIVE(HttpStatus.BAD_REQUEST, "S003", "Product is currently inactive"),
@@ -34,9 +23,6 @@ public enum ShoppingErrorCode implements ErrorCode {
     CANNOT_DELETE_PRODUCT_WITH_ORDERS(HttpStatus.CONFLICT, "S009", "Cannot delete product with active orders"),
     STOCK_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S010", "Stock update failed"),
 
-    // ========================================
-    // Cart Errors (S1XX)
-    // ========================================
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, "S101", "Cart not found"),
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "S102", "Cart item not found"),
     CART_ALREADY_CHECKED_OUT(HttpStatus.BAD_REQUEST, "S103", "Cart has already been checked out"),
@@ -45,9 +31,6 @@ public enum ShoppingErrorCode implements ErrorCode {
     CART_ITEM_ALREADY_EXISTS(HttpStatus.CONFLICT, "S106", "Product already exists in cart"),
     INVALID_CART_ITEM_QUANTITY(HttpStatus.BAD_REQUEST, "S107", "Cart item quantity must be greater than 0"),
 
-    // ========================================
-    // Order Errors (S2XX)
-    // ========================================
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "S201", "Order not found"),
     ORDER_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "S202", "Order has already been cancelled"),
     ORDER_CANNOT_BE_CANCELLED(HttpStatus.BAD_REQUEST, "S203", "Order cannot be cancelled in current status"),
@@ -61,9 +44,6 @@ public enum ShoppingErrorCode implements ErrorCode {
     INVALID_SHIPPING_ADDRESS(HttpStatus.BAD_REQUEST, "S211", "Invalid shipping address"),
     ORDER_USER_MISMATCH(HttpStatus.FORBIDDEN, "S212", "Order does not belong to current user"),
 
-    // ========================================
-    // Inventory Errors (S4XX)
-    // ========================================
     INVENTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "S401", "Inventory not found for product"),
     INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "S402", "Insufficient stock available"),
     STOCK_RESERVATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S403", "Failed to reserve stock"),
@@ -73,9 +53,6 @@ public enum ShoppingErrorCode implements ErrorCode {
     INVENTORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "S407", "Inventory already exists for product"),
     CONCURRENT_STOCK_MODIFICATION(HttpStatus.CONFLICT, "S408", "Stock was modified by another transaction"),
 
-    // ========================================
-    // Delivery Errors (S5XX)
-    // ========================================
     DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "S501", "Delivery not found"),
     DELIVERY_ALREADY_SHIPPED(HttpStatus.BAD_REQUEST, "S502", "Delivery has already been shipped"),
     DELIVERY_ALREADY_DELIVERED(HttpStatus.BAD_REQUEST, "S503", "Delivery has already been delivered"),
@@ -84,9 +61,6 @@ public enum ShoppingErrorCode implements ErrorCode {
     INVALID_DELIVERY_STATUS(HttpStatus.BAD_REQUEST, "S506", "Invalid delivery status transition"),
     DELIVERY_CARRIER_NOT_AVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "S507", "Delivery carrier not available"),
 
-    // ========================================
-    // Coupon Errors (S6XX)
-    // ========================================
     COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "S601", "Coupon not found"),
     COUPON_EXHAUSTED(HttpStatus.CONFLICT, "S602", "Coupon is exhausted"),
     COUPON_EXPIRED(HttpStatus.BAD_REQUEST, "S603", "Coupon has expired"),
@@ -99,9 +73,6 @@ public enum ShoppingErrorCode implements ErrorCode {
     USER_COUPON_EXPIRED(HttpStatus.BAD_REQUEST, "S610", "User coupon has expired"),
     COUPON_MINIMUM_ORDER_NOT_MET(HttpStatus.BAD_REQUEST, "S611", "Minimum order amount not met for this coupon"),
 
-    // ========================================
-    // TimeDeal Errors (S7XX)
-    // ========================================
     TIMEDEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "S701", "Time deal not found"),
     TIMEDEAL_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "S702", "Time deal is not active"),
     TIMEDEAL_EXPIRED(HttpStatus.BAD_REQUEST, "S703", "Time deal has expired"),
@@ -111,9 +82,6 @@ public enum ShoppingErrorCode implements ErrorCode {
     TIMEDEAL_ALREADY_EXISTS(HttpStatus.CONFLICT, "S707", "Time deal already exists for this product"),
     TIMEDEAL_INVALID_PERIOD(HttpStatus.BAD_REQUEST, "S708", "Invalid time deal period"),
 
-    // ========================================
-    // Queue Errors (S8XX)
-    // ========================================
     QUEUE_NOT_FOUND(HttpStatus.NOT_FOUND, "S801", "Waiting queue not found"),
     QUEUE_ALREADY_ENTERED(HttpStatus.CONFLICT, "S802", "Already entered in the queue"),
     QUEUE_ENTRY_NOT_FOUND(HttpStatus.NOT_FOUND, "S803", "Queue entry not found"),
@@ -122,18 +90,12 @@ public enum ShoppingErrorCode implements ErrorCode {
     QUEUE_ENTRY_REQUIRED(HttpStatus.FORBIDDEN, "S806", "Queue entry is required for this event"),
     QUEUE_TOKEN_USER_MISMATCH(HttpStatus.FORBIDDEN, "S807", "Queue token does not belong to current user"),
 
-    // ========================================
-    // Saga/System Errors (S9XX)
-    // ========================================
     SAGA_EXECUTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S901", "Saga execution failed"),
     SAGA_COMPENSATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S902", "Saga compensation failed"),
     SAGA_NOT_FOUND(HttpStatus.NOT_FOUND, "S903", "Saga state not found"),
     SAGA_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "S904", "Saga has already been completed"),
     SAGA_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "S905", "Saga execution timed out"),
 
-    // ========================================
-    // Search Errors (S10XX)
-    // ========================================
     SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S1001", "Search operation failed"),
     INVALID_SEARCH_QUERY(HttpStatus.BAD_REQUEST, "S1002", "Invalid search query"),
     INDEX_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "S1003", "Search index not found"),

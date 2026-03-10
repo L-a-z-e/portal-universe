@@ -10,10 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/test")
 public class ShoppingTestController {
-    /**
-     * "Shopping Service Test!" 문자열을 반환하여 서비스 동작을 확인합니다.
-     * @return 테스트 문자열
-     */
     @GetMapping
     public String test() {
         return "Shopping Service Test!";

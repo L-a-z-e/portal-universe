@@ -44,7 +44,6 @@ export class SseService {
   }
 
   subscribe(userId: string, boardId: number): Observable<MessageEvent> {
-    // Track connection
     if (!this.connections.has(userId)) {
       this.connections.set(userId, new Set());
     }
@@ -64,7 +63,6 @@ export class SseService {
         type: event.type,
       })),
       finalize(() => {
-        // Clean up on disconnect
         const boards = this.connections.get(userId);
         if (boards) {
           boards.delete(String(boardId));

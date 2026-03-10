@@ -1,18 +1,7 @@
 // portal-shell/src/services/authService.ts
-/**
- * Direct JWT Authentication Service
- * - No OIDC dependency
- * - Token-based authentication
- * - Social login (Google, Naver, Kakao)
- * - Refresh Token은 HttpOnly Cookie로 관리 (XSS 방어)
- */
 
 import { parseJwtPayload } from '../utils/jwt';
 import { throwIfNotOk } from './fetchUtils';
-
-// ====================================================================
-// Types
-// ====================================================================
 
 export interface AuthResponse {
   accessToken: string;
@@ -32,10 +21,6 @@ export interface UserInfo {
   memberships: Record<string, string>;
 }
 
-// ====================================================================
-// Configuration
-// ====================================================================
-
 function getApiBaseUrl(): string {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
@@ -45,10 +30,6 @@ function getApiBaseUrl(): string {
   }
   return '';
 }
-
-// ====================================================================
-// Authentication Service
-// ====================================================================
 
 class AuthenticationService {
   private accessToken: string | null = null;
@@ -63,9 +44,6 @@ class AuthenticationService {
     window.__PORTAL_GET_ACCESS_TOKEN__ = () => this.accessToken;
   }
 
-  /**
-   * General login (email + password)
-   */
   async login(email: string, password: string): Promise<AuthResponse> {
     const apiBase = getApiBaseUrl();
 
@@ -100,9 +78,6 @@ class AuthenticationService {
     }
   }
 
-  /**
-   * Social login (redirect to OAuth2 authorization endpoint)
-   */
   socialLogin(provider: 'google' | 'naver' | 'kakao'): void {
     const apiBase = getApiBaseUrl();
     const redirectUrl = `${apiBase}/auth-service/oauth2/authorization/${provider}`;
@@ -126,9 +101,6 @@ class AuthenticationService {
     return this.refreshPromise;
   }
 
-  /**
-   * Internal refresh implementation
-   */
   private async _doRefresh(): Promise<string> {
     const apiBase = getApiBaseUrl();
 
@@ -160,9 +132,6 @@ class AuthenticationService {
     }
   }
 
-  /**
-   * Logout
-   */
   async logout(): Promise<void> {
     const apiBase = getApiBaseUrl();
 
@@ -187,9 +156,6 @@ class AuthenticationService {
     }
   }
 
-  /**
-   * Get access token
-   */
   getAccessToken(): string | null {
     return this.accessToken;
   }
@@ -217,9 +183,6 @@ class AuthenticationService {
     window.__PORTAL_GET_ACCESS_TOKEN__ = () => this.accessToken;
   }
 
-  /**
-   * Clear all tokens
-   */
   clearTokens(): void {
     this.accessToken = null;
     this.hasRefreshToken = false;
@@ -229,16 +192,10 @@ class AuthenticationService {
     delete window.__PORTAL_GET_ACCESS_TOKEN__;
   }
 
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated(): boolean {
     return this.accessToken !== null;
   }
 
-  /**
-   * Extract user info from JWT access token
-   */
   getUserInfo(): UserInfo | null {
     if (!this.accessToken) {
       return null;
@@ -270,9 +227,6 @@ class AuthenticationService {
     }
   }
 
-  /**
-   * Check if token is expired (with 60s buffer)
-   */
   isTokenExpired(): boolean {
     if (!this.accessToken) {
       return true;
@@ -315,15 +269,7 @@ class AuthenticationService {
   }
 }
 
-// ====================================================================
-// Singleton instance
-// ====================================================================
-
 export const authService = new AuthenticationService();
-
-// ====================================================================
-// Public API
-// ====================================================================
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
   return authService.login(email, password);

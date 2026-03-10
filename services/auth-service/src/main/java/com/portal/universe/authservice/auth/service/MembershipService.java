@@ -128,8 +128,6 @@ public class MembershipService {
         return userMembershipRepository.save(membership);
     }
 
-    // --- Tier CRUD (Admin) ---
-
     @Transactional
     public MembershipTierResponse createTier(CreateMembershipTierRequest request, String adminId) {
         MembershipGroupConstants.validate(request.membershipGroup());

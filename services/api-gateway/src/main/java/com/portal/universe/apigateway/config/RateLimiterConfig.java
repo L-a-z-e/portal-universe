@@ -33,31 +33,26 @@ import java.net.InetSocketAddress;
 @Configuration
 public class RateLimiterConfig {
 
-    // --- Default Rate Limiter (일반 API) ---
     @Value("${rate-limiter.default.replenish-rate:10}")
     private int defaultReplenishRate;
     @Value("${rate-limiter.default.burst-capacity:20}")
     private int defaultBurstCapacity;
 
-    // --- Strict Rate Limiter (로그인 API) ---
     @Value("${rate-limiter.strict.replenish-rate:1}")
     private int strictReplenishRate;
     @Value("${rate-limiter.strict.burst-capacity:5}")
     private int strictBurstCapacity;
 
-    // --- Signup Rate Limiter (회원가입 API) ---
     @Value("${rate-limiter.signup.replenish-rate:1}")
     private int signupReplenishRate;
     @Value("${rate-limiter.signup.burst-capacity:3}")
     private int signupBurstCapacity;
 
-    // --- Authenticated Rate Limiter (인증된 사용자) ---
     @Value("${rate-limiter.authenticated.replenish-rate:2}")
     private int authenticatedReplenishRate;
     @Value("${rate-limiter.authenticated.burst-capacity:100}")
     private int authenticatedBurstCapacity;
 
-    // --- Unauthenticated Rate Limiter (비인증 사용자) ---
     @Value("${rate-limiter.unauthenticated.replenish-rate:1}")
     private int unauthenticatedReplenishRate;
     @Value("${rate-limiter.unauthenticated.burst-capacity:30}")
@@ -118,10 +113,6 @@ public class RateLimiterConfig {
         };
     }
 
-    /**
-     * 기본 RedisRateLimiter Bean
-     * 일반 API 요청에 대한 기본값 설정
-     */
     @Bean
     @Primary
     public RedisRateLimiter defaultRedisRateLimiter() {
@@ -139,27 +130,18 @@ public class RateLimiterConfig {
         return new RedisRateLimiter(strictReplenishRate, strictBurstCapacity, 1);
     }
 
-    /**
-     * 회원가입 API용 Rate Limiter
-     */
     @Bean
     public RedisRateLimiter signupRedisRateLimiter() {
         log.info("Signup Rate Limiter: replenishRate={}, burstCapacity={}", signupReplenishRate, signupBurstCapacity);
         return new RedisRateLimiter(signupReplenishRate, signupBurstCapacity, 1);
     }
 
-    /**
-     * 인증된 사용자용 관대한 Rate Limiter
-     */
     @Bean
     public RedisRateLimiter authenticatedRedisRateLimiter() {
         log.info("Authenticated Rate Limiter: replenishRate={}, burstCapacity={}", authenticatedReplenishRate, authenticatedBurstCapacity);
         return new RedisRateLimiter(authenticatedReplenishRate, authenticatedBurstCapacity, 1);
     }
 
-    /**
-     * 비인증 사용자용 제한적인 Rate Limiter
-     */
     @Bean
     public RedisRateLimiter unauthenticatedRedisRateLimiter() {
         log.info("Unauthenticated Rate Limiter: replenishRate={}, burstCapacity={}", unauthenticatedReplenishRate, unauthenticatedBurstCapacity);

@@ -29,7 +29,6 @@ const { getErrorMessage, handleError } = useApiError();
 const toast = useToast();
 const { confirm } = useConfirm();
 
-// --- Search & List ---
 const query = ref('');
 const users = ref<AdminUserSummary[]>([]);
 const totalPages = ref(0);
@@ -39,10 +38,8 @@ const pageSize = 20;
 const listLoading = ref(false);
 const listError = ref('');
 
-// --- All roles (for assignment dropdown) ---
 const allRoles = ref<RoleResponse[]>([]);
 
-// --- Selected user detail ---
 const selectedUser = ref<AdminUserSummary | null>(null);
 const userRoles = ref<UserRole[]>([]);
 const userPermissions = ref<UserPermissions | null>(null);
@@ -50,14 +47,11 @@ const userMemberships = ref<MembershipResponse[]>([]);
 const detailLoading = ref(false);
 const detailError = ref('');
 
-// --- Audit logs ---
 const userAuditLogs = ref<AuditLog[]>([]);
 
-// --- Role assignment ---
 const selectedRoleKey = ref<string | number | null>(null);
 const assignLoading = ref(false);
 
-// --- Membership tiers (for tier change) ---
 const membershipGroups = ref<string[]>([]);
 const allGroupTiers = ref<Record<string, MembershipTierResponse[]>>({});
 const changingMembershipGroup = ref<string | null>(null);

@@ -17,6 +17,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 모든 API 요청/응답을 로깅하는 전역 필터.
+ * Authorization, Cookie 등 민감 헤더는 마스킹한다.
+ */
 @Component
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE + 2)

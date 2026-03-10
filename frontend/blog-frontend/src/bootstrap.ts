@@ -53,14 +53,13 @@ export function mountBlogApp(
   el: HTMLElement,
   options: MountOptions = {}
 ): BlogAppInstance {
-  console.group('🚀 [Blog] Mounting app in EMBEDDED mode');
+  console.group('[Blog] Mounting app in EMBEDDED mode');
 
-  // ✅ Portal Shell에서 마운트됨을 표시 (isEmbedded 플래그 활성화)
+  // Portal Shell에서 마운트됨을 표시 (isEmbedded 플래그 활성화)
   (window as any).__POWERED_BY_PORTAL_SHELL__ = true;
 
-  // ✅ 필수 파라미터 검증
   if (!el) {
-    console.error('❌ [Blog] Mount element is null!');
+    console.error('[Blog] Mount element is null!');
     console.groupEnd();
     throw new Error('[Blog] Mount element is required');
   }
@@ -81,14 +80,12 @@ export function mountBlogApp(
   // 디버깅 정보 출력
   logRouterInfo(router);
 
-  // ✅ 초기 경로 설정
   const targetPath = initialPath || '/';
 
   router.push(targetPath).catch(err => {
-    console.error('❌ [Blog] Initial navigation failed:', err);
+    console.error('[Blog] Initial navigation failed:', err);
   });
 
-  // ✅ Parent에게 경로 변경 알림
   router.afterEach((to, from) => {
     if (to.path !== from.path) {
       onNavigate?.(to.path);
@@ -98,7 +95,7 @@ export function mountBlogApp(
   // DOM에 마운트
   app.mount(el);
 
-  // ✅ 로그아웃 시 followStore 초기화
+  // 로그아웃 시 followStore 초기화
   const authChangedHandler = () => {
     try {
       const followStore = useFollowStore();
@@ -109,7 +106,6 @@ export function mountBlogApp(
 
   console.groupEnd();
 
-  // ✅ 앱 인스턴스 반환
   return {
     router,
 
@@ -120,7 +116,7 @@ export function mountBlogApp(
 
       if (router.currentRoute.value.path !== path) {
         router.push(path).catch(err => {
-          console.error('❌ [Blog] Parent navigation failed:', err);
+          console.error('[Blog] Parent navigation failed:', err);
         });
       } else {
       }
@@ -149,7 +145,7 @@ export function mountBlogApp(
      * Remote app은 Vue app unmount와 DOM 정리만 담당
      */
     unmount: () => {
-      console.group('🔄 [Blog] Unmounting app');
+      console.group('[Blog] Unmounting app');
 
       // 0. Portal auth 구독 해제 + 이벤트 리스너 정리
       disposePortalAuth();
@@ -159,7 +155,7 @@ export function mountBlogApp(
       try {
         app.unmount();
       } catch (err) {
-        console.error('❌ [Blog] App unmount failed:', err);
+        console.error('[Blog] App unmount failed:', err);
       }
 
       // 2. DOM Cleanup (CSS는 Portal Shell에서 관리)
@@ -171,7 +167,7 @@ export function mountBlogApp(
         }
 
       } catch (err) {
-        console.error('❌ [Blog] Cleanup failed:', err);
+        console.error('[Blog] Cleanup failed:', err);
       }
 
       console.groupEnd();

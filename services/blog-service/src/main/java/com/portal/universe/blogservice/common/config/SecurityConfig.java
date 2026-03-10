@@ -25,12 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /**
-     * Actuator 엔드포인트(/actuator/**)에 대한 보안 필터 체인을 설정합니다.
-     * - /actuator/health, /actuator/info: 공개 (상태 확인용)
-     * - /actuator/prometheus, /actuator/metrics: 내부망 전용 (Prometheus 스크래핑)
-     * - 나머지: 차단
-     */
+    /** Actuator 엔드포인트 보안 설정. health/info 공개, prometheus 내부망, 나머지 차단. */
     @Bean
     @Order(0)
     public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -45,9 +40,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Swagger UI 및 OpenAPI 문서 엔드포인트에 대한 보안 필터 체인을 설정합니다.
-     */
+    /** Swagger UI 및 OpenAPI 문서 엔드포인트 보안 설정. */
     @Bean
     @Order(1)
     public SecurityFilterChain swaggerSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -80,19 +73,13 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // ========================================
-                        // [공개] 누구나 접근 가능
-                        // Gateway StripPrefix=2 적용 후 경로 (/api/blog 제거됨)
-                        // ========================================
+                        // 공개 - Gateway StripPrefix=2 적용 후 경로
                         .requestMatchers(HttpMethod.GET, "/posts", "/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/series", "/series/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/tags", "/tags/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
 
-                        // ========================================
-                        // [인증된 사용자] 로그인 필요
-                        // ========================================
-                        // 파일 업로드
+                        // 인증 필요
                         .requestMatchers(HttpMethod.POST, "/file/upload").authenticated()
                         .requestMatchers(HttpMethod.POST, "/file/presign").authenticated()
                         // 게시글 작성 (일반 사용자도 가능)
@@ -104,16 +91,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/posts/*/like").authenticated()
                         .requestMatchers(HttpMethod.POST, "/follows/**").authenticated()
 
-                        // ========================================
-                        // [관리자] BLOG_ADMIN 또는 SUPER_ADMIN 역할 필요
-                        // ========================================
+                        // 관리자 전용
                         .requestMatchers(HttpMethod.DELETE, "/file/delete")
                             .hasAnyAuthority("ROLE_BLOG_ADMIN", "ROLE_SUPER_ADMIN")
                         // Admin 전용 경로
                         .requestMatchers("/admin/**")
                             .hasAnyAuthority("ROLE_BLOG_ADMIN", "ROLE_SUPER_ADMIN")
 
-                        // --- 위에서 지정하지 않은 나머지 모든 요청은 인증만 되면 허용 ---
                         .anyRequest().authenticated()
                 )
                 // Gateway에서 전달한 헤더로 인증 정보 설정

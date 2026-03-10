@@ -36,8 +36,8 @@ Object.entries(colorReferences)
         console.log(`${key}: ${val}`);
     });
 
-console.log(`\n✅ Total: ${Object.keys(colorReferences).length} colors`);
+console.log(`\nTotal: ${Object.keys(colorReferences).length} colors`);
 console.log('\n=== CHECKING SPECIFIC KEYS ===');
-console.log(`Has "color.green.600"? ${colorReferences['color.green.600'] ? '✅' : '❌'}`);
-console.log(`Has "neutral.green.600"? ${colorReferences['neutral.green.600'] ? '✅' : '❌'}`);
-console.log(`Has "green.600"? ${colorReferences['green.600'] ? '✅' : '❌'}`);
+console.log(`Has "color.green.600"? ${colorReferences['color.green.600'] ? 'yes' : 'no'}`);
+console.log(`Has "neutral.green.600"? ${colorReferences['neutral.green.600'] ? 'yes' : 'no'}`);
+console.log(`Has "green.600"? ${colorReferences['green.600'] ? 'yes' : 'no'}`);

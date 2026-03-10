@@ -43,10 +43,6 @@ public class OrderSagaOrchestrator {
     private final CloudWatchMetricsPublisher cloudWatchMetricsPublisher;
     private final SagaCompensationService sagaCompensationService;
 
-    /**
-     * Saga를 시작합니다 (주문 생성 시 호출).
-     * 재고 예약 단계까지만 실행합니다.
-     */
     @Transactional
     public SagaState startSaga(Order order) {
         log.info("Starting saga for order: {}", order.getOrderNumber());
@@ -80,9 +76,6 @@ public class OrderSagaOrchestrator {
         }
     }
 
-    /**
-     * 결제 완료 후 나머지 Saga 단계를 실행합니다.
-     */
     @Transactional
     public void completeSagaAfterPayment(String orderNumber) {
         SagaState sagaState = sagaStateRepository.findByOrderNumber(orderNumber)

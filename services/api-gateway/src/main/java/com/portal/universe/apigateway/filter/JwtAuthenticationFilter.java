@@ -54,9 +54,6 @@ public class JwtAuthenticationFilter implements WebFilter {
         this.skipJwtParsingPrefixes = publicPathProperties.getSkipJwtParsing().toArray(String[]::new);
     }
 
-    /**
-     * 특정 키 ID에 해당하는 서명용 키를 생성합니다.
-     */
     private SecretKey getSigningKeyById(String keyId) {
         if (keyId == null || keyId.isBlank()) {
             throw new JwtException("Key ID cannot be null or empty");
@@ -124,7 +121,6 @@ public class JwtAuthenticationFilter implements WebFilter {
             return chain.filter(sanitizedExchange);
         }
 
-        // Authorization 헤더에서 토큰 추출
         String authHeader = sanitizedRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
@@ -133,7 +129,6 @@ public class JwtAuthenticationFilter implements WebFilter {
 
         String token = authHeader.substring(BEARER_PREFIX.length());
 
-        // JWT 서명 검증
         final Claims claims;
         try {
             claims = validateToken(token);
@@ -157,21 +152,18 @@ public class JwtAuthenticationFilter implements WebFilter {
                     String nickname = claims.get("nickname", String.class);
                     String username = claims.get("username", String.class);
 
-                    // JWT roles 파싱
                     List<String> rolesList = parseRoles(claims);
                     String rolesHeader = String.join(",", rolesList);
 
-                    // JWT memberships 파싱 (enriched JSON passthrough)
                     String membershipsHeader = parseMemberships(claims);
 
-                    // JWT effectiveRoles claim 사용 (없으면 direct roles fallback)
+                    // effectiveRoles claim이 없으면 direct roles로 fallback
                     List<String> effectiveRoles = parseEffectiveRoles(claims, rolesList);
                     String effectiveRolesHeader = String.join(",", effectiveRoles);
 
                     log.debug("JWT validated for user: {}, roles: {}, effectiveRoles: {}, memberships: {}",
                             userId, rolesList, effectiveRoles, membershipsHeader);
 
-                    // effective roles 기반 Authority 생성
                     List<SimpleGrantedAuthority> authorities = effectiveRoles.stream()
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
@@ -179,7 +171,6 @@ public class JwtAuthenticationFilter implements WebFilter {
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
-                    // 하위 서비스로 전달할 헤더 설정
                     ServerHttpRequest mutatedRequest = sanitizedRequest.mutate()
                             .header("X-User-Id", userId)
                             .header("X-User-Roles", rolesHeader)

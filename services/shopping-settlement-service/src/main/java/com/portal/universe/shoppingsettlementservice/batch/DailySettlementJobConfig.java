@@ -56,8 +56,6 @@ public class DailySettlementJobConfig {
     private final EntityManagerFactory entityManagerFactory;
     private final SettlementBatchProperties batchProperties;
 
-    // ==================== Job ====================
-
     @Bean
     public Job dailySettlementJob(SettlementJobListener jobListener) {
         return new JobBuilder("dailySettlementJob", jobRepository)
@@ -67,8 +65,6 @@ public class DailySettlementJobConfig {
                 .next(completePeriodStep())
                 .build();
     }
-
-    // ==================== Step 1: Create Period ====================
 
     @Bean
     public Step createPeriodStep() {
@@ -113,8 +109,6 @@ public class DailySettlementJobConfig {
                 .build();
     }
 
-    // ==================== Step 2: Partitioned Settlement ====================
-
     @Bean
     public Step partitionedSettlementStep() {
         TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
@@ -155,8 +149,6 @@ public class DailySettlementJobConfig {
                 .build();
     }
 
-    // ==================== Reader ====================
-
     @Bean
     @StepScope
     public JdbcCursorItemReader<SellerAggregation> sellerAggregationReader(
@@ -194,15 +186,11 @@ public class DailySettlementJobConfig {
                 .build();
     }
 
-    // ==================== Processor ====================
-
     @Bean
     @StepScope
     public SettlementCalculationProcessor settlementCalculationProcessor() {
         return new SettlementCalculationProcessor();
     }
-
-    // ==================== Writers ====================
 
     @Bean
     public CompositeItemWriter<Settlement> compositeSettlementWriter() {
@@ -228,8 +216,6 @@ public class DailySettlementJobConfig {
                 new org.springframework.jdbc.core.JdbcTemplate(dataSource));
     }
 
-    // ==================== Step 3: Complete Period ====================
-
     @Bean
     public Step completePeriodStep() {
         return new StepBuilder("completePeriodStep", jobRepository)
@@ -248,8 +234,6 @@ public class DailySettlementJobConfig {
                 }, transactionManager)
                 .build();
     }
-
-    // ==================== Task Executor ====================
 
     @Bean
     public TaskExecutor settlementTaskExecutor() {

@@ -38,23 +38,14 @@ export class TaskStateMachine {
     },
   };
 
-  /**
-   * Get available actions for a given status
-   */
   static getAvailableActions(status: TaskStatus): string[] {
     return Object.keys(this.transitions[status] || {});
   }
 
-  /**
-   * Check if a transition is valid
-   */
   static canTransition(from: TaskStatus, action: string): boolean {
     return this.transitions[from]?.[action] !== undefined;
   }
 
-  /**
-   * Get the target status for a transition
-   */
   static getTargetStatus(from: TaskStatus, action: string): TaskStatus {
     const target = this.transitions[from]?.[action];
     if (!target) {
@@ -63,9 +54,6 @@ export class TaskStateMachine {
     return target;
   }
 
-  /**
-   * Validate and perform transition
-   */
   static transition(from: TaskStatus, action: string): TaskStatus {
     if (!this.canTransition(from, action)) {
       const available = this.getAvailableActions(from);

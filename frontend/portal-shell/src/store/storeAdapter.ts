@@ -13,10 +13,6 @@ import { watch } from 'vue'
 import { useThemeStore } from './theme'
 import { useAuthStore } from './auth'
 
-// ============================================
-// Type Definitions
-// ============================================
-
 export interface ThemeState {
   isDark: boolean
 }
@@ -40,18 +36,11 @@ export interface AuthState {
 
 export type UnsubscribeFn = () => void
 
-// ============================================
-// Theme Store Adapter
-// ============================================
-
 // 스냅샷 캐시: useSyncExternalStore는 Object.is로 비교하므로
 // 값이 동일하면 같은 참조를 반환해야 무한 렌더링을 방지함
 let _themeSnapshot: ThemeState | null = null
 
 export const themeAdapter = {
-  /**
-   * 현재 테마 상태 반환 (참조 안정성 보장)
-   */
   getState: (): ThemeState => {
     const store = useThemeStore()
     const isDark = store.isDark
@@ -62,11 +51,6 @@ export const themeAdapter = {
     return _themeSnapshot
   },
 
-  /**
-   * 테마 상태 변경 구독
-   * @param callback 상태 변경 시 호출될 콜백
-   * @returns 구독 해제 함수
-   */
   subscribe: (callback: (state: ThemeState) => void): UnsubscribeFn => {
     const store = useThemeStore()
 
@@ -84,26 +68,16 @@ export const themeAdapter = {
     return unwatch
   },
 
-  /**
-   * 테마 토글
-   */
   toggle: (): void => {
     const store = useThemeStore()
     store.toggle()
   },
 
-  /**
-   * 테마 초기화 (localStorage에서 복원)
-   */
   initialize: (): void => {
     const store = useThemeStore()
     store.initialize()
   }
 }
-
-// ============================================
-// Auth Store Adapter
-// ============================================
 
 // 스냅샷 캐시: 참조 안정성 보장
 let _authSnapshot: AuthState | null = null
@@ -129,9 +103,6 @@ function buildAuthState(store: ReturnType<typeof useAuthStore>): AuthState {
 }
 
 export const authAdapter = {
-  /**
-   * 현재 인증 상태 반환 (참조 안정성 보장)
-   */
   getState: (): AuthState => {
     const store = useAuthStore()
 
@@ -151,11 +122,6 @@ export const authAdapter = {
     return _authSnapshot
   },
 
-  /**
-   * 인증 상태 변경 구독
-   * @param callback 상태 변경 시 호출될 콜백
-   * @returns 구독 해제 함수
-   */
   subscribe: (callback: (state: AuthState) => void): UnsubscribeFn => {
     const store = useAuthStore()
 
@@ -175,59 +141,36 @@ export const authAdapter = {
     return unwatch
   },
 
-  /**
-   * 역할 확인
-   */
   hasRole: (role: string): boolean => {
     const store = useAuthStore()
     return store.hasRole(role)
   },
 
-  /**
-   * 복수 역할 중 하나 이상 보유 여부
-   */
   hasAnyRole: (roles: string[]): boolean => {
     const store = useAuthStore()
     return store.hasAnyRole(roles)
   },
 
-  /**
-   * 특정 서비스의 admin 여부
-   */
   isServiceAdmin: (service: string): boolean => {
     const store = useAuthStore()
     return store.isServiceAdmin(service)
   },
 
-  /**
-   * 로그아웃
-   */
   logout: (): void => {
     const store = useAuthStore()
     store.logout()
   },
 
-  /**
-   * 현재 access token 반환
-   */
   getAccessToken: (): string | null => {
     const store = useAuthStore()
     return store.user?._accessToken ?? window.__PORTAL_ACCESS_TOKEN__ ?? null
   },
 
-  /**
-   * 로그인 모달 요청 (Remote 앱에서 호출)
-   * @param path 로그인 후 리다이렉트할 경로
-   */
   requestLogin: (path?: string): void => {
     const store = useAuthStore()
     store.requestLogin(path)
   }
 }
-
-// ============================================
-// Combined Adapter Export
-// ============================================
 
 export const portalStoreAdapter = {
   theme: themeAdapter,

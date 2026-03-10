@@ -37,10 +37,6 @@ import type {
   SkeletonVariant,
 } from './common';
 
-// ============================================
-// Form Components
-// ============================================
-
 export interface ButtonProps {
   variant?: ButtonVariant;
   size?: Exclude<Size, 'xl'>;
@@ -152,10 +148,6 @@ export interface SearchBarProps {
   autofocus?: boolean;
 }
 
-// ============================================
-// Feedback Components
-// ============================================
-
 export interface AlertProps {
   variant?: StatusVariant;
   title?: string;
@@ -215,10 +207,6 @@ export interface ProgressProps {
   variant?: StatusVariant | 'default';
 }
 
-// ============================================
-// Layout Components
-// ============================================
-
 export interface CardProps {
   variant?: CardVariant;
   hoverable?: boolean;
@@ -248,10 +236,6 @@ export interface DividerProps {
   label?: string;
   spacing?: Exclude<PaddingSize, 'xl'>;
 }
-
-// ============================================
-// Navigation Components
-// ============================================
 
 export interface BreadcrumbItem {
   label: string;
@@ -315,10 +299,6 @@ export interface PaginationProps {
   size?: FormSize;
 }
 
-// ============================================
-// Data Display Components
-// ============================================
-
 export interface BadgeProps {
   variant?: BadgeVariant;
   size?: Exclude<Size, 'xl'>;
@@ -365,10 +345,6 @@ export interface TableProps<T = unknown> {
   hoverable?: boolean;
   onRowClick?: (row: T, index: number) => void;
 }
-
-// ============================================
-// Overlay Components
-// ============================================
 
 export interface PopoverProps {
   open: boolean;
