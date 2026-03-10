@@ -24,8 +24,8 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,7 +59,7 @@ class LikeControllerTest {
     void should_toggleLike() throws Exception {
         // given
         LikeToggleResponse response = LikeToggleResponse.of(true, 100L);
-        given(likeService.toggleLike(eq("post-1"), eq("user-1"), anyString(), anyString())).willReturn(response);
+        when(likeService.toggleLike(eq("post-1"), eq("user-1"), anyString(), anyString())).thenReturn(response);
 
         // when & then
         mockMvc.perform(post("/posts/post-1/like")
@@ -77,7 +77,7 @@ class LikeControllerTest {
     void should_returnLikeStatus() throws Exception {
         // given
         LikeStatusResponse response = LikeStatusResponse.of(true, 50L);
-        given(likeService.getLikeStatus("post-1", "user-1")).willReturn(response);
+        when(likeService.getLikeStatus("post-1", "user-1")).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/posts/post-1/like")
@@ -101,7 +101,7 @@ class LikeControllerTest {
             Instant.now()
         );
         Page<LikerResponse> page = new PageImpl<>(List.of(likerResponse));
-        given(likeService.getLikers(eq("post-1"), any(Pageable.class))).willReturn(page);
+        when(likeService.getLikers(eq("post-1"), any(Pageable.class))).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/post-1/likes"))
@@ -119,7 +119,7 @@ class LikeControllerTest {
     void should_returnEmptyPage_when_noLikers() throws Exception {
         // given
         Page<LikerResponse> emptyPage = Page.empty();
-        given(likeService.getLikers(eq("post-1"), any(Pageable.class))).willReturn(emptyPage);
+        when(likeService.getLikers(eq("post-1"), any(Pageable.class))).thenReturn(emptyPage);
 
         // when & then
         mockMvc.perform(get("/posts/post-1/likes"))

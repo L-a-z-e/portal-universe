@@ -11,6 +11,8 @@ import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.post.domain.Post;
 import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.post.repository.PostRepository;
+import com.portal.universe.blogservice.support.fixture.CommentFixture;
+import com.portal.universe.blogservice.support.fixture.PostFixture;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
@@ -24,7 +26,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -71,14 +72,14 @@ class CommentServiceTest {
             CommentCreateRequest request = new CommentCreateRequest("post-1", null, "Test comment");
             Post post = createTestPost("post-1", "user2");
 
-            Comment savedComment = Comment.builder()
+            Comment savedComment = CommentFixture.builder()
+                    .id("comment-1")
                     .postId(request.postId())
                     .content(request.content())
                     .authorId("user1")
                     .authorUsername("user1_handle")
                     .authorNickname("User One")
                     .build();
-            ReflectionTestUtils.setField(savedComment, "id", "comment-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
@@ -101,14 +102,14 @@ class CommentServiceTest {
             CommentCreateRequest request = new CommentCreateRequest("post-1", null, "Comment");
             Post post = createTestPost("post-1", "user2");
 
-            Comment savedComment = Comment.builder()
+            Comment savedComment = CommentFixture.builder()
+                    .id("comment-1")
                     .postId(request.postId())
                     .content(request.content())
                     .authorId("user1")
                     .authorUsername("user1_handle")
                     .authorNickname("User One")
                     .build();
-            ReflectionTestUtils.setField(savedComment, "id", "comment-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
@@ -129,14 +130,14 @@ class CommentServiceTest {
             CommentCreateRequest request = new CommentCreateRequest("post-1", null, "Comment");
             Post post = createTestPost("post-1", "user2");
 
-            Comment savedComment = Comment.builder()
+            Comment savedComment = CommentFixture.builder()
+                    .id("comment-1")
                     .postId(request.postId())
                     .content(request.content())
                     .authorId("user1")
                     .authorUsername("user1_handle")
                     .authorNickname("User One")
                     .build();
-            ReflectionTestUtils.setField(savedComment, "id", "comment-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
@@ -157,7 +158,7 @@ class CommentServiceTest {
             CommentCreateRequest request = new CommentCreateRequest("post-1", null, "Comment");
             Post post = createTestPost("post-1", "user1");
 
-            Comment savedComment = Comment.builder()
+            Comment savedComment = CommentFixture.builder()
                     .postId(request.postId())
                     .content(request.content())
                     .authorId("user1")
@@ -297,27 +298,21 @@ class CommentServiceTest {
     }
 
     private Post createTestPost(String id, String authorId) {
-        Post post = Post.builder()
-                .title("Test Post")
-                .content("Content")
+        return PostFixture.builder()
+                .id(id)
                 .authorId(authorId)
                 .authorUsername(authorId + "_handle")
                 .authorNickname("Author Name")
-                .status(PostStatus.PUBLISHED)
                 .build();
-        ReflectionTestUtils.setField(post, "id", id);
-        return post;
     }
 
     private Comment createTestComment(String id, String postId, String authorId) {
-        Comment comment = Comment.builder()
+        return CommentFixture.builder()
+                .id(id)
                 .postId(postId)
-                .content("Test comment")
                 .authorId(authorId)
                 .authorUsername(authorId + "_handle")
                 .authorNickname("Test Author")
                 .build();
-        ReflectionTestUtils.setField(comment, "id", id);
-        return comment;
     }
 }

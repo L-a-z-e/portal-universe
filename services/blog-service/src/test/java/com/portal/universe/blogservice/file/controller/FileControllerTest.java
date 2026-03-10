@@ -16,8 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,7 +47,7 @@ class FileControllerTest {
             new byte[1024]
         );
         String fileUrl = "https://s3.amazonaws.com/bucket/test.jpg";
-        given(fileService.uploadFile(any())).willReturn(fileUrl);
+        when(fileService.uploadFile(any())).thenReturn(fileUrl);
 
         // when & then
         mockMvc.perform(multipart("/file/upload")
@@ -74,7 +74,7 @@ class FileControllerTest {
         );
 
         // FileService가 빈 파일에 대해 예외를 던지도록 mock 설정
-        given(fileService.uploadFile(any())).willThrow(
+        when(fileService.uploadFile(any())).thenThrow(
             new com.portal.universe.commonlibrary.exception.CustomBusinessException(
                 com.portal.universe.blogservice.common.exception.BlogErrorCode.FILE_EMPTY
             )

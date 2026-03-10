@@ -8,7 +8,6 @@ import com.portal.universe.blogservice.like.dto.LikerResponse;
 import com.portal.universe.blogservice.like.domain.Like;
 import com.portal.universe.blogservice.like.repository.LikeRepository;
 import com.portal.universe.blogservice.post.domain.Post;
-import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.event.blog.PostLikedEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
+import com.portal.universe.blogservice.support.fixture.LikeFixture;
+import com.portal.universe.blogservice.support.fixture.PostFixture;
 
 import java.util.List;
 import java.util.Optional;
@@ -72,13 +72,13 @@ class LikeServiceTest {
         void should_addLike_when_notExists() {
             // given
             Post post = createTestPost("post-1", "user2");
-            Like newLike = Like.builder()
+            Like newLike = LikeFixture.builder()
+                    .id("like-1")
                     .postId("post-1")
                     .userId("user1")
                     .userName("user1_handle")
                     .nickname("User One")
                     .build();
-            ReflectionTestUtils.setField(newLike, "id", "like-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(likeRepository.findByPostIdAndUserId("post-1", "user1")).thenReturn(Optional.empty());
@@ -100,7 +100,7 @@ class LikeServiceTest {
         void should_removeLike_when_exists() {
             // given
             Post post = createTestPost("post-1", "user2");
-            Like existingLike = Like.builder()
+            Like existingLike = LikeFixture.builder()
                     .postId("post-1")
                     .userId("user1")
                     .userName("user1_handle")
@@ -126,13 +126,13 @@ class LikeServiceTest {
         void should_incrementLikeCount_when_added() {
             // given
             Post post = createTestPost("post-1", "user2");
-            Like newLike = Like.builder()
+            Like newLike = LikeFixture.builder()
+                    .id("like-1")
                     .postId("post-1")
                     .userId("user1")
                     .userName("user1_handle")
                     .nickname("User One")
                     .build();
-            ReflectionTestUtils.setField(newLike, "id", "like-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(likeRepository.findByPostIdAndUserId("post-1", "user1")).thenReturn(Optional.empty());
@@ -152,7 +152,7 @@ class LikeServiceTest {
         void should_decrementLikeCount_when_removed() {
             // given
             Post post = createTestPost("post-1", "user2");
-            Like existingLike = Like.builder()
+            Like existingLike = LikeFixture.builder()
                     .postId("post-1")
                     .userId("user1")
                     .userName("user1_handle")
@@ -176,12 +176,12 @@ class LikeServiceTest {
         void should_publishEvent_when_likedOtherPost() {
             // given
             Post post = createTestPost("post-1", "user2");
-            Like newLike = Like.builder()
+            Like newLike = LikeFixture.builder()
+                    .id("like-1")
                     .postId("post-1")
                     .userId("user1")
                     .userName("User One")
                     .build();
-            ReflectionTestUtils.setField(newLike, "id", "like-1");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(likeRepository.findByPostIdAndUserId("post-1", "user1")).thenReturn(Optional.empty());
@@ -201,7 +201,7 @@ class LikeServiceTest {
         void should_notPublishEvent_when_likedOwnPost() {
             // given
             Post post = createTestPost("post-1", "user1");
-            Like newLike = Like.builder()
+            Like newLike = LikeFixture.builder()
                     .postId("post-1")
                     .userId("user1")
                     .userName("user1_handle")
@@ -230,8 +230,7 @@ class LikeServiceTest {
         @DisplayName("should_returnStatus_with_count")
         void should_returnStatus_with_count() {
             // given
-            Post post = createTestPost("post-1", "user2");
-            ReflectionTestUtils.setField(post, "likeCount", 42L);
+            Post post = PostFixture.builder().id("post-1").authorId("user2").likeCount(42L).build();
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(likeRepository.existsByPostIdAndUserId("post-1", "user1")).thenReturn(true);
@@ -275,26 +274,21 @@ class LikeServiceTest {
     }
 
     private Post createTestPost(String id, String authorId) {
-        Post post = Post.builder()
-                .title("Test Post")
-                .content("Content")
+        return PostFixture.builder()
+                .id(id)
                 .authorId(authorId)
                 .authorUsername(authorId + "_handle")
                 .authorNickname("Test Author")
-                .status(PostStatus.PUBLISHED)
                 .build();
-        ReflectionTestUtils.setField(post, "id", id);
-        return post;
     }
 
     private Like createTestLike(String id, String postId, String userId, String userName, String nickname) {
-        Like like = Like.builder()
+        return LikeFixture.builder()
+                .id(id)
                 .postId(postId)
                 .userId(userId)
                 .userName(userName)
                 .nickname(nickname)
                 .build();
-        ReflectionTestUtils.setField(like, "id", id);
-        return like;
     }
 }

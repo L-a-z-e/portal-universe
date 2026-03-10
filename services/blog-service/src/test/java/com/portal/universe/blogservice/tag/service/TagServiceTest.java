@@ -20,7 +20,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
+import com.portal.universe.blogservice.support.fixture.TagFixture;
 
 import java.util.List;
 import java.util.Optional;
@@ -63,11 +63,11 @@ class TagServiceTest {
 
             when(tagRepository.existsByNameIgnoreCase(normalizedName)).thenReturn(false);
 
-            Tag savedTag = Tag.builder()
+            Tag savedTag = TagFixture.builder()
+                    .id("tag-1")
                     .name(normalizedName)
                     .description(request.description())
                     .build();
-            ReflectionTestUtils.setField(savedTag, "id", "tag-1");
 
             when(tagRepository.save(any(Tag.class))).thenReturn(savedTag);
 
@@ -106,11 +106,11 @@ class TagServiceTest {
         void should_returnExistingTag() {
             // given
             String normalizedName = Tag.normalizeName("Java");
-            Tag existingTag = Tag.builder()
+            Tag existingTag = TagFixture.builder()
+                    .id("tag-1")
                     .name(normalizedName)
                     .description("Existing")
                     .build();
-            ReflectionTestUtils.setField(existingTag, "id", "tag-1");
 
             when(tagRepository.findByNameIgnoreCase(normalizedName)).thenReturn(Optional.of(existingTag));
 
@@ -131,10 +131,10 @@ class TagServiceTest {
 
             when(tagRepository.findByNameIgnoreCase(normalizedName)).thenReturn(Optional.empty());
 
-            Tag newTag = Tag.builder()
+            Tag newTag = TagFixture.builder()
+                    .id("tag-2")
                     .name(normalizedName)
                     .build();
-            ReflectionTestUtils.setField(newTag, "id", "tag-2");
 
             when(tagRepository.save(any(Tag.class))).thenReturn(newTag);
 
@@ -192,11 +192,11 @@ class TagServiceTest {
         @DisplayName("should_deleteTagsWithZeroPostCount")
         void should_deleteTagsWithZeroPostCount() {
             // given
-            Tag unusedTag = Tag.builder()
+            Tag unusedTag = TagFixture.builder()
+                    .id("tag-1")
                     .name("unused")
                     .description("desc")
                     .build();
-            ReflectionTestUtils.setField(unusedTag, "id", "tag-1");
 
             when(tagRepository.findByPostCount(0L)).thenReturn(List.of(unusedTag));
 

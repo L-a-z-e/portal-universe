@@ -2,7 +2,6 @@ package com.portal.universe.blogservice.series.service;
 
 import com.portal.universe.blogservice.common.exception.BlogErrorCode;
 import com.portal.universe.blogservice.post.domain.Post;
-import com.portal.universe.blogservice.post.domain.PostStatus;
 import com.portal.universe.blogservice.post.dto.PostSummaryResponse;
 import com.portal.universe.blogservice.post.repository.PostRepository;
 import com.portal.universe.blogservice.series.dto.SeriesCreateRequest;
@@ -22,7 +21,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
+import com.portal.universe.blogservice.support.fixture.PostFixture;
+import com.portal.universe.blogservice.support.fixture.SeriesFixture;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +65,8 @@ class SeriesServiceTest {
                     "thumbnail.jpg"
             );
 
-            Series savedSeries = Series.builder()
+            Series savedSeries = SeriesFixture.builder()
+                    .id("series-1")
                     .name(request.name())
                     .description(request.description())
                     .authorId("user1")
@@ -73,7 +74,6 @@ class SeriesServiceTest {
                     .authorNickname("User One")
                     .thumbnailUrl(request.thumbnailUrl())
                     .build();
-            ReflectionTestUtils.setField(savedSeries, "id", "series-1");
 
             when(seriesRepository.save(any(Series.class))).thenReturn(savedSeries);
 
@@ -314,27 +314,20 @@ class SeriesServiceTest {
     }
 
     private Series createTestSeries(String id, String authorId) {
-        Series series = Series.builder()
-                .name("Test Series")
-                .description("Description")
+        return SeriesFixture.builder()
+                .id(id)
                 .authorId(authorId)
                 .authorUsername(authorId + "_handle")
                 .authorNickname("Author Name")
                 .build();
-        ReflectionTestUtils.setField(series, "id", id);
-        return series;
     }
 
     private Post createTestPost(String id, String authorId) {
-        Post post = Post.builder()
-                .title("Test Post")
-                .content("Content")
+        return PostFixture.builder()
+                .id(id)
                 .authorId(authorId)
                 .authorUsername(authorId + "_handle")
                 .authorNickname("Author Name")
-                .status(PostStatus.PUBLISHED)
                 .build();
-        ReflectionTestUtils.setField(post, "id", id);
-        return post;
     }
 }

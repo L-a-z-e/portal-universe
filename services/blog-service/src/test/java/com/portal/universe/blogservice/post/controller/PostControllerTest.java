@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -123,8 +123,8 @@ class PostControllerTest {
             List.of("image1.jpg"),
             null
         );
-        given(postService.createPost(any(PostCreateRequest.class), eq("user-1"), anyString(), anyString()))
-            .willReturn(postResponse);
+        when(postService.createPost(any(PostCreateRequest.class), eq("user-1"), anyString(), anyString()))
+            .thenReturn(postResponse);
 
         // when & then
         mockMvc.perform(post("/posts")
@@ -168,7 +168,7 @@ class PostControllerTest {
     @DisplayName("GET /posts/{postId} - should_returnPost_when_found")
     void should_returnPost_when_found() throws Exception {
         // given
-        given(postService.getPostById(eq("post-1"), any())).willReturn(postResponse);
+        when(postService.getPostById(eq("post-1"), any())).thenReturn(postResponse);
 
         // when & then
         mockMvc.perform(get("/posts/post-1"))
@@ -184,7 +184,7 @@ class PostControllerTest {
     @DisplayName("GET /posts/{postId}/view - should_returnPostWithViewIncrement")
     void should_returnPostWithViewIncrement() throws Exception {
         // given
-        given(postService.getPostByIdWithViewIncrement("post-1", "user-1")).willReturn(postResponse);
+        when(postService.getPostByIdWithViewIncrement("post-1", "user-1")).thenReturn(postResponse);
 
         // when & then
         mockMvc.perform(get("/posts/post-1/view")
@@ -210,8 +210,8 @@ class PostControllerTest {
             "new-thumbnail.jpg",
             List.of("image2.jpg")
         );
-        given(postService.updatePost(eq("post-1"), any(PostUpdateRequest.class), eq("user-1")))
-            .willReturn(postResponse);
+        when(postService.updatePost(eq("post-1"), any(PostUpdateRequest.class), eq("user-1")))
+            .thenReturn(postResponse);
 
         // when & then
         mockMvc.perform(put("/posts/post-1")
@@ -266,8 +266,8 @@ class PostControllerTest {
     void should_changeStatus() throws Exception {
         // given
         PostStatusChangeRequest request = new PostStatusChangeRequest(PostStatus.PUBLISHED);
-        given(postService.changePostStatus("post-1", PostStatus.PUBLISHED, "user-1"))
-            .willReturn(postResponse);
+        when(postService.changePostStatus("post-1", PostStatus.PUBLISHED, "user-1"))
+            .thenReturn(postResponse);
 
         // when & then
         mockMvc.perform(patch("/posts/post-1/status")
@@ -286,7 +286,7 @@ class PostControllerTest {
     void should_returnPublishedPosts() throws Exception {
         // given
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.getPublishedPosts(0, 10)).willReturn(page);
+        when(postService.getPublishedPosts(0, 10)).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts")
@@ -304,7 +304,7 @@ class PostControllerTest {
     void should_returnAuthorPosts() throws Exception {
         // given
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.getPostsByAuthor("user-1", 0, 10)).willReturn(page);
+        when(postService.getPostsByAuthor("user-1", 0, 10)).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/author/user-1")
@@ -322,7 +322,7 @@ class PostControllerTest {
     void should_returnCategoryPosts() throws Exception {
         // given
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.getPostsByCategory("Technology", 0, 10)).willReturn(page);
+        when(postService.getPostsByCategory("Technology", 0, 10)).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/category/Technology")
@@ -340,7 +340,7 @@ class PostControllerTest {
     void should_returnTaggedPosts() throws Exception {
         // given
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.getPostsByTags(List.of("tag1", "tag2"), 0, 10)).willReturn(page);
+        when(postService.getPostsByTags(List.of("tag1", "tag2"), 0, 10)).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/tags")
@@ -359,7 +359,7 @@ class PostControllerTest {
     void should_returnPopularPosts() throws Exception {
         // given
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.getPopularPosts(0, 10)).willReturn(page);
+        when(postService.getPopularPosts(0, 10)).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/popular")
@@ -377,7 +377,7 @@ class PostControllerTest {
     void should_returnTrendingPosts() throws Exception {
         // given
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.getTrendingPosts("week", 0, 10)).willReturn(page);
+        when(postService.getTrendingPosts("week", 0, 10)).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/trending")
@@ -395,7 +395,7 @@ class PostControllerTest {
     @DisplayName("GET /posts/recent - should_returnRecentPosts")
     void should_returnRecentPosts() throws Exception {
         // given
-        given(postService.getRecentPosts(5)).willReturn(List.of(summaryResponse));
+        when(postService.getRecentPosts(5)).thenReturn(List.of(summaryResponse));
 
         // when & then
         mockMvc.perform(get("/posts/recent")
@@ -412,7 +412,7 @@ class PostControllerTest {
     void should_returnSearchResults() throws Exception {
         // given
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.searchPosts("keyword", 0, 10)).willReturn(page);
+        when(postService.searchPosts("keyword", 0, 10)).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/search")
@@ -444,7 +444,7 @@ class PostControllerTest {
             0
         );
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.searchPostsAdvanced(any(PostSearchRequest.class))).willReturn(page);
+        when(postService.searchPostsAdvanced(any(PostSearchRequest.class))).thenReturn(page);
 
         // when & then
         mockMvc.perform(post("/posts/search/advanced")
@@ -462,7 +462,7 @@ class PostControllerTest {
     void should_returnCategoryStats() throws Exception {
         // given
         CategoryStats stats = new CategoryStats("Technology", 10L, Instant.now());
-        given(postService.getCategoryStats()).willReturn(List.of(stats));
+        when(postService.getCategoryStats()).thenReturn(List.of(stats));
 
         // when & then
         mockMvc.perform(get("/posts/stats/categories"))
@@ -479,7 +479,7 @@ class PostControllerTest {
     void should_returnPopularTags() throws Exception {
         // given
         TagStatsResponse tagStats = new TagStatsResponse("tag1", 20L, 5000L);
-        given(postService.getPopularTags(10)).willReturn(List.of(tagStats));
+        when(postService.getPopularTags(10)).thenReturn(List.of(tagStats));
 
         // when & then
         mockMvc.perform(get("/posts/stats/tags")
@@ -501,7 +501,7 @@ class PostControllerTest {
             summaryResponse,
             null
         );
-        given(postService.getPostNavigation("post-1", "all")).willReturn(navigation);
+        when(postService.getPostNavigation("post-1", "all")).thenReturn(navigation);
 
         // when & then
         mockMvc.perform(get("/posts/post-1/navigation")
@@ -519,11 +519,11 @@ class PostControllerTest {
         // given
         var followingIdsDto = new com.portal.universe.blogservice.common.feign.AuthFollowClient.FollowingIdsDto(
                 List.of("user-2", "user-3"));
-        given(authFollowClient.getFollowingIds("user-1"))
-                .willReturn(com.portal.universe.commonlibrary.response.ApiResponse.success(followingIdsDto));
+        when(authFollowClient.getFollowingIds("user-1"))
+                .thenReturn(com.portal.universe.commonlibrary.response.ApiResponse.success(followingIdsDto));
 
         Page<PostSummaryResponse> page = new PageImpl<>(List.of(summaryResponse));
-        given(postService.getFeed(List.of("user-2", "user-3"), 0, 10)).willReturn(page);
+        when(postService.getFeed(List.of("user-2", "user-3"), 0, 10)).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/posts/feed")
@@ -541,7 +541,7 @@ class PostControllerTest {
     @DisplayName("GET /posts/product/{productId} - should_returnProductPosts")
     void should_returnProductPosts() throws Exception {
         // given
-        given(postService.getPostsByProductId("product-1")).willReturn(List.of(postResponse));
+        when(postService.getPostsByProductId("product-1")).thenReturn(List.of(postResponse));
 
         // when & then
         mockMvc.perform(get("/posts/product/product-1"))

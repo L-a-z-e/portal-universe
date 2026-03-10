@@ -27,7 +27,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
+import com.portal.universe.blogservice.support.fixture.PostFixture;
 
 import java.time.Instant;
 import java.util.*;
@@ -84,7 +84,8 @@ class PostServiceImplTest {
                     null
             );
 
-            Post savedPost = Post.builder()
+            Post savedPost = PostFixture.builder()
+                    .id("post-1")
                     .title(request.title())
                     .content(request.content())
                     .authorId("user1")
@@ -92,8 +93,8 @@ class PostServiceImplTest {
                     .authorNickname("User One")
                     .status(PostStatus.DRAFT)
                     .tags(request.tags())
+                    .publishedAt(null)
                     .build();
-            ReflectionTestUtils.setField(savedPost, "id", "post-1");
 
             when(postRepository.save(any(Post.class))).thenReturn(savedPost);
 
@@ -123,7 +124,8 @@ class PostServiceImplTest {
                     null
             );
 
-            Post savedPost = Post.builder()
+            Post savedPost = PostFixture.builder()
+                    .id("post-1")
                     .title(request.title())
                     .content(request.content())
                     .authorId("user1")
@@ -132,8 +134,6 @@ class PostServiceImplTest {
                     .status(PostStatus.PUBLISHED)
                     .tags(request.tags())
                     .build();
-            ReflectionTestUtils.setField(savedPost, "id", "post-1");
-            ReflectionTestUtils.setField(savedPost, "publishedAt", Instant.now());
 
             when(postRepository.save(any(Post.class))).thenReturn(savedPost);
 
@@ -588,7 +588,6 @@ class PostServiceImplTest {
         void should_returnPrevAndNext() {
             // given
             Post currentPost = createTestPost("post-2", "user1", PostStatus.PUBLISHED);
-            ReflectionTestUtils.setField(currentPost, "publishedAt", Instant.now());
 
             Post prevPost = createTestPost("post-1", "user1", PostStatus.PUBLISHED);
             Post nextPost = createTestPost("post-3", "user1", PostStatus.PUBLISHED);
@@ -672,10 +671,12 @@ class PostServiceImplTest {
         @DisplayName("should_returnRelatedPosts")
         void should_returnRelatedPosts() {
             // given
-            Post post = createTestPost("post-1", "user1", PostStatus.PUBLISHED);
+            Post post = PostFixture.builder()
+                    .id("post-1").authorId("user1")
+                    .tags(new HashSet<>(Set.of("java", "spring")))
+                    .category("tech")
+                    .build();
             Set<String> tags = new HashSet<>(Set.of("java", "spring"));
-            ReflectionTestUtils.setField(post, "tags", tags);
-            ReflectionTestUtils.setField(post, "category", "tech");
 
             when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
             when(postRepository.findRelatedPosts(
@@ -693,23 +694,15 @@ class PostServiceImplTest {
     }
 
     private Post createTestPost(String id, String authorId, PostStatus status) {
-        Post post = Post.builder()
-                .title("Test Post")
-                .content("Test Content")
-                .summary("Test Summary")
+        return PostFixture.builder()
+                .id(id)
                 .authorId(authorId)
                 .authorUsername(authorId + "_handle")
                 .authorNickname("Test Author")
                 .status(status)
                 .tags(new HashSet<>())
                 .category("tech")
+                .publishedAt(status == PostStatus.PUBLISHED ? Instant.now() : null)
                 .build();
-        ReflectionTestUtils.setField(post, "id", id);
-        ReflectionTestUtils.setField(post, "createdAt", Instant.now());
-        ReflectionTestUtils.setField(post, "updatedAt", Instant.now());
-        if (status == PostStatus.PUBLISHED) {
-            ReflectionTestUtils.setField(post, "publishedAt", Instant.now());
-        }
-        return post;
     }
 }
