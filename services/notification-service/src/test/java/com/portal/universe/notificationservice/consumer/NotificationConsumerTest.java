@@ -35,7 +35,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -81,8 +81,8 @@ class NotificationConsumerTest {
                 .message("홍길동님, Portal Universe에 가입해주셔서 감사합니다.")
                 .build();
 
-        given(notificationService.create(any(CreateNotificationCommand.class)))
-                .willReturn(notification);
+        when(notificationService.create(any(CreateNotificationCommand.class)))
+                .thenReturn(notification);
 
         // when
         notificationConsumer.handleUserSignup(event);
@@ -122,9 +122,9 @@ class NotificationConsumerTest {
                 .message("2개 상품, 50,000원 결제 대기중")
                 .build();
 
-        given(converter.convert(event)).willReturn(cmd);
-        given(notificationService.create(any(CreateNotificationCommand.class)))
-                .willReturn(notification);
+        when(converter.convert(event)).thenReturn(cmd);
+        when(notificationService.create(any(CreateNotificationCommand.class)))
+                .thenReturn(notification);
 
         // when
         notificationConsumer.handleOrderCreated(event);
@@ -154,8 +154,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.SYSTEM)
                     .build();
 
-            given(notificationService.create(any(CreateNotificationCommand.class)))
-                    .willReturn(notification);
+            when(notificationService.create(any(CreateNotificationCommand.class)))
+                    .thenReturn(notification);
 
             // when
             notificationConsumer.handleUserSignup(event);
@@ -183,8 +183,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.SYSTEM)
                     .build();
 
-            given(notificationService.create(any(CreateNotificationCommand.class)))
-                    .willReturn(notification);
+            when(notificationService.create(any(CreateNotificationCommand.class)))
+                    .thenReturn(notification);
 
             // when
             notificationConsumer.handleUserSignup(event);
@@ -210,8 +210,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.SYSTEM)
                     .build();
 
-            given(notificationService.create(any(CreateNotificationCommand.class)))
-                    .willReturn(notification);
+            when(notificationService.create(any(CreateNotificationCommand.class)))
+                    .thenReturn(notification);
 
             // when - should not throw because validate() passes
             notificationConsumer.handleUserSignup(event);
@@ -256,8 +256,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.ORDER_CANCELLED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleOrderCancelled(event);
@@ -289,8 +289,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.PAYMENT_COMPLETED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handlePaymentCompleted(event);
@@ -321,8 +321,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.PAYMENT_FAILED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handlePaymentFailed(event);
@@ -353,8 +353,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.DELIVERY_STARTED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleDeliveryShipped(event);
@@ -385,8 +385,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.COUPON_ISSUED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleCouponIssued(event);
@@ -438,7 +438,7 @@ class NotificationConsumerTest {
                     "품절", Instant.now()
             );
 
-            given(converter.convert(event)).willThrow(new RuntimeException("Converter error"));
+            when(converter.convert(event)).thenThrow(new RuntimeException("Converter error"));
 
             // when & then
             assertThatThrownBy(() -> notificationConsumer.handleOrderCancelled(event))
@@ -462,8 +462,8 @@ class NotificationConsumerTest {
                     "/shopping/orders/ORD-003", "PAY-003", "payment"
             );
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willThrow(new RuntimeException("Service error"));
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenThrow(new RuntimeException("Service error"));
 
             // when & then
             assertThatThrownBy(() -> notificationConsumer.handlePaymentCompleted(event))
@@ -492,8 +492,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.PAYMENT_FAILED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handlePaymentFailed(event);
@@ -531,8 +531,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.BLOG_LIKE)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handlePostLiked(event);
@@ -565,8 +565,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.BLOG_COMMENT)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleCommentCreated(event);
@@ -599,8 +599,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.BLOG_REPLY)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleCommentReplied(event);
@@ -632,8 +632,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.BLOG_FOLLOW)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleUserFollowed(event);
@@ -654,7 +654,7 @@ class NotificationConsumerTest {
                     .setTimestamp(Instant.now())
                     .build();
 
-            given(converter.convert(event)).willThrow(new RuntimeException("Converter failed"));
+            when(converter.convert(event)).thenThrow(new RuntimeException("Converter failed"));
 
             // when & then
             assertThatThrownBy(() -> notificationConsumer.handlePostLiked(event))
@@ -684,8 +684,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.BLOG_COMMENT)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleCommentCreated(event);
@@ -723,8 +723,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.DRIVE_FILE_UPLOADED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleFileUploaded(event);
@@ -755,8 +755,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.DRIVE_FILE_DELETED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleFileDeleted(event);
@@ -788,8 +788,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.DRIVE_FOLDER_CREATED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleFolderCreated(event);
@@ -811,7 +811,7 @@ class NotificationConsumerTest {
                     .setTimestamp(Instant.now())
                     .build();
 
-            given(converter.convert(event)).willThrow(new RuntimeException("Drive error"));
+            when(converter.convert(event)).thenThrow(new RuntimeException("Drive error"));
 
             // when & then
             assertThatThrownBy(() -> notificationConsumer.handleFileUploaded(event))
@@ -847,8 +847,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.PRISM_TASK_COMPLETED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handlePrismTaskCompleted(event);
@@ -883,8 +883,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.PRISM_TASK_FAILED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handlePrismTaskFailed(event);
@@ -906,7 +906,7 @@ class NotificationConsumerTest {
                     .setTimestamp(Instant.parse("2026-02-05T10:00:00Z"))
                     .build();
 
-            given(converter.convert(event)).willThrow(new RuntimeException("Task processing error"));
+            when(converter.convert(event)).thenThrow(new RuntimeException("Task processing error"));
 
             // when & then
             assertThatThrownBy(() -> notificationConsumer.handlePrismTaskCompleted(event))
@@ -938,8 +938,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.PRISM_TASK_FAILED)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handlePrismTaskFailed(event);
@@ -975,8 +975,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.DELIVERY_STARTED)
                     .build();
 
-            given(converter.convert(event)).willReturn(expectedCmd);
-            given(notificationService.create(expectedCmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(expectedCmd);
+            when(notificationService.create(expectedCmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleDeliveryShipped(event);
@@ -1007,8 +1007,8 @@ class NotificationConsumerTest {
                     .title("쿠폰이 발급되었습니다")
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(createdNotification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(createdNotification);
 
             // when
             notificationConsumer.handleCouponIssued(event);
@@ -1037,8 +1037,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.BLOG_FOLLOW)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleUserFollowed(event);
@@ -1072,8 +1072,8 @@ class NotificationConsumerTest {
                     .type(NotificationType.BLOG_REPLY)
                     .build();
 
-            given(converter.convert(event)).willReturn(cmd);
-            given(notificationService.create(cmd)).willReturn(notification);
+            when(converter.convert(event)).thenReturn(cmd);
+            when(notificationService.create(cmd)).thenReturn(notification);
 
             // when
             notificationConsumer.handleCommentReplied(event);
