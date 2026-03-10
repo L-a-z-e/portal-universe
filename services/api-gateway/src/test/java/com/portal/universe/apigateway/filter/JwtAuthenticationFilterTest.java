@@ -3,7 +3,7 @@ package com.portal.universe.apigateway.filter;
 import com.portal.universe.apigateway.config.JwtProperties;
 import com.portal.universe.apigateway.config.PublicPathProperties;
 import com.portal.universe.apigateway.service.TokenBlacklistChecker;
-import com.portal.universe.apigateway.util.JwtTestHelper;
+import com.portal.universe.apigateway.support.fixture.JwtTestHelper;
 import com.portal.universe.apigateway.exception.GatewayErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

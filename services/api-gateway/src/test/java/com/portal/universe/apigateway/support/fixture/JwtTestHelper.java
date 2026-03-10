@@ -1,4 +1,4 @@
-package com.portal.universe.apigateway.util;
+package com.portal.universe.apigateway.support.fixture;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

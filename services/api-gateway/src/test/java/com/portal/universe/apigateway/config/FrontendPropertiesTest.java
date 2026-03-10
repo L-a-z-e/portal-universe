@@ -1,108 +1,71 @@
 package com.portal.universe.apigateway.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Slf4j
-@DisplayName("FrontendProperties Test")
-public class FrontendPropertiesTest {
+@DisplayName("FrontendProperties")
+class FrontendPropertiesTest {
 
-    @Test
-    @DisplayName("baseUrl이 파싱되어 host, scheme, port 설정되는지 확인")
-    void init() {
-        log.info("🧪 Test start!");
+    @Nested
+    @DisplayName("init")
+    class Init {
 
-        // Given
-        FrontendProperties frontendProperties = new FrontendProperties();
-        String testBaseUrl = "https://portal-universe:30000";
+        @Test
+        @DisplayName("should_parseSchemeHostPort_when_httpsUrl")
+        void should_parseSchemeHostPort_when_httpsUrl() {
+            FrontendProperties properties = new FrontendProperties();
+            properties.setBaseUrl("https://portal-universe:30000");
 
-        log.info("baseUrl: {}", testBaseUrl);
+            properties.init();
 
-        // When
-        frontendProperties.setBaseUrl(testBaseUrl);
-        frontendProperties.init();
+            assertThat(properties.getScheme()).isEqualTo("https");
+            assertThat(properties.getHost()).contains("portal-universe");
+            assertThat(properties.getPort()).isEqualTo(30000);
+        }
 
-        log.debug("실행됨 - init() 메서드 호출");
+        @Test
+        @DisplayName("should_parseSchemeHostPort_when_httpUrl")
+        void should_parseSchemeHostPort_when_httpUrl() {
+            FrontendProperties properties = new FrontendProperties();
+            properties.setBaseUrl("http://localhost:3000");
 
-        // Then
-        log.info("☑️ 검증: scheme={}, host={}, port={}",
-                frontendProperties.getScheme(),
-                frontendProperties.getHost(),
-                frontendProperties.getPort());
+            properties.init();
 
-        assertThat(frontendProperties.getScheme()).isEqualTo("https");
-        assertThat(frontendProperties.getHost()).contains("portal-universe");
-        assertThat(frontendProperties.getPort()).isEqualTo(30000);
-
-        log.info("✅ PASSED: init() 정상 동작");
+            assertThat(properties.getScheme()).isEqualTo("http");
+            assertThat(properties.getHost()).contains("localhost");
+            assertThat(properties.getPort()).isEqualTo(3000);
+        }
     }
 
-    @Test
-    @DisplayName("getBaseUrl()이 기본값을 반환한다")
-    void getBaseUrl() {
-        // Given
-        log.info("🧪 Test: getBaseUrl() 기본값 확인");
-        FrontendProperties properties = new FrontendProperties();
+    @Nested
+    @DisplayName("defaults")
+    class Defaults {
 
-        // When
-        String result = properties.getBaseUrl();
+        @Test
+        @DisplayName("should_returnDefaultBaseUrl_when_notSet")
+        void should_returnDefaultBaseUrl_when_notSet() {
+            FrontendProperties properties = new FrontendProperties();
 
-        // Then
-        log.info("결과: {}", result);
-        assertThat(result).isEqualTo("http://localhost:30000");
-        log.info("✅ PASSED");
-    }
+            assertThat(properties.getBaseUrl()).isEqualTo("http://localhost:30000");
+        }
 
-    @Test
-    @DisplayName("getHost()가 파싱된 호스트를 반환한다")
-    void getHost() {
-        // Given
-        log.info("🧪 Test: getHost() 파싱 확인");
-        FrontendProperties properties = new FrontendProperties();
-        properties.setBaseUrl("https://portal-universe:30000");
+        @Test
+        @DisplayName("should_returnDefaultScheme_when_initNotCalled")
+        void should_returnDefaultScheme_when_initNotCalled() {
+            FrontendProperties properties = new FrontendProperties();
 
-        // When
-        properties.init();  // 파싱 실행
-        String result = properties.getHost();
+            assertThat(properties.getScheme()).isEqualTo("http");
+        }
 
-        // Then
-        log.info("결과: {}", result);
-        assertThat(result).contains("portal-universe");
-        log.info("✅ PASSED");
-    }
+        @Test
+        @DisplayName("should_returnDefaultPort_when_initNotCalled")
+        void should_returnDefaultPort_when_initNotCalled() {
+            FrontendProperties properties = new FrontendProperties();
 
-    @Test
-    @DisplayName("getScheme()이 기본값을 반환한다")
-    void getScheme() {
-        // Given
-        log.info("🧪 Test: getScheme() 기본값 확인");
-        FrontendProperties properties = new FrontendProperties();
-
-        // When
-        String result = properties.getScheme();
-
-        // Then
-        log.info("결과: {}", result);
-        assertThat(result).isEqualTo("http");
-        log.info("✅ PASSED");
-    }
-
-    @Test
-    @DisplayName("getPort()가 기본값을 반환한다")
-    void getPort() {
-        // Given
-        log.info("🧪 Test: getPort() 기본값 확인");
-        FrontendProperties properties = new FrontendProperties();
-
-        // When
-        int result = properties.getPort();
-
-        // Then
-        log.info("결과: {}", result);
-        assertThat(result).isEqualTo(30000);
-        log.info("✅ PASSED");
+            assertThat(properties.getPort()).isEqualTo(30000);
+        }
     }
 }
