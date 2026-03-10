@@ -1,6 +1,7 @@
 package com.portal.universe.shoppingsettlementservice.batch.partitioner;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,95 +22,88 @@ class SellerIdRangePartitionerTest {
     private final Instant start = Instant.parse("2026-02-27T00:00:00Z");
     private final Instant end = Instant.parse("2026-02-27T23:59:59Z");
 
-    @Test
-    @DisplayName("should_createCorrectPartitions_when_multipleSellers")
-    void should_createCorrectPartitions_when_multipleSellers() {
-        // Given
-        when(jdbcTemplate.queryForList(anyString(), eq(Long.class), any(), any()))
-                .thenReturn(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L));
+    @Nested
+    @DisplayName("partition")
+    class Partition {
 
-        SellerIdRangePartitioner partitioner = new SellerIdRangePartitioner(
-                jdbcTemplate, start, end);
+        @Test
+        @DisplayName("should_createCorrectPartitions_when_multipleSellers")
+        void should_createCorrectPartitions_when_multipleSellers() {
+            when(jdbcTemplate.queryForList(anyString(), eq(Long.class), any(), any()))
+                    .thenReturn(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L));
 
-        // When
-        Map<String, ExecutionContext> partitions = partitioner.partition(4);
+            SellerIdRangePartitioner partitioner = new SellerIdRangePartitioner(
+                    jdbcTemplate, start, end);
 
-        // Then
-        assertThat(partitions).hasSize(4);
+            Map<String, ExecutionContext> partitions = partitioner.partition(4);
 
-        ExecutionContext first = partitions.get("partition0");
-        assertThat(first.getLong("minSellerId")).isEqualTo(1L);
-        assertThat(first.getLong("maxSellerId")).isEqualTo(2L);
-        assertThat(first.getString("startDate")).isEqualTo(start.toString());
-        assertThat(first.getString("endDate")).isEqualTo(end.toString());
+            assertThat(partitions).hasSize(4);
 
-        ExecutionContext last = partitions.get("partition3");
-        assertThat(last.getLong("minSellerId")).isEqualTo(7L);
-        assertThat(last.getLong("maxSellerId")).isEqualTo(8L);
-    }
+            ExecutionContext first = partitions.get("partition0");
+            assertThat(first.getLong("minSellerId")).isEqualTo(1L);
+            assertThat(first.getLong("maxSellerId")).isEqualTo(2L);
+            assertThat(first.getString("startDate")).isEqualTo(start.toString());
+            assertThat(first.getString("endDate")).isEqualTo(end.toString());
 
-    @Test
-    @DisplayName("should_returnEmptyMap_when_noSellers")
-    void should_returnEmptyMap_when_noSellers() {
-        // Given
-        when(jdbcTemplate.queryForList(anyString(), eq(Long.class), any(), any()))
-                .thenReturn(List.of());
+            ExecutionContext last = partitions.get("partition3");
+            assertThat(last.getLong("minSellerId")).isEqualTo(7L);
+            assertThat(last.getLong("maxSellerId")).isEqualTo(8L);
+        }
 
-        SellerIdRangePartitioner partitioner = new SellerIdRangePartitioner(
-                jdbcTemplate, start, end);
+        @Test
+        @DisplayName("should_returnEmptyMap_when_noSellers")
+        void should_returnEmptyMap_when_noSellers() {
+            when(jdbcTemplate.queryForList(anyString(), eq(Long.class), any(), any()))
+                    .thenReturn(List.of());
 
-        // When
-        Map<String, ExecutionContext> partitions = partitioner.partition(4);
+            SellerIdRangePartitioner partitioner = new SellerIdRangePartitioner(
+                    jdbcTemplate, start, end);
 
-        // Then
-        assertThat(partitions).isEmpty();
-    }
+            Map<String, ExecutionContext> partitions = partitioner.partition(4);
 
-    @Test
-    @DisplayName("should_createSinglePartition_when_fewerSellersThanGrid")
-    void should_createSinglePartition_when_fewerSellersThanGrid() {
-        // Given
-        when(jdbcTemplate.queryForList(anyString(), eq(Long.class), any(), any()))
-                .thenReturn(List.of(10L, 20L));
+            assertThat(partitions).isEmpty();
+        }
 
-        SellerIdRangePartitioner partitioner = new SellerIdRangePartitioner(
-                jdbcTemplate, start, end);
+        @Test
+        @DisplayName("should_createFewerPartitions_when_fewerSellersThanGrid")
+        void should_createFewerPartitions_when_fewerSellersThanGrid() {
+            when(jdbcTemplate.queryForList(anyString(), eq(Long.class), any(), any()))
+                    .thenReturn(List.of(10L, 20L));
 
-        // When
-        Map<String, ExecutionContext> partitions = partitioner.partition(4);
+            SellerIdRangePartitioner partitioner = new SellerIdRangePartitioner(
+                    jdbcTemplate, start, end);
 
-        // Then
-        assertThat(partitions).hasSize(2);
+            Map<String, ExecutionContext> partitions = partitioner.partition(4);
 
-        ExecutionContext first = partitions.get("partition0");
-        assertThat(first.getLong("minSellerId")).isEqualTo(10L);
-        assertThat(first.getLong("maxSellerId")).isEqualTo(10L);
+            assertThat(partitions).hasSize(2);
 
-        ExecutionContext second = partitions.get("partition1");
-        assertThat(second.getLong("minSellerId")).isEqualTo(20L);
-        assertThat(second.getLong("maxSellerId")).isEqualTo(20L);
-    }
+            ExecutionContext first = partitions.get("partition0");
+            assertThat(first.getLong("minSellerId")).isEqualTo(10L);
+            assertThat(first.getLong("maxSellerId")).isEqualTo(10L);
 
-    @Test
-    @DisplayName("should_handleUnevenDistribution_when_notDivisible")
-    void should_handleUnevenDistribution_when_notDivisible() {
-        // Given: 5 sellers, gridSize=3 → partitions of sizes 2, 2, 1
-        when(jdbcTemplate.queryForList(anyString(), eq(Long.class), any(), any()))
-                .thenReturn(List.of(1L, 2L, 3L, 4L, 5L));
+            ExecutionContext second = partitions.get("partition1");
+            assertThat(second.getLong("minSellerId")).isEqualTo(20L);
+            assertThat(second.getLong("maxSellerId")).isEqualTo(20L);
+        }
 
-        SellerIdRangePartitioner partitioner = new SellerIdRangePartitioner(
-                jdbcTemplate, start, end);
+        @Test
+        @DisplayName("should_handleUnevenDistribution_when_notDivisible")
+        void should_handleUnevenDistribution_when_notDivisible() {
+            when(jdbcTemplate.queryForList(anyString(), eq(Long.class), any(), any()))
+                    .thenReturn(List.of(1L, 2L, 3L, 4L, 5L));
 
-        // When
-        Map<String, ExecutionContext> partitions = partitioner.partition(3);
+            SellerIdRangePartitioner partitioner = new SellerIdRangePartitioner(
+                    jdbcTemplate, start, end);
 
-        // Then
-        assertThat(partitions).hasSize(3);
-        assertThat(partitions.get("partition0").getLong("minSellerId")).isEqualTo(1L);
-        assertThat(partitions.get("partition0").getLong("maxSellerId")).isEqualTo(2L);
-        assertThat(partitions.get("partition1").getLong("minSellerId")).isEqualTo(3L);
-        assertThat(partitions.get("partition1").getLong("maxSellerId")).isEqualTo(4L);
-        assertThat(partitions.get("partition2").getLong("minSellerId")).isEqualTo(5L);
-        assertThat(partitions.get("partition2").getLong("maxSellerId")).isEqualTo(5L);
+            Map<String, ExecutionContext> partitions = partitioner.partition(3);
+
+            assertThat(partitions).hasSize(3);
+            assertThat(partitions.get("partition0").getLong("minSellerId")).isEqualTo(1L);
+            assertThat(partitions.get("partition0").getLong("maxSellerId")).isEqualTo(2L);
+            assertThat(partitions.get("partition1").getLong("minSellerId")).isEqualTo(3L);
+            assertThat(partitions.get("partition1").getLong("maxSellerId")).isEqualTo(4L);
+            assertThat(partitions.get("partition2").getLong("minSellerId")).isEqualTo(5L);
+            assertThat(partitions.get("partition2").getLong("maxSellerId")).isEqualTo(5L);
+        }
     }
 }

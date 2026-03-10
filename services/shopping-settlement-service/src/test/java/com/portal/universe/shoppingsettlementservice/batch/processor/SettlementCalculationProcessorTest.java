@@ -5,15 +5,16 @@ import com.portal.universe.shoppingsettlementservice.batch.exception.InvalidAmou
 import com.portal.universe.shoppingsettlementservice.settlement.domain.Settlement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.MetaDataInstanceFactory;
 
 import java.math.BigDecimal;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("SettlementCalculationProcessor")
 class SettlementCalculationProcessorTest {
@@ -31,106 +32,74 @@ class SettlementCalculationProcessorTest {
         processor.beforeStep(stepExecution);
     }
 
-    @Test
-    @DisplayName("should_calculateCorrectly_when_normalAggregation")
-    void should_calculateCorrectly_when_normalAggregation() {
-        // Given
-        SellerAggregation aggregation = new SellerAggregation(
-                100L,
-                new BigDecimal("10000.00"),
-                new BigDecimal("1000.00"),
-                5
-        );
+    @Nested
+    @DisplayName("process")
+    class Process {
 
-        // When
-        Settlement result = processor.process(aggregation);
+        @Test
+        @DisplayName("should_calculateCorrectly_when_normalAggregation")
+        void should_calculateCorrectly_when_normalAggregation() {
+            SellerAggregation aggregation = new SellerAggregation(
+                    100L, new BigDecimal("10000.00"), new BigDecimal("1000.00"), 5);
 
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getSellerId()).isEqualTo(100L);
-        assertThat(result.getPeriodId()).isEqualTo(1L);
-        assertThat(result.getTotalSales()).isEqualByComparingTo("10000.00");
-        assertThat(result.getTotalRefunds()).isEqualByComparingTo("1000.00");
-        assertThat(result.getTotalOrders()).isEqualTo(5);
-        // netSales = 10000 - 1000 = 9000
-        // commission = 9000 * 10% = 900
-        // netAmount = 9000 - 900 = 8100
-        assertThat(result.getCommissionAmount()).isEqualByComparingTo("900.00");
-        assertThat(result.getNetAmount()).isEqualByComparingTo("8100.00");
-    }
+            Settlement result = processor.process(aggregation);
 
-    @Test
-    @DisplayName("should_calculateZero_when_salesEqualsRefunds")
-    void should_calculateZero_when_salesEqualsRefunds() {
-        // Given
-        SellerAggregation aggregation = new SellerAggregation(
-                200L,
-                new BigDecimal("5000.00"),
-                new BigDecimal("5000.00"),
-                3
-        );
+            assertThat(result).isNotNull();
+            assertThat(result.getSellerId()).isEqualTo(100L);
+            assertThat(result.getPeriodId()).isEqualTo(1L);
+            assertThat(result.getTotalSales()).isEqualByComparingTo("10000.00");
+            assertThat(result.getTotalRefunds()).isEqualByComparingTo("1000.00");
+            assertThat(result.getTotalOrders()).isEqualTo(5);
+            assertThat(result.getCommissionAmount()).isEqualByComparingTo("900.00");
+            assertThat(result.getNetAmount()).isEqualByComparingTo("8100.00");
+        }
 
-        // When
-        Settlement result = processor.process(aggregation);
+        @Test
+        @DisplayName("should_calculateZero_when_salesEqualsRefunds")
+        void should_calculateZero_when_salesEqualsRefunds() {
+            SellerAggregation aggregation = new SellerAggregation(
+                    200L, new BigDecimal("5000.00"), new BigDecimal("5000.00"), 3);
 
-        // Then
-        assertThat(result.getCommissionAmount()).isEqualByComparingTo("0.00");
-        assertThat(result.getNetAmount()).isEqualByComparingTo("0.00");
-    }
+            Settlement result = processor.process(aggregation);
 
-    @Test
-    @DisplayName("should_throwInvalidAmountException_when_negativeNetSales")
-    void should_throwInvalidAmountException_when_negativeNetSales() {
-        // Given
-        SellerAggregation aggregation = new SellerAggregation(
-                300L,
-                new BigDecimal("1000.00"),
-                new BigDecimal("2000.00"),
-                1
-        );
+            assertThat(result.getCommissionAmount()).isEqualByComparingTo("0.00");
+            assertThat(result.getNetAmount()).isEqualByComparingTo("0.00");
+        }
 
-        // When & Then
-        assertThatThrownBy(() -> processor.process(aggregation))
-                .isInstanceOf(InvalidAmountException.class)
-                .hasMessageContaining("Negative net sales")
-                .hasMessageContaining("300");
-    }
+        @Test
+        @DisplayName("should_throwInvalidAmountException_when_negativeNetSales")
+        void should_throwInvalidAmountException_when_negativeNetSales() {
+            SellerAggregation aggregation = new SellerAggregation(
+                    300L, new BigDecimal("1000.00"), new BigDecimal("2000.00"), 1);
 
-    @Test
-    @DisplayName("should_roundHalfUp_when_commissionHasDecimals")
-    void should_roundHalfUp_when_commissionHasDecimals() {
-        // Given: netSales = 333.33, commission = 333.33 * 0.10 = 33.333 → rounds to 33.33
-        SellerAggregation aggregation = new SellerAggregation(
-                400L,
-                new BigDecimal("333.33"),
-                BigDecimal.ZERO,
-                1
-        );
+            assertThatThrownBy(() -> processor.process(aggregation))
+                    .isInstanceOf(InvalidAmountException.class)
+                    .hasMessageContaining("Negative net sales")
+                    .hasMessageContaining("300");
+        }
 
-        // When
-        Settlement result = processor.process(aggregation);
+        @Test
+        @DisplayName("should_roundHalfUp_when_commissionHasDecimals")
+        void should_roundHalfUp_when_commissionHasDecimals() {
+            SellerAggregation aggregation = new SellerAggregation(
+                    400L, new BigDecimal("333.33"), BigDecimal.ZERO, 1);
 
-        // Then
-        assertThat(result.getCommissionAmount()).isEqualByComparingTo("33.33");
-        assertThat(result.getNetAmount()).isEqualByComparingTo("300.00");
-    }
+            Settlement result = processor.process(aggregation);
 
-    @Test
-    @DisplayName("should_calculateZeroCommission_when_zeroSales")
-    void should_calculateZeroCommission_when_zeroSales() {
-        // Given
-        SellerAggregation aggregation = new SellerAggregation(
-                500L,
-                BigDecimal.ZERO,
-                BigDecimal.ZERO,
-                0
-        );
+            assertThat(result.getCommissionAmount()).isEqualByComparingTo("33.33");
+            assertThat(result.getNetAmount()).isEqualByComparingTo("300.00");
+        }
 
-        // When
-        Settlement result = processor.process(aggregation);
+        @Test
+        @DisplayName("should_calculateZeroCommission_when_zeroSales")
+        void should_calculateZeroCommission_when_zeroSales() {
+            SellerAggregation aggregation = new SellerAggregation(
+                    500L, BigDecimal.ZERO, BigDecimal.ZERO, 0);
 
-        // Then
-        assertThat(result.getCommissionAmount()).isEqualByComparingTo("0.00");
-        assertThat(result.getNetAmount()).isEqualByComparingTo("0.00");
+            Settlement result = processor.process(aggregation);
+
+            assertThat(result.getCommissionAmount()).isEqualByComparingTo("0.00");
+            assertThat(result.getNetAmount()).isEqualByComparingTo("0.00");
+        }
     }
 }
