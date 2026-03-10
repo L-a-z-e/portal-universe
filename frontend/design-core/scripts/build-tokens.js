@@ -86,7 +86,7 @@ function buildTokens() {
     };
 
     try {
-        console.log('📖 Step 1: Building color reference map...');
+        console.log('Step 1: Building color reference map...');
 
         try {
             const colorPath = join(tokensDir, 'base', 'colors.json');
@@ -110,12 +110,12 @@ function buildTokens() {
             }
 
             buildColorMap(colorTokens.color || colorTokens, 'color');
-            console.log(`  ✅ Color reference map built (${Object.keys(colorReferences).length} colors)`);
+            console.log(`  Color reference map built (${Object.keys(colorReferences).length} colors)`);
         } catch (err) {
-            console.log(`  ⚠️  Error building color reference map: ${err.message}`);
+            console.log(`  Error building color reference map: ${err.message}`);
         }
 
-        console.log('📖 Step 2: Reading base tokens...');
+        console.log('Step 2: Reading base tokens...');
 
         ['colors', 'typography', 'spacing', 'border', 'effects'].forEach(tokenType => {
             const filePath = join(tokensDir, 'base', `${tokenType}.json`);
@@ -145,13 +145,13 @@ function buildTokens() {
 
                 flattenTokens(tokenContent, prefix, cssVariables);
                 jsonOutput.base[tokenType] = tokens;
-                console.log(`  ✅ ${tokenType}.json loaded`);
+                console.log(`  ${tokenType}.json loaded`);
             } catch (err) {
-                console.log(`  ⚠️  ${tokenType}.json not found or invalid`);
+                console.log(`  ${tokenType}.json not found or invalid`);
             }
         });
 
-        console.log('📖 Step 3: Reading semantic tokens...');
+        console.log('Step 3: Reading semantic tokens...');
         try {
             const semanticPath = join(tokensDir, 'semantic', 'colors.json');
             const content = readFileSync(semanticPath, 'utf-8');
@@ -187,12 +187,12 @@ function buildTokens() {
 
             processSemantic(semanticContent);
             jsonOutput.semantic = semanticTokens;
-            console.log('  ✅ semantic/colors.json loaded');
+            console.log('  semantic/colors.json loaded');
         } catch (err) {
-            console.log(`  ⚠️  semantic/colors.json not found or invalid: ${err.message}`);
+            console.log(`  semantic/colors.json not found or invalid: ${err.message}`);
         }
 
-        console.log('📖 Step 4: Reading theme tokens (with darkMode/lightMode support)...');
+        console.log('Step 4: Reading theme tokens (with darkMode/lightMode support)...');
         const themeFiles = ['portal', 'blog', 'shopping', 'prism', 'drive', 'admin'];
 
         themeFiles.forEach(themeName => {
@@ -253,13 +253,13 @@ function buildTokens() {
                 }
 
                 jsonOutput.themes[themeName] = themeTokens;
-                console.log(`  ✅ themes/${themeName}.json loaded (${themeName === 'portal' ? 'dark-first' : 'light-first'})`);
+                console.log(`  themes/${themeName}.json loaded (${themeName === 'portal' ? 'dark-first' : 'light-first'})`);
             } catch (err) {
-                console.log(`  ⚠️  themes/${themeName}.json not found or invalid: ${err.message}`);
+                console.log(`  themes/${themeName}.json not found or invalid: ${err.message}`);
             }
         });
 
-        console.log('\n🎨 Step 5: Generating output files...');
+        console.log('\nStep 5: Generating output files...');
 
         // Generate CSS
         let cssContent = `/* ============================================
@@ -393,11 +393,11 @@ function buildTokens() {
 
         // Write CSS file
         writeFileSync(join(distDir, 'tokens.css'), cssContent, 'utf-8');
-        console.log('  ✅ tokens.css generated');
+        console.log('  tokens.css generated');
 
         // Write JSON file
         writeFileSync(join(distDir, 'tokens.json'), JSON.stringify(jsonOutput, null, 2), 'utf-8');
-        console.log('  ✅ tokens.json generated');
+        console.log('  tokens.json generated');
 
         // Write JavaScript module
         const jsContent = `// Auto-generated token exports
@@ -408,7 +408,7 @@ export const cssVariables = ${JSON.stringify(Object.fromEntries(cssVariables), n
 export default tokens;
 `;
         writeFileSync(join(distDir, 'tokens.js'), jsContent, 'utf-8');
-        console.log('  ✅ tokens.js generated');
+        console.log('  tokens.js generated');
 
         // Write CommonJS module
         const cjsContent = `// Auto-generated token exports (CommonJS)
@@ -419,7 +419,7 @@ const cssVariables = ${JSON.stringify(Object.fromEntries(cssVariables), null, 2)
 module.exports = { tokens, cssVariables, default: tokens };
 `;
         writeFileSync(join(distDir, 'tokens.cjs'), cjsContent, 'utf-8');
-        console.log('  ✅ tokens.cjs generated');
+        console.log('  tokens.cjs generated');
 
         // Write TypeScript declarations
         const dtsContent = `// Auto-generated type declarations
@@ -444,17 +444,17 @@ export declare const cssVariables: Record<string, string>;
 export default tokens;
 `;
         writeFileSync(join(distDir, 'tokens.d.ts'), dtsContent, 'utf-8');
-        console.log('  ✅ tokens.d.ts generated');
+        console.log('  tokens.d.ts generated');
 
-        console.log(`\n📊 Summary:`);
+        console.log(`\nSummary:`);
         console.log(`   Total base variables: ${cssVariables.size}`);
         console.log(`   Service themes generated: ${themes.size}`);
         console.log(`   Dark mode overrides: ${themeDarkModes.size}`);
         console.log(`   Light mode overrides: ${themeLightModes.size}`);
-        console.log('\n✨ Design tokens built successfully!');
+        console.log('\nDesign tokens built successfully!');
 
     } catch (error) {
-        console.error('❌ Fatal error:', error.message);
+        console.error('Fatal error:', error.message);
         process.exit(1);
     }
 }

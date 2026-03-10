@@ -31,39 +31,21 @@ public class Series extends BaseDocument {
     @Id
     private String id;
 
-    /**
-     * 시리즈 제목
-     */
     @NotBlank(message = "시리즈 제목은 필수입니다")
     @Size(max = 100, message = "시리즈 제목은 100자를 초과할 수 없습니다")
     private String name;
 
-    /**
-     * 시리즈 설명
-     */
     @Size(max = 500, message = "시리즈 설명은 500자를 초과할 수 없습니다")
     private String description;
 
-    /**
-     * 작성자 ID
-     */
     @Indexed
     @NotBlank(message = "작성자는 필수입니다")
     private String authorId;
 
-    /**
-     * 작성자 Username (핸들, URL용)
-     */
     private String authorUsername;
 
-    /**
-     * 작성자 닉네임 (표시용)
-     */
     private String authorNickname;
 
-    /**
-     * 시리즈 썸네일 이미지 URL
-     */
     private String thumbnailUrl;
 
     /**
@@ -73,17 +55,9 @@ public class Series extends BaseDocument {
     @Builder.Default
     private List<String> postIds = new ArrayList<>();
 
-    /**
-     * 낙관적 잠금 버전 (동시 수정 방지)
-     */
     @Version
     private Long version;
 
-    // ========== 비즈니스 메서드 ==========
-
-    /**
-     * 시리즈 정보 수정
-     */
     public void update(String name, String description, String thumbnailUrl) {
         this.name = name;
         this.description = description;
@@ -91,9 +65,6 @@ public class Series extends BaseDocument {
         // updatedAt is managed by BaseDocument @LastModifiedDate
     }
 
-    /**
-     * 시리즈에 포스트 추가 (맨 뒤)
-     */
     public void addPost(String postId) {
         if (!this.postIds.contains(postId)) {
             this.postIds.add(postId);
@@ -101,9 +72,6 @@ public class Series extends BaseDocument {
         }
     }
 
-    /**
-     * 시리즈에 포스트 추가 (특정 위치)
-     */
     public void addPostAt(String postId, int index) {
         if (!this.postIds.contains(postId)) {
             if (index < 0 || index > this.postIds.size()) {
@@ -114,17 +82,11 @@ public class Series extends BaseDocument {
         }
     }
 
-    /**
-     * 시리즈에서 포스트 제거
-     */
     public void removePost(String postId) {
         this.postIds.remove(postId);
         // updatedAt is managed by BaseDocument @LastModifiedDate
     }
 
-    /**
-     * 포스트 순서 변경
-     */
     public void reorderPosts(List<String> newPostIds) {
         // 검증: 기존 포스트 ID와 동일한지 확인
         if (!this.postIds.containsAll(newPostIds) || !newPostIds.containsAll(this.postIds)) {
@@ -134,31 +96,19 @@ public class Series extends BaseDocument {
         // updatedAt is managed by BaseDocument @LastModifiedDate
     }
 
-    /**
-     * 특정 포스트가 시리즈에 포함되어 있는지 확인
-     */
     public boolean containsPost(String postId) {
         return this.postIds.contains(postId);
     }
 
-    /**
-     * 특정 포스트의 순서(인덱스) 반환
-     * @return 0-based index, 없으면 -1
-     */
+    /** @return 0-based index, 없으면 -1 */
     public int getPostOrder(String postId) {
         return this.postIds.indexOf(postId);
     }
 
-    /**
-     * 시리즈에 포함된 포스트 개수
-     */
     public int getPostCount() {
         return this.postIds.size();
     }
 
-    /**
-     * 시리즈가 비어있는지 확인
-     */
     public boolean isEmpty() {
         return this.postIds.isEmpty();
     }

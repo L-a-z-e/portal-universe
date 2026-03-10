@@ -74,8 +74,6 @@ public class DataInitializer {
         };
     }
 
-    // ========== Tags ==========
-
     private void createTags() throws IOException {
         List<TagSeed> seeds = readSeed("tags.json", TagSeed.class);
 
@@ -89,8 +87,6 @@ public class DataInitializer {
 
         log.info("Created {} tags", seeds.size());
     }
-
-    // ========== Posts ==========
 
     private Map<String, String> createPosts() throws IOException {
         List<PostSeed> seeds = readSeed("posts.json", PostSeed.class);
@@ -142,8 +138,6 @@ public class DataInitializer {
         }
     }
 
-    // ========== Series ==========
-
     private void createSeries(Map<String, String> postKeyToId) throws IOException {
         List<SeriesSeed> seeds = readSeed("series.json", SeriesSeed.class);
 
@@ -164,8 +158,6 @@ public class DataInitializer {
 
         log.info("Created {} series", seeds.size());
     }
-
-    // ========== Comments ==========
 
     private List<Comment> createComments(Map<String, String> postKeyToId) throws IOException {
         List<CommentSeed> seeds = readSeed("comments.json", CommentSeed.class);
@@ -201,8 +193,6 @@ public class DataInitializer {
         return saved;
     }
 
-    // ========== Likes ==========
-
     private void createLikes(Map<String, String> postKeyToId) throws IOException {
         List<LikeSeed> seeds = readSeed("likes.json", LikeSeed.class);
 
@@ -217,8 +207,6 @@ public class DataInitializer {
 
         log.info("Created {} likes", seeds.size());
     }
-
-    // ========== 역정규화 업데이트 ==========
 
     private void updateDenormalizedFields(Map<String, String> postKeyToId, List<Comment> comments) throws IOException {
         // commentCount
@@ -249,15 +237,11 @@ public class DataInitializer {
         log.info("Updated denormalized fields for {} posts", postKeyToId.size());
     }
 
-    // ========== JSON 로딩 ==========
-
     private <T> List<T> readSeed(String filename, Class<T> type) throws IOException {
         Resource resource = new ClassPathResource("seed/" + filename);
         return objectMapper.readValue(resource.getInputStream(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, type));
     }
-
-    // ========== Seed DTOs ==========
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record TagSeed(String name, String description) {}

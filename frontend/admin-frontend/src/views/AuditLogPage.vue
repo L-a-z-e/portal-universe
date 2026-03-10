@@ -7,7 +7,6 @@ import type { AuditLog, PageResponse } from '@/dto/admin';
 const { getErrorMessage } = useApiError();
 const toast = useToast();
 
-// === State ===
 const searchQuery = ref('');
 const eventTypeFilter = ref<string | number | null>(null);
 const page = ref(1);
@@ -37,7 +36,6 @@ const totalPages = computed(() => data.value?.totalPages ?? 0);
 const showingStart = computed(() => totalItems.value === 0 ? 0 : (page.value - 1) * pageSize + 1);
 const showingEnd = computed(() => Math.min(page.value * pageSize, totalItems.value));
 
-// === Helpers ===
 function formatTimestamp(isoStr: string): string {
   const d = new Date(isoStr);
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -76,7 +74,6 @@ function targetIcon(targetId: string | null): string {
   return 'target';
 }
 
-// === Actions ===
 async function load() {
   loading.value = true;
   error.value = '';

@@ -14,10 +14,8 @@ import { winstonLogger } from './config/logger.config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { logger: winstonLogger });
 
-  // Global prefix
   app.setGlobalPrefix('api/v1');
 
-  // Global pipes
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -26,16 +24,13 @@ async function bootstrap() {
     }),
   );
 
-  // Global filters
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // Global interceptors
   app.useGlobalInterceptors(
     new AuditInterceptor(),
     new ApiResponseInterceptor(),
   );
 
-  // Global guards
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
@@ -53,7 +48,6 @@ async function bootstrap() {
     winstonLogger.log('CORS enabled for standalone mode');
   }
 
-  // Swagger
   const config = new DocumentBuilder()
     .setTitle('Prism Service')
     .setDescription('AI Orchestration Service API')

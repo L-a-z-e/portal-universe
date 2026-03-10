@@ -25,7 +25,6 @@ class VectorStoreManager:
         return self._store
 
     def add_documents(self, documents: list[Document]) -> list[str]:
-        """문서 청크를 벡터 스토어에 추가."""
         ids = self._store.add_documents(documents)
         logger.info("Added %d document chunks to vector store", len(ids))
         return ids
@@ -33,7 +32,6 @@ class VectorStoreManager:
     def search(
         self, query: str, k: int | None = None, score_threshold: float | None = None
     ) -> list[tuple[Document, float]]:
-        """유사 문서 검색."""
         k = k or settings.rag_top_k
         score_threshold = score_threshold or settings.rag_score_threshold
         results = self._store.similarity_search_with_relevance_scores(query, k=k)
@@ -42,7 +40,6 @@ class VectorStoreManager:
         return filtered
 
     def delete_by_source(self, source: str) -> None:
-        """특정 소스 문서의 모든 청크 삭제."""
         # ChromaDB public API 사용
         ids = self._store.get(where={"source": source})["ids"]
         if ids:
@@ -50,5 +47,4 @@ class VectorStoreManager:
         logger.info("Deleted chunks for source: %s", source)
 
     def get_document_count(self) -> int:
-        """저장된 총 청크 수."""
         return len(self._store.get()["ids"])

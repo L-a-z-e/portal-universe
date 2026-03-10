@@ -126,32 +126,18 @@ public class PasswordValidatorImpl implements PasswordValidator {
         return daysSinceChange > policyProperties.getMaxAge();
     }
 
-    // ==================== Private Helper Methods ====================
-
-    /**
-     * 대문자 포함 여부 확인
-     */
     private boolean containsUppercase(String password) {
         return password.chars().anyMatch(Character::isUpperCase);
     }
 
-    /**
-     * 소문자 포함 여부 확인
-     */
     private boolean containsLowercase(String password) {
         return password.chars().anyMatch(Character::isLowerCase);
     }
 
-    /**
-     * 숫자 포함 여부 확인
-     */
     private boolean containsDigit(String password) {
         return password.chars().anyMatch(Character::isDigit);
     }
 
-    /**
-     * 특수문자 포함 여부 확인
-     */
     private boolean containsSpecialChar(String password) {
         String specialChars = policyProperties.getSpecialChars();
         return password.chars()
@@ -159,21 +145,14 @@ public class PasswordValidatorImpl implements PasswordValidator {
                 .anyMatch(c -> specialChars.indexOf(c) >= 0);
     }
 
-    /**
-     * 연속 문자 포함 여부 확인
-     */
     private boolean containsSequential(String password) {
         String lowerPassword = password.toLowerCase();
         return SEQUENTIAL_CHARS.matcher(lowerPassword).find();
     }
 
-    /**
-     * 사용자 정보 포함 여부 확인
-     */
     private boolean containsUserInfo(String password, User user) {
         String lowerPassword = password.toLowerCase();
 
-        // 이메일 로컬 파트 확인
         String emailLocal = user.getEmail().split("@")[0].toLowerCase();
         if (lowerPassword.contains(emailLocal)) {
             return true;

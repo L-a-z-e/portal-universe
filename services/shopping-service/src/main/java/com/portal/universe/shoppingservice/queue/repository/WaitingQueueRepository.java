@@ -7,9 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * WaitingQueueRepository
- */
 @Repository
 public interface WaitingQueueRepository extends JpaRepository<WaitingQueue, Long> {
 

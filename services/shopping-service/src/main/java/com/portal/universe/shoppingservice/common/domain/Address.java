@@ -16,33 +16,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address {
 
-    /**
-     * 수령인 이름
-     */
     @Column(name = "receiver_name", length = 100)
     private String receiverName;
 
-    /**
-     * 수령인 연락처
-     */
     @Column(name = "receiver_phone", length = 20)
     private String receiverPhone;
 
-    /**
-     * 우편번호
-     */
     @Column(name = "zip_code", length = 10)
     private String zipCode;
 
-    /**
-     * 기본 주소
-     */
     @Column(name = "address1", length = 255)
     private String address1;
 
-    /**
-     * 상세 주소
-     */
     @Column(name = "address2", length = 255)
     private String address2;
 
@@ -55,9 +40,6 @@ public class Address {
         this.address2 = address2;
     }
 
-    /**
-     * 전체 주소 문자열을 반환합니다.
-     */
     public String getFullAddress() {
         StringBuilder sb = new StringBuilder();
         if (zipCode != null) {

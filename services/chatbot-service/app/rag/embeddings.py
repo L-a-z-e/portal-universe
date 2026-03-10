@@ -11,6 +11,5 @@ from app.providers.factory import create_embedding_provider
 
 
 def get_embedding_function() -> Embeddings:
-    """현재 설정에 맞는 Embedding 함수를 반환."""
     provider: EmbeddingProvider = create_embedding_provider()
     return provider.get_embeddings()

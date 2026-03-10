@@ -1,9 +1,4 @@
-/**
- * React Router Configuration
- *
- * Shopping Frontend 라우팅 설정
- * Blog와 유사한 패턴으로 Parent 내비게이션 연동 지원
- */
+// Shopping Frontend 라우팅 설정 (Parent 내비게이션 연동 지원)
 import React, { Suspense, lazy, useEffect, useRef } from 'react'
 import {
   createBrowserRouter,
@@ -56,25 +51,16 @@ let navigationCallback: ((path: string) => void) | null = null
 // App active state for keep-alive support
 let isAppActive = true
 
-/**
- * Set app active state (for keep-alive activated/deactivated)
- * When deactivated, NavigationSync will skip callback invocation
- */
+// When deactivated, NavigationSync will skip callback invocation
 export const setAppActive = (active: boolean) => {
   isAppActive = active
 }
 
-/**
- * Set navigation callback for parent communication
- */
 export const setNavigationCallback = (callback: ((path: string) => void) | null) => {
   navigationCallback = callback
 }
 
-/**
- * Navigation Sync Component
- * 라우트 변경 시 Parent에게 알림
- */
+// 라우트 변경 시 Parent에게 알림
 const NavigationSync: React.FC = () => {
   const location = useLocation()
   const prevPathRef = useRef(location.pathname)
@@ -261,26 +247,17 @@ export const createRouter = (options: {
 // Router instance cache for navigation control
 let routerInstance: RouterInstance | null = null
 
-/**
- * Get current router instance
- */
 export const getRouter = () => routerInstance
 
-/**
- * Navigate programmatically (for parent navigation sync)
- */
 export const navigateTo = (path: string) => {
   if (routerInstance) {
     routerInstance.navigate(path)
   } else {
-    console.error('❌ [Shopping Router] Router not initialized')
+    console.error('[Shopping Router] Router not initialized')
   }
 }
 
-/**
- * 🆕 Reset router instance (for cleanup on unmount)
- * 다음 마운트 시 새로운 라우터가 생성되도록 인스턴스 초기화
- */
+// 다음 마운트 시 새로운 라우터가 생성되도록 인스턴스 초기화
 export const resetRouter = () => {
   routerInstance = null
   setNavigationCallback(null)

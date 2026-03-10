@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+/**
+ * 전체 서비스 health 상태를 조회하는 API.
+ */
 @RestController
 @RequestMapping("/api/health")
 @RequiredArgsConstructor

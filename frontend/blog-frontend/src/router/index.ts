@@ -130,9 +130,8 @@ export function createBlogRouter(basePath: string = '/'): Router {
 
   addAuthGuard(router);
 
-  // ✅ 초기 경로 설정
   router.push('/').catch(err => {
-    console.error('❌ [Blog Router] Initial navigation failed:', err);
+    console.error('[Blog Router] Initial navigation failed:', err);
   });
 
   return router;

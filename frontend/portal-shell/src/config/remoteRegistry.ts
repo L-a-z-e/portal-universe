@@ -214,7 +214,7 @@ function getEnvironmentMode(): EnvironmentMode {
   }
 
   // 기본값
-  console.warn(`⚠️ Unknown environment mode: ${mode}, falling back to 'dev'`);
+  console.warn(`[RemoteRegistry] Unknown environment mode: ${mode}, falling back to 'dev'`);
   return 'dev';
 }
 

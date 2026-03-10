@@ -79,8 +79,6 @@ public class NotificationConsumer {
         }
     }
 
-    // ===== Shopping Domain Events =====
-
     @KafkaListener(topics = ShoppingTopics.ORDER_CREATED,
                    groupId = "${spring.kafka.consumer.group-id}",
                    containerFactory = "avroKafkaListenerContainerFactory")
@@ -175,8 +173,6 @@ public class NotificationConsumer {
         log.info("TimeDeal broadcast notification not yet implemented (no subscriber model)");
     }
 
-    // ===== Blog Domain Events =====
-
     @KafkaListener(topics = BlogTopics.POST_LIKED,
                    groupId = "${spring.kafka.consumer.group-id}",
                    containerFactory = "avroKafkaListenerContainerFactory")
@@ -235,8 +231,6 @@ public class NotificationConsumer {
         }
     }
 
-    // ===== Drive Domain Events =====
-
     @KafkaListener(topics = DriveTopics.FILE_UPLOADED,
                    groupId = "${spring.kafka.consumer.group-id}",
                    containerFactory = "avroKafkaListenerContainerFactory")
@@ -279,8 +273,6 @@ public class NotificationConsumer {
         }
     }
 
-    // ===== Prism Domain Events =====
-
     @KafkaListener(topics = PrismTopics.TASK_COMPLETED,
                    groupId = "${spring.kafka.consumer.group-id}",
                    containerFactory = "avroKafkaListenerContainerFactory")
@@ -308,8 +300,6 @@ public class NotificationConsumer {
             throw e;
         }
     }
-
-    // ===== Auth Domain Events - User Lifecycle =====
 
     @KafkaListener(topics = AuthTopics.USER_WITHDRAWN,
                    groupId = "${spring.kafka.consumer.group-id}",

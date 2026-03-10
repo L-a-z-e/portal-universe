@@ -44,60 +44,34 @@ public class Tag extends BaseDocument {
     @Builder.Default
     private Long postCount = 0L;
 
-    /**
-     * 태그 설명 (선택적)
-     */
     @Size(max = 200, message = "태그 설명은 200자를 초과할 수 없습니다")
     private String description;
 
-    /**
-     * 태그 최종 사용일시
-     */
     private Instant lastUsedAt;
 
-    // ========== 비즈니스 메서드 ==========
-
-    /**
-     * 포스트 개수 증가
-     */
     public void incrementPostCount() {
         this.postCount++;
         this.lastUsedAt = Instant.now();
     }
 
-    /**
-     * 포스트 개수 감소
-     */
     public void decrementPostCount() {
         if (this.postCount > 0) {
             this.postCount--;
         }
     }
 
-    /**
-     * 태그 설명 업데이트
-     */
     public void updateDescription(String description) {
         this.description = description;
     }
 
-    /**
-     * 최종 사용일시 업데이트
-     */
     public void updateLastUsedAt() {
         this.lastUsedAt = Instant.now();
     }
 
-    /**
-     * 사용되지 않는 태그인지 확인
-     */
     public boolean isUnused() {
         return this.postCount == 0;
     }
 
-    /**
-     * 태그 이름 정규화 (소문자 변환, 공백 제거)
-     */
     public static String normalizeName(String name) {
         if (name == null) return null;
         return name.trim().toLowerCase();

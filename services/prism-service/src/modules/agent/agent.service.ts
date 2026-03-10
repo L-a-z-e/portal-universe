@@ -24,7 +24,6 @@ export class AgentService {
   ) {}
 
   async create(userId: string, dto: CreateAgentDto): Promise<AgentResponseDto> {
-    // Verify provider exists and belongs to user
     const provider = await this.providerRepository.findOne({
       where: { id: dto.providerId, userId },
     });
@@ -32,7 +31,6 @@ export class AgentService {
       throw BusinessException.notFound('Provider');
     }
 
-    // Check for duplicate name
     const existing = await this.agentRepository.findOne({
       where: { userId, name: dto.name },
     });
@@ -54,7 +52,6 @@ export class AgentService {
 
     const saved = await this.agentRepository.save(agent);
 
-    // Reload with provider relation
     const withProvider = await this.findByIdAndUser(userId, saved.id);
     return AgentResponseDto.from(withProvider);
   }

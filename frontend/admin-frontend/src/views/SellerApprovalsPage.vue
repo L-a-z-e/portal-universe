@@ -7,7 +7,6 @@ import type { SellerApplication, PageResponse } from '@/dto/admin';
 const { getErrorMessage, handleError } = useApiError();
 const toast = useToast();
 
-// === State ===
 const data = ref<PageResponse<SellerApplication> | null>(null);
 const loading = ref(true);
 const error = ref('');
@@ -19,7 +18,6 @@ const expandedId = ref<number | null>(null);
 const reviewComment = ref('');
 const reviewLoading = ref(false);
 
-// === Options ===
 const statusOptions = [
   { value: 'PENDING', label: 'Pending' },
   { value: 'APPROVED', label: 'Approved' },
@@ -31,7 +29,6 @@ const sortOptions = [
   { value: 'oldest', label: 'Date Applied (Oldest)' },
 ];
 
-// === Computed ===
 const pendingCount = computed(() => {
   if (!data.value) return 0;
   return data.value.items.filter((i) => i.status === 'PENDING').length;
@@ -51,7 +48,6 @@ const filteredItems = computed(() => {
   return items;
 });
 
-// === Helpers ===
 function getInitials(name: string): string {
   return name
     .split(/\s+/)
@@ -94,7 +90,6 @@ function toggleExpand(id: number) {
   }
 }
 
-// === Actions ===
 async function load() {
   loading.value = true;
   error.value = '';

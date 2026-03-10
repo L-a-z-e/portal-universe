@@ -104,45 +104,29 @@ public class SecurityConfig {
 
         return http
                 .authorizeExchange(authorize -> authorize
-                        // ========================================
-                        // [공개] 인증 없이 접근 가능 (PublicPathProperties 기반)
-                        // ========================================
                         .pathMatchers(permitAllPaths).permitAll()
                         .pathMatchers(org.springframework.http.HttpMethod.GET, permitAllGetPaths).permitAll()
 
-                        // ========================================
-                        // [시스템 관리자] SUPER_ADMIN 전용
-                        // ========================================
                         .pathMatchers("/api/v1/admin/seller/**")
                             .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
                         .pathMatchers("/api/v1/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
 
-                        // ========================================
-                        // [서비스 관리자] 서비스별 Admin 권한
-                        // ========================================
                         .pathMatchers("/api/v1/shopping/admin/**")
                             .hasAnyAuthority("ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
                         .pathMatchers("/api/v1/blog/admin/**")
                             .hasAnyAuthority("ROLE_BLOG_ADMIN", "ROLE_SUPER_ADMIN")
 
-                        // ========================================
-                        // [판매자] Seller 권한
-                        // ========================================
                         .pathMatchers("/api/v1/shopping/seller/**")
                             .hasAnyAuthority("ROLE_SHOPPING_SELLER", "ROLE_SHOPPING_ADMIN", "ROLE_SUPER_ADMIN")
 
-                        // ========================================
-                        // [비공개] 인증 필요
-                        // ========================================
                         .anyExchange().authenticated()
                 )
-                // JWT 인증 필터 추가 (AUTHENTICATION 단계에서 실행)
                 .addFilterAt(jwtAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
-                // 기본 인증 비활성화 (401 시 브라우저 프롬프트 방지)
+                // 브라우저 Basic Auth 프롬프트 방지
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                // 인증/인가 실패 시 커스텀 핸들러 사용 (WWW-Authenticate 헤더 방지)
+                // WWW-Authenticate 헤더 대신 JSON 에러 응답 반환
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)

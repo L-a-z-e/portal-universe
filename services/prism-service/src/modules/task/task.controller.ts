@@ -117,7 +117,6 @@ export class TaskController {
     return this.taskService.changePosition(userId, id, dto);
   }
 
-  // State transition endpoints
   @Post('tasks/:id/execute')
   @ApiOperation({
     summary: 'Execute task with AI (TODO → IN_PROGRESS → IN_REVIEW)',
@@ -129,9 +128,7 @@ export class TaskController {
     @CurrentUserId() userId: string,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ExecutionResponseDto> {
-    // First transition task to IN_PROGRESS
     await this.taskService.execute(userId, id);
-    // Then create and run execution
     return this.executionService.executeTask(userId, id);
   }
 

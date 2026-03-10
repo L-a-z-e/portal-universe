@@ -23,29 +23,17 @@ public class DeliveryHistory extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * 소속 배송
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delivery_id", nullable = false)
     private Delivery delivery;
 
-    /**
-     * 배송 상태
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private DeliveryStatus status;
 
-    /**
-     * 위치 정보
-     */
     @Column(name = "location", length = 255)
     private String location;
 
-    /**
-     * 상세 설명
-     */
     @Column(name = "description", length = 500)
     private String description;
 

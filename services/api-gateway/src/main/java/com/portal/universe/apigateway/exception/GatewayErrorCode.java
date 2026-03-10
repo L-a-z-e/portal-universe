@@ -8,17 +8,14 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum GatewayErrorCode {
 
-    // Authentication
     AUTHENTICATION_REQUIRED("GW-A001", "Authentication required", HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("GW-A002", "Access denied", HttpStatus.FORBIDDEN),
     TOKEN_REVOKED("GW-A003", "Token revoked", HttpStatus.UNAUTHORIZED),
     TOKEN_EXPIRED("GW-A004", "Token expired", HttpStatus.UNAUTHORIZED),
     INVALID_TOKEN("GW-A005", "Invalid token", HttpStatus.UNAUTHORIZED),
 
-    // Rate Limiting
     TOO_MANY_REQUESTS("GW-R001", "Too many requests", HttpStatus.TOO_MANY_REQUESTS),
 
-    // Fallback (Circuit Breaker)
     AUTH_SERVICE_UNAVAILABLE("GW-F001",
             "인증 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.", HttpStatus.SERVICE_UNAVAILABLE),
     BLOG_SERVICE_UNAVAILABLE("GW-F002",

@@ -32,9 +32,6 @@ public class TagService {
     private final TagRepository tagRepository;
     private final MongoTemplate mongoTemplate;
 
-    /**
-     * 태그 생성 (수동)
-     */
     public TagResponse createTag(TagCreateRequest request) {
         String normalizedName = Tag.normalizeName(request.name());
 
@@ -54,10 +51,6 @@ public class TagService {
         return toResponse(tag);
     }
 
-    /**
-     * 태그 자동 생성 또는 기존 태그 반환
-     * Post 생성 시 호출
-     */
     public Tag getOrCreateTag(String tagName) {
         String normalizedName = Tag.normalizeName(tagName);
 
@@ -101,10 +94,6 @@ public class TagService {
         log.info("Ensured {} tags exist via bulk upsert", normalized.size());
     }
 
-    /**
-     * 태그의 포스트 카운트 증가
-     * Post 생성 시 호출
-     */
     public void incrementTagPostCount(String tagName) {
         String normalizedName = Tag.normalizeName(tagName);
         Tag tag = tagRepository.findByNameIgnoreCase(normalizedName)
@@ -114,10 +103,6 @@ public class TagService {
         tagRepository.save(tag);
     }
 
-    /**
-     * 태그의 포스트 카운트 감소
-     * Post 삭제 시 호출
-     */
     public void decrementTagPostCount(String tagName) {
         String normalizedName = Tag.normalizeName(tagName);
         tagRepository.findByNameIgnoreCase(normalizedName)
@@ -127,9 +112,6 @@ public class TagService {
                 });
     }
 
-    /**
-     * 여러 태그의 포스트 카운트 일괄 증가 (bulk $inc)
-     */
     public void incrementTagPostCounts(List<String> tagNames) {
         if (tagNames == null || tagNames.isEmpty()) return;
         List<String> normalized = tagNames.stream()
@@ -142,9 +124,6 @@ public class TagService {
         );
     }
 
-    /**
-     * 여러 태그의 포스트 카운트 일괄 감소 (bulk $inc)
-     */
     public void decrementTagPostCounts(List<String> tagNames) {
         if (tagNames == null || tagNames.isEmpty()) return;
         List<String> normalized = tagNames.stream()
@@ -157,9 +136,6 @@ public class TagService {
         );
     }
 
-    /**
-     * 태그 상세 조회
-     */
     @Transactional(readOnly = true)
     public TagResponse getTagByName(String tagName) {
         String normalizedName = Tag.normalizeName(tagName);
@@ -168,9 +144,6 @@ public class TagService {
         return toResponse(tag);
     }
 
-    /**
-     * 전체 태그 목록 조회
-     */
     @Transactional(readOnly = true)
     public List<TagResponse> getAllTags() {
         List<Tag> tags = tagRepository.findAll();
@@ -179,9 +152,6 @@ public class TagService {
                 .toList();
     }
 
-    /**
-     * 인기 태그 조회 (postCount 기준)
-     */
     @Transactional(readOnly = true)
     public List<TagStatsResponse> getPopularTags(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
@@ -192,9 +162,6 @@ public class TagService {
                 .toList();
     }
 
-    /**
-     * 최근 사용된 태그 조회
-     */
     @Transactional(readOnly = true)
     public List<TagResponse> getRecentlyUsedTags(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
@@ -205,9 +172,6 @@ public class TagService {
                 .toList();
     }
 
-    /**
-     * 태그 검색 (자동완성용)
-     */
     @Transactional(readOnly = true)
     public List<TagResponse> searchTags(String keyword, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
@@ -218,9 +182,6 @@ public class TagService {
                 .toList();
     }
 
-    /**
-     * 태그 설명 업데이트
-     */
     public TagResponse updateTagDescription(String tagName, String description) {
         String normalizedName = Tag.normalizeName(tagName);
         Tag tag = tagRepository.findByNameIgnoreCase(normalizedName)
@@ -231,18 +192,12 @@ public class TagService {
         return toResponse(tag);
     }
 
-    /**
-     * 사용되지 않는 태그 삭제 (관리자용)
-     */
     public void deleteUnusedTags() {
         List<Tag> unusedTags = tagRepository.findByPostCount(0L);
         tagRepository.deleteAll(unusedTags);
         log.info("Deleted {} unused tags", unusedTags.size());
     }
 
-    /**
-     * 태그 강제 삭제
-     */
     public void deleteTag(String tagName) {
         String normalizedName = Tag.normalizeName(tagName);
         Tag tag = tagRepository.findByNameIgnoreCase(normalizedName)
@@ -255,8 +210,6 @@ public class TagService {
         tagRepository.delete(tag);
         log.info("Tag deleted: {}", normalizedName);
     }
-
-    // ========== 변환 메서드 ==========
 
     private TagResponse toResponse(Tag tag) {
         return new TagResponse(

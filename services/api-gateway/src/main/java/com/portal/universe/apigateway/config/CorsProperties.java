@@ -7,6 +7,10 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * CORS 설정 프로퍼티.
+ * SecurityConfig의 CorsWebFilter에서 사용된다.
+ */
 @ConfigurationProperties(prefix = "app.cors")
 @Data
 @Component

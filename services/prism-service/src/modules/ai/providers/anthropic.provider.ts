@@ -43,7 +43,6 @@ export class AnthropicProvider implements LLMProvider {
 
   async testConnection(): Promise<boolean> {
     try {
-      // Send a minimal request to test connection
       await this.client.messages.create({
         model: 'claude-3-5-haiku-20241022',
         max_tokens: 10,

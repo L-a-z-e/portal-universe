@@ -11,9 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * QueueEntryRepository
- */
 @Repository
 public interface QueueEntryRepository extends JpaRepository<QueueEntry, Long> {
 

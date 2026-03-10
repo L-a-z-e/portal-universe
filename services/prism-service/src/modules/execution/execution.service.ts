@@ -31,17 +31,14 @@ export class ExecutionService {
     userId: string,
     taskId: number,
   ): Promise<ExecutionResponseDto> {
-    // Get task and verify agent is assigned
     const task = await this.taskService.getTaskEntity(userId, taskId);
 
     if (!task.agentId) {
       throw BusinessException.agentNotAssigned();
     }
 
-    // Get agent
     const agent = await this.agentService.getAgentEntity(userId, task.agentId);
 
-    // Get execution count for this task
     const executionCount = await this.executionRepository.count({
       where: { taskId },
     });
@@ -69,7 +66,6 @@ export class ExecutionService {
       }
     }
 
-    // Create execution record
     const execution = this.executionRepository.create({
       taskId,
       agentId: agent.id,
@@ -114,7 +110,6 @@ export class ExecutionService {
     userId: string,
     taskId: number,
   ): Promise<ExecutionResponseDto[]> {
-    // Verify task ownership
     await this.taskService.getTaskEntity(userId, taskId);
 
     const executions = await this.executionRepository.find({
@@ -156,12 +151,10 @@ export class ExecutionService {
       throw BusinessException.notFound('Execution');
     }
 
-    // Update status to RUNNING
     execution.status = ExecutionStatus.RUNNING;
     execution.startedAt = new Date();
     await this.executionRepository.save(execution);
 
-    // Emit SSE event for execution started
     this.sseService.emitExecutionStarted(
       userId,
       taskInfo.boardId,
@@ -172,14 +165,12 @@ export class ExecutionService {
     const startTime = Date.now();
 
     try {
-      // Call AI service
       const response = await this.aiService.generate(
         userId,
         providerId,
         request,
       );
 
-      // Update execution with result
       execution.status = ExecutionStatus.COMPLETED;
       execution.outputResult = response.content;
       execution.inputTokens = response.inputTokens;
@@ -189,10 +180,8 @@ export class ExecutionService {
 
       await this.executionRepository.save(execution);
 
-      // Update task status to IN_REVIEW
       await this.taskService.completeTask(execution.taskId);
 
-      // Send Kafka event
       try {
         await this.kafkaProducer.sendTaskCompleted({
           taskId: taskInfo.taskId,
@@ -211,7 +200,6 @@ export class ExecutionService {
         );
       }
 
-      // Emit SSE event for execution completed
       this.sseService.emitExecutionCompleted(
         userId,
         taskInfo.boardId,
@@ -224,7 +212,6 @@ export class ExecutionService {
         `Execution ${executionId} completed: ${response.inputTokens}+${response.outputTokens} tokens`,
       );
     } catch (error) {
-      // Update execution with error
       execution.status = ExecutionStatus.FAILED;
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
@@ -234,7 +221,6 @@ export class ExecutionService {
 
       await this.executionRepository.save(execution);
 
-      // Send Kafka event
       try {
         await this.kafkaProducer.sendTaskFailed({
           taskId: taskInfo.taskId,
@@ -254,7 +240,6 @@ export class ExecutionService {
         );
       }
 
-      // Emit SSE event for execution failed
       this.sseService.emitExecutionFailed(
         userId,
         taskInfo.boardId,

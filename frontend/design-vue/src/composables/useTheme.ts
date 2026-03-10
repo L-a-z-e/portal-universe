@@ -1,8 +1,3 @@
-/**
- * Theme Management Composable
- * Handles service context and light/dark mode toggling
- */
-
 import { ref, onMounted } from 'vue';
 
 export type ServiceType = 'portal' | 'blog' | 'shopping';
@@ -13,10 +8,7 @@ const currentTheme = ref<ThemeMode>('light');
 
 export function useTheme() {
 
-  /**
-   * Set service context
-   * This determines which CSS variable overrides are applied
-   */
+  // Determines which CSS variable overrides are applied
   const setService = (service: ServiceType) => {
     currentService.value = service;
 
@@ -29,9 +21,6 @@ export function useTheme() {
     }
   };
 
-  /**
-   * Set theme mode (light/dark)
-   */
   const setTheme = (mode: ThemeMode) => {
     currentTheme.value = mode;
 
@@ -51,17 +40,11 @@ export function useTheme() {
     }
   };
 
-  /**
-   * Toggle between light and dark mode
-   */
   const toggleTheme = () => {
     const newTheme = currentTheme.value === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
   };
 
-  /**
-   * Initialize theme from localStorage or system preference
-   */
   const initTheme = () => {
     if (typeof window === 'undefined') return;
 
@@ -80,9 +63,6 @@ export function useTheme() {
     }
   };
 
-  /**
-   * Watch for system theme changes
-   */
   onMounted(() => {
     initTheme();
 

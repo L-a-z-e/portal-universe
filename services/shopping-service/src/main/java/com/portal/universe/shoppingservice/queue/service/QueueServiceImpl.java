@@ -47,11 +47,9 @@ public class QueueServiceImpl implements QueueService {
     @Override
     @Transactional
     public QueueStatusResponse enterQueue(String eventType, Long eventId, String userId) {
-        // 1. 활성 대기열 확인
         WaitingQueue queue = waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue(eventType, eventId)
             .orElseThrow(() -> new CustomBusinessException(ShoppingErrorCode.QUEUE_NOT_FOUND));
 
-        // 2. 이미 대기 중인지 확인
         Optional<QueueEntry> existingEntry = queueEntryRepository.findByQueueAndUserId(queue, userId);
         if (existingEntry.isPresent()) {
             QueueEntry entry = existingEntry.get();
@@ -60,21 +58,19 @@ public class QueueServiceImpl implements QueueService {
             }
         }
 
-        // 3. 새 대기열 엔트리 생성
         QueueEntry entry = QueueEntry.builder()
             .queue(queue)
             .userId(userId)
             .build();
         queueEntryRepository.save(entry);
 
-        // 4. Redis Sorted Set에 추가 (score = timestamp)
+        // score = timestamp로 순서 보장
         String queueKey = getQueueKey(eventType, eventId);
         double score = System.currentTimeMillis();
         redisTemplate.opsForZSet().add(queueKey, entry.getEntryToken(), score);
 
         log.info("User {} entered queue for {} {}", userId, eventType, eventId);
 
-        // 5. 상태 반환
         return getQueueStatusInternal(queue, entry);
     }
 

@@ -4,26 +4,14 @@ import apiClient from '../api/apiClient'
 import type { AuthorStats, OrderStats, ActivityItem, ActivityType } from '../types/dashboard'
 import { parseDate } from '../utils/dateUtils'
 
-// ============================================
-// Blog Service API
-// ============================================
-
 const BLOG_BASE = '/api/v1/blog/posts'
 
-/**
- * 블로그 작성자 통계 조회
- * @param authorId 작성자 ID (userId)
- */
 export async function getBlogStats(authorId: string): Promise<AuthorStats> {
   const response = await apiClient.get<{ data: AuthorStats }>(
     `${BLOG_BASE}/stats/author/${authorId}`
   )
   return response.data.data
 }
-
-// ============================================
-// Shopping Service API
-// ============================================
 
 const SHOPPING_BASE = '/api/v1/shopping'
 
@@ -42,10 +30,7 @@ interface OrderResponse {
   createdAt: string
 }
 
-/**
- * 주문 통계 조회
- * size=1로 호출하여 totalElements 가져옴
- */
+// size=1로 호출하여 totalElements만 가져옴
 export async function getOrderStats(): Promise<OrderStats> {
   const response = await apiClient.get<{ data: PageResponse<OrderResponse> }>(
     `${SHOPPING_BASE}/orders`,
@@ -59,10 +44,6 @@ export async function getOrderStats(): Promise<OrderStats> {
   }
 }
 
-// ============================================
-// Notification Service API (활동 피드로 활용)
-// ============================================
-
 const NOTIFICATION_BASE = '/notification/api/v1/notifications'
 
 interface NotificationResponse {
@@ -75,9 +56,6 @@ interface NotificationResponse {
   createdAt: string | number[]
 }
 
-/**
- * 알림 타입을 ActivityType으로 매핑
- */
 function mapNotificationType(type: string): ActivityType {
   const typeMap: Record<string, ActivityType> = {
     'BLOG_COMMENT': 'COMMENT_CREATED',
@@ -92,9 +70,6 @@ function mapNotificationType(type: string): ActivityType {
   return typeMap[type] || 'POST_CREATED'
 }
 
-/**
- * 활동 타입별 아이콘
- */
 function getActivityIcon(type: ActivityType): string {
   const iconMap: Record<ActivityType, string> = {
     'POST_CREATED': '📝',
@@ -107,10 +82,6 @@ function getActivityIcon(type: ActivityType): string {
   return iconMap[type] || '📌'
 }
 
-/**
- * 최근 활동 조회 (알림 기반)
- * @param limit 조회할 활동 수
- */
 export async function getRecentActivities(limit = 5): Promise<ActivityItem[]> {
   const response = await apiClient.get<{ data: { items: NotificationResponse[] } }>(
     NOTIFICATION_BASE,
@@ -134,10 +105,6 @@ export async function getRecentActivities(limit = 5): Promise<ActivityItem[]> {
   })
 }
 
-// ============================================
-// Aggregated API
-// ============================================
-
 export interface DashboardData {
   blogStats: AuthorStats | null
   orderStats: OrderStats | null
@@ -149,10 +116,7 @@ export interface DashboardData {
   }
 }
 
-/**
- * Dashboard 데이터 일괄 조회
- * 병렬 호출로 성능 최적화, 부분 실패 허용
- */
+// 병렬 호출로 성능 최적화, 부분 실패 허용
 export async function fetchDashboardData(userId: string): Promise<DashboardData> {
   const [blogResult, orderResult, activitiesResult] = await Promise.allSettled([
     getBlogStats(userId),

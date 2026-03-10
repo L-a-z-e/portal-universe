@@ -36,9 +36,6 @@ public class OpenApiConfig {
                 .addSecurityItem(securityRequirement());
     }
 
-    /**
-     * API 기본 정보
-     */
     private Info apiInfo() {
         return new Info()
                 .title("Portal Universe - Blog Service API")
@@ -74,9 +71,6 @@ public class OpenApiConfig {
                         .url("https://opensource.org/licenses/MIT"));
     }
 
-    /**
-     * API 서버 정보
-     */
     private List<Server> apiServers() {
         return List.of(
                 new Server()
@@ -88,9 +82,6 @@ public class OpenApiConfig {
         );
     }
 
-    /**
-     * 보안 스키마 설정 (JWT)
-     */
     private Components securityComponents() {
         return new Components()
                 .addSecuritySchemes("bearerAuth", new SecurityScheme()
@@ -101,9 +92,6 @@ public class OpenApiConfig {
                 );
     }
 
-    /**
-     * 보안 요구사항
-     */
     private SecurityRequirement securityRequirement() {
         return new SecurityRequirement().addList("bearerAuth");
     }

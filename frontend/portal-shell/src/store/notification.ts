@@ -6,7 +6,6 @@ import type { Notification } from '../types/notification'
 import { notificationService } from '../services/notificationService'
 
 export const useNotificationStore = defineStore('notification', () => {
-  // ==================== State ====================
   const notifications = ref<Notification[]>([])
   const unreadCount = ref(0)
   const isLoading = ref(false)
@@ -14,18 +13,12 @@ export const useNotificationStore = defineStore('notification', () => {
   const hasMore = ref(true)
   const currentPage = ref(1)
 
-  // ==================== Getters ====================
   const hasUnread = computed(() => unreadCount.value > 0)
 
   const unreadNotifications = computed(() =>
     notifications.value.filter((n) => n.status === 'UNREAD')
   )
 
-  // ==================== Actions ====================
-
-  /**
-   * Fetch notifications (with pagination)
-   */
   async function fetchNotifications(page = 1, reset = false) {
     if (isLoading.value) return
     isLoading.value = true
@@ -48,9 +41,6 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  /**
-   * Fetch unread count
-   */
   async function fetchUnreadCount() {
     try {
       unreadCount.value = await notificationService.getUnreadCount()
@@ -59,9 +49,6 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  /**
-   * Mark single notification as read
-   */
   async function markAsRead(id: number) {
     try {
       await notificationService.markAsRead(id)
@@ -77,9 +64,6 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  /**
-   * Mark all notifications as read
-   */
   async function markAllAsRead() {
     try {
       await notificationService.markAllAsRead()
@@ -96,9 +80,6 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  /**
-   * Add new notification (from WebSocket)
-   */
   function addNotification(notification: Notification) {
     // Prepend to list
     notifications.value.unshift(notification)
@@ -109,9 +90,6 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  /**
-   * Toggle dropdown visibility
-   */
   function toggleDropdown() {
     isDropdownOpen.value = !isDropdownOpen.value
 
@@ -121,25 +99,16 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  /**
-   * Close dropdown
-   */
   function closeDropdown() {
     isDropdownOpen.value = false
   }
 
-  /**
-   * Load more notifications
-   */
   async function loadMore() {
     if (hasMore.value && !isLoading.value) {
       await fetchNotifications(currentPage.value + 1)
     }
   }
 
-  /**
-   * Reset store state
-   */
   function reset() {
     notifications.value = []
     unreadCount.value = 0

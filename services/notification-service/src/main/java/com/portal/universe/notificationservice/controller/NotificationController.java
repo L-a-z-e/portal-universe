@@ -13,10 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 알림 서비스 REST 컨트롤러입니다.
- *
- * <p>모든 엔드포인트는 {@code @CurrentUser AuthUser}를 통해 인증된 사용자 정보를 주입받습니다.
- * API Gateway에서 JWT 검증 후 전달한 헤더를 기반으로 합니다.</p>
+ * 알림 API 컨트롤러.
+ * API Gateway에서 JWT 검증 후 전달한 헤더 기반으로 {@code @CurrentUser AuthUser}를 주입받는다.
  */
 @RestController
 @RequestMapping("/api/v1/notifications")

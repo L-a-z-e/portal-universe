@@ -1,6 +1,7 @@
 package com.portal.universe.blogservice.common.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,10 @@ import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.index.IndexOperations;
 import org.springframework.data.mongodb.core.index.TextIndexDefinition;
 
+/**
+ * MongoDB 트랜잭션 관리 및 인덱스 생성 설정.
+ */
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class MongoConfig implements InitializingBean {
@@ -28,9 +33,6 @@ public class MongoConfig implements InitializingBean {
         createIndexes();
     }
 
-    /**
-     * PRD Phase 1: 블로그 최적화를 위한 인덱스 생성
-     */
     private void createIndexes() {
         IndexOperations indexOps = mongoTemplate.indexOps("posts");
 
@@ -83,7 +85,7 @@ public class MongoConfig implements InitializingBean {
                         .on("productId", Sort.Direction.ASC)
         );
 
-        System.out.println("✅ MongoDB posts 인덱스 생성 완료");
+        log.info("MongoDB posts indexes created");
 
         // Tags 컬렉션 인덱스
         createTagIndexes();
@@ -105,6 +107,6 @@ public class MongoConfig implements InitializingBean {
                         .on("postCount", Sort.Direction.ASC)
         );
 
-        System.out.println("✅ MongoDB tags 인덱스 생성 완료");
+        log.info("MongoDB tags indexes created");
     }
 }

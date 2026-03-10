@@ -22,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.regex.Pattern;
 
+/**
+ * 회원가입, 사용자 조회, 비밀번호 변경 등 사용자 계정 관리 서비스.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -190,8 +193,6 @@ public class UserService {
 
         savePasswordHistory(user.getId(), encodedPassword);
     }
-
-    // ==================== Private Helper Methods ====================
 
     private User findUserByUuidOrThrow(String uuid) {
         return userRepository.findByUuid(uuid)

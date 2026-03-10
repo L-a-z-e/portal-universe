@@ -10,6 +10,9 @@ import org.apache.avro.specific.SpecificRecord;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+/**
+ * 블로그 이벤트를 Spring ApplicationEvent로 발행하여 Kafka 전송을 트리거한다.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

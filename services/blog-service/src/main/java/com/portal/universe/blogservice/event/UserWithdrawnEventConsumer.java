@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * 회원 탈퇴 이벤트를 수신하여 블로그 데이터를 정리한다.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

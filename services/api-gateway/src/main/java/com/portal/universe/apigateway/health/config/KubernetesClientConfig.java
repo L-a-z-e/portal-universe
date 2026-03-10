@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+/**
+ * K8s 환경(kubernetes profile)에서만 KubernetesClient Bean을 생성한다.
+ */
 @Configuration
 @Profile("kubernetes")
 public class KubernetesClientConfig {

@@ -21,7 +21,6 @@ class DocumentRetriever:
         k: int | None = None,
         score_threshold: float | None = None,
     ) -> list[tuple[Document, float]]:
-        """쿼리 기반 유사 문서 검색."""
         return self._vectorstore.search(
             query,
             k=k or settings.rag_top_k,
@@ -29,7 +28,6 @@ class DocumentRetriever:
         )
 
     def retrieve_as_context(self, query: str) -> tuple[str, list[tuple[Document, float]]]:
-        """검색 결과를 컨텍스트 문자열로 조합하여 반환."""
         results = self.retrieve(query)
 
         if not results:

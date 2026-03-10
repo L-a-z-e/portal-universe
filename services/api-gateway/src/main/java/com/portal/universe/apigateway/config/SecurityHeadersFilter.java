@@ -29,7 +29,6 @@ public class SecurityHeadersFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 보안 헤더가 비활성화되어 있으면 스킵
         if (!properties.isEnabled()) {
             return chain.filter(exchange);
         }
@@ -43,55 +42,39 @@ public class SecurityHeadersFilter implements GlobalFilter {
         return chain.filter(exchange);
     }
 
-    /**
-     * 응답에 보안 헤더를 추가합니다.
-     */
     private void addSecurityHeaders(ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
         HttpHeaders headers = response.getHeaders();
         String path = request.getPath().value();
 
-        // X-Content-Type-Options: nosniff
         if (properties.isContentTypeOptions()) {
             headers.add("X-Content-Type-Options", "nosniff");
         }
 
-        // X-Frame-Options
         if (properties.getFrameOptions() != null && !properties.getFrameOptions().isEmpty()) {
             headers.add("X-Frame-Options", properties.getFrameOptions());
         }
 
-        // X-XSS-Protection
         if (properties.isXssProtection()) {
             headers.add("X-XSS-Protection", "1; mode=block");
         }
 
-        // Referrer-Policy
         if (properties.getReferrerPolicy() != null && !properties.getReferrerPolicy().isEmpty()) {
             headers.add("Referrer-Policy", properties.getReferrerPolicy());
         }
 
-        // Permissions-Policy
         if (properties.getPermissionsPolicy() != null && !properties.getPermissionsPolicy().isEmpty()) {
             headers.add("Permissions-Policy", properties.getPermissionsPolicy());
         }
 
-        // Content-Security-Policy
         addContentSecurityPolicy(headers);
-
-        // HSTS (Strict-Transport-Security)
         addHstsHeader(request, headers);
-
-        // Cache-Control (인증 관련 경로)
         addCacheControlHeader(path, headers);
 
         log.debug("Security headers added for path: {}", path);
     }
 
-    /**
-     * Content-Security-Policy 헤더를 추가합니다.
-     */
     private void addContentSecurityPolicy(HttpHeaders headers) {
         SecurityHeadersProperties.CspProperties csp = properties.getCsp();
 
@@ -106,10 +89,7 @@ public class SecurityHeadersFilter implements GlobalFilter {
         headers.add(headerName, csp.getPolicy());
     }
 
-    /**
-     * HSTS (HTTP Strict Transport Security) 헤더를 추가합니다.
-     * HTTPS 요청인 경우에만 적용됩니다.
-     */
+    /** HTTPS 요청인 경우에만 HSTS 헤더를 적용한다. */
     private void addHstsHeader(ServerHttpRequest request, HttpHeaders headers) {
         SecurityHeadersProperties.HstsProperties hsts = properties.getHsts();
 
@@ -137,10 +117,7 @@ public class SecurityHeadersFilter implements GlobalFilter {
         headers.add("Strict-Transport-Security", hstsValue.toString());
     }
 
-    /**
-     * Cache-Control 헤더를 추가합니다.
-     * 인증 관련 경로에는 no-cache 정책을 적용합니다.
-     */
+    /** 인증 관련 경로에 no-cache 정책을 적용한다. */
     private void addCacheControlHeader(String path, HttpHeaders headers) {
         SecurityHeadersProperties.CacheControlProperties cacheControl = properties.getCacheControl();
 
@@ -148,7 +125,6 @@ public class SecurityHeadersFilter implements GlobalFilter {
             return;
         }
 
-        // 설정된 경로 패턴과 매칭되는지 확인
         for (String pattern : cacheControl.getNoCachePaths()) {
             if (pathMatcher.match(pattern, path)) {
                 headers.add("Cache-Control", "no-store, no-cache, must-revalidate");
@@ -160,18 +136,13 @@ public class SecurityHeadersFilter implements GlobalFilter {
         }
     }
 
-    /**
-     * HTTPS 요청인지 확인합니다.
-     * X-Forwarded-Proto 헤더를 우선 확인하고, 없으면 scheme을 확인합니다.
-     */
+    /** X-Forwarded-Proto 우선, 없으면 scheme으로 판별한다. */
     private boolean isHttpsRequest(ServerHttpRequest request) {
-        // X-Forwarded-Proto 헤더 확인 (프록시 환경)
         String forwardedProto = request.getHeaders().getFirst("X-Forwarded-Proto");
         if (forwardedProto != null) {
             return "https".equalsIgnoreCase(forwardedProto);
         }
 
-        // 직접 연결인 경우 scheme 확인
         String scheme = request.getURI().getScheme();
         return "https".equalsIgnoreCase(scheme);
     }

@@ -29,8 +29,6 @@ public class MembershipAdminController {
     private final MembershipService membershipService;
     private final RoleDefaultMembershipService roleDefaultMembershipService;
 
-    // --- User Membership ---
-
     @GetMapping("/groups")
     public ResponseEntity<ApiResponse<List<String>>> getMembershipGroups() {
         return ResponseEntity.ok(ApiResponse.success(membershipService.getAllMembershipGroups()));
@@ -50,8 +48,6 @@ public class MembershipAdminController {
         return ResponseEntity.ok(
                 ApiResponse.success(membershipService.adminChangeMembershipTier(userId, request, adminId)));
     }
-
-    // --- Role Default Mapping ---
 
     @GetMapping("/role-defaults")
     public ResponseEntity<ApiResponse<List<RoleDefaultMappingResponse>>> getAllRoleDefaults() {
@@ -79,8 +75,6 @@ public class MembershipAdminController {
         roleDefaultMembershipService.removeMapping(roleKey, membershipGroup, adminId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
-
-    // --- Tier CRUD ---
 
     @PostMapping("/tiers")
     public ResponseEntity<ApiResponse<MembershipTierResponse>> createTier(

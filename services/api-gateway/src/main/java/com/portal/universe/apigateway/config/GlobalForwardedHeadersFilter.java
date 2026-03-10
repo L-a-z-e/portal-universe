@@ -29,13 +29,11 @@ public class GlobalForwardedHeadersFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
-        // FrontendProperties 정보로 X-Forwarded 헤더 설정
         String forwardedHost = frontendProperties.getHost();
         String forwardedScheme = frontendProperties.getScheme();
         String forwardedPort = String.valueOf(frontendProperties.getPort());
         String forwardedFor = extractClientIp(request);
 
-        // X-Forwarded-* 헤더 추가
         ServerHttpRequest mutatedRequest = request.mutate()
                 .header("X-Forwarded-Host", forwardedHost)
                 .header("X-Forwarded-Proto", forwardedScheme)
@@ -43,7 +41,7 @@ public class GlobalForwardedHeadersFilter implements GlobalFilter, Ordered {
                 .header("X-Forwarded-For", forwardedFor)
                 .build();
 
-        log.debug("🌐 [Global Forwarded] Host={}, Proto={}, Port={}, For={}, Path={}",
+        log.debug("[Global Forwarded] Host={}, Proto={}, Port={}, For={}, Path={}",
                 forwardedHost, forwardedScheme, forwardedPort, forwardedFor, request.getPath());
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
@@ -56,20 +54,16 @@ public class GlobalForwardedHeadersFilter implements GlobalFilter, Ordered {
      * 3. Remote Address 사용
      */
     private String extractClientIp(ServerHttpRequest request) {
-        // 1. 기존 X-Forwarded-For 헤더
         String existingForwardedFor = request.getHeaders().getFirst("X-Forwarded-For");
         if (existingForwardedFor != null && !existingForwardedFor.isEmpty()) {
-            // 프록시 체인의 첫 번째 IP (원본 클라이언트)
             return existingForwardedFor.split(",")[0].trim();
         }
 
-        // 2. X-Real-IP 헤더
         String realIp = request.getHeaders().getFirst("X-Real-IP");
         if (realIp != null && !realIp.isEmpty()) {
             return realIp;
         }
 
-        // 3. Remote Address
         if (request.getRemoteAddress() != null) {
             return request.getRemoteAddress().getAddress().getHostAddress();
         }

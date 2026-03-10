@@ -7,6 +7,9 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+/**
+ * WebFlux 환경용 Reactive Redis 연결 설정.
+ */
 @Configuration
 public class RedisConfig {
 

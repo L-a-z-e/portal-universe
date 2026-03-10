@@ -1,14 +1,9 @@
-/**
- * React Router Configuration for Prism Frontend
- *
- * AI Agent Orchestration 라우팅 설정
- * Shopping과 동일한 패턴으로 Parent 내비게이션 연동 지원
- *
- * IMPORTANT: Layout은 lazy load하지 않음
- * - lazy load된 컴포넌트가 react-router-dom을 별도 import하면
- * - Module Federation에서 다른 React 인스턴스와 충돌 (Error #525)
- * - Outlet은 이 파일에서 직접 import하여 사용
- */
+// AI Agent Orchestration 라우팅 설정 (Parent 내비게이션 연동 지원)
+//
+// IMPORTANT: Layout은 lazy load하지 않음
+// - lazy load된 컴포넌트가 react-router-dom을 별도 import하면
+// - Module Federation에서 다른 React 인스턴스와 충돌 (Error #525)
+// - Outlet은 이 파일에서 직접 import하여 사용
 import React, { Suspense, lazy, useEffect, useRef } from 'react'
 import { Spinner } from '@portal/design-react'
 import {
@@ -47,24 +42,15 @@ let navigationCallback: ((path: string) => void) | null = null
 // App active state for keep-alive support
 let isAppActive = true
 
-/**
- * Set app active state (for keep-alive activated/deactivated)
- */
 export const setAppActive = (active: boolean) => {
   isAppActive = active
 }
 
-/**
- * Set navigation callback for parent communication
- */
 export const setNavigationCallback = (callback: ((path: string) => void) | null) => {
   navigationCallback = callback
 }
 
-/**
- * Navigation Sync Component
- * 라우트 변경 시 Parent에게 알림
- */
+// 라우트 변경 시 Parent에게 알림
 const NavigationSync: React.FC = () => {
   const location = useLocation()
   const prevPathRef = useRef(location.pathname)
@@ -196,25 +182,16 @@ export const createRouter = (options: {
 // Router instance cache for navigation control
 let routerInstance: RouterInstance | null = null
 
-/**
- * Get current router instance
- */
 export const getRouter = () => routerInstance
 
-/**
- * Navigate programmatically (for parent navigation sync)
- */
 export const navigateTo = (path: string) => {
   if (routerInstance) {
     routerInstance.navigate(path)
   } else {
-    console.error('❌ [Prism Router] Router not initialized')
+    console.error('[Prism Router] Router not initialized')
   }
 }
 
-/**
- * Reset router instance (for cleanup on unmount)
- */
 export const resetRouter = () => {
   routerInstance = null
   setNavigationCallback(null)

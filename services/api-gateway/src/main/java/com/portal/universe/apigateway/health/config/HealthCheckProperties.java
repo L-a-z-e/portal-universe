@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Health check 대상 서비스 목록 설정.
+ */
 @Data
 @Component
 @ConfigurationProperties(prefix = "health-check")

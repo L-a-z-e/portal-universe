@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
+/**
+ * Blog 서비스에서 사용하는 Kafka 토픽 자동 생성 설정.
+ */
 @Configuration
 public class KafkaTopicConfig {
 

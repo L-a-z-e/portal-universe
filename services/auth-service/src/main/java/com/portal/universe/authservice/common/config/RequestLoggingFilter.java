@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * 모든 요청의 method, URI, 처리 시간을 로깅하는 필터.
+ */
 @Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)

@@ -31,46 +31,25 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * 소속 장바구니
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", nullable = false)
     private Cart cart;
 
-    /**
-     * 판매자 ID (스냅샷)
-     */
     @Column(name = "seller_id", nullable = false)
     private Long sellerId;
 
-    /**
-     * 상품 ID
-     */
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    /**
-     * 상품명 (스냅샷)
-     */
     @Column(name = "product_name", nullable = false, length = 255)
     private String productName;
 
-    /**
-     * 단가 (스냅샷)
-     */
     @Column(name = "price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
-    /**
-     * 수량
-     */
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    /**
-     * 장바구니에 추가된 시간
-     */
     @CreatedDate
     @Column(name = "added_at", nullable = false, updatable = false)
     private Instant addedAt;
@@ -86,21 +65,11 @@ public class CartItem {
         this.quantity = quantity;
     }
 
-    /**
-     * 수량을 변경합니다.
-     *
-     * @param newQuantity 새 수량
-     */
     public void updateQuantity(int newQuantity) {
         validateQuantity(newQuantity);
         this.quantity = newQuantity;
     }
 
-    /**
-     * 수량을 증가시킵니다.
-     *
-     * @param additionalQuantity 추가할 수량
-     */
     public void increaseQuantity(int additionalQuantity) {
         if (additionalQuantity <= 0) {
             throw new CustomBusinessException(ShoppingErrorCode.INVALID_CART_ITEM_QUANTITY);
@@ -108,11 +77,6 @@ public class CartItem {
         this.quantity += additionalQuantity;
     }
 
-    /**
-     * 소계를 계산합니다 (단가 × 수량).
-     *
-     * @return 소계
-     */
     public BigDecimal getSubtotal() {
         return price.multiply(BigDecimal.valueOf(quantity));
     }
@@ -132,9 +96,6 @@ public class CartItem {
         }
     }
 
-    /**
-     * 수량을 검증합니다.
-     */
     private void validateQuantity(int quantity) {
         if (quantity <= 0) {
             throw new CustomBusinessException(ShoppingErrorCode.INVALID_CART_ITEM_QUANTITY);

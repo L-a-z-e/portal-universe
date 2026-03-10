@@ -26,6 +26,10 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 등록된 마이크로서비스의 health 상태를 집계한다.
+ * WebClient로 각 서비스의 actuator를 호출하고, K8s 환경에서는 Pod 정보를 추가한다.
+ */
 @Slf4j
 @Service
 public class ServiceHealthAggregator {
