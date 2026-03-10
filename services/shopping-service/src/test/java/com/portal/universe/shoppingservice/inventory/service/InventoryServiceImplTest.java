@@ -4,6 +4,7 @@ import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.inventory.domain.Inventory;
 import com.portal.universe.shoppingservice.inventory.dto.InventoryResponse;
 import com.portal.universe.shoppingservice.inventory.repository.InventoryRepository;
+import com.portal.universe.shoppingservice.support.fixture.InventoryFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,18 +30,6 @@ class InventoryServiceImplTest {
     @InjectMocks
     private InventoryServiceImpl inventoryService;
 
-    private Inventory createInventory(Long id, Long productId, int available, int reserved) {
-        Inventory inventory = Inventory.builder()
-                .productId(productId)
-                .initialQuantity(available)
-                .build();
-        ReflectionTestUtils.setField(inventory, "id", id);
-        ReflectionTestUtils.setField(inventory, "availableQuantity", available);
-        ReflectionTestUtils.setField(inventory, "reservedQuantity", reserved);
-        ReflectionTestUtils.setField(inventory, "totalQuantity", available + reserved);
-        return inventory;
-    }
-
     @Nested
     @DisplayName("getInventory")
     class GetInventory {
@@ -50,7 +38,8 @@ class InventoryServiceImplTest {
         @DisplayName("should_returnInventory_when_found")
         void should_returnInventory_when_found() {
             // given
-            Inventory inventory = createInventory(1L, 100L, 50, 10);
+            Inventory inventory = InventoryFixture.builder()
+                    .id(1L).productId(100L).availableQuantity(50).reservedQuantity(10).build();
             when(inventoryRepository.findByProductId(100L)).thenReturn(Optional.of(inventory));
 
             // when
@@ -81,8 +70,10 @@ class InventoryServiceImplTest {
         @DisplayName("should_returnInventories_when_called")
         void should_returnInventories_when_called() {
             // given
-            Inventory inv1 = createInventory(1L, 100L, 50, 10);
-            Inventory inv2 = createInventory(2L, 200L, 30, 5);
+            Inventory inv1 = InventoryFixture.builder()
+                    .id(1L).productId(100L).availableQuantity(50).reservedQuantity(10).build();
+            Inventory inv2 = InventoryFixture.builder()
+                    .id(2L).productId(200L).availableQuantity(30).reservedQuantity(5).build();
             when(inventoryRepository.findByProductIds(List.of(100L, 200L))).thenReturn(List.of(inv1, inv2));
 
             // when

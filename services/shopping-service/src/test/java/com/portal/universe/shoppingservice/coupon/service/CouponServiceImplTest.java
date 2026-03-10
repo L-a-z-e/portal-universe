@@ -8,6 +8,7 @@ import com.portal.universe.shoppingservice.coupon.redis.CouponRedisService;
 import com.portal.universe.shoppingservice.coupon.repository.CouponRepository;
 import com.portal.universe.shoppingservice.coupon.repository.UserCouponRepository;
 import com.portal.universe.shoppingservice.event.ShoppingEventPublisher;
+import com.portal.universe.shoppingservice.support.fixture.CouponFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -46,36 +46,6 @@ class CouponServiceImplTest {
     @InjectMocks
     private CouponServiceImpl couponService;
 
-    private Coupon createCoupon(Long id, String code, CouponStatus status, int totalQty, int issuedQty) {
-        Coupon coupon = Coupon.builder()
-                .code(code)
-                .name("Test Coupon")
-                .description("desc")
-                .discountType(DiscountType.FIXED)
-                .discountValue(BigDecimal.valueOf(1000))
-                .minimumOrderAmount(BigDecimal.valueOf(5000))
-                .maximumDiscountAmount(BigDecimal.valueOf(3000))
-                .totalQuantity(totalQty)
-                .startsAt(Instant.now().minus(1, ChronoUnit.DAYS))
-                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
-                .build();
-        ReflectionTestUtils.setField(coupon, "id", id);
-        ReflectionTestUtils.setField(coupon, "status", status);
-        ReflectionTestUtils.setField(coupon, "issuedQuantity", issuedQty);
-        return coupon;
-    }
-
-    private UserCoupon createUserCoupon(Long id, String userId, Coupon coupon, UserCouponStatus status) {
-        UserCoupon userCoupon = UserCoupon.builder()
-                .userId(userId)
-                .coupon(coupon)
-                .expiresAt(coupon.getExpiresAt())
-                .build();
-        ReflectionTestUtils.setField(userCoupon, "id", id);
-        ReflectionTestUtils.setField(userCoupon, "status", status);
-        return userCoupon;
-    }
-
     @Nested
     @DisplayName("getCoupon")
     class GetCoupon {
@@ -84,7 +54,9 @@ class CouponServiceImplTest {
         @DisplayName("should_returnCoupon_when_found")
         void should_returnCoupon_when_found() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(0).build();
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
             // when
@@ -114,7 +86,9 @@ class CouponServiceImplTest {
         @DisplayName("should_returnAvailableCoupons_when_called")
         void should_returnAvailableCoupons_when_called() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(0).build();
             when(couponRepository.findAvailableCoupons(eq(CouponStatus.ACTIVE), any(Instant.class)))
                     .thenReturn(List.of(coupon));
 
@@ -134,11 +108,14 @@ class CouponServiceImplTest {
         @DisplayName("should_issueCoupon_when_valid")
         void should_issueCoupon_when_valid() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(0).build();
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
             when(couponRedisService.issueCoupon(1L, "1", 100)).thenReturn(1L);
 
-            UserCoupon userCoupon = createUserCoupon(1L, "1", coupon, UserCouponStatus.AVAILABLE);
+            UserCoupon userCoupon = CouponFixture.userCouponBuilder()
+                    .id(1L).userId("1").coupon(coupon).status(UserCouponStatus.AVAILABLE).build();
             when(userCouponRepository.save(any(UserCoupon.class))).thenReturn(userCoupon);
 
             // when
@@ -153,7 +130,9 @@ class CouponServiceImplTest {
         @DisplayName("should_throwException_when_alreadyIssued")
         void should_throwException_when_alreadyIssued() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(0).build();
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
             when(couponRedisService.issueCoupon(1L, "1", 100)).thenReturn(-1L);
 
@@ -166,7 +145,9 @@ class CouponServiceImplTest {
         @DisplayName("should_throwException_when_exhausted")
         void should_throwException_when_exhausted() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(0).build();
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
             when(couponRedisService.issueCoupon(1L, "1", 100)).thenReturn(0L);
 
@@ -179,7 +160,9 @@ class CouponServiceImplTest {
         @DisplayName("should_throwException_when_inactive")
         void should_throwException_when_inactive() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.INACTIVE, 100, 0);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.INACTIVE)
+                    .totalQuantity(100).issuedQuantity(0).build();
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
             // when & then
@@ -191,8 +174,11 @@ class CouponServiceImplTest {
         @DisplayName("should_throwException_when_notStarted")
         void should_throwException_when_notStarted() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
-            ReflectionTestUtils.setField(coupon, "startsAt", Instant.now().plus(10, ChronoUnit.DAYS));
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(0)
+                    .startsAt(Instant.now().plus(10, ChronoUnit.DAYS))
+                    .build();
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
             // when & then
@@ -204,8 +190,11 @@ class CouponServiceImplTest {
         @DisplayName("should_throwException_when_expired")
         void should_throwException_when_expired() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 0);
-            ReflectionTestUtils.setField(coupon, "expiresAt", Instant.now().minus(1, ChronoUnit.DAYS));
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(0)
+                    .expiresAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                    .build();
             when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
             // when & then
@@ -222,8 +211,11 @@ class CouponServiceImplTest {
         @DisplayName("should_returnUserCoupons_when_called")
         void should_returnUserCoupons_when_called() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 1);
-            UserCoupon userCoupon = createUserCoupon(1L, "user1", coupon, UserCouponStatus.AVAILABLE);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(1).build();
+            UserCoupon userCoupon = CouponFixture.userCouponBuilder()
+                    .id(1L).userId("user1").coupon(coupon).status(UserCouponStatus.AVAILABLE).build();
             when(userCouponRepository.findByUserId("user1")).thenReturn(List.of(userCoupon));
 
             // when
@@ -242,8 +234,11 @@ class CouponServiceImplTest {
         @DisplayName("should_returnAvailableUserCoupons_when_called")
         void should_returnAvailableUserCoupons_when_called() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 1);
-            UserCoupon userCoupon = createUserCoupon(1L, "user1", coupon, UserCouponStatus.AVAILABLE);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(1).build();
+            UserCoupon userCoupon = CouponFixture.userCouponBuilder()
+                    .id(1L).userId("user1").coupon(coupon).status(UserCouponStatus.AVAILABLE).build();
             when(userCouponRepository.findAvailableByUserId(eq("user1"), any(Instant.class)))
                     .thenReturn(List.of(userCoupon));
 
@@ -263,8 +258,11 @@ class CouponServiceImplTest {
         @DisplayName("should_useCoupon_when_valid")
         void should_useCoupon_when_valid() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 1);
-            UserCoupon userCoupon = createUserCoupon(1L, "user1", coupon, UserCouponStatus.AVAILABLE);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(1).build();
+            UserCoupon userCoupon = CouponFixture.userCouponBuilder()
+                    .id(1L).userId("user1").coupon(coupon).status(UserCouponStatus.AVAILABLE).build();
             when(userCouponRepository.findById(1L)).thenReturn(Optional.of(userCoupon));
             when(userCouponRepository.save(any(UserCoupon.class))).thenReturn(userCoupon);
 
@@ -279,8 +277,11 @@ class CouponServiceImplTest {
         @DisplayName("should_throwException_when_alreadyUsed")
         void should_throwException_when_alreadyUsed() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 1);
-            UserCoupon userCoupon = createUserCoupon(1L, "user1", coupon, UserCouponStatus.USED);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(1).build();
+            UserCoupon userCoupon = CouponFixture.userCouponBuilder()
+                    .id(1L).userId("user1").coupon(coupon).status(UserCouponStatus.USED).build();
             when(userCouponRepository.findById(1L)).thenReturn(Optional.of(userCoupon));
 
             // when & then
@@ -297,8 +298,11 @@ class CouponServiceImplTest {
         @DisplayName("should_calculateDiscount_when_valid")
         void should_calculateDiscount_when_valid() {
             // given
-            Coupon coupon = createCoupon(1L, "SAVE10", CouponStatus.ACTIVE, 100, 1);
-            UserCoupon userCoupon = createUserCoupon(1L, "user1", coupon, UserCouponStatus.AVAILABLE);
+            Coupon coupon = CouponFixture.couponBuilder()
+                    .id(1L).code("SAVE10").status(CouponStatus.ACTIVE)
+                    .totalQuantity(100).issuedQuantity(1).build();
+            UserCoupon userCoupon = CouponFixture.userCouponBuilder()
+                    .id(1L).userId("user1").coupon(coupon).status(UserCouponStatus.AVAILABLE).build();
             when(userCouponRepository.findById(1L)).thenReturn(Optional.of(userCoupon));
 
             // when

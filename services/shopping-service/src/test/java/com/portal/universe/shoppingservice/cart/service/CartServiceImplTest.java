@@ -3,7 +3,6 @@ package com.portal.universe.shoppingservice.cart.service;
 import com.portal.universe.commonlibrary.exception.CustomBusinessException;
 import com.portal.universe.shoppingservice.cart.domain.Cart;
 import com.portal.universe.shoppingservice.cart.domain.CartItem;
-import com.portal.universe.shoppingservice.cart.domain.CartStatus;
 import com.portal.universe.shoppingservice.cart.dto.AddCartItemRequest;
 import com.portal.universe.shoppingservice.cart.dto.CartResponse;
 import com.portal.universe.shoppingservice.cart.dto.UpdateCartItemRequest;
@@ -12,6 +11,9 @@ import com.portal.universe.shoppingservice.inventory.domain.Inventory;
 import com.portal.universe.shoppingservice.inventory.repository.InventoryRepository;
 import com.portal.universe.shoppingservice.product.domain.Product;
 import com.portal.universe.shoppingservice.product.repository.ProductRepository;
+import com.portal.universe.shoppingservice.support.fixture.CartFixture;
+import com.portal.universe.shoppingservice.support.fixture.InventoryFixture;
+import com.portal.universe.shoppingservice.support.fixture.ProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,10 +21,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,43 +46,11 @@ class CartServiceImplTest {
     @InjectMocks
     private CartServiceImpl cartService;
 
-    private Cart createActiveCart(String userId) {
-        Cart cart = Cart.builder().userId(userId).build();
-        ReflectionTestUtils.setField(cart, "id", 1L);
-        return cart;
-    }
-
     private Cart createCartWithItem(String userId) {
-        Cart cart = createActiveCart(userId);
-        CartItem item = CartItem.builder()
-                .cart(cart)
-                .productId(1L)
-                .productName("Test Product")
-                .price(BigDecimal.valueOf(5000))
-                .quantity(2)
-                .build();
-        ReflectionTestUtils.setField(item, "id", 10L);
+        Cart cart = CartFixture.builder().userId(userId).build();
+        CartItem item = CartFixture.createItem(cart, 1L, "Test Product", BigDecimal.valueOf(5000), 2);
         cart.getItems().add(item);
         return cart;
-    }
-
-    private Product createProduct(Long id) {
-        Product product = Product.builder()
-                .name("Test Product")
-                .description("desc")
-                .price(BigDecimal.valueOf(5000))
-                .build();
-        ReflectionTestUtils.setField(product, "id", id);
-        return product;
-    }
-
-    private Inventory createInventory(Long productId, int available) {
-        Inventory inventory = Inventory.builder()
-                .productId(productId)
-                .initialQuantity(available)
-                .build();
-        ReflectionTestUtils.setField(inventory, "id", 1L);
-        return inventory;
     }
 
     @Nested
@@ -93,7 +61,7 @@ class CartServiceImplTest {
         @DisplayName("should_returnExistingCart_when_cartExists")
         void should_returnExistingCart_when_cartExists() {
             // given
-            Cart cart = createActiveCart("user1");
+            Cart cart = CartFixture.builder().userId("user1").build();
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
 
             // when
@@ -108,7 +76,7 @@ class CartServiceImplTest {
         @DisplayName("should_createNewCart_when_noActiveCart")
         void should_createNewCart_when_noActiveCart() {
             // given
-            Cart newCart = createActiveCart("user1");
+            Cart newCart = CartFixture.builder().userId("user1").build();
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of());
             when(cartRepository.save(any(Cart.class))).thenReturn(newCart);
 
@@ -129,9 +97,11 @@ class CartServiceImplTest {
         @DisplayName("should_addItem_when_validRequest")
         void should_addItem_when_validRequest() {
             // given
-            Cart cart = createActiveCart("user1");
-            Product product = createProduct(2L);
-            Inventory inventory = createInventory(2L, 100);
+            Cart cart = CartFixture.builder().userId("user1").build();
+            Product product = ProductFixture.builder()
+                    .id(2L).name("Test Product").price(BigDecimal.valueOf(5000)).build();
+            Inventory inventory = InventoryFixture.builder()
+                    .productId(2L).availableQuantity(100).build();
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
             when(productRepository.findById(2L)).thenReturn(Optional.of(product));
@@ -152,7 +122,7 @@ class CartServiceImplTest {
         @DisplayName("should_throwException_when_productNotFound")
         void should_throwException_when_productNotFound() {
             // given
-            Cart cart = createActiveCart("user1");
+            Cart cart = CartFixture.builder().userId("user1").build();
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
             when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -167,9 +137,11 @@ class CartServiceImplTest {
         @DisplayName("should_throwException_when_exceedsStock")
         void should_throwException_when_exceedsStock() {
             // given
-            Cart cart = createActiveCart("user1");
-            Product product = createProduct(1L);
-            Inventory inventory = createInventory(1L, 2);
+            Cart cart = CartFixture.builder().userId("user1").build();
+            Product product = ProductFixture.builder()
+                    .id(1L).name("Test Product").price(BigDecimal.valueOf(5000)).build();
+            Inventory inventory = InventoryFixture.builder()
+                    .productId(1L).availableQuantity(2).build();
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
             when(productRepository.findById(1L)).thenReturn(Optional.of(product));
@@ -192,7 +164,8 @@ class CartServiceImplTest {
         void should_updateQuantity_when_valid() {
             // given
             Cart cart = createCartWithItem("user1");
-            Inventory inventory = createInventory(1L, 100);
+            Inventory inventory = InventoryFixture.builder()
+                    .productId(1L).availableQuantity(100).build();
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
             when(inventoryRepository.findByProductIds(List.of(1L))).thenReturn(List.of(inventory));
@@ -226,7 +199,8 @@ class CartServiceImplTest {
         void should_throwException_when_exceedsStock() {
             // given
             Cart cart = createCartWithItem("user1");
-            Inventory inventory = createInventory(1L, 2);
+            Inventory inventory = InventoryFixture.builder()
+                    .productId(1L).availableQuantity(2).build();
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
             when(inventoryRepository.findByProductIds(List.of(1L))).thenReturn(List.of(inventory));
@@ -302,7 +276,8 @@ class CartServiceImplTest {
         void should_checkout_when_valid() {
             // given
             Cart cart = createCartWithItem("user1");
-            Inventory inventory = createInventory(1L, 100);
+            Inventory inventory = InventoryFixture.builder()
+                    .productId(1L).availableQuantity(100).build();
 
             when(cartRepository.findActiveCartWithItems("user1")).thenReturn(List.of(cart));
             when(inventoryRepository.findByProductIds(List.of(1L))).thenReturn(List.of(inventory));

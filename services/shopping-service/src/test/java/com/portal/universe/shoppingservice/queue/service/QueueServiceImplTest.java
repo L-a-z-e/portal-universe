@@ -7,6 +7,7 @@ import com.portal.universe.shoppingservice.queue.domain.WaitingQueue;
 import com.portal.universe.shoppingservice.queue.dto.QueueStatusResponse;
 import com.portal.universe.shoppingservice.queue.repository.QueueEntryRepository;
 import com.portal.universe.shoppingservice.queue.repository.WaitingQueueRepository;
+import com.portal.universe.shoppingservice.support.fixture.QueueFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,30 +55,6 @@ class QueueServiceImplTest {
                 waitingQueueRepository, queueEntryRepository, redisTemplate, queueProcessScript);
     }
 
-    private WaitingQueue createWaitingQueue(Long id, String eventType, Long eventId,
-                                             int maxCapacity, int batchSize, int intervalSec, boolean active) {
-        WaitingQueue queue = WaitingQueue.builder()
-                .eventType(eventType)
-                .eventId(eventId)
-                .maxCapacity(maxCapacity)
-                .entryBatchSize(batchSize)
-                .entryIntervalSeconds(intervalSec)
-                .build();
-        ReflectionTestUtils.setField(queue, "id", id);
-        ReflectionTestUtils.setField(queue, "isActive", active);
-        return queue;
-    }
-
-    private QueueEntry createQueueEntry(Long id, WaitingQueue queue, String userId, QueueStatus status) {
-        QueueEntry entry = QueueEntry.builder()
-                .queue(queue)
-                .userId(userId)
-                .build();
-        ReflectionTestUtils.setField(entry, "id", id);
-        ReflectionTestUtils.setField(entry, "status", status);
-        return entry;
-    }
-
     @Nested
     @DisplayName("enterQueue")
     class EnterQueue {
@@ -87,13 +63,16 @@ class QueueServiceImplTest {
         @DisplayName("should_enterQueue_when_valid")
         void should_enterQueue_when_valid() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
             when(queueEntryRepository.findByQueueAndUserId(queue, "user1"))
                     .thenReturn(Optional.empty());
 
-            QueueEntry savedEntry = createQueueEntry(1L, queue, "user1", QueueStatus.WAITING);
+            QueueEntry savedEntry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.WAITING).build();
             when(queueEntryRepository.save(any(QueueEntry.class))).thenReturn(savedEntry);
 
             when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
@@ -125,8 +104,11 @@ class QueueServiceImplTest {
         @DisplayName("should_returnExistingStatus_when_alreadyWaiting")
         void should_returnExistingStatus_when_alreadyWaiting() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
-            QueueEntry existingEntry = createQueueEntry(1L, queue, "user1", QueueStatus.WAITING);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
+            QueueEntry existingEntry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.WAITING).build();
 
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
@@ -150,8 +132,11 @@ class QueueServiceImplTest {
         @DisplayName("should_returnEnteredStatus_when_alreadyEntered")
         void should_returnEnteredStatus_when_alreadyEntered() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
-            QueueEntry existingEntry = createQueueEntry(1L, queue, "user1", QueueStatus.ENTERED);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
+            QueueEntry existingEntry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.ENTERED).build();
 
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
@@ -175,8 +160,11 @@ class QueueServiceImplTest {
         @DisplayName("should_returnQueueStatus_when_found")
         void should_returnQueueStatus_when_found() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
-            QueueEntry entry = createQueueEntry(1L, queue, "user1", QueueStatus.WAITING);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
+            QueueEntry entry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.WAITING).build();
 
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
@@ -204,8 +192,11 @@ class QueueServiceImplTest {
         @DisplayName("should_returnQueueStatus_when_tokenFound")
         void should_returnQueueStatus_when_tokenFound() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
-            QueueEntry entry = createQueueEntry(1L, queue, "user1", QueueStatus.ENTERED);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
+            QueueEntry entry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.ENTERED).build();
 
             when(queueEntryRepository.findByEntryToken("test-token")).thenReturn(Optional.of(entry));
 
@@ -237,8 +228,11 @@ class QueueServiceImplTest {
         @DisplayName("should_leaveQueue_when_valid")
         void should_leaveQueue_when_valid() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
-            QueueEntry entry = createQueueEntry(1L, queue, "user1", QueueStatus.WAITING);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
+            QueueEntry entry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.WAITING).build();
 
             when(waitingQueueRepository.findByEventTypeAndEventId("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
@@ -263,8 +257,11 @@ class QueueServiceImplTest {
         @DisplayName("should_leaveQueue_when_tokenValid")
         void should_leaveQueue_when_tokenValid() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
-            QueueEntry entry = createQueueEntry(1L, queue, "user1", QueueStatus.WAITING);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
+            QueueEntry entry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.WAITING).build();
 
             when(queueEntryRepository.findByEntryToken("test-token")).thenReturn(Optional.of(entry));
             when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
@@ -296,13 +293,15 @@ class QueueServiceImplTest {
         @DisplayName("should_processEntries_atomically_via_lua_script")
         void should_processEntries_atomically_via_lua_script() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
-            QueueEntry entry = createQueueEntry(1L, queue, "user1", QueueStatus.WAITING);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
+            QueueEntry entry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.WAITING).build();
 
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
 
-            // Lua Script가 입장 처리된 토큰 목록 반환
             List<String> processedTokens = List.of(entry.getEntryToken());
             when(redisTemplate.execute(eq(queueProcessScript), anyList(), any(), any()))
                     .thenReturn(processedTokens);
@@ -325,7 +324,9 @@ class QueueServiceImplTest {
         @DisplayName("should_notProcess_when_luaReturnsEmpty")
         void should_notProcess_when_luaReturnsEmpty() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
 
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
@@ -362,7 +363,9 @@ class QueueServiceImplTest {
         @DisplayName("should_returnTrue_when_activeQueueExists")
         void should_returnTrue_when_activeQueueExists() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "COUPON", 5L, 100, 20, 10, true);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("COUPON").eventId(5L)
+                    .maxCapacity(100).entryBatchSize(20).entryIntervalSeconds(10).active(true).build();
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("COUPON", 5L))
                     .thenReturn(Optional.of(queue));
 
@@ -396,8 +399,11 @@ class QueueServiceImplTest {
         @DisplayName("should_returnTrue_when_entered")
         void should_returnTrue_when_entered() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
-            QueueEntry entry = createQueueEntry(1L, queue, "user1", QueueStatus.ENTERED);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
+            QueueEntry entry = QueueFixture.entryBuilder()
+                    .id(1L).queue(queue).userId("user1").status(QueueStatus.ENTERED).build();
 
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
@@ -429,7 +435,9 @@ class QueueServiceImplTest {
         @DisplayName("should_returnFalse_when_notEntered")
         void should_returnFalse_when_notEntered() {
             // given
-            WaitingQueue queue = createWaitingQueue(1L, "TIMEDEAL", 100L, 50, 10, 30, true);
+            WaitingQueue queue = QueueFixture.queueBuilder()
+                    .id(1L).eventType("TIMEDEAL").eventId(100L)
+                    .maxCapacity(50).entryBatchSize(10).entryIntervalSeconds(30).active(true).build();
 
             when(waitingQueueRepository.findByEventTypeAndEventIdAndIsActiveTrue("TIMEDEAL", 100L))
                     .thenReturn(Optional.of(queue));
@@ -443,5 +451,4 @@ class QueueServiceImplTest {
             assertThat(result).isFalse();
         }
     }
-
 }

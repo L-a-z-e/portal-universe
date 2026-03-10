@@ -5,6 +5,7 @@ import com.portal.universe.shoppingservice.order.domain.Order;
 import com.portal.universe.shoppingservice.order.domain.OrderStatus;
 import com.portal.universe.shoppingservice.order.dto.OrderResponse;
 import com.portal.universe.shoppingservice.order.repository.OrderRepository;
+import com.portal.universe.shoppingservice.support.fixture.OrderFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,9 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,20 +35,6 @@ class AdminOrderServiceImplTest {
     @InjectMocks
     private AdminOrderServiceImpl adminOrderService;
 
-    private Order createOrder(String orderNumber, OrderStatus status) {
-        Order order = Order.builder()
-                .userId("user1")
-                .shippingAddress(null)
-                .build();
-        ReflectionTestUtils.setField(order, "id", 1L);
-        ReflectionTestUtils.setField(order, "orderNumber", orderNumber);
-        ReflectionTestUtils.setField(order, "status", status);
-        ReflectionTestUtils.setField(order, "totalAmount", BigDecimal.valueOf(10000));
-        ReflectionTestUtils.setField(order, "discountAmount", BigDecimal.ZERO);
-        ReflectionTestUtils.setField(order, "finalAmount", BigDecimal.valueOf(10000));
-        return order;
-    }
-
     @Nested
     @DisplayName("getOrders")
     class GetOrders {
@@ -59,7 +44,8 @@ class AdminOrderServiceImplTest {
         void should_filterByStatus_when_statusProvided() {
             // given
             Pageable pageable = PageRequest.of(0, 10);
-            Order order = createOrder("ORD-001", OrderStatus.CONFIRMED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.CONFIRMED).build();
             Page<Order> orderPage = new PageImpl<>(List.of(order), pageable, 1);
             when(orderRepository.findByStatus(OrderStatus.CONFIRMED, pageable)).thenReturn(orderPage);
 
@@ -76,7 +62,8 @@ class AdminOrderServiceImplTest {
         void should_filterByKeyword_when_keywordProvided() {
             // given
             Pageable pageable = PageRequest.of(0, 10);
-            Order order = createOrder("ORD-001", OrderStatus.CONFIRMED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.CONFIRMED).build();
             Page<Order> orderPage = new PageImpl<>(List.of(order), pageable, 1);
             when(orderRepository.findByOrderNumberContainingOrUserIdContaining("ORD", "ORD", pageable))
                     .thenReturn(orderPage);
@@ -98,7 +85,8 @@ class AdminOrderServiceImplTest {
         @DisplayName("should_returnOrder_when_found")
         void should_returnOrder_when_found() {
             // given
-            Order order = createOrder("ORD-001", OrderStatus.CONFIRMED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.CONFIRMED).build();
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
 
             // when
@@ -129,7 +117,8 @@ class AdminOrderServiceImplTest {
         @DisplayName("should_updateStatus_when_valid")
         void should_updateStatus_when_valid() {
             // given
-            Order order = createOrder("ORD-001", OrderStatus.CONFIRMED);
+            Order order = OrderFixture.builder()
+                    .userId("user1").orderNumber("ORD-001").status(OrderStatus.CONFIRMED).build();
             when(orderRepository.findByOrderNumberWithItems("ORD-001")).thenReturn(Optional.of(order));
             when(orderRepository.save(any(Order.class))).thenReturn(order);
 
